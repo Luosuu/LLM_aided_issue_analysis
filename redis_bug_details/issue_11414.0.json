@@ -1,0 +1,24 @@
+{
+  "issue_number": 11414.0,
+  "title": "[BUG] Continuous \"I/O error reading bulk count from MASTER: No error information\" Failing the Readiness Probe ",
+  "body": "**Describe the bug**\r\n\r\nWe are using this cache in conjunction with our Grafana Loki deployment handling roughly 100-200GB of uncompressed logs every day. This causes issues for the cache reading from master. The redis cluster handles the caching of compressed logs which should work to up to 100GB of throughput (well over the daily amount of 100GB uncompressed logs). \r\n\r\nWe hit a `readiness probe failed` error without any helpful error information\r\n\r\nThe error is as follows\r\n\r\n```\r\nI/O error reading bulk count from MASTER: No error information\r\nRDB: 50 MB of memory used by copy-on-write\r\nReconnecting to MASTER xxx.xxx.xxx.xxx:6379 after failure\r\nMASTER <-> REPLICA sync started\r\nNon blocking connect for SYNC fired the event.\r\nMaster replied to PING, replication can continue...\r\nPartial resynchronization not possible (no cached master)\r\n```\r\n\r\nThe main issue for us is the `No error information part`\r\n\r\nThere is no way to debug this issue with this kind of response message\r\n\r\n**To reproduce**\r\n\r\nWe use Kubernetes pods with the `spotahome/redis-operator`\r\n\r\nThe failover has some CustomConfig that will override the default values set by the operator (see below in additional information around CustomConfig). \r\nWe run 4 instances that have with 9 pod across them. We request 3 cores and 35GB of memory per pod\r\n\r\n**Expected behavior**\r\n\r\nWe expect one of two scenarios to occur.\r\n\r\n1. The pod to fail with an error message that can help us to change config to improve performance\r\n2. The pod to either not fail the readiness probe or restart the pod on the occurrence of this error message (you might not be able to help with this one, as we use the redis-operator)\r\n\r\n**Additional information**\r\n\r\nWe have the Persistent Volume Claim set to the size of 256GB. This should be more than enough data to hold the searched data for any timeframe.\r\nCustomConfig set in the Redis Failover\r\n\r\n```\r\n\"repl-timeout 610\"\r\n\"save 60 5000\"\r\n\"tcp-keepalive 610\"\r\n\"maxclients 500000\"\r\n\"oom-score-adj yes\"\r\n\"oom-score-adj-values 0 200 800\"\r\n\"dynamic-hz yes\"\r\n```\r\n",
+  "state": "open",
+  "created_at": "2022-10-21T04:45:11Z",
+  "updated_at": "2022-10-23T21:02:00Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1287979662,
+      "user": "vineelyalamarthy",
+      "created_at": "2022-10-23T02:14:51Z",
+      "body": "is this Redis Cluster or sentinel?"
+    },
+    {
+      "id": 1288200422,
+      "user": "seanocca",
+      "created_at": "2022-10-23T21:02:00Z",
+      "body": "> is this Redis Cluster or sentinel?\r\n\r\nThis error comes up on the redis cluster"
+    }
+  ]
+}

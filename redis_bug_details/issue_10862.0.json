@@ -1,0 +1,26 @@
+{
+  "issue_number": 10862.0,
+  "title": "[BUG] Pubsub messages are silently lost in cluster mode",
+  "body": "**Describe the bug**\r\n\r\nWe have been observing strange behaviour with our AWS Elasticache deployment. We have two Redis nodes - 1 master and one follower. Both instances are in same AWS zone.\r\n\r\nWe publish significant number of messages through Redis Pubsub mechanism and than have dozen of subscribers. Some subscribers have been missing messages occasionally and we have confirmed that all subscribers missing messages have been subscribed to follower.\r\n\r\nThis was really hard to debug and but we have observed is that `cluster_stats_messages_publish_sent` (on master) & `cluster_stats_messages_publish_received` (on follower) slowly diverge. At the same time number ping/pong messages seems to diverge too.\r\n\r\nThis can be seen [here](https://docs.google.com/spreadsheets/d/1e4n8HEOoUJx_CCLjqbbnKWMtgC2eU6dtZdJWGFd8p-A/edit?usp=sharing)\r\n\r\nWe have confirmed that network throughput is not saturated and even increased instance size (with better network). No improvements have been observed.\r\n\r\n**To reproduce**\r\n\r\nPUBLISH significant number of messages \r\nSUBSCRIBE on follower replica\r\n\r\n**Expected behavior**\r\n\r\nNo messages would be lost, or some operation fail, or this is easily observable from client side so that it can reconnect.",
+  "state": "closed",
+  "created_at": "2022-06-14T12:28:18Z",
+  "updated_at": "2022-06-21T21:43:08Z",
+  "closed_at": "2022-06-21T21:43:08Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1155461386,
+      "user": "madolson",
+      "created_at": "2022-06-14T17:01:25Z",
+      "body": "@brandys11 This is by design of pubsub in Redis, in that it makes no guarantees about delivery. In a sense it's \"at most\" once, in that internally it makes sure that each node only receives a message at most one time. This may just not work well for your implementation.\r\n\r\nIf you want a more reliable mechanism for receiving messages, you might consider using streams instead, as it provides a mechanism to subscribe to a point in time of the stream."
+    },
+    {
+      "id": 1162315214,
+      "user": "hpatro",
+      "created_at": "2022-06-21T20:33:39Z",
+      "body": "As @madolson mentioned it's by design and don't support guaranteed delivery. Marking as `state-to-be-closed`."
+    }
+  ]
+}

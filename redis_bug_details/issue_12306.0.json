@@ -1,0 +1,11 @@
+{
+  "issue_number": 12306.0,
+  "title": "[CRASH] Background saving didn't start",
+  "body": "**Crash report**\r\n\r\n```\r\n1:M 12 Jun 2023 22:18:26.030 * 1 changes in 3600 seconds. Saving...\r\n1:M 12 Jun 2023 22:18:26.030 * Background saving started by pid 541\r\n541:C 12 Jun 2023 22:18:26.079 * DB saved on disk\r\n541:C 12 Jun 2023 22:18:26.079 * Fork CoW for RDB: current 4 MB, peak 4 MB, average 2 MB\r\n1:M 12 Jun 2023 22:18:26.130 * Background saving terminated with success\r\n\r\n1:M 12 Jun 2023 23:18:27.004 * 1 changes in 3600 seconds. Saving...\r\n1:M 12 Jun 2023 23:18:27.004 * Background saving started by pid 542\r\n542:C 12 Jun 2023 23:18:27.068 * DB saved on disk\r\n542:C 12 Jun 2023 23:18:27.069 * Fork CoW for RDB: current 4 MB, peak 4 MB, average 2 MB\r\n1:M 12 Jun 2023 23:18:27.105 * Background saving terminated with success\r\n\r\n1:M 13 Jun 2023 00:18:28.026 * 1 changes in 3600 seconds. Saving...\r\n\r\n1:C 13 Jun 2023 01:37:33.689 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n1:C 13 Jun 2023 01:37:33.689 # Redis version=7.0.11, bits=64, commit=00000000, modified=0, pid=1, just started\r\n...\r\n```\r\n\r\n**Additional information**\r\n\r\n1. redis:7.0-alpine in K8S\r\n2. After 1 hour period, Redis didn't start background saving expected. Besides, Redis \"automatically\" starting caused consumers to lose connection.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-06-13T06:49:49Z",
+  "updated_at": "2023-06-13T07:23:22Z",
+  "closed_at": "2023-06-13T07:23:22Z",
+  "labels": [],
+  "comments_data": []
+}

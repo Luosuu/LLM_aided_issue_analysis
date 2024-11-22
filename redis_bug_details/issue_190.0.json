@@ -1,0 +1,39 @@
+{
+  "issue_number": 190.0,
+  "title": "Relax make clean (unstable branch.)",
+  "body": "Currently into unstable after a 'make clean' we also make clean all the deps inside ../deps.\nThis forces too long recompilation when debugging: lua, hiredis, linoise, jemalloc... at this point we depend on many things.\n\nWe should either:\n- turn 'make clean' into an operation that only cleans Redis itself and add 'make distclean' to clean everything.\n- leave 'make clean' as it is, but add a new clean target that just cleans Redis (no idea about the name of such a target at the moment).\n\nIdeas? Thanks.\n",
+  "state": "closed",
+  "created_at": "2011-11-14T14:09:18Z",
+  "updated_at": "2011-11-18T12:12:05Z",
+  "closed_at": "2011-11-18T12:12:05Z",
+  "labels": [
+    "non critical bug",
+    "WAITING-OP-REPLY"
+  ],
+  "comments_data": [
+    {
+      "id": 2730827,
+      "user": "deltheil",
+      "created_at": "2011-11-14T14:19:11Z",
+      "body": "I feel more comfortable with the first solution ('make clean' only cleans Redis itself), since the target name is short and canonical, and thus it is more convenient when developing/iterating on a daily basis. On the other hand, the distclean (longer target name) is specifically used when appropriate.\n"
+    },
+    {
+      "id": 2731113,
+      "user": "antirez",
+      "created_at": "2011-11-14T14:42:37Z",
+      "body": "Thanks I feel the same\n"
+    },
+    {
+      "id": 2731394,
+      "user": "melo",
+      "created_at": "2011-11-14T15:06:17Z",
+      "body": "Add `make distclean`. Its the name I usually find on other projects to reset a src directory to the exact state you would find after untar it.\n"
+    },
+    {
+      "id": 2788426,
+      "user": "antirez",
+      "created_at": "2011-11-18T12:12:04Z",
+      "body": "Fixed, thanks to Pieter.\n"
+    }
+  ]
+}

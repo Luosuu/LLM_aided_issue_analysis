@@ -1,0 +1,18 @@
+{
+  "issue_number": 10462.0,
+  "title": "[BUG] Buffer overrun in t_zset.c",
+  "body": "In the file [t_zset.c](https://github.com/redis/redis/blob/557222d1e046ab4adc4ac86914c42d60bf028a4e/src/t_zset.c), the function `zzlStrtod` ([code](https://github.com/redis/redis/blob/557222d1e046ab4adc4ac86914c42d60bf028a4e/src/t_zset.c#L722-#L729)) has a buffer overrun bug:\r\n\r\n```\r\ndouble zzlStrtod(unsigned char *vstr, unsigned int vlen) {\r\n    char buf[128];\r\n    if (vlen > sizeof(buf))\r\n        vlen = sizeof(buf);\r\n    memcpy(buf,vstr,vlen);\r\n    buf[vlen] = '\\0';\r\n    return strtod(buf,NULL);\r\n }\r\n```\r\n\r\nWhen `vlen = sizeof(buf)`, the statement `buf[vlen] = '\\0'` accessing the buffer `buf` is an off by one error.\r\nThought it may not be directly exploitable, I think this is certainly a bug.",
+  "state": "closed",
+  "created_at": "2022-03-21T13:05:41Z",
+  "updated_at": "2022-03-22T08:46:16Z",
+  "closed_at": "2022-03-22T08:46:16Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1074326413,
+      "user": "oranagra",
+      "created_at": "2022-03-21T19:24:02Z",
+      "body": "thanks. i agree it looks kinda harmless (one byte on the stack with value of 0 that doesn't depend on the user's inputs).\r\ndo you wanna make a pull request to fit that?"
+    }
+  ]
+}

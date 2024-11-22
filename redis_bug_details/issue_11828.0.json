@@ -1,0 +1,30 @@
+{
+  "issue_number": 11828.0,
+  "title": "[BUG] XREAD COMMAND - ONLY READS EPOCH TIME - 0",
+  "body": "``Hi All, \r\n\r\nI have come across an interesting issue where I have two messages being written into the stream at the same millsecond.\r\n\r\nWhere the XREAD command in the consumer service is able to read the first message but not the second one. For example, if two  messages are sent at the same millisecond from a publishing service, the Redis XADD command in the publishing service attaches:\r\n\r\n1st Message: EPOCH Time - 0\r\n\r\n2nd Message: EPOCH Time - 1\r\n\r\nOn the other hand. the XREAD command on the consuming service is currently only able to read the first message (EPOCH Time - 0), while the second message is being ignored and not being retrieved even if I set the max count of messages to be received as 1:\r\n\r\n**However, I was able to solve this issue once I switched to the consumer group approach, by creating consumer groups and then using the XREADGROUP command along with XACK to ack the received messages** \r\n\r\n\r\nMy Publishing snippet:\r\n\r\n`await redis.xadd(\r\n    streamName,\r\n    \"MAXLEN\",\r\n    \"~\",\r\n    \"1000\",\r\n    \"*\",\r\n    \"message\",\r\n    JSON.stringify(message)\r\n  );`\r\n\r\n\r\nMy consuming service snippet:\r\n\r\n```\r\n` \r\nlet lastReadId=0;\r\n\r\nconst messages = await redis.xread(\r\n        \"COUNT\",\r\n        1,\r\n        \"BLOCK\",\r\n        0,\r\n        \"STREAMS\",\r\n        streamName,\r\n        lastReadId\r\n      );\r\n\r\nNote: I am using id returned from the last time the `XREAD` was executed. \r\n\r\n      const msgs = messages![0][1].map((message) => {\r\n        const id = message[0];\r\n        const rawMsg = message[1][1];\r\n       lastReadId = id; -> here I am storing the latest id\r\n        return { id: id, rawMsg: rawMsg };\r\n      });\r\n\r\n      return msgs;`\r\n```\r\n\r\nNOTE: I have also tried changing the COUNT from 1 to 2 or many messages at a time.\r\n\r\nand, I was using a for of loop to do some business operation with the messages retrieved from stream as such and deleting them:\r\n\r\n```\r\n`for (const msg of msgs) {\r\n\r\nconst {id, rawMsg} = msg;\r\n\r\nsomeBusinessOperation();\r\n\r\nif(businessOperation === \"Completed\"){\r\nredis.xdel(streamName, id);\r\n}\r\n`\r\n\r\n```\r\n\r\nNOTE: I am using ioredis npm library.\r\n\r\n\r\nI assume that no matter what approach we follow, the reading behaviour should be same for both XREAD and XREADGROUP. \r\n\r\nPlease correct me if I am wrong and advise me if there is an actual issue with redis XREAD command?\r\n\r\nThank You!\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-02-23T00:03:02Z",
+  "updated_at": "2023-02-23T07:47:44Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1441167564,
+      "user": "sundb",
+      "created_at": "2023-02-23T03:19:51Z",
+      "body": "@Kripu77 Do you use multiple clients to consume a stream group or the same stream at the same time?"
+    },
+    {
+      "id": 1441239850,
+      "user": "Kripu77",
+      "created_at": "2023-02-23T05:36:19Z",
+      "body": "@sundb \"I have a single consumer that consumes messages from the stream group.\""
+    },
+    {
+      "id": 1441322749,
+      "user": "sundb",
+      "created_at": "2023-02-23T07:47:43Z",
+      "body": "I can't fingure out what the problem is, in such case there is no different between XREAD and XREADGROUP.\r\nCan you use `MONITOR` to get all the received commands?"
+    }
+  ]
+}

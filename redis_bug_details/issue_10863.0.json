@@ -1,0 +1,44 @@
+{
+  "issue_number": 10863.0,
+  "title": "[BUG] Clusterbus buffer management can consume significant memory and CPU utilization during pubsub",
+  "body": "**Describe the bug**\r\n\r\nWhen there is too much pubsub traffic in cluster mode enabled cluster, sometimes Redis could not flush all cluster bus message on the cluster bus link in one go. Redis would call sdsrange to move the rest of the message to the head of the buffer in function [1] clusterWriteHandler. The sdsrange function [2] internally calls sdssubstr function [3], which calls memmove [4] to move the rest of the data towards left to the head of the buffer. If the accumulated cluster message is large (burst of pubsub traffic), say 1GB, and each time Redis could only flush a small amount of data out (due to network congestion or a slow peer), say 100KB at a time. This will cause a lot of memory to be moved until buffer is fully flushed. Given this example above, it would cause (1 GB / 100KB) * (1GB / 2) = 5TB memory to be moved, which took around 10 minutes of CPU times. This causes high CPU utilization in Redis main thread, which slows down engine significantly. We could improve cluster bus link buffer management by using the similar client output buffer used in normal client to prevent this kind of issue using a linked list of buffers.\r\n\r\n[1] https://github.com/redis/redis/blob/7.0/src/cluster.c#L2610\r\n[2] https://github.com/redis/redis/blob/7.0/src/sds.c#L873\r\n[3] https://github.com/redis/redis/blob/7.0/src/sds.c#L840\r\n[4] https://github.com/redis/redis/blob/7.0/src/sds.c#L847\r\n\r\n**To reproduce**\r\n\r\n1. Create a 10 nodes Redis cluster with cluster mode enabled.\r\n2. Pick one of the Redis server nodes, then run this command to create a burst of pubsub traffic. \"for i in `seq 1000`; do redis-cli -h REDIS_SERVER_NODE_DNS < redis_commands > /dev/null 2>&1 & done\"\r\n\r\nThe file \"redis_commands\" contains following publish commands\r\n```\r\npublish X 012345... <100KB long> ...012356\r\npublish X 012345... <100KB long> ...012356\r\n...<Repeat 100 lines>\r\npublish X 012345... <100KB long> ...012356\r\n```\r\n\r\n**Expected behavior**\r\n\r\nHeavy pubsub traffic on cluster bus mode node does not cause consistent high engine CPU utilization.\r\n\r\n**Additional information**\r\n\r\nWe should probably add additional monitoring on the cluster bus connection sent buffer monitoring. E.g. if the buffer size is too large, close the connection. Something like the COB limit in the normal Redis clients.",
+  "state": "closed",
+  "created_at": "2022-06-14T16:30:36Z",
+  "updated_at": "2022-11-02T02:26:46Z",
+  "closed_at": "2022-11-02T02:26:46Z",
+  "labels": [
+    "class:optimization"
+  ],
+  "comments_data": [
+    {
+      "id": 1155450672,
+      "user": "madolson",
+      "created_at": "2022-06-14T16:49:49Z",
+      "body": "> We should probably add additional monitoring on the cluster bus connection sent buffer monitoring. E.g. if the buffer size is too large, close the connection. Something like the COB limit in the normal Redis clients.\r\n\r\nI believe this was largely covered by the work done by @ny0312 in the cluster links code, https://github.com/redis/redis/pull/9774, which adds a limit. \r\n\r\n> Heavy pubsub traffic on cluster bus mode node does not cause consistent high engine CPU utilization.\r\n\r\nIf the ask here is just, \"make the clusterbus links\" more performant, I don't see any concern there. I think the linked list approach of clusterbus messages is a good idea, and allows us to duplicate the same message across multiple outbound nodes."
+    },
+    {
+      "id": 1155987866,
+      "user": "ranshid",
+      "created_at": "2022-06-15T04:58:35Z",
+      "body": "@madolson just to make sure I understand the complete suggestion:\r\nI also agree that investing in pub/sub cluster memory performance is important and we can also reduce the memory overhead while doing so.\r\nI think that maintaining a buffer list per channel would help reduce the memory overhead of large clusters (when sharding is not used) somewhat similar to what was done for replication backlog.    "
+    },
+    {
+      "id": 1156708312,
+      "user": "madolson",
+      "created_at": "2022-06-15T16:50:23Z",
+      "body": "> I think that maintaining a buffer list per channel would help reduce the memory overhead of large clusters (when sharding is not used) somewhat similar to what was done for replication backlog.\r\n\r\nI don't see why we wouldn't just have a buffer list that is global. Unlike the client output buffer system we can share nodes between the various clusterbus links. I would expect us to change the clusterbus links to be something more like a linked list of \"messages\" that would be refcounted. The pubsub message would be generated once and added to the tail of each individual clusterbus link."
+    },
+    {
+      "id": 1157242309,
+      "user": "ranshid",
+      "created_at": "2022-06-16T05:16:45Z",
+      "body": "> > I think that maintaining a buffer list per channel would help reduce the memory overhead of large clusters (when sharding is not used) somewhat similar to what was done for replication backlog.\r\n> \r\n> I don't see why we wouldn't just have a buffer list that is global. Unlike the client output buffer system we can share nodes between the various clusterbus links. I would expect us to change the clusterbus links to be something more like a linked list of \"messages\" that would be refcounted. The pubsub message would be generated once and added to the tail of each individual clusterbus link.\r\n\r\nI think we are saying the same thing. I only though we can use the same list concept for subscribers since in many cases the number of subscribers can be very high, but that can be considered separately. I also agree that we can just maintain a list of messages and not stack them into buffers.    "
+    },
+    {
+      "id": 1157890250,
+      "user": "madolson",
+      "created_at": "2022-06-16T16:36:46Z",
+      "body": "Ok, in either case, @hpatro mentioned he wanted to pick this up. Assigning it myself to indicate it's being worked on."
+    }
+  ]
+}

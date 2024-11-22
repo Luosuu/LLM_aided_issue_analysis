@@ -1,0 +1,20 @@
+{
+  "issue_number": 11843.0,
+  "title": "[BUG] builld redis with cygwin fail :   debug.c:1753:5: error: unknown type name ‘Dl_info’  ",
+  "body": "**Describe the bug**\r\n\r\nbuild redis wih cygwin for windows,  failed with  \"debug.c:1753:5: error: unknown type name ‘Dl_info’   \"\r\n\r\n![image](https://user-images.githubusercontent.com/10794822/221463781-de4f8c84-8fe2-4d01-a741-8e23935d8b23.png)\r\n\r\n**To reproduce**\r\n\r\n1.  cd redis/src\r\n2.  build with  \"make -j4\"\r\n3.  show up \r\n`$ make -j4\r\n./mkreleasehdr.sh: line 15: syntax error: unexpected end of file\r\n    CC debug.o\r\ndebug.c: In function ‘dumpX86Calls’:\r\ndebug.c:1753:5: error: unknown type name ‘Dl_info’\r\n 1753 |     Dl_info info;\r\n      |     ^~~~~~~\r\ndebug.c:1763:13: warning: implicit declaration of function ‘dladdr’; did you mean ‘s_addr’? [-Wimplicit-function-declaration]\r\n 1763 |         if (dladdr((void*)target, &info) != 0 && info.dli_sname != NULL) {\r\n      |             ^~~~~~\r\n      |             s_addr\r\n`\r\n**Expected behavior**\r\n\r\nbuid success. with :  Hint: It's a good idea to run 'make test' ;)\r\n\r\n**Additional information**\r\n\r\nfor windows ，\r\n/usr/include/sys/features.h:261: note: this is the location of the previous definition\r\n  261 | #define __GNU_VISIBLE           0\r\n\r\n__GNU_VISIBLE ， should be set to  1   in cygwin \r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-02-27T03:13:08Z",
+  "updated_at": "2023-03-06T07:39:07Z",
+  "closed_at": "2023-03-06T07:39:07Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1446610131,
+      "user": "madolson",
+      "created_at": "2023-02-27T16:09:50Z",
+      "body": "Hello. We officially do not support windows or cygwin, so we don't accept PRs to add compatibility for it."
+    }
+  ]
+}

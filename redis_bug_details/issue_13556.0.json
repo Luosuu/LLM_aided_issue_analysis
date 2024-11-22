@@ -1,0 +1,36 @@
+{
+  "issue_number": 13556.0,
+  "title": "[BUG] evalSha_RO is slower than evalSha",
+  "body": "**Describe the bug**\r\n\r\nEVAL_RO and EVALSHA_RO should be faster then EVAL/EVALSHA\r\nIn some cases it's correct for EVAL_RO/EVAL, but in some it's not\r\nbut EVALSHA_RO is always slower than EVALSHA\r\n\r\nindependent of whether the lua uses `#!lua flags=no-writes` or not\r\nThis seems strange?\r\n\r\n**To reproduce**\r\n\r\n```\r\n# using the base example, EVAL_RO is slower than EVAL too\r\ntime for i in {1..1000}; do redis-cli EVAL 'return ARGV[1]' 0 hello > /dev/null; done\r\ntime for i in {1..1000}; do redis-cli EVAL_RO 'return ARGV[1]' 0 hello > /dev/null; done\r\ntime for i in {1..1000}; do redis-cli EVALSHA 098e0f0d1448c0a81dafe820f66d460eb09263da 0 hello > /dev/null; done\r\ntime for i in {1..1000}; do redis-cli EVALSHA_RO 098e0f0d1448c0a81dafe820f66d460eb09263da 0 hello > /dev/null; done\r\n\r\n# slightly more complex example\r\nredis-cli SET mykey \"HELLO;WORLD\"\r\nredis-cli SET HELLO \"FOO\"\r\nredis-cli SET WORLD \"BAR\"\r\n# EVAL_RO is faster than EVAL but EVALSHA_RO is slower than EVALSHA???\r\ntime for i in {1..1000}; do redis-cli EVAL 'local value = redis.call( \"GET\", KEYS[1] ); local a, b = value:match( \"^([^;]+);(.+)$\" ); return redis.call( \"MGET\", a, b )' 1 mykey > /dev/null; done\r\ntime for i in {1..1000}; do redis-cli EVAL_RO 'local value = redis.call( \"GET\", KEYS[1] ); local a, b = value:match( \"^([^;]+);(.+)$\" ); return redis.call( \"MGET\", a, b )' 1 mykey > /dev/null; done\r\ntime for i in {1..1000}; do redis-cli EVALSH 1a154e0d9707fd5d33c931d40fa139509aec5e42 1 mykey > /dev/null; done\r\ntime for i in {1..1000}; do redis-cli EVALSHA_RO 1a154e0d9707fd5d33c931d40fa139509aec5e42 1 mykey > /dev/null; done\r\n```\r\n\r\n**Expected behavior**\r\n\r\nEVALSHA_RO should be faster than EVALSHA\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-09-17T09:42:57Z",
+  "updated_at": "2024-09-18T01:15:27Z",
+  "closed_at": "2024-09-18T00:36:30Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2355747447,
+      "user": "sundb",
+      "created_at": "2024-09-17T13:12:43Z",
+      "body": "@kkmuffme i don't see any difference between these two commands from the benchmark.\r\ncan you try to use `redis-benchmark` or `memtier_benchmark` to recheck it?"
+    },
+    {
+      "id": 2356119001,
+      "user": "kkmuffme",
+      "created_at": "2024-09-17T14:54:02Z",
+      "body": "Is there any documentation on how I can create my own test/run the above commands as test? I only found the basic docs for redis-benchmark of basic commands with a quick check in the docs/google"
+    },
+    {
+      "id": 2357258793,
+      "user": "kkmuffme",
+      "created_at": "2024-09-18T00:36:30Z",
+      "body": "After some further testing/benchmarking, it seems this is spurious. I was able to replicate the issue 90% of the time with the above example, when doing it with another language (e.g. phpredis), this issue couldn't be replicated.\r\n\r\nI guess it's somehow related to `redis-cli` invocation"
+    },
+    {
+      "id": 2357293046,
+      "user": "sundb",
+      "created_at": "2024-09-18T01:15:26Z",
+      "body": "> Is there any documentation on how I can create my own test/run the above commands as test? I only found the basic docs for redis-benchmark of basic commands with a quick check in the docs/google\r\n\r\n`./src/redis-benchmark -P 10 -n 10000000 EVAL 'return ARGV[1]' 0 hello` or \r\n`memtier_benchmark --hide-histogram --test-time 180 --pipeline=10 --command=\"EVAL 'return ARGV[1]' 0 hello\"`"
+    }
+  ]
+}

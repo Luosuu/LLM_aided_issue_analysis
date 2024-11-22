@@ -1,0 +1,11 @@
+{
+  "issue_number": 13647.0,
+  "title": "[BUG] https://antirez.com throws SSL error in Chrome",
+  "body": "It looks like the http://antirez.com/ site doesn't support HTTPS which causes chrome to complain when the chrome `always-use-secure-connections` feature is enabled:\r\n\r\nhttps://support.google.com/chrome/answer/10468685?visit_id=638666980626284052-3267714392&p=first_mode&rd=1#https-only-mode&zippy=%2Cturn-on-always-use-secure-connections\r\n\r\nThis isn't the best optic when the Docker page's \"Security\" subsection links to an article where you're greeted with this error.\r\n\r\n<img width=\"1430\" alt=\"Screenshot 2024-11-08 at 4 28 41 PM\" src=\"https://github.com/user-attachments/assets/5f2342af-99bb-4d15-acd9-0af4b7f2e1e4\">\r\n\r\nhttps://hub.docker.com/_/redis\r\n\r\nI know SSL really isn't \"required\" for a site that is fully static content. But as the internet is generally moving towards HTTPS everywhere, this seems like something that might need to be updated with the times.\r\n",
+  "state": "open",
+  "created_at": "2024-11-08T21:30:23Z",
+  "updated_at": "2024-11-08T21:30:36Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

@@ -1,0 +1,54 @@
+{
+  "issue_number": 10457.0,
+  "title": "[BUG] Inspite of disabling the redis persistance both AOF and RDB, RDB is loading keys of diffrent master leading to keys importing ",
+  "body": "Inspite of disabling the redis persistance both AOF and RDB, RDB is loading keys of diffrent master leading to keys importing \r\nOur redis configuration details :\r\n***** Redis Configuration details *****\r\n\r\ncluster-node-timeout 60000\r\ncluster-slave-validity-factor 3\r\ncluster-allow-reads-when-down no\r\nappendonly no\r\nsave \"\"\r\ncluster-enabled yes\r\ncluster-config-file nodes-redis.conf\r\ndir /var/lib/redis\r\nprotected-mode no\r\n\r\nWe see that nodes.conf \r\n***** nodes-redis.conf  details *****\r\nef1d9da0aee94b41ae4bfe17c5b8c2e22527fd35 10.192.210.19:6379@16379 myself,master - 0 1646379500000 8 connected 5461-10922\r\n\r\nWhile bootup, we see  -> Done loading RDB, keys loaded: 2, keys expired: 0.\r\nKeys are from diffferrnt master leading to slot importing\r\n15:M 17 Mar 2022 22:57:16.512 # I have keys for slot 11794, but the slot is assigned to another node. Setting it to importing state.\r\n15:M 17 Mar 2022 22:57:16.512 # I have keys for slot 13796, but the slot is assigned to another node. Setting it to importing state.\r\n\r\nSnippet of boot log :\r\n---------------------\r\nStarting redis server\r\n---------------------\r\n15:C 17 Mar 2022 22:57:16.498 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n15:C 17 Mar 2022 22:57:16.498 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=15, just started\r\n15:C 17 Mar 2022 22:57:16.498 # Configuration loaded\r\n15:M 17 Mar 2022 22:57:16.499 * monotonic clock: POSIX clock_gettime\r\n15:M 17 Mar 2022 22:57:16.507 * Node configuration loaded, I'm ef1d9da0aee94b41ae4bfe17c5b8c2e22527fd35\r\n15:M 17 Mar 2022 22:57:16.508 * Running mode=cluster, port=6379.\r\n15:M 17 Mar 2022 22:57:16.508 # Server initialized\r\n15:M 17 Mar 2022 22:57:16.512 * Loading RDB produced by version 6.2.6\r\n15:M 17 Mar 2022 22:57:16.512 * RDB age 1178334 seconds\r\n15:M 17 Mar 2022 22:57:16.512 * RDB memory usage when created 8.17 Mb\r\n15:M 17 Mar 2022 22:57:16.512 # Done loading RDB, keys loaded: 2, keys expired: 0.\r\n15:M 17 Mar 2022 22:57:16.512 * DB loaded from disk: 0.003 seconds\r\n15:M 17 Mar 2022 22:57:16.512 # I have keys for slot 11794, but the slot is assigned to another node. Setting it to importing state.\r\n15:M 17 Mar 2022 22:57:16.512 # I have keys for slot 13796, but the slot is assigned to another node. Setting it to importing state.",
+  "state": "open",
+  "created_at": "2022-03-21T07:19:32Z",
+  "updated_at": "2023-10-05T14:44:55Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1073547282,
+      "user": "sreenivasvp",
+      "created_at": "2022-03-21T07:20:18Z",
+      "body": "@madolson @oranagra\r\nPlease help on the same.."
+    },
+    {
+      "id": 1073551580,
+      "user": "oranagra",
+      "created_at": "2022-03-21T07:27:44Z",
+      "body": "@sreenivasvp on startup, redis loads data from the rdb file referred to by the `dbfilename` config, even if `save` is disabled.\r\nso maybe you just need to delete the file..."
+    },
+    {
+      "id": 1073557215,
+      "user": "sreenivasvp",
+      "created_at": "2022-03-21T07:37:40Z",
+      "body": "@oranagra \r\nThe startup that I am referring to is master pod/node restarted on running cluster and that pod/node is comming back.\r\n\r\nrdb is always read at boot only is it ??\r\n\r\n"
+    },
+    {
+      "id": 1073658524,
+      "user": "oranagra",
+      "created_at": "2022-03-21T09:08:19Z",
+      "body": "yes, rdb is always loaded at boot time if exists. and the only other place it can be loaded is when a replica connects to a master.\r\nplease wait for @madolson to respond regarding the cluster configuration and importing state."
+    },
+    {
+      "id": 1073678025,
+      "user": "sreenivasvp",
+      "created_at": "2022-03-21T09:30:56Z",
+      "body": "@oranagra \r\nThe reason I asked **_rdb is always read at boot only is it ??_** is :\r\nI was thinking, to delete the rdb file on each bootup irrespective of master/slave when it comes-up/starts back, so as to avoid issues from cluster getting corrupted / down.\r\n\r\nSure will wait for  @madolson wrt cluster configuration and importing state."
+    },
+    {
+      "id": 1075871344,
+      "user": "sreenivasvp",
+      "created_at": "2022-03-23T03:15:35Z",
+      "body": "@oranagra \r\nAny inputs on below please : \r\nThinking, to delete the rdb file on each bootup irrespective of master/slave when it comes-up/starts back, so as to avoid issues from cluster getting corrupted / down.\r\n"
+    },
+    {
+      "id": 1749055623,
+      "user": "markrity",
+      "created_at": "2023-10-05T14:44:55Z",
+      "body": "I had the same issue, tried everything to make it stop writing to `dump.rdb`.\r\n\r\nThe solution was to use add to config file this line:\r\n```bash\r\nsave \"\"\r\n```\r\n\r\nWorked like magic. \r\n\r\nAlso from what I have seen that problem happens only on version 6 and 7, on Redis 4 , it works without it, only commenting `#save` out disables the writes to `dump.rdb` .\r\n\r\nHave not tested Redis 5."
+    }
+  ]
+}

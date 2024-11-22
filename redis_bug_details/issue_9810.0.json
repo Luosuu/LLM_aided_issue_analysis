@@ -1,0 +1,38 @@
+{
+  "issue_number": 9810.0,
+  "title": "[BUG] meet pfcount always return 1",
+  "body": "**Describe the bug**\r\n\r\npfcount always return 1\r\n\r\n**To reproduce**\r\n\r\npfadd hll 1 2 3 4 5 6 7 8 9\r\n\r\npfcount hll\r\n\r\n![image](https://user-images.githubusercontent.com/41423998/142564786-75e6ba5a-e2af-473f-b21f-d2425a13bae5.png)\r\n\r\n\r\n**Expected behavior**\r\n\r\nmaybe it should return 9\r\n\r\n**Additional information**\r\n# Server\r\nredis_version:6.2.6\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:9ef79e99103add69\r\nredis_mode:standalone\r\nos:Linux 4.4.0-19041-Microsoft x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:10.3.1\r\nprocess_id:1\r\nprocess_supervised:no\r\nrun_id:c5316243944f324b2ac2736e066570e6c57b115c\r\ntcp_port:6379\r\nserver_time_usec:1637294726700364\r\nuptime_in_seconds:4900\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:9904774\r\nexecutable:/data/redis-server\r\nconfig_file:\r\nio_threads_active:0\r\n\r\n# Clients\r\nconnected_clients:1\r\ncluster_connections:0\r\nmaxclients:10000\r\nclient_recent_max_input_buffer:24\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:0\r\ntracking_clients:0\r\nclients_in_timeout_table:0\r\n\r\n# Memory\r\nused_memory:874960\r\nused_memory_human:854.46K\r\nused_memory_rss:4321280\r\nused_memory_rss_human:4.12M\r\nused_memory_peak:893480\r\nused_memory_peak_human:872.54K\r\nused_memory_peak_perc:97.92%\r\nused_memory_overhead:830912\r\nused_memory_startup:809880\r\nused_memory_dataset:44048\r\nused_memory_dataset_perc:67.68%\r\nallocator_allocated:1146872\r\nallocator_active:1392640\r\nallocator_resident:3907584\r\ntotal_system_memory:6441521152\r\ntotal_system_memory_human:6.00G\r\nused_memory_lua:37888\r\nused_memory_lua_human:37.00K\r\nused_memory_scripts:0\r\nused_memory_scripts_human:0B\r\nnumber_of_cached_scripts:0\r\nmaxmemory:0\r\nmaxmemory_human:0B\r\nmaxmemory_policy:noeviction\r\nallocator_frag_ratio:1.22\r\nallocator_frag_bytes:245768\r\nallocator_rss_ratio:2.80\r\nallocator_rss_bytes:2514944\r\nrss_overhead_ratio:1.10\r\nrss_overhead_bytes:413696\r\nmem_fragmentation_ratio:5.20\r\nmem_fragmentation_bytes:3489080\r\nmem_not_counted_for_evict:0\r\nmem_replication_backlog:0\r\nmem_clients_slaves:0\r\nmem_clients_normal:20504\r\nmem_aof_buffer:0\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\nlazyfreed_objects:0\r\n\r\n# Persistence\r\nloading:0\r\ncurrent_cow_size:0\r\ncurrent_cow_size_age:0\r\ncurrent_fork_perc:0.00\r\ncurrent_save_keys_processed:0\r\ncurrent_save_keys_total:0\r\nrdb_changes_since_last_save:48\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1637292400\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:-1\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_last_cow_size:0\r\naof_enabled:0\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:-1\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_last_write_status:ok\r\naof_last_cow_size:0\r\nmodule_fork_in_progress:0\r\nmodule_fork_last_cow_size:0\r\n\r\n# Stats\r\ntotal_connections_received:2\r\ntotal_commands_processed:116\r\ninstantaneous_ops_per_sec:0\r\ntotal_net_input_bytes:4532\r\ntotal_net_output_bytes:10603\r\ninstantaneous_input_kbps:0.00\r\ninstantaneous_output_kbps:0.00\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_keys:0\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nexpire_cycle_cpu_milliseconds:64\r\nevicted_keys:0\r\nkeyspace_hits:61\r\nkeyspace_misses:3\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:0\r\ntotal_forks:0\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\ntracking_total_keys:0\r\ntracking_total_items:0\r\ntracking_total_prefixes:0\r\nunexpected_error_replies:0\r\ntotal_error_replies:1\r\ndump_payload_sanitizations:0\r\ntotal_reads_processed:119\r\ntotal_writes_processed:117\r\nio_threaded_reads_processed:0\r\nio_threaded_writes_processed:0\r\n\r\n# Replication\r\nrole:master\r\nconnected_slaves:0\r\nmaster_failover_state:no-failover\r\nmaster_replid:42566aede4ce0d165a3121676a9335a1822fb8e5\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:0\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:0\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n\r\n# CPU\r\nused_cpu_sys:0.093750\r\nused_cpu_user:0.015625\r\nused_cpu_sys_children:0.000000\r\nused_cpu_user_children:0.000000\r\nused_cpu_sys_main_thread:0.078125\r\nused_cpu_user_main_thread:0.015625\r\n\r\n# Modules\r\n\r\n# Errorstats\r\nerrorstat_ERR:count=1\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=10,expires=0,avg_ttl=0\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-11-19T04:28:50Z",
+  "updated_at": "2021-11-21T05:53:44Z",
+  "closed_at": "2021-11-21T05:53:44Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 973755643,
+      "user": "enjoy-binbin",
+      "created_at": "2021-11-19T05:05:08Z",
+      "body": "I tested it in 6.2.6(tag) and unstable(branch), both ok. can you always reproduce it?\r\n\r\n```\r\n[root@binblog redis]# src/redis-cli\r\n127.0.0.1:6379> info server\r\n# Server\r\nredis_version:6.2.6\r\nredis_git_sha1:4930d19e\r\nredis_git_dirty:0\r\nredis_build_id:78e4c670510fb6d5\r\nredis_mode:standalone\r\nos:Linux 3.10.0-862.el7.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:c11-builtin\r\ngcc_version:9.3.1\r\nprocess_id:10584\r\nprocess_supervised:no\r\nrun_id:23d06a733728311c39afce33b05cfb7acddf46dc\r\ntcp_port:6379\r\nserver_time_usec:1637297818559716\r\nuptime_in_seconds:12\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:9907866\r\nexecutable:/root/redis/self/redis/src/redis-server\r\nconfig_file:\r\nio_threads_active:0\r\n\r\n127.0.0.1:6379> pfadd hll 1 2 3 4 5 6 7 8 9\r\n(integer) 1\r\n127.0.0.1:6379> pfcount hll\r\n(integer) 9\r\n```"
+    },
+    {
+      "id": 973773339,
+      "user": "zsq1234",
+      "created_at": "2021-11-19T05:47:49Z",
+      "body": "I can always reproduce it.\r\n\r\n127.0.0.1:6379> pfadd a 1 2 3 4 5 6 7 8 9\r\n(integer) 1\r\n127.0.0.1:6379> pfcount a\r\n(integer) 1\r\n127.0.0.1:6379>\r\n127.0.0.1:6379> pfadd b \"abc\" \"cad\" \"n\" \"aaa\" \"popo\" \"nnl\"\r\n(integer) 1\r\n127.0.0.1:6379> pfcount b\r\n(integer) 1\r\n127.0.0.1:6379>\r\n\r\n![image](https://user-images.githubusercontent.com/41423998/142571281-9d3ae16d-2fb5-4e19-aead-5ed1ea9fa405.png)\r\n\r\nI stop and start the docker container, but it doesn't work.  Docker Image is redis:alpine3.14. (The docker is installed in WSL1)\r\n![image](https://user-images.githubusercontent.com/41423998/142571750-708ec189-ebe9-4cd6-b018-98ee037d7d3e.png)\r\n"
+    },
+    {
+      "id": 974163112,
+      "user": "itamarhaber",
+      "created_at": "2021-11-19T15:21:34Z",
+      "body": "Doesn't reproduce with the redis:alpine3.14 image as well."
+    },
+    {
+      "id": 974588399,
+      "user": "zsq1234",
+      "created_at": "2021-11-20T03:58:54Z",
+      "body": "This may be a problem only on my machine. If no one has similar problems, it will be turned off in a few days.   Thanks~"
+    }
+  ]
+}

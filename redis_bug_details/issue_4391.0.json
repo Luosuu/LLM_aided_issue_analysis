@@ -1,0 +1,33 @@
+{
+  "issue_number": 4391.0,
+  "title": "Different results for ZADD alpine/debian docker container",
+  "body": "I get two different results on debian and alpine linux. Debian use libc and alpine musl.\r\n\r\nRedis: 3.2.11 & 4.0.2\r\n\r\n1. Debian libc ([Dockerfile with build command](https://github.com/docker-library/redis/blob/29b44c477011c5450dd89fd41af4c04e0c71e5b2/4.0/Dockerfile))\r\n```\r\n# start server\r\ndocker run --rm -it --name redis:4.0.2 redis\r\n# run command\r\ndocker exec -it redis redis-cli \"ZADD\" \"session\" \"\" \"064f06e4rg60reg6\"\r\n# result\r\n(integer) 1\r\n```\r\n\r\n2. Alpine musl ([Dockerfile with build command](https://github.com/docker-library/redis/blob/29b44c477011c5450dd89fd41af4c04e0c71e5b2/4.0/alpine/Dockerfile))\r\n```\r\n# start server\r\ndocker run --rm -it --name redis:4.0.2 redis\r\n# run command\r\ndocker exec -it redis redis-cli \"ZADD\" \"session\" \"\" \"064f06e4rg60reg6\"\r\n# result\r\n(error) ERR value is not a valid float\r\n```\r\n\r\n",
+  "state": "closed",
+  "created_at": "2017-10-23T09:45:33Z",
+  "updated_at": "2017-10-30T12:47:19Z",
+  "closed_at": "2017-10-30T12:47:18Z",
+  "labels": [
+    "non critical bug",
+    "portability"
+  ],
+  "comments_data": [
+    {
+      "id": 340390521,
+      "user": "antirez",
+      "created_at": "2017-10-30T09:34:39Z",
+      "body": "That's not good, thanks for reporting."
+    },
+    {
+      "id": 340422673,
+      "user": "antirez",
+      "created_at": "2017-10-30T11:55:42Z",
+      "body": "P.S. Note how here the major problem is not just the different behavior but accepting as score the empty string at all :-D"
+    },
+    {
+      "id": 340433548,
+      "user": "antirez",
+      "created_at": "2017-10-30T12:47:18Z",
+      "body": "The issue is now fixed. I'll not backport this one to 3.x (but I've already done for 4.x) just to avoid to conflict with certain mis-uses of the API. However this is just to take it softly, since the misuse would be totally based on an odd undefined behavior, that is giving empty strings as scores."
+    }
+  ]
+}

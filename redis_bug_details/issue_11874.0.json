@@ -1,0 +1,32 @@
+{
+  "issue_number": 11874.0,
+  "title": "[BUG] CLIENT REPLY OFF|SKIP would disable push notifications",
+  "body": "**Describe the bug**\r\nIf client uses `client reply off` they will not get push notifications.\r\nIf client uses `client reply skip` then they will not get push notifications until the next command's reply was skipped.\r\n\r\n**To reproduce**\r\n\r\nClient 1:\r\n```\r\nroot@3ea0f2ab5df9:/bionic# telnet localhost 6379\r\nTrying ::1...\r\nConnected to localhost.\r\nEscape character is '^]'.\r\nhello 3\r\n// ...\r\n\r\nsubscribe channel\r\n// ...\r\nclient reply off\r\n```\r\nAfter that, if client 2 uses `publish channel xyz` then client 1 will not get any notifications.\r\n\r\nThis also works with `client reply skip`, but after client 1 sends another command, it will get notifications as usual.\r\n\r\n**Expected behavior**\r\nCLIENT REPLY should only block command replies and not push notifications\r\n\r\n**Additional information**\r\nObserved on Redis 7.0.5, might have existed before.",
+  "state": "closed",
+  "created_at": "2023-03-02T13:26:38Z",
+  "updated_at": "2023-03-12T15:50:46Z",
+  "closed_at": "2023-03-12T15:50:46Z",
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 1452062804,
+      "user": "enjoy-binbin",
+      "created_at": "2023-03-02T15:31:27Z",
+      "body": "a simple patch seems to work https://github.com/redis/redis/commit/9ed1e193ef3f2b80442fbf324e23b7971fc8d5ea\r\n@oranagra WDYT?"
+    },
+    {
+      "id": 1457458343,
+      "user": "soloestoy",
+      "created_at": "2023-03-07T03:29:49Z",
+      "body": "seems this is just a wrong usage, or if I miss something?"
+    },
+    {
+      "id": 1457657035,
+      "user": "oranagra",
+      "created_at": "2023-03-07T07:04:55Z",
+      "body": "@soloestoy it may be an odd usage, but not sure a misuse.\r\nfor instance a RESP3 client subscribed to KSN, or requested client side tracking on certain keys, now issues a command it doesn't want the reply for, so it uses SKIP but then misses some push messages as well (if some other client got executed between the SKIP and the next command of this client)."
+    }
+  ]
+}

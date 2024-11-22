@@ -1,0 +1,30 @@
+{
+  "issue_number": 8059.0,
+  "title": "[BUG] If pkg-config is missing, redis is silently built without systemd support",
+  "body": "**Describe the bug**\r\n\r\nIf the package `pkg-config` is not installed in the system, the build process silently builds redis without systemd support even though it would be available. \r\n\r\nIf one explicitly sets `USE_SYSTEMD=yes` and `pkg-config` is not available, then the build script says that `libsystemd` could not be found which is very confusing when knowing it actually is there. \r\n\r\n**To reproduce**\r\n\r\nrun `make` on a Ubuntu-based system without `pkg-config` installed\r\n\r\n**Expected behavior**\r\n\r\nthrow error that `pkg-config` is not installed\r\n\r\nOn top of that, what probably is covered by #8036, when running redis not built with systemd, it's not clear this is causing issues when still trying to use it with systemd. There is no indication in the log about this. \r\n(I wasted a lot of time because I was following my own guide I previously made for redis installation on different system where it worked fine with systemd. So figuring out the issue happened at built time  due to missing `pkg-config` and is not a config issue wasn't very obvious.)\r\n\r\n**Additional information**\r\n\r\nLubuntu 20.04\r\nredis 6.0.9\r\n",
+  "state": "closed",
+  "created_at": "2020-11-17T12:27:06Z",
+  "updated_at": "2020-11-22T12:40:39Z",
+  "closed_at": "2020-11-22T12:40:39Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 731250571,
+      "user": "yossigo",
+      "created_at": "2020-11-20T15:55:08Z",
+      "body": "Hi @kienerj, this behavior is intentional as `libsystemd` is an opt-in dependency. If you want to be sure Redis builds with systemd support or fails - use `USE_SYSTEMD=yes` explicitly."
+    },
+    {
+      "id": 731322672,
+      "user": "kienerj",
+      "created_at": "2020-11-20T18:00:54Z",
+      "body": "> \r\n> \r\n> Hi @kienerj, this behavior is intentional as `libsystemd` is an opt-in dependency. If you want to be sure Redis builds with systemd support or fails - use `USE_SYSTEMD=yes` explicitly.\r\n\r\nYes but read my full report. \r\n\r\nWith `USE_SYSTEMD=yes` set, the script throws an error that `libsystemd` could not be found. This is the confusing part because it is there and the actual error should probably be that `pkg-config` is missing and hence can't be determined if `libsystemd` is available.\r\n\r\nIt's a bit ironic that a check is made if `libsystemd` is available  using a package with might itself not be available. (it isn't there by default on Ubuntu 20.04). Hope this clears this up."
+    },
+    {
+      "id": 731624793,
+      "user": "yossigo",
+      "created_at": "2020-11-21T19:25:03Z",
+      "body": "@kienerj Thanks for clarifying that. I agree there's no point in requiring `pkg-config` for `USE_SYSTEMD=yes` and this should be streamlined to how other conditional dependencies are handled."
+    }
+  ]
+}

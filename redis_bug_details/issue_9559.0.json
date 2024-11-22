@@ -1,0 +1,32 @@
+{
+  "issue_number": 9559.0,
+  "title": "[BUG] unpack issue with sunion in EVAL",
+  "body": "**Describe the bug**\r\n\r\nThe last argument in a `redis.call('sunion'` makes it ignore one of the sets (or something)\r\n\r\n**To reproduce**\r\n\r\n```\r\n# create 2 sets\r\nSADD s1 a\r\nSADD s1 b\r\nSADD s1 c\r\nSADD s2 c\r\nSADD s2 d\r\n\r\n# GOOD\r\nSUNION s1 s2\r\n1) \"c\"\r\n2) \"b\"\r\n3) \"d\"\r\n4) \"a\"\r\n\r\n# GOOD\r\nSUNION s1 s2 \"not_a_key\"\r\n1) \"c\"\r\n2) \"b\"\r\n3) \"d\"\r\n4) \"a\"\r\n\r\n# GOOD\r\nEVAL \"return redis.call('sunion', unpack(KEYS))\" 2 s1 s2\r\n1) \"c\"\r\n2) \"b\"\r\n3) \"d\"\r\n4) \"a\"\r\n\r\n# GOOD\r\nEVAL \"return redis.call('sunion', unpack(KEYS))\" 3 s1 s2 \"not_a_key\"\r\n1) \"c\"\r\n2) \"b\"\r\n3) \"d\"\r\n4) \"a\"\r\n\r\n# GOOD\r\nEVAL \"return redis.call('sunion', unpack(KEYS), 'not_a_key')\" 2 s1 s2\r\n1) \"c\"\r\n2) \"b\"\r\n3) \"d\"\r\n4) \"a\"\r\n\r\n# GOOD\r\nEVAL \"return redis.call('sunion', 'not_a_key', unpack(KEYS))\" 2 s1 s2\r\n1) \"c\"\r\n2) \"b\"\r\n3) \"d\"\r\n4) \"a\"\r\n\r\n#BAD\r\nEVAL \"return redis.call('sunion', unpack(KEYS), 'not_a_key')\" 2 s1 s2\r\n1) \"c\"\r\n2) \"b\"\r\n3) \"a\"\r\n```\r\n\r\nIn the last example for some reason it ignores `s2` in the `sunion` call.\r\n\r\n**Expected behavior**\r\n\r\n`redis.call('sunion'` Should return exactly the same, not dependent on order of values.\r\n\r\n**Additional information**\r\n\r\nLatest version of Redis\r\n",
+  "state": "closed",
+  "created_at": "2021-09-27T09:11:12Z",
+  "updated_at": "2021-09-29T12:07:42Z",
+  "closed_at": "2021-09-27T10:44:57Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 927698370,
+      "user": "grahamjenson",
+      "created_at": "2021-09-27T09:39:32Z",
+      "body": "NM, found out what the issue is \r\n\r\n> Multivals are cut off at the first value when inserting them into another multival before its end.\r\n\r\nFrom https://benaiah.me/posts/everything-you-didnt-want-to-know-about-lua-multivals/"
+    },
+    {
+      "id": 927705470,
+      "user": "oranagra",
+      "created_at": "2021-09-27T09:49:44Z",
+      "body": "@grahamjenson good that you found that.\r\ncan you please edit the title and close the issue.\r\nmaybe i'll help some some day..."
+    },
+    {
+      "id": 930114653,
+      "user": "itamarhaber",
+      "created_at": "2021-09-29T12:07:42Z",
+      "body": "@grahamjenson thanks for sharing that link - I picked up quite a lot from it."
+    }
+  ]
+}

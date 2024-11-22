@@ -1,0 +1,32 @@
+{
+  "issue_number": 9273.0,
+  "title": "[BUG] Regression in WRONGTYPE handling after deletion handling improvements",
+  "body": "**Describe the bug**\r\n\r\nThere is a recent regression where `WRONGTYPE` is returned when it should not.\r\n\r\n**To reproduce**\r\n\r\n```python\r\n$ sudo apt install redis-server python3-redis\r\n$ python3 -c \"import redis; \\\r\n               r = redis.StrictRedis('localhost', port=6379); \\\r\n               r.execute_command('set', b'\\x00', b''); \\\r\n               r.execute_command('sinter', b'', b'\\x00')\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThis command should pass, but it fails with:\r\n\r\n```python\r\nTraceback (most recent call last):\r\n   File \"<string>\", line 1, in <module>\r\n   File \"/usr/lib/python3/dist-packages/redis/client.py\", line 901, in execute_command\r\n     return self.parse_response(conn, command_name, **options)\r\n   File \"/usr/lib/python3/dist-packages/redis/client.py\", line 915, in parse_response\r\n     response = connection.read_response()\r\n   File \"/usr/lib/python3/dist-packages/redis/connection.py\", line 756, in read_response\r\n     raise response\r\nredis.exceptions.ResponseError: WRONGTYPE Operation against a key holding the wrong kind of value\r\n```\r\n\r\n**Additional information**\r\n\r\n* It also fails if the last line is replaced with `r.execute_command('sinterstore', b'', b'', b'\\x00')`.\r\n* Reverting https://github.com/redis/redis/pull/9032 (specifically: https://github.com/redis/redis/commit/1655576e23c41ea9c12a42699651d207656a0e83) fixes the issue for me, strongly suggesting that this is a regression in this change.\r\n* This issue was detected via a regression in the [Fakeredis](https://github.com/ska-sa/fakenewsredis) testcase, but specifically through testcase regression detection in Debian: https://bugs.debian.org/991451  (Thanks to Paul Gevers and Jochen Sprickerhof)\r\n",
+  "state": "open",
+  "created_at": "2021-07-25T12:48:44Z",
+  "updated_at": "2021-07-26T04:59:55Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 886213023,
+      "user": "oranagra",
+      "created_at": "2021-07-25T14:51:17Z",
+      "body": "@lamby i'm not sure why you're saying this is wrong behavior, as far as i can tell the old behavior was the wrong one.\r\nwe can argue if that's a breaking change that should have been released in a major version rather than being backported, but that's not what you're arguing, right?\r\n\r\nyour script creates a key with the name `\\x00` (i.e. one character long), and then performs an SINTER on two keys, one named \"\" (0 chars), and the one that's one charter long.\r\nunless i'm missing something s simpler form of the same problem (easier to read) would be:\r\n```\r\nSET key1 val\r\nSINTER key2 key1\r\n```\r\ni.e. the fact there are odd names for the keys doesn't matter. right?\r\n\r\nin both cases, the old code would have seen that `key2` (or one named \"\") is empty (non existing) and would return an empty set, and the new code first processes all the arguments (and finds a type error) before going to judge what should be the response.\r\n\r\nimagine these two cases:\r\n```\r\nSET key1 val\r\nSINTER key2 key1\r\n```\r\nvs\r\n```\r\nSET key1 val\r\nSINTER key1 key2\r\n```\r\ni.e. the only difference between the above two cases is the order of arguments for SINTER.\r\nthe old code would return en error for one and en empty set for the other, and the new code returns an error for both.\r\nare you arguing that's wrong to do?"
+    },
+    {
+      "id": 886219101,
+      "user": "lamby",
+      "created_at": "2021-07-25T15:38:16Z",
+      "body": "@oranagra Thanks for the reply. Let me take this back to the others — I'm somewhat playing Chinese whispers here. Your comment was v. useful though."
+    },
+    {
+      "id": 886220850,
+      "user": "oranagra",
+      "created_at": "2021-07-25T15:50:19Z",
+      "body": "from a quick look at the bug report you linked, i'm guessing that it's just a matter of bad test in fakeredis.\r\ni.e. maybe they were attempting to be bug-compatible with redis, or maybe it was just a test that was relying on the bug, and now that we fixed that bug, the test fails. in which case fixing or just deleting that test could be the solution."
+    }
+  ]
+}

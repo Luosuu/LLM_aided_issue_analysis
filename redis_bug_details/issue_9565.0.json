@@ -1,0 +1,18 @@
+{
+  "issue_number": 9565.0,
+  "title": "[BUG] Unable to compile redis with a specific openssl version(1.1.1l) in Linux  ",
+  "body": "**Describe the bug**\r\n\r\nUnable to compile redis with a specific openssl version(1.1.1l) in Linux  \r\n\r\n**To reproduce**\r\n\r\n- `docker run -it ubuntu:xenial /bin/bash`\r\n- Download and compile openssl version 1.1.1l with prefix /root/openssl\r\n- In redis' base dir `make BUILD_TLS=yes OPENSSL_PREFIX=/root/openssl`\r\n\r\noutput:\r\n```\r\n...\r\nMAKE hiredis\r\ncd hiredis && make static USE_SSL=1\r\nmake[3]: Entering directory '/root/redis-unstable/deps/hiredis'\r\ncc -std=c99 -pedantic -c -O3 -fPIC  -DHIREDIS_TEST_SSL -Wall -W -Wstrict-prototypes -Wwrite-strings -Wno-missing-field-initializers -g -ggdb alloc.c\r\ncc -std=c99 -pedantic -c -O3 -fPIC  -DHIREDIS_TEST_SSL -Wall -W -Wstrict-prototypes -Wwrite-strings -Wno-missing-field-initializers -g -ggdb net.c\r\ncc -std=c99 -pedantic -c -O3 -fPIC  -DHIREDIS_TEST_SSL -Wall -W -Wstrict-prototypes -Wwrite-strings -Wno-missing-field-initializers -g -ggdb hiredis.c\r\ncc -std=c99 -pedantic -c -O3 -fPIC  -DHIREDIS_TEST_SSL -Wall -W -Wstrict-prototypes -Wwrite-strings -Wno-missing-field-initializers -g -ggdb sds.c\r\ncc -std=c99 -pedantic -c -O3 -fPIC  -DHIREDIS_TEST_SSL -Wall -W -Wstrict-prototypes -Wwrite-strings -Wno-missing-field-initializers -g -ggdb async.c\r\ncc -std=c99 -pedantic -c -O3 -fPIC  -DHIREDIS_TEST_SSL -Wall -W -Wstrict-prototypes -Wwrite-strings -Wno-missing-field-initializers -g -ggdb read.c\r\ncc -std=c99 -pedantic -c -O3 -fPIC  -DHIREDIS_TEST_SSL -Wall -W -Wstrict-prototypes -Wwrite-strings -Wno-missing-field-initializers -g -ggdb sockcompat.c\r\nar rcs libhiredis.a alloc.o net.o hiredis.o sds.o async.o read.o sockcompat.o\r\ncc -std=c99 -pedantic -c -O3 -fPIC  -DHIREDIS_TEST_SSL -Wall -W -Wstrict-prototypes -Wwrite-strings -Wno-missing-field-initializers -g -ggdb ssl.c\r\nssl.c:45:25: fatal error: openssl/ssl.h: No such file or directory\r\ncompilation terminated.\r\nMakefile:223: recipe for target 'ssl.o' failed\r\nmake[3]: *** [ssl.o] Error 1\r\nmake[3]: Leaving directory '/root/redis-unstable/deps/hiredis'\r\nMakefile:50: recipe for target 'hiredis' failed\r\nmake[2]: *** [hiredis] Error 2\r\nmake[2]: Leaving directory '/root/redis-unstable/deps'\r\n```\r\n\r\n**Expected behavior**\r\n\r\n`make BUILD_TLS=yes OPENSSL_PREFIX=/root/openssl`\r\nCompiles and links with the specified openssl lib, NOT the system wide openssl.\r\n\r\n**Additional information**\r\n\r\nI'm trying to support TLS1.3 on ubuntu:xenial.  \r\n",
+  "state": "closed",
+  "created_at": "2021-09-29T15:12:48Z",
+  "updated_at": "2021-09-30T12:51:19Z",
+  "closed_at": "2021-09-30T12:51:19Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 930344691,
+      "user": "yuniersoad",
+      "created_at": "2021-09-29T16:38:22Z",
+      "body": "@yossigo I created https://github.com/redis/redis/pull/9567 to fix this, please review. Not sure if anything else is required in src/Makefile to make it work for all platforms (tested Linux & Macos) "
+    }
+  ]
+}

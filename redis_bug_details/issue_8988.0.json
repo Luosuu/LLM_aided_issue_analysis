@@ -1,0 +1,36 @@
+{
+  "issue_number": 8988.0,
+  "title": "[BUG] Redis benchmark can't run when config `save` not set",
+  "body": "**Describe the bug**\r\n\r\nRedis benchmark can't run when config `save` not set, and throw `ERROR: failed to fetch CONFIG from ***host***`.\r\n\r\nFirst of all, it doesn't make sense that benchmark can't work without that config.\r\n\r\nSecondly, there are some cloud providers providing redis servers but using own backup tech and forcing config `save` empty, and at these situations, benchmark can't run on these servers forever.\r\n\r\n**To reproduce**\r\n\r\n1. Start a redis server using config file with no config `save` ;\r\n2. Run benchmark on it.\r\n![Screenshot](https://user-images.githubusercontent.com/9762652/119453275-d3f1ff80-bd69-11eb-8733-449f4f6ee029.png)\r\n\r\n**Expected behavior**\r\n\r\nRun as normal.\r\n\r\n**Additional information**\r\n\r\nForgive my poor English. **And redis benchmark *5.5* works properly but *6.2* has this problem**.\r\n",
+  "state": "closed",
+  "created_at": "2021-05-25T07:01:53Z",
+  "updated_at": "2021-05-25T14:22:46Z",
+  "closed_at": "2021-05-25T08:20:20Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 847660507,
+      "user": "oranagra",
+      "created_at": "2021-05-25T08:20:20Z",
+      "body": "@AnnAngela please check the unstable branch. this was already resolved by #8916\r\ni've just tested to confirm. please let me know if you find that i'm wrong.\r\n"
+    },
+    {
+      "id": 847891682,
+      "user": "AnnAngela",
+      "created_at": "2021-05-25T13:55:43Z",
+      "body": "> @AnnAngela please check the unstable branch. this was already resolved by #8916\r\n> i've just tested to confirm. please let me know if you find that i'm wrong.\r\n\r\nI tried unstable version. And yes, it can run. But there is a warning with same message, IDK if it's designed to show that message.\r\n![image](https://user-images.githubusercontent.com/9762652/119508851-affee000-bda2-11eb-9bf4-f45747e753df.png)\r\n"
+    },
+    {
+      "id": 847907741,
+      "user": "oranagra",
+      "created_at": "2021-05-25T14:15:42Z",
+      "body": "@AnnAngela as far as i can tell, just the fact the server doesn't have any save config, doesn't cause that warning (and segmentation fault in last release of 6.2).\r\n```\r\noran@Oran-laptop:~/work/redis2$ src/redis-server --save \"\" > /dev/null &\r\n[1] 14713\r\noran@Oran-laptop:~/work/redis2$ redis-cli config get save\r\n1) \"save\"\r\n2) \"\"\r\noran@Oran-laptop:~/work/redis2$ src/redis-benchmark \r\nPING_INLINE: rps=135900.0 (overall: 126666.7) avg_msec=0.190 (overall: 0.205)\r\n^C\r\n```\r\nthe problem is that if you're connecting to some redis provider that doesn't support that `save` config entirely, it shows a warning and used to crash.\r\nmaybe we could tone down the warning message in some way, but i don't see it as a significant issue."
+    },
+    {
+      "id": 847911400,
+      "user": "AnnAngela",
+      "created_at": "2021-05-25T14:20:24Z",
+      "body": "Yes, you are right. This is not serious problem and I will leave it away. Thank you for you fixing!\r\n\r\nBut I think that should be mentioned in benchmark document."
+    }
+  ]
+}

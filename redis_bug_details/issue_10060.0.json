@@ -1,0 +1,30 @@
+{
+  "issue_number": 10060.0,
+  "title": "[BUG] Redis not following RESP protocol while sending FULLRESYNC message to SLAVE",
+  "body": "## Bug Description\r\n\r\nMissing CR-LF at the end of bulk string send from master to slave during FULLSYNC.\r\n\r\n## How to reproduce this bug (in a much easier way)\r\n\r\n1. Start redis instances in sentinel mode(1 MASTER + 1 SLAVE + 3 SENTINELs).\r\n2. Write some(around 10) data to Redis A using SET command.\r\n3. Use any method you like to listen to what message the MASTER receives.\r\n4. Send command SENTINEL FAILOVER to one of the SENTINELs.\r\n5. Capture the message the MASTER(now as a slave server after the failover) after +FULLRESYNC, which is a bulk string with content starts with REDIS0009\r\n6. You will find that this message does not follow RESP.\r\n7. Servers will perform as normal though.\r\n\r\n## Expected behavior\r\n\r\nA normal bulk string ends with CR-LF.\r\n\r\nAs we can see in the RESP protocol documentation (https://redis.io/topics/protocol), a Bulk String is encoded in this way: \r\n\r\n* Starts with A \"$\" byte followed by the number of bytes composing the string (a prefixed length), terminated by CRLF.\r\n* The actual string data.\r\n* A final CRLF.\r\n\r\nAnd here's the problem. In the message, which is a Bulk String, the final CR-LF is missing!\r\n\r\n## How did I find this bug\r\n\r\n1. Start 2 redis instances in sentinel mode(1 MASTER + 1 SLAVE + 3 SENTINELs) as Redis A and Redis B, on the same machine(Machine A).\r\n2. Write some(around 10) data to Redis A using SET command.\r\n3. Start redis-shake in sync mode to sync data from redis A to redis B, on Machine B. (redis-shake is a third-party tool that can sync data from one redis server to another. To the source server, it shows itself as a redis SLAVE server. Link: https://hub.fastgit.org/alibaba/RedisShake)\r\n4. Use Wireshark to capture packages send from Redis A to redis-shake(default port:9320).\r\n5. After redis-shake enters INCRSYNC mode, send command SENTINEL FAILOVER to one of the SENTINELs in Redis A.\r\n6. Wait until redis-shake crushes, then analyze packages sent to redis-shake.\r\n7. We shall find a package contaning message that does NOT follow RESP protocol, which caused the crash of redis-shake, as it could not parse something that is not RESP. The message can be found at the end of this issue.\r\n\r\n## Possible Cause\r\n\r\nAs I found in the latest codes, the only code that procudes string \"REDIS0009\" is at rdb.c:1234.\r\n\r\n```C\r\nsnprintf(magic,sizeof(magic),\"REDIS%04d\",RDB_VERSION);\r\n```\r\n\r\nSo I guess, when redis starts full-syncing with a slave server, it sends its RDB copy, wrapped as a Bulk String, but unfortunately forgot to add CR-LF to its end.\r\n\r\nThe servers are going well with it though, otherwise this bug should have been found early enough, but its possibley because the slave does not check for the CR-LF ending at the same time. When the server provided directly by redis can normally peroform, a third-party server, such as redis-shake, will suffer from this problem, as they try to decode all Bulk Strings strictly by the RESP protocol.\r\n\r\n## Message Captured\r\n[redis-issue-captured.txt](https://github.com/redis/redis/files/7819139/redis-issue-captured.txt)\r\n",
+  "state": "closed",
+  "created_at": "2022-01-06T02:51:27Z",
+  "updated_at": "2022-01-06T12:03:43Z",
+  "closed_at": "2022-01-06T07:50:22Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1006352135,
+      "user": "oranagra",
+      "created_at": "2022-01-06T07:50:22Z",
+      "body": "@Crystala the data between the master and the replica is not strictly following the RESP protocol.\r\nThe resp protocol if for client applications.\r\nIt may look like RESP, but that's just an internal design choice.\r\nNote that there are other parts in the replication traffic that don't follow RESP, like empty newlines that are used as a form of a keep-alive.\r\nEven if we wanted to \"fix\" this and add a spare newline to make it look more like RESP, we could be facing some backwards compatibility issues.\r\nIf you experienced some crash with RedisShake, i suggest you report it there.\r\n@soloestoy FYI."
+    },
+    {
+      "id": 1006378490,
+      "user": "soloestoy",
+      "created_at": "2022-01-06T08:39:31Z",
+      "body": "@Crystala thanks for your report, and as @oranagra said RESP is for client apps, about replication redis has its internal protocol especially in FULLRESYNC stage, so it's not a bug.\r\n\r\nIn another words, a third-party server (tool) like RedisShake should be compatible with the internal protocol, the third-party server developers should also know about the special protocol, and we (RedisShake) do handle it.\r\n\r\n>5. After redis-shake enters INCRSYNC mode, send command SENTINEL FAILOVER to one of the SENTINELs in Redis A.\r\n\r\nBack to the issue, after SENTINEL FAILOVER sentinel will send `replicaof ip port` to master, and then master kill all replicas connection including RedisShake, RedisShake would crash when disconnect with master. You can check logs, if it's not the scenario I said above or you wanna discuss more, you can report your problem to RedisShake project."
+    },
+    {
+      "id": 1006526720,
+      "user": "Crystala",
+      "created_at": "2022-01-06T12:03:43Z",
+      "body": "@soloestoy Thanks for your reply.\r\nWell, during my usage of RedisShake, this tool did disconnected with MASTER, but according to its log it did successfully managed to get reconnected, and the reason for its crushing was trying to parse the internal protocal you mentioned with RESP, which unfortunately is actually not RESP.\r\nNow I think I would try to fix it first, as I may not have the time to wait for RedisShake's update, while I am in need of a redis syncing tool that can handle a FAILOVER event. Is there anywhere I can get to know about redis' internal protocal (other than reading the code)? Couldn't find it here or at redis.io :("
+    }
+  ]
+}

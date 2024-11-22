@@ -1,0 +1,45 @@
+{
+  "issue_number": 2424.0,
+  "title": "Redis MIGRATE with COPY replicating DEL",
+  "body": "Did not actually test this, I'm actually backporting the new migrate code (3.0RC4) to Redis 2.8.17.\n\nWhen reading through the migrateCommand code, I noticed:\n\n```\nif (!copy) {\n    /* No COPY option: remove the local key, signal the change. */\n    dbDelete(c->db,c->argv[3]);\n    signalModifiedKey(c->db,c->argv[3]);\n}\naddReply(c,shared.ok);\nserver.dirty++;\n\n/* Translate MIGRATE as DEL for replication/AOF. */\naux = createStringObject(\"DEL\",3);\nrewriteClientCommandVector(c,2,aux,c->argv[3]);\ndecrRefCount(aux);\n```\n\nIt is my understanding that if the COPY option was specified, we should not replicate a DEL to slaves?  That is, the replication section should be surrounded by an if (!copy) as well.\n",
+  "state": "closed",
+  "created_at": "2015-02-25T17:29:50Z",
+  "updated_at": "2015-02-26T14:59:05Z",
+  "closed_at": "2015-02-26T14:59:05Z",
+  "labels": [
+    "critical bug",
+    "cluster"
+  ],
+  "comments_data": [
+    {
+      "id": 76015715,
+      "user": "antirez",
+      "created_at": "2015-02-25T17:47:01Z",
+      "body": "You are probably right, I'll review ASAP. Thank you.\n"
+    },
+    {
+      "id": 76027290,
+      "user": "twang817",
+      "created_at": "2015-02-25T18:42:22Z",
+      "body": "I should've referenced this issue in the pull request, but I made a pull request #2425 for this issue, as well as a new feature where cached connections remember their last dbid to avoid redundant SELECTs.\n"
+    },
+    {
+      "id": 76029359,
+      "user": "twang817",
+      "created_at": "2015-02-25T18:52:21Z",
+      "body": "Hm.  It appears I should've done more testing.  I'll update PR when I figure it out.\n"
+    },
+    {
+      "id": 76033426,
+      "user": "twang817",
+      "created_at": "2015-02-25T19:12:21Z",
+      "body": "Fixed.  Tested with a twisted implementation of a redis emulator:\n\nClient:\n\n```\nflushdb : OK\nsetex foo 1000 bar : OK\nsetex hello 1000 world : OK\nsetex key1 1000 value1 : OK\nsetex key2 1000 value2 : OK\nsetex key3 1000 value3 : OK\nmigrate 127.0.0.1 8007 foo 0 100 : OK\nmigrate 127.0.0.1 8007 hello 0 100 replace : OK\nmigrate 127.0.0.1 8007 key1 2 100 : OK\nmigrate 127.0.0.1 8007 key2 2 100 : OK\nmigrate 127.0.0.1 8007 key3 0 100 : OK\n```\n\nReceiving redis instance (emulated):\n\n```\n2015-02-25 13:08:03,683 INFO got a connection\n2015-02-25 13:08:03,683 INFO received SELECT 0\n2015-02-25 13:08:03,684 INFO received RESTORE foo 999987 bar\nRESTORE key=foo value=bar ttl=999987 replace=false\n2015-02-25 13:08:03,688 INFO received RESTORE hello 999984 world REPLACE\nRESTORE key=hello value=world ttl=999984 replace=true\n2015-02-25 13:08:03,691 INFO received SELECT 2\n2015-02-25 13:08:03,692 INFO received RESTORE key1 999984 value1\nRESTORE key=key1 value=value1 ttl=999984 replace=false\n2015-02-25 13:08:03,695 INFO received RESTORE key2 999982 value2\nRESTORE key=key2 value=value2 ttl=999982 replace=false\n2015-02-25 13:08:03,698 INFO received SELECT 0\n2015-02-25 13:08:03,699 INFO received RESTORE key3 999981 value3\nRESTORE key=key3 value=value3 ttl=999981 replace=false\n2015-02-25 13:08:14,966 INFO lost a connection: [Failure instance: Traceback (failure with no frames): <class 'twisted.internet.error.ConnectionDone'>: Connection was closed cleanly.\n```\n\nMonitor on the source redis instance:\n\n```\n1424891595.011351 [0 127.0.0.1:58542] \"flushdb\"\n1424891595.013949 [0 127.0.0.1:58543] \"setex\" \"foo\" \"1000\" \"bar\"\n1424891595.016539 [0 127.0.0.1:58544] \"setex\" \"hello\" \"1000\" \"world\"\n1424891595.019130 [0 127.0.0.1:58545] \"setex\" \"key1\" \"1000\" \"value1\"\n1424891595.021700 [0 127.0.0.1:58546] \"setex\" \"key2\" \"1000\" \"value2\"\n1424891595.024244 [0 127.0.0.1:58547] \"setex\" \"key3\" \"1000\" \"value3\"\n1424891595.026875 [0 127.0.0.1:58548] \"migrate\" \"127.0.0.1\" \"8007\" \"foo\" \"0\" \"100\"\n1424891595.031515 [0 127.0.0.1:58550] \"migrate\" \"127.0.0.1\" \"8007\" \"hello\" \"0\" \"100\" \"replace\"\n1424891595.035156 [0 127.0.0.1:58551] \"migrate\" \"127.0.0.1\" \"8007\" \"key1\" \"2\" \"100\"\n1424891595.039000 [0 127.0.0.1:58552] \"migrate\" \"127.0.0.1\" \"8007\" \"key2\" \"2\" \"100\"\n1424891595.042505 [0 127.0.0.1:58553] \"migrate\" \"127.0.0.1\" \"8007\" \"key3\" \"0\" \"100\"\n```\n"
+    },
+    {
+      "id": 76192083,
+      "user": "antirez",
+      "created_at": "2015-02-26T14:59:05Z",
+      "body": "This is now fixed because of #2425, thanks!\n"
+    }
+  ]
+}

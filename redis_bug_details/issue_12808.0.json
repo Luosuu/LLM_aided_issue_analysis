@@ -1,0 +1,26 @@
+{
+  "issue_number": 12808.0,
+  "title": "[BUG] Module's events are called though module load had failed",
+  "body": "**Describe the bug**\r\n\r\nDetected with `valgrind` - after calling `MODULE LOAD` command for loading a module where loading fails due to `REDISMODULE_ERR` status, we expect that server events to which the module subscribed prior to the failure upon loading will not be handeled. However, this is not the behavior, and handling these events causes accessing invalid memory.\r\n\r\n**To reproduce**\r\n\r\n1. Launch redis-server without modules.\r\n2. Call `module load` command and the `RedisModule_OnLoad` callback in the module code fails (returning `REDISMODULE_ERR`). As part of the cleanup, module context is freed (`moduleFreeModuleStructure(ctx.module);`)\r\n3. Before the failure, upon initialization, module was registered to `RedisModuleEvent_FlushDB` event.\r\n4. Call `FLUSHALL` command. `emptyData` is called -> `moduleFireServerEvent` is called and the callback of the module that was sent to the `RedisModuleEvent_FlushDB` is called as it is still registered.\r\n5. `moduleFireServerEvent` accessing the module context that was freed.\r\n\r\n**Expected behavior**\r\n\r\nModules' callbacks will not be called if nodule loading has failed. \r\n",
+  "state": "closed",
+  "created_at": "2023-11-26T10:38:26Z",
+  "updated_at": "2023-11-27T15:26:34Z",
+  "closed_at": "2023-11-27T15:26:34Z",
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 1826749566,
+      "user": "oranagra",
+      "created_at": "2023-11-26T10:48:15Z",
+      "body": "thanks for reporting.\r\ni see that if the loading fails on a later stage of `moduleLoad`, we do call `moduleUnload` which handles this un-registration. but when it fails on the `RedisModule_OnLoad` call, we only un-register several specific things and this one is missing.\r\n\r\ni suppose we should unify them by calling `moduleLoad`, passing it some hint to tell it not to call the `RedisModule_OnUnload` symbol in that case."
+    },
+    {
+      "id": 1826843750,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-26T17:37:04Z",
+      "body": "> i suppose we should unify them by calling moduleLoad\r\n\r\n@oranagra I tried unified it with moduleUnload, but it was not easy to change or there would be a lot of diff, so i submitted this version first #12809."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "issue_number": 9288.0,
+  "title": "[BUG] Either the blmove documentation is incorrect, or the blmove implementation is broken",
+  "body": "**Describe the bug**\r\n\r\nThe documentation for [blmove](https://redis.io/commands/blmove) indicates that it should work similarly to [lmove](https://redis.io/commands/lmove) in that a source destination and left/right directions are to be used (twice).\r\n\r\n**To reproduce**\r\n\r\n```\r\n127.0.0.1:6379> RPUSH mylist \"one\"\r\n(integer) 1\r\n127.0.0.1:6379> RPUSH mylist \"two\"\r\n(integer) 2\r\n127.0.0.1:6379> RPUSH myslist \"three\"\r\n(integer) 1\r\n127.0.0.1:6379> BLMOVE mylist eldos LEFT RIGHT\r\n(error) ERR wrong number of arguments for 'blmove' command\r\n```\r\n\r\n**Expected behavior**\r\n\r\nSame as lmove, which works.\r\n\r\n**Additional information**\r\n\r\nValidated with redis 6.2.4, and 6.2.5.\r\n",
+  "state": "closed",
+  "created_at": "2021-07-29T14:02:53Z",
+  "updated_at": "2021-07-30T05:20:38Z",
+  "closed_at": "2021-07-30T05:20:38Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 889238124,
+      "user": "enjoy-binbin",
+      "created_at": "2021-07-29T15:22:58Z",
+      "body": "Maybe you are missing a timeout?\r\nlike BLMOVE mylist eldos LEFT RIGHT 0"
+    },
+    {
+      "id": 889532811,
+      "user": "madolson",
+      "created_at": "2021-07-29T23:57:39Z",
+      "body": "Timeout is indeed a required arg for BLMOVE"
+    },
+    {
+      "id": 889636208,
+      "user": "chayim",
+      "created_at": "2021-07-30T05:20:38Z",
+      "body": "Confirmed. The docs are updated to reflect the timeout, and I've validated the use with redis-cli. Closing."
+    }
+  ]
+}

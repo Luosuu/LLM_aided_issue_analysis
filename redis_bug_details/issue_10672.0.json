@@ -1,0 +1,50 @@
+{
+  "issue_number": 10672.0,
+  "title": "[BUG] Some passwords cannot be entered in `redis-cli`",
+  "body": "**Describe the bug**\r\n\r\nThis password:\r\n\r\n```\r\n^8T>6Na{u|jp>+v\"55\\@_;OU(OR]7mbAYGqsfyu48(j'%hQH7;v*f1H${*gD(Se'\r\n```\r\n\r\ncannot be entered in `redis-cli`.\r\n\r\n**To reproduce**\r\n\r\nLoad this ACL from file:\r\n\r\n```\r\nuser some_admin_user on allcommands >^8T>6Na{u|jp>+v\"55\\@_;OU(OR]7mbAYGqsfyu48(j'%hQH7;v*f1H${*gD(Se'\r\n```\r\n\r\nthen start `redis-cli` and try to issue:\r\n\r\n```\r\nauth some_admin_user ^8T>6Na{u|jp>+v\"55\\@_;OU(OR]7mbAYGqsfyu48(j'%hQH7;v*f1H${*gD(Se'\r\n```\r\n\r\nIt won't work, it will say `Invalid argument(s)`. Which means incorrect password, somehow.\r\n\r\n**Expected behavior**\r\n\r\nI would expect the password to be accepted.\r\n\r\n**Additional information**\r\n\r\nThis is probably an escaping issue of some kind, if redis is truly binary safe. Either the database is parsing syntax inside the password while reading from the file, or `redis-cli` is parsing syntax inside the password when trying to issue the `AUTH` command. I tried quoting and backslash escaping special characters but I couldn't find any combination that worked. It would be nice to know what is going on and if it can be fixed.\r\n\r\nI was able to resolve the issue by generating a different password that did not include quotation marks or backslashes.",
+  "state": "closed",
+  "created_at": "2022-05-02T12:09:35Z",
+  "updated_at": "2022-05-09T19:28:08Z",
+  "closed_at": "2022-05-09T19:28:08Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1114786440,
+      "user": "LoganDark",
+      "created_at": "2022-05-02T12:23:10Z",
+      "body": "It's possible to authenticate with this password using `redis-cli --user some_admin_user --askpass`, so the escaping issue is on `redis-cli`'s end"
+    },
+    {
+      "id": 1115280767,
+      "user": "madolson",
+      "created_at": "2022-05-02T19:31:57Z",
+      "body": "The problem here is related to character escaping in the cli, not redis itself. Since your password contains a `\"`, the cli is trying to parse a quoted string. The correct way to send the command requires you to escape the argument, like: `auth user \">^8T>6Na{u|jp>+v\\\"55\\@_;OU(OR]7mbAYGqsfyu48(j'%hQH7;v*f1H${*gD(Se'\"`."
+    },
+    {
+      "id": 1115282003,
+      "user": "LoganDark",
+      "created_at": "2022-05-02T19:33:21Z",
+      "body": "> The problem here is related to character escaping in the cli, not redis itself.\r\n\r\nIndeed :>\r\n\r\n> The correct way to send the command requires you to escape the argument, like: `auth user \">^8T>6Na{u|jp>+v\\\"55\\@_;OU(OR]7mbAYGqsfyu48(j'%hQH7;v*f1H${*gD(Se'\"`.\r\n\r\nIs this documented anywhere?"
+    },
+    {
+      "id": 1115296528,
+      "user": "madolson",
+      "created_at": "2022-05-02T19:50:43Z",
+      "body": "It doesn't seem like it."
+    },
+    {
+      "id": 1115297930,
+      "user": "LoganDark",
+      "created_at": "2022-05-02T19:52:38Z",
+      "body": "I think it would be helpful to document that, so that in the future, users have a resource to learn how this works so they won't have to open an issue about it :)"
+    },
+    {
+      "id": 1121490535,
+      "user": "madolson",
+      "created_at": "2022-05-09T19:28:07Z",
+      "body": "https://github.com/redis/redis-doc/issues/1930"
+    }
+  ]
+}

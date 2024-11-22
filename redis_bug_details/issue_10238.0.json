@@ -1,0 +1,24 @@
+{
+  "issue_number": 10238.0,
+  "title": "[BUG] redis-cli - AUTH keeps suggesting [username] even after it's typed",
+  "body": "redis-cli suggestion - AUTH keeps suggesting `[username]` even after username and password are typed\r\n\r\n![image](https://user-images.githubusercontent.com/753206/152603627-4a31e248-074d-4645-a709-cf103879f2eb.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-02-04T21:12:12Z",
+  "updated_at": "2022-02-05T08:17:37Z",
+  "closed_at": "2022-02-05T08:17:37Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1030524727,
+      "user": "enjoy-binbin",
+      "created_at": "2022-02-05T04:42:37Z",
+      "body": "This seems normal, optional parameters are like this\r\n```\r\n127.0.0.1:6379> ping hello [message]\r\n127.0.0.1:6379> hello 3 setname name [protover [AUTH username password] [SETNAME clientname]]\r\n```"
+    },
+    {
+      "id": 1030575209,
+      "user": "oranagra",
+      "created_at": "2022-02-05T08:17:37Z",
+      "body": "this is due to this issue: #9303"
+    }
+  ]
+}

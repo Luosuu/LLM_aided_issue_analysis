@@ -1,0 +1,26 @@
+{
+  "issue_number": 12193.0,
+  "title": "[CRASH] make test failed trim on SET with big value in tests/unit/type/string.tcl",
+  "body": "\r\n**Crash report**\r\nHow to solve make test falied\r\n\r\n```\r\n[11/66 done]: unit/type/list (8 seconds)\r\nTesting integration/replication\r\n[ok]: Check for memory leaks (pid 86784)\r\n[ok]: Check for memory leaks (pid 86677)\r\n[ok]: GETRANGE fuzzing\r\n[err]: trim on SET with big value in tests/unit/type/string.tcl\r\nExpected [r memory usage key] < 42000 (context: type source line 467 file /Users/devTools/redis-6.2.12/tests/unit/type/string.tcl cmd {assert {[r memory usage key] < 42000}} proc ::test)\r\n\r\n\r\n!!! WARNING The following tests failed:\r\n\r\n*** [err]: trim on SET with big value in tests/unit/type/string.tcl\r\nExpected [r memory usage key] < 42000 (context: type source line 467 file /Users/devTools/redis-6.2.12/tests/unit/type/string.tcl cmd {assert {[r memory usage key] < 42000}} proc ::test)\r\nCleanup: may take some time... OK\r\nmake[1]: *** [test] Error 1\r\nmake: *** [test] Error 2\r\n```\r\n\r\n**Additional information**\r\n\r\n1. OS distribution and version\r\nmacOS 11.6.1  \r\nredis-6.2.12\r\n3. Steps to reproduce (if any)\r\nafter tar -zxvf and make test",
+  "state": "closed",
+  "created_at": "2023-05-18T01:00:07Z",
+  "updated_at": "2023-05-18T06:22:31Z",
+  "closed_at": "2023-05-18T06:22:31Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1552298534,
+      "user": "sundb",
+      "created_at": "2023-05-18T01:53:34Z",
+      "body": "Thx, this was already fixed in ##11878."
+    },
+    {
+      "id": 1552507964,
+      "user": "oranagra",
+      "created_at": "2023-05-18T06:22:31Z",
+      "body": "i'll backport that fix to 6.2 and 7.0"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "issue_number": 210.0,
+  "title": "Binary string as value max size",
+  "body": "The page about **data types**\n\nhttp://redis.io/topics/data-types\n\nmentions that _A String value can be at max 512 Megabytes in length._, but on the page **A fifteen minute introduction to Redis data types**\n\nhttp://redis.io/topics/data-types-intro\n\nsays:\n\n_Values can be strings (including binary data) of every kind, for instance you can store a jpeg image inside a key. A value can't be bigger than 1 Gigabyte._\n\nwhich one is correct?\n",
+  "state": "closed",
+  "created_at": "2011-11-25T14:58:36Z",
+  "updated_at": "2014-07-28T17:38:46Z",
+  "closed_at": "2014-07-28T17:38:46Z",
+  "labels": [
+    "non critical bug",
+    "documentation"
+  ],
+  "comments_data": [
+    {
+      "id": 2875262,
+      "user": "antirez",
+      "created_at": "2011-11-25T15:02:52Z",
+      "body": "Hi, used to be 1GB, was later modified to 512MB so that the whole space is addressable as a bitmap using an integer that is an unsigned 32 bit number. I'll fix that.\n"
+    },
+    {
+      "id": 2875418,
+      "user": "rlazo",
+      "created_at": "2011-11-25T15:20:12Z",
+      "body": "Great, thanks! that was fast\n"
+    },
+    {
+      "id": 4032415,
+      "user": "AndrewGuenther",
+      "created_at": "2012-02-18T06:52:01Z",
+      "body": "@antirez, Seems you fixed this issue, any reason why it hasn't been closed yet?\n"
+    }
+  ]
+}

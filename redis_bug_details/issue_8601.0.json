@@ -1,0 +1,30 @@
+{
+  "issue_number": 8601.0,
+  "title": "[BUG] redis 6.2.1 build failed on FreeBSD 11.4, both amd64 and i386",
+  "body": "Hi,\r\n\r\nredis 6.2.1 build failed on FreeBSD 11.4, both amd64 and i386.  The platform has no `malloc.h`, but `stdlib.h` instead.\r\nNot tested patch is attached.\r\n[patch-zmalloc.h.txt](https://github.com/redis/redis/files/6084663/patch-zmalloc.h.txt)\r\n\r\nCould you please review.\r\n\r\nThank you.\r\n\r\n```\r\ngmake[3]: Leaving directory '/wrkdirs/usr/ports/databases/redis-devel/work/redis-6.2.1/deps'\r\ngcc10 -pedantic -DREDIS_STATIC='' -Wno-c11-extensions -std=c99 -Wall -W -Wno-missing-field-initializers   -O2 -pipe  -march=i586 -fstack-protector-strong -Wl,-rpath=/usr/local/lib/gcc10 -fno-strict-aliasing   -I../deps/hiredis -I../deps/linenoise -I../deps/lua/src -I../deps/hdr_histogram -MMD -o adlist.o -c adlist.c\r\nIn file included from zmalloc.h:77,\r\n                 from adlist.c:34:\r\n/usr/include/malloc.h:3:2: error: #error \"<malloc.h> has been replaced by <stdlib.h>\"\r\n    3 | #error \"<malloc.h> has been replaced by <stdlib.h>\"\r\n      |  ^~~~~\r\n```",
+  "state": "closed",
+  "created_at": "2021-03-04T15:16:59Z",
+  "updated_at": "2021-03-08T16:55:55Z",
+  "closed_at": "2021-03-07T12:14:56Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 790874154,
+      "user": "yossigo",
+      "created_at": "2021-03-04T19:33:43Z",
+      "body": "@osokin I've changed the patch slightly so it will not affect anything other than FreeBSD. Can you let me know if #8603 makes sense/works for you? Thanks!"
+    },
+    {
+      "id": 792269178,
+      "user": "yossigo",
+      "created_at": "2021-03-07T12:14:56Z",
+      "body": "Fixed by #8603 "
+    },
+    {
+      "id": 792898583,
+      "user": "osokin",
+      "created_at": "2021-03-08T16:55:55Z",
+      "body": "> @osokin I've changed the patch slightly so it will not affect anything other than FreeBSD. Can you let me know if #8603 makes sense/works for you? Thanks!\r\n\r\n@yossigo I've just tested your patch on 11.4-RELEASE-p8 and it works, thanks!"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "issue_number": 9335.0,
+  "title": "[BUG]A potential bug of NULL pointer dereference ",
+  "body": "there is a potential bug of null pointer dereference.In **file dict.c,line 75,**function **_dicInit** is called and ht act as the first parameter.In **line 81**,function **_dictReset** is called and in line 66~line 69,there are several statement will execute by derefer ht,which can be null.\r\n\r\n![Snipaste_2021-08-07_12-29-02](https://user-images.githubusercontent.com/87304478/128587980-1fab4f32-432c-4d6e-80a3-ee7eceb05867.png)\r\n\r\n\r\nWould you help to check whether this is a true bug? Thanks very much.",
+  "state": "closed",
+  "created_at": "2021-08-07T07:14:17Z",
+  "updated_at": "2021-08-07T13:26:11Z",
+  "closed_at": "2021-08-07T13:26:11Z",
+  "labels": [],
+  "comments_data": []
+}

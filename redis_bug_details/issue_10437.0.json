@@ -1,0 +1,42 @@
+{
+  "issue_number": 10437.0,
+  "title": "[BUG] redis-cli exit codes are inconsistent",
+  "body": "**Describe the bug**\r\n\r\nredis-cli exit code can be `1` or `255` on failure. Looks like it's inconsistent, not sure when to expect one or another.\r\n\r\n**To reproduce**\r\n\r\nThis is how `255` is returned:\r\n\r\nhttps://github.com/redis/redis/blob/b69636d377cce0eb8c1fae3ac80240387e31d78f/src/redis-cli.c#L9048\r\n\r\n`noninteractive()` returns `REDIS_ERR` on failure, which is `-1`, it becomes `255` as exit codes are in range `0-255`. \r\n\r\n**Expected behavior**\r\n\r\nAs far as I see, nothing is wrong by doing this but it'd nice to be consistent. If we want to have a quick fix and use exit code `1` on all cases, we might be introducing a breaking change? I'm not sure if anybody relies on this. \r\n\r\nAlso, we had a quick conversation with @yossigo, we may further improve error codes by using different exit codes for different error cases as well. \r\n",
+  "state": "closed",
+  "created_at": "2022-03-17T13:16:30Z",
+  "updated_at": "2022-03-30T18:16:03Z",
+  "closed_at": "2022-03-30T18:16:03Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1072423638,
+      "user": "hwware",
+      "created_at": "2022-03-18T13:42:41Z",
+      "body": "I agree with you, keeping consistent always is a good style for a software, especially for error code which could give developer a clear what happened."
+    },
+    {
+      "id": 1073794418,
+      "user": "oranagra",
+      "created_at": "2022-03-21T11:42:54Z",
+      "body": "@tezc i merged your PR, so now 7.0 would behave the same as 6.2.\r\nbut IIUC there are still places where we do (and always did) return 255 by mistake?\r\ni personally think this is ok to change, and i also think that unless we have some documentation that explicitly defines what each value means, users should just do `!=0` rather than `==1`."
+    },
+    {
+      "id": 1073862711,
+      "user": "tezc",
+      "created_at": "2022-03-21T12:57:45Z",
+      "body": "@oranagra I agree with you %100 user should check `!= 0` and I feel like it should be okay to change `255` exit codes to `1`. \r\n\r\n@yossigo thought returning `255` instead of `1` on connection failure would be a breaking change, so I created the PR. \r\n\r\nNow, thinking the other way around,  if we fix places and return `1` instead of `255`, would that be a breaking change as well? \r\n\r\nAs you said people should check `!=0`, even they don't do that, they should be okay with `1` as it is the generic error code. `255` is considered out of range error code IIUC, it's definitely not something to rely on, so I believe we can change it to `1`.\r\n\r\n@yossigo wdyt?"
+    },
+    {
+      "id": 1074041177,
+      "user": "yossigo",
+      "created_at": "2022-03-21T15:26:59Z",
+      "body": "I think we can live with this breaking change and always return `1`. In the future I'd be happy to introduce more formal exit codes but we don't have to do that now."
+    },
+    {
+      "id": 1074786520,
+      "user": "tezc",
+      "created_at": "2022-03-22T06:29:03Z",
+      "body": "Created a PR for it: https://github.com/redis/redis/pull/10468"
+    }
+  ]
+}

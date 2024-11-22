@@ -1,0 +1,60 @@
+{
+  "issue_number": 13621.0,
+  "title": "[BUG] Crash of Redis Server - have to  #ReadOnlyDirectories=/",
+  "body": "On a Raspi 4 Debian 11 my redis server (version=6.0.16) suddenly crashes after a while.\r\n\r\n\r\n**To reproduce**\r\nreboot and wait\r\n\r\nAfter a reboot everything works, but then I get an odd error from redis server which breaks after a while:\r\n\r\njournalctl -f -u redis-server\r\n> -- Journal begins at Thu 2024-10-24 13:07:28 CEST. --\r\nOkt 24 14:03:12 GLOIN systemd[1]: Stopped Advanced key-value store.\r\nOkt 24 14:03:12 GLOIN systemd[1]: Starting Advanced key-value store...\r\nOkt 24 14:03:22 GLOIN systemd[314571]: redis-server.service: Failed to set up mount namespacing: /run/systemd/unit-root/: Host is down\r\nOkt 24 14:03:22 GLOIN systemd[314571]: redis-server.service: Failed at step NAMESPACE spawning /usr/bin/redis-server: Host is down\r\nOkt 24 14:03:22 GLOIN systemd[1]: redis-server.service: Main process exited, code=exited, status=226/NAMESPACE\r\nOkt 24 14:03:22 GLOIN systemd[1]: redis-server.service: Failed with result 'exit-code'.\r\nOkt 24 14:03:22 GLOIN systemd[1]: Failed to start Advanced key-value store.\r\n\r\n\r\nIf I comment out\r\nReadOnlyDirectories=/\r\nin the redis systemd service file it would work. But I don’t like to do that.\r\n\r\nThe server ran for years with this configuration without problem and I have no idea what changed to provoke this behaviour.\r\nAlso the solution, which I found on the internet seems odd.\r\nIs it ok to comment ReadOnlyDirectories out? \r\nOr what else could I do to fix that?\r\n\r\nThanks.\r\n",
+  "state": "open",
+  "created_at": "2024-10-26T10:39:45Z",
+  "updated_at": "2024-10-30T15:39:49Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2439486939,
+      "user": "sundb",
+      "created_at": "2024-10-26T10:45:56Z",
+      "body": "@n0valis can you give the logs from redis server instead of systemd."
+    },
+    {
+      "id": 2440074133,
+      "user": "n0valis",
+      "created_at": "2024-10-27T15:49:26Z",
+      "body": "@sundb I am not neccessarily familiar with redis. Could you please be a bit mor specific. Where and what?"
+    },
+    {
+      "id": 2440288961,
+      "user": "sundb",
+      "created_at": "2024-10-28T01:12:03Z",
+      "body": "@n0valis i'm not sure if config `ReadOnlyDirectories=/` may cause redis to fail to write data, maybe you should avoid limiting write at the top level."
+    },
+    {
+      "id": 2443983408,
+      "user": "n0valis",
+      "created_at": "2024-10-29T11:44:00Z",
+      "body": "> @n0valis i'm not sure if config `ReadOnlyDirectories=/` may cause redis to fail to write data, maybe you should avoid limiting write at the top level.\r\n\r\nAnd I don't know what to make of your comment. I am also not sure, that's why I'm here. I have no clue about redis and it's requirements. I read on the internet that disableing `ReadOnlyDirectories=/ in the service file solves the problem. That's why I did it and it works. I am here to find out about \r\n+ the side effects of that, \r\n+ why it solves the problem,\r\n+ and what the actual reason is for redis to crash\r\n\r\nI thought you might know anything about this.\r\nIf you tell me where to find additional data which you need I can provide it."
+    },
+    {
+      "id": 2445585068,
+      "user": "sundb",
+      "created_at": "2024-10-30T00:49:23Z",
+      "body": "@n0valis you also need to give Redis the write permission, otherwise it will not be able to rdb saving, config rewrite, creat pid file, etc."
+    },
+    {
+      "id": 2446721512,
+      "user": "n0valis",
+      "created_at": "2024-10-30T11:29:41Z",
+      "body": "I think you don't understand the problem.\r\nI don't give anything.\r\nThis is done automatically on installation.\r\nThis Problem I have is new. Afzer years of running flawless.\r\nCan yoz please carefully read my posts and answer my questions \r\n"
+    },
+    {
+      "id": 2446891020,
+      "user": "sundb",
+      "created_at": "2024-10-30T12:03:41Z",
+      "body": "https://github.com/systemd/systemd/issues/16156\r\nThis failure does not appear to be related with redis, this log is not from Redis, have you recently upgraded system or systemd, perhaps you should consider trying to update systemd."
+    },
+    {
+      "id": 2447582577,
+      "user": "n0valis",
+      "created_at": "2024-10-30T15:39:47Z",
+      "body": "Why is so difficult to understand for you? \r\nRedis server crashes. This is related to redis. \r\nRedis server is started as a service by systemd. This is related to redis.\r\nIf I remove one entry in the service file the server does not crash. This is related to redis. \r\n\r\nDo you know anything about this entry?(ReadOnlyDirectories=/) \r\nWhat could be the reason for redis to not crash if this entry is commented out? \r\nDo you know anything about redis? "
+    }
+  ]
+}

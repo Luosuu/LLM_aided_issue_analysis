@@ -1,0 +1,24 @@
+{
+  "issue_number": 10507.0,
+  "title": "[BUG] I have set up bind ip address in the config file but it still cant connect",
+  "body": "I have set up the bind ip address in the config file. \r\n\r\nFrom the redis-cli config get *, I saw two ip address set up.\r\n\r\n213) \"bind\"\r\n\r\n214) \"x.x.x.x 127.0.0.1/\"\r\n\r\nBut my python client still cant connect to it.\r\n\r\nIf I run `redis-cli --protected-mode` no , connection is okay so it is not firewall related.",
+  "state": "open",
+  "created_at": "2022-04-01T20:43:00Z",
+  "updated_at": "2022-04-23T17:06:21Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1086552997,
+      "user": "sundb",
+      "created_at": "2022-04-02T05:44:28Z",
+      "body": "Is `redis-server --protected-mode no`?\r\nThe protected mode is to avoid exposing redis directly to the internet, which would be dangerous, and you should connect to it via auth.\r\nref: https://redis.io/docs/manual/security/"
+    },
+    {
+      "id": 1107535397,
+      "user": "cxb999",
+      "created_at": "2022-04-23T17:06:21Z",
+      "body": "first\r\nrun redis-server --protected-mode no\r\nConnect the redis service first, and use \"client list\" to confirm whether the IP is set correctly.\r\nNext, keep \"protected mode yes\",Set the \"requirepass\" to see if it can be connected.\r\nIf it still doesn't work, try another port when starting the service.(or \"telnet\" to check the port)"
+    }
+  ]
+}

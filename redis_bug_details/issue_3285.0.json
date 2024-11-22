@@ -1,0 +1,105 @@
+{
+  "issue_number": 3285.0,
+  "title": "Master is not configured as Slave after failure and reboot",
+  "body": "I had thought that Sentinel would (after a master crashed), wait for the old master to come back online, when it detects it, it would configure it to be the slave of the newly promoted master.\n\nI see this on the main documentation for Sentinel:\n\"Moreover, after a failover, the failed over master is virtually added as a slave of the new master, this way it will be reconfigured to replicate with the new master as soon as it will be available again.\"\n\nWe're using version \"3.2.0-1.el6.remi\".   We carried out this test as a way to smoke test our installation\\configuration was correct, but are left a bit puzzled as the slave is promoted to master, but when we restart the redis server on the old master, it never gets its configuration updated (to configure it as a slave).  It seems like Sentinel has stopped monitoring it.\n\nCould I get a comment from the Redis team, is this a bug?\n",
+  "state": "closed",
+  "created_at": "2016-05-31T12:24:37Z",
+  "updated_at": "2016-06-21T10:23:17Z",
+  "closed_at": "2016-06-16T17:28:01Z",
+  "labels": [
+    "critical bug",
+    "sentinel"
+  ],
+  "comments_data": [
+    {
+      "id": 222911983,
+      "user": "md-gh",
+      "created_at": "2016-06-01T07:14:14Z",
+      "body": "Apparently this was not a problem in redis sentinel version 3.0.7\n"
+    },
+    {
+      "id": 223012634,
+      "user": "jessee9",
+      "created_at": "2016-06-01T14:36:44Z",
+      "body": "+1\n"
+    },
+    {
+      "id": 223028489,
+      "user": "rolette",
+      "created_at": "2016-06-01T15:24:28Z",
+      "body": "Same issue here, reported in /r/redis: https://www.reddit.com/r/redis/comments/4jzm91/getting_a_handle_on_sentinel/\n"
+    },
+    {
+      "id": 223081167,
+      "user": "antirez",
+      "created_at": "2016-06-01T18:22:16Z",
+      "body": "Thanks, on my radar, will check and fix in the next days, hopefully tomorrow...\n"
+    },
+    {
+      "id": 223814717,
+      "user": "md-gh",
+      "created_at": "2016-06-05T14:02:10Z",
+      "body": "thanks antirez\n"
+    },
+    {
+      "id": 224259437,
+      "user": "mayuraviraj",
+      "created_at": "2016-06-07T12:01:15Z",
+      "body": "I faced this issue on Redis 3.0.7 version also even-though here it is said that issue is not there in 3.0.7 \n"
+    },
+    {
+      "id": 224326637,
+      "user": "cankaya07",
+      "created_at": "2016-06-07T15:57:09Z",
+      "body": "i faced similar issue on 3.0.7 and 3.2.0 i think main problem sentinel couldn't change old master.'s configuration preoperly. i checked the old master's configuration files modified date. It is changing all the tme  [i explained here](http://stackoverflow.com/questions/37394453/redis-failover-cluster-convert-to-slave) @antirez is it same problem?\n"
+    },
+    {
+      "id": 225166431,
+      "user": "rolette",
+      "created_at": "2016-06-10T12:14:40Z",
+      "body": "@cankaya07: not the same problem... Sentinel can update the config file just fine\n"
+    },
+    {
+      "id": 225464268,
+      "user": "prachetasp",
+      "created_at": "2016-06-12T22:26:31Z",
+      "body": "+1\n"
+    },
+    {
+      "id": 226491352,
+      "user": "sskorgal",
+      "created_at": "2016-06-16T13:53:04Z",
+      "body": "Every time sentinel tries to create commands connection for old master sentinel redis instance (which is down), it sends ping and increment link->pending_commands, but since link establish fails, we reset command connection and set link status to disconnect, but pending_commands is not reset. So, pending_commands keeps growing beyond SENTINEL_MAX_PENDING_COMMANDS (as there is no boundary check before sending ping command).\n\nOnce old master comes up, sentinel will not send sentinelSendPeriodicCommands, as there is a limit on link->pending_commands, which has been exceeded. So, INFO command is not sent to old master and there by sentinel does not get to know the actual role of old master. \n\nFix: to reset pending_commands while handling link connection error in instanceLinkConnectionError \n"
+    },
+    {
+      "id": 226493896,
+      "user": "antirez",
+      "created_at": "2016-06-16T14:01:25Z",
+      "body": "Since this is a regression, I believe it has something to do with the huge connection management refactoring that happened in 3.2, so the @sskorgal explanation looks interesting. I'm trying to verify what happens today in order to try fixing it ASAP for 3.2.1. Thanks for the reports.\n"
+    },
+    {
+      "id": 226548850,
+      "user": "antirez",
+      "created_at": "2016-06-16T17:03:56Z",
+      "body": "Hello, just to say that I investigated the issue for quite some time, and I believe @sskorgal is correct.\n\nThe reason the problem is not always trivial to verify, is that sometimes connect fails immediately when the instance is down so:\n1. `SentinelReconnectInstance` calls `redisAsyncConnectBind`.\n2. We get lucky and `link->cc->err` is true.\n3. If so, `instanceLinkCloseConnection()` gets called and resets the pending count.\n\nGiven that it looks like that's the root cause, the fix should be straightforward, as @sskorgal suggested, that is, just to reset the count when we reset the link in `instanceLinkConnectionError`.\n\nChecking if the fix works as expected.\n"
+    },
+    {
+      "id": 226549303,
+      "user": "antirez",
+      "created_at": "2016-06-16T17:05:42Z",
+      "body": "Btw handling this like that is **fragile** like hell. The root cause of this design is that the hiredis library is not capable of providing the number of pending callbacks, otherwise we may avoid keeping any count at all, and just check from time to time and kill the link completely if it looks like our queue is too big. We could implement killing after a given limit is reached even right now taking the count ourselves, but there is always the fear of mis-counting because of the complexity of the callbacks and links that can get reset in the meantime.\n"
+    },
+    {
+      "id": 226551199,
+      "user": "antirez",
+      "created_at": "2016-06-16T17:12:46Z",
+      "body": "On top of that note that, actually, it is not possible to reset `pending_commands` in `instanceLinkConnectionError()`, since this gets called only in the context of an error reported by hiredis. If we reset the count there, the hiredis callback, after returning, will process the pending requests that will contain `pending_commands--` in order to report back the count to 0, so we'll get negative pending commands count.\n\nApparently the best strategy appears to do that on reconnection instead:\n\n``` diff\ndiff --git a/src/sentinel.c b/src/sentinel.c\nindex 6c48f3e..f8ebd0c 100644\n--- a/src/sentinel.c\n+++ b/src/sentinel.c\n@@ -1910,6 +1910,7 @@ void sentinelReconnectInstance(sentinelRedisInstance *ri) {\n                 link->cc->errstr);\n             instanceLinkCloseConnection(link,link->cc);\n         } else {\n+            link->pending_commands = 0;\n             link->cc_conn_time = mstime();\n             link->cc->data = link;\n             redisAeAttach(server.el,link->cc);\n```\n"
+    },
+    {
+      "id": 227355914,
+      "user": "md-gh",
+      "created_at": "2016-06-21T06:55:41Z",
+      "body": "Thanks antirez and sskorgal.\n\nI have tested it out and can confirm that its fixed in 3.2.1, thanks again.\n"
+    }
+  ]
+}

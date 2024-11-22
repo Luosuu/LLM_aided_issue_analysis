@@ -1,0 +1,48 @@
+{
+  "issue_number": 10843.0,
+  "title": "[BUG]Sentinel command 'get-master-addr-by-name' and 'master' return inconsistent",
+  "body": "**Describe the bug**\r\n\r\n![image](https://user-images.githubusercontent.com/12031110/173021153-ce9acdf8-271a-47d8-8e3c-66ed00789844.png)\r\n\r\nAs the picture shows\r\nWhen I use the `SENTINEL get-master-addr-by-name` command to query the master address, the return is inconsistent with the `SENTINEL master`\r\n\r\n**To reproduce**\r\n\r\nKill the redis master instance, trigger failover. Issue happens when repeated multiple times\r\n\r\n**Expected behavior**\r\n\r\nThe return of the two commands should be consistent\r\n\r\n**Additional information**\r\n\r\nThe sentinel node with this problem entered and exited the tilt mode, I don't know if it is related\r\n![image](https://user-images.githubusercontent.com/12031110/173022497-6dc89335-25c3-425d-aa61-3e7e4e94d2a3.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-06-10T08:17:19Z",
+  "updated_at": "2022-06-13T13:57:15Z",
+  "closed_at": "2022-06-13T06:13:16Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1152774016,
+      "user": "hwware",
+      "created_at": "2022-06-10T22:17:05Z",
+      "body": "Hi, I try to reproduce your issues on 4 different machines, one for master, 2 for replicas and 1 for sentinels.\r\nAnd I could not reproduce your issue.\r\n\r\nCould you please provide your full info logs, so we could see which OS and which version of Redis when you have this issue.\r\nAnother question is could you tell us how frequent this problem happens?\r\n\r\nThanks a lot\r\n\r\n"
+    },
+    {
+      "id": 1153391178,
+      "user": "imguang",
+      "created_at": "2022-06-13T02:21:19Z",
+      "body": "Sorry for the late reply.\r\n\r\nHere is the full log of the node in question:\r\n[172.28.204.53-redis.log](https://github.com/redis/redis/files/8887375/172.28.204.53-redis.log)\r\n\r\nAnd os information:\r\n`Linux rgibns3 3.10.0-957.el7.x86_64 #1 SMP Thu Nov 8 23:39:32 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux`\r\n\r\nHow frequent this problem happens?\r\n- the last time I switched about 5 times, it hit the problem\r\n\r\nI just found that the time of this node is about 40s behind other nodes, I will adjust the time and repeat the test, then sync the test results here"
+    },
+    {
+      "id": 1153513205,
+      "user": "imguang",
+      "created_at": "2022-06-13T06:13:16Z",
+      "body": "After synchronizing the time and testing again, there is no problem with triggering 100 failovers.\r\n\r\nTherefore, it can be basically determined that the problem is caused by inconsistency of cluster time.\r\n\r\nI will close this issue, thanks a lot"
+    },
+    {
+      "id": 1153528557,
+      "user": "imguang",
+      "created_at": "2022-06-13T06:35:01Z",
+      "body": "But in this case, the two commands should return the same too, right?"
+    },
+    {
+      "id": 1153948067,
+      "user": "hwware",
+      "created_at": "2022-06-13T13:56:40Z",
+      "body": "> But in this case, the two commands should return the same too, right?\r\n\r\nYes, from code level, it should return the same value.\r\n"
+    },
+    {
+      "id": 1153948712,
+      "user": "hwware",
+      "created_at": "2022-06-13T13:57:15Z",
+      "body": "> After synchronizing the time and testing again, there is no problem with triggering 100 failovers.\r\n> \r\n> Therefore, it can be basically determined that the problem is caused by inconsistency of cluster time.\r\n> \r\n> I will close this issue, thanks a lot\r\n\r\nGreat"
+    }
+  ]
+}

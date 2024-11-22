@@ -1,0 +1,41 @@
+{
+  "issue_number": 754.0,
+  "title": "Redis Error When starting",
+  "body": "One of our redis servers died earlier in the night.\nIt now won't restart.\n\nHere is the content of the log:\n\n```\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\n[1888] 06 Nov 03:08:10.958 # === ASSERTION FAILED OBJECT CONTEXT ===\n[1888] 06 Nov 03:08:10.959 # Object type: 5\n[1888] 06 Nov 03:08:10.959 # Object encoding: 0\n[1888] 06 Nov 03:08:10.959 # Object refcount: 0\n[1888] 06 Nov 03:08:10.959 # === ASSERTION FAILED ===\n[1888] 06 Nov 03:08:10.959 # ==> object.c:309 'a->type == REDIS_STRING && b->type == REDIS_STRING' is not true\n[1888] 06 Nov 03:08:10.959 # (forcing SIGSEGV to print the bug report.)\n[1888] 06 Nov 03:08:10.959 #     Redis 2.6.2 crashed by signal: 11\n[1888] 06 Nov 03:08:10.959 #     Failed assertion: a->type == REDIS_STRING && b->type == REDIS_STRING (object.c:309)\n[1888] 06 Nov 03:08:10.959 # --- STACK TRACE\n/usr/local/bin/redis-server(logStackTrace+0x5e)[0x8084cae]\n/usr/local/bin/redis-server(_redisAssert+0x77)[0x8084b57]\n[0xf57fe40c]\n/usr/local/bin/redis-server(compareStringObjects+0xf5)[0x806a175]\n/usr/local/bin/redis-server(zslInsert+0x9e)[0x8079bce]\n/usr/local/bin/redis-server(rdbLoadObject+0x2cc)[0x806fdcc]\n/usr/local/bin/redis-server(rdbLoad+0x1ca)[0x807066a]\n/usr/local/bin/redis-server(loadDataFromDisk+0x2b)[0x805f19b]\n/usr/local/bin/redis-server(main+0x40d)[0x806002d]\n/lib/i686/cmov/libc.so.6(__libc_start_main+0xe6)[0xb764dca6]\n/usr/local/bin/redis-server[0x8058751]\n[1888] 06 Nov 03:08:10.960 # --- INFO OUTPUT\n[1888] 06 Nov 03:08:10.960 # # Server\nredis_version:2.6.2\nredis_git_sha1:00000000\nredis_git_dirty:0\nredis_mode:standalone\nos:Linux 3.5.2-linode45 i686\narch_bits:32\nmultiplexing_api:epoll\ngcc_version:4.4.5\nprocess_id:1888\nrun_id:3dd9ea871904ea3c77b6c4a43f68ee5d287554da\ntcp_port:6379\nuptime_in_seconds:0\nuptime_in_days:0\nlru_clock:0\n\n# Clients\nconnected_clients:0\nclient_longest_output_list:0\nclient_biggest_input_buf:0\nblocked_clients:0\n\n# Memory\nused_memory:2993719816\nused_memory_human:2.79G\nused_memory_rss:3037552640\nused_memory_peak:2985381784\nused_memory_peak_human:2.78G\nused_memory_lua:20480\nmem_fragmentation_ratio:1.01\nmem_allocator:jemalloc-3.0.0\n\n# Persistence\nloading:1\nrdb_changes_since_last_save:0\nrdb_bgsave_in_progress:0\nrdb_last_save_time:1352189209\nrdb_last_bgsave_status:ok\nrdb_last_bgsave_time_sec:-1\nrdb_current_bgsave_time_sec:-1\naof_enabled:0\naof_rewrite_in_progress:0\naof_rewrite_scheduled:0\naof_last_rewrite_time_sec:-1\naof_current_rewrite_time_sec:-1\naof_last_bgrewrite_status:ok\nloading_start_time:1352189209\nloading_total_bytes:1097451902\nloading_loaded_bytes:1067261028\nloading_loaded_perc:97.25\nloading_eta_seconds:1\n\n# Stats\ntotal_connections_received:11\ntotal_commands_processed:11\ninstantaneous_ops_per_sec:0\nrejected_connections:0\nexpired_keys:0\nevicted_keys:0\nkeyspace_hits:0\nkeyspace_misses:0\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:0\n\n# Replication\nrole:master\nconnected_slaves:0\n\n# CPU\nused_cpu_sys:9.40\nused_cpu_user:70.41\nused_cpu_sys_children:0.00\nused_cpu_user_children:0.00\n\n# Commandstats\ncmdstat_info:calls=11,usec=2874,usec_per_call=261.27\n\n# Keyspace\ndb0:keys=2656703,expires=0\nhash_init_value: 1352494303\n\n[1888] 06 Nov 03:08:10.960 # --- CLIENT LIST OUTPUT\n[1888] 06 Nov 03:08:10.960 # \n[1888] 06 Nov 03:08:10.960 # --- REGISTERS\n[1888] 06 Nov 03:08:10.960 # \nEAX:00000000 EBX:00000135 ECX:b777b3a0 EDX:b777b3cc\nEDI:080d7888 ESI:080d76e2 EBP:bf963a18 ESP:bf9639e0\nSS :0000007b EFL:bf9639e0 EIP:08084b57 CS:00000073\nDS :0000007b ES :0000007b FS :c0720000 GS:00000033\n[1888] 06 Nov 03:08:10.960 # (bf963a1c) -> 0806a175\n[1888] 06 Nov 03:08:10.960 # (bf963a18) -> bf963b48\n[1888] 06 Nov 03:08:10.960 # (bf963a14) -> bf963b84\n[1888] 06 Nov 03:08:10.960 # (bf963a10) -> 00000003\n[1888] 06 Nov 03:08:10.960 # (bf963a0c) -> b78049f0\n[1888] 06 Nov 03:08:10.960 # (bf963a08) -> 000003fb\n[1888] 06 Nov 03:08:10.960 # (bf963a04) -> 000003fc\n[1888] 06 Nov 03:08:10.960 # (bf963a00) -> 00001000\n[1888] 06 Nov 03:08:10.960 # (bf9639fc) -> 00000135\n[1888] 06 Nov 03:08:10.961 # (bf9639f8) -> 34963a78\n[1888] 06 Nov 03:08:10.961 # (bf9639f4) -> b7000234\n[1888] 06 Nov 03:08:10.961 # (bf9639f0) -> 080d7888\n[1888] 06 Nov 03:08:10.961 # (bf9639ec) -> 00000135\n[1888] 06 Nov 03:08:10.961 # (bf9639e8) -> 080d76e2\n[1888] 06 Nov 03:08:10.961 # (bf9639e4) -> 080daae0\n[1888] 06 Nov 03:08:10.961 # (bf9639e0) -> 00000003\n[1888] 06 Nov 03:08:10.961 # \n=== REDIS BUG REPORT END. Make sure to include from START to END. ===\n```\n",
+  "state": "closed",
+  "created_at": "2012-11-06T08:09:27Z",
+  "updated_at": "2012-11-06T15:33:13Z",
+  "closed_at": "2012-11-06T11:30:33Z",
+  "labels": [
+    "critical bug",
+    "WAITING-OP-REPLY",
+    "crash report",
+    "state-op-waiting-for-reply"
+  ],
+  "comments_data": [
+    {
+      "id": 10102974,
+      "user": "antirez",
+      "created_at": "2012-11-06T08:43:00Z",
+      "body": "Hello and thanks for reporting. It is possible for you to provide the RDB file in a private way? This looks like a bug that's very interesting to fix ASAP.\n"
+    },
+    {
+      "id": 10103149,
+      "user": "antirez",
+      "created_at": "2012-11-06T08:50:26Z",
+      "body": "p.s. please even if you plan to don't share your RDB (understandable!) don't delete it, it will be very useful for indirect debugging :-)\n"
+    },
+    {
+      "id": 10107256,
+      "user": "superfeedr",
+      "created_at": "2012-11-06T11:30:33Z",
+      "body": "Thanks @antirez. As a matter of facts, more than a Redis defect it was a lack of warning/knowledge on a misconfiguration. Hopefully we can close that!\n"
+    },
+    {
+      "id": 10114694,
+      "user": "antirez",
+      "created_at": "2012-11-06T15:33:13Z",
+      "body": "Hi, I'm able to confirm that there is no bug here, but simply jemalloc sometimes for a reason I do not know instead of reporting out of memory (via malloc returning NULL) when there is no longer available address space on a 32 bit system, it corrupts the process memory, causing random crashes.\n\nI was albe to test the dump.rdb file thanks to SuperFeedr help in different systems including the original system where the crash happened, and there are no issues.\n\nThanks for reporting & for your help.\n\np.s. I posted a message in the jemalloc-discussion mailing list about this kind of issues.\n"
+    }
+  ]
+}

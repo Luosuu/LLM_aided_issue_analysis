@@ -1,0 +1,18 @@
+{
+  "issue_number": 9071.0,
+  "title": "[BUG] The value exceeding LLONG_MAX in createULongLongConfig is invalid",
+  "body": "createULongLongConfig is only used by server.config. When we set the value of server.config greater than 9223372036854775807b, it will be converted to 9223372036854775807. This means that although the valid range of server.config is [0, ULLONG_MAX] when the suffix is \"b\", it is actually Is [0,LLONG_MAX].\r\n\r\n\r\n127.0.0.1:6379> config set maxmemory 18446744073709551610b\r\nOK\r\n127.0.0.1:6379> config get maxmemory\r\n1) \"maxmemory\"\r\n2) \"9223372036854775807\"\r\n\r\n\r\nWe obviously want such behavior:\r\n\r\n127.0.0.1:6379> config set maxmemory 18446744073709551610b\r\nOK\r\n127.0.0.1:6379> config get maxmemory\r\n1) \"maxmemory\"\r\n2) \"18446744073709551610\"\r\n\r\n\r\n\r\nThe cause of the problem is numericConfigSet, all values are converted using memtoll, which uses strtoll to parse strings, so this problem occurs.\r\n\r\nMy solution to this problem is to provide a memtoull to solve the problem, and at the same time take out the basic code from memtoll, named memconvert, memtoll and memtoull as the upper interface.\r\n\r\nBut this will change a lot of code, because server.maxmemory rarely exceeds LLONG_MAX, even if it exceeds, other suffixes can be used. So is this necessary?\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-06-11T03:18:21Z",
+  "updated_at": "2021-08-23T18:00:40Z",
+  "closed_at": "2021-08-23T18:00:40Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 892773148,
+      "user": "hwware",
+      "created_at": "2021-08-04T15:52:44Z",
+      "body": "@Super-long Could you please check PR https://github.com/redis/redis/pull/9313, and see if this is a good solution? Thanks"
+    }
+  ]
+}

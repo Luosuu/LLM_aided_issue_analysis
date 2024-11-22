@@ -1,0 +1,62 @@
+{
+  "issue_number": 11732.0,
+  "title": "[BUG] Small timeout gets treated like blocking",
+  "body": "**Describe the bug**\r\n\r\nA command that has a small timeout, like 1 millisecond, gets treated like 0 - which is infinitely blocking and very different than expected.\r\n\r\n**To reproduce**\r\n\r\n```\r\n> BLMOVE k1 k2 left right 0.002\r\n(nil)\r\n> BLMOVE k1 k2 left right 0.001\r\n... blocks indefinitely\r\n```\r\n\r\n**Expected behavior**\r\n\r\nIf non-zero timeout is specified, the command should not infinitely block.\r\n\r\n**Additional information**\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-01-17T22:58:45Z",
+  "updated_at": "2023-01-20T02:16:05Z",
+  "closed_at": "2023-01-18T15:09:22Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1386370532,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-18T02:12:08Z",
+      "body": "fixed in #11688, can you try 7.0.8?"
+    },
+    {
+      "id": 1387222951,
+      "user": "jimsnab",
+      "created_at": "2023-01-18T15:07:20Z",
+      "body": "Yes this the version I have.\r\n\r\n`Redis server v=7.0.8 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=8b9bd5cdb53a6549`"
+    },
+    {
+      "id": 1387226419,
+      "user": "jimsnab",
+      "created_at": "2023-01-18T15:09:22Z",
+      "body": "Apparently just merged 2 days ago, so it must be coming in 7.0.9."
+    },
+    {
+      "id": 1396379190,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-19T03:01:10Z",
+      "body": "> Apparently just merged 2 days ago, so it must be coming in 7.0.9.\r\n\r\nIt's already in 7.0.8, see #11718\r\nis there still a problem in your machine? can you post more info like (OS distribution. etc)"
+    },
+    {
+      "id": 1397064997,
+      "user": "jimsnab",
+      "created_at": "2023-01-19T14:28:44Z",
+      "body": "Must have been some timing with updates on my end, it is working now."
+    },
+    {
+      "id": 1397068266,
+      "user": "jimsnab",
+      "created_at": "2023-01-19T14:31:04Z",
+      "body": "Off topic from this, but I don't want to start a new issue for this minor question - should a negative timeout block?"
+    },
+    {
+      "id": 1397621324,
+      "user": "itamarhaber",
+      "created_at": "2023-01-19T21:17:29Z",
+      "body": "> ... should a negative timeout block?\r\n\r\nThe very idea of a negative timeout is weird, and there's no intuitive way to interpret it imo. If I rewrite Redis from scratch, valid blocking timeout values would be either 0 or a positive integer as number of msecs. Ideally, negative values should raise an -ERR. Less ideally, negatives should be silently treated as non-blocking. "
+    },
+    {
+      "id": 1397844282,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-20T02:16:04Z",
+      "body": "yean, i think it should throw an error, like blpop, raise an -ERR:\r\n```\r\n127.0.0.1:6379> blpop key -1\r\n(error) ERR timeout is negative\r\n```"
+    }
+  ]
+}

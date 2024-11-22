@@ -1,0 +1,20 @@
+{
+  "issue_number": 86.0,
+  "title": "EXPIRE, SETEX, should detect time overflows",
+  "body": "Moving this issue here from Google Code -> http://code.google.com/p/redis/issues/detail?id=660\n\nHow to trigger the bug (cut & paste from google code):\n\npie@reactor ~ % irb\nirb(main):001:0> Time.now.to_i + 1000\n=> 1315722345\n\npie@reactor ~ % redis-cli -p 5011\nredis 127.0.0.1:5011> setex foo 1315722345 1\nOK\nredis 127.0.0.1:5011> get foo\n(nil)\nredis 127.0.0.1:5011> setex foo 1000 1\nOK\nredis 127.0.0.1:5011> get foo\n\"1\"\n\nUsing redis 2.2.12 on freebsd 8.2. This is a 32-bit system.\n",
+  "state": "closed",
+  "created_at": "2011-09-20T10:17:22Z",
+  "updated_at": "2021-02-24T14:29:01Z",
+  "closed_at": "2021-02-24T14:29:01Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 785114174,
+      "user": "oranagra",
+      "created_at": "2021-02-24T14:29:01Z",
+      "body": "solved by: #8287"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "issue_number": 327.0,
+  "title": "maxmemory + evicting policy + slaves = death",
+  "body": "Pieter Noordhuis discovered this interesting bug, with the help of an user experiencing strange things in a Redis instance with multiple slaves and maxmemory configured at the same time: when maxmemory was reached the DB on the master was completely erased (thanks to Pieter, Dane and Jemie for the investigation).\n\nThe issue happens for the following reason:\n- Redis reached the configured limit, so it tries to expire keys.\n- Evicting keys turns into explicit DELs sent to slaves, since masters control the eviction of slaves for well known reasons.\n- But this way if there are enough slaves, emitting the protocol in the output buffers will actually take more memory than the amount freed removing keys...\n- So the key eviction process starts to enter into an infinite loop.\n\nUp to a given point the fact that there is a static buffer part in the output queue of every client (including slaves) mitigate this in certain conditions, but once Redis can't use the output buffer but must use the queue of objects the infinite loop is triggered.\n\nI'm working to fix this problem, there are different ways to do this and I'm doing experiments to find the best solution. Among the possible solutions there is to ignore output buffer of slaves when computing max memory, or to call the function that flushes data to the slave while we are inside the eviction loop if we detect that the memory is raising after every deletion instead of decreasing, or to even tolerate the fact that the memory increases inside the loop but up to a certain limit, and break the loop when a few keys are evicted (enough to go under the maxmemory limit, if we subtract the size taken by the slave output buffers).\n\nI'm experimenting with the above solutions, but also improving the memory used generating the protocol by using more shared objects for common parts of the protocol, that helps to make this issue (and the code path resolving it, that should be considered an exception) less likely to be triggered.\n\n**Edit:** Update, a fix is available in the issue327 branch.\n",
+  "state": "closed",
+  "created_at": "2012-02-04T07:57:44Z",
+  "updated_at": "2012-02-20T16:31:19Z",
+  "closed_at": "2012-02-20T16:31:19Z",
+  "labels": [
+    "critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 3809082,
+      "user": "antirez",
+      "created_at": "2012-02-04T08:42:42Z",
+      "body": "Note: also when AOF is enabled the same happens with the AOF buffer.\n"
+    },
+    {
+      "id": 3831193,
+      "user": "antirez",
+      "created_at": "2012-02-06T16:11:48Z",
+      "body": "Before merging I'm writing here the list of commits I did in this branch, in the chance I'll backport this into 2.4 later:\n- 8b7c345 freeMemoryIfNeeded() minor refactoring\n- c1ef6ff Also remove size of AOF buffers from used memory when doing the math for freeMemoryIfNeeded()\n- f6b32c1 This fixes issue #327, is a very complex fix (unfortunately), details:\n- 355f859 Use less memory when emitting the protocol, by using more shared objects for commonly emitted parts of the protocol.\n"
+    },
+    {
+      "id": 3832262,
+      "user": "pietern",
+      "created_at": "2012-02-06T17:03:05Z",
+      "body": "The last commit doesn't cause less memory to be used when emitting the protocol, because these objects are coalesced on a per-slave basis. It does, however, speed up feeding these chunks since they do no longer have to be created all the time.\n\nTo really use less memory, we could consider sharing the output buffer between all slaves. This requires a whole lot of refactoring (which I'm not sure should land in 2.6), but can be really beneficial. Instead of killing slow slaves when their individual buffer reaches a certain size, we can kill them when the difference between their offset in the stream and the head of the stream exceeds some threshold. This could also be used to assist in the `freeMemoryIfNeeded` problem, when we can guarantee that more memory is freed than re-used when `freeMemoryIfNeeded` is called.\n"
+    },
+    {
+      "id": 3832565,
+      "user": "antirez",
+      "created_at": "2012-02-06T17:16:26Z",
+      "body": "Hi Pieter, I did not specified this in the commit but actually what I meant was that memory usage is reduced when objects can't be transfered outside fast enough, so that they end queued into the client->reply list.\n\nIn this case with the old code we needed with many copies of $3, *2, ... and so forth, while now there are just references pointing to this objects. Similarly I guess that every command in the command table should have an additional entry, that is the bulk representation of this command name. This way we can also void creating the name of the command as a string object all the times.\n\nAbout sharing output buffer between slaves, something to take in mind but sounds like a possible premature optimization right now, because _when things work well_ objects are discarded ASAP, and if we have shared objects for the different parts of the protocol, and for command names, we end with everything shared anyway (but not the list nodes itself of course).\n\nAbout the last commit and freeMemoryIfNeeded(), in that specific case shared objects are already helping I think, because this is exactly an instance of when many objects are queued into client->reply, so avoiding having many copies is reducing a bit memory pressure, but of course not enough to fix our problem alone.\n\nThe good thing is that I tried to stress test this patch with multiple slaves even synching at the same time, with AOF enabled on master, and so forth, and everything seems to work well.\n\nThanks for the comments / review!\n\nCheers,\nSalvatore\n"
+    },
+    {
+      "id": 3832774,
+      "user": "pietern",
+      "created_at": "2012-02-06T17:27:41Z",
+      "body": "Even when the buffer needs to resort to the `client->reply` list objects are coalesced. This is the in-place gluing of output buffers introduced in 2.2 (I believe). Even when objects are created when needed, they are either freed before control returns to `freeMemoryIfNeeded` because they have been glued to the tail string object, or are used as new tail string object (and are not freed). When the objects are shared, and they become the new tail string object, they are dup'ed when the networking code tries to glue more data.\n\nI think that your patch only works because `freeMemoryIfNeeded` explicitly flushes to slaves as needed. I think this could work as a stop-gap, but is definitely not an ideal solution. When a system is under pressure, this makes Redis perform blocking I/O pretty often (reducing the available throughput). When we instead do something like sharing the slave output buffer (maybe also share it with AOF, overflow to disk, and see what other things we can do to reduce memory footprint), we can guarantee consistent throughput both with and without system pressure.\n"
+    },
+    {
+      "id": 3833000,
+      "user": "antirez",
+      "created_at": "2012-02-06T17:39:21Z",
+      "body": "I see what you mean, you are right, there is no memory saving about those objects, I forgot that we glue even in list items. But my point is, this was just an optimization that I did as a starting point (and as you suggest it is worth taking it, as it does not save memory but is faster than what we did previously, probably a lot faster since now we just increment a counter instead of going into memcopy, allocation, and so forth).\n\nAbout the code fixing the issue itself, I think the patch is working for a single reason, mostly:\n\n1) We no longer account for slave output buffers in memory computation, avoiding the first obvious problem of the infinite loop inside freeMemoryIfNeeded().\n\nBut we also flush the output buffers, that is in no way a blocking operation (it will do its work only if there is space in the kernel output buffer) only as an optimization that brings more granularity to the table.\n\nProof is that you can comment the flush (as I just did) and everything will still work great, but you'll start to see bigger latency spikes. Otherwise we end spending so much time inside the loop that we no longer use our true bandwidth towards the slaves links.\n\nOr maybe I'm missing something?\n\nCheers,\nSalvatore\n"
+    },
+    {
+      "id": 3834119,
+      "user": "pietern",
+      "created_at": "2012-02-06T18:40:31Z",
+      "body": "You're right, I missed that the I/O was in fact a best effort approach.\n\nWhen trying to tackle this issue myself, I found that `getClientOutputBufferMemoryUsage` is far from correct. It doesn't take in account all the factors that determine slave memory usage. This means that the approximation of used memory in the current patch set still includes a bit of slave-occupied memory. When in addition a slave is not reading its feed, the used memory approximation keeps increasing. This in turn, causes `freeMemoryIfNeeded` to be called for on **every** command call, resulting in at least one eviction and an attempt to flush slave buffers. Maybe this is unavoidable at some point, but we do need to check out how this estimation function can be improved.\n"
+    },
+    {
+      "id": 3834135,
+      "user": "pietern",
+      "created_at": "2012-02-06T18:41:41Z",
+      "body": "For instance: instead of keeping an exact count of `reply_bytes`, we should use `zmalloc_used_size` on the sds (if the object is shared, the estimation will be a little bit too high, which isn't necessarily a problem).\n"
+    },
+    {
+      "id": 3837457,
+      "user": "antirez",
+      "created_at": "2012-02-06T21:37:44Z",
+      "body": "Good points Pieter, I'll try to write what I understand about this matter currently:\n- reply_bytes is flawed as you say, since it does return the true count of bytes used for the output buffers. It was not a problem initially, it was designed to have a limit in output buffers, and this limit doesn't need to be too much precise, but now the issue is, we are used reply_bytes in a different context where it is interesting to have a more precise variant.\n- reply_bytes is wrong in two ways: it overstimates when objects are shared. It understimates space needed for sds strings because it considers their length instead of the actual allocated bytes.\n\nNow a few remarks about the above two points.\n- what reply_bytes should hold to be precise? The amount of memory used for output buffers in a metric compatible with zmalloc_used_memory(). In theory we should use the same rounding / system to estimate allocations as used inside zmalloc.c, that is asking the allocator or approximating when the allocator does not have the capability.\n- How bad is the overestimation? Not very bad because we glue strings so in the long run if output buffer size is non trivial it is very likely that we mostly have objects that are not shared. However if many objects in the output list are REDIS_REPLY_CHUNK_BYTES in size, and are shared, then the overestimation can be much more sensible.\n- How bad is the underestimation? Pretty bad because objects are created by appending into them when we glue, using sdscatlen(), so the difference between the string length of the sds, and the actual room used, can be sensible. Also we are currently not taking into account the size of the sds header itself. The best solution as you said would be to query the allocator here.\n\nSo, it seems like, we could completely kill underestimation in favor of overestimation, and still overestimation would occur rarely, mostly when we have legitimate objects from GETs or other commands that are bigger than REDIS_REPLY_CHUNK_BYTES and are shared. (But when this happens it can get very bad).\n\nSo, let's check what happens when we overestimate and when we underestimate the buffers used by slaves in the context of maxmemory.\n- overestimation: we subtract more memory from used_memory, so the system starts evicting keys later, and the more output buffers we have, the more the system thinks he actually has space available!\n- underestimation: the system thinks more memory is used compared to what is actually used, and may start evicting more keys than needed.\n\nBoth ways it is not very cool...\n\nAnother thing, currently getClientOutputBufferMemoryUsage does not consider that every list item is also an object, so we should at least add sizeof(robj*) for coherence.\n\nI think we need definitely to think better about this :) Maybe the solution of subtracting the output buffer may be avoided in favor of something better?\n\nAt this point I'm not ready to merge this stuff into even unstable. Maybe it's the best we can do, maybe we can do better than this even without making the implementation more complex than that.\n\nThanks for the brainstorming!\n"
+    },
+    {
+      "id": 3851465,
+      "user": "antirez",
+      "created_at": "2012-02-07T16:51:03Z",
+      "body": "@pietern in commit 609baba8a2d115f05e8fbc0db742ca60848e3c80 after implementing the fixes we discussed the memory estimation is incredibly precise, at the point that I can stop the slaves for a lot of time and used_mem - used_obuf_mem remains constant (with a few bytes errors) so that the subtracted memory seems exactly the additional memory allocated.\n\nNow the patch is working better and there is no key expiration when slaves are blocked, but now my concern is about the _semantics_ of this patch. The user specified a given maxmemory, however we are violating it on purpose, guessing that the raise on memory usage is only temporary. I guess this is acceptable, especially since if the memory used by slaves goes upper than that, there is the client killer that will close the slave link at all freeing memory, but I would like to hear what do you think.\n\nThe alternative IMHO would only be to force key eviction proportionally to the amount of memory that is consumed by slaves to limit a bit the total used memory, but my feeling is that this is hard to explain, non fully predictable, and every user may want to have a different balance between keyspace and output buffers.\n"
+    },
+    {
+      "id": 3859137,
+      "user": "antirez",
+      "created_at": "2012-02-07T23:22:25Z",
+      "body": "I'm finally happy with the fix in the latest issue327 branch :) I spent a day understanding how the code exactly behaves and possible variations, and the current solution is working very well and is semantically the simplest for the user as well.\n\nIMHO it makes sense to backport this into 2.4 after all, because it is pretty self-contained code, and the current behavior is so broken that is hard to do damages. I'll take the issue open and will merge into 2.4 in a few days. Thanks.\n"
+    },
+    {
+      "id": 4000956,
+      "user": "antirez",
+      "created_at": "2012-02-16T13:51:56Z",
+      "body": "Fix merged into unstable, there is a 2.4-issue327 branch on github with the fix backported into 2.4, this will be merged before 2.4.8 release.\n"
+    },
+    {
+      "id": 4056792,
+      "user": "antirez",
+      "created_at": "2012-02-20T16:31:19Z",
+      "body": "patch merged into 2.4. closing. Thank you.\n"
+    }
+  ]
+}

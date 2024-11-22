@@ -1,0 +1,18 @@
+{
+  "issue_number": 13389.0,
+  "title": "[BUG] Possibly only documentation: why is ZPOPMIN time complexity higher than ZRANGE+ZREMRANGEBYRANK?",
+  "body": "**Describe the bug**\r\n\r\nhttps://redis.io/docs/latest/commands/zpopmin/ has a time complexity of `O(log(N)*M)` \r\nWhile https://redis.io/docs/latest/commands/zremrangebyrank/ + https://redis.io/docs/latest/commands/zrange/ (combined) have `2*O(log(N)+M)`\r\n\r\nThis means that for all practical use cases (unless you have really low number of N/keys in redis) using the zpopmin is slower than running both commands.\r\n\r\nIs this true or is the documentation wrong? Why is that the case? (since they do the same thing, so it's unclear to me how zpopmin is slower)\r\n",
+  "state": "closed",
+  "created_at": "2024-07-02T18:10:25Z",
+  "updated_at": "2024-07-03T02:33:15Z",
+  "closed_at": "2024-07-03T02:33:15Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2204817878,
+      "user": "sundb",
+      "created_at": "2024-07-03T01:05:48Z",
+      "body": "1. time complexity `O` does not represent the true running time, it only represents the complexity of the algorithm.\r\n2. `2*O(log(N)+M)` is not correctly, in fact, it's still `O(log(N)+M)`, M represents the sum of the M of your two commands.\r\n     when N or M approaches infinite, 2 is negligible and O is just an expression of the approach."
+    }
+  ]
+}

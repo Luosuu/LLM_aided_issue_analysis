@@ -1,0 +1,30 @@
+{
+  "issue_number": 8675.0,
+  "title": "[BUG] threaded-io causes increased CPU utilization that's only resolved after a Redis restart",
+  "body": "We've have been using Redis 6.0.10 for different workloads in our platform (message queue, cache, kv store). We'd recently turned on io-threads.  We are also using redisearch 1.6.14.\r\n\r\nWe're using 2 x 8 core machine in a master-slave setup,  with the following core mask allocation: \r\n\r\n```\r\nserver_cpulist 0,1,2,3\r\nbio_cpulist 4,5,6,7\r\naof_rewrite_cpulist 4,5,6,7\r\nbgsave_cpulist 4,5,6,7\r\n```\r\n\r\nand have io-threads set to 2:\r\n\r\n```\r\nio-threads 2 \r\nio-threads-do-reads no\r\n```\r\n\r\nWhile most of the time things are operating perfectly, and we are seeing better core utilization, under certain peek workloads on the master (a mixture of reads and writes), we suddenly start seeing a **constant** increase in the master's CPU utilization. \r\n\r\nBy **constant**, I mean that it seems that ops simply consume more CPU. when there's no I/O being performed on the redis server, CPU utilization drops to 0%, but when we connect our application, we see it constantly reaching 100%. We tried turning our application(s) on and off one by one, but only after restarting the redis, it's CPU utilization drops back to normal  (5-30%). \r\n\r\nHere's  a depiction of our troubleshooting efforts, and they affected the CPU utilization\r\n\r\n![Platform Redis Master - CPU Utilization](https://user-images.githubusercontent.com/4031179/111902424-0881cc00-8a46-11eb-8870-ae368bc88f01.png)\r\n\r\n**This has only started happening ever since we activated io-threads.**\r\n\r\nSo of course, the immediate solution would be to turn io-threads off, but it feels like there's a bug hidden somewhere underneath.\r\n\r\nI have no concrete steps to reproduce this issue, as it happens sporadically once a week or so and on random points throughout the day.\r\n\r\nAny advice would be more than welcomed...",
+  "state": "closed",
+  "created_at": "2021-03-21T11:04:10Z",
+  "updated_at": "2021-05-06T10:59:18Z",
+  "closed_at": "2021-05-05T08:58:02Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 804036766,
+      "user": "igorwwwwwwwwwwwwwwwwwwww",
+      "created_at": "2021-03-22T12:51:51Z",
+      "body": "Would you be able to capture a per-thread pidstat when this occurs?\r\n\r\n```\r\nsudo pidstat -t -p $(pgrep -of bin/redis-server) 1 120\r\n```\r\n\r\nThat should help narrow down which threads are using the CPU.\r\n\r\nAnother useful thing would be to capture a profile with `perf` and visualising with [flamegraph](https://github.com/brendangregg/FlameGraph):\r\n\r\n```\r\nsudo perf record -ag -F 99 -- sleep 60\r\nsudo perf script --header | stackcollapse-perf.pl --kernel | flamegraph.pl --hash --colors=perl > flamegraph.svg\r\n```\r\n\r\nThis way we know how the cycles are being spent.\r\n\r\nDo note that threaded-io does include some busy looping (presumably by design to keep the I/O threads on CPU). So enabling the feature can in fact increase overall CPU utilization of the process, but you gain scalability since some of the socket writes are offloaded.\r\n\r\nThe goal of the feature is not to reduce overall CPU utilization, it is to reduce CPU utilization of the main thread, since that is the scalability bottleneck."
+    },
+    {
+      "id": 804113257,
+      "user": "sheinbergon",
+      "created_at": "2021-03-22T14:37:36Z",
+      "body": "@igorwwwwwwwwwwwwwwwwwwww thank you for your prompt response. We are well aware of the purpose of  this feature. Notice from my issue description that this is more of a quirk - due to an unknown reason, CPU utilization drastically increases until we restart the master. Even though the same workload is applied before and after the restart, the CPU utilization drops to near minimum after it, so it's not a matter of abusing or misusing redis.\r\n\r\nWe'll try to capture the threading/cpu workload as per your specification and provide you with this information once the issue reoccurs."
+    },
+    {
+      "id": 832508101,
+      "user": "sheinbergon",
+      "created_at": "2021-05-05T08:24:37Z",
+      "body": "If anyone every encounters this behavior, it was due to an OS scheduling problem. our OS is Debian Buster, running on EC2.\r\nThe OS was set to bet of `isolcpus=0` kernel parameter. This seems to have caused a behavior where both the main `redis_server` thread and `io_thd` threads competed for the same core 0, even though  the `server_cpulist` was set to 0,1,2,3. So instead of getting a performance boost from using the io_threads, we are seeing the opposite effect. This was only solved after restarts, as this would give the process a chance to reassign its threads. Removing this parameter and tinkering with the server_cpulist mask has made the issue go away."
+    }
+  ]
+}

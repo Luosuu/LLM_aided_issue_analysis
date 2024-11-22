@@ -1,0 +1,87 @@
+{
+  "issue_number": 364.0,
+  "title": "Client buffers are never reclaimed until connection is closed",
+  "body": "This represents a problem when client behavior includes persistent long-running connections with bursts that significantly increase buffer size.  In some cases this would result with over 100MB of unused allocated memory.\n",
+  "state": "closed",
+  "created_at": "2012-02-28T08:14:58Z",
+  "updated_at": "2012-06-08T00:01:45Z",
+  "closed_at": "2012-03-15T16:19:37Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 4211442,
+      "user": "pietern",
+      "created_at": "2012-02-28T08:21:34Z",
+      "body": "Chances are you observe the resident set size of the Redis process. Because of internal memory fragmentation, it is hard for the OS to reclaim this memory. We have seen better behavior on this front when jemalloc is used. This is the default allocator for Linux on 2.4 and 2.6.\n\nCan you confirm my suspicion by posting the output of the INFO command after such a burst happened and you observe the peak in unused memory? Thanks.\n"
+    },
+    {
+      "id": 4211761,
+      "user": "yossigo",
+      "created_at": "2012-02-28T08:48:24Z",
+      "body": "No, I'm referring explicitly to redisClient.querybuf which grows but never\nshrinks back. I confirmed this with valgrind and looking at the code.\n\nIn order to maintain some balance between memory efficiency and\nperformance/fragmentation, I was thinking about conditionally shrinking of\nthe buffer based on the used:allocated ratio and  duration (e.g. number of\ntimes readQueryFromClient() was called with the used:allocated ratio\nexceeding a certain threshold).  This would be easily tuned with two\nparameters.\n\nIf this seems valuable I can go ahead and try something in this direction.\n\nOn Tue, Feb 28, 2012 at 10:21 AM, Pieter Noordhuis <\nreply@reply.github.com\n\n> wrote:\n> \n> Chances are you observe the resident set size of the Redis process.\n> Because of internal memory fragmentation, it is hard for the OS to reclaim\n> this memory. We have seen better behavior on this front when jemalloc is\n> used. This is the default allocator for Linux on 2.4 and 2.6.\n> \n> Can you confirm my suspicion by posting the output of the INFO command\n> after such a burst happened and you observe the peak in unused memory?\n> Thanks.\n> \n> ---\n> \n> Reply to this email directly or view it on GitHub:\n> https://github.com/antirez/redis/issues/364#issuecomment-4211442\n"
+    },
+    {
+      "id": 4434033,
+      "user": "yossigo",
+      "created_at": "2012-03-10T20:23:20Z",
+      "body": "Here's a quick Python test to demonstrate the issue:\n\n# \n\nimport redis\ndata_100mb = \"\".zfill(1024_1024_100)\nr = redis.Redis()\nr.flushall()\nprint 'initial memory: ' + r.info()['used_memory_human']\nr.set('test_key', data_100mb)\nprint 'memory after set: ' + r.info()['used_memory_human']\nr.delete('test_key')\nprint 'memory after delete: ' + r.info()['used_memory_human']\nr = redis.Redis()\n\n# print 'memory after new conn: ' + r.info()['used_memory_human']\n\nThe results running on 2.4.8:\ninitial memory: 709.20K\nmemory after set: 208.69M\nmemory after delete: 104.69M\nmemory after new conn: 709.23K\n\nAs you can see the memory is not reclaimed until the connection is closed.  I'd like to go ahead with a fix following my comment above, will be happy to know it would be acceptable first.\n"
+    },
+    {
+      "id": 4434160,
+      "user": "pietern",
+      "created_at": "2012-03-10T20:39:06Z",
+      "body": "I see. I think @antirez fixed this issue in 921709557253dae2db676c2feb933386e4066494. Could you confirm that patching your version of Redis with this commit resolves the issue? It may be worth backporting to 2.4, but it will definitely end up in 2.6.\n"
+    },
+    {
+      "id": 4434521,
+      "user": "yossigo",
+      "created_at": "2012-03-10T21:30:29Z",
+      "body": "I tried with the latest unstable but the problem persists.\n"
+    },
+    {
+      "id": 4472012,
+      "user": "antirez",
+      "created_at": "2012-03-13T12:13:44Z",
+      "body": "I just want to inform you that I'm working on the issue right now, thank you, more news soon.\n"
+    },
+    {
+      "id": 4499255,
+      "user": "antirez",
+      "created_at": "2012-03-14T14:35:12Z",
+      "body": "Hello again, I think now it's fixed in latest unstable. Thanks, taking the issue open waiting for an ACK.\nAlso I'm interested in your opinion about the proposed fix.\n\nThank you.\n"
+    },
+    {
+      "id": 4523079,
+      "user": "yossigo",
+      "created_at": "2012-03-15T16:19:37Z",
+      "body": "I can confirm the problem is solved. Reclaiming from the client cron sounds to me like the best option as well (I was actually not aware this facility exists when proposed the solution above). Thanks!\n"
+    },
+    {
+      "id": 5941563,
+      "user": "MrJoy",
+      "created_at": "2012-05-25T22:10:09Z",
+      "body": "This issue still manifests in 2.2.15, 2.4.13, and 2.6.0RC3.\n"
+    },
+    {
+      "id": 5941685,
+      "user": "antirez",
+      "created_at": "2012-05-25T22:19:03Z",
+      "body": "@MrJoy can you provide more information, based on the context given in the previous comments in this thread?\n"
+    },
+    {
+      "id": 5943895,
+      "user": "MrJoy",
+      "created_at": "2012-05-26T02:39:00Z",
+      "body": "Short form:  We're seeing EXACTLY the same behavior as described in the Python example when using Resque with large job data and we've tried all the above.\n\nEven doing a \"FLUSHALL\" after all the reads/writes (while clients are still connected) doesn't reduce the memory usage to sane levels.\n\nI'm now down to injecting hacks into Resque to disconnect from Redis as aggressively as possible to mitigate the problem.\n"
+    },
+    {
+      "id": 6191428,
+      "user": "MrJoy",
+      "created_at": "2012-06-08T00:01:45Z",
+      "body": "For the record, aggressively disconnecting DOES help the problem, so some extent except that our usage pattern is such that it's not really adequate to help us here.  (Our large jobs tend to come in waves, spread across a lot of workers...)\n"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "issue_number": 12619.0,
+  "title": "[BUG]P otential error handling bugs",
+  "body": "While reading the newest codes, I found several suspicious codes that could be potential error handling bugs.\r\n\r\nI found that there are many variables with the data type \"connection\" whose member fd is used directly without being checked if they equal to -1.\r\n\r\nTo be specific, I found the above problem in the following functions: connSocketWrite, connSocketWritev, connSocketRead, connSocketEventHandler, connSocketAddr, connSendTimeout, connRecvTimeout, connCreateAcceptedUnix, connUnixSyncWrite, connUnixSyncReadLine, connSocketSyncWrite, connSocketSyncRead, connSocketSyncReadLine.\r\n\r\nI understand that they are currently not in danger of triggering any error. I'm listing them in case you want to maintain it in the future.",
+  "state": "open",
+  "created_at": "2023-09-27T13:39:07Z",
+  "updated_at": "2023-09-27T13:39:07Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

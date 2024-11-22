@@ -1,0 +1,42 @@
+{
+  "issue_number": 9993.0,
+  "title": "[BUG] Config min-slaves-to-write is not worked with Lua scripts",
+  "body": "Hi,\r\nI have set up a Redis cluster with topology 3 masters - 6 slaves ( each master has 2 slaves ). Redis version is __6.2.2__.\r\nIn my configuration, I set 2 following configs:\r\n```\r\nmin-slaves-to-write : 2  \r\nmin-slaves-max-lag: 10\r\n```\r\nIt means that there must be at least 2 slave nodes to keep the data synchronized with the master within 10 seconds, otherwise, the master will not accept write operations.\r\n\r\nI make a test. I killed a slave node of a Redis master to its current connected slaves is less than `min-slaves-to-write` config.\r\n```\r\nX.X.X.X:7000> info replication\r\n# Replication\r\nrole:master\r\nconnected_slaves:1\r\nmin_slaves_good_slaves:1\r\nslave0:ip=X.X.X.X,port=7002,state=online,offset=4141971346,lag=0\r\nmaster_failover_state:no-failover\r\nmaster_replid:2006b4babb87cc2b41e7c96026a273da748bd88f\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:4141971346\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:1\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:4140922771\r\nrepl_backlog_histlen:1048576\r\n```\r\nAnd I did a write operation to this master node. It returns an error and rejects the write operation.\r\n```\r\n127.0.0.1:7000> set P value\r\n(error) NOREPLICAS Not enough good replicas to write\r\n```\r\nBut when I use the `EVAL` command to evaluate Lua script for the same command, it writes to master and synced to remaining slave successfully.\r\n```\r\nX.X.X.X:7000> eval \"return redis.call('set','P','value')\" 0\r\nOK\r\nX.X.X.X:7000> get P\r\n\"value\"\r\n\r\n# data synced successfully to remaining slave node\r\nX.X.X.X.7002> get P\r\n\"value\"\r\n``` \r\nSo, that config `min-slaves-to-write` is not worked with Lua scripts? Or is it a bug in Redis? I searched but did not find any related issues.\r\n",
+  "state": "closed",
+  "created_at": "2021-12-23T11:26:35Z",
+  "updated_at": "2022-02-03T09:57:51Z",
+  "closed_at": "2022-02-03T09:57:51Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1000255995,
+      "user": "oranagra",
+      "created_at": "2021-12-23T12:00:10Z",
+      "body": "This looks like a bug, maybe we can fix it together with #9928"
+    },
+    {
+      "id": 1015054744,
+      "user": "anhldbk",
+      "created_at": "2022-01-18T04:10:31Z",
+      "body": "@oranagra \r\n\r\n## Observations\r\n\r\nI tried to debug the above case while running the command\r\n\r\n```text\r\nX.X.X.X:7000> eval \"return redis.call('set','P','value')\" 0\r\n```\r\n\r\nI found following things in our code base:\r\n\r\n- The flow\r\n\r\n```text\r\n     ┌────────┐               ┌──────┐                 ┌──────┐          ┌──────────┐\r\n     │server.c│               │eval.c│                 │lapi.c│          │t_string.c│\r\n     └───┬────┘               └──┬───┘                 └──┬───┘          └────┬─────┘\r\n         │────┐                                           │                   │      \r\n         │    │ 𝟏 processCommand()                        │                   │      \r\n         │<───┘                                           │                   │      \r\n         │                       │                        │                   │      \r\n         │────┐                  │                        │                   │      \r\n         │    │ 𝟐 call()         │                        │                   │      \r\n         │<───┘                  │                        │                   │      \r\n         │                       │                        │                   │      \r\n         │    𝟑 evalCommand()    │                        │                   │      \r\n         │ ──────────────────────>                        │                   │      \r\n         │                       │                        │                   │      \r\n         │                       │────┐                                       │      \r\n         │                       │    │ 𝟒 luaCallFunction()                   │      \r\n         │                       │<───┘                                       │      \r\n         │                       │                        │                   │      \r\n         │                       │      𝟓 lua_pcall()     │                   │      \r\n         │                       │ ───────────────────────>                   │      \r\n         │                       │                        │                   │      \r\n         │                    𝟔 call()                    │                   │      \r\n         │ <───────────────────────────────────────────────                   │      \r\n         │                       │                        │                   │      \r\n         │                       │   𝟕 setCommand()       │                   │      \r\n         │ ───────────────────────────────────────────────────────────────────>      \r\n         │                       │                        │                   │      \r\n         │                       │         𝟖              │                   │      \r\n         │ <─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─      \r\n     ┌───┴────┐               ┌──┴───┐                 ┌──┴───┐          ┌────┴─────┐\r\n     │server.c│               │eval.c│                 │lapi.c│          │t_string.c│\r\n     └────────┘               └──────┘                 └──────┘          └──────────┘\r\n```\r\n\r\n- processCommand does not validate replication requirements for `eval` commands\r\n\r\nSee [the code in server.c](https://github.com/redis/redis/blob/unstable/src/server.c#L3579-L3583)\r\n\r\n```c\r\n// processCommand(), in server.c\r\nif (server.masterhost == NULL &&\r\n    server.repl_min_slaves_to_write &&\r\n    server.repl_min_slaves_max_lag &&\r\n    is_write_command && // always False for eval commands\r\n    server.repl_good_slaves_count < server.repl_min_slaves_to_write)\r\n{\r\n    rejectCommand(c, shared.noreplicaserr);\r\n    return C_OK;\r\n}\r\n```\r\n\r\nThis results in the requirements are not validated.\r\n\r\n- [setCommand](https://github.com/redis/redis/blob/unstable/src/t_string.c#L286) does not also\r\n\r\n## Questions\r\n\r\n- Can you explain how issue https://github.com/redis/redis/pull/9928 relates to this one?\r\n- Is it good to have replication checks while handling `server.c#call()` ?\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+      "id": 1015580543,
+      "user": "oranagra",
+      "created_at": "2022-01-18T16:25:55Z",
+      "body": "i think it's as simple as just mirroring that check to `scriptVerifyWriteCommandAllow`.\r\nthe reason it's related to the other PR i referred to is that both are about mirroring checks that are done in `processCommand`, to places that use `call()` directly (i.e. `scriptCall` and `execCommand`).\r\nideally some of the checks in `processCommand` will be extracted to some common function that's used by both."
+    },
+    {
+      "id": 1016033366,
+      "user": "anhldbk",
+      "created_at": "2022-01-19T03:02:50Z",
+      "body": "@oranagra Thanks for your clarification. Let's my friend @NoRaDoMi make a PR for this bug."
+    },
+    {
+      "id": 1018556320,
+      "user": "noradomi",
+      "created_at": "2022-01-21T14:33:54Z",
+      "body": "@oranagra @anhldbk I created a PR for this bug at #10160. PTAL"
+    }
+  ]
+}

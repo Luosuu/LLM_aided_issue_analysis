@@ -1,0 +1,60 @@
+{
+  "issue_number": 10692.0,
+  "title": "[BUG] Redis 6.2.7 test case failure",
+  "body": "1. In Redis 6.2.7, the following test case fails often while running `make test OR ./runtest --tls`. However, sometimes the test case succeeded without any issues. \r\n\r\nWhen I checked the stdout file **STACK TRACE** was available. So it seems the **STACK TRACE**  was not available at the time of assertion.\r\n\r\n```\r\nif {!$::valgrind} {\r\n        set server_path [tmpdir server1.log]\r\n        start_server [list overrides [list dir $server_path]] {\r\n            test \"Crash report generated on SIGABRT\" {\r\n                set pid [s process_id]\r\n                exec kill -SIGABRT $pid\r\n                set pattern \"*STACK TRACE*\"\r\n                set result [exec tail -1000 < [srv 0 stdout]]\r\n                assert {[string match $pattern $result]}\r\n            }\r\n        }\r\n}\r\n```\r\n\r\n```\r\n[21/66 done]: integration/convert-zipmap-hash-on-load (1 seconds)\r\nTesting integration/logging\r\n[err]: Crash report generated on SIGABRT in tests/integration/logging.tcl\r\nExpected [string match *STACK TRACE* ### Starting server for test \r\n24174:C 08 May 2022 16:25:35.302 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n24174:C 08 May 2022 16:25:35.302 # Redis version=6.2.7, bits=64, commit=00000000, modified=0, pid=24174, just started\r\n24174:C 08 May 2022 16:25:35.302 # Configuration loaded\r\n24174:M 08 May 2022 16:25:35.303 * monotonic clock: POSIX clock_gettime\r\n24174:M 08 May 2022 16:25:35.304 # A key '__redis__compare_helper' was added to Lua globals which is not on the globals allow list nor listed on the deny list.\r\n                _._                                                  \r\n           _.-``__ ''-._                                             \r\n      _.-``    `.  `_.  ''-._           Redis 6.2.7 (00000000/0) 64 bit\r\n  .-`` .-```.  ```\\/    _.,_ ''-._                                  \r\n (    '      ,       .-`  | `,    )     Running in standalone mode\r\n |`-._`-...-` __...-.``-._|'` _.-'|     Port: 23118\r\n |    `-._   `._    /     _.-'    |     PID: 24174\r\n  `-._    `-._  `-./  _.-'    _.-'                                   \r\n |`-._`-._    `-.__.-'    _.-'_.-'|                                  \r\n |    `-._`-._        _.-'_.-'    |           https://redis.io       \r\n  `-._    `-._`-.__.-'_.-'    _.-'                                   \r\n |`-._`-._    `-.__.-'    _.-'_.-'|                                  \r\n |    `-._`-._        _.-'_.-'    |                                  \r\n  `-._    `-._`-.__.-'_.-'    _.-'                                   \r\n      `-._    `-.__.-'    _.-'                                       \r\n          `-._        _.-'                                           \r\n              `-.__.-'                                               \r\n\r\n24174:M 08 May 2022 16:25:35.304 # Server initialized\r\n24174:M 08 May 2022 16:25:35.306 * Ready to accept connections\r\n24174:M 08 May 2022 16:25:35.306 * The server is now ready to accept connections at /home/sas/source/redis-6.2.7/tests/tmp/server.19128.18/socket\r\n24174:M 08 May 2022 16:25:35.415 - Accepted 127.0.0.1:51920\r\n24174:M 08 May 2022 16:25:35.415 - Client closed connection\r\n24174:M 08 May 2022 16:25:35.424 - Accepted 127.0.0.1:51922\r\n### Starting test Crash report generated on SIGABRT in tests/integration/logging.tcl\r\n\r\n\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n24174:M 08 May 2022 16:25:35.429 # Redis 6.2.7 crashed by signal: 6, si_code: 0\r\n24174:M 08 May 2022 16:25:35.429 # Killed by PID: 24264, UID: 1000\r\n24174:M 08 May 2022 16:25:35.429 # Crashed running the instruction at: 0x2b0dfcfe6483] (context: type eval line 7 cmd {assert {[string match $pattern $result]}} proc ::test)\r\n```\r\nThe following logs are from the stdout file (redis-6.2.7/tests/tmp/server1.log.19128.17/stdout). The **STACK TRACE** is available.\r\n\r\n```\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n24174:M 08 May 2022 16:25:35.429 # Redis 6.2.7 crashed by signal: 6, si_code: 0\r\n24174:M 08 May 2022 16:25:35.429 # Killed by PID: 24264, UID: 1000\r\n24174:M 08 May 2022 16:25:35.429 # Crashed running the instruction at: 0x2b0dfcfe6483\r\n24174:signal-handler (1652007335) Received SIGTERM scheduling shutdown...\r\n\r\n------ STACK TRACE ------\r\nEIP:\r\n/lib64/libc.so.6(epoll_wait+0x33)[0x2b0dfcfe6483]\r\n\r\nBacktrace:\r\n/lib64/libpthread.so.0(+0xf5d0)[0x2b0dfccdb5d0]\r\n/lib64/libc.so.6(epoll_wait+0x33)[0x2b0dfcfe6483]\r\nsrc/redis-server 127.0.0.1:23118(aeProcessEvents+0x132)[0x47d802]\r\nsrc/redis-server 127.0.0.1:23118(aeMain+0x1d)[0x47dc1d]\r\nsrc/redis-server 127.0.0.1:23118(main+0x503)[0x47a673]\r\n/lib64/libc.so.6(__libc_start_main+0xf5)[0x2b0dfcf0a3d5]\r\nsrc/redis-server 127.0.0.1:23118[0x47a93a]\r\n```\r\n\r\n2. Getting the following warning message on the redis startup log.\r\n\r\n```A key '__redis__compare_helper' was added to Lua globals which is not on the globals allow list nor listed on the deny list.```\r\n\r\n\r\nPlease let me know if anything needs to worry about on this? or Can safely ignore it?\r\n\r\n\r\n**Additional information**\r\n\r\n1. CentOS 7.6\r\n2. GCC 4.9.2\r\n3. OpenSSL 1.1.1k\r\n",
+  "state": "closed",
+  "created_at": "2022-05-08T17:15:48Z",
+  "updated_at": "2022-05-09T16:17:18Z",
+  "closed_at": "2022-05-09T06:58:34Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1120629931,
+      "user": "enjoy-binbin",
+      "created_at": "2022-05-09T04:29:06Z",
+      "body": "> or Can safely ignore it?\r\n\r\nthanks for the report, yes you can ignore it right now (the STACK TRACE is available)\r\nIt looks like this test is not stable, i will take a deep look later\r\n\r\nAs for `__redis__compare_helper`, I didn't find a reference to it, seem harmless"
+    },
+    {
+      "id": 1120634771,
+      "user": "ganeshkumarganesan",
+      "created_at": "2022-05-09T04:40:41Z",
+      "body": "@enjoy-binbin Thank you. "
+    },
+    {
+      "id": 1120642342,
+      "user": "enjoy-binbin",
+      "created_at": "2022-05-09T04:57:55Z",
+      "body": "ohh, the STACK TRACE timing issue was actually fix in #9910, unstable branch"
+    },
+    {
+      "id": 1120714529,
+      "user": "oranagra",
+      "created_at": "2022-05-09T06:58:34Z",
+      "body": "Thanks @enjoy-binbin.\r\nAs you indicated the sporadic test failure is already fixed in the later version.\r\nThe warning about `__redis__compare_helper` is something we overlooked, but we now conclude it is harmless. @MeirShpilraien will post more details about it later in a PR that fixes the warning.\r\n\r\nMeanwhile, we can close this one..."
+    },
+    {
+      "id": 1120715775,
+      "user": "ganeshkumarganesan",
+      "created_at": "2022-05-09T06:59:50Z",
+      "body": "> As for __redis__compare_helper, I didn't find a reference to it, seem harmless\r\n\r\nhttps://github.com/redis/redis/blob/e6f67092f8d4d81761a60c46011d1ff1dc3c2628/src/scripting.c#L434-L435\r\n\r\n@enjoy-binbin The `__redis__compare_helper` reference is available in the [6.2.7 branch](https://github.com/redis/redis/tree/6.2.7). This has been removed in [this commit](https://github.com/redis/redis/commit/1b0968df46f9f838e7daa540675b29073a00cf30#diff-0e7e313bd59d431d99268d40bba3663fefd44385d0f069ac9ceed0d9c8f67a22). Hence not available in the unstable branch. \r\n\r\nOn the server startup or script flush, we are getting the warning message in redis logs. Can you please check and confirm whether it is harmless?\r\n\r\nhttps://github.com/redis/redis/blob/e6f67092f8d4d81761a60c46011d1ff1dc3c2628/src/scripting.c#L1269-L1271"
+    },
+    {
+      "id": 1120718612,
+      "user": "enjoy-binbin",
+      "created_at": "2022-05-09T07:03:31Z",
+      "body": "ok, i see now. i search it in unstable branch, so we should add it in `redis_api_allow_list` or something like that"
+    },
+    {
+      "id": 1120734837,
+      "user": "oranagra",
+      "created_at": "2022-05-09T07:19:41Z",
+      "body": "@ganeshkumarganesan it seems harmless. Meir will post more details later..\r\nin short, it was added in https://github.com/redis/redis/commit/2c861050c1 in order for scripts to **sort** the output of SORT.\r\nand should have later been removed in https://github.com/redis/redis/commit/36741b2c818a95e8ef167818271614ee6b1bc414 (when the `S` i.e. `to-sort` flag was removed from SORT)"
+    },
+    {
+      "id": 1121306035,
+      "user": "oranagra",
+      "created_at": "2022-05-09T16:17:18Z",
+      "body": "https://github.com/redis/redis/pull/10701"
+    }
+  ]
+}

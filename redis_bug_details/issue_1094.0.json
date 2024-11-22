@@ -1,0 +1,14 @@
+{
+  "issue_number": 1094.0,
+  "title": "Exit with error if RDB / AOF file names are actually paths",
+  "body": "Redis is designed to persist in the configured basedir (`dir` config directive).\nHowever currently it accepts full paths for AOF / RDB file names, leading to errors if the specified path is in a different device, since it can't rename cross-device.\n\nSo to fix all this issues we should perform additional checks and exit if the specified file names are actually absolute or relative paths.\n",
+  "state": "closed",
+  "created_at": "2013-05-08T07:25:11Z",
+  "updated_at": "2014-01-15T19:02:01Z",
+  "closed_at": "2013-07-02T10:15:21Z",
+  "labels": [
+    "non critical bug",
+    "state-approved"
+  ],
+  "comments_data": []
+}

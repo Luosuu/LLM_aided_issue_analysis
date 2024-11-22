@@ -1,0 +1,84 @@
+{
+  "issue_number": 11778.0,
+  "title": "[CRASH] Docker redis crash",
+  "body": "Hi,\r\n\r\nI'm using Redis docker container on Ubuntu 20.04, and since a few days, this one crashed.\r\nSince, each time I want to start it again, it stops a few hours after.\r\n\r\nSo I checked the logs, and here it is :\r\n\r\n```\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n1:S 02 Feb 2023 08:28:06.402 # === ASSERTION FAILED ===\r\n1:S 02 Feb 2023 08:28:06.402 # ==> blocked.c:624 'server.also_propagate.numops == 0' is not true\r\n\r\n------ INFO OUTPUT ------\r\n# Server\r\nredis_version:7.0.4\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:940e2f477fae3a39\r\nredis_mode:standalone\r\nos:Linux 5.4.0-65-generic x86_64\r\narch_bits:64\r\nmonotonic_clock:POSIX clock_gettime\r\nmultiplexing_api:epoll\r\natomicvar_api:c11-builtin\r\ngcc_version:11.2.1\r\nprocess_id:1\r\nprocess_supervised:no\r\nrun_id:41253934f5ea04f6bfca306e9608d382601053d9\r\ntcp_port:6379\r\nserver_time_usec:1675326486402356\r\nuptime_in_seconds:23831\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:14382102\r\nexecutable:/data/redis-server\r\nconfig_file:\r\nio_threads_active:0\r\n\r\n# Clients\r\nconnected_clients:2\r\ncluster_connections:0\r\nmaxclients:10000\r\nclient_recent_max_input_buffer:20480\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:0\r\ntracking_clients:0\r\nclients_in_timeout_table:0\r\n\r\n# Memory\r\nused_memory:1271432\r\nused_memory_human:1.21M\r\nused_memory_rss:7733248\r\nused_memory_rss_human:7.38M\r\nused_memory_peak:1421000\r\nused_memory_peak_human:1.36M\r\nused_memory_peak_perc:89.47%\r\nused_memory_overhead:908536\r\nused_memory_startup:862888\r\nused_memory_dataset:362896\r\nused_memory_dataset_perc:88.83%\r\nallocator_allocated:1534472\r\nallocator_active:1953792\r\nallocator_resident:5414912\r\ntotal_system_memory:16394264576\r\ntotal_system_memory_human:15.27G\r\nused_memory_lua:36864\r\nused_memory_vm_eval:36864\r\nused_memory_lua_human:36.00K\r\nused_memory_scripts_eval:376\r\nnumber_of_cached_scripts:1\r\nnumber_of_functions:0\r\nnumber_of_libraries:0\r\nused_memory_vm_functions:32768\r\nused_memory_vm_total:69632\r\nused_memory_vm_total_human:68.00K\r\nused_memory_functions:184\r\nused_memory_scripts:560\r\nused_memory_scripts_human:560B\r\nmaxmemory:0\r\nmaxmemory_human:0B\r\nmaxmemory_policy:noeviction\r\nallocator_frag_ratio:1.27\r\nallocator_frag_bytes:419320\r\nallocator_rss_ratio:2.77\r\nallocator_rss_bytes:3461120\r\nrss_overhead_ratio:1.43\r\nrss_overhead_bytes:2318336\r\nmem_fragmentation_ratio:6.09\r\nmem_fragmentation_bytes:6463936\r\nmem_not_counted_for_evict:8\r\nmem_replication_backlog:0\r\nmem_total_replication_buffers:0\r\nmem_clients_slaves:0\r\nmem_clients_normal:44544\r\nmem_cluster_links:0\r\nmem_aof_buffer:8\r\nmem_allocator:jemalloc-5.2.1\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\nlazyfreed_objects:0\r\n\r\n# Persistence\r\nloading:0\r\nasync_loading:0\r\ncurrent_cow_peak:0\r\ncurrent_cow_size:0\r\ncurrent_cow_size_age:0\r\ncurrent_fork_perc:0.00\r\ncurrent_save_keys_processed:0\r\ncurrent_save_keys_total:0\r\nrdb_changes_since_last_save:9\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1675326382\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:0\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_saves:22\r\nrdb_last_cow_size:565248\r\nrdb_last_load_keys_expired:0\r\nrdb_last_load_keys_loaded:4\r\naof_enabled:1\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:-1\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_rewrites:0\r\naof_rewrites_consecutive_failures:0\r\naof_last_write_status:ok\r\naof_last_cow_size:0\r\nmodule_fork_in_progress:0\r\nmodule_fork_last_cow_size:0\r\naof_current_size:4353966\r\naof_base_size:427\r\naof_pending_rewrite:0\r\naof_buffer_length:0\r\naof_pending_bio_fsync:0\r\naof_delayed_fsync:0\r\n\r\n# Stats\r\ntotal_connections_received:107\r\ntotal_commands_processed:48187\r\ninstantaneous_ops_per_sec:1\r\ntotal_net_input_bytes:5536668\r\ntotal_net_output_bytes:1471894\r\ntotal_net_repl_input_bytes:0\r\ntotal_net_repl_output_bytes:0\r\ninstantaneous_input_kbps:0.20\r\ninstantaneous_output_kbps:0.01\r\ninstantaneous_input_repl_kbps:0.00\r\ninstantaneous_output_repl_kbps:0.00\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_keys:13\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nexpire_cycle_cpu_milliseconds:445\r\nevicted_keys:0\r\nevicted_clients:0\r\ntotal_eviction_exceeded_time:0\r\ncurrent_eviction_exceeded_time:0\r\nkeyspace_hits:170\r\nkeyspace_misses:47762\r\npubsub_channels:0\r\npubsub_patterns:0\r\npubsubshard_channels:0\r\nlatest_fork_usec:684\r\ntotal_forks:2\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:2\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\ntotal_active_defrag_time:0\r\ncurrent_active_defrag_time:0\r\ntracking_total_keys:0\r\ntracking_total_items:0\r\ntracking_total_prefixes:0\r\nunexpected_error_replies:0\r\ntotal_error_replies:36\r\ndump_payload_sanitizations:0\r\ntotal_reads_processed:48295\r\ntotal_writes_processed:48192\r\nio_threaded_reads_processed:0\r\nio_threaded_writes_processed:0\r\nreply_buffer_shrinks:17\r\nreply_buffer_expands:0\r\n\r\n# Replication\r\nrole:slave\r\nmaster_host:194.40.243.206\r\nmaster_port:8886\r\nmaster_link_status:down\r\nmaster_last_io_seconds_ago:-1\r\nmaster_sync_in_progress:0\r\nslave_read_repl_offset:0\r\nslave_repl_offset:0\r\nmaster_link_down_since_seconds:-1\r\nslave_priority:100\r\nslave_read_only:0\r\nreplica_announced:1\r\nconnected_slaves:0\r\nmaster_failover_state:no-failover\r\nmaster_replid:3bd042a5e9bf4f1c7c10282bcc58e33ad5551bac\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:0\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:0\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n\r\n# CPU\r\nused_cpu_sys:32.260467\r\nused_cpu_user:42.243077\r\nused_cpu_sys_children:0.003878\r\nused_cpu_user_children:0.005598\r\nused_cpu_sys_main_thread:32.241295\r\nused_cpu_user_main_thread:42.237038\r\n\r\n# Modules\r\n\r\n# Commandstats\r\ncmdstat_get:calls=47932,usec=278274,usec_per_call=5.81,rejected_calls=0,failed_calls=0\r\ncmdstat_setex:calls=18,usec=289,usec_per_call=16.06,rejected_calls=0,failed_calls=0\r\ncmdstat_set:calls=54,usec=492,usec_per_call=9.11,rejected_calls=0,failed_calls=0\r\ncmdstat_flushdb:calls=6,usec=153,usec_per_call=25.50,rejected_calls=0,failed_calls=0\r\ncmdstat_del:calls=6,usec=23,usec_per_call=3.83,rejected_calls=0,failed_calls=0\r\ncmdstat_select:calls=94,usec=298,usec_per_call=3.17,rejected_calls=0,failed_calls=0\r\ncmdstat_command:calls=4,usec=15139,usec_per_call=3784.75,rejected_calls=0,failed_calls=0\r\ncmdstat_flushall:calls=8,usec=26561,usec_per_call=3320.12,rejected_calls=0,failed_calls=0\r\ncmdstat_info:calls=5,usec=1387,usec_per_call=277.40,rejected_calls=0,failed_calls=0\r\ncmdstat_eval:calls=1,usec=209,usec_per_call=209.00,rejected_calls=0,failed_calls=1\r\ncmdstat_config|set:calls=37,usec=734,usec_per_call=19.84,rejected_calls=0,failed_calls=34\r\ncmdstat_slaveof:calls=2,usec=495,usec_per_call=247.50,rejected_calls=0,failed_calls=0\r\ncmdstat_save:calls=20,usec=65566,usec_per_call=3278.30,rejected_calls=0,failed_calls=0\r\n\r\n# Errorstats\r\nerrorstat_ERR:count=36\r\n\r\n# Latencystats\r\nlatency_percentiles_usec_get:p50=5.023,p99=22.015,p99.9=57.087\r\nlatency_percentiles_usec_setex:p50=13.055,p99=32.127,p99.9=32.127\r\nlatency_percentiles_usec_set:p50=8.031,p99=16.063,p99.9=31.103\r\nlatency_percentiles_usec_flushdb:p50=26.111,p99=31.103,p99.9=31.103\r\nlatency_percentiles_usec_del:p50=3.007,p99=7.007,p99.9=7.007\r\nlatency_percentiles_usec_select:p50=3.007,p99=14.015,p99.9=19.071\r\nlatency_percentiles_usec_command:p50=4095.999,p99=4587.519,p99.9=4587.519\r\nlatency_percentiles_usec_flushall:p50=3325.951,p99=4390.911,p99.9=4390.911\r\nlatency_percentiles_usec_info:p50=250.879,p99=385.023,p99.9=385.023\r\nlatency_percentiles_usec_eval:p50=209.919,p99=209.919,p99.9=209.919\r\nlatency_percentiles_usec_config|set:p50=17.023,p99=100.351,p99.9=100.351\r\nlatency_percentiles_usec_slaveof:p50=8.031,p99=487.423,p99.9=487.423\r\nlatency_percentiles_usec_save:p50=3047.423,p99=5406.719,p99.9=5406.719\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=4,expires=0,avg_ttl=0\r\ndb1:keys=5,expires=2,avg_ttl=0\r\n\r\n------ CLIENT LIST OUTPUT ------\r\nid=5 addr=10.5.0.2:36302 laddr=10.5.0.3:6379 fd=9 name= age=23830 idle=1 flags=N db=1 sub=0 psub=0 ssub=0 multi=-1 qbuf=0 qbuf-free=20474 argv-mem=0 multi-mem=0 rbs=1024 rbp=5 obl=0 oll=0 omem=0 tot-mem=22272 events=r cmd=get user=default redir=-1 resp=2\r\nid=6 addr=10.5.0.2:36304 laddr=10.5.0.3:6379 fd=10 name= age=23830 idle=1 flags=N db=1 sub=0 psub=0 ssub=0 multi=-1 qbuf=0 qbuf-free=20474 argv-mem=0 multi-mem=0 rbs=1024 rbp=5 obl=0 oll=0 omem=0 tot-mem=22272 events=r cmd=get user=default redir=-1 resp=2\r\n\r\n------ MODULES INFO OUTPUT ------\r\n\r\n------ CONFIG DEBUG OUTPUT ------\r\nlazyfree-lazy-expire no\r\nactivedefrag no\r\nrepl-diskless-sync yes\r\nproto-max-bulk-len 512mb\r\nlazyfree-lazy-user-del no\r\nreplica-read-only no\r\nclient-query-buffer-limit 1gb\r\nlazyfree-lazy-user-flush no\r\nlazyfree-lazy-server-del no\r\nsanitize-dump-payload no\r\nlazyfree-lazy-eviction no\r\nio-threads 1\r\nslave-read-only no\r\nio-threads-do-reads no\r\nrepl-diskless-load disabled\r\nlist-compress-depth 0\r\n\r\n------ FAST MEMORY TEST ------\r\n1:S 02 Feb 2023 08:28:06.403 # Bio thread for job type #0 terminated\r\n1:S 02 Feb 2023 08:28:06.403 # Bio thread for job type #1 terminated\r\n1:S 02 Feb 2023 08:28:06.404 # Bio thread for job type #2 terminated\r\n*** Preparing to test memory region 561a1894f000 (2306048 bytes)\r\n*** Preparing to test memory region 561a1a670000 (12288 bytes)\r\n*** Preparing to test memory region 7f6bc8800000 (2097152 bytes)\r\n*** Preparing to test memory region 7f6bc8b74000 (2621440 bytes)\r\n*** Preparing to test memory region 7f6bc9a00000 (8388608 bytes)\r\n*** Preparing to test memory region 7f6bca2bb000 (4096 bytes)\r\n*** Preparing to test memory region 7f6bca2be000 (139264 bytes)\r\n*** Preparing to test memory region 7f6bca2e2000 (368640 bytes)\r\n*** Preparing to test memory region 7f6bca5ba000 (16384 bytes)\r\n*** Preparing to test memory region 7f6bca6d4000 (12288 bytes)\r\n.O.O.O.O.O.O.O.O.O.O\r\nFast memory test PASSED, however your memory can still be broken. Please run a memory test for several hours if possible.\r\n\r\n=== REDIS BUG REPORT END. Make sure to include from START to END. ===\r\n```\r\n\r\nAnd here are the lines before the crash : (this 3 lines were repeated many times)\r\n```\r\n1:S 02 Feb 2023 08:28:06.301 * Connecting to MASTER 194.40.243.206:8886\r\n1:S 02 Feb 2023 08:28:06.302 * MASTER <-> REPLICA sync started\r\n1:S 02 Feb 2023 08:28:06.343 # Error condition on socket for SYNC: Connection refused\r\n```\r\n\r\nThank's for your time !",
+  "state": "closed",
+  "created_at": "2023-02-02T18:18:14Z",
+  "updated_at": "2023-02-20T08:23:27Z",
+  "closed_at": "2023-02-20T08:23:27Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1414433948,
+      "user": "hpatro",
+      "created_at": "2023-02-02T22:02:32Z",
+      "body": "@DarkHiito \r\n\r\n1. Do you understand why the replication link is broken with the master?\r\n2. Would you be able to share the set of commands leading to this crash?\r\n"
+    },
+    {
+      "id": 1414593117,
+      "user": "DarkHiito",
+      "created_at": "2023-02-03T01:35:51Z",
+      "body": "Hi,\r\n\r\nNo i don't really understand, the only thing I did is to pull the redis docker container, and run it.\r\nI don't need replication, I just want Redis to be fast to manage my cache.\r\n\r\nI didn't run commands to get this crash, I just started the container and that's it"
+    },
+    {
+      "id": 1419435415,
+      "user": "hpatro",
+      "created_at": "2023-02-06T17:13:28Z",
+      "body": "@DarkHiito Not sure how the Redis server was initialized, would suggest to run `SLAVEOF NO ONE` to make the server a `MASTER`. Add password to the default user to avoid incorrect access.\r\n\r\nThere is some data stored on the Redis server based on the keyspace metrics, hence some command was ran or rdb file was used to load the data from. \r\n```\r\ndb0:keys=4,expires=0,avg_ttl=0\r\ndb1:keys=5,expires=2,avg_ttl=0\r\n```"
+    },
+    {
+      "id": 1420311573,
+      "user": "judeng",
+      "created_at": "2023-02-07T07:27:48Z",
+      "body": "This crash only happend in a writeable replica which aof was be enabled at the same time.  It have been fixed in #11615 ; please update the redis to latest version.\r\n@guybe7  hi, do you think we need to add a test case for this edge case?"
+    },
+    {
+      "id": 1420544624,
+      "user": "guybe7",
+      "created_at": "2023-02-07T10:29:11Z",
+      "body": "thanks, @judeng \r\nit is always a good idea to add more tests, but unfortunately, I don't have any spare time at the moment - do you want to add a test?\r\n\r\nif so, we should also update the comment in `expireSlaveKeys`:\r\n```\r\n/* Propagate the DEL (writable replicas do not propagate anything to other replicas, but they might propagate to AOF) and trigger module hooks. */\r\n```"
+    },
+    {
+      "id": 1420545664,
+      "user": "guybe7",
+      "created_at": "2023-02-07T10:29:59Z",
+      "body": "@DarkHiito please use 7.0.8 and you should be good\r\n\r\nclosing the issue"
+    },
+    {
+      "id": 1420945788,
+      "user": "DarkHiito",
+      "created_at": "2023-02-07T15:16:43Z",
+      "body": "> @DarkHiito please use 7.0.8 and you should be good\r\n> \r\n> closing the issue\r\n\r\n@guybe7 Hi, thank's for your answer, I upgraded to 7.0.8 and i got the exact same error :/"
+    },
+    {
+      "id": 1421006727,
+      "user": "judeng",
+      "created_at": "2023-02-07T15:55:41Z",
+      "body": "> @guybe7 Hi, thank's for your answer, I upgraded to 7.0.8 and i got the exact same error :/\r\n\r\nI'm sorry for not verifying carefully, #11615  is indeed not included in 7.0.8 :-( \r\nit's still wait to backport to 7.0, can you modify the source code in 7.0.8 and compile it by yourself?"
+    },
+    {
+      "id": 1421072607,
+      "user": "guybe7",
+      "created_at": "2023-02-07T16:36:02Z",
+      "body": "@oranagra should we backport?"
+    },
+    {
+      "id": 1421535163,
+      "user": "oranagra",
+      "created_at": "2023-02-07T22:15:07Z",
+      "body": "@guybe7 what does #11615 has to do with this? It's a fix for a pr that wasn't cherrypicked either."
+    },
+    {
+      "id": 1422192479,
+      "user": "guybe7",
+      "created_at": "2023-02-08T08:07:50Z",
+      "body": "#11615 isn't a fix to the exec-unit PR (perhaps I should have been more clear in the commit comment)\r\nthe effect is that after `expireSlaveKeys` the `also_propagate` array is empty\r\n\r\nfor 7.0 the fix would be to add `propagatePendingCommands` at the end of `expireSlaveKeys`"
+    },
+    {
+      "id": 1422198176,
+      "user": "oranagra",
+      "created_at": "2023-02-08T08:12:25Z",
+      "body": "ohh, ok, i'll note it there and handle it in the next release"
+    }
+  ]
+}

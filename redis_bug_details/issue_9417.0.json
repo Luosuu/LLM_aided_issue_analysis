@@ -1,0 +1,18 @@
+{
+  "issue_number": 9417.0,
+  "title": "[BUG] Unsupported CONFIG parameter: appendfilename",
+  "body": "When I run `CONFIG GET *`, there is key `appendfilename` on the response.\r\n\r\nBut when I want to run `CONFIG SET appendfilename something` it says\r\n```\r\n-ERR Unsupported CONFIG parameter: appendfilename\r\n```\r\n**Additional information**\r\nI am using docker image redis:alpine and redis:latest.",
+  "state": "closed",
+  "created_at": "2021-08-26T19:13:45Z",
+  "updated_at": "2021-08-26T19:24:31Z",
+  "closed_at": "2021-08-26T19:24:31Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 906680701,
+      "user": "oranagra",
+      "created_at": "2021-08-26T19:24:31Z",
+      "body": "This specific config is immutable, it can only be modified at startup time (in the config file or command line arguments) "
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "issue_number": 12478.0,
+  "title": "[BUG] Error in default redis.conf",
+  "body": "When installing `redis` from source, the default `etc/redis/redis.conf` includes the following line:\r\n\r\n```\r\nsupervisedsystemd\r\n```\r\n\r\nwhich results in the following error when trying to start `redis-server`:\r\n\r\n```\r\n*** FATAL CONFIG FILE ERROR (Redis 7.0.12) ***\r\nReading the configuration file, at line 327\r\n>>> 'supervisedsystemd'\r\nBad directive or wrong number of arguments\r\n```\r\n\r\nThe above line in `etc/redis/redis.conf` is missing space:\r\n\r\n```\r\nsupervised systemd\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-08-11T11:44:48Z",
+  "updated_at": "2023-08-11T14:42:04Z",
+  "closed_at": "2023-08-11T14:42:04Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1674774437,
+      "user": "hwware",
+      "created_at": "2023-08-11T13:11:08Z",
+      "body": "Hi @ramblehead ,\r\n\r\nThank you for reporting the issue, as per the 7.0 code it's having space as expected. here is the reference : https://github.com/redis/redis/blob/8e73f9d34821a937165884f13a2981883f44a074/redis.conf#L316C1-L316C1\r\n\r\nalso in my mchines /etc/redis/redis.conf it's supervised is auto:\r\n\r\n```\r\n\r\n# When Redis is supervised by upstart or systemd, this parameter has no impact.\r\ndaemonize yes\r\n\r\n# If you run Redis from upstart or systemd, Redis can interact with your\r\n# supervision tree. Options:\r\n#   supervised no      - no supervision interaction\r\n#   supervised upstart - signal upstart by putting Redis into SIGSTOP mode\r\n#                        requires \"expect stop\" in your upstart job config\r\n#   supervised systemd - signal systemd by writing READY=1 to $NOTIFY_SOCKET\r\n#                        on startup, and updating Redis status on a regular\r\n#                        basis.\r\n#   supervised auto    - detect upstart or systemd method based on\r\n#                        UPSTART_JOB or NOTIFY_SOCKET environment variables\r\n# Note: these supervision methods only signal \"process is ready.\"\r\n#       They do not enable continuous pings back to your supervisor.\r\n#\r\n# The default is \"no\". To run under upstart/systemd, you can simply uncomment\r\n# the line below:\r\n#\r\nsupervised auto\r\n\r\n# If a pid file is specified, Redis writes it where specified at startup\r\n# and removes it at exit.\r\n\r\n\r\n```\r\n\r\nWill check on my machine again by re-installing and confirm. If possible can you give the steps you followed that would be easy for me to reproduce."
+    },
+    {
+      "id": 1674865164,
+      "user": "hwware",
+      "created_at": "2023-08-11T14:15:02Z",
+      "body": "Re-installed the server but still not seeing as you have observed.\r\n\r\n```\r\n:~$ sudo apt-get -y install redis-server\r\nReading package lists... Done\r\nBuilding dependency tree... Done\r\nReading state information... Done\r\nThe following additional packages will be installed:\r\n  redis-tools\r\nSuggested packages:\r\n  ruby-redis\r\nThe following NEW packages will be installed:\r\n  redis-server redis-tools\r\n0 upgraded, 2 newly installed, 0 to remove and 2 not upgraded.\r\nNeed to get 0 B/1615 kB of archives.\r\nAfter this operation, 9397 kB of additional disk space will be used.\r\nSelecting previously unselected package redis-tools.\r\n(Reading database ... 134991 files and directories currently installed.)\r\nPreparing to unpack .../redis-tools_6%3a7.0.12-1rl1~jammy1_amd64.deb ...\r\nUnpacking redis-tools (6:7.0.12-1rl1~jammy1) ...\r\nSelecting previously unselected package redis-server.\r\nPreparing to unpack .../redis-server_6%3a7.0.12-1rl1~jammy1_amd64.deb ...\r\nUnpacking redis-server (6:7.0.12-1rl1~jammy1) ...\r\nSetting up redis-tools (6:7.0.12-1rl1~jammy1) ...\r\nSetting up redis-server (6:7.0.12-1rl1~jammy1) ...\r\nProcessing triggers for man-db (2.10.2-1) ...\r\nScanning processes...\r\nScanning candidates...\r\nScanning linux images...\r\n\r\nRestarting services...\r\nService restarts being deferred:\r\n /etc/needrestart/restart.d/dbus.service\r\n systemctl restart docker.service\r\n systemctl restart getty@tty1.service\r\n\r\n```"
+    },
+    {
+      "id": 1674904579,
+      "user": "ramblehead",
+      "created_at": "2023-08-11T14:42:04Z",
+      "body": "Hi @hwware\r\n\r\nThank you for the quick reply!\r\n\r\nI am using my custom helper scripts to run installation process:\r\nhttps://github.com/ramblehead/rhpm/tree/master/packages/redis/.project\r\n\r\nIt stooped working for me at around 7.0.11 and I presumed that it was an upstream bug, so I reported it here.\r\n\r\nMy presumption was wrong - the bug is at my side. At some stage I changed the script lines from:\r\n\r\n```bash\r\nCMD=(sed -i -E)\r\nCMD+=(\"'s/^#*\\s*(supervised\\s+).*/\\1systemd/'\")\r\nCMD+=(\"/usr/local/stow/${STOW_NAME}/etc/redis/redis.conf\")\r\necho + \"${CMD[@]}\" && eval \"${CMD[@]}\"\r\n```\r\n\r\nto\r\n\r\n```bash\r\nCMD=(sed -i -E)\r\nCMD+=(\"'s/^#*\\s*(supervised)\\s+auto\\$/\\1systemd/'\")\r\nCMD+=(\"/usr/local/stow/${STOW_NAME}/etc/redis/redis.conf\")\r\necho + \"${CMD[@]}\" && eval \"${CMD[@]}\"\r\n```\r\n\r\nWhere \"\\s+\" escaped the regex capture making sed erasing the space.\r\n\r\nThank you for your answer and apology for my confusion."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "issue_number": 7880.0,
+  "title": "[BUG] Calling RedisModule_SignalKeyAsReady from a timer callback does not trigger the reply callback.",
+  "body": "**Describe the bug**\r\n\r\nWhen using ```RedisModule_BlockClientOnKeys``` it should be possible to unblock the client by calling ```RedisModule_SignalKeyAsReady```. However this is not working if the call is performed inside the callback of a timer.\r\nThe following code reproduces the issue. Note that for RedisModule_SignalKeyAsReady to work at all, the key we are signalling must exist before we call it as reported here (https://github.com/redis/redis/issues/7878)\r\n\r\n```c\r\n#include \"redismodule.h\"\r\n#include <stdlib.h>\r\n\r\nint BlockedReplyCallback(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)  {\r\n    RedisModule_Log(ctx, \"warning\", \"Reply callback!\");\r\n    RedisModule_ReplyWithSimpleString(ctx, \"We are done!\");\r\n    return REDISMODULE_OK;\r\n}\r\n\r\nint TimeoutReplyCallback(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)  {\r\n    RedisModule_Log(ctx, \"warning\", \"Timed out!\");\r\n\r\n    RedisModule_ReplyWithSimpleString(ctx, \"Timed Out\");\r\n    return REDISMODULE_OK;\r\n}\r\n\r\nvoid BlockedFreePrivdata(RedisModuleCtx *ctx, void *privdata) {\r\n    RedisModule_Log(ctx, \"warning\", \"Freeing all priv data\");\r\n}\r\n\r\nvoid TimerCallback(RedisModuleCtx *ctx, void *data) {\r\n    RedisModuleString *key = data;\r\n        \r\n    RedisModule_Call(ctx, \"RPUSH\", \"sc\", key, \"foobar\");\r\n    RedisModule_SignalKeyAsReady(ctx, key);\r\n}\r\n\r\nint HelloworldRand_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {\r\n\r\n    RedisModuleBlockedClient* bc = RedisModule_BlockClientOnKeys(ctx, \r\n            BlockedReplyCallback, \r\n            TimeoutReplyCallback, \r\n            BlockedFreePrivdata,\r\n            10000, \r\n            &argv[1],\r\n            1, \r\n            NULL);\r\n\r\n    RedisModule_HoldString(ctx, argv[1]);\r\n    RedisModule_CreateTimer(ctx, \r\n                1000, \r\n                TimerCallback, \r\n                argv[1]);\r\n\r\n    return REDISMODULE_OK;\r\n}\r\n\r\nint RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {\r\n    if (RedisModule_Init(ctx,\"helloworld\",1,REDISMODULE_APIVER_1)\r\n        == REDISMODULE_ERR) return REDISMODULE_ERR;\r\n\r\n    if (RedisModule_CreateCommand(ctx,\"bug2\",\r\n        HelloworldRand_RedisCommand, \"\",\r\n        0, 0, 0) == REDISMODULE_ERR)\r\n        return REDISMODULE_ERR;\r\n\r\n    return REDISMODULE_OK;\r\n}\r\n```\r\n\r\n**To reproduce**\r\n\r\nJust compile and load that module in redis, call it with for example \"bug2 1234\". It should create a list named 1234 with one element \"foobar\" in it. However the command is not unblocked after 1 second.\r\n\r\n**Expected behavior**\r\n\r\nThe command should unblock one second after running it.\r\n\r\n**Additional information**\r\n\r\nThis issue is reproducible with Redis 6.0.8.\r\n\r\nSome observations. If the call to RPUSH is moved outside of the timer callback, then the command will unblock the first time it is called, but not the second time (as if it detects the LIST was already there and then ignore the signalling).\r\n",
+  "state": "closed",
+  "created_at": "2020-10-03T11:00:10Z",
+  "updated_at": "2020-10-12T14:14:22Z",
+  "closed_at": "2020-10-12T14:14:21Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 707015817,
+      "user": "guybe7",
+      "created_at": "2020-10-12T09:54:33Z",
+      "body": "@manast it seems you pass `argv` to `RedisModule_CreateTimer` but as soon as `HelloworldRand_RedisCommand` finished `argv` is not a valid pointer anymore... maybe just pass argv[1] (after retaining it)\r\n\r\nlet me know if the issue is still happening"
+    },
+    {
+      "id": 707069773,
+      "user": "manast",
+      "created_at": "2020-10-12T11:45:00Z",
+      "body": "I updated the test code, it is still happening."
+    },
+    {
+      "id": 707070884,
+      "user": "guybe7",
+      "created_at": "2020-10-12T11:47:26Z",
+      "body": "i still see\r\n```\r\nRedisModule_CreateTimer(ctx, \r\n                1000, \r\n                TimerCallback, \r\n                argv);\r\n```\r\n\r\ninstead of\r\n```\r\nRedisModule_CreateTimer(ctx, \r\n                1000, \r\n                TimerCallback, \r\n                argv[1]);\r\n\r\n```"
+    },
+    {
+      "id": 707072052,
+      "user": "manast",
+      "created_at": "2020-10-12T11:49:52Z",
+      "body": "not anymore :). I just forgot to update that in the issue, in my code it is correct."
+    },
+    {
+      "id": 707072699,
+      "user": "manast",
+      "created_at": "2020-10-12T11:51:12Z",
+      "body": "but as I mentioned, if you push before creating the timer then the call to signalKeysAsReady works, so the pointer must be correct, the problem is when you push from inside the timer AND you call the signalKeyAsReady from inside the timer."
+    },
+    {
+      "id": 707078515,
+      "user": "guybe7",
+      "created_at": "2020-10-12T12:04:05Z",
+      "body": "ok so indeed there's a bug: the function that releases blocked clients (handleClientsBlockedOnKeys) is called only from processCommand (i.e. the assumption is that only a command can cause a key to be \"ready\" - but that assumption seems to be an over-simplification)\r\n\r\nwe can either call handleClientsBlockedOnKeys at the end of moduleTimerHandler or every once in a while in serverCron (seems a bit more risky)\r\n\r\n@oranagra WDYT?"
+    },
+    {
+      "id": 707096281,
+      "user": "oranagra",
+      "created_at": "2020-10-12T12:42:04Z",
+      "body": "i think this was indeed overlooked, and i guess we should call handleClientsBlockedOnKeys from beforeSleep too."
+    },
+    {
+      "id": 707146875,
+      "user": "oranagra",
+      "created_at": "2020-10-12T14:14:21Z",
+      "body": "handled vie the above mentioned PR."
+    }
+  ]
+}

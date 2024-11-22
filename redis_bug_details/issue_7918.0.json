@@ -1,0 +1,18 @@
+{
+  "issue_number": 7918.0,
+  "title": "[BUG] WATCH ignores keys which has expired",
+  "body": "Currently, WATCH in a multi-exec transaction will ignore expired keys. So if a key that was previously being watched is expired and deleted from Redis, WATCH will not consider it at all... There is a TCL test for this behavior \r\n\r\nhttps://github.com/redis/redis/blob/unstable/tests/unit/multi.tcl#L224\r\n\r\nHowever, this behavior doesn't seem to make a lot of sense to me. If I am watching an item and the item gets deleted from Redis, I would want to be notified... Anyone know the reason behind this behavior in Redis? ",
+  "state": "closed",
+  "created_at": "2020-10-16T01:58:39Z",
+  "updated_at": "2020-10-22T09:57:46Z",
+  "closed_at": "2020-10-22T09:57:46Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 709687562,
+      "user": "madolson",
+      "created_at": "2020-10-16T02:12:27Z",
+      "body": "This was previously brought up in https://github.com/redis/redis/issues/6860, It looks like salvatore agreed but no one did anything about it. \r\n\r\n\"I mean, if you WATCH a key, and it gets deleted for whatever reason, you expect the watch to fail. Looks like a bug, I'm surprised no one complained about it for so many years. People must not be using watch that much...\" Got a thumbs up"
+    }
+  ]
+}

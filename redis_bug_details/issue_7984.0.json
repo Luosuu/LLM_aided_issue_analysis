@@ -1,0 +1,24 @@
+{
+  "issue_number": 7984.0,
+  "title": "[BUG] Possible use-after-free bug on the method dictGenericDelete??",
+  "body": "**Describe the bug**\r\n\r\nPossible use-after-free bug.\r\n\r\n**To reproduce**\r\n\r\nOur static analysis tool reports it which may be a false positive.\r\n\r\n**Expected behavior**\r\n\r\nMay crash the program.\r\n\r\n**Additional information**\r\n\r\nThe method is [here.](https://github.com/redis/redis/blob/unstable/src/dict.c#L368)\r\n```\r\nstatic dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {\r\n    uint64_t h, idx;\r\n    dictEntry *he, *prevHe;\r\n    int table;\r\n\r\n    if (d->ht[0].used == 0 && d->ht[1].used == 0) return NULL;\r\n\r\n    if (dictIsRehashing(d)) _dictRehashStep(d);\r\n    h = dictHashKey(d, key);\r\n\r\n    for (table = 0; table <= 1; table++) {\r\n        idx = h & d->ht[table].sizemask;\r\n        he = d->ht[table].table[idx];\r\n        prevHe = NULL;\r\n        while(he) {\r\n            if (key==he->key || dictCompareKeys(d, key, he->key)) {\r\n                /* Unlink the element from the list */\r\n                if (prevHe)\r\n                    prevHe->next = he->next;\r\n                else\r\n                    d->ht[table].table[idx] = he->next;\r\n                if (!nofree) {\r\n                    dictFreeKey(d, he);\r\n                    dictFreeVal(d, he);\r\n                    zfree(he);                  //free here\r\n                }\r\n                d->ht[table].used--;\r\n                return he;                     //return to caller\r\n            }\r\n            prevHe = he;\r\n            he = he->next;\r\n        }\r\n        if (!dictIsRehashing(d)) break;\r\n    }\r\n    return NULL; /* not found */\r\n}\r\n\r\n```\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-10-29T06:03:49Z",
+  "updated_at": "2020-10-30T08:01:22Z",
+  "closed_at": "2020-10-29T13:01:25Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 718737052,
+      "user": "oranagra",
+      "created_at": "2020-10-29T13:01:25Z",
+      "body": "@ycaibb thanks for reaching out.\r\n\r\nit's a false positive, maybe the code should have had a comment that explains it.\r\nthe return value of that function is also used an an indication if the entry was found.\r\nit is used only by these two functions:\r\n\r\n```c\r\nint dictDelete(dict *ht, const void *key) {\r\n    return dictGenericDelete(ht,key,0) ? DICT_OK : DICT_ERR;\r\n}\r\n\r\ndictEntry *dictUnlink(dict *ht, const void *key) {\r\n    return dictGenericDelete(ht,key,1);\r\n}\r\n```\r\nso the `!nofree` (which released that pointer) is only true in the case of `dictDelete` which only looks at the return value to see if it's NULL or non-NULL (doesn't use the pointer)."
+    },
+    {
+      "id": 719382508,
+      "user": "ycaibb",
+      "created_at": "2020-10-30T08:01:22Z",
+      "body": "I am very thankful for your detailed explanation. Even so, I still think it is a very dangerous operation with regard to high software quality since any careless use of the method can cause bugs in the future. Adding necessary comments is an alternative approach. Thank you."
+    }
+  ]
+}

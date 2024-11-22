@@ -1,0 +1,80 @@
+{
+  "issue_number": 545.0,
+  "title": "2.6RC4 sort command is broken in Lua due to automatic resorting of output",
+  "body": "When calling a command like \"sort mykey by nosort get foo:*\" from a Lua script, the results are ordered incorrectly because Redis automatically resorts the resulting values in alphabetical order due to a little logic bug in scripting.c.\n\nIn scripting.c at the bottom of luaRedisGenericCommand(), I see this:\n/\\* Skip this step if command is SORT but output was already sorted */\n        if (cmd->proc != sortCommand || server.sort_dontsort)\n            luaSortArray(lua);\n\nThe logic is a little backwards.  It should probably be something like this:\n/\\* Skip this step if command is SORT but output was already sorted */\n        if (cmd->proc != sortCommand && !server.sort_dontsort)\n            luaSortArray(lua);\n\nMaking this change fixed the problem for me.\n",
+  "state": "closed",
+  "created_at": "2012-06-09T04:43:28Z",
+  "updated_at": "2014-12-11T14:54:39Z",
+  "closed_at": "2014-12-11T14:54:39Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 8255789,
+      "user": "exogen",
+      "created_at": "2012-09-04T08:22:35Z",
+      "body": "Just chiming in that I ran into this issue today, and @rodcope's suggested change looks good.\n"
+    },
+    {
+      "id": 8256069,
+      "user": "antirez",
+      "created_at": "2012-09-04T08:35:15Z",
+      "body": "Sorry I overlooked this... fixing it and adding a test to prevent further problems in this regard.\n"
+    },
+    {
+      "id": 8256440,
+      "user": "antirez",
+      "created_at": "2012-09-04T08:49:18Z",
+      "body": "@exogen @rodcope sorry I can't reproduce the issue actually:\n\n```\nredis 127.0.0.1:6379> lpush l 1 2 5 3 50 4 7 2\n(integer) 8\nredis 127.0.0.1:6379> eval \"return redis.call('sort','l')\" 0\n1) \"1\"\n2) \"2\"\n3) \"2\"\n4) \"3\"\n5) \"4\"\n6) \"5\"\n7) \"7\"\n8) \"50\"\nredis 127.0.0.1:6379> eval \"return redis.call('sort','l')\" 0\n1) \"1\"\n2) \"2\"\n3) \"2\"\n4) \"3\"\n5) \"4\"\n6) \"5\"\n7) \"7\"\n8) \"50\"\nredis 127.0.0.1:6379> eval \"return redis.call('sort','l','by','x')\" 0\n1) \"1\"\n2) \"2\"\n3) \"2\"\n4) \"3\"\n5) \"4\"\n6) \"5\"\n7) \"50\"\n8) \"7\"\n```\n\nAnd the if statement appears to make sense since:\n\n```\nif (cmd->proc != sortCommand || server.sort_dontsort)\n```\n\nWill actually enter the true branch if:\n- the command is not sortCommand\n- OR, the sort_dontsort is true, so SORT did NOT sorted the output.\n\nPlease can you show me how to reproduce? Thanks.\n"
+    },
+    {
+      "id": 8267999,
+      "user": "exogen",
+      "created_at": "2012-09-04T15:48:52Z",
+      "body": "@antirez Thanks for looking into this! I should have been more specific: the problem becomes apparent when you GET multiple keys, expecting interleaved results, e.g.\n\n```\nredis 127.0.0.1:6379> lpush list 1 2 5 3 50 4 7 2\n(integer) 8\nredis 127.0.0.1:6379> eval \"return redis.call('sort', 'list', 'by', 'nosort', 'get', '#', 'get', 'weight:*')\" 0\n 1) (nil)\n 2) (nil)\n 3) (nil)\n 4) (nil)\n 5) (nil)\n 6) (nil)\n 7) (nil)\n 8) (nil)\n 9) \"1\"\n10) \"2\"\n11) \"2\"\n12) \"3\"\n13) \"4\"\n14) \"5\"\n15) \"50\"\n16) \"7\"\n```\n\nI haven't added any weight keys because they're not necessary to demonstrate the problem, so they're all nil (fine). But you can see that the results should be interleaved like so:\n\n```\n 1) \"1\"\n 2) (nil)\n 3) \"2\"\n 4) (nil)\n 5) \"2\"\n 6) (nil)\n 7) \"3\"\n 8) (nil)\n 9) \"4\"\n10) (nil)\n11) \"5\"\n12) (nil)\n13) \"50\"\n14) (nil)\n15) \"7\"\n16) (nil)\n```\n\nInstead they've been sorted so that the weights can't be associated with the original elements. Hope that makes sense!\n"
+    },
+    {
+      "id": 8269619,
+      "user": "exogen",
+      "created_at": "2012-09-04T16:32:56Z",
+      "body": "Just adding that you can of course see the expected result order by issuing the command without Lua:\n\n```\nredis 127.0.0.1:6379> sort list by nosort get # get weight:*\n 1) \"2\"\n 2) (nil)\n 3) \"7\"\n 4) (nil)\n 5) \"4\"\n 6) (nil)\n 7) \"50\"\n 8) (nil)\n 9) \"3\"\n10) (nil)\n11) \"5\"\n12) (nil)\n13) \"2\"\n14) (nil)\n15) \"1\"\n16) (nil)\n```\n"
+    },
+    {
+      "id": 8279727,
+      "user": "antirez",
+      "created_at": "2012-09-04T21:31:21Z",
+      "body": "Ok now I see the problem... we are sorting a key-val thing as a linear array in this case.\nFixing ASAP. Thanks! Also checking if this applies to other commands as well.\n"
+    },
+    {
+      "id": 8282512,
+      "user": "antirez",
+      "created_at": "2012-09-04T23:20:49Z",
+      "body": "The issue is now fixed by commit 5ddee9b, Thanks!\n\np.s. in the process the code is now simpler and faster.\n"
+    },
+    {
+      "id": 58506890,
+      "user": "mtlima",
+      "created_at": "2014-10-09T13:14:50Z",
+      "body": "I can actually still reproduce this in version 2.8.4:\n\n127.0.0.1:6391> rpush test 3 2 1 \n(integer) 3\n127.0.0.1:6391> lrange test 0 -1\n1) \"3\"\n2) \"2\"\n3) \"1\"\n127.0.0.1:6391> sort test by nosort\n1) \"3\"\n2) \"2\"\n3) \"1\"\n127.0.0.1:6391> eval \"return redis.call('sort', 'test', 'by', 'nosort');\" 0\n1) \"1\"\n2) \"2\"\n3) \"3\"\n"
+    },
+    {
+      "id": 59519527,
+      "user": "melo",
+      "created_at": "2014-10-17T14:20:33Z",
+      "body": "I can confirm this behaviour on a ElasticCache Redis instance (2.8.6):\n\n```\n> info server\n# Server\nredis_version:2.8.6\nredis_git_sha1:00000000\nredis_git_dirty:0\nredis_build_id:37f1586c49770bbe\nredis_mode:standalone\nos:Amazon ElastiCache\narch_bits:64\nmultiplexing_api:epoll\ngcc_version:0.0.0\nprocess_id:1\ntcp_port:6379\nuptime_in_seconds:2420387\nuptime_in_days:28\n```\n\nRan same commands as @mtlima, got the same results.\n\nAlso reproduced on a 2.6.4:\n\n```\n> info server\n# Server\nredis_version:2.6.4\nredis_git_sha1:00000000\nredis_mode:standalone\nos:Linux 2.6.32-71.el6.x86_64 x86_64\narch_bits:64\nmultiplexing_api:epoll\ngcc_version:4.4.6\ntcp_port:6380\nuptime_in_seconds:208869\nuptime_in_days:2\n```\n\nSame behaviour.\n"
+    },
+    {
+      "id": 59519873,
+      "user": "antirez",
+      "created_at": "2014-10-17T14:22:46Z",
+      "body": "Thanks for re-reporting. Reopening the issue.\n"
+    },
+    {
+      "id": 59521726,
+      "user": "mattsta",
+      "created_at": "2014-10-17T14:35:14Z",
+      "body": "This fixes it for the example above, but not sure if it breaks anything else yet:\n\n``` diff\ndiff --git a/src/sort.c b/src/sort.c\nindex fedf0cf..d0939bb 100644\n--- a/src/sort.c\n+++ b/src/sort.c\n@@ -297,7 +297,6 @@ void sortCommand(redisClient *c) {\n         (dontsort && sortval->type != REDIS_ZSET))\n     {\n         /* Force ALPHA sorting */\n-        dontsort = 0;\n         alpha = 1;\n         sortby = NULL;\n     }\n```\n"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "issue_number": 12314.0,
+  "title": "[BUG] redis-cli SCAN command in cluster mode picks nodes in random ",
+  "body": "**Describe the bug**\r\n\r\nSCAN command in cluster mode picks nodes in random \r\n\r\n**To reproduce**\r\n\r\n1. `redis-cli -c -h <redis-host-in-cluster-mode>`\r\n2. `scan 0 match * count 500`\r\n\r\n**Expected behavior**\r\n\r\nScan should return from which node the command was run\r\nor\r\nScan should not work without providing a node\r\n\r\n**Current behavior**\r\n\r\nRuns the SCAN command on a random node in the cluster\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "open",
+  "created_at": "2023-06-14T06:04:50Z",
+  "updated_at": "2024-11-14T11:31:01Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1590692116,
+      "user": "judeng",
+      "created_at": "2023-06-14T08:09:57Z",
+      "body": "Perhapse I not get your real question, I just tested it, I don't think this is a bug and it also not random reply, . \r\nWhen no key is specified, redis-cli connects to the current node, and the behavior of the `scan` command is consistent with that of `info` and `keys`.\r\n\r\n```\r\nredis-cli -c -h 127.0.0.1 -p 6482\r\n127.0.0.1:6482> scan 0\r\n1) \"0\"\r\n2) 1) \"3\"\r\n127.0.0.1:6482> keys *\r\n1) \"3\"\r\n127.0.0.1:6482> set 66 123\r\n-> Redirected to slot [5651] located at 127.0.0.1:6484\r\nOK\r\n127.0.0.1:6484> scan 0                                 <------------------------the 127.0.0.1:6484 could be a hint to scan command\r\n1) \"0\"\r\n2) 1) \"c\"\r\n   2) \"66\"\r\n127.0.0.1:6484>keys *\r\n1) \"c\"\r\n2) \"66\"\r\n\r\n```"
+    },
+    {
+      "id": 1590841977,
+      "user": "KrishnaPravin",
+      "created_at": "2023-06-14T09:32:50Z",
+      "body": "@judeng I am using AWS Elasticache. I connect to the cluster using the `Configuration endpoint` not the node endpoint (All nodes have separate endpoints). All the nodes run in the same port(6379).\r\n\r\nConfiguration endpoint: \r\n`clustercfg.redis-cluster.1111.use1.cache.amazonaws.com`\r\nNode Endpoints: (for 3 shards)\r\n```\r\nredis-cluster-0001-001.redis-cluster.1111.use1.cache.amazonaws.com:6379\r\nredis-cluster-0001-002.redis-cluster.1111.use1.cache.amazonaws.com:6379\r\nredis-cluster-0002-001.redis-cluster.1111.use1.cache.amazonaws.com:6379\r\nredis-cluster-0002-002.redis-cluster.1111.use1.cache.amazonaws.com:6379\r\nredis-cluster-0003-001.redis-cluster.1111.use1.cache.amazonaws.com:6379\r\nredis-cluster-0003-002.redis-cluster.1111.use1.cache.amazonaws.com:6379\r\n```\r\nIn your example, I think you connected to the nodes directly (running in different ports) and ran the scan command.\r\n\r\nWhen you use the `set` command while connected to the node in 6482, you are still able to write to the node in 6484.\r\nBut when you use the `scan` command in node 6482, it did not return `\"c\"` which was present in node 6484. It returned only `\"3\"`.\r\n\r\nIn cluster mode `keys, scan` works differently and `set, get` works differently.\r\n\r\nWhen I connect directly to the node, I will not expect the commands to work across the cluster. But I am using the base URL for the cluster (from AWS Elasticache) -- which does not point to a node.\r\n\r\nI did not mean random reply, I meant **random nodes**\r\n\r\nIf I connect to Redis cluster using a base cluster URL and run the `scan, keys` command I want to know that it does not consider all nodes.\r\n1. Send the node information along the  `scan` result as 3rd item in the array\r\nor\r\n2. Make specifying node a mandatory param while running `scan` command in cluster mode\r\nor\r\n3. Clearly mention in documentation that `scan,keys` works differently than `get,set` in cluster mode"
+    },
+    {
+      "id": 1591467522,
+      "user": "itamarhaber",
+      "created_at": "2023-06-14T15:22:57Z",
+      "body": "Hello @KrishnaPravin \r\n\r\nIIUC, the terms \"base cluster URL\" and \"configuration endpoint\" are specific to AWS. When you connect using these, you apparently get a \"random node\", hence your experience.\r\n\r\nThat said, the OSS Redis project doesn't support this functionality at the moment, only direct node connections. Therefore I don't see a reason for changing the command, redis-cli, or the docs to accommodate this provider-specific behavior.\r\n\r\n"
+    },
+    {
+      "id": 1592240689,
+      "user": "KrishnaPravin",
+      "created_at": "2023-06-15T02:20:41Z",
+      "body": "@itamarhaber I understand that in OSS redis there is nothing called \"base cluster URL\".\r\n\r\nBut I also don't accept that OSS redis-cli supports **only direct node connections**\r\n\r\nIf that is true, why does the connection to redis(AWS Elasticache) using the \"base cluster URL\" work in redis-cli? The connection attempt should be failing saying the URL does not belong to a node.\r\n\r\nCurrently, it does not fail. When I use the \"base cluster URL\" in redis-cli it does connect to a random node in that cluster. So you do support provider-specific behavior.\r\n"
+    },
+    {
+      "id": 1592486762,
+      "user": "soloestoy",
+      "created_at": "2023-06-15T07:10:31Z",
+      "body": "I think you can submit a ticket to AWS, or I can help ping @madolson : )"
+    },
+    {
+      "id": 1597572620,
+      "user": "KrishnaPravin",
+      "created_at": "2023-06-19T18:14:22Z",
+      "body": "@soloestoy What should I ask AWS to do ?"
+    },
+    {
+      "id": 1597738850,
+      "user": "madolson",
+      "created_at": "2023-06-19T20:47:21Z",
+      "body": "@KrishnaPravin So, I'll give you some thoughts:\r\n1. I don't know if I really agree with itamar about \"direct node access only\". Generally we have a notion of \"seed nodes\" which we use for cluster topology discovery. The redis-cli will do this when doing management operations in certain circumstances as well. Clients also extensively do this. I know of other Redis users who through some percentage of nodes behind a DNS and throw debugging stuff at it, this is pretty common in K8 workloads. I think the CLI should support this, but I don't think the current behavior is \"wrong\", it's just it's doing literally what you are telling it to do. FWIW, you can pretty easily write a script that calls `CLUSTER SHARDS`, collects all the IPs, and then scans them individually.\r\n2. We kind of need this, https://github.com/redis/redis/issues/2702, which will actually respect slot boundaries and allow you to do a complete incremental cluster scan. I think this is likely the better solution to your problem."
+    },
+    {
+      "id": 1598080208,
+      "user": "KrishnaPravin",
+      "created_at": "2023-06-20T04:09:15Z",
+      "body": "@madolson \r\n1. Yes, At last, I did scan all of them individually one by one\r\n2. Better scan support would be helpful - the documentation for scan command also needs to be updated\r\n3. `keys` command also behaves similarly to `scan` in cluster mode. Keys and any other commands that behave like scan in cluster mode also needs better support for cluster mode"
+    },
+    {
+      "id": 1598092671,
+      "user": "madolson",
+      "created_at": "2023-06-20T04:19:43Z",
+      "body": "Ok, my suggestion here is that we do three things:\r\n1. ~~Update the documentation around SCAN for usage in cluster mode.~~\r\n2. Support an incremental scan operation in the cli.\r\n3. Implement the suggestion I have in the CR, which is an iterator which is truly global and will eventually return all keys."
+    },
+    {
+      "id": 1598303782,
+      "user": "soloestoy",
+      "created_at": "2023-06-20T08:01:35Z",
+      "body": "IIUC, the scenario is as follows: The user may have written a script that starts a redis-cli to execute the SCAN command and records the returned cursor. The next time the script starts a redis-cli, it uses this cursor value to traverse. Each time the redis-cli is started, it means a new connection needs to be established. However, the cluster URL of AWS randomly points to a backend node, and it is possible to connect to a different stage from before. As a result, the previously maintained cursor value becomes invalid.\r\n\r\nSo, the key point is that in the SCAN command, we maintain the state by cursor rather than by connection. But I don't think it is OSS Redis' problem.\r\n\r\n"
+    },
+    {
+      "id": 1615934632,
+      "user": "madolson",
+      "created_at": "2023-07-01T14:11:29Z",
+      "body": "> So, the key point is that in the SCAN command, we maintain the state by cursor rather than by connection. But I don't think it is OSS Redis' problem.\r\n\r\nI don't disagree with this, it seems like the problem can be fixed by pointing to a specific node. Do you disagree with point 2 though, which is should we support a redis-cli extension so it can scan a cluster? It could discover the topology and scan each node. "
+    },
+    {
+      "id": 2476115569,
+      "user": "zidoo",
+      "created_at": "2024-11-14T11:30:59Z",
+      "body": "Hi there, I ran into this issue, which should be fixed. The beauty of Redis cluster design is that it is very transparent, and it should stay like that. All clients connected in non-cluster models should have resulted only from specific nodes. In my particular scenario, we want to move from one Redis cluster to another as fast as possible and with 0 downtime. That is a very reasonable scenario for many users. The best way should be: \r\n\r\n- connect to each shard of the cluster\r\n- dump keys and ttl using pipeline\r\n- write that to cluster\r\n- extras: if the destination cluster has the same amount of shards, it should be able to write using pipelines\r\n\r\nIn this case, clutter will be utilized 100%; now, with a scan comment that returns keys from everywhere, I cannot use pipelines, and parallelization is also an issue.\r\n"
+    }
+  ]
+}

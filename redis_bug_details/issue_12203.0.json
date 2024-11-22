@@ -1,0 +1,54 @@
+{
+  "issue_number": 12203.0,
+  "title": "[BUG] Single-node cluster reports cluster_state:fail",
+  "body": "**Describe the bug**\r\n\r\nIn a single-node cluster, CLUSTER INFO reports `cluster_state:fail` and other commands return error `CLUSTERDOWN The cluster is down` even if this node has all slots assigned to it.\r\n\r\n**Expected behavior**\r\n\r\nCLUSTER INFO should return `cluster_state:ok` whenever the cluster (the single node) has all slots assigned.\r\n\r\n**Workaround**\r\n\r\nA workaround is to use CLUSTER MEET to let the node meet itself. After that, CLUSTER INFO reports `cluster_state:ok`.\r\n\r\n**To reproduce**\r\n\r\nReproduction, including the workaround using CLUSTER MEET to let the node meet itself.\r\n\r\n```\r\n$ redis-server --cluster-enabled yes &\r\n...\r\n$ redis-cli\r\n127.0.0.1:6379> CLUSTER ADDSLOTSRANGE 0 16383\r\nOK\r\n127.0.0.1:6379> CLUSTER INFO\r\ncluster_state:fail\r\n...\r\n127.0.0.1:6379> GET foo\r\n(error) CLUSTERDOWN The cluster is down\r\n127.0.0.1:6379> CLUSTER MEET 127.0.0.1 6379\r\nOK\r\n127.0.0.1:6379> cluster info\r\ncluster_state:ok\r\n...\r\n127.0.0.1:6379> GET foo\r\n(nil)\r\n```\r\n\r\n**Motivation**\r\n\r\nA single-node cluster is useful for development, testing and in some production when redundancy isn't necessary, but the application is still using a cluster client.\r\n\r\n**Additional information**\r\n\r\nFrom the documentation of CLUSTER INFO:\r\n\r\n> `cluster_state`: State is `ok` if the node is able to receive queries. `fail` if there is at least one hash slot which is unbound (no node associated), in error state (node serving it is flagged with FAIL flag), or if the majority of masters can't be reached by this node.",
+  "state": "closed",
+  "created_at": "2023-05-19T10:17:39Z",
+  "updated_at": "2023-05-29T06:25:15Z",
+  "closed_at": "2023-05-29T06:25:15Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1555209747,
+      "user": "madolson",
+      "created_at": "2023-05-19T20:35:01Z",
+      "body": "It will turn OK on its own, you just need to be patient :) It's hitting the REJOIN delay, I added a log and you can see it waits for  5 seconds.\r\n```\r\n63020:M 19 May 2023 13:33:35.193 * Ready to accept connections tcp\r\n> Not a log, but this is when I add slots\r\n63020:M 19 May 2023 13:33:41.092 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.124 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.224 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.324 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.424 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.526 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.626 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.727 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.827 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:41.928 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.029 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.129 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.229 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.330 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.431 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.533 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.633 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.733 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.833 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:42.934 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.034 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.135 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.236 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.336 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.436 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.537 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.638 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.739 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.839 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:43.940 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.040 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.141 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.241 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.341 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.442 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.542 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.642 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.743 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.844 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:44.945 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.045 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.146 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.247 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.348 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.449 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.550 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.651 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.752 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.852 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:45.952 # Waiting for rejoin delay\r\n63020:M 19 May 2023 13:33:46.053 * Cluster state changed: ok\r\n```\r\n\r\nEDIT: The reason we have the rejoin delay is only when we are migrating from the minor to majority partitions, which is the case when a single node is moving from having no slots to having all the slots, we want to add some friction to wait for updates. This isn't strictly needed for correctness."
+    },
+    {
+      "id": 1556777080,
+      "user": "zuiderkwast",
+      "created_at": "2023-05-22T08:31:12Z",
+      "body": "@madolson Thanks for the explanation! It works as you said.\r\n\r\nThere seem to be more problems in this setup though. The IP (or host) field in CLUSTER SLOTS is empty on this node.\r\n\r\n```\r\n127.0.0.1:6379> cluster slots\r\n1) 1) (integer) 0\r\n   2) (integer) 16383\r\n   3) 1) \"\"\r\n      2) (integer) 6379\r\n      3) \"e58d3eac623d3277829ce9c6cf27a2379eea822a\"\r\n      4) (empty array)\r\n```\r\n\r\nThis too can be helped by letting it CLUSTER MEET itself.\r\n\r\nAny bugfix needed here?"
+    },
+    {
+      "id": 1557942118,
+      "user": "madolson",
+      "created_at": "2023-05-22T20:34:16Z",
+      "body": "Hm, that is definitely an interesting point. You can always fix it with the `cluster-announce-*` arguments. I'm not sure how the node could know it's IP without us telling it though, so I feel like the config is probably the right approach. I'm leaning towards no fix needed. "
+    },
+    {
+      "id": 1558904874,
+      "user": "zuiderkwast",
+      "created_at": "2023-05-23T09:31:18Z",
+      "body": "OK, good point, it can't know its own IP in this case. So this is not a bug.\r\n\r\nBut we can improve the docs. I guess we should mention \"\" for CLUSTER SLOTS and CLUSTER SHARDS. Currently NULL is documented as unknown endpoint, but the empty string is not documented. Apparently, endpoint can also be \"?\" (preferred endpoint set to hostname but cluster-announce-hostname not configured), which is written in a comment in redis.conf but not in the docs for these commands. I can add this to redis-doc."
+    },
+    {
+      "id": 1559496291,
+      "user": "zuiderkwast",
+      "created_at": "2023-05-23T14:17:01Z",
+      "body": "https://github.com/redis/redis-doc/pull/2420"
+    },
+    {
+      "id": 1566035032,
+      "user": "yossigo",
+      "created_at": "2023-05-28T09:29:11Z",
+      "body": "FYI, we're already using this trick [in the daily workflow](https://github.com/redis/redis/blob/2764dc3768675912ca21af111fc6b795270707d2/.github/workflows/external.yml#L43).\r\n\r\nIt reminds me of another development mode feature I considered but never got to actually implement, where a single `redis-server` launches N number of childs pre-configured to form a local cluster on a range of ports."
+    },
+    {
+      "id": 1566622017,
+      "user": "zuiderkwast",
+      "created_at": "2023-05-29T06:25:15Z",
+      "body": "Thanks @yossigo. I see the sleep 5 but I can't see how it gets to know its own IP. Maybe these tests never use CLUSTER SLOTS and similar commands.\r\n\r\nBtw, we'll actually use this not only for development mode, but in production where redundancy is achieved in another way."
+    }
+  ]
+}

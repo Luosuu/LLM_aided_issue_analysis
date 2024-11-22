@@ -1,0 +1,42 @@
+{
+  "issue_number": 11996.0,
+  "title": "[BUG] Command propagation issue",
+  "body": "In the process of command propagation, one command is lost, while other commands are not lost. In this command propagation process, the slave node does not send ack to confirm offset. When sending ack, the offset does not correspond to that of the master node. The master node cannot recover data with the offset of the slave node. Will the master node re-generate rdb files via bgsave and then load the slave node\r\n\r\nPlease keep in mind that this issue tracker should be used for reporting bugs or proposing improvements to the Redis server.\r\n\r\nGenerally, questions about using Redis should be directed to the [community](https://redis.io/community):\r\n\r\n* [the mailing list](https://groups.google.com/forum/#!forum/redis-db)\r\n* [the `redis` tag at StackOverflow](http://stackoverflow.com/questions/tagged/redis)\r\n* [/r/redis subreddit](http://www.reddit.com/r/redis)\r\n* [github discussions](https://github.com/redis/redis/discussions)\r\n\r\nIt is also possible that your question was already asked here, so please do a quick issues search before submitting. Lastly, if your question is about one of Redis' [clients](https://redis.io/clients), you may to contact your client's developers for help.\r\n\r\nThat said, please feel free to replace all this with your question :)\r\n",
+  "state": "closed",
+  "created_at": "2023-04-03T08:57:01Z",
+  "updated_at": "2023-04-07T05:42:25Z",
+  "closed_at": "2023-04-07T05:42:25Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1495929257,
+      "user": "oranagra",
+      "created_at": "2023-04-04T12:59:11Z",
+      "body": "I don't understand the problem or scenario.\r\nwhat do you mean by command getting lost?"
+    },
+    {
+      "id": 1499016687,
+      "user": "Janmsstrive",
+      "created_at": "2023-04-06T12:50:21Z",
+      "body": "> I don't understand the problem or scenario. what do you mean by command getting lost?\r\n\r\nMaster/slave replication During command transmission, multiple write commands are transmitted in an ack response process, but one command is lost. How can master/slave maintain consistency"
+    },
+    {
+      "id": 1499410522,
+      "user": "oranagra",
+      "created_at": "2023-04-06T17:42:16Z",
+      "body": "How / why would one command get lost? TCP connection doesn't lose bytes, and if it did it wouldn't be a full command and the whole protocol / stream will get messed up.\n\nPlease describe the scenario better.."
+    },
+    {
+      "id": 1499827738,
+      "user": "Janmsstrive",
+      "created_at": "2023-04-07T01:37:08Z",
+      "body": "> \r\n\r\n\r\n\r\n> How / why would one command get lost? TCP connection doesn't lose bytes, and if it did it wouldn't be a full command and the whole protocol / stream will get messed up.\r\n> \r\n> Please describe the scenario better..\r\n\r\nA write command is lost because of a network failure, not the partial bytes of the write command\r\n"
+    },
+    {
+      "id": 1499957933,
+      "user": "oranagra",
+      "created_at": "2023-04-07T05:41:57Z",
+      "body": "There's no such thing. What you're describing (without enough detail) is impossible.\nPlease get your facts right before using the title \"BUG\""
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "issue_number": 8081.0,
+  "title": "[BUG] \"No such file or directory\" error, when redis unixsocket does not exist",
+  "body": "**\"No such file or directory\" error**\r\n\r\nwhen we want to use redis unixsocket it is possible that given path for socket does not exist.\r\nin this situation if we start redis-server with  given config, error occurred with this message:\r\n**Opening Unix socket: bind: No such file or directory**\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\nyou can delete unixsocket path and start to run redis server.\r\nfor example change unixsocket path to /var/run/redis/redis.sock and delte /var/run/redis path.\r\nnow in redis directory execute this command : src/redis-socket redis.conf\r\n![error](https://user-images.githubusercontent.com/70946432/99932016-f29c1d00-2d6b-11eb-9423-bfc57612d2d3.png)\r\n\r\n\r\n**Expected behavior **\r\nredis most check unixsocket path and check if it does not exist create related path recursively.\r\n\r\n**Additional information**\r\n\r\ni created new pull request and push my solution.\r\n",
+  "state": "closed",
+  "created_at": "2020-11-23T05:45:52Z",
+  "updated_at": "2021-03-18T08:50:44Z",
+  "closed_at": "2021-03-18T08:50:44Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 761541764,
+      "user": "uhlhosting",
+      "created_at": "2021-01-16T10:39:11Z",
+      "body": "I got same issue after upgrades and when using Sockets."
+    },
+    {
+      "id": 761820290,
+      "user": "yossigo",
+      "created_at": "2021-01-17T14:22:17Z",
+      "body": "@uhlhosting Can you please describe the steps you took for this to happen? Did you use some pre-packaged Redis or built and installed it from source?"
+    },
+    {
+      "id": 764586600,
+      "user": "uhlhosting",
+      "created_at": "2021-01-21T11:42:16Z",
+      "body": "@yossigo it seems the issue its only when upgrading and using custom .sock settings, the upgrade will overwrite the config in our case thats manually compiled for centos 8 from source.\r\n\r\nSo the issue how I see it, would be great to avoid file overwrite of current redis config, in that way there wont be any errors."
+    },
+    {
+      "id": 766346533,
+      "user": "yossigo",
+      "created_at": "2021-01-24T13:15:45Z",
+      "body": "@uhlhosting If you're compiling Redis from source and handle the upgrade yourself, you can also avoid overwriting the configuration file no? Maybe I misunderstand something here, but it's basically a process you implement yourself isn't it?"
+    },
+    {
+      "id": 800991382,
+      "user": "coderofsalvation",
+      "created_at": "2021-03-17T11:01:09Z",
+      "body": "running `sudo mkdir /var/run/redis` fixed it for me"
+    },
+    {
+      "id": 801745217,
+      "user": "yossigo",
+      "created_at": "2021-03-18T08:50:44Z",
+      "body": "To wrap it up, when using a Unix socket the directory needs to exist and be writable. Anyone who's manually installing has to handle that, and we expect package maintainers to handle that as part of the packaging.\r\n\r\nClosing as there's unresolved problem described here."
+    }
+  ]
+}

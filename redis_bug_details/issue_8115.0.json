@@ -1,0 +1,48 @@
+{
+  "issue_number": 8115.0,
+  "title": "[BUG]redis6 enable multi-io-thread,but not worked all still work on main thread",
+  "body": "@grobe0ba @antirez @madolson  redis6 enable multi-io-thread,but not worked all still work on main thread,that may be a bug\r\n- redis-version\r\n\r\n```\r\n$ ./redis-server  --version\r\nRedis server v=6.0.9 sha=00000000:0 malloc=jemalloc-5.1.0 bits=64 build=c67efd74f306f551\r\n```\r\n\r\n- redis config\r\n\r\n```\r\n$ cat redis.conf  |grep -v '#'\r\naof-use-rdb-preamble yes\r\nbind 127.0.0.1\r\nprotected-mode yes\r\nport 6379\r\ntcp-backlog 511\r\ntimeout 0\r\ntcp-keepalive 300\r\ndaemonize no\r\nsupervised no\r\npidfile /var/run/redis_6379.pid\r\nloglevel notice\r\nlogfile \"\"\r\ndatabases 16\r\nalways-show-logo yes\r\n\r\nsave 900 1\r\nsave 300 10\r\nsave 60 10000\r\nstop-writes-on-bgsave-error yes\r\nrdbcompression yes\r\nrdbchecksum yes\r\ndbfilename dump.rdb\r\nrdb-del-sync-files no\r\ndir ./\r\n\r\nreplica-serve-stale-data yes\r\nreplica-read-only yes\r\nrepl-diskless-sync no\r\nrepl-diskless-sync-delay 5\r\nrepl-diskless-load disabled\r\nrepl-disable-tcp-nodelay no\r\nreplica-priority 100\r\nacllog-max-len 128\r\nlazyfree-lazy-eviction no\r\nlazyfree-lazy-expire no\r\nlazyfree-lazy-server-del no\r\nreplica-lazy-flush no\r\nlazyfree-lazy-user-del no\r\nio-threads-do-reads yes\r\nio-threads 4\r\noom-score-adj no\r\noom-score-adj-values 0 200 800\r\nappendonly no\r\nappendfilename \"appendonly.aof\"\r\nappendfsync everysec\r\nno-appendfsync-on-rewrite no\r\nauto-aof-rewrite-percentage 100\r\nauto-aof-rewrite-min-size 64mb\r\naof-load-truncated yes\r\naof-use-rdb-preamble yes\r\nlua-time-limit 5000\r\n\r\n```\r\n\r\n- debug info\r\n\r\n```\r\nBreakpoint 11, readQueryFromClient (conn=0x2aaaabc150c0) at networking.c:1957\r\n1957        client *c = connGetPrivateData(conn);\r\n(gdb) n\r\n1963        if (postponeClientRead(c)) return;\r\n(gdb) \r\n\r\n// we already enable multi-thread,but server.io_threads_actiove is zero always,that may be a bug\r\nBreakpoint 12, postponeClientRead (c=0x2aaaabd4d0c0) at networking.c:3232\r\n3232        if (server.io_threads_active &&\r\n(gdb) p server.io_threads_active\r\n$8 = 0\r\n(gdb) p server.io_threads_active\r\n$9 = 0\r\n(gdb) p server.io_threads_do_reads\r\n$10 = 1\r\n(gdb) p ProcessingEventsWhileBlocked\r\n$11 = 0\r\n(gdb) p c->flags & (CLIENT_MASTER|CLIENT_SLAVE|CLIENT_PENDING_READ)\r\n$12 = 0\r\n(gdb) quit\r\n```",
+  "state": "closed",
+  "created_at": "2020-12-01T01:20:22Z",
+  "updated_at": "2020-12-04T01:28:18Z",
+  "closed_at": "2020-12-01T17:44:30Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 736157316,
+      "user": "madolson",
+      "created_at": "2020-12-01T01:29:49Z",
+      "body": "Hey, just because IO threads are enabled, does not mean they are running and processing events. IO threads become active when there is enough requests to justify the effort of using multiple threads. So under low throughput scenarios, the IO threads won't kick on. "
+    },
+    {
+      "id": 736160561,
+      "user": "perrynzhou",
+      "created_at": "2020-12-01T01:40:26Z",
+      "body": "> Hey, just because IO threads are enabled, does not mean they are running and processing events. IO threads become active when there is enough requests to justify the effort of using multiple threads. So under low throughput scenarios, the IO threads won't kick on.\r\n\r\n@madolson  is any way to debug multi-thread with less requests?"
+    },
+    {
+      "id": 736161315,
+      "user": "madolson",
+      "created_at": "2020-12-01T01:42:43Z",
+      "body": "IO threads are less performant under low request situations so they aren't used. The best way to test it is to send more requests. "
+    },
+    {
+      "id": 736251192,
+      "user": "jiekun",
+      "created_at": "2020-12-01T06:23:03Z",
+      "body": "I assume @perrynzhou is trying to play with I/O thread, not forcing I/O thread to be used under low workload in production env.  \r\n\r\nso, it's controlled in `handleClientsWithPendingWritesUsingThreads()`\r\n\r\n```\r\nint handleClientsWithPendingWritesUsingThreads(void) {\r\n    ...\r\n    # HERE, you have to make \"stopThreadedIOIfNeeded\" return 0.\r\n    if (server.io_threads_num == 1 || stopThreadedIOIfNeeded()) {\r\n        return handleClientsWithPendingWrites();\r\n    }\r\n\r\n    /* Start threads if needed. */\r\n    ...\r\n```\r\n\r\nSo in `stopThreadedIOIfNeeded()`:\r\n```\r\nint stopThreadedIOIfNeeded(void) {\r\n    return 0  # HERE, you can try adding this to force a use of Threaded IO\r\n\r\n    # origin logics below: \r\n    ...\r\n}\r\n```\r\n\r\nI tried debugging with my CLion, set a break point first, then send multiple request via different client, then continue. This will use the I/O thread to process read/writes. Not sure if you can have a try or not. :)\r\n\r\nhttps://jiekun.dev/posts/redis_tio_implementation/#limitation"
+    },
+    {
+      "id": 736712040,
+      "user": "madolson",
+      "created_at": "2020-12-01T17:44:30Z",
+      "body": "Sure, that is a way to debug it. Since the original post was about about a bug, I'm going to resolve this unless there is any other concern to be raised. "
+    },
+    {
+      "id": 738492957,
+      "user": "perrynzhou",
+      "created_at": "2020-12-04T01:28:17Z",
+      "body": "> I assume @perrynzhou is trying to play with I/O thread, not forcing I/O thread to be used under low workload in production env.\r\n> \r\n> so, it's controlled in `handleClientsWithPendingWritesUsingThreads()`\r\n> \r\n> ```\r\n> int handleClientsWithPendingWritesUsingThreads(void) {\r\n>     ...\r\n>     # HERE, you have to make \"stopThreadedIOIfNeeded\" return 0.\r\n>     if (server.io_threads_num == 1 || stopThreadedIOIfNeeded()) {\r\n>         return handleClientsWithPendingWrites();\r\n>     }\r\n> \r\n>     /* Start threads if needed. */\r\n>     ...\r\n> ```\r\n> \r\n> So in `stopThreadedIOIfNeeded()`:\r\n> \r\n> ```\r\n> int stopThreadedIOIfNeeded(void) {\r\n>     return 0  # HERE, you can try adding this to force a use of Threaded IO\r\n> \r\n>     # origin logics below: \r\n>     ...\r\n> }\r\n> ```\r\n> \r\n> I tried debugging with my CLion, set a break point first, then send multiple request via different client, then continue. This will use the I/O thread to process read/writes. Not sure if you can have a try or not. :)\r\n> \r\n> https://jiekun.dev/posts/redis_tio_implementation/#limitation\r\n\r\n@2014BDuck  think you,may i join your webchat?my webchat is 13632930825"
+    }
+  ]
+}

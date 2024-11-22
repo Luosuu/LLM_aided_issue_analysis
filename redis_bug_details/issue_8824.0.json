@@ -1,0 +1,74 @@
+{
+  "issue_number": 8824.0,
+  "title": "confused return value type(ZPOPMAX/ZPOPMIN--ZRANGE)",
+  "body": "Why are two types of return values used here?\r\nThe meaning of the data they output seems to be the same(array member+score).\r\n\r\n```go\r\n127.0.0.1:6379> hello 3\r\n1# \"server\" => \"redis\"\r\n2# \"version\" => \"6.2.1\"\r\n3# \"proto\" => (integer) 3\r\n4# \"id\" => (integer) 2266\r\n5# \"mode\" => \"standalone\"\r\n6# \"role\" => \"master\"\r\n7# \"modules\" => (empty array)\r\n\r\n127.0.0.1:6379> zadd set 1 one 2 two\r\n(integer) 2\r\n\r\n127.0.0.1:6379> zrange set 0 -1 withscores\r\n1) 1) \"one\"\r\n   2) (double) 1\r\n2) 1) \"two\"\r\n   2) (double) 2\r\n\r\n127.0.0.1:6379> zpopmax set 2\r\n1) \"two\"\r\n2) (double) 2\r\n3) \"one\"\r\n4) (double) 1\r\n```",
+  "state": "closed",
+  "created_at": "2021-04-20T07:34:03Z",
+  "updated_at": "2021-06-16T06:29:58Z",
+  "closed_at": "2021-06-16T06:29:58Z",
+  "labels": [
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 823092522,
+      "user": "oranagra",
+      "created_at": "2021-04-20T08:36:32Z",
+      "body": "@redis/core-team are you aware of any reason for that, or was it just overlooked in 6.0?\r\nnote that we did fix the RESP3 response type of SRANDMEMBER in 6.2 (from set to a 2d array, in RC stage), maybe we can fix this in 7.0?"
+    },
+    {
+      "id": 823309663,
+      "user": "itamarhaber",
+      "created_at": "2021-04-20T14:14:52Z",
+      "body": "I believe it was simply overlooked. It should be made consistent, and since full RESP3 is still \"beta-ish\" we may be able to reason that it's valid to include it in the next patch/minor release."
+    },
+    {
+      "id": 845822939,
+      "user": "jhelbaum",
+      "created_at": "2021-05-21T09:36:05Z",
+      "body": "Hi - I'm new to the project. Any objection to me taking this issue? It looks like a straightforward way to start getting involved."
+    },
+    {
+      "id": 846095653,
+      "user": "oranagra",
+      "created_at": "2021-05-21T16:43:51Z",
+      "body": "@jhelbaum welcome. Go ahead.. "
+    },
+    {
+      "id": 846736729,
+      "user": "oranagra",
+      "created_at": "2021-05-24T04:58:48Z",
+      "body": "I now realize that the blocking variant (e.g. BZPOPMAX), also returns the key name, so we have a choice between several odd behaviors:\r\n1. have BZPOPMAX behave differently than ZPOPMAX (i.e. in RESP3, the blocking variant will keep returning a flat array, and the non-blocking variant a nested one) - this is what the PR currently implements.\r\n2. have the the blocking variant return a nested array (and jagged), where the first entry is just the key name (single 2nd level record), and the rest of the entries have two records (similarly to the non-blocking).\r\n3. keep the current behavior, in which both blocking and non-blocking variants return a flat array, which is inconsistent with ZRANGE.\r\n\r\nI feel that making ZPOPMAX inconsistent with BZPOPMAX is more severe than having it inconsistent with ZRANGE.\r\n@redis/core-team i would like to hear your opinion."
+    },
+    {
+      "id": 846796005,
+      "user": "jhelbaum",
+      "created_at": "2021-05-24T06:40:50Z",
+      "body": "I may well be missing something, but from what i can see the blocking variants only return a single value per call. In which case there's no use for a nested array. Just a triple of return values."
+    },
+    {
+      "id": 855410452,
+      "user": "jhelbaum",
+      "created_at": "2021-06-06T14:43:33Z",
+      "body": "Any followup to this?"
+    },
+    {
+      "id": 855427955,
+      "user": "oranagra",
+      "created_at": "2021-06-06T16:50:38Z",
+      "body": "No response.. looking at it again myself.\r\nWe do have plans for a COUNT option for BLPOP (#766), so i guess it applies for BZPOP too.\r\n\r\nAnother interesting consideration is that we recently added a COUNT option to LPOP (existed in ZPOP since day one). In LPOP, when it is used without COUNT, it responds with a simple string reply, and when used with COUNT it responds with an array.\r\nSo considering that, BLPOP today responds with a key + element pair, so when BLPOP will be added a COUNT option, **semantically** it could / should respond with an array key + element pairs.\r\nNote that the important difference between these is not just the blocking attribute, but more importantly that the blocking variant takes multiple keys, while the non-blocking variant takes just one key.\r\nHowever despite the fact it takes multiple keys, it eventually operates on just one key, and if / when the COUNT argument will be added, that fact will remain (it'll still work on just one key).\r\nSo although semantically it could return an array of key + element pairs, it would be more efficient to return the key-name just once, and an array of elements.\r\n\r\nNow back to ZPOP / BZPOP, the difference between sorted-set and a list is that each element is accompanied by score, so where LPOP without COUNT was returning just one element, ZPOP without COUNT returns a pair (aka an array), and ZPOP with COUNT returns an array of pairs (in RESP2, that's a simple flat array too).\r\nSo in RESP2, it appears as if the response type doesn't change when COUNT is added.\r\n\r\nKeeping the blocking variant for later, ZPOP with RESP3 could still behave like LPOP with RESP3, i.e. when COUNT is **not** provided, return a single pair (no nested array), and when COUNT **is** provided return a nested array of pairs. \r\n(this is slightly different than the current PR, but **that's what i now think we should do**).\r\n\r\nThen going back to the blocking variant, when we some day add the COUNT option, if we go with the semantic approach, it would be valid to return a flat list of triplets in RESP2, and a nested array of triplets in RESP3.\r\nOr we can go with the efficient approach, and return the key name just once.\r\nEither way, that dilemma will be true also for BLPOP, not just BZPOP, and either way, we don't have that dilemma at present.\r\n\r\n**I.e. by deciding that when COUNT is not provided we don't create a nested array, we are able to postpone the BZPOP problem for another day.**\r\n\r\n@redis/core-team please approve."
+    },
+    {
+      "id": 860178212,
+      "user": "jhelbaum",
+      "created_at": "2021-06-13T09:05:18Z",
+      "body": "I updated the pull request with the changed behavior (no nested array unless COUNT is provided)."
+    },
+    {
+      "id": 860199236,
+      "user": "yossigo",
+      "created_at": "2021-06-13T11:59:43Z",
+      "body": "@oranagra I agree with the reasoning in the last comment and the current solution."
+    }
+  ]
+}

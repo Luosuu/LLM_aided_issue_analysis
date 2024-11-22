@@ -1,0 +1,48 @@
+{
+  "issue_number": 12312.0,
+  "title": "[BUG] Loading keys within Redis Module returns incorrect values",
+  "body": "**Describe the bug**\r\n\r\nI am using Redis 6.2.1 running in cluster mode with 3 masters and 0 slaves (no replication). During relatively high server load situations, loading keys in a Redis Module returns incorrect values\r\n\r\n**To reproduce**\r\n\r\nI have a very basic setup with 3 master cluster server nodes and zero slaves (no replication). Each cluster node is assigned consecutive slots and distributed evenly amongst them: 0-5460, 5461-10921, and 10922-16383. I also set cluster-node-timeout 1000000 (very high timeout)\r\n\r\nIssue occurs when I have ~30 redis clients running in parallel. I do not see the issue when running with less than 9 redis clients and/or I add sleep()/wait() calls throughout the client code (slow down the traffic/load on the servers).\r\n\r\nEach redis client operates in a group of 3. One of the redis clients (initialization step) sends a pipelined command of ~2000 write calls, mostly SADD but some HSET with the last pipelined command being a basic SET to indicate that the initialization step is done. All 2000 commands map to the same hash slot (uses the same hashtag). The other two redis clients within a group are polling with GET commands on the last key to indicate that the initialization step is done, querying every 1s. There are mutliple groups of 3 (i.e. 10 different groups to get to 30 clients) and each group operates independently and may not all start at the same time. After this point, there are a subset of keys that are no longer going to be modified. I added test code to load the values of that subset of \"read-only\" data (SMEMBERS) from all 3 of the clients within each group and they all return the correct/expected values.\r\n\r\nThere is then some varying traffic (some more load/stores from all clients of various). Within this traffic, there are Redis Module calls that use the same hashtag from previous init calls to map to to the same slot, and within the module, there are calls to RedisModule_OpenKey(... REDISMODULE_READ...) on the aforementioned \"read-only\" data that unexpectedly return NULL (call using RedisModule_Call(...\"SMEMBERS\"...) also incorrectly returns as an array with 0 elements). In the logs, I do not see any \"CLUSTER DOWN\" messages or anything that would indicate that there was an \"outage.\"\r\n\r\n**Expected behavior**\r\n\r\nI expect RedisModule_OpenKey(... REDISMODULE_READ...) and RedisModule_Call(...\"SMEMBERS\"...) calls within a Redis Module to always be correct, particularly if there are no issues with the server/cluster node (or have errno or return error value if it is in a bad state and not return incorrect data).\r\n\r\n**Additional information**\r\n\r\nI file a Bug Report after a brief discussion from https://github.com/redis/redis/discussions/12297\r\n",
+  "state": "open",
+  "created_at": "2023-06-13T18:29:20Z",
+  "updated_at": "2024-01-04T07:50:58Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1590623319,
+      "user": "oranagra",
+      "created_at": "2023-06-14T07:23:41Z",
+      "body": "can you try updating to the latest (7.2 RC2)? maybe there was some bug that was already fixed.\r\n\r\nthe one thing i can think of is that maybe you have multiple databases (check your `databases` config), and that for some reason the module commands use a different database.\r\nIIRC in 7.2 we changed something to block that possibility."
+    },
+    {
+      "id": 1591868647,
+      "user": "jyam",
+      "created_at": "2023-06-14T19:38:18Z",
+      "body": "hey oranagra, thanks for the reply and the suggestion.\r\n\r\nI checked my databases config and sure enough, it is set to 16 (16 is the default value). Sounds like that could be the cause of the issue I am seeing. I will try upgrading my version to see if that resolves the issue.\r\n\r\nI am guessing also if I change databases config value to 1, that should potentially resolve the issue was well?"
+    },
+    {
+      "id": 1592081477,
+      "user": "jyam",
+      "created_at": "2023-06-14T22:34:47Z",
+      "body": "I have tried changing databases config to 1 running on 6.2.1 but I am still encountering the problem. Still need to try using 7.2 "
+    },
+    {
+      "id": 1592420554,
+      "user": "oranagra",
+      "created_at": "2023-06-15T06:04:14Z",
+      "body": "ok, i guess that's not the problem, was worth a shot..\r\nbut still, there's a chance it was already fixed and so much have changed that i can't remember it all."
+    },
+    {
+      "id": 1876192528,
+      "user": "jhon-conner",
+      "created_at": "2024-01-04T01:37:56Z",
+      "body": "Sorry, i was confused. Only database 0 can be used in redis cluster.\r\n```\r\nWhen using Redis Cluster, the SELECT command cannot be used, since Redis Cluster only supports database zero.\r\n```\r\nreference: [select](https://redis.io/commands/select/)"
+    },
+    {
+      "id": 1876651055,
+      "user": "oranagra",
+      "created_at": "2024-01-04T07:50:58Z",
+      "body": "@jhon-conner please give context for your last comment. are you referring to the problem @jyam had?\r\ni thought we already ruled out the multiple databases concern [earlier](https://github.com/redis/redis/issues/12312#issuecomment-1592081477)."
+    }
+  ]
+}

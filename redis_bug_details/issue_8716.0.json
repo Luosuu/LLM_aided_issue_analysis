@@ -1,0 +1,42 @@
+{
+  "issue_number": 8716.0,
+  "title": "[BUG] Empty \"save\" option is not storred with \"config rewrite\"",
+  "body": "**Describe the bug**\r\n\r\nIf `save` option is set to empty string (`\"\"`), ie if snapshotting is disabled, then `config rewrite` command doesn't save `save` option at all.\r\n\r\nTherefore, after restart redis have non-empty save option that matches sample in default redis.conf .\r\n\r\n**To reproduce**\r\n\r\nRun redis-server with `save` option set to `\"\"` either in config or with runtime command `config set save \"\"`.\r\nEvaluate `config rewrite` command.\r\nRewritten config doesn't contain `save \"\"` line.\r\nAfter restart, redis has non-empty save option.\r\n\r\n```\r\n# redis-cli -p 6380 config get save\r\n1) \"save\"\r\n2) \"3600 1 300 100 60 10000\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nConfig contains `save \"\"` option.",
+  "state": "closed",
+  "created_at": "2021-03-29T10:39:07Z",
+  "updated_at": "2021-03-30T04:05:09Z",
+  "closed_at": "2021-03-29T15:53:20Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 809315072,
+      "user": "huangzhw",
+      "created_at": "2021-03-29T11:50:08Z",
+      "body": "Like https://github.com/redis/redis/issues/8572.\r\nIf there is no save, we should emit `save \"\"`."
+    },
+    {
+      "id": 809389772,
+      "user": "yossigo",
+      "created_at": "2021-03-29T13:46:09Z",
+      "body": "@huangzhw It's not exactly the same issue, #8572 also involves `include` which is I believe a bigger issue that is not limited to `save` itself."
+    },
+    {
+      "id": 809395230,
+      "user": "huangzhw",
+      "created_at": "2021-03-29T13:53:19Z",
+      "body": "@yossigo Yes. https://github.com/redis/redis/issues/8572 has more to do. But I think the author just want this."
+    },
+    {
+      "id": 809396049,
+      "user": "huangzhw",
+      "created_at": "2021-03-29T13:54:23Z",
+      "body": "Will we fix this first?"
+    },
+    {
+      "id": 809716692,
+      "user": "JunhuaY",
+      "created_at": "2021-03-29T21:10:22Z",
+      "body": "the bug maybe  was solved incompletely :\r\nwhen the server is started, and the save option is default, if you issue the \" config set save \"\" \"\r\nto change the save option, and then issue the “config rewrite” command, the save option change\r\n( from the default to \" save \"\" \" ) won't be stored."
+    }
+  ]
+}

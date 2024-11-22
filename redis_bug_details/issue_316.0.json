@@ -1,0 +1,21 @@
+{
+  "issue_number": 316.0,
+  "title": "Lua's redis.call() does not increment the dirty counter",
+  "body": "redis.call() skips the usual way to call a Redis command, that is calling the call() function, and instead directly use cmd->proc() to execute the command. This is needed since we need to skip replication/AOF/... of the command, however the side effect is that the dirty counter is not incremented.\n\nWe need to either add code in scripting.c to call the command, or more simply make call() taking an additional flags argument that is used to control the behavior of the command, like:\n- CALL_DIRTY -> increment dirty counter\n- CALL_PROPAGATE -> make sure to propagate the command in AOF/replication\n- CALL_FULL -> all the flags ORed, in this case it is just CALL_DIRTY|CALL_PROPAGATE\n- CALL_NONE will be set to 0, and will just call the command without performing any additional operation\n\nHowever I want to think more about the issue so the final solution may be completely different ;)\n",
+  "state": "closed",
+  "created_at": "2012-01-26T21:27:54Z",
+  "updated_at": "2012-02-02T15:31:48Z",
+  "closed_at": "2012-02-02T15:31:48Z",
+  "labels": [
+    "critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 3779791,
+      "user": "antirez",
+      "created_at": "2012-02-02T15:31:48Z",
+      "body": "Actually there was no problem with dirty, but command statistics and the slow log were not populated when calling commands from Lua. Now this is fixed by commit ce8b772be7dcd0dec767c7bdfa3b8702806d69c4. Closing the issue.\n"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "issue_number": 11542.0,
+  "title": "[BUG] unixsocket assumes paths are relative to --dir, but --pidfile does not.",
+  "body": "**Describe the bug**\r\n\r\nWhen running redis with `--unixsocket` or the `unixsocket` config option, the path given is assumed to be absolute even if it does not have a leading slash. For example,\r\n`redis-server --dir \"data/redis\" --pidfile \"data/redis/redis-dev.pid\" --unixsocket \"data/redis/redis-dev.sock\"` results in:\r\n```\r\n18026:C 25 Nov 2022 15:30:01.079 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n18026:C 25 Nov 2022 15:30:01.079 # Redis version=7.0.5, bits=64, commit=00000000, modified=0, pid=18026, just started\r\n18026:C 25 Nov 2022 15:30:01.079 # Configuration loaded\r\n18026:M 25 Nov 2022 15:30:01.080 * monotonic clock: POSIX clock_gettime\r\n18026:M 25 Nov 2022 15:30:01.080 # Failed opening Unix socket: bind: No such file or directory\r\n```\r\nwhile (in our case):\r\n`redis-server --dir \"data/redis\" --pidfile \"data/redis/redis-dev.pid\" --unixsocket \"/home/[USER]/data/redis/redis-dev.sock\"` works as intended:\r\n```\r\n18384:C 25 Nov 2022 15:32:56.106 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n18384:C 25 Nov 2022 15:32:56.106 # Redis version=7.0.5, bits=64, commit=00000000, modified=0, pid=18384, just started\r\n18384:C 25 Nov 2022 15:32:56.106 # Configuration loaded\r\n18384:M 25 Nov 2022 15:32:56.106 * monotonic clock: POSIX clock_gettime\r\n                _._                                                  \r\n           _.-``__ ''-._                                             \r\n      _.-``    `.  `_.  ''-._           Redis 7.0.5 (00000000/0) 64 bit\r\n  .-`` .-```.  ```\\/    _.,_ ''-._                                  \r\n (    '      ,       .-`  | `,    )     Running in standalone mode\r\n |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379\r\n |    `-._   `._    /     _.-'    |     PID: 18384\r\n  `-._    `-._  `-./  _.-'    _.-'                                   \r\n |`-._`-._    `-.__.-'    _.-'_.-'|                                  \r\n |    `-._`-._        _.-'_.-'    |           https://redis.io       \r\n  `-._    `-._`-.__.-'_.-'    _.-'                                   \r\n |`-._`-._    `-.__.-'    _.-'_.-'|                                  \r\n |    `-._`-._        _.-'_.-'    |                                  \r\n  `-._    `-._`-.__.-'_.-'    _.-'                                   \r\n      `-._    `-.__.-'    _.-'                                       \r\n          `-._        _.-'                                           \r\n              `-.__.-'                                               \r\n\r\n18384:M 25 Nov 2022 15:32:56.107 # Server initialized\r\n18384:M 25 Nov 2022 15:32:56.107 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.\r\n18384:M 25 Nov 2022 15:32:56.107 * Loading RDB produced by version 7.0.5\r\n18384:M 25 Nov 2022 15:32:56.107 * RDB age 181 seconds\r\n18384:M 25 Nov 2022 15:32:56.107 * RDB memory usage when created 0.84 Mb\r\n18384:M 25 Nov 2022 15:32:56.107 * Done loading RDB, keys loaded: 0, keys expired: 0.\r\n18384:M 25 Nov 2022 15:32:56.107 * DB loaded from disk: 0.000 seconds\r\n18384:M 25 Nov 2022 15:32:56.107 * Ready to accept connections\r\n```\r\n\r\n**To reproduce**\r\n\r\nRun a redis-server command with `--unixsocket data/redis-dev.sock` where `data` is a subdirectory of the current directory that is writable by the current user\r\n\r\n**Expected behavior**\r\n\r\nGiving relative paths to redis-server for `--unixsocket` and the `unixsocket` config option should work.",
+  "state": "closed",
+  "created_at": "2022-11-25T04:43:40Z",
+  "updated_at": "2022-11-28T01:19:23Z",
+  "closed_at": "2022-11-28T01:19:22Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1327026382,
+      "user": "AtelierSnek",
+      "created_at": "2022-11-25T05:08:17Z",
+      "body": "Oh, this is because `--unixsocket` is relative to `--dir` but `--pidfile` does not seem to be.\r\nThis should be consistent one way or the other."
+    },
+    {
+      "id": 1327957126,
+      "user": "madolson",
+      "created_at": "2022-11-26T01:55:02Z",
+      "body": "I'm not sure I quite follow. You pass in `data/redis` as the `--dir`, which changes the relative path to that directory. So in your example, you're setting the unix socket and pid to `data/redis/data/redis` since you're first changing the relative directory and then passing in further relative directory arguments. \r\n\r\nI have a suspicion the pid file is also failing to be written, but we aren't logging any error in that case since it is considered a best effort failure. I made a small patch to fix that, https://github.com/redis/redis/pull/11544, but I'm still of the opinion that there is no other issue. "
+    },
+    {
+      "id": 1328405141,
+      "user": "AtelierSnek",
+      "created_at": "2022-11-28T01:19:22Z",
+      "body": "Ah, yeah that seems to be the behaviour we're seeing. Thanks. If it's issuing a warning now, that's good :) "
+    }
+  ]
+}

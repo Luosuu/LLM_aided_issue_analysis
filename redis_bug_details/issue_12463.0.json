@@ -1,0 +1,18 @@
+{
+  "issue_number": 12463.0,
+  "title": "[BUG] Redis server with TLS enabled does not keep connections alive",
+  "body": "**Describe the bug**\r\n\r\nRedis server with SSL / TLS enabled does not keep connections alive. Connection closed by server.\r\n\r\n**To reproduce**\r\n\r\nUnchanaged default redis.conf, with the following significant params.\r\n\r\n```\r\ntimeout 0\r\ntcp-keepalive 300\r\n\r\nrequirepass {{ redis_auth_password }}\r\n\r\nport 0\r\ntls-port 6379\r\n\r\ntls-cert-file {{ server_cert_path }}\r\ntls-key-file {{ server_key_path }}\r\ntls-ca-cert-file {{ ca_cert_path }}\r\n\r\ntls-auth-clients yes\r\n```\r\n\r\n**Expected behavior**\r\n\r\nExpected to have connections stay open.\r\n\r\n**Additional information**\r\n\r\nUbuntu 22.04.1\r\n",
+  "state": "closed",
+  "created_at": "2023-08-06T11:32:14Z",
+  "updated_at": "2023-08-06T13:58:08Z",
+  "closed_at": "2023-08-06T13:58:07Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1666869391,
+      "user": "Obeyed",
+      "created_at": "2023-08-06T13:58:07Z",
+      "body": "It seems I am mistaken. I tried one more time without TLS and without password for Redis, and it still kills the connection from the server. I could swear that I had tried this before and it didn't kill the connection. Most likely some configuration with the server that is killing the connections. Closing this issue.\r\n\r\nRedis server v=7.0.12"
+    }
+  ]
+}

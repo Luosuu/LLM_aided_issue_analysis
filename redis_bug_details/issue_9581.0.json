@@ -1,0 +1,30 @@
+{
+  "issue_number": 9581.0,
+  "title": "[BUG] Killing slow scripts should be synchronous to ensure atomicity",
+  "body": "**Describe the bug**\r\n\r\nIt is implied that the `SCRIPT KILL` command should be atomic. However, in rare cases, it is possible to demonstrate its synchronicity. Albeit probably not a major concern IMO, it may present testing/timing issues (credit @sazzad16 in https://github.com/redis/jedis/issues/2656) and violates the implied nature of Redis commands.\r\n\r\n**To reproduce**\r\n\r\n1. Spin up a Redis server\r\n2. Run a slow script, e.g. `redis-cli EVAL \"while true do end\" 0`\r\n3. Kill the script and run another arbitrary command quickly (same querybuf?): `echo -e '*1\\r\\n$4\\r\\nPING\\r\\n*2\\r\\n$6\\r\\nSCRIPT\\r\\n$4\\r\\nKILL\\r\\n*1\\r\\n$4\\r\\nPING\\r\\n' | nc localhost 6379`\r\n\r\nAlthough the script will be killed, the output from step 3 above is:\r\n\r\n```\r\n-BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE.\r\n+OK\r\n-BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE.\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe output should be something like:\r\n\r\n```\r\n-BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE.\r\n+OK\r\n+PONG\r\n```\r\n",
+  "state": "open",
+  "created_at": "2021-10-03T17:36:17Z",
+  "updated_at": "2022-01-15T04:45:04Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1012927864,
+      "user": "enjoy-binbin",
+      "created_at": "2022-01-14T08:56:07Z",
+      "body": "```\r\n[root@binblog redis]# echo -e '*1\\r\\n$4\\r\\nPING\\r\\n*2\\r\\n$6\\r\\nSCRIPT\\r\\n$4\\r\\nKILL\\r\\n*1\\r\\n$4\\r\\nPING\\r\\n' | nc localhost 6379\r\n-BUSY Redis is busy running a script. You can only call SCRIPT KILL or SHUTDOWN NOSAVE.\r\n+OK\r\n+PONG\r\n```\r\n\r\nlooks like we can circumvent it by adding `!scriptIsKilled()`, but I'm not sure if there is any other effect, @MeirShpilraien \r\nhttps://github.com/redis/redis/blob/56a802057e90ea482702dbd5191bc397caf0f596/src/server.c#L3643-L3665\r\n```c\r\n-    if (scriptIsTimedout() &&\r\n+    if (scriptIsTimedout() && !scriptIsKilled() &&\r\n```"
+    },
+    {
+      "id": 1013472447,
+      "user": "MeirShpilraien",
+      "created_at": "2022-01-14T21:04:34Z",
+      "body": "@enjoy-binbin I believe what you are suggesting is dangerous, the command could be, by itself, another eval and then we will basically enter a recursive eval (which is not supported today because all the eval variables are singletons) and I believe bad things will happened. I believe what we should do is to stop processing command after we get script kill, let the script be killed, and then continue processing commands normally."
+    },
+    {
+      "id": 1013610765,
+      "user": "enjoy-binbin",
+      "created_at": "2022-01-15T04:45:04Z",
+      "body": "yes, make sence, i thought so too, but currently we only handle script_kill flag in `scriptInterrupt`, and look like it was called in `luaMaskCountHook`, i'm not very familiar with that lua part... (i think you can fix it in a easy / right way if needed)\r\ni suppose we can kill the script in script|kill command in a sync way? anyway, thank you for the explanation! :)"
+    }
+  ]
+}

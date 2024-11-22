@@ -1,0 +1,50 @@
+{
+  "issue_number": 8642.0,
+  "title": "[BUG] NULL Pointer Dereference on rax.c/redis-cli.c using static analysis",
+  "body": "Dear Friends, \r\n\r\nwhile playing with static analysis (clang static analyser) on Redis 6.2.1, I found a few null pointer dereferences\r\n\r\non rax.c, there is this block:\r\n\r\n```javascript\r\noom:\r\n    /* This code path handles out of memory after part of the sub-tree was\r\n     * already modified. Set the node as a key, and then remove it. However we\r\n     * do that only if the node is a terminal node, otherwise if the OOM\r\n     * happened reallocating a node in the middle, we don't need to free\r\n     * anything. */\r\n    if (h->size == 0) { // Access to field 'size' results in a dereference of a null pointer (loaded from variable 'h')\r\n        h->isnull = 1;\r\n        h->iskey = 1;\r\n        rax->numele++; /* Compensate the next remove. */\r\n        assert(raxRemove(rax,s,i,NULL) != 0);\r\n    }\r\n    errno = ENOMEM;\r\n    return 0;\r\n}\r\n```\r\n\r\nWhere we can avoid a null pointer dereference that can happen under rare conditions by applying the following change:\r\n\r\n```javascript\r\nif (h != NULL && h->size == 0) {\r\n    ...\r\n}\r\n```\r\n\r\n  \r\non redis-cli.c, there are 2 possible null pointer dereferences:\r\nThe first one is this:\r\n\r\n```javascript\r\nwhile (k < HOTKEYS_SAMPLE && freqs[i] > counters[k]) k++; // Access to field 'freqs' can result in a dereference of a null pointer\r\n```\r\n\r\nWhere we can avoid a null pointer dereference that can happen under rare conditions by applying the following change:\r\n\r\n```javascript\r\nwhile (k < HOTKEYS_SAMPLE && (freqs != NULL && freqs[i] > counters[k])) k++;\r\n```\r\n\r\n  \r\nThe second one is this:\r\n\r\n```javascript\r\nif(!types[i] || (!types[i]->sizecmd && !memkeys)) // Access to field 'types' can result in a dereference of a null pointer\r\n```\r\n\r\nWhere we can avoid a null pointer dereference that can happen under rare conditions by applying the following change:\r\n\r\n```javascript\r\nif(types != NULL && (!types[i] || (!types[i]->sizecmd && !memkeys)))\r\n```\r\n\r\nWould you mind considering applying these changes?\r\n\r\nThank You so much,\r\nGeraldo Netto",
+  "state": "open",
+  "created_at": "2021-03-13T09:19:16Z",
+  "updated_at": "2021-04-13T20:27:48Z",
+  "closed_at": null,
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 798872435,
+      "user": "yossigo",
+      "created_at": "2021-03-14T09:02:06Z",
+      "body": "@geraldo-netto Did you manually analyze the code paths that the static analyzer reported? Had a quick look and they seem like false positives to me."
+    },
+    {
+      "id": 798901185,
+      "user": "geraldo-netto",
+      "created_at": "2021-03-14T12:48:22Z",
+      "body": "Hi @yossigo ,\r\n\r\nI have uploaded the full scan here: https://exdev.sourceforge.io/redis-6.2.1/\r\nand I agree with you that at first sight they are false-positive but considering C limitations, I think it's better to be safe than sorry\r\nAlso, some of those very rare conditions require as much as 115 steps to happen...\r\n\r\nI hope this can be somehow useful\r\n\r\nCheers,\r\nGeraldo Netto"
+    },
+    {
+      "id": 804327750,
+      "user": "yossigo",
+      "created_at": "2021-03-22T19:15:38Z",
+      "body": "Thank you @geraldo-netto, I agree that C always calls for extra safety so additional manual analysis and judgement are always required.\r\n\r\nI don't have the bandwidth for this at the moment but if anyone wants to pursue the analysis of this report, some real problems can be found and fixed."
+    },
+    {
+      "id": 804468764,
+      "user": "geraldo-netto",
+      "created_at": "2021-03-22T23:40:12Z",
+      "body": "Hi @yossigo !\r\n\r\nSure, I understand! :)\r\nI'll double-check and propose some patches later\r\n\r\nKeep Rocking,\r\nGeraldo Ntto"
+    },
+    {
+      "id": 817499739,
+      "user": "OhBonsai",
+      "created_at": "2021-04-12T05:43:06Z",
+      "body": "Hi @geraldo-netto: \r\n\r\nI also want to participate some case in your report. Maybe you could add some checkbox? 😸 "
+    },
+    {
+      "id": 819030125,
+      "user": "geraldo-netto",
+      "created_at": "2021-04-13T20:26:28Z",
+      "body": "Hi @OhBonsai ,\r\n\r\nSure, please, check https://clang-analyzer.llvm.org/\r\nIt might take a while for me to propose a fix for each thing, but let's keep it up!!! :)"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "issue_number": 11628.0,
+  "title": "[BUG] Distance value is mangled in GEORADIUS after 7.0.6 upgrade",
+  "body": "**Describe the bug**\r\n\r\nThis issue began immediately after the 7.0.6 release. Our docker container that runs unit tests as part of the CI/CD pipeline is set to use the latest version and we noticed test failure immediately after the release. We are using the python redis library (version 3.5.3) to call the redis functions.\r\n\r\nThe issue seems to be with distance component of the results from GEORADIUS and occurs after the function has already been called. On subsequent calls, calling the function produces an error with the stack trace below. The expected return value from this call is `[[b'1', 0.0001]]` but it looks like the distance value is returned as `b'0.00\\xfc1'`\r\n```\r\n   File \"/usr/local/lib/python3.7/site-packages/redis/client.py\", line 3252, in georadius\r\nchatbot-integration-test_1    |     store_dist=store_dist)\r\nchatbot-integration-test_1    |   File \"/usr/local/lib/python3.7/site-packages/redis/client.py\", line 3307, in _georadiusgeneric\r\nchatbot-integration-test_1    |     return self.execute_command(command, *pieces, **kwargs)\r\nchatbot-integration-test_1    |   File \"/usr/local/lib/python3.7/site-packages/redis/client.py\", line 901, in execute_command\r\nchatbot-integration-test_1    |     return self.parse_response(conn, command_name, **options)\r\nchatbot-integration-test_1    |   File \"/usr/local/lib/python3.7/site-packages/redis/client.py\", line 921, in parse_response\r\nchatbot-integration-test_1    |     return self.response_callbacks[command_name](response, **options)\r\nchatbot-integration-test_1    |   File \"/usr/local/lib/python3.7/site-packages/redis/client.py\", line 481, in parse_georadius_generic\r\nchatbot-integration-test_1    |     list(map(lambda fv: fv[0](fv[1]), zip(f, r))) for r in response_list\r\nchatbot-integration-test_1    |   File \"/usr/local/lib/python3.7/site-packages/redis/client.py\", line 481, in <listcomp>\r\nchatbot-integration-test_1    |     list(map(lambda fv: fv[0](fv[1]), zip(f, r))) for r in response_list\r\nchatbot-integration-test_1    |   File \"/usr/local/lib/python3.7/site-packages/redis/client.py\", line 481, in <lambda>\r\nchatbot-integration-test_1    |     list(map(lambda fv: fv[0](fv[1]), zip(f, r))) for r in response_list\r\nchatbot-integration-test_1    | ValueError: could not convert string to float: b'0.00\\xfc1'\r\n```\r\n\r\n**To reproduce**\r\n\r\n1. Add locations using geoadd. In our test, only 4 locations are added\r\n2. Call GEORADIUS using the WITHDIST option\r\n3. Issue does not occur on the fist call but occurs after multiple calls are made\r\n\r\n**Expected behavior**\r\n\r\nAn array of arrays should be returned. The second item in each array should be a float but it is a partially mangled binary value\r\n\r\n**Additional information**\r\n\r\nThis occurs with redis 7.0.6 using the python redis client 3.5.3.\r\n",
+  "state": "closed",
+  "created_at": "2022-12-15T15:36:09Z",
+  "updated_at": "2022-12-16T17:16:48Z",
+  "closed_at": "2022-12-15T20:25:40Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1353289722,
+      "user": "awilliams-hv",
+      "created_at": "2022-12-15T15:41:23Z",
+      "body": "After glancing over the features released in 7.0.6, it appears the issue could be related to one of these pull requests:\r\nhttps://github.com/redis/redis/pull/11552\r\nhttps://github.com/redis/redis/pull/11093"
+    },
+    {
+      "id": 1353306843,
+      "user": "filipecosta90",
+      "created_at": "2022-12-15T15:53:51Z",
+      "body": "> After glancing over the features released in 7.0.6, it appears the issue could be related to one of these pull requests: #11552 #11093\r\n\r\n@awilliams-hv can you share the 4 locations and georadius command that you're using? a monitor output is fine as well. "
+    },
+    {
+      "id": 1353455362,
+      "user": "awilliams-hv",
+      "created_at": "2022-12-15T17:28:11Z",
+      "body": "@filipecosta90 Since this is from a unit test, they are hard-coded and look like this:\r\n\r\n```\r\n.geoadd(\"emp_locations:1\", \"-122.407107\", \"37.794300\", 1)\r\n.geoadd(\"emp_locations:1\", \"-122.227336\", \"37.794300\", 2)\r\n.geoadd(\"emp_locations:1\", \"-118.394332\", \"33.99998\", 3)\r\n```\r\n\r\nLooks like I was incorrect originally and we have only three locations, not four. Next we call GEORADIUS with these parameters:\r\n```\r\n.georadius(\r\n            \"emp_locations:1\",\r\n            \"-122.407107\",\r\n            \"37.794300\",\r\n            30,\r\n            unit=\"mi\",\r\n            sort=\"ASC\",\r\n            withdist=True\r\n        )\r\n```\r\n\r\nAnd then make a couple of subsequent calls with a different radius but with other parameters the same. The first call works correctly regardless of which radius is used, but it is subsequent calls that return the bad data. I believe it generally starts on the third call to .georadius.\r\n\r\nIn the specific example show above, the expected result is: `[[b'1', 0.0001], [b'2', 23.3992]]`\r\n\r\n"
+    },
+    {
+      "id": 1353470917,
+      "user": "filipecosta90",
+      "created_at": "2022-12-15T17:41:31Z",
+      "body": "@awilliams-hv confirmed! thank you for reporting. cc @oranagra \r\n```\r\nredis-cli geoadd key \"-122.407107\" \"37.794300\" 1\r\nredis-cli geoadd key \"-122.227336\" \"37.794300\" 2\r\nredis-cli geoadd key \"-118.394332\" \"33.99998\" 3\r\nredis-cli  GEORADIUS key -122.407107 37.794300 30 mi ASC WITHDIST\r\n```\r\n\r\noutput:\r\n```\r\n127.0.0.1:6379> geoadd key \"-122.407107\" \"37.794300\" 1\r\n(integer) 1\r\n127.0.0.1:6379> geoadd key \"-122.227336\" \"37.794300\" 2\r\n(integer) 1\r\n127.0.0.1:6379> geoadd key \"-118.394332\" \"33.99998\" 3\r\n(integer) 1\r\n127.0.0.1:6379> GEORADIUS key -122.407107 37.794300 30 mi ASC WITHDIST\r\n1) 1) \"1\"\r\n   2) \"0.00\\x001\"\r\n2) 1) \"2\"\r\n   2) \"9.8182\"\r\n```"
+    },
+    {
+      "id": 1353525531,
+      "user": "filipecosta90",
+      "created_at": "2022-12-15T18:23:39Z",
+      "body": "ok so I've confirmed the issue is not filling the buffer from integer_digits + 1 up until end of size when the fractional value is just taking 1 char. So, on the scenario of junk in the buffer and the small double we get into this.\r\nNonetheless we always terminate the string at proper position.\r\n\r\nConfirmed with unit test bellow in util.c\r\n\r\n```c\r\n    // set junk in buffer\r\n    memset(buf,'A',32);\r\n    v = 0.0001;\r\n    sz = fixedpoint_d2string(buf, sizeof buf, v, 4);\r\n    assert(sz == 6);\r\n    assert(buf[sz] == '\\0');\r\n    assert(!strcmp(buf, \"0.0001\"));\r\n    // set junk in buffer\r\n    memset(buf,'A',32);\r\n    v = 6.0642951598391699e-05;\r\n    sz = fixedpoint_d2string(buf, sizeof buf, v, 4);\r\n    assert(sz == 6);\r\n    assert(buf[sz] == '\\0');\r\n    assert(!strcmp(buf, \"0.0001\"));\r\n    \r\n```\r\n\r\noutput of `./src/redis-server test all`:\r\n\r\n```\r\nSHA1=15dd99a1991e0b3826fede3deffc1feba42278e6\r\nredis-server: util.c:1291: test_fixedpoint_d2string: Assertion `!strcmp(buf, \"0.0001\")' failed.\r\nAborted (core dumped)\r\n```\r\n\r\nOpening a PR with fix. \r\n\r\n"
+    },
+    {
+      "id": 1355245950,
+      "user": "oranagra",
+      "created_at": "2022-12-16T17:16:48Z",
+      "body": "@awilliams-hv FYI, Redis 7.0.7 was released with a fix."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "issue_number": 11721.0,
+  "title": "[BUG] CLIENT KILL doc descriptor wrong",
+  "body": "**Describe the bug**\r\n\r\nThe `command docs` info for `CLIENT KILL` has an incorrect duplicate name between `ADDR` and `LADDR`. (And `SKIPME` is suspect.)\r\n\r\n**Details**\r\n\r\nRun `command docs` and inspect the details. In particular notice that `ADDR` and `LADDR` have the same `name` - `ip:port`. These names would be expected to be `addr` and `laddr`, but at minimum they must not be the same, because then parsing driven from this data can't tell the difference.\r\n\r\n```\r\n$11\r\nclient|kill\r\n...\r\n$9\r\narguments\r\n..\r\n$10\r\nnew-format\r\n..\r\n$4\r\nname\r\n$7\r\nip:port\r\n$4\r\ntype\r\n$6\r\nstring\r\n$5\r\ntoken\r\n$4\r\nADDR\r\n...\r\n$4\r\nname\r\n$7\r\nip:port\r\n$4\r\ntype\r\n$6\r\nstring\r\n$5\r\ntoken\r\n$5\r\nLADDR\r\n```\r\n\r\nThe other weird one is `SKIPME` use of name `yes/no`, instead of expected `skipme`:\r\n\r\n```\r\nname\r\n$6\r\nyes/no\r\n$4\r\ntype\r\n$6\r\nstring\r\n$5\r\ntoken\r\n$6\r\nSKIPME\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-01-16T17:17:59Z",
+  "updated_at": "2023-11-24T06:41:18Z",
+  "closed_at": "2023-11-24T06:41:18Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1384752332,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-17T02:14:28Z",
+      "body": "what version are you using? \r\ni think the ip:port problem was fixed in #11051  (ohh, i see it is part of 7.2)\r\nand the client-kill problem was fixed in #11201 (and this one looks like it hasn't been released yet)"
+    },
+    {
+      "id": 1385425650,
+      "user": "jimsnab",
+      "created_at": "2023-01-17T13:28:56Z",
+      "body": "```\r\n$ redis-server --version\r\nRedis server v=7.0.7 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=2260280010e18db8\r\n```"
+    },
+    {
+      "id": 1385431326,
+      "user": "jimsnab",
+      "created_at": "2023-01-17T13:33:37Z",
+      "body": "Agree, when those fixes are released, issue will be fixed. Thanks for finding!"
+    }
+  ]
+}

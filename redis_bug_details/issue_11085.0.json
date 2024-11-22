@@ -1,0 +1,68 @@
+{
+  "issue_number": 11085.0,
+  "title": "[BUG] [redis-cli -u <uri>] unable to work with flag [--tls]",
+  "body": "**Describe the bug**\r\n\r\nUsing `redis-cli` with inline authentication via `-u uri`, if adding the flag `--tls`, the Terminal returns \"AUTH failed\".\r\n\r\n**To reproduce**\r\n\r\n```\r\nredis-cli --tls -u redis://admin:some_password@some_host:some_port\r\n```\r\n\r\nHere is the error returned:\r\n\r\n```\r\nWarning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\r\nWarning: AUTH failed\r\n```\r\n\r\nThis is wrong. As without using `-u uri` switch, everything works fine. For example:\r\n\r\n```\r\nredis-cli -h some_host -p some_port --tls\r\n```\r\n\r\n```\r\nAUTH admin some_password\r\n```\r\n\r\nthen we can do `PING` command successfully.\r\n\r\n**Expected behavior**\r\n\r\nOne can use `-u uri` with `--tls` without any problem.\r\n\r\n**Additional information**\r\n\r\nI'm using OVH Redis managed database. Not absolutely sure if the issue is due to OVH implementation or Redis bug.\r\n\r\nRedis version:\r\n\r\n+ Server side: 6.2.\r\n+ Client side: 6.0.16\r\n\r\nClient OS:\r\n\r\n```\r\nlsb_release -a\r\n# No LSB modules are available.\r\n# Distributor ID:\tUbuntu\r\n# Description:\tUbuntu 22.04 LTS\r\n# Release:\t22.04\r\n# Codename:\tjammy\r\n```",
+  "state": "open",
+  "created_at": "2022-08-05T08:51:04Z",
+  "updated_at": "2024-05-20T09:48:19Z",
+  "closed_at": null,
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 1206330853,
+      "user": "ThachNgocTran",
+      "created_at": "2022-08-05T11:13:17Z",
+      "body": "A work-around could be:\r\n\r\n```\r\nredis-cli -h some_host -p some_port --user admin --pass some_pass --tls\r\n```\r\n\r\nNevertheless, it is still a bug."
+    },
+    {
+      "id": 1207386093,
+      "user": "oranagra",
+      "created_at": "2022-08-07T11:23:31Z",
+      "body": "@ThachNgocTran i think the fact you use `redis://` after the `--tls` means it overrides the TLS flag.\r\nyou should either use `rediss://` or put the `--tls` after the `-u`.\r\n"
+    },
+    {
+      "id": 1207790348,
+      "user": "ThachNgocTran",
+      "created_at": "2022-08-08T07:55:41Z",
+      "body": "@oranagra Thanks for the response.\r\n\r\nIf I use:\r\n\r\n```\r\nredis-cli -u rediss://admin:some_pass@rsome_host:some_port\r\n```\r\n\r\nI got (when doing the `PING` command):\r\n\r\n```\r\nWarning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\r\nWarning: AUTH failed\r\nsome_host:some_port> ping\r\n(error) NOAUTH Authentication required.\r\n```\r\n\r\nAlternatively, if I use:\r\n\r\n```\r\nredis-cli -u redis://admin:some_pass@some_host:some_port --tls\r\n```\r\n\r\nI got:\r\n\r\n```\r\nWarning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\r\nWarning: AUTH failed\r\nsome_host:some_port> ping\r\n(error) NOAUTH Authentication required.\r\n```\r\n\r\nSummarily, your suggestion doesn't seem to work. Thanks anyway. :)"
+    },
+    {
+      "id": 1208262915,
+      "user": "ranshid",
+      "created_at": "2022-08-08T15:16:19Z",
+      "body": "@ThachNgocTran - I cannot seem to be able to reproduce this issue on both unstable and the latest 6.2 (6.2.7 [e6f6709](https://github.com/redis/redis/commit/e6f67092f8d4d81761a60c46011d1ff1dc3c2628)) - can you maybe check on which OSS commit  the OVH Redis is based on? "
+    },
+    {
+      "id": 1208982809,
+      "user": "ThachNgocTran",
+      "created_at": "2022-08-09T06:51:09Z",
+      "body": "@ranshid The Redis implementation from OVH can be read here: https://docs.ovh.com/de/publiccloud/databases/redis/capabilities/\r\n\r\nIt's a managed Redis so many features are not available, e.g. `CONFIG`, `MIGRATE`."
+    },
+    {
+      "id": 1209142045,
+      "user": "BSVogler",
+      "created_at": "2022-08-09T09:30:51Z",
+      "body": "Cannot reproduce on OVH instance as well. I suspect some ACL issue or some user error.\r\n\r\n@ThachNgocTran Please double check your commands and the config."
+    },
+    {
+      "id": 1210355015,
+      "user": "ThachNgocTran",
+      "created_at": "2022-08-10T08:43:24Z",
+      "body": "The firewall (on Ubuntu) was already disabled.\r\n\r\n```\r\nsudo ufw status verbose\r\n# Status: inactive\r\n```\r\n\r\nCommands below still don't work:\r\n\r\n```\r\nredis-cli -u redis://admin:some_pass@some_host:20185 --tls\r\nredis-cli -u rediss://admin:some_pass@some_host:20185 --tls\r\n# Error: Warning: AUTH failed\r\n```\r\nBTW:\r\n\r\n```\r\nredis-cli --version\r\n# redis-cli 6.0.16\r\n```\r\n"
+    },
+    {
+      "id": 1872593020,
+      "user": "cpressland",
+      "created_at": "2023-12-30T19:52:30Z",
+      "body": "I'm also seeing this with Azure Redis:\r\n```shell\r\n$ redis-cli -u $(kubectl get secret azure-redis -o go-template='{{.data.url_primary|base64decode}}')\r\nAUTH failed: WRONGPASS invalid username-password pair\r\nhost.redis.cache.windows.net:6380>\r\n```\r\nIn this case `.data.url_primary` is in the following format: `rediss://:<password>@<host>.redis.cache.windows.net:6380/0`\r\n\r\nIf I run the command as:\r\n```shell\r\n$ redis-cli --tls \\\r\n    -a $(kubectl get secret azure-redis -o go-template='{{.data.access_key_primary|base64decode}}') \\\r\n    -h $(kubectl get secret azure-redis -o go-template='{{.data.host|base64decode}}') \\\r\n    -p $(kubectl get secret azure-redis -o go-template='{{.data.port|base64decode}}')\r\nhost.redis.cache.windows.net:6380>\r\n```\r\nEverything works as expected. The above connection string works fine in redis-py, so I don't think the format is incorrect."
+    },
+    {
+      "id": 2120088058,
+      "user": "meowfishorg",
+      "created_at": "2024-05-20T09:47:59Z",
+      "body": "I recently have the same problem using a version of 6.* (redis-cli). The problem was solved after updating to 7.*. Might not be your case, but..."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "issue_number": 7760.0,
+  "title": "[CRASH] Redis Sentinel rewrite redis.conf by incorrect parameter",
+  "body": "**Crash report**\r\n\r\nRedis sentinel rewrite option `oom-score-adj-values 0 200 800` in the file /etc.redis.con by incorrect `0 200 800`\r\n\r\nDiff:\r\n```\r\n@@ -1063,7 +1063,7 @@\r\n # starts. Because typically the initial value is 0, they will often match the\r\n # absolute values.\r\n\r\n-oom-score-adj-values 0 200 800\r\n+0 200 800\r\n\r\n ############################## APPEND ONLY MODE ###############################\r\n```\r\n\r\n\r\nAfter Redis Sentinel is started it is not possible to start Redis server. Logs from /var/log/messages:\r\n```\r\nSep  8 13:05:51 beta-redis-cluster-03 systemd: Starting Redis persistent key-value database...\r\nSep  8 13:05:51 beta-redis-cluster-03 redis-server: *** FATAL CONFIG FILE ERROR (Redis 6.0.7) ***\r\nSep  8 13:05:51 beta-redis-cluster-03 redis-server: Reading the configuration file, at line 1066\r\nSep  8 13:05:51 beta-redis-cluster-03 redis-server: >>> '0 200 800'\r\nSep  8 13:05:51 beta-redis-cluster-03 redis-server: Bad directive or wrong number of arguments\r\nSep  8 13:05:51 beta-redis-cluster-03 systemd: redis.service: main process exited, code=exited, status=1/FAILURE\r\nSep  8 13:05:51 beta-redis-cluster-03 systemd: Failed to start Redis persistent key-value database.\r\nSep  8 13:05:51 beta-redis-cluster-03 systemd: Unit redis.service entered failed state.\r\nSep  8 13:05:51 beta-redis-cluster-03 systemd: redis.service failed\r\n```\r\n\r\n**Aditional information**\r\n\r\n1. OS distribution and version\r\n```\r\nCentOS Linux release 7.8.2003 (Core)\r\n```\r\n```\r\nRedis server v=6.0.7 sha=00000000:0 malloc=jemalloc-5.1.0 bits=64 build=2b369386c34cdeb6\r\n```\r\n\r\n```\r\n# yum info redis\r\nInstalled Packages\r\nName        : redis\r\nArch        : x86_64\r\nVersion     : 6.0.7\r\nRelease     : 1.el7.remi\r\nSize        : 4.0 M\r\nRepo        : installed\r\nFrom repo   : remi\r\nSummary     : A persistent key-value database\r\nURL         : http://redis.io\r\nLicense     : BSD\r\n```\r\n\r\n2. Steps to reproduce (if any)\r\n1. Configure Redis Sentinel with any parameters\r\n2. Start redis-sentinel service\r\n3. Restart redis service\r\n100% reproduced.",
+  "state": "closed",
+  "created_at": "2020-09-08T11:26:09Z",
+  "updated_at": "2021-02-09T09:48:12Z",
+  "closed_at": "2020-09-08T13:00:21Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 775807450,
+      "user": "momomo",
+      "created_at": "2021-02-09T09:48:11Z",
+      "body": "What is the fucking fix for those that are not on 6.0.8? \r\n\r\nLink: https://redis.io/topics/config\r\n\r\nStill includes the flawed config files leaving to a bunch of waste of time. Fix that too. What is the fix now? It is not clear.\r\nComment out 'oom-score-adj no' ?\r\n\r\n*** FATAL CONFIG FILE ERROR (Redis 6.0.6) ***\r\nReading the configuration file, at line 1062\r\n\r\n'oom-score-adj no'\r\nBad directive or wrong number of arguments\r\nj@j-server-101:/c/configuration/redis/6/server"
+    }
+  ]
+}

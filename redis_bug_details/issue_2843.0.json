@@ -1,0 +1,75 @@
+{
+  "issue_number": 2843.0,
+  "title": "Bitwise logic operations on large numbers(up to 53 bits)",
+  "body": "Please check: http://stackoverflow.com/questions/33474705/redis-lua-bit-overflow\n\nI would like to use highly performant bit operations on numbers up to 53 bits in length but with current implementation of bit library it's not possible\n",
+  "state": "open",
+  "created_at": "2015-11-02T15:49:27Z",
+  "updated_at": "2021-01-21T12:58:49Z",
+  "closed_at": null,
+  "labels": [
+    "non critical bug",
+    "scripting"
+  ],
+  "comments_data": [
+    {
+      "id": 153060981,
+      "user": "antirez",
+      "created_at": "2015-11-02T15:56:24Z",
+      "body": "The version of Lua we use is kinda terrible and had no concept of integer type. Fortunately if I remember correctly now Lua is going to have proper integers. I hope that after Lua and Javascript, nobody will design again a language with just floats. Btw, even with floats, 53 bits is what we should get, so there is some kind of other problem probably. I'll investigate and fix it. Thanks.\n"
+    },
+    {
+      "id": 153063073,
+      "user": "let4be",
+      "created_at": "2015-11-02T16:04:27Z",
+      "body": "Thank you very much @antirez \nAfaik current bit.\\* operations are limited to just 30 bits, it starts to overflow right after this value...\nI'm currently trying to circumvent it by storing the value in 2 variables(high, low) and performing operations separately\n"
+    },
+    {
+      "id": 153082352,
+      "user": "badboy",
+      "created_at": "2015-11-02T16:57:23Z",
+      "body": "Not a problem per se, but a limitation of the library: it uses 32 bit signed integers internally for the reasons [written down here](http://bitop.luajit.org/semantics.html#range)\n\nIn short: works everywhere, reliable, in any environment.\nConsidering the fact that we control the environment that it is used in we might patch the lib to use unsigned integers\n"
+    },
+    {
+      "id": 153097775,
+      "user": "antirez",
+      "created_at": "2015-11-02T17:47:22Z",
+      "body": "In the documentation there is the following sentence:\n\n_It's desirable to define semantics that work the same across all platforms. This dictates that all operations are based on the common denominator of 32 bit integers._\n\nI don't think this is correct, unless I'm missing something of course. Basically even if the target environment is 32 bit, by using a int64_t type, to capture the 53 bit integer part of the double, performing operations, and then converting back to double, should always work the same everywhere.\n\nMaybe the author is willing to target environments where a standard 64 bit type does not exist at all?\n"
+    },
+    {
+      "id": 153158934,
+      "user": "dpino",
+      "created_at": "2015-11-02T21:16:53Z",
+      "body": "I arrived here following the thread from SOF.\n\nLua 5.3 supports 64-bit integers and provides bitwise operations natively in the language so it's not necessary to use an external module. \n\nhttp://www.lua.org/manual/5.3/readme.html\n\nThis BitOp module is programmed by Mike Pall and it's used mostly in LuaJIT. I don't know if you're using PUC-Rio Lua or LuaJIT. FWIW, LuaJIT is Lua 5.1 compatible and implements part of Lua 5.2 (plus some additions that are not part of the standard). There's no plans at the moment to implement Lua 5.3.\n\nLastly, I coded a bitwise module for Lua in plain Lua. Probably it will be terribly slow, but perhaps may be useful https://gist.github.com/dpino/73c08ccfe6ca074fac36\n"
+    },
+    {
+      "id": 154341308,
+      "user": "antirez",
+      "created_at": "2015-11-06T08:14:10Z",
+      "body": "@dpino we don't have good reasons to upgrade to 5.3 since it breaks existing Lua scripts and for Redis most features of 5.3 are not critical to have... So we have to find a solution within our current implementation :-) Thanks.\n"
+    },
+    {
+      "id": 155735023,
+      "user": "beaters",
+      "created_at": "2015-11-11T10:50:48Z",
+      "body": "```\n                                                                                  Back up to the first cash of                                                                                                                                                                                                                                                                                                                                         Sent from my BlackBerry 10 smartphone.                                                                                                                                                                                                                From: Salvatore SanfilippoSent: 2015年11月2日星期一 23:57To: antirez/redisReply To: antirez/redisSubject: Re: [redis] Bitwise logic operations on large numbers(up to 53 bits) (#2843)The version of Lua we use is kinda terrible and had no concept of integer type. Fortunately if I remember correctly now Lua is going to have proper integers. I hope that after Lua and Javascript, nobody will design again a language with just floats. Btw, even with floats, 53 bits is what we should get, so there is some kind of other problem probably. I'll investigate and fix it. Thanks.\n```\n\n—Reply to this email directly or view it on GitHub.\n"
+    },
+    {
+      "id": 169829421,
+      "user": "daurnimator",
+      "created_at": "2016-01-07T22:37:49Z",
+      "body": "> @dpino we don't have good reasons to upgrade to 5.3 since it breaks existing Lua scripts and for Redis most features of 5.3 are not critical to have... So we have to find a solution within our current implementation :-) Thanks.\n\nDo you have much evidence for this?\nIf you turn on the LUA_COMPAT_5_1 flag when compiling lua 5.3 there is very little that doesn't work in a backwards incompatible manner.\n\nThe issues would be around:\n- Binary (i.e. C) modules; which are disabled in redis anyway\n- Any use of `setfenv` (IMO redis lua scripts shouldn't be using this anyway)\n"
+    },
+    {
+      "id": 204198884,
+      "user": "beaters",
+      "created_at": "2016-04-01T01:24:34Z",
+      "body": "```\n                                                                                                                                                                                                                                                                                                                                                                                                                          发送自我的 BlackBerry 10 智能手机。                                                                                                                                                                                                                发件人： 刘希岗已发送： 2015年11月11日星期三 18:50收件人： Salvatore Sanfilippo; antirez/redis主题： Re: [redis] Bitwise logic operations on large numbers(up to 53 bits) (#2843)                                                                                      Back up to the first cash of                                                                                                                                                                                                                                                                                                                                         Sent from my BlackBerry 10 smartphone.                                                                                                                                                                                                                From: Salvatore SanfilippoSent: 2015年11月2日星期一 23:57To: antirez/redisReply To: antirez/redisSubject: Re: [redis] Bitwise logic operations on large numbers(up to 53 bits) (#2843)The version of Lua we use is kinda terrible and had no concept of integer type. Fortunately if I remember correctly now Lua is going to have proper integers. I hope that after Lua and Javascript, nobody will design again a language with just floats. Btw, even with floats, 53 bits is what we should get, so there is some kind of other problem probably. I'll investigate and fix it. Thanks.\n```\n\n—Reply to this email directly or view it on GitHub.\n\nSo with this kind of problems,i think you at least should learn something important in your daily work.Btw,‎you must keep the thought that we can't be   afraid of the error,on the contrary,they are our best friends on our road to success in our mind. Your sincenly Liu\n"
+    },
+    {
+      "id": 764625983,
+      "user": "fcolista",
+      "created_at": "2021-01-21T12:58:49Z",
+      "body": "Still no plan for lua5.3?"
+    }
+  ]
+}

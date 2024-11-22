@@ -1,0 +1,48 @@
+{
+  "issue_number": 7878.0,
+  "title": "[Bug] RedisModule_SignalKeyAsReady not working as expected",
+  "body": "**Describe the bug**\r\n```RedisModule_SignalKeyAsReady``` does not work as expected.\r\n\r\n**To reproduce**\r\n\r\nHere a minimal module that reproduces the issue:\r\n\r\n```c\r\n#include \"redismodule.h\"\r\n#include <stdlib.h>\r\n\r\nint BlockedReplyCallback(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)  {\r\n    RedisModule_Log(ctx, \"warning\", \"Reply callback!\");\r\n    RedisModule_ReplyWithSimpleString(ctx, \"We are done!\");\r\n    return REDISMODULE_OK;\r\n}\r\n\r\nint TimeoutReplyCallback(RedisModuleCtx *ctx, RedisModuleString **argv, int argc)  {\r\n    RedisModule_Log(ctx, \"warning\", \"Timed out!\");\r\n\r\n    RedisModule_ReplyWithSimpleString(ctx, \"Timed Out\");\r\n    return REDISMODULE_OK;\r\n}\r\n\r\n\r\nvoid BlockedFreePrivdata(RedisModuleCtx *ctx, void *privdata) {\r\n    RedisModule_Log(ctx, \"warning\", \"Freeing all priv data\");\r\n}\r\n\r\nint HelloworldRand_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {\r\n\r\n    RedisModuleBlockedClient* bc = RedisModule_BlockClientOnKeys(ctx, \r\n            BlockedReplyCallback, \r\n            TimeoutReplyCallback, \r\n            BlockedFreePrivdata,\r\n            10000, \r\n            &argv[1],\r\n            1, \r\n            NULL);\r\n\r\n    RedisModule_SignalKeyAsReady(ctx, argv[1]);\r\n\r\n    return REDISMODULE_OK;\r\n}\r\n\r\nint RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {\r\n    if (RedisModule_Init(ctx,\"helloworld\",1,REDISMODULE_APIVER_1)\r\n        == REDISMODULE_ERR) return REDISMODULE_ERR;\r\n\r\n    if (RedisModule_CreateCommand(ctx,\"bug1\",\r\n        HelloworldRand_RedisCommand, \"\",\r\n        0, 0, 0) == REDISMODULE_ERR)\r\n        return REDISMODULE_ERR;\r\n\r\n    return REDISMODULE_OK;\r\n}\r\n```\r\n\r\nJust load the module and run the command \"bug1 123\". It will be blocked until timing out after 10 seconds despite having called ```RedisModule_SignalKeyAsReady``` directly after blocking.\r\nNote, I also tested to calling ```RedisModule_SignalKeyAsReady``` from a timer callback with the exact same result.\r\n\r\n**Expected behavior**\r\n\r\nThe ```BlockedReplyCallback``` should be called after signaling that the key is ready. \r\n\r\n**Additional information**\r\n\r\nThis is on a Mac running redis 6.0.8 and the latest redismodule.h (from yesterday).\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-10-02T14:09:56Z",
+  "updated_at": "2020-10-12T09:55:38Z",
+  "closed_at": "2020-10-12T09:55:37Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 703082625,
+      "user": "manast",
+      "created_at": "2020-10-03T10:32:10Z",
+      "body": "I did some test with redis-cli and I noticed that if the key that you listen to exists before calling the command, then it the reply callback is called, so it seems that the bug happens when the key does not exist at the time of blocking."
+    },
+    {
+      "id": 706951748,
+      "user": "guybe7",
+      "created_at": "2020-10-12T08:02:38Z",
+      "body": "hello @manast \r\nwhat you described is actually not a bug, it's a misuse of the API: you're not supposed to \"signal a key as ready\" when the key doesn't exist (and thus, obviously not \"ready\")\r\n"
+    },
+    {
+      "id": 706956193,
+      "user": "guybe7",
+      "created_at": "2020-10-12T08:09:49Z",
+      "body": "may i know the reason you want to signal a non-existing key as ready? if it's a compelling enough we may consider to relax the definition of a \"ready\" key (i.e. now we assume a \"ready\" key must exist)"
+    },
+    {
+      "id": 706971245,
+      "user": "manast",
+      "created_at": "2020-10-12T08:36:34Z",
+      "body": "@guybe7 This was me trying to find all corner cases for SignalKeyAsReady, however the case that actually was a problem for me was this one (I have finally found a workaround using UnblockClient instead that works for my specific use case): https://github.com/redis/redis/issues/7880\r\nso in other words, it makes sense that it does not work for non-existing keys but it would be probably good to have a one liner comment about this \"limitation\" even if it may be obvious for many."
+    },
+    {
+      "id": 707016146,
+      "user": "guybe7",
+      "created_at": "2020-10-12T09:55:08Z",
+      "body": "@manast NP i will push a commit with updated docs/comments"
+    },
+    {
+      "id": 707016382,
+      "user": "guybe7",
+      "created_at": "2020-10-12T09:55:37Z",
+      "body": "closing"
+    }
+  ]
+}

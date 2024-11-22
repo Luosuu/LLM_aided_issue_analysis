@@ -1,0 +1,18 @@
+{
+  "issue_number": 12425.0,
+  "title": "[BUG] MONITOR gets no reply when already in monitor mode",
+  "body": "**Describe the bug**\r\n\r\nWhen calling MONITOR when already in monitor mode (MONITOR called a second time), the command gets no reply.\r\n\r\n**To reproduce**\r\n\r\n```\r\n$ telnet 127.0.0.1 6379\r\nTrying 127.0.0.1...\r\nConnected to 127.0.0.1.\r\nEscape character is '^]'.\r\nmonitor\r\n+OK\r\nmonitor\r\nmonitor\r\nmonitor\r\nping\r\n+PONG\r\n+1689844887.413603 [0 127.0.0.1:57780] \"ping\"\r\nquit\r\n+OK\r\nConnection closed by foreign host.\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe second `monitor` call should return `+OK` just like the first one.\r\n\r\nAlternatively, return an error like `-ERR Already monitoring`.\r\n\r\nAlternatively, just document this behaviour.\r\n\r\n**Additional information**\r\n\r\nWhy do I care at all? When writing an asynchronous client library, it's important to not get out of sync when matching incoming replies to the corresponding commands. I discovered this while implementing RESET in hiredis async API.",
+  "state": "open",
+  "created_at": "2023-07-19T22:11:38Z",
+  "updated_at": "2023-08-12T00:46:21Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1675572943,
+      "user": "alexgershberg",
+      "created_at": "2023-08-12T00:41:54Z",
+      "body": "I've tried it, and I agree that it should return something, rather than nothing.\r\nI liked the error message more, so I just quickly implemented it. (also I took your error message word for word)"
+    }
+  ]
+}

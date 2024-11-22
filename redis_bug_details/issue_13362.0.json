@@ -1,0 +1,20 @@
+{
+  "issue_number": 13362.0,
+  "title": "[BUG] Deleted node when added againg as master doesn't get new shardid (CLUSTER SHARDS becomes wrong)",
+  "body": "Redis 7.2.4: Suppose there is a cluster with 2 shards, one master and several replicas in each.\r\n\r\nSteps to reproduce:\r\n1. redis-cli --cluster del-node 127.0.0.1:7001 <node_id> - move replica out from one shard.\r\n2. redis-cli --cluster add-node 127.0.0.1:7001 127.0.0.1:7002 - add it as a new master\r\n\tCLUSTER MYSHARDID: returns old id\r\n\tCLUSTER SHARDS gives 2 shards\r\n3. redis-cli --cluster reshard  - moving empty slots under new master\r\n\tCLUSTER MYSHARDID: returns old id\r\n\tCLUSTER SLOTS: correct\r\n\t\r\nCLUSTER SHARDS is incorrect:\r\n1. Master of a shard from which new master was born sees new master as part of its shard.\r\n2. New master thinks that his old master is part of his shard.\r\nSo CLUSTER SHARDS still have 2 shards.\r\n\r\nCLUSTER INFO and CLUSTER NODES/SLOTS are correct. Have cluster_size = 3.\r\n        ",
+  "state": "open",
+  "created_at": "2024-06-24T08:38:18Z",
+  "updated_at": "2024-08-02T12:28:58Z",
+  "closed_at": null,
+  "labels": [
+    "cluster"
+  ],
+  "comments_data": [
+    {
+      "id": 2265249267,
+      "user": "sundb",
+      "created_at": "2024-08-02T12:28:57Z",
+      "body": "seems it's related to https://github.com/redis/redis/pull/13422?"
+    }
+  ]
+}

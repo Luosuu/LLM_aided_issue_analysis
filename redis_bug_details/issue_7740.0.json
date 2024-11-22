@@ -1,0 +1,30 @@
+{
+  "issue_number": 7740.0,
+  "title": "[BUG] Failure of 6.0.7 slave to replicate a 2.6.14 master",
+  "body": "**Describe the bug**\r\n\r\nThe replication starts and works fine for some time, but it seems like the master sends a PING command to the slave and the slave then errors out and closes the replication connection with error:\r\n\r\n WARNING: Receiving inline protocol from master, master stream corruption? Closing the master connection and discarding the cached master\r\nProtocol error (Master using the inline protocol. Desync?) from client: id=4 addr=127.0.0.1:6379 fd=8 name= age=91 idle=0 flags=M db=0 sub=0 psub=0 multi=-1 qbuf=90 qbuf-free=32678 obl=0 oll=0 omem=0 events=r cmd=ping user=(superuser). Query buffer during protocol error: 'select 10..*4..$5..SETEX..$28..&lt;SNIP&gt;\r\n\r\n(I Snipped a bit of the query buffer cause it had some company confidential data in it, let me know if you need it)\r\n\r\nChange introduced here: https://github.com/redis/redis/commit/325409a011d0155513a71b92dc09cac06b90b261\r\n\r\n**To reproduce**\r\n\r\nSet up a 6.0.7 slave to a 2.6.14 master.     Observe that the replication works for a bit and after a few minutes stops.   Observe above error in log file.   Disable the above code, observe replication works without issue.\r\n\r\n**Expected behavior**\r\n\r\nI'd love to be able to reliably replicate 2.6.14 master to a 6.0.7 slave.   For corporate reasons, it's going to take a while to get that master upgraded.   Replication seems to work fine with the above code disabled.  Perhaps special case ping?   My testing is ongoing but replication doesn't seem to have a problem with this code disabled.\r\n\r\n",
+  "state": "open",
+  "created_at": "2020-09-02T02:47:37Z",
+  "updated_at": "2020-09-11T13:38:59Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 685256575,
+      "user": "drachs",
+      "created_at": "2020-09-02T02:56:11Z",
+      "body": "Turns out 6.0.3 works without problem according to another team member so I'll just use that for this project."
+    },
+    {
+      "id": 685861946,
+      "user": "itamarhaber",
+      "created_at": "2020-09-02T16:48:06Z",
+      "body": "Hello @drachs and thanks for the detailed report.\r\n\r\nThis is definitely an issue, although I'm not sure about its severity given the anachronistic stack and somewhat unique use case. "
+    },
+    {
+      "id": 685900020,
+      "user": "oranagra",
+      "created_at": "2020-09-02T17:55:52Z",
+      "body": "This happens because 2.6 used to send SELECT to the slave using inline protocol rather than RESP (changed in 2.8).\r\nConsidering that 2.6 is so old, i'm not sure that justifies reverting that commit or adding some version check that will avoid the error when the master is that old.\r\n\r\nMeanwhile, you can create a replication chain 2.6 -> 2.8 -> 6.0.\r\njust note that the middle server must be older than 4.0 since that's where PSYNC2 was added and since then a replica forwards the commands stream from the master down the line as is."
+    }
+  ]
+}

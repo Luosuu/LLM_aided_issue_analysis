@@ -1,0 +1,18 @@
+{
+  "issue_number": 13039.0,
+  "title": "redis/redis-stack-server can not initilizes in GCP platform[BUG]",
+  "body": "**Describe the bug**\r\n.....\r\n9:M 07 Feb 2024 07:11:40.138 * <search> Redis version found by RedisSearch : 7.2.4 - oss\r\n9:M 07 Feb 2024 07:11:40.138 * <search> RediSearch version 2.8.11 (Git=2.8-7368bb3)\r\n9:M 07 Feb 2024 07:11:40.138 * <search> Low level api version 1 initialized successfully\r\n9:M 07 Feb 2024 07:11:40.138 * <search> concurrent writes: OFF, gc: ON, prefix min length: 2, prefix max expansions: 200, query timeout (ms): 500, timeout policy: return, cursor read size: 1000, cursor max idle (ms): 300000, max doctable size: 1000000, max number of search results:  10000, search pool size: 20, index pool size: 8, \r\n=================\r\nThen the log stop in here, no more log can be seen. And the status of container is up\r\nBut all request for Redis will be : \r\nredis.exceptions.ConnectionError: Error while reading from {ip}:6379: (104, 'Connection reset by peer')\r\n\r\n\r\n**To reproduce**\r\nGCP vm setting:\r\nLinux version 4.18.0-477.27.1.e18.x86_64\r\ngcc version 8.5.0 20210514\r\nRed had 8.5.0-18\r\nrun:\r\ndocker pull redis/redis-stack-server\r\ndocker run -itd --name redis -p 6379:6379 redis/redis-stack-server\r\n\r\n**Expected behavior**\r\n\r\nAfter `docker run -itd --name redis -p 6379:6379 redis/redis-stack-server` run, \r\nthe final log will be like: \r\n----------------\r\n9:M 07 Feb 2024 07:11:40.145 * Module 'redisgears_2' loaded from /opt/redis-stack/lib/redisgears.so\r\n9:M 07 Feb 2024 07:11:40.146 * Server initialized\r\n9:M 07 Feb 2024 07:11:40.146 * Ready to accept connections tcp\r\n----------------\r\n\r\n**Additional information**\r\n\r\nI use the same image run in another platform, and it works.\r\nSo I don't it is the issue about GCP.\r\n",
+  "state": "closed",
+  "created_at": "2024-02-07T11:39:13Z",
+  "updated_at": "2024-02-13T03:38:09Z",
+  "closed_at": "2024-02-13T03:38:09Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1940372469,
+      "user": "madolson",
+      "created_at": "2024-02-13T03:38:09Z",
+      "body": "Redis stack is a separate offering from redis, and it's maintained https://github.com/redis-stack/redis-stack. Redis stack is mostly just a distribution of Redis with some modules, so not sure what is going on. I would create the issue over there first though, please re-open back here if they determine it's something related to Redis.\r\n\r\nWorth noting it's \"Connection reset by peer\" and not `connection refused`, so a port is up and listening."
+    }
+  ]
+}

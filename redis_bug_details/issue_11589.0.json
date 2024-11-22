@@ -1,0 +1,66 @@
+{
+  "issue_number": 11589.0,
+  "title": "[BUG] Redis 6.2.6 How to delete keys in a Slot not owned by a master ",
+  "body": "Hello,\r\n\r\nWe have recently had replicas crashing due to https://github.com/RedisTimeSeries/RedisTimeSeries/issues/1343 and in the process of recovery, we have manually copied our backed up rdb files under nodes and brought up slaves that were crashing. Post this, we have killed one of the existing masters to force a replica to become the new master (NOTE: This replica has completed FULL SYNC with the existing master before killing it). All good so far and everything came up fine but with some data loss (some keys were gone missing) post the master switch.  \r\n\r\nWe have repopulated the lost data and this brought the cluster back to a functional state but the following weekend restart of the cluster errored out with:\r\n```\r\n[WARNING] Node IP:6381 has slots in importing state 5461,5462,5463...\r\n[WARNING] Node IP:6381 has slots in open state 5492,...\r\n```\r\n\r\nIn other words, the cluster comes back up but somehow one master has keys that belong to a slot owned by another master.\r\n**Q.1** Is there a clean way to delete these keys in a slot not owned by a master?\r\n**Q.2** Any reason as to why this would happen as any replica that has done a FULL RESYNC with master should have the same state? Note the crash happened on a weekend when no new data was being added. \r\n\r\nLogs noticed at start up before the issue popped up:\r\n```\r\n43335:M 03 Dec 2022 11:03:43.351 # I have keys for slot 5461, but the slot is assigned to another node. Setting it to importing state.\r\n43335:M 03 Dec 2022 11:03:43.351 # I have keys for slot 5462, but the slot is assigned to another node. Setting it to importing state.\r\n```\r\netc...\r\n",
+  "state": "open",
+  "created_at": "2022-12-05T18:01:40Z",
+  "updated_at": "2022-12-13T00:04:48Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1337976279,
+      "user": "pgullipa",
+      "created_at": "2022-12-05T19:01:11Z",
+      "body": "@oranagra  Any ideas? More important for us to find a way to clean the keys (Q.1) so we do not have this issue on every cluster restart. \r\n\r\nSetting the actual master owning the slots to be in migrating state and deleting the keys from the master that does not own the slots and setting the correct master to be the owner after is one way we can think of but does not sound like a clean idea. "
+    },
+    {
+      "id": 1338827900,
+      "user": "oranagra",
+      "created_at": "2022-12-06T06:21:33Z",
+      "body": "how about using `CLUSTER GETKEYSINSLOT` to get the list of keys, and then use a Lua script to delete them?\r\nnote that you can call GETKEYSINSLOT from the script, but then you won't be able to do the deletions from that script (lua_random_dirty).\r\n\r\nmaybe @madolson has other ideas or advise.\r\n\r\n"
+    },
+    {
+      "id": 1339262191,
+      "user": "pgullipa",
+      "created_at": "2022-12-06T12:37:43Z",
+      "body": "@oranagra @madolson Yes, deletion is the problem. We can get the keys but deletion goes to the correct master, not the master that has these keys that are to be deleted. "
+    },
+    {
+      "id": 1339388473,
+      "user": "oranagra",
+      "created_at": "2022-12-06T13:25:53Z",
+      "body": "you'll have to connect to that master directly (not via a cluster aware client), but even then, the DEL command will be refused, and a Lua script is the way around it.\r\n\r\ncome to think of it, you can keep using your normal client by faking a false key name to the EVAL command.\r\ne.g.\r\n`EVAL \"redis.call('del', ARGS[0])\" 1 <fake_key> <key_to_delete>`\r\nfake_key would be some key belonging to the shard you need to clean."
+    },
+    {
+      "id": 1341329562,
+      "user": "pgullipa",
+      "created_at": "2022-12-07T17:37:13Z",
+      "body": "Hi @oranagra , using redispy client (which seems to be cluster aware), the above does not work:\r\n```\r\nfrom redis import Redis\r\nclient = Redis(MASTERIP:PORT)\r\nclient.eval(\"return redis.call('DEL', ARGV[1])\", 1, \"b\", \"foo\")\r\n```\r\n`b` is a key owned by the node. `foo` is a key owned by another master.\r\nreturns\r\n```\r\nredis.exceptions.ResponseError: Error running script (call to f_6eeafcd47cdc6ace492f1e8dc70c47b4258bf161): @user_script:1: @user_script: 1: Lua script attempted to access a non local key in a cluster node\r\n```\r\nAny ideas? Is there a cluster unaware client library we can use for this? \r\n"
+    },
+    {
+      "id": 1342136567,
+      "user": "oranagra",
+      "created_at": "2022-12-08T06:31:20Z",
+      "body": "Sorry, forgot about that check. well, i don't currently see any way to achieve that without building a special patched redis (maybe flagging the client as MASTER)"
+    },
+    {
+      "id": 1344247210,
+      "user": "judeng",
+      "created_at": "2022-12-09T12:28:04Z",
+      "body": "An unproven method, hope it can help you\r\n1. cluster setnode 5461 importing  node-id\r\n2. cluster getkeysinslot 5461\r\n3. send ASKING command\r\n4. del those dirty keys\r\n5. cluster setnode 5461 stable "
+    },
+    {
+      "id": 1345827209,
+      "user": "madolson",
+      "created_at": "2022-12-12T03:44:42Z",
+      "body": "I think the approach outlined approach should work. In either case we should add a tool to make it so that it's easy to delete data from an orphaned slot *OR* automatically delete data detected from orphaned slots."
+    },
+    {
+      "id": 1347550800,
+      "user": "pgullipa",
+      "created_at": "2022-12-13T00:04:48Z",
+      "body": "Thanks @judeng  That worked. Any idea why this could have happened in the first place?"
+    }
+  ]
+}

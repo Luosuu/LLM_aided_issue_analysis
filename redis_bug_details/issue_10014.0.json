@@ -1,0 +1,30 @@
+{
+  "issue_number": 10014.0,
+  "title": "[BUG] Modules + notifications may cause unwanted propagation",
+  "body": "A module that performs a write operation in a notification can cause any\r\nthe generating command to be propagated, based on server.dirty\r\n\r\nExamples:\r\n~~CONFIG SET maxmemory may cause evictions (and notifications)~~ fixed by https://github.com/redis/redis/pull/10019\r\nGET may cause lazy-expire (and a notification) ",
+  "state": "open",
+  "created_at": "2021-12-27T10:31:00Z",
+  "updated_at": "2022-01-04T14:15:36Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1001645566,
+      "user": "guybe7",
+      "created_at": "2021-12-27T16:29:44Z",
+      "body": "@soloestoy can you think of other examples?"
+    },
+    {
+      "id": 1002045112,
+      "user": "soloestoy",
+      "created_at": "2021-12-28T11:40:18Z",
+      "body": "~~For example, one of our (Alibaba) module [TairHash](https://github.com/alibaba/TairHash) (a hash type support field expiry), when a read command like `exhget` trigger a field expire deletion, we delete the field internally and use `RM_Replicate()` to propagate the `exhdel`. But if we used `RM_Call(exhdel)` to do the field expire deletion the read command `exhget` will be propagated unexpected.~~\r\n\r\n~~I'm not sure if some other modules implement their internal system by using `RM_Call()`, if they do, that will lead to the problem.~~\r\n\r\n~~You can see details in [tairhash.c#L334](https://github.com/alibaba/TairHash/blob/d5f83f4e7854a026395fdf695193d27886c44b8c/src/tairhash.c#L334) if you have interest in it.~~\r\n\r\nFunction `call()` just ignore module command propagation, it doesn't have problem here."
+    },
+    {
+      "id": 1002061662,
+      "user": "soloestoy",
+      "created_at": "2021-12-28T12:06:54Z",
+      "body": "> CONFIG SET maxmemory may cause evictions (and notifications)\r\n\r\nTry to fix it in #10019 "
+    }
+  ]
+}

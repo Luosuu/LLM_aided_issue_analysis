@@ -1,0 +1,84 @@
+{
+  "issue_number": 9418.0,
+  "title": "[BUG] Test unit/memefficiency Failed",
+  "body": "## description\r\n\r\nWhen trying to run `make test` on a current stable release 6.2.5, got\r\n```\r\n[err]: Active defrag in tests/unit/memefficiency.tcl\r\ndefrag didn't stop.\r\n```\r\nproblem.\r\n\r\nI tried `./runtest --single  unit/memefficiency`, and got the same result. Other tests are all passed.\r\n\r\nMy device is Raspberry Pi 3b and running Manjaro ARM Minimal.\r\n\r\nlog of `./runtest --single unit/memefficiency --verbose --no-latency --only \"Active defrag\"`: [run.log](https://mega.nz/file/tgcTHQ5b#MNxvUBxXlSb2EKK0MPlsinE_by0nR-EOPjQ8X-uZxpc)\r\n\r\n## lscpu\r\n\r\n```\r\n架构：                   aarch64\r\n  CPU 运行模式：         32-bit, 64-bit\r\n  字节序：               Little Endian\r\nCPU:                     4\r\n  在线 CPU 列表：        0-3\r\n厂商 ID：                ARM\r\n  型号名称：             Cortex-A53\r\n    型号：               4\r\n    每个核的线程数：     1\r\n    Core(s) per cluster: 4\r\n    座：                 -\r\n    Cluster(s):          1\r\n    步进：               r0p4\r\n    CPU 最大 MHz：       1200.0000\r\n    CPU 最小 MHz：       600.0000\r\n    BogoMIPS：           38.40\r\n    标记：               fp asimd evtstrm crc32 cpuid\r\nVulnerabilities:         \r\n  Itlb multihit:         Not affected\r\n  L1tf:                  Not affected\r\n  Mds:                   Not affected\r\n  Meltdown:              Not affected\r\n  Spec store bypass:     Not affected\r\n  Spectre v1:            Mitigation; __user pointer sanitization\r\n  Spectre v2:            Not affected\r\n  Srbds:                 Not affected\r\n  Tsx async abort:       Not affected\r\n```",
+  "state": "closed",
+  "created_at": "2021-08-27T03:21:31Z",
+  "updated_at": "2021-08-30T09:39:09Z",
+  "closed_at": "2021-08-30T09:39:09Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 906909960,
+      "user": "enjoy-binbin",
+      "created_at": "2021-08-27T04:08:32Z",
+      "body": "Is this test always failed in your machine?\r\nThe test indeed had some problems... \r\nwhich has failed several times in our daily CI at some times, see: https://github.com/redis/redis/pull/7289#issuecomment-885431100"
+    },
+    {
+      "id": 906912461,
+      "user": "KernelErr",
+      "created_at": "2021-08-27T04:15:38Z",
+      "body": "> Is this test always failed in your machine?\r\n> The test indeed had some problems...\r\n> which has failed several times in our daily CI at some times, see: [#7289 (comment)](https://github.com/redis/redis/pull/7289#issuecomment-885431100)\r\n\r\nThat's strange lol. In last night and today's morning, I tried at least five times and got the same error. But after your reply, it works without error.\r\n\r\n```\r\nTesting solo test\r\n=== (defrag) Starting server 127.0.0.1:21112 ok\r\nfrag 1.52\r\nfrag 1.04\r\nhits: 299858\r\nmisses: 2290312\r\nmax latency 9\r\n{command 1630037541 7481 7481} {active-defrag-cycle 1630037555 7 9}\r\n{1630037542 7} {1630037543 7} {1630037544 9} {1630037545 7} {1630037546 8} {1630037547 7} {1630037548 7} {1630037549 7} {1630037550 7} {1630037551 7} {1630037552 7} {1630037553 7} {1630037554 7} {1630037555 7}\r\nAOF loading:\r\nfrag 1.08\r\nhits: 559647\r\nmisses: 5585973\r\nmax latency 0\r\n{command 1630037599 32959 32959} {while-blocked-cron 1630037598 33 40} {active-defrag-cycle 1630037598 7 9}\r\n```"
+    },
+    {
+      "id": 906913118,
+      "user": "KernelErr",
+      "created_at": "2021-08-27T04:17:32Z",
+      "body": "By the way, I've compiled the source code again before this successful test."
+    },
+    {
+      "id": 907408409,
+      "user": "oranagra",
+      "created_at": "2021-08-27T18:57:25Z",
+      "body": "This doesn't seem to be the same issue as the one discussed in the other issue. \r\nFirst it's not the same test, (this one is the plain `Active defrag` test, and there it's the new `Active defrag edge case`. \r\nSecondly, there it's some stagnation error that happens when the jemalloc bin util is exactly 0.5.\r\n\r\nAnyway, I think that in this case it's just a matter of insufficient time. \r\nSo you can probably reproduce it again by changing the `wait_for_condition` in that test to be slightly shorter, and then we can maybe conclude what's the right value to use to be sure it always passes. "
+    },
+    {
+      "id": 907561208,
+      "user": "enjoy-binbin",
+      "created_at": "2021-08-28T03:44:32Z",
+      "body": "> this one is the plain Active defrag test\r\n\r\noh... sorry, i indeed run `./runtest --single unit/memefficiency --verbose --no-latency --only \"Active defrag\"`\r\nnow we supoort re in `--only`, and in this case, it will hit everyting that begin with `Active defrag`.\r\nso i ran it and then I took it for granted that it was the same mistake..\r\nand didn't bother to look at the log..\r\n\r\n`Active defrag: wait_for_condition 150 100`, it only take 3-6 seconds in my machine\r\n`Active defrag big list: wait_for_condition 500 100`, it only take 1 second in my machine\r\nbut i do indeed got an error once (defrag big list):\r\n```\r\nExecution time of different units:\r\n  1 seconds - unit/memefficiency\r\n  373 seconds - defrag\r\n\r\n!!! WARNING The following tests failed:\r\n\r\n*** [err]: Active defrag big list in tests/unit/memefficiency.tcl\r\ndefrag didn't stop.\r\n```\r\n\r\nbyw, in unstable branch, we supoort `--only` with re\r\nso in this case, if we in unstable branch, we should use:\r\n- `./runtest --single unit/memefficiency --verbose --no-latency --only \"Active defrag big list$\"`\r\n- `./runtest --single unit/memefficiency --verbose --no-latency --only \"Active defrag$\"`"
+    },
+    {
+      "id": 907737264,
+      "user": "oranagra",
+      "created_at": "2021-08-29T06:19:21Z",
+      "body": "@KernelErr i suppose Raspberry Pi is just a bit too slow for these thresholds.\r\nplease try to modify the `wait_for_condition 150 100` in the `Active defrag` in `tests/unit/memefficiency.tcl` to something like `wait_for_condition 500 100`. run the test a couple of times (the using the last line in the post above), and tell us how much time it takes to complete (assuming it'll succeed)"
+    },
+    {
+      "id": 907737379,
+      "user": "KernelErr",
+      "created_at": "2021-08-29T06:21:02Z",
+      "body": "> @KernelErr i suppose Raspberry Pi is just a bit too slow for these thresholds.\r\n> please try to modify the `wait_for_condition 150 100` in the `Active defrag` in `tests/unit/memefficiency.tcl` to something like `wait_for_condition 500 100`. run the test a couple of times (the using the last line in the post above), and tell us how much time it takes to complete (assuming it'll succeed)\r\n\r\nOkay, I will run these tests later today."
+    },
+    {
+      "id": 907744908,
+      "user": "KernelErr",
+      "created_at": "2021-08-29T07:32:15Z",
+      "body": "In the unstable branch, I performed the test after altering the `wait_for_condition 150 100` to `wait_for_condition 500 100`.\r\n\r\n```\r\n./runtest --single unit/memefficiency --verbose --no-latency --only \"Active defrag$\"\r\n```\r\n\r\nIt successfully passed and here's the time consumed(five times):\r\n\r\n```\r\nExecution time of different units:\r\n  0 seconds - unit/memefficiency\r\n  170 seconds - defrag\r\n\r\nExecution time of different units:\r\n  1 seconds - unit/memefficiency\r\n  170 seconds - defrag\r\n\r\nExecution time of different units:\r\n  1 seconds - unit/memefficiency\r\n  171 seconds - defrag\r\n\r\nExecution time of different units:\r\n  0 seconds - unit/memefficiency\r\n  170 seconds - defrag\r\n\r\nExecution time of different units:\r\n  1 seconds - unit/memefficiency\r\n  169 seconds - defrag\r\n```"
+    },
+    {
+      "id": 907745233,
+      "user": "oranagra",
+      "created_at": "2021-08-29T07:34:42Z",
+      "body": "thanks. so it's clear that 150*100 (15 seconds) was no were near enough.\r\nwas this the only one that failed? or are there others that need adjustment?"
+    },
+    {
+      "id": 907752784,
+      "user": "huangzhw",
+      "created_at": "2021-08-29T08:33:48Z",
+      "body": "At my machine this test always fails.\r\n\r\n```\r\n!!! WARNING The following tests failed:\r\n\r\n*** [err]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 46 <= 30 (context: type eval line 68 cmd {assert {$max_latency <= 30}} proc ::test)\r\n*** [err]: Active defrag big list in tests/unit/memefficiency.tcl\r\ndefrag didn't stop.\r\n```"
+    },
+    {
+      "id": 907753078,
+      "user": "KernelErr",
+      "created_at": "2021-08-29T08:36:23Z",
+      "body": "I ran `make test` on the unstable branch and it passed all tests(with `memefficiency` modified).\r\n\r\n```\r\nExecution time of different units:\r\n  0 seconds - unit/printver\r\n  63 seconds - unit/dump\r\n  2 seconds - unit/auth\r\n  1 seconds - unit/protocol\r\n  3 seconds - unit/keyspace\r\n  36 seconds - unit/scan\r\n  1 seconds - unit/info\r\n  27 seconds - unit/type/string\r\n  0 seconds - unit/type/incr\r\n  11 seconds - unit/type/list\r\n  56 seconds - unit/type/list-2\r\n  85 seconds - unit/type/list-3\r\n  25 seconds - unit/type/set\r\n  81 seconds - unit/type/zset\r\n  18 seconds - unit/type/hash\r\n  161 seconds - unit/type/stream\r\n  6 seconds - unit/type/stream-cgroups\r\n  58 seconds - unit/sort\r\n  17 seconds - unit/expire\r\n  25 seconds - unit/other\r\n  4 seconds - unit/multi\r\n  1 seconds - unit/quit\r\n  105 seconds - unit/aofrw\r\n  2 seconds - unit/acl\r\n  23 seconds - unit/latency-monitor\r\n  27 seconds - integration/block-repl\r\n  501 seconds - integration/replication\r\n  31 seconds - integration/replication-2\r\n  99 seconds - integration/replication-3\r\n  83 seconds - integration/replication-4\r\n  182 seconds - integration/replication-psync\r\n  11 seconds - integration/aof\r\n  29 seconds - integration/rdb\r\n  32 seconds - integration/corrupt-dump\r\n  21 seconds - integration/corrupt-dump-fuzzer\r\n  1 seconds - integration/convert-zipmap-hash-on-load\r\n  1 seconds - integration/convert-ziplist-hash-on-load\r\n  6 seconds - integration/logging\r\n  52 seconds - integration/psync2\r\n  22 seconds - integration/psync2-reg\r\n  20 seconds - integration/psync2-pingoff\r\n  7 seconds - integration/failover\r\n  18 seconds - integration/redis-cli\r\n  4 seconds - integration/redis-benchmark\r\n  8 seconds - integration/dismiss-mem\r\n  1 seconds - unit/pubsub\r\n  2 seconds - unit/slowlog\r\n  21 seconds - unit/scripting\r\n  176 seconds - unit/maxmemory\r\n  4 seconds - unit/introspection\r\n  7 seconds - unit/introspection-2\r\n  1 seconds - unit/limits\r\n  50 seconds - unit/obuf-limits\r\n  12 seconds - unit/bitops\r\n  4 seconds - unit/bitfield\r\n  251 seconds - unit/geo\r\n  12 seconds - unit/memefficiency\r\n  177 seconds - unit/hyperloglog\r\n  3 seconds - unit/lazyfree\r\n  5 seconds - unit/wait\r\n  1 seconds - unit/pause\r\n  3 seconds - unit/querybuf\r\n  21 seconds - unit/pendingquerybuf\r\n  0 seconds - unit/tls\r\n  3 seconds - unit/tracking\r\n  2 seconds - unit/oom-score-adj\r\n  1 seconds - unit/shutdown\r\n  3 seconds - unit/networking\r\n  607 seconds - defrag\r\n\r\n\\o/ All tests passed without errors!\r\n```\r\n\r\nSeems that it's ok for Raspberry Pi 3B with Manjaro installed.\r\n"
+    },
+    {
+      "id": 907758284,
+      "user": "oranagra",
+      "created_at": "2021-08-29T09:19:17Z",
+      "body": "@huangzhw the first error there is unrealiable latency measurement. you can use `--no-latency` to hide it.\r\nthe second problem is the one mentioned here: https://github.com/redis/redis/pull/7289#issuecomment-885431100 i don't know how to resolve it yet.\r\nif it happens a lot we may eventually decide to disable the test.\r\ni.e. i invested a lot of effort to write a test that can consistently reproduce a rare issue, thought that i solve it, but it turns out i didn't."
+    }
+  ]
+}

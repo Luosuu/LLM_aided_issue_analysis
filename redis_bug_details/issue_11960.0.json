@@ -1,0 +1,42 @@
+{
+  "issue_number": 11960.0,
+  "title": "[BUG] 'EVAL does not leak in the Lua stack' (scripting.tcl) seems to be a flakey test",
+  "body": "**Describe the bug**\r\n\r\nthe existing code for this test is\r\n\r\n    test {EVAL does not leak in the Lua stack} {\r\n        r set x 0\r\n        # Use a non blocking client to speedup the loop.\r\n        set rd [redis_deferring_client]\r\n        for {set j 0} {$j < 10000} {incr j} {\r\n            run_script_on_connection $rd {return redis.call(\"incr\",KEYS[1])} 1 x\r\n        }\r\n        for {set j 0} {$j < 10000} {incr j} {\r\n            $rd read\r\n        }\r\n        assert {[s used_memory_lua] < 1024*100}\r\n        $rd close\r\n        r get x\r\n    } {10000}\r\n\r\nbut I think that's flakey against, a long running redis instance i have that I've been testing against.\r\n\r\nto see this, I changed it to \r\n\r\n    test {EVAL does not leak in the Lua stack} {\r\n        set preused [s used_memory_lua]\r\n        assert {$preused < 1024*100}\r\n        r set x 0\r\n        # Use a non blocking client to speedup the loop.\r\n        set rd [redis_deferring_client]\r\n        for {set j 0} {$j < 10000} {incr j} {\r\n            run_script_on_connection $rd {return redis.call(\"incr\",KEYS[1])} 1 x\r\n        }\r\n        for {set j 0} {$j < 10000} {incr j} {\r\n            $rd read\r\n        }\r\n        set used [s used_memory_lua]\r\n        assert {$used < 1024*100}\r\n        $rd close\r\n        r get x\r\n    } {10000}\r\n\r\nand it asserts right t the beginning, i.e. it enters the test having \"leaked\" memory.\r\n\r\nBut if I remove the first assert and change the second assert to something like\r\n\r\nassert {($used - $preused) == 0}, it can show that memory actually decreases over the course of this test (i.e. used < $preused, but not equal to each other).  \r\n\r\nso this test (or entire suite) seems flakey when scripting.tcl is run repeatedly against a long running redis.\r\n\r\nA short description of the bug.\r\n\r\ntest fails under repeated runs against a redis instance\r\n\r\n**To reproduce**\r\n\r\ncompiled redis with sanitizer, repeatedly run \r\n\r\n./runtest --host 127.0.0.1 --port 5001 --cluster-mode --singledb --ignore-encoding --ignore-digest --skipfile /home/spotter/CLionProjects/redisraft/tests/redis-suite/skip.txt --tags -needs:repl --tags -needs:debug --tags -needs:save --tags -needs:reset --tags -needs:config-maxmemory --tags -needs:latency --tags -stream --tags -pause  --tags -tracking --tags -cli --tags -querybuf --single unit/scripting\r\n\r\n(not sure all those flags are needed to reproduce, just happen to be how I'm testing at the moment)\r\n\r\n**Expected behavior**\r\n\r\nnot to succeed first (possibly few) times but then reliably begin to fail\r\n",
+  "state": "open",
+  "created_at": "2023-03-23T09:15:13Z",
+  "updated_at": "2023-03-23T10:28:59Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1480856353,
+      "user": "sjpotter",
+      "created_at": "2023-03-23T09:26:20Z",
+      "body": "tested against 3c4def561aaa8ccdf247f53995f67b9ca7441ec8"
+    },
+    {
+      "id": 1480874710,
+      "user": "oranagra",
+      "created_at": "2023-03-23T09:38:58Z",
+      "body": "i think the test needs to start with `SCRIPT RESET` or maybe be added an `external:skip` flag.\r\n@MeirShpilraien WDYT?"
+    },
+    {
+      "id": 1480880968,
+      "user": "MeirShpilraien",
+      "created_at": "2023-03-23T09:43:39Z",
+      "body": "Yes agree, either this or we can check the memory usage before and after and only check the threshold (like @sjpotter did in the example he gave)."
+    },
+    {
+      "id": 1480932078,
+      "user": "oranagra",
+      "created_at": "2023-03-23T10:19:46Z",
+      "body": "since Lua can GC at some point, i'm not sure that approach is valid.\r\ni.e. a case where we had high memory utilization at the beginning, and it all got wiped up later, and we won't detect the leak.\r\nam i wrong?"
+    },
+    {
+      "id": 1480944112,
+      "user": "MeirShpilraien",
+      "created_at": "2023-03-23T10:28:59Z",
+      "body": "Yes, good point, so probably `SCRIPT RESET` is the best option."
+    }
+  ]
+}

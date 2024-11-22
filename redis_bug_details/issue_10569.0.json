@@ -1,0 +1,30 @@
+{
+  "issue_number": 10569.0,
+  "title": "[BUG] Stream consumer group lag heuristic isn't handled when executing `XCLAIM ... LASTID`",
+  "body": "This is a potential issue due to an omission in the design.\r\n\r\nIt was raised during a CR w/ @guybe7.\r\n\r\nQuick context: the lag heuristic depends on the stream's and the cg's counters (entries_added & entries_read). Change's to the group's last_id should, in theory, invalidate its entries_read to keep correctness.\r\n\r\nA problem may arise when issuing the `XCLAIM` with the `LASTID` argument. This invocation is there, by the looks of it, for replication purposes and is used internally only (I do hope). For correctness, the CG's entries_read needs to be invalidation around this [LoC](https://github.com/redis/redis/commit/c81c7f51c38de6dff5ffc55b5184061b84c7ea5f#diff-9f89868d206f9dbc0e415ba1f4f00b88f3c8766fafe346aa0744ae64024e052bL2964)",
+  "state": "open",
+  "created_at": "2022-04-12T11:33:36Z",
+  "updated_at": "2022-08-10T14:15:12Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1155054418,
+      "user": "oranagra",
+      "created_at": "2022-06-14T11:23:40Z",
+      "body": "@itamarhaber is that a bug you intend to fix or ask someone else to fix?"
+    },
+    {
+      "id": 1204398019,
+      "user": "hwware",
+      "created_at": "2022-08-03T19:41:51Z",
+      "body": "@itamarhaber could you please tell me more infomation about it, so I could help handle it?  Thanks"
+    },
+    {
+      "id": 1208254755,
+      "user": "itamarhaber",
+      "created_at": "2022-08-08T15:09:40Z",
+      "body": "Sure - updated the top comment.\r\n\r\nI'm not sure there's a serious bug there, but a fix (+test) would reduce the probability to zero :)"
+    }
+  ]
+}

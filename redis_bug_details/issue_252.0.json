@@ -1,0 +1,26 @@
+{
+  "issue_number": 252.0,
+  "title": "More judicious pre-allocation in sds.c",
+  "body": "Currently sds.c will always double the size of the buffer needed for an append operation, so that asymptotically there are no allocation costs appending to an sds.c string. However when the string starts to get bigger and bigger this preallocation cost can be too large. This mostly affect Redis users storing very big string objects (or very big elements of an aggregate data type).\n\nThe proposed fix is to double the size of a string that is less than 1MB in size, and instead only pre-allocate 1MB ahead if the string is equal or more than 1MB in size:\n\n```\n @@ -116,7 +116,11 @@\n     if (free >= addlen) return s;\n     len = sdslen(s);\n     sh = (void*) (s-(sizeof(struct sdshdr)));\n-    newlen = (len+addlen)*2;\n+    newlen = (len+addlen);\n+    if (newlen < 1024*1024)\n+        newlen *= 2;\n+    else\n+        newlen += 1024*1024;\n     newsh = zrealloc(sh, sizeof(struct sdshdr)+newlen+1);\n #ifdef SDS_ABORT_ON_OOM\n     if (newsh == NULL) sdsOomAbort();\n```\n",
+  "state": "closed",
+  "created_at": "2011-12-15T10:56:29Z",
+  "updated_at": "2012-02-02T11:41:48Z",
+  "closed_at": "2012-02-02T11:41:48Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 3507877,
+      "user": "antirez",
+      "created_at": "2012-01-16T09:04:08Z",
+      "body": "Issue fixed but I'll take it open because it is still not back ported to 2.4 (I'll wait a few weeks).\n"
+    },
+    {
+      "id": 3776557,
+      "user": "antirez",
+      "created_at": "2012-02-02T11:41:48Z",
+      "body": "Fix backported into 2.4 after a quick check about speed regression: everything looks ok. Closing this issue.\n"
+    }
+  ]
+}

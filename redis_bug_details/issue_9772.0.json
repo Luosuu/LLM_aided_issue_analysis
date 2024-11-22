@@ -1,0 +1,24 @@
+{
+  "issue_number": 9772.0,
+  "title": "[BUG] no failover with aclfile and different sentinel users/passwords",
+  "body": "**Describe the bug**\r\n\r\nAll sentinels show \"status=sdown\" after taking down the master - but no failover appears.\r\n\r\n**To reproduce**\r\n3 sentinel\r\n1 master/2 replica\r\n\r\n1. set for every single sentinel a different `sentinel auth-pass` and `sentinel auth-user`\r\n2. enable `aclfile /etc/redis/sentinel-users.acl`\r\n3. provide a single acl with all users and hashed passwords:\r\n```\r\nuser default on nopass allkeys -@all +SENTINEL|get-master-addr-by-name\r\nuser admin on #... allchannels +@all\r\nuser sentinel-01 on #... allkeys -@all +auth +client|getname +client|id +client|setname +command +hello +ping +role +sentinel|get-master-addr-by-name +sentinel|master +sentinel|myid +sentinel|replicas +sentinel|sentinels\r\nuser sentinel-02 on #... allkeys -@all +auth +client|getname +client|id +client|setname +command +hello +ping +role +sentinel|get-master-addr-by-name +sentinel|master +sentinel|myid +sentinel|replicas +sentinel|sentinels\r\nuser sentinel-03 on #... allkeys -@all +auth +client|getname +client|id +client|setname +command +hello +ping +role +sentinel|get-master-addr-by-name +sentinel|master +sentinel|myid +sentinel|replicas +sentinel|sentinels\r\n```\r\n4. deploy this file for every single sentinel and take the master redis-server down\r\n\r\n**A description of what you expected to happen.**\r\n\r\nAfter some downtime the sentinels should do the failover.\r\n\r\n**Any additional information that is relevant to the problem.**\r\n\r\n```\r\n# Sentinel\r\nsentinel_masters:1\r\nsentinel_tilt:0\r\nsentinel_running_scripts:0 \r\nsentinel_scripts_queue_length:0 \r\nsentinel_simulate_failure_flags:0 \r\nmaster0:name=master,status=sdown,address=redis-01:6379,slaves=2,sentinels=3\r\n\r\nSENTINEL ckquorum master\r\nOK 3 usable Sentinels. Quorum and failover authorization can be reached\r\n```\r\n\r\nAs soon as I disable the aclfile (default has then no password protection with all permissions), the failover works flawless.\r\nfyi - I also use an aclfile for the redis-server, no issues there, so the sha256 hashes are correctly made.\r\nThe passwords are long but no special characters because of earlier issues.\r\n\r\n```\r\nPackage: redis-server\r\nVersion: 6:6.2.6-1rl1~focal1\r\nPackage: redis-sentinel\r\nVersion: 6:6.2.6-1rl1~focal1\r\n```",
+  "state": "closed",
+  "created_at": "2021-11-11T12:25:31Z",
+  "updated_at": "2021-11-16T13:31:08Z",
+  "closed_at": "2021-11-16T13:31:08Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 966300797,
+      "user": "HidingCherry",
+      "created_at": "2021-11-11T13:26:09Z",
+      "body": "Looks like there is some wrong acl - it was taken from here:\r\nhttps://redis.io/topics/sentinel#configuring-sentinel-instances-with-authentication\r\nIt works without issues if I change `-@all` to `+@all`."
+    },
+    {
+      "id": 970277672,
+      "user": "HidingCherry",
+      "created_at": "2021-11-16T13:31:08Z",
+      "body": "missing acl permission:\r\n`+sentinel|is-master-down-by-addr`"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "issue_number": 11687.0,
+  "title": "[BUG] Blocking command with a 0.001 seconds timeout blocks indefinitely",
+  "body": "**Describe the bug**\r\n\r\nA blocking command with a 0.001 seconds timeout blocks indefinitely.\r\n\r\n**To reproduce**\r\n\r\n`BLPOP key 0.001` is blocking indefinitely while it shouldn't.\r\n\r\n**Expected behavior**\r\n\r\nCommand should time out.\r\n\r\n**Additional information**\r\n\r\nXREAD and XREADGROUP commands, that get their timeout in milliseconds, behave properly with a 1 ms timeout.",
+  "state": "closed",
+  "created_at": "2023-01-04T15:31:46Z",
+  "updated_at": "2023-01-08T09:02:50Z",
+  "closed_at": "2023-01-08T09:02:50Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1371544659,
+      "user": "madolson",
+      "created_at": "2023-01-04T23:31:18Z",
+      "body": "Hey @gabiganam, can you share what system you are running on. On my M2 macbook `BLPOP key 0.001` is not blocking indefinitely, and is correctly casting everything to 1 ms."
+    },
+    {
+      "id": 1371748489,
+      "user": "igxlin",
+      "created_at": "2023-01-05T03:41:18Z",
+      "body": "@madolson It is not casting correctly in my machine (Linux 6.1.1). \r\n\r\nThe `0.001 * 1000` is saved as `0xf.fffffffffffffffp-4` and is cast into `0`.\r\n\r\nSimilarly, some other timeout is not correct. \r\n\r\n```\r\n0.002 * 1000 => 1\r\n0.004 * 1000 => 3\r\n0.008 * 1000 => 7\r\n```\r\n\r\nBTW, what is the expected behavior when the timeout is very small. Take it as zero or 1ms? Or reply \"out of range\"?"
+    },
+    {
+      "id": 1371751468,
+      "user": "madolson",
+      "created_at": "2023-01-05T03:48:56Z",
+      "body": "I think the current assumption of \"<0.001 rounds to 0\" is probably the wrong assumption. I don't like throwing an error, that would be a pretty harsh breaking change. I think rounding \"up\" to the nearest 1ms sounds like the most reasonable.\r\n\r\n```\r\n0.002 * 1000 => 1\r\n0.004 * 1000 => 3\r\n0.008 * 1000 => 7\r\n```\r\nYeah, that also kind of worries me. That inaccuracy stops really becoming an issue at larger values, but I would expect the couple of lower digits be \"correct\"."
+    },
+    {
+      "id": 1371752077,
+      "user": "madolson",
+      "created_at": "2023-01-05T03:50:31Z",
+      "body": "As per the docs:\r\n```\r\nWhen BLPOP causes a client to block and a non-zero timeout is specified, the client will unblock returning a nil multi-bulk value when the specified timeout has expired without a push operation against at least one of the specified keys.\r\n```"
+    },
+    {
+      "id": 1371778622,
+      "user": "igxlin",
+      "created_at": "2023-01-05T04:50:10Z",
+      "body": "> I think rounding \"up\" to the nearest 1ms sounds like the most reasonable.\r\n\r\nI think then simply use `ceill` for the input timeout can work. The timeout smaller than 0.001 will be round up to 0.001. And the timeout like 0.002, 0.004 will be cast correctly."
+    },
+    {
+      "id": 1371857000,
+      "user": "gabiganam",
+      "created_at": "2023-01-05T07:10:03Z",
+      "body": "@madolson I've tried on several EC2 instance types, with both x86 and arm standard images.\r\nIMO the important inaccuracy is in the case of 0.001 => 0 because it's becoming blocking indefinitely.\r\nIn any case, `ceil` will also work of course..."
+    },
+    {
+      "id": 1371927806,
+      "user": "gabiganam",
+      "created_at": "2023-01-05T08:41:30Z",
+      "body": "Correct @igxlin, I've updated my PR accordingly: https://github.com/redis/redis/pull/11688/files"
+    }
+  ]
+}

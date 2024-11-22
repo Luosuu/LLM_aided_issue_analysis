@@ -1,0 +1,142 @@
+{
+  "issue_number": 2204.0,
+  "title": "redis-trib.rb may allocate the slave and master in the same host",
+  "body": "I found in the following deploy situation：\n192.168.1.100 two instance 6379 6380\n192.168.1.101 two instance 6379 6380\n192.168.1.102 two instance 6379 6380\n\nif I use the following command to create the cluster:\n\n```\nredis-trib.rb create --replicas 1 192.168.1.100:6379 192.168.1.100:6380 192.168.1.101:6379 ... 192.168.1.102:6380\n```\n\nthe master will be 6379 port on the three host,  but the slave of 192.168.1.102:6379 is 192.168.1.102:6380, on the same host.\n\nI read the code of redis-trib.rb, I think when we find a slave to the master, we can use each one time and reverse_each one time to resolve this problem. I have test my idea with more situation and think the distribution is better, eg three port in each host. \n\n```\n    def alloc_slots:\n        masters.each{|m|\n            reverse = true\n            if reverse \n                ips.reverse_each{|ip,nodes_list|\n                        next if nodes_list.length == 0\n                        # Skip instances with the same IP as the master if we\n                        # have some more IPs available.\n                        next if ip == m.info[:host] && nodes_count > nodes_list.length\n                        slave = nodes_list.shift\n            else\n                ips.each {|ip,nodes_list|\n                .......\n             reverse = reverse?false:true\n\n```\n",
+  "state": "closed",
+  "created_at": "2014-12-10T07:00:59Z",
+  "updated_at": "2017-03-13T11:46:17Z",
+  "closed_at": "2014-12-23T10:00:01Z",
+  "labels": [
+    "non critical bug",
+    "WAITING-OP-REPLY",
+    "state-op-waiting-for-reply"
+  ],
+  "comments_data": [
+    {
+      "id": 67166258,
+      "user": "antirez",
+      "created_at": "2014-12-16T14:25:22Z",
+      "body": "Here I invoke @mattsta that's the last one that touched this code :dancer: and may have it more fresh than me.\n\nThanks for reporting.\n"
+    },
+    {
+      "id": 67345777,
+      "user": "badboy",
+      "created_at": "2014-12-17T16:11:48Z",
+      "body": "The proposed solution doesn't work. `ips` is a hash and thus has no order, so we can't reverse it (well, actually it does have an order, but we cannot rely on it).\nWe could force the hash to a array, then sort it and reverse it, that seems to work for above setup. I don't really understood the whole code yet so I re-read that and try to come up with a good solution.\n"
+    },
+    {
+      "id": 67346768,
+      "user": "mattsta",
+      "created_at": "2014-12-17T16:17:16Z",
+      "body": "Yeah, the current redis-trib code _does_ work for cluster master->replica assignment.\n\nThe original message didn't specify if _redis-trib_ configured the cluster poorly or if the cluster didn't follow the redis-trib plan.  (we'd need a copy of the full redis-trib output during creation)\n\nThere was a bug a while ago where: redis-trib would make a cluster map, but the cluster would begin migrating slots before the setup was finished.  Even though redis-trib tried to set up a perfect balance, the cluster re-arranged things incorrectly.  (That happened a while ago and _I think_ this commit fixed it, but I can't find the GitHub Issue that originally reported the problem (to verify this was the fix): 0d9bcb1c12b73ea3835528a02a142cb6ec681a84)\n"
+    },
+    {
+      "id": 67349274,
+      "user": "antirez",
+      "created_at": "2014-12-17T16:30:52Z",
+      "body": "Thanks, let's see if we get more info from @rj03hou before closing.\n"
+    },
+    {
+      "id": 67349531,
+      "user": "badboy",
+      "created_at": "2014-12-17T16:32:16Z",
+      "body": "Current script produces this mapping:\n\n```\nAdding replica 192.168.1.101:6380 to 192.168.1.100:6379\nAdding replica 192.168.1.100:6380 to 192.168.1.101:6379\nAdding replica 192.168.1.102:6380 to 192.168.1.102:6379\n```\n\nAs you can see: `102:6380` is assigned to `102:6379`.\nBetter setup would be:\n\n```\n100:6379 ← 102:6380\n101:6379 ← 100:6380\n102:6379 ← 101:6380\n```\n\nThis diff produces exactly that:\n\n``` diff\ndiff --git i/src/redis-trib.rb w/src/redis-trib.rb\nindex 4002f63..f99044f 100755\n--- i/src/redis-trib.rb\n+++ w/src/redis-trib.rb\n@@ -596,6 +596,7 @@ class RedisTrib\n\n         [:requested,:unused].each{|assign|\n             masters.each{|m|\n+                reverse = true\n                 assigned_replicas = 0\n                 while assigned_replicas < @replicas\n                     break if nodes_count == 0\n@@ -609,7 +610,9 @@ class RedisTrib\n                                  \"role too (#{nodes_count} remaining).\"\n                         end\n                     end\n-                    ips.each{|ip,nodes_list|\n+\n+                    cur_ips = reverse ? ips.to_a.reverse : ips.to_a\n+                    cur_ips.each{|ip,nodes_list|\n                         next if nodes_list.length == 0\n                         # Skip instances with the same IP as the master if we\n                         # have some more IPs available.\n@@ -621,6 +624,8 @@ class RedisTrib\n                         puts \"Adding replica #{slave} to #{m}\"\n                         break\n                     }\n+\n+                    reverse = !reverse\n                 end\n             }\n         }\n```\n\nI did not test with another (larger) setup yet and I'm not sure we can handle each possible case without writing confusing hard-to-maintain code.\n\nExtracted example code: https://gist.github.com/badboy/b59fb31d94909b6bf968\n"
+    },
+    {
+      "id": 67384233,
+      "user": "mattsta",
+      "created_at": "2014-12-17T20:04:46Z",
+      "body": "So, this actually feels like an NP-complete matching problem.  We can fake a good solution since we only care about _not_ matching IPs together.\n\nThe reverse case fails for a slight longer test since it just moves the failure case of \"same nodes at end\" to \"same nodes in middle.\"  The following configuration causes duplicate node assignment even though we can still match all nodes to non-same IPs.\n\n```\n  new_node(\"192.168.1.100\", 1),\n  new_node(\"192.168.1.100\", 2),\n  new_node(\"192.168.1.100\", 3),\n  new_node(\"192.168.1.100\", 4),\n  new_node(\"192.168.1.100\", 5),\n\n  new_node(\"192.168.1.101\", 1),\n  new_node(\"192.168.1.101\", 2),\n  new_node(\"192.168.1.101\", 3),\n  new_node(\"192.168.1.101\", 4),\n\n  new_node(\"192.168.1.102\", 1),\n  new_node(\"192.168.1.102\", 2),\n  new_node(\"192.168.1.102\", 3),\n  new_node(\"192.168.1.102\", 4),\n  new_node(\"192.168.1.102\", 5),\n```\n\nLet's step back and see what we have.\n\nWhat are we given?  We have a hash of `{IP, List of Nodes With That IP}`.  For a proper (simple) matching, what we really want is: a list of alternating nodes across all IPs.\n\nThe current processing method forms an in-order traversal:\n\n``` haskell\nIP1:0 -> IP1:1 -> IP2:0 -> IP2:1 -> IP3:0 -> IP3:1\n```\n\nThe current method says: \"if next IP is current IP, skip it and try again.\"  That works (IP1:0 == IP1:1, so use IP1:0 => IP2:0.  Now, IP1:1 => IP2:1), but by the end, all we have is IP3:0 and IP3:1 remaining.\n\nWhat we need: traverse one node from each IP before using the same IP again:\n\n``` haskell\nIP1:0 -> IP2:0 -> IP3:0 -> IP1:1 -> IP2:1 -> IP3:1\n```\n\n**now** all we have to do is say \"use the next available IP in the list\" since it won't match the current IP in the list.\n\nNow, we _only_ get master->slave on the same IP _if_ one IP has an even number of nodes provided while all the other IPs have an odd number of nodes provided.  We can't stop people from not having enough node diversity, but we can stop the average cases from over-assigning poorly.\n\nDouble check it makes sense (diff based off of the great test utility at https://gist.github.com/badboy/b59fb31d94909b6bf968):\n\n``` diff\ndiff --git a/rclus.rb b/rclus.rb\nindex 258cd60..f13accd 100644\n--- a/rclus.rb\n+++ b/rclus.rb\n@@ -40,16 +40,22 @@ def alloc_slots(nodes, replicas)\n\n   # Select master instances\n   puts \"Using #{masters_count} masters:\"\n-  while masters.length < masters_count\n-    ips.each{|ip,nodes_list|\n-      next if nodes_list.length == 0\n-      masters << nodes_list.shift\n-      puts masters[-1]\n-      nodes_count -= 1\n-      break if masters.length == masters_count\n-    }\n+\n+  interleaved = []\n+  stop = false\n+  while not stop do\n+      # Take one node from each IP until we run out of nodes\n+      # across every IP.\n+      ips.each do |ip,nodes|\n+          stop = nodes.empty? and next\n+          interleaved.push nodes.shift\n+      end\n   end\n\n+  masters = interleaved.slice!(0, masters_count)\n+  nodes_count -= masters.length\n+  puts masters\n+\n   # Alloc slots on masters\n   slots_per_node = ClusterHashSlots.to_f / masters_count\n   first = 0\n@@ -78,6 +85,8 @@ def alloc_slots(nodes, replicas)\n   assignment_verbose = false\n\n   p ips\n+  p nodes\n+  p interleaved\n   [:requested,:unused].each{|assign|\n     masters.each{|m|\n       reverse = true\n@@ -95,21 +104,10 @@ def alloc_slots(nodes, replicas)\n           end\n         end\n\n-        cur_ips = reverse ? ips.to_a.reverse : ips.to_a\n-        cur_ips.each{|ip,nodes_list|\n-          next if nodes_list.length == 0\n-          # Skip instances with the same IP as the master if we\n-          # have some more IPs available.\n-          next if ip == m.info[:host] && nodes_count > nodes_list.length\n-          slave = nodes_list.shift\n-          #slave.set_as_replica(m.info[:name])\n-          nodes_count -= 1\n-          assigned_replicas += 1\n-          puts \"Adding replica #{slave} to #{m}\"\n-          break\n-        }\n-\n-        reverse = !reverse\n+        slave = interleaved.shift\n+        nodes_count -= 1\n+        assigned_replicas += 1\n+        puts \"Adding replica #{slave} to #{m}\"\n       end\n     }\n   }\n@@ -117,14 +115,24 @@ end\n\n\n nodes = [\n-  new_node(\"192.168.1.100\", 6379),\n-  new_node(\"192.168.1.100\", 6380),\n+  new_node(\"192.168.1.100\", 1),\n+  new_node(\"192.168.1.100\", 2),\n+  new_node(\"192.168.1.100\", 3),\n+  new_node(\"192.168.1.100\", 4),\n+  new_node(\"192.168.1.100\", 5),\n\n-  new_node(\"192.168.1.101\", 6379),\n-  new_node(\"192.168.1.101\", 6380),\n+  new_node(\"192.168.1.101\", 1),\n+  new_node(\"192.168.1.101\", 2),\n+  new_node(\"192.168.1.101\", 3),\n+  new_node(\"192.168.1.101\", 4),\n+  new_node(\"192.168.1.101\", 5),\n+#  new_node(\"192.168.1.101\", 6),  # <-- that will cause overassignment of 101\n\n-  new_node(\"192.168.1.102\", 6379),\n-  new_node(\"192.168.1.102\", 6380),\n+  new_node(\"192.168.1.102\", 1),\n+  new_node(\"192.168.1.102\", 2),\n+  new_node(\"192.168.1.102\", 3),\n+  new_node(\"192.168.1.102\", 4),\n+  new_node(\"192.168.1.102\", 5),\n ]\n replicas = 1\n-alloc_slots(nodes, replicas)\n\\ No newline at end of file\n+alloc_slots(nodes, replicas)\n```\n"
+    },
+    {
+      "id": 67392608,
+      "user": "mattsta",
+      "created_at": "2014-12-17T20:56:55Z",
+      "body": "(though, that only works for a replica factor of 1.  For replica factor > 1, we _do_ need to reject nodes at assignment time.  But, it still helps to have one list to search instead of a list of each IP.  Generalized solution for replica assignment becomes:\n\n``` diff\n-        cur_ips = reverse ? ips.to_a.reverse : ips.to_a\n-        cur_ips.each{|ip,nodes_list|\n-          next if nodes_list.length == 0\n-          # Skip instances with the same IP as the master if we\n-          # have some more IPs available.\n-          next if ip == m.info[:host] && nodes_count > nodes_list.length\n-          slave = nodes_list.shift\n-          #slave.set_as_replica(m.info[:name])\n-          nodes_count -= 1\n-          assigned_replicas += 1\n-          puts \"Adding replica #{slave} to #{m}\"\n-          break\n-        }\n-\n-        reverse = !reverse\n+        # Return the first node not matching our current master\n+        node = interleaved.find{|n| n.info[:host] != m.info[:host]}\n+\n+        # If we found a node, use it as a best-first match.\n+        # else, we didn't find a not-this-master-IP node, so just use\n+        # the next node even though it's already on this master's IP.\n+        if node\n+            slave = node\n+            interleaved.delete node\n+        else\n+            slave = interleaved.shift\n+        end\n+        nodes_count -= 1\n+        assigned_replicas += 1\n+        puts \"Adding replica #{slave} to #{m}\"\n```\n\n)\n"
+    },
+    {
+      "id": 67437502,
+      "user": "rj03hou",
+      "created_at": "2014-12-18T03:44:43Z",
+      "body": "Thanks for your reply and good working, we have deploy three redis cluster in production.\nIf redis cluster release, we will deploy more redis cluster.\n\nI have no info, we may add a test case to this case. The reverse method is we think the method which is the small change to the code, mattsta's method is complicate, I don't understand, but I guess it's better than reverse, if we test it the common situation, we can close it. \n"
+    },
+    {
+      "id": 67484118,
+      "user": "mariano-perez-rodriguez",
+      "created_at": "2014-12-18T13:17:01Z",
+      "body": "Just a quick note. If I understand correctly, the problem is to assign n\nslaves to each master (if this is not the case, please ignore what follows\n:-P).\n\nThis could be modelled by a min-cut/max-flow problem as follows:\n\n```\n- you're given m masters M1, M2, ..., Mm, and an integer number n < m.\n\n- build a (weighted and directed) graph G having 2m + 2 nodes: call one of\n```\n\nthem \"source\", another one \"drain\", m of them are labeled M1, M2, ..., Mm,\nand call the last m of them M1', M2', ..., Mm'; connect the nodes thus:\na. Place edges weighting n from \"source\" to each of M1, M2, ..., Mm.\nb. Place edges with infinite weight from each of M1', M2', ..., Mm' to\n\"drain\" (but see note below!!!)\nc. Place edges weighting 1 from each Mi to each Mj' whenever i != j.\n\n```\n- now run a (polynomial) min-cut/max-flow algorithm like\n```\n\nFord-Fulkerson-Edmonds-Karp and look at the total flow (call it f) and the\nedges selected between the nodes M1, M2, ..., Mm, M1', M2', ..., Mm': if f\nequals m_n (meaning that the algorithm could assign m_n master/slave\nrelations) then for each selected edge between Mi and Mj', have j be a\nslave of i (actually, replica or something, I didn't yet have the time to\nget Redis Cluster terminology right).\n\nNOTE: if the edges from each of M1', M2', ..., Mm' to \"drain\" would weight\nn, then each node would be the slave/replica of at most n masters.\n\nThis looks involved, but it's not terribly horrible to implement and I'm\nsure there are Ruby implementations of FFEK around :-)\n\nRegards!\n"
+    },
+    {
+      "id": 67722592,
+      "user": "mattsta",
+      "created_at": "2014-12-20T02:58:20Z",
+      "body": "> If I understand correctly, the problem is to assign n slaves to each master\n\nThe problem isn't counting the assignments, it's just not assigning replicas on the same master host (as best we can).  There's no weight or score between the nodes here, so ideally we need a \"global planner\" to figure out the best options for all master-replica combinations.  The approach I outlined above is a quick way to make sure adjacent assignments are as non-duplicate as possible.\n\nI integrated my solution into redis-trib at https://github.com/antirez/redis/pull/2227\n"
+    },
+    {
+      "id": 67741111,
+      "user": "mariano-perez-rodriguez",
+      "created_at": "2014-12-20T16:34:43Z",
+      "body": "I wasn't talking about _counting_ the assignments, the procedure I gave\nabove will _give_ you one such assignment: by looking at the edges used you\ncan determine the assignment itself :)\n"
+    },
+    {
+      "id": 67741536,
+      "user": "mattsta",
+      "created_at": "2014-12-20T16:46:28Z",
+      "body": "Yup, but typical node assignment is between 3 and 100 nodes, so pulling in a larger method is a bit overkill.  :)\n\nThough—redis-trib.rb is a _reference_ implementation of cluster management functions.  If there are better ways, write them and people will use them.  :shipit: \n"
+    },
+    {
+      "id": 67742226,
+      "user": "mariano-perez-rodriguez",
+      "created_at": "2014-12-20T17:07:05Z",
+      "body": "Agreed! thanks for considering it though :)\n"
+    },
+    {
+      "id": 262257201,
+      "user": "Annapoornar",
+      "created_at": "2016-11-22T14:38:48Z",
+      "body": "Hi, I have similar problem. I have the redis cluster setup be like this.\r\n\r\n10.2.2.161 two instance 6379 6380\r\n10.2.2.11 two instance 6379 6380\r\n10.2.2.149 two instance 6379 6380 \r\n\r\nand I want to set master slave combination to be \r\n161:6379 ← 11:6380\r\n11:6379 ← 149:6380\r\n149:6379 ← 161:6380\r\n\r\n I used the following command to create the cluster:\r\nsrc/redis-trib.rb create --replicas 1 10.2.2.161:6379 10.2.2.11:6379 10.2.2.149:6379 10.2.2.11:6380 10.2.2.149:6380 10.2.2.161:6380\r\n\r\nthen after when I check the cluster nodes command output, i see the cluster has set up like below which is not what I am expecting. Please correct me if the order of the nodes mentioned in create is wrong?\r\n\r\n16c0a014f91b72bcb4426285aea77b0c0e1aaeac 10.2.2.161:6379 myself,master - 0 0 1 connected 0-5460\r\n42202165db4cc660496afb6d8c548782076bc60a 10.2.2.149:6379 master - 0 1479798899058 3 connected 10923-16383\r\na4776993f98ef476e8374a83ea1a0ab53b0593ad 10.2.2.11:6379 master - 0 1479798900059 2 connected 5461-10922\r\n592cd006659dd6b549f55c8affcf65205739dccb 10.2.2.149:6380 slave 42202165db4cc660496afb6d8c548782076bc60a 0 1479798901061 5 connected\r\n6b03fc8305ab15d2dc07b3fc51409cadb2e9fcb3 10.2.2.11:6380 slave 16c0a014f91b72bcb4426285aea77b0c0e1aaeac 0 1479798900361 4 connected\r\n23c4b2486b8ef910bf4975582992e5647b9a53a5 10.2.2.161:6380 slave a4776993f98ef476e8374a83ea1a0ab53b0593ad 0 1479798902063 6 connected\r\n\r\n"
+    },
+    {
+      "id": 264695521,
+      "user": "vladcenan",
+      "created_at": "2016-12-04T10:22:23Z",
+      "body": "I have the same issue, this was not solved for replica factor 1, it create the last two master-slave on the same node/ip."
+    },
+    {
+      "id": 273894364,
+      "user": "lahngp",
+      "created_at": "2017-01-19T20:50:04Z",
+      "body": "I came across this problem too. I was going to setup a cluster with replicas set to 1 on 3 machine, and each machine hosted two redis instances, namely 6 instances in total, hoping that any one of the 3 machine's failure would not affect the cluster. But , after the cluster was up, I found a master and slave on a same machine. If this machine got down, then the whole cluster would be down. Then I choose to manually add slaves, as is shown below: \r\n[cluster] step by step   # you may create the cluster with create-cluster script, and it's useful for debugging.\r\n\\# apt-get install ruby ruby-dev\r\n\\# gem install redis\r\nREDIS_HOME=/opt/redis-3.2.6\r\ntrib=$REDIS_HOME/src/redis-trib.rb\r\nhost1=192.168.1.61\r\nhost2=192.168.1.67\r\nhost3=192.168.1.108\r\ncomm='--daemonize yes --bind 0.0.0.0 --appendonly yes --cluster-enabled yes --cluster-node-timeout 5000'\r\n. start up server respectively  execute on all machine    a physical server act as a master and a slave of other master\r\nredis-server $comm --port 7001 --cluster-config-file nodes-7001.conf\r\nredis-server $comm --port 7002 --cluster-config-file nodes-7002.conf\r\n.create cluster   execute on one of server\r\n$trib create --replicas 0 $host1:7001 $host2:7001 $host3:7001\r\n\\## $trib create --replicas 1 $host1:7001 $host2:7001 $host3:7001 $host1:7002 $host2:7002 $host3:7002  \\# this command may lead to a master and a slave on a same machine\r\n. check\r\nredis-cli -c -p 7001 CLUSTER NODES\r\nredis-cli -c -p 7001 SET foo bar   set aa 11   set bb 22   # The 3 keys foo, aa and bb will span over 3 different master, and help debug.\r\n. replica   add slave manually  execute on one of master\r\nMEET=$host1:7001\r\nmaster1=03521c832d7023f5d6461e1809f271b01b02ed52  # the master on host1\r\nmaster2=80327e5dabeb8f6a1be7b91093a29f40ba2c11be  # the master on host2\r\nmaster3=79428c877c1a835997fbe628fe2068197504c743  # the master on host3\r\n$trib add-node --slave --master-id $master2  $host1:7002 $MEET\r\n$trib add-node --slave --master-id $master3  $host2:7002 $MEET\r\n$trib add-node --slave --master-id $master1  $host3:7002 $MEET\r\n. check  # shutdown host3 first, then check whether all of the following commands will have result or not\r\nredis-cli -c -p 7001 get foo\r\nredis-cli -c -p 7001 get aa\r\nredis-cli -c -p 7001 get bb"
+    },
+    {
+      "id": 276052903,
+      "user": "sidd081-zz",
+      "created_at": "2017-01-30T12:39:44Z",
+      "body": "@vladcenan \r\nI made a small change in redis-trib.rb and it worked fine for me in most of the cases. In def `alloc_slots`\r\nin script, after ` masters.each{|m| puts m}`  add one more new line `interleaved.push interleaved.shift`\r\n\r\n\r\n....\r\n 579         masters = interleaved.slice!(0, masters_count)\r\n 580         nodes_count -= masters.length\r\n 581\r\n 582         masters.each{|m| puts m}\r\n 583         **interleaved.push interleaved.shift**\r\n....\r\n"
+    },
+    {
+      "id": 276384711,
+      "user": "vladcenan",
+      "created_at": "2017-01-31T14:54:49Z",
+      "body": "@sidd081 thanks for the solution, for me it worked for all the environments. Please create a pull request with this solution it will help others also ."
+    },
+    {
+      "id": 276604825,
+      "user": "sidd081-zz",
+      "created_at": "2017-02-01T08:57:26Z",
+      "body": "@vladcenan Sure will do that. Please do checkout https://github.com/sidd081/Analyse-Redis-Cluster-nodes as well for analysing redis cluster."
+    },
+    {
+      "id": 277173103,
+      "user": "sidd081-zz",
+      "created_at": "2017-02-03T06:16:22Z",
+      "body": "@vladcenan https://github.com/antirez/redis/pull/3789"
+    },
+    {
+      "id": 286085333,
+      "user": "spccold",
+      "created_at": "2017-03-13T11:46:17Z",
+      "body": "@antirez can redis-trib.rb provide some ways to let us define exact layout of the fresh redis cluster?\r\nif redis-trib.rb can use a configuration file to initialize a fresh redis cluster, that will be fine! \r\n\r\nconfiguration file example:\r\n\r\n\tmaster1:slave1,slave2\r\n\tmaster2:slave1\r\n\tmaster3:slave1"
+    }
+  ]
+}

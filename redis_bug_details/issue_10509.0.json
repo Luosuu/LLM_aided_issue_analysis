@@ -1,0 +1,11 @@
+{
+  "issue_number": 10509.0,
+  "title": "[BUG] IO threads not work well in  many fds which are need to reply。such as feed 100 replicas ",
+  "body": "**Describe the bug**\r\n\r\nwhen  we have many fds need to reply。 clientHasPendingReplies always return 1.   so clients do not add to client_pending_write list ，instead of AE_WRITE event。\r\nin this case  handleClientsWithPendingWritesUsingThreads does not work。\r\n**To reproduce**\r\nint prepareClientToWrite(client *c) {\r\n    if (!clientHasPendingReplies(c) && io_threads_op == IO_THREADS_OP_IDLE)\r\n            clientInstallWriteHandler(c);\r\n\r\n    /* Authorize the caller to queue in the output buffer of this client. */\r\n    return C_OK;\r\n}\r\n\r\n**Expected behavior**\r\n\r\n\r\n\r\n**Additional information**\r\n\r\nhere is my patch::\r\n\r\nint prepareClientToWrite(client *c) {\r\n \r\n    if (!clientHasPendingReplies(c)) {\r\n        serverLog(LL_DEBUG,\" client %s flags %lld no data, need to add clients_pending_write %d  \",\r\n            c->name==NULL ? \"NA\" : (char*)c->name->ptr,c->flags,\r\n            (int)listLength(server.clients_pending_write));\r\n        if (io_threads_op  == IO_THREADS_OP_IDLE) {\r\n            clientInstallWriteHandler(c);\r\n        }\r\n        \r\n    } else {\r\n        serverLog(LL_DEBUG,\" client %s flags %lld have data,  clients_pending_write %d  \",\r\n            c->name==NULL ? \"NA\" : (char*)c->name->ptr,c->flags,\r\n            (int)listLength(server.clients_pending_write));\r\n\r\n         int events = aeGetFileEvents(server.el,c->conn->fd);\r\n         if ((events & AE_WRITABLE) && aeWait(c->conn->fd,AE_WRITABLE,0)) {\r\n             serverLog(LL_DEBUG,\" %s hasAE_WRITABLE  socket writeable delAE_WRITABLE add clients_pending_write\", \r\n                 c->name==NULL ? \"NA\" : (char*)c->name->ptr);        \r\n             connSetWriteHandler(c->conn, NULL);\r\n             clientInstallWriteHandler(c);\r\n         }\r\n    }\r\n    /* Authorize the caller to queue in the output buffer of this client. */\r\n    return C_OK;\r\n}",
+  "state": "open",
+  "created_at": "2022-04-02T12:18:01Z",
+  "updated_at": "2022-04-04T15:04:01Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

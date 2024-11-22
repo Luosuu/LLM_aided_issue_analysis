@@ -1,0 +1,42 @@
+{
+  "issue_number": 10793.0,
+  "title": "[BUG]",
+  "body": "sending \"expireat\" command with only the key (with empty string)  as part of a multi command does not return an error\r\n\r\nA short description of the bug.\r\n\r\nUsing a multi and with at least 2 commands the redis accept sending expireat command as part of the multi with the 2nd argument as empty string\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n\"multi\"\r\n\"hincrby\" \"foo\" \"bar\" \"123\"\r\n\"expireat\" \"foo\" \"\"\r\n\"exec\r\n\r\nA description of what you expected to happen.\r\n\r\nthe first command should return the aggregated value\r\nthe second command should return not an integer\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2022-05-29T05:57:56Z",
+  "updated_at": "2022-05-29T12:26:23Z",
+  "closed_at": "2022-05-29T12:11:52Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1140413001,
+      "user": "oranagra",
+      "created_at": "2022-05-29T09:41:08Z",
+      "body": "@OronMA i'm not sure i understand your problem.\r\nit's not clear which interface you're using to pass these commands to redis, and if `\"\"` is an empty string, or maybe redis get's a missing argument or an actual `\"`.\r\nalso, please state which version of redis you're using.\r\n\r\nanyway, there are two behaviors:\r\n1 when redis can predict the command is gonna fail during queuing (like arity errors)\r\n```\r\n127.0.0.1:6379> multi\r\nOK\r\n127.0.0.1:6379> incr a\r\nQUEUED\r\n127.0.0.1:6379> expireat a\r\n(error) ERR wrong number of arguments for 'expireat' command\r\n127.0.0.1:6379> exec\r\n(error) EXECABORT Transaction discarded because of previous errors.\r\n```\r\n2 when redis can't predict ahead of time, and ends up executing the command:\r\n```\r\n127.0.0.1:6379> multi\r\nOK\r\n127.0.0.1:6379> incr a\r\nQUEUED\r\n127.0.0.1:6379> expireat a a\r\nQUEUED\r\n127.0.0.1:6379> exec\r\n1) (integer) 1\r\n2) (error) ERR value is not an integer or out of range\r\n```\r\n\r\nI consider both of them valid, and would note that invalid arguments are a bug in the software that should be fixed during development, and the transaction atomicity issues (failing one command and executing another), are something that could be avoided by using WATCH (e.g. to avoid missing keys or ones with wrong type)."
+    },
+    {
+      "id": 1140432726,
+      "user": "OronMA",
+      "created_at": "2022-05-29T11:52:17Z",
+      "body": "have you tried it without the CLI?\r\nI am getting this from the ioredis and node redis clients.. (its being passed to the server.. I am reading the resp)\r\nand inside the server i see it in the monitor.\r\n\r\nusing redis cluster 6.2.0"
+    },
+    {
+      "id": 1140434933,
+      "user": "oranagra",
+      "created_at": "2022-05-29T12:04:11Z",
+      "body": "tested this on 6.2\r\n```\r\n$ telnet localhost 6379\r\nTrying 127.0.0.1...\r\nConnected to localhost.\r\nEscape character is '^]'.\r\nmulti\r\n+OK\r\nincr x\r\n+QUEUED\r\n*3  \r\n$8           \r\nexpireat\r\n$1\r\nx\r\n$0\r\n\r\n+QUEUED\r\nexec\r\n*2\r\n:1\r\n-ERR value is not an integer or out of range\r\n```"
+    },
+    {
+      "id": 1140438586,
+      "user": "oranagra",
+      "created_at": "2022-05-29T12:24:06Z",
+      "body": "ok, so an array with two replies saying \"1\" (that's sounds right?), but note that that's different than your opening post (about empty string argument).\r\ni assume from the fact you closed the ticket that you concluded that there's some problem with the client libraries? (in which case please report in their repos)"
+    },
+    {
+      "id": 1140438960,
+      "user": "OronMA",
+      "created_at": "2022-05-29T12:26:23Z",
+      "body": "yes.. its a problem with the ioredis repo.. once again.\r\nin the monitor i can see that it reached the redis server, and the client just ignored the error."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "issue_number": 10926.0,
+  "title": "[BUG] 7.0.1, 7.0.2  syscheck.c  checkOvercommit()  if (atoi(buf)) {  \"msg\" } -> Not working",
+  "body": "**Describe the bug**\r\n\r\nNo overcommit log message\r\n\r\n**To reproduce**\r\n\r\n7.0.0 source code server.c \r\n\tlinuxOvercommitMemoryValue() \treturn atoi(buf);\r\n\tlinuxMemoryWarnings() if (linuxOvercommitMemoryValue() == 0) {  \"WARNING msg\" }\r\n\r\n**Expected behavior**\r\n\tredis-7.0.1, 7.0.2  syscheck.c \r\n\t\tcurrent code:  if (atoi(buf)) {  \"WARNING msg\" }  \r\n                Please correct this:  \tif (atoi(buf) == 0) {  \"msg\" } \r\n\r\n\r\n**Additional information**\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-04T02:00:22Z",
+  "updated_at": "2022-07-04T02:05:26Z",
+  "closed_at": "2022-07-04T02:05:26Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1173258700,
+      "user": "enjoy-binbin",
+      "created_at": "2022-07-04T02:05:26Z",
+      "body": "sorry for that, see #10906 and #10841\r\n\r\nit will be fix in 7.0.3, so now just ignore the warning \r\n(the vm.overcommit_memory = 1 is working, we did a wrong check, so the warning is always printed)"
+    }
+  ]
+}

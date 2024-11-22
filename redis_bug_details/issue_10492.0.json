@@ -1,0 +1,30 @@
+{
+  "issue_number": 10492.0,
+  "title": "[BUG] Changing volatility of Watched keys does not abort Txn",
+  "body": "Changing volatility of Watched keys does not seem to abort the Txn. \r\n\r\n**Background**\r\nWe are using [go-redis](https://github.com/go-redis/redis) and the code more or less looks as follows:\r\n\r\n```\r\nc := redisClient // ClusterClient\r\n\r\n// in a retry loop\r\nc.Watch(ctx, func(t *redis.Tx) error {\r\n \r\nc.Expire(ctx, \"foo\", time.Duration(2) * time.Second);  // shouldn't this abort the transaction since the key was modified?\r\n\r\n// other ops using t to modify the cache state\r\n\r\n// persist the same keys if ops above succeeded\r\n}, []string{\"foo\", \"bar\"}...)\r\n```\r\n\r\nSimilarly, say we `c.Persist` on a watched key, would it abort any concurrent transactions watching on the same key? \r\n\r\nFrom the documentation (https://redis.io/docs/manual/transactions/#watchcommandswatch-explained), \"we are asking Redis to perform the transaction only if none of the [WATCH](https://redis.io/commands/watch)ed keys were modified\", I would imagine changing volatility of watched keys would abort the txn.\r\n\r\nP.S: I know using redis client object inside the watch is a strange (is it discouraged as well?), but we need to change the expiration on the keys and using `txn` wouldn't really make sense since the operations are queued. We have created a wrapper around `Watch` which prevents us from expiration the watched keys outside of it - and we need the retry behavior to be there.\r\n",
+  "state": "open",
+  "created_at": "2022-03-29T20:24:07Z",
+  "updated_at": "2022-03-30T11:05:32Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1082643145,
+      "user": "oranagra",
+      "created_at": "2022-03-30T05:40:28Z",
+      "body": "@mohitreddy1996 in the example you gave, i don't see any transaction being used.\r\nhere's a test i made:\r\n```\r\n127.0.0.1:6379> set x x\r\nOK\r\n127.0.0.1:6379> watch x\r\nOK\r\n127.0.0.1:6379> expire x 10000\r\n(integer) 1\r\n127.0.0.1:6379> multi\r\nOK\r\n127.0.0.1:6379(TX)> set x y\r\nQUEUED\r\n127.0.0.1:6379(TX)> exec\r\n(nil)\r\n127.0.0.1:6379> get x\r\n\"x\"\r\n```"
+    },
+    {
+      "id": 1082853712,
+      "user": "mohitreddy1996",
+      "created_at": "2022-03-30T09:41:30Z",
+      "body": "Yes, I omitted the actual ops using transaction and simply wrote `// other ops using t to modify the cache state` to make the example as short as possible..\r\n\r\nThanks for the example @oranagra  - I wonder if it's an implementation bug on our end or a bug on go-redis..\r\n\r\nBut to confirm, changing volatility of watched keys (by a different client or within the watch outside of the scope of a txn of the same client) should abort the txns?"
+    },
+    {
+      "id": 1082991490,
+      "user": "oranagra",
+      "created_at": "2022-03-30T11:05:32Z",
+      "body": "yes, changing volatility \"invalidates\" the key and should abort any watched transaction.\r\nwhich version of redis are you using? maybe there was a bug?"
+    }
+  ]
+}

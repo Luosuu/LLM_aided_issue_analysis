@@ -1,0 +1,72 @@
+{
+  "issue_number": 12196.0,
+  "title": "[BUG] In redis cluster, the traffic delivered to each node during publish exceeds 10 \"multiply\".",
+  "body": "**Describe the bug**\r\nIn redis cluster, the traffic delivered to each node during pub sub exceeds 10 \"multiply\".\r\n\r\n**Additional information**\r\nlinux redis 7.0.10\r\n\r\n\r\nIt is reported like a bug while developing the PUB/SUB of Redis Cluster.\r\n\r\nPublished two cluster nodes (M/M or M/S) 10kb data.\r\nDidn't subscribe for pure bug reproduction\r\n\r\nWhat expect\r\n10KB of data was delivered to the node except the node where the Publish was generated, and if there was a client that was subscribe, 10kB of data would be delivered.\r\n\r\nBut the actual traffic\r\nThe client sub is exactly 10kB\r\nThe node in the cluster delivers 100kB of data. (Check with multiple network monitoring tools)\r\n\r\nWhat is the structure of the pub/sub between the cluster?\r\nI think this doesn't make sense\r\n\r\nThis time, I entered 3,000kb of data per second\r\nI have confirmed that 30,000kB is shared on each cluster node.\r\nIf the cluster node is placed in the same server, only Loopback is 30,000kb\r\nIf  another network, the TX RX is 30,000kb each.\r\n\r\nThis seems to be a serious problem, but is it right?\r\nThere is a problem with personally developing personally, so I solve the TCP stream by developing Redis Module without using PUB/SUB. In this case, I confirmed that exactly onexy data was TX/RX.\r\n\r\nIf you know in this regard, please comment.",
+  "state": "open",
+  "created_at": "2023-05-18T10:33:25Z",
+  "updated_at": "2023-06-01T07:39:20Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1552870415,
+      "user": "snz2",
+      "created_at": "2023-05-18T10:44:21Z",
+      "body": "I found out that it is related to gossip traffic. Is gosship traffic supposed to be this much? If not a bug, why is that?"
+    },
+    {
+      "id": 1556285957,
+      "user": "vitarb",
+      "created_at": "2023-05-21T20:37:09Z",
+      "body": "This comment might be relevant:\r\n```\r\n * For now we do very little, just propagating [S]PUBLISH messages across the whole\r\n * cluster. In the future we'll try to get smarter and avoiding propagating those\r\n * messages to hosts without receives for a given channel.\r\n * Otherwise:\r\n * Publish this message across the slot (primary/replica).\r\n```\r\nhttps://github.com/redis/redis/blob/unstable/src/cluster.c#L3605-L3615\r\n\r\nIt looks like all publish messages are broadcasted to the entire cluster (using gossip).\r\nWith that in mind, if you are using non-sharded pubsub, your PUBLISH traffic would be sent to all nodes in the cluster, even if there are no clients connected to those nodes listening for the updates."
+    },
+    {
+      "id": 1556683408,
+      "user": "snz2",
+      "created_at": "2023-05-22T07:27:12Z",
+      "body": "@vitarb \r\n\r\nAll right. I understand that there is a simple logic involved. By the way, do some actual measurements. It is not the traffic amount of the original data sent * number of cluster nodes, but the similar traffic amount of about original data * cluster nodes * 10.\r\n\r\nThis is the result of comparing traffic with set.\r\ndata ['hmmm', 'hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm']\r\nsame server Master 6379/ Replica 6380\r\n\r\nset 100,000/ request 16sec = 6250 tps (This is the result of replication data included in loopback)\r\n<img width=\"433\" alt=\"image\" src=\"https://github.com/redis/redis/assets/21010696/906c1cc8-ead9-4c28-9615-be00838b30ee\">\r\n\r\npub 100,000/ request 16sec = 6250 tps with no subscribe\r\n<img width=\"442\" alt=\"image\" src=\"https://github.com/redis/redis/assets/21010696/2173aca5-42d2-4507-a34c-2cabaa213e65\">\r\n\r\npub 100,000/ request 16sec = 6250 tps - only master (shutdown replica) with no subscribe\r\n<img width=\"428\" alt=\"image\" src=\"https://github.com/redis/redis/assets/21010696/c5919d31-1433-4307-9e2d-f52e6668ee1e\">\r\n\r\nAre you sure this is a problem?\r\n\r\nOf course, if you build a cluster on another server and test it, ethernet rx tx instead of loopback occurs as much."
+    },
+    {
+      "id": 1562045708,
+      "user": "hpatro",
+      "created_at": "2023-05-24T23:20:53Z",
+      "body": "@snz2 Are we mixing up the traffic from the regular PING PONG message going around in a cluster between the nodes via cluster bus ? Could you also mention the number of primary and replica in your setup?\r\n\r\nPUBLISH command would be broadcasted to all connected nodes in the cluster once (irrespective of subscription).\r\nSPUBLISH command would be broadcasted to all the primary/replica for a given slot (irrespective of subscription). "
+    },
+    {
+      "id": 1562675849,
+      "user": "snz2",
+      "created_at": "2023-05-25T10:36:58Z",
+      "body": "@hpatro It is not convincing that the ping pong message generates a large amount of traffic, and my setup is mentioned in the article. One master replica that's all."
+    },
+    {
+      "id": 1564704087,
+      "user": "hpatro",
+      "created_at": "2023-05-26T17:27:02Z",
+      "body": "@snz2 As the pubsub message is transferred via cluster bus to the other node(s) it has much [higher metadata payload (overhead)](https://github.com/redis/redis/blob/unstable/src/cluster.h#L330-L355) than the data transferred via replication stream. \r\n\r\nIf the data payload size is considerably small compared to the metadata payload, the overhead seems really expensive. Sharded Pub/Sub (spublish/ssubscribe) would also have the same performance for a single shard setup (one primary/replica(s)).\r\n\r\nI've two ideas which could help us achieve better performance.\r\n\r\n1. Introduce cluster data link to transfer pub/sub related data across the cluster. This would have the same properties as we have for replication link. This will segregate the gossip data and actual data across different link(s). \r\n\r\n2. If the message is published on a primary for sharded pub/sub, the message will be propagated via replication link instead of the cluster bus link. This will reduce the payload overhead incurred during data publish on primary. Client(s) would need to be smart on establishing connection for data production and consumption. This solution won't be extendable to classic pub/sub though."
+    },
+    {
+      "id": 1565218910,
+      "user": "snz2",
+      "created_at": "2023-05-27T05:32:57Z",
+      "body": "@hpatro \r\n\"HIGHER METADATA PAYLOD\"\r\nI saw the code and WOW is really big. I understand more than 10 times the data I put as a sample.\r\nI thought it was a bug or improvement, but those data are being used well in the Redis? But I need a quick and concise feature rather than that verification data, so I can't use Pubsub. Thank you so much for giving the answer."
+    },
+    {
+      "id": 1568759327,
+      "user": "vitarb",
+      "created_at": "2023-05-30T16:50:10Z",
+      "body": "@snz2 I agree, added cost seems too high,  `unsigned char myslots[CLUSTER_SLOTS/8];` field alone is 2kb in size.\r\n@hpatro is this all metadata really needed on every message? Or can we maybe use a lighter weight struct for pubsub message passing?"
+    },
+    {
+      "id": 1569296612,
+      "user": "hpatro",
+      "created_at": "2023-05-30T23:59:50Z",
+      "body": "@vitarb AFAIK all of the different kind of cluster messages carry this payload currently. So, on introducing a new message format over the existing cluster links, it would be a breaking change. We would have to introduce certain kind of branching to parse the message correctly. We could think more on this. What are your thoughts on the suggestions I've made above ?"
+    },
+    {
+      "id": 1569888592,
+      "user": "snz2",
+      "created_at": "2023-05-31T10:03:43Z",
+      "body": "> @snz2 I agree, added cost seems too high, `unsigned char myslots[CLUSTER_SLOTS/8];` field alone is 2kb in size. @hpatro is this all metadata really needed on every message? Or can we maybe use a lighter weight struct for pubsub message passing?\r\n\r\nI think that's how I personally implemented a message between the cluster, which is small by calculating the slot on the sending and receiving slot range. Sending all the slots and IP or other information implemented in the current Redis GossiP is a bit inefficient. But this hint is taken from Redis-Cli.\r\n\r\n> @vitarb AFAIK all of the different kind of cluster messages carry this payload currently. So, on introducing a new message format over the existing cluster links, it would be a breaking change. We would have to introduce certain kind of branching to parse the message correctly. We could think more on this. What are your thoughts on the suggestions I've made above ?\r\n\r\nRedis Pubsub is not affected by the slot as it is known, so it is sad to have a dependence on GossiP to send 2KB of slot information.\r\n\r\n[{\"ip\":\"10.0.0.1:6378\",\"slots\":[[\"0\",\"16383\"]]},{\"ip\":\"10.0.0.1:6379\",\"slots\":null}]\r\nor with \"id\":\"bceae737fc3d9462333c0b90c134054f63598018\"\r\nThis is the JSON I am currently using, but if you send it like this, it won't seem to send 2KB within the One Master Replica.\r\n\r\nI know that the current structure is like this ...\r\n\r\nslot\r\n1:10.0.0.1,bceae737fc3d9462333c0b90c134054f63598018\r\n2:10.0.0.1,bceae737fc3d9462333c0b90c134054f63598018\r\n3:10.0.0.1,bceae737fc3d9462333c0b90c134054f63598018\r\n.\r\n.\r\n.\r\n16383:10.0.0.1,bceae737fc3d9462333c0b90c134054f63598018\r\n16384:10.0.0.1,bceae737fc3d9462333c0b90c134054f63598018\r\n\r\nThis data is exchanged every time ....\r\n\r\nEven if you convert it to binary, it's terrible to have the same data as a *16384.\r\n\r\nAs HPATRO says, if you change the Sender and Receiver to Range for slot without having to change the whole, it will be possible without a big change."
+    }
+  ]
+}

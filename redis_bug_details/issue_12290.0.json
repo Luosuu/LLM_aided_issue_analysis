@@ -1,0 +1,54 @@
+{
+  "issue_number": 12290.0,
+  "title": "[BUG] Deadlock with streams on redis 7.2",
+  "body": "**Describe the bug**\r\n\r\nThe code below causes redis 7.2 to get completely stuck (100% CPU, impossible to connect to the server, have to use `kill -9`). `nb_subscribers = 2` will work fine. \r\n\r\nThe same code works as expected with redis 7.0.\r\n\r\n**To reproduce**\r\n\r\n`subscriber.py`\r\n\r\n```python\r\n#!/usr/bin/env python3\r\n\r\nimport time\r\n\r\nfrom multiprocessing import Process\r\n\r\nfrom redis import Redis\r\n\r\n\r\nnb_subscribers = 3\r\n\r\n\r\ndef subscriber(user_id):\r\n    r = Redis(unix_socket_path='cache.sock')\r\n    try:\r\n        r.xgroup_create(name='tasks_queue', groupname='test', mkstream=True)\r\n    except Exception:\r\n        print('group already exists')\r\n\r\n    while True:\r\n        new_stream = r.xreadgroup(\r\n            groupname='test', consumername=f'testuser-{user_id}', streams={'tasks_queue': '>'},\r\n            block=2000, count=1)\r\n        if not new_stream:\r\n            time.sleep(5)\r\n            continue\r\n        print(new_stream)\r\n\r\n\r\nprocesses = []\r\nfor i in range(nb_subscribers):\r\n    p = Process(target=subscriber, args=(i,))\r\n    p.start()\r\n    processes.append(p)\r\n\r\nwhile processes:\r\n    new_p = []\r\n    for p in processes:\r\n        if p.is_alive():\r\n            new_p.append(p)\r\n    processes = new_p\r\n    time.sleep(5)\r\n\r\nprint('all processes dead')\r\n```\r\n\r\n`feeder.py`\r\n```python\r\n#!/usr/bin/env python3\r\n\r\nimport time\r\nimport uuid\r\n\r\nfrom multiprocessing import Process\r\n\r\nfrom redis import Redis\r\n\r\nnb_feeders = 1\r\n\r\n\r\ndef feeder():\r\n\r\n    r = Redis(unix_socket_path='cache.sock')\r\n\r\n    while True:\r\n        fields = {'task_uuid': str(uuid.uuid4())}\r\n        r.xadd(name='tasks_queue', fields=fields, id='*', maxlen=5000)\r\n        time.sleep(.1)\r\n\r\n\r\nprocesses = []\r\nfor _ in range(nb_feeders):\r\n    p = Process(target=feeder)\r\n    p.start()\r\n    processes.append(p)\r\n\r\nwhile processes:\r\n    new_p = []\r\n    for p in processes:\r\n        if p.is_alive():\r\n            new_p.append(p)\r\n    processes = new_p\r\n    time.sleep(5)\r\n\r\nprint('all processes dead')\r\n\r\n```",
+  "state": "closed",
+  "created_at": "2023-06-09T12:11:32Z",
+  "updated_at": "2023-06-15T01:53:06Z",
+  "closed_at": "2023-06-13T10:27:07Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1584831307,
+      "user": "enjoy-binbin",
+      "created_at": "2023-06-09T16:14:31Z",
+      "body": "thanks for report, verified."
+    },
+    {
+      "id": 1584993483,
+      "user": "enjoy-binbin",
+      "created_at": "2023-06-09T18:39:12Z",
+      "body": "@ranshid look like it was due to #11012, it keep going, reprocess command -> blockForKeys -> reprocess command\r\nwe need to find some ways to break the loop, below is a rough fix of mine, maybe you have a better view.\r\n```diff\r\n    /* Block if needed. */\r\n    if (timeout != -1) {\r\n        /* If we are not allowed to block the client, the only thing\r\n         * we can do is treating it as a timeout (even with timeout 0). */\r\n        if (c->flags & CLIENT_DENY_BLOCKING) {\r\n            addReplyNullArray(c);\r\n            goto cleanup;\r\n        }\r\n        /* We change the '$' to the current last ID for this stream. this is\r\n         * Since later on when we unblock on arriving data - we would like to\r\n         * re-process the command and in case '$' stays we will spin-block forever.\r\n         */\r\n        for (int id_idx = 0; id_idx < streams_count; id_idx++) {\r\n            int arg_idx = id_idx + streams_arg + streams_count;\r\n            if (strcmp(c->argv[arg_idx]->ptr,\"$\") == 0) {\r\n                robj *argv_streamid = createObjectFromStreamID(&ids[id_idx]);\r\n                rewriteClientCommandArgument(c, arg_idx, argv_streamid);\r\n                decrRefCount(argv_streamid);\r\n            }\r\n\r\n+            /* In '>' case, if we have blocked before, reprocess the command and enter here,\r\n+             * do not enter the block again, otherwise we will spin-block forever. */\r\n+          if (c->bstate.timeout != 0 && strcmp(c->argv[arg_idx]->ptr, \">\") == 0) {\r\n+              goto cleanup;\r\n            }\r\n        }\r\n        blockForKeys(c, BLOCKED_STREAM, c->argv+streams_arg, streams_count, timeout, xreadgroup);\r\n        goto cleanup;\r\n    }\r\n```\r\n\r\n@oranagra FYI, this issue needs attention"
+    },
+    {
+      "id": 1586333209,
+      "user": "oranagra",
+      "created_at": "2023-06-11T20:52:13Z",
+      "body": "i think the right fix is to avoid an endless loop in handleClientsBlockedOnKey and handleClientsBlockedOnKeys,\r\nlooks like there was some attempt in handleClientsBlockedOnKeys but maybe not sufficiently good.\r\nand it looks like using a similar trick in handleClientsBlockedOnKey is complicated.\r\ni.e. stashing the list on the stack and iterating on it after creating a fresh one for future use, is problematic since the code keeps accessing the global list.\r\nwith the following ugly fix, the problem is solved, what's left is to write a tcl test that reproduces it.\r\n\r\n```diff\r\ndiff --git a/src/blocked.c b/src/blocked.c\r\nindex 1b3a804b1..af1d5c039 100644\r\n--- a/src/blocked.c\r\n+++ b/src/blocked.c\r\n@@ -325,7 +325,7 @@ void handleClientsBlockedOnKeys(void) {\r\n      * (i.e. not from call(), module context, etc.) */\r\n     serverAssert(server.also_propagate.numops == 0);\r\n \r\n-    while(listLength(server.ready_keys) != 0) {\r\n+    if (listLength(server.ready_keys) != 0) {\r\n         list *l;\r\n \r\n         /* Point server.ready_keys to a fresh list and save the current one\r\n@@ -563,8 +563,8 @@ static void handleClientsBlockedOnKey(readyList *rl) {\r\n         listNode *ln;\r\n         listIter li;\r\n         listRewind(clients,&li);\r\n-\r\n-        while((ln = listNext(&li))) {\r\n+        long count = listLength(clients);\r\n+        while((ln = listNext(&li)) && count--) {\r\n             client *receiver = listNodeValue(ln);\r\n             robj *o = lookupKeyReadWithFlags(rl->db, rl->key, LOOKUP_NOEFFECTS);\r\n             /* 1. In case new key was added/touched we need to verify it satisfy the\r\n```"
+    },
+    {
+      "id": 1591176707,
+      "user": "selfboot",
+      "created_at": "2023-06-14T13:08:08Z",
+      "body": "I still have a question. If the feeder and subscribe client processes are killed, theoretically, the server should be able to close the connections of these two clients. Even in version 7.2 with the infinite loop bug, it shouldn't keep putting disconnected clients back into the queue, right?\r\n\r\nIn addition, I have another question. When I use gdb attach to the server and see that there is an infinite loop in the while loop below, I didn't see at what point Li added a client during the processing. Can you help explain this?\r\n\r\n```\r\nstatic void handleClientsBlockedOnKey(readyList *rl) {\r\n        ...\r\n        while((ln = listNext(&li))) {\r\n            client *receiver = listNodeValue(ln);\r\n            ... \r\n       }\r\n```"
+    },
+    {
+      "id": 1591196197,
+      "user": "selfboot",
+      "created_at": "2023-06-14T13:19:29Z",
+      "body": "By the way, here are two screenshots of my troubleshooting process after reproducing the issue myself, including a CPU flame graph analyzed by eBPF.\r\n\r\n![20230613_bug_redis_deadlock_cpu](https://github.com/redis/redis/assets/2769831/e7af969b-a5ee-4ee8-b636-37c5fa401720)\r\n\r\nAdded r.client_setname(f'subscriber_{user_id}') in the test script, and during GDB analysis, it was observed that the receiver kept processing between two clients.\r\n<img width=\"1207\" alt=\"client_repeat\" src=\"https://github.com/redis/redis/assets/2769831/9ab2ed49-c6b5-4b0e-9e16-993f36fffed1\">\r\n"
+    },
+    {
+      "id": 1591398990,
+      "user": "oranagra",
+      "created_at": "2023-06-14T14:58:33Z",
+      "body": "> I still have a question. If the feeder and subscribe client processes are killed, theoretically, the server should be able to close the connections of these two clients. Even in version 7.2 with the infinite loop bug, it shouldn't keep putting disconnected clients back into the queue, right?\r\n\r\nmaybe it shouldn't (keep processing disconnected clients), but it does.\r\nredis doesn't attempt to write (or read) to the socket while it processes a command.\r\nit'll only realize that the client dropped when it's done processing all the commands of the event loop and it either writes a reply to the socket, or attempts to read more data from it.\r\n\r\n> In addition, I have another question. When I use gdb attach to the server and see that there is an infinite loop in the while loop below, I didn't see at what point Li added a client during the processing. Can you help explain this?\r\n\r\nwhen we re-process the command (and realize it should be blocked again), it calls blockForKeys (which adds another element to that list)"
+    },
+    {
+      "id": 1592219959,
+      "user": "selfboot",
+      "created_at": "2023-06-15T01:53:06Z",
+      "body": "\r\n\r\n\r\n\r\n> > I still have a question. If the feeder and subscribe client processes are killed, theoretically, the server should be able to close the connections of these two clients. Even in version 7.2 with the infinite loop bug, it shouldn't keep putting disconnected clients back into the queue, right?\r\n> \r\n> maybe it shouldn't (keep processing disconnected clients), but it does. redis doesn't attempt to write (or read) to the socket while it processes a command. it'll only realize that the client dropped when it's done processing all the commands of the event loop and it either writes a reply to the socket, or attempts to read more data from it.\r\n> \r\n> > In addition, I have another question. When I use gdb attach to the server and see that there is an infinite loop in the while loop below, I didn't see at what point Li added a client during the processing. Can you help explain this?\r\n> \r\n> when we re-process the command (and realize it should be blocked again), it calls blockForKeys (which adds another element to that list)\r\n\r\nThank you very much for your answer. I will continue to learn the implementation here."
+    }
+  ]
+}

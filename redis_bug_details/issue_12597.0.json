@@ -1,0 +1,11 @@
+{
+  "issue_number": 12597.0,
+  "title": "[BUG]When setback system time back, the fragmentation is going high",
+  "body": "**Describe the bug**\r\n\r\nRedis version:6.2.11  with jemalloc\r\nWhen I set system datetime back, i found the fragmentation of redis is keep going high, after the time reached the time i setting time back，the fragmentation of redis will go down immediately.\r\n(1)At the beginning:\r\nroot@78:~# date\r\nThu Sep 21 10:26:36 AM CST 2023\r\n\r\nThe fragmentation of redis :\r\n65) \"fragmentation\"\r\n66) \"1.158626914024353\"\r\n67) \"fragmentation.bytes\"\r\n68) (integer) 6567864\r\n\r\n(2)Setting the date back:\r\nroot@78:~# date -s \"2023-09-21 10:00:00\"\r\nThu Sep 21 10:00:00 AM CST 2023\r\n\r\n(3)Then the redis fragmentation keeps raising:\r\n65) \"fragmentation\"\r\n66) \"1.9999270439147949\"\r\n67) \"fragmentation.bytes\"\r\n68) (integer) 41421336\r\n(4) When the time of the system reached Thu Sep 21 10:26:36 AM CST 2023, the fragmentation decreased:\r\nroot@78:~# date\r\nThu Sep 21 10:26:52 AM CST 2023\r\n65) \"fragmentation\"\r\n66) \"1.159626914024353\"\r\n67) \"fragmentation.bytes\"\r\n68) (integer) 6573864\r\n\r\n\r\n**To reproduce**\r\n\r\nSet system datetime back\r\n\r\n**Expected behavior**\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "open",
+  "created_at": "2023-09-21T07:26:45Z",
+  "updated_at": "2023-09-21T07:26:45Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

@@ -1,0 +1,36 @@
+{
+  "issue_number": 13256.0,
+  "title": "[BUG] There is a memory leak defect at line 5981 of the file redis-cli.c in /redis/src/.",
+  "body": "**Describe the bug**\r\n\r\nA variable named \"slot_nodes\" is defined at line 5967 of the file redis-cli.c in /redis/src/. It allocates a block of dynamic memory using the listCreate function. When the if statement at line 5978 evaluates to true, the program jumps to the \"cleanup\" label at line 5981 using a goto statement. During this process, the dynamic memory allocated to slot_nodes is neither used as shown in line 5994 nor released at the \"cleanup\" label, resulting in a memory leak defect.as shown in the figure below:\r\nhttps://github.com/LuMingYinDetect/redis_defects/blob/main/redis_1.png\r\n\r\n**To reproduce**\r\n\r\nThe detection tool I'm using is the Clang Static Analyzer, which employs static analysis techniques. The tool's defect reports provide the path that triggers the defect. Based on the aforementioned path, the defect can be reproduced.\r\n\r\n**Expected behavior**\r\n\r\nIf the defect is confirmed, it is advisable to address it by making necessary fixes.\r\n",
+  "state": "open",
+  "created_at": "2024-05-10T08:56:34Z",
+  "updated_at": "2024-05-11T00:43:17Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2104248493,
+      "user": "sundb",
+      "created_at": "2024-05-10T09:12:28Z",
+      "body": "@LuMingYinDetect Thanks, do you wanna make a PR for this?"
+    },
+    {
+      "id": 2104802567,
+      "user": "LuMingYinDetect",
+      "created_at": "2024-05-10T15:24:52Z",
+      "body": "> @LuMingYinDetect Thanks, do you wanna make a PR for this?\r\n\r\nThank you for your prompt response! I'm at a loss on how to fix this defect. Could I trouble you to fix it?"
+    },
+    {
+      "id": 2104869980,
+      "user": "sundb",
+      "created_at": "2024-05-10T16:10:43Z",
+      "body": "@LuMingYinDetect a minor patch, if you want welcome to make PR for it, also i can do it if you need me.\r\n```diff\r\ndiff --git a/src/redis-cli.c b/src/redis-cli.c\r\nindex 0c9f088da..e8484956c 100644\r\n--- a/src/redis-cli.c\r\n+++ b/src/redis-cli.c\r\n@@ -5978,6 +5978,7 @@ static int clusterManagerFixSlotsCoverage(char *all_slots) {\r\n                 if (!clusterManagerCheckRedisReply(n, reply, NULL)) {\r\n                     fixed = -1;\r\n                     if (reply) freeReplyObject(reply);\r\n+                    if (slot_nodes) listRelease(slot_nodes);\r\n                     goto cleanup;\r\n                 }\r\n                 assert(reply->type == REDIS_REPLY_ARRAY);\r\n```"
+    },
+    {
+      "id": 2105412424,
+      "user": "LuMingYinDetect",
+      "created_at": "2024-05-11T00:43:16Z",
+      "body": "> @LuMingYinDetect a minor patch, if you want welcome to make PR for it, also i can do it if you need me.\r\n> \r\n> ```diff\r\n> diff --git a/src/redis-cli.c b/src/redis-cli.c\r\n> index 0c9f088da..e8484956c 100644\r\n> --- a/src/redis-cli.c\r\n> +++ b/src/redis-cli.c\r\n> @@ -5978,6 +5978,7 @@ static int clusterManagerFixSlotsCoverage(char *all_slots) {\r\n>                  if (!clusterManagerCheckRedisReply(n, reply, NULL)) {\r\n>                      fixed = -1;\r\n>                      if (reply) freeReplyObject(reply);\r\n> +                    if (slot_nodes) listRelease(slot_nodes);\r\n>                      goto cleanup;\r\n>                  }\r\n>                  assert(reply->type == REDIS_REPLY_ARRAY);\r\n> ```\r\n\r\nThank you for your patient explanation! I have submitted a pull request."
+    }
+  ]
+}

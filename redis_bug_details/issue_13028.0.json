@@ -1,0 +1,18 @@
+{
+  "issue_number": 13028.0,
+  "title": "[BUG] json.get default behavior is dumb and unintuitive",
+  "body": "**Describe the bug**\r\n\r\nWhen I JSON.GET a single field from a JSON object, the response is an array with a single value in it. This is unintuitive and dumb (IMO). You're making 1000s of developers make functions to handle your array case when only a single value is requested. I'm sure you won't fix it, as it seems to be \"by design\" but holy crap it's a bad f'n design.\r\n\r\n**To reproduce**\r\n\r\nSee above.\r\n\r\n**Expected behavior**\r\n\r\nWhen I JSON.GET a single field, I should get the value of that field, not an array of field values with only one entry.\r\n\r\n**Additional information**\r\n\r\nWhen I JSON.GET `$` on a key, I get the value stored. That makes no sense based on this logic. How dumb.\r\n",
+  "state": "closed",
+  "created_at": "2024-02-04T22:04:35Z",
+  "updated_at": "2024-02-05T03:45:44Z",
+  "closed_at": "2024-02-05T03:45:44Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1926180763,
+      "user": "sundb",
+      "created_at": "2024-02-05T03:45:44Z",
+      "body": "Please make a new issue in https://github.com/RedisJSON/RedisJSON to get help."
+    }
+  ]
+}

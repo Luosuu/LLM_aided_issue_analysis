@@ -1,0 +1,36 @@
+{
+  "issue_number": 10366.0,
+  "title": "[BUG] 7.0-rc2.tar.gz has incorrect version reported",
+  "body": "Hi, I am trying out the rc2 source, it seems the version information is reported incorrectly.\r\n\r\n```\r\ngit clone https://github.com/jemalloc/jemalloc.git\r\ncd ~/jemalloc/\r\n./autogen.sh \r\ntime make \r\nsudo make install\r\ncd\r\n\r\nwget https://download.redis.io/releases/redis-7.0-rc2.tar.gz\r\nmkdir ~/redis\r\ntar xzf redis-7.0-rc2.tar.gz -C ~/redis --strip-components=1\r\ncd ~/redis\r\nmake BUILD_TLS=yes CFLAGS=\"-static\" EXEEXT=\"-static\" LDFLAGS=\"-I/usr/local/include/\" MALLOC=jemalloc\r\n\r\n~/redis$ uname -a\r\nLinux ip-172-31-45-220 5.11.0-1028-aws #31~20.04.1-Ubuntu SMP Fri Jan 14 14:37:50 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux\r\n```\r\n\r\n```\r\n~/redis$ ./src/redis-cli -v\r\nredis-cli 6.9.241\r\n\r\n~/redis$ ./src/redis-server -v\r\nRedis server v=6.9.241 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=284eca23fe7d2a91\r\n\r\n~/redis$ ls ~/redis-7.0-rc2.tar.gz \r\n/home/ubuntu/redis-7.0-rc2.tar.gz\r\n```\r\n\r\n```\r\n:~/redis$ cat ./src/version.h \r\n#define REDIS_VERSION \"6.9.241\"\r\n#define REDIS_VERSION_NUM 0x000609f1\r\n```",
+  "state": "closed",
+  "created_at": "2022-03-01T19:13:06Z",
+  "updated_at": "2022-03-02T06:10:08Z",
+  "closed_at": "2022-03-02T02:33:53Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1056025724,
+      "user": "enjoy-binbin",
+      "created_at": "2022-03-02T01:02:58Z",
+      "body": "hi, i think this is intentional\r\n7.0RC1 is 6.9.240\r\n7.0RC2 is 6.9.241"
+    },
+    {
+      "id": 1056076533,
+      "user": "ronaldpetty",
+      "created_at": "2022-03-02T02:33:53Z",
+      "body": "@enjoy-binbin thanks for that, it was not what I had expected to see, but so far the features I am trying seem to match.  Thanks for helping clarify."
+    },
+    {
+      "id": 1056108760,
+      "user": "enjoy-binbin",
+      "created_at": "2022-03-02T03:08:16Z",
+      "body": "no problem, but we can get some insights from @oranagra "
+    },
+    {
+      "id": 1056327970,
+      "user": "oranagra",
+      "created_at": "2022-03-02T06:10:08Z",
+      "body": "i'm not too happy with that, but also we can't tag it as 7.0.0, right?\r\nthis is how it was always handled. i.e. `5.0-rc1` had this: `4.9.101`"
+    }
+  ]
+}

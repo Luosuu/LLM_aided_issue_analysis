@@ -1,0 +1,13 @@
+{
+  "issue_number": 356.0,
+  "title": "server.maxclients could be minus!",
+  "body": "branch : unstable \nWhen ulimit is below 32, maxclients becomes minus, because 32 fds are reserved for redis internal:\n\n$ ulimit -n 16 # I won't do this in the production!\n$ ./redis-server\n...\nUnable to set the max number of files limit to 10032 (Operation not permitted), setting the max clients configuration to -16.\n\n---\n\nIf there aren't enough fds available, you could :\na) warn that at the startup and shut the system down\nb) optimistically set the max client value and lazily allocate file descriptors\nc) or something else?\n",
+  "state": "closed",
+  "created_at": "2012-02-25T05:00:54Z",
+  "updated_at": "2014-03-25T07:42:40Z",
+  "closed_at": "2014-03-25T07:42:40Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": []
+}

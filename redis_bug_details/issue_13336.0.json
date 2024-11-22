@@ -1,0 +1,50 @@
+{
+  "issue_number": 13336.0,
+  "title": "[BUG] Stream lag seems to not be correctly replicated on slave",
+  "body": "**Describe the bug**\r\n\r\nWe use master/slave with sentinels architecture. We use the slaves to compute metrics about our usage of redis streams without hurting the performance of the master node.\r\n\r\nWe upgraded recently to Redis version 7, and we tried to use the lag field returned by the XINFO GROUPS command (https://redis.io/docs/latest/commands/xinfo-groups/) to compute our metrics, but its value seems incorrect on the slave. We can have of value of 0 on our master but have a value of more than 8000 on our slave.\r\n\r\n**Expected behavior**\r\n\r\nWe expected lag field to be the same on both master and slave\r\n\r\n**Additional information**\r\n\r\nRedis Version : 7.2.5\r\n",
+  "state": "closed",
+  "created_at": "2024-06-11T08:59:26Z",
+  "updated_at": "2024-09-12T11:56:25Z",
+  "closed_at": "2024-06-30T06:00:04Z",
+  "labels": [
+    "streams"
+  ],
+  "comments_data": [
+    {
+      "id": 2160207400,
+      "user": "Hackatosh",
+      "created_at": "2024-06-11T09:15:12Z",
+      "body": "Is it related to https://github.com/redis/redis/commit/f17381a38d78f75e228d00972115b31d9a1d0b2e ? 🤔 "
+    },
+    {
+      "id": 2160593262,
+      "user": "sundb",
+      "created_at": "2024-06-11T12:06:02Z",
+      "body": "@Hackatosh likely, but it's not possible to determine from the info you gave, can you try 7.4rc1 in your development enviroment to verify it? thanks."
+    },
+    {
+      "id": 2194947330,
+      "user": "Hackatosh",
+      "created_at": "2024-06-27T14:56:41Z",
+      "body": "I did not have the time to roll the release candidate on our development environment. \r\n\r\nBut we have observed something interesting on our progression :\r\n- When a node is a slave, the lag never stop growing. This impacts all consumer groups.\r\n- If we have a failover and this node becomes the new master, the lag stop to grow and stay frozen on the value it had before the node became the master\r\n\r\nI do think https://github.com/redis/redis/commit/f17381a38d78f75e228d00972115b31d9a1d0b2e  is the fix we need. Is there any way to backport the fix in https://github.com/redis/redis/commit/f17381a38d78f75e228d00972115b31d9a1d0b2e  to Redis 7.2 and to not wait for the current release candidate to become stable ? That would help us a lot 🙏  I can open a PR if needed"
+    },
+    {
+      "id": 2194989031,
+      "user": "sundb",
+      "created_at": "2024-06-27T15:13:27Z",
+      "body": "@Hackatosh yes, #12898 is worth backport. ping @oranagra "
+    },
+    {
+      "id": 2198445297,
+      "user": "oranagra",
+      "created_at": "2024-06-30T05:59:57Z",
+      "body": "i agree. marked it for backport in the next 7.2 release."
+    },
+    {
+      "id": 2346087985,
+      "user": "dpkrane",
+      "created_at": "2024-09-12T11:56:24Z",
+      "body": "Hi!\r\nWhen can we expect a fix this bug in 7.2.x branch?"
+    }
+  ]
+}

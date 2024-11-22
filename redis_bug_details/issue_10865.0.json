@@ -1,0 +1,66 @@
+{
+  "issue_number": 10865.0,
+  "title": "[CRASH] 7.0.2 crash loop with parameter provide from k8s deployment",
+  "body": "Notice!\r\n- If a Redis module was involved, please open an issue in the module's repo instead!\r\n- If you're using docker on Apple M1, please make sure the image you're using was compiled for ARM!\r\n\r\n\r\n**Crash report**\r\n\r\nPaste the complete crash log between the quotes below. Please include a few lines from the log preceding the crash report to provide some context.\r\n\r\n```\r\n│  *** FATAL CONFIG FILE ERROR (Redis 7.0.2) *** │\r\n│ Reading the configuration file, at line 2 │\r\n│ >>> 'maxmemory 700mb \"--maxmemory-policy volatile-lru\"' │\r\n│ wrong number of arguments\r\n```\r\n\r\nthis is template of deployment in Chart.\r\n```\r\n{{- range $zone := .Values.zones }}\r\n---\r\napiVersion: apps/v1\r\nkind: Deployment\r\nmetadata:\r\n  name: {{ $.Chart.Name }}-{{ $zone }}\r\n  namespace: {{ $.Release.Namespace }}\r\nspec:\r\n  replicas: 1\r\n  selector:\r\n    matchLabels:\r\n      app: {{ $.Chart.Name }}\r\n      zone: {{ $zone | quote }}\r\n  template:\r\n    metadata:\r\n      labels:\r\n        app: {{ $.Chart.Name }}\r\n        zone: {{ $zone | quote }}\r\n\r\n    spec:\r\n      containers:\r\n        - name: {{ $.Chart.Name }}\r\n          image: redis:7.0.3\r\n          args:\r\n            - \"redis-server\"\r\n            - \"--maxmemory {{ $.Values.maxmemory }}\"\r\n            - \"--maxmemory-policy {{ $.Values.maxmemoryPolicy }}\"\r\n          resources:\r\n            {{- toYaml $.Values.resources | nindent 12 }}\r\n\r\n{{- end }}\r\n\r\n```\r\n\r\n**Additional information**\r\n\r\n1. OS distribution and version\r\n-> EKS environment, K8S version 1.22.\r\n2. Steps to reproduce (if any)\r\n",
+  "state": "closed",
+  "created_at": "2022-06-15T03:34:41Z",
+  "updated_at": "2022-07-05T10:30:39Z",
+  "closed_at": "2022-06-26T11:36:39Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1155987979,
+      "user": "enjoy-binbin",
+      "created_at": "2022-06-15T04:58:49Z",
+      "body": "sorry, it is a another breaking change i introduced in #10660, it used to work in 6.2...\r\n> but i do think the behavior like a bug\r\n```\r\nsrc/redis-server redis.conf \"--maxmemory 700mb\" \"--maxmemory-policy volatile-lru\"\r\n\r\n*** FATAL CONFIG FILE ERROR (Redis 255.255.255) ***\r\nReading the configuration file, at line 2278\r\n>>> 'maxmemory 700mb \"--maxmemory-policy volatile-lru\"'\r\nwrong number of arguments\r\n```"
+    },
+    {
+      "id": 1155996641,
+      "user": "oranagra",
+      "created_at": "2022-06-15T05:14:20Z",
+      "body": "@enjoy-binbin correct me if i'm wrong, IIRC this breaking change wasn't intended (i.e we didn't realize this pattern used to work).\r\n\r\n@littlenine meanwhile (while we figure out if we're gonna change it in the next version), to solve the problem you should break the argument to be separate of each other, probably just remove the quotes or split the config name and value to separate lines."
+    },
+    {
+      "id": 1155999393,
+      "user": "enjoy-binbin",
+      "created_at": "2022-06-15T05:19:18Z",
+      "body": "> correct me if i'm wrong, IIRC this breaking change wasn't intended (i.e we didn't realize this pattern used to work).\r\n\r\nyes\r\n\r\nit used to work, becasue in here, we did not have the handled_last_config_arg condition, and then both `--maxmemory 700mb` and `--maxmemory-policy volatile-lru` were treated as \"option name\" and append into the otpions without calc the option value (like a bug though)\r\nhttps://github.com/redis/redis/blob/05833959e3875ea10f9b2934dc68daca549c9531/src/server.c#L6894-L6906"
+    },
+    {
+      "id": 1156001941,
+      "user": "oranagra",
+      "created_at": "2022-06-15T05:23:58Z",
+      "body": "so in an effort to support config values that start with `--` (which isn't a highly desired feature), we broke this (passing both config name and it's value in the same arg).\r\nif that's the case, i have a feeling i'd like to give up that change."
+    },
+    {
+      "id": 1156004007,
+      "user": "enjoy-binbin",
+      "created_at": "2022-06-15T05:27:44Z",
+      "body": "> we broke this (passing both config name and it's value in the same arg).\r\n\r\nyes, `--maxmemory 700mb` and `--maxmemory-policy volatile-lru` both were treated as option name, so if we remove handled_last_config_arg , it will work again (although like a bug, treated like option name)\r\n\r\nalso like `src/redis-server redis.conf port 7000`, it work because we treat port as a option value and 7000 as a another option value\r\nalthought the right way is  do `src/redis-server redis.conf --port 7000`."
+    },
+    {
+      "id": 1156205931,
+      "user": "oranagra",
+      "created_at": "2022-06-15T09:08:32Z",
+      "body": "I've discussed this with Yossi just now, and we concluded that although this is a wrong usage, we'd still like to fix it. specifically because we broke it in 7.0.1 and not 7.0.0.\r\nwhile we're at it, maybe also unbreak the missing argument issue that we broke intentionally (again in a patch-level release).\r\ni.e. the one that **is** listed at the bottom of the description of #10660.\r\nunbreaking both of these could mean that we'll have to completely give up one of the \"features\" of #10660 (passing config value that starts with --).\r\nbut maybe we can also find a way around it and support both with some ugly hack.\r\n@enjoy-binbin do you wanna look into it?\r\n\r\np.s. we don't consider this an urgent problem (justifying releasing 7.0.3 right away), since the problem is due to wrong usage, and there's an easy workaround (to switch to the correct usage of separate arguments)."
+    },
+    {
+      "id": 1156248192,
+      "user": "enjoy-binbin",
+      "created_at": "2022-06-15T09:45:43Z",
+      "body": "@oranagra sure, i can take a look. actually i think we can check if the option name can be sdssplitargs? i can make a quick PR\r\n```\r\nsrc/redis-server redis.conf \"--maxmemory '700mb'\" --maxmemory-policy volatile-lru --proc-title-template --my--title--template --loglevel verbose\r\n\r\n[root@binblog redis]# src/redis-cli config get maxmemory maxmemory-policy proc-title-template loglevel\r\n1) \"loglevel\"\r\n2) \"verbose\"\r\n3) \"maxmemory\"\r\n4) \"734003200\"\r\n5) \"maxmemory-policy\"\r\n6) \"volatile-lru\"\r\n7) \"proc-title-template\"\r\n8) \"--my--title--template\"\r\n```"
+    },
+    {
+      "id": 1174883438,
+      "user": "djpbessems",
+      "created_at": "2022-07-05T10:13:44Z",
+      "body": "Why was this issue closed when the original problem wasn't the one that was supposedly fixed?\r\n\r\nThe fix seems to resolve around mixing `redis.conf and --<whatever>` arguments, but the original report does not refer to a configuration file.\r\n\r\nSimilarly, my k8s manifest has the following:\r\n```yaml\r\n  [...]\r\n  args:\r\n    - redis-server\r\n    - \"--requirepass user\"\r\n    - \"--appendonly yes\"\r\n```\r\nwhich results in the error:\r\n```\r\n*** FATAL CONFIG FILE ERROR (Redis 7.0.2) ***\r\nReading the configuration file, at line 2\r\n>>> 'requirepass user \"--appendonly yes\"'\r\nwrong number of arguments\r\n```"
+    },
+    {
+      "id": 1174899778,
+      "user": "enjoy-binbin",
+      "created_at": "2022-07-05T10:30:39Z",
+      "body": "@djpbessems i see you are using 7.0.2, the patch will be a part of the next patch-level release of Redis (7.0.3)."
+    }
+  ]
+}

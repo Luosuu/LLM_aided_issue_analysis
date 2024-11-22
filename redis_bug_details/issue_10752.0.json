@@ -1,0 +1,24 @@
+{
+  "issue_number": 10752.0,
+  "title": "[BUG] memory leak in streamGetEdgeID",
+  "body": "**Describe the bug**\r\n\r\nHi, I found a possible memory leak in streamGetEdgeID with static analysis. \r\n\r\n`si` is initialized by `streamIteratorStart()`, the code doesn't `streamIteratorStop()` on it when things done.  it's a memory leak.\r\nhttps://github.com/redis/redis/blob/60250f50c2f308d301fb0bfcb6d07faa2560ce60/src/t_stream.c#L393-L405\r\n\r\n\r\nAccording to the doc of `streamIteratorStart()`, we need to call `streamIteratorStop()` when things done. \r\nhttps://github.com/redis/redis/blob/60250f50c2f308d301fb0bfcb6d07faa2560ce60/src/t_stream.c#L1037-L1058\r\n\r\nThanks for your further confirmation.\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2022-05-19T11:43:15Z",
+  "updated_at": "2022-05-22T09:15:26Z",
+  "closed_at": "2022-05-22T09:15:26Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1131594244,
+      "user": "sundb",
+      "created_at": "2022-05-19T11:54:32Z",
+      "body": "@Yuuoniy Thx, you are right. \r\nCan you make a PR to fix it?"
+    },
+    {
+      "id": 1131611146,
+      "user": "Yuuoniy",
+      "created_at": "2022-05-19T12:13:51Z",
+      "body": "@sundb Sure, I will send a PR later."
+    }
+  ]
+}

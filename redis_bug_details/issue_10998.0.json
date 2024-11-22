@@ -1,0 +1,18 @@
+{
+  "issue_number": 10998.0,
+  "title": "[BUG] ZPOPMIN doesnt work with count option",
+  "body": "**Describe the bug**\r\n\r\nZPOPMIN doesnt work as advertised in the docs [here](https://redis.io/commands/zpopmin/) with COUNT option it says syntax error\r\n\r\n**To reproduce**\r\n\r\n1. Navigate to https://redis.io/commands/zpopmin/\r\n2. In the examples section type following command\r\n3. `ZPOPMIN myzset  COUNT 1`\r\n\r\n**Expected behavior**\r\n\r\nShould return one minimum member as per the count option\r\n\r\n**Additional information**\r\n\r\nAlternately try the same on docker it yields the same result. so stating redis server is broken ?\r\n",
+  "state": "closed",
+  "created_at": "2022-07-17T15:48:31Z",
+  "updated_at": "2022-07-17T17:55:40Z",
+  "closed_at": "2022-07-17T15:50:23Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1186551092,
+      "user": "LRagji",
+      "created_at": "2022-07-17T15:50:23Z",
+      "body": "This is not a bug cause for this command there is no \"COUNT\" arg required just plain number so this works, false alarm \r\n`ZPOPMIN myzset COUNT 1` will not work\r\n`ZPOPMIN myzset 1` will work"
+    }
+  ]
+}

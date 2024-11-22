@@ -1,0 +1,162 @@
+{
+  "issue_number": 8478.0,
+  "title": "[BUG] Lua script doesn't return OOM when making arbitrary delete command first",
+  "body": "**Describe the bug**\r\n\r\nRedis config has a max memory limit set and no-eviction policy. If the memory is > the max memory, calling a Lua script containing `redis.call('del', 'anything')` before `redis.call('set', 'fo', 'bar')` doesn't result in an OOM error, and the key is created.\r\n\r\n**To reproduce**\r\n\r\nSet the following config in Redis.conf\r\n`maxmemory 1mb`\r\n`maxmemory-policy noeviction`\r\n\r\nRun a script to that will call a Lua script repeatedly, using a new key each time, until the error returned is OOM.\r\nLua script:\r\n```\r\nredis.call('set',{some key}, '1')\r\n```\r\n\r\nNow run the following:\r\n\r\n```\r\nredis.call('del', 'anything')\r\nredis.call('set',{some key}, '1')\r\n```\r\n\r\n**Expected behavior**\r\n\r\nWhen the second Lua script is run that includes the deletion of a random key, it should still return an OOM error.\r\n\r\n**Additional information**\r\nTried on Redis server versions:\r\n`5.0.6` and `6.0.0`\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-02-09T18:05:16Z",
+  "updated_at": "2022-01-24T14:50:03Z",
+  "closed_at": "2022-01-24T14:50:03Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 776217996,
+      "user": "oranagra",
+      "created_at": "2021-02-09T20:21:26Z",
+      "body": "it's not ideal, but at the moment, it's the intended behavior.\r\n\r\nas soon as one write command succeeded in the script, the script can't be aborted due to non-deterministic errors, it must be run to completion.\r\nthe reasons are:\r\n1. aborting it would be a violation to the script atomicity guarantee.\r\n2. after the script performed a modification, it must be replicated to AOF and replicas, if the script is propagated as a script (if `lua-replicate-commands` is disabled), failing some commands based on non-deterministic errors, would mean it can perform different modifications on the master vs the replica and cause consistency issues.\r\n\r\nwe are considering to deprecate `lua-replicate-commands` in redis 7.0, in which case we might be allowed to perform evictions during scripts, but i think we'll still not be allowed to OOM commands."
+    },
+    {
+      "id": 776225459,
+      "user": "willdot",
+      "created_at": "2021-02-09T20:34:27Z",
+      "body": "That makes a lot of sense, thank you. \r\n\r\nI guess I could move the delete operation outside of the lua script and run the delete first. It’s not essential to run in the script, I was just using it there to keep it all together. \r\n\r\nNow I know the behaviour is expected, I’m a lot more confident I’m not doing something wrong. Thank you! "
+    },
+    {
+      "id": 793285737,
+      "user": "WilliamShoww",
+      "created_at": "2021-03-09T02:33:58Z",
+      "body": "> it's not ideal, but at the moment, it's the intended behavior.\r\n> \r\n> as soon as one write command succeeded in the script, the script can't be aborted due to non-deterministic errors, it must be run to completion.\r\n> the reasons are:\r\n> \r\n> 1. aborting it would be a violation to the script atomicity guarantee.\r\n> 2. after the script performed a modification, it must be replicated to AOF and replicas, if the script is propagated as a script (if `lua-replicate-commands` is disabled), failing some commands based on non-deterministic errors, would mean it can perform different modifications on the master vs the replica and cause consistency issues.\r\n> \r\n> we are considering to deprecate `lua-replicate-commands` in redis 7.0, in which case we might be allowed to perform evictions during scripts, but i think we'll still not be allowed to OOM commands.\r\n\r\nif max_memory_policy set allkeys_lru，is still throw OOM exception when do script commond?"
+    },
+    {
+      "id": 795086806,
+      "user": "oranagra",
+      "created_at": "2021-03-10T08:36:06Z",
+      "body": "@WilliamShoww i'm not certain what you meant to ask, so i'll try to describe everything that's relevant.\r\n\r\nThe EVAL and EVALSHA commands are never rejected due to OOM (regardless of the eviction policy), since they may contains read-only scripts.\r\nRegardless, redis does attempt to perform eviction (if the eviction policy allows for it) before executing EVAL / EVALSHA.\r\nBut inside the script (when it does redis.call or redis.pcall), no eviction is performed, doing so could lead to a different outcome when the script will be propagated to relicas / AOF (resulting in inconsistencies).\r\nThe only thing left to mention is that before the script performs it's first modification on the database, if it is a write command that allows being rejected by OOM (most write commands excluding DEL), the command can fail and possibly terminate the script, but it does that based on the memory utilization that existed before the script started (not based on the memory utilization that exists when executing that command inside the script)"
+    },
+    {
+      "id": 795428970,
+      "user": "WilliamShoww",
+      "created_at": "2021-03-10T13:41:48Z",
+      "body": "> @WilliamShoww i'm not certain what you meant to ask, so i'll try to describe everything that's relevant.\r\n> \r\n> The EVAL and EVALSHA commands are never rejected due to OOM (regardless of the eviction policy), since they may contains read-only scripts.\r\n> Regardless, redis does attempt to perform eviction (if the eviction policy allows for it) before executing EVAL / EVALSHA.\r\n> But inside the script (when it does redis.call or redis.pcall), no eviction is performed, doing so could lead to a different outcome when the script will be propagated to relicas / AOF (resulting in inconsistencies).\r\n> The only thing left to mention is that before the script performs it's first modification on the database, if it is a write command that allows being rejected by OOM (most write commands excluding DEL), the command can fail and possibly terminate the script, but it does that based on the memory utilization that existed before the script started (not based on the memory utilization that exists when executing that command inside the script)\r\n\r\nWhen  redis machine memory used max memory, i do EVAL the script(use cluster lock) ，redis return OOM exception, how can i do handler no OOM? please help how to config redis ?\r\nthe script is :\r\n`\"local lockClientId = redis.call('GET', KEYS[1])\\n\" +\r\n\t\t\t\t\t\"if lockClientId == ARGV[1] then\\n\" +\r\n\t\t\t\t\t\"  redis.call('PEXPIRE', KEYS[1], ARGV[2])\\n\" +\r\n\t\t\t\t\t\"  return true\\n\" +\r\n\t\t\t\t\t\"elseif not lockClientId then\\n\" +\r\n\t\t\t\t\t\"  redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])\\n\" +\r\n\t\t\t\t\t\"  return true\\n\" +\r\n\t\t\t\t\t\"end\\n\" +\r\n\t\t\t\t\t\"return false\"`\r\n"
+    },
+    {
+      "id": 795436546,
+      "user": "oranagra",
+      "created_at": "2021-03-10T13:48:15Z",
+      "body": "@WilliamShoww which version of redis do you use?\r\nmaybe you have a version before this fix: 38f6207f884f514e928513acb6560fdb375daa2e"
+    },
+    {
+      "id": 795448881,
+      "user": "WilliamShoww",
+      "created_at": "2021-03-10T13:58:32Z",
+      "body": "> @WilliamShoww which version of redis do you use?\r\n> maybe you have a version before this fix: [38f6207](https://github.com/redis/redis/commit/38f6207f884f514e928513acb6560fdb375daa2e)\r\n\r\nmy redis version: 5.0.3"
+    },
+    {
+      "id": 795948928,
+      "user": "oranagra",
+      "created_at": "2021-03-10T19:22:57Z",
+      "body": "@WilliamShoww then i suggest you upgrade to the latest 5.0.12 (or 6.0.12), this bug is fixed there"
+    },
+    {
+      "id": 796840060,
+      "user": "JimB123",
+      "created_at": "2021-03-11T15:56:50Z",
+      "body": "@madolson Asking to reopen this report.\r\n\r\nI just spent time diagnosing this same issue.  The machine was configured for \"noeviction\" and the only traffic was a script which started with LREM.  The host continued WAY past maxmemory and into swap.  This is not acceptable behavior.\r\n\r\n@willdot your analysis is spot on.  One thing you implied, but didn't explicitly state is that the script will continue even if the delete is for a key which doesn't exist (the database isn't \"dirtied\" by the command).\r\n\r\nThe problem stems from having 2 classifications of commands:  1) commands that use memory, and 2) commands that are \"write\" commands.  In this case, the script is allowed to continue because the first command does not use memory (and doesn't trigger the OOM check) - however it is a \"write\" command which makes the script (intentionally) unkillable.\r\n\r\nI suggest that a better behavior would be to kill the script for ANY write command (even if it \"doesn't use memory\") when OOM.  (This applies ONLY to the first write command in the script.  Once the script has performed a write, it is an unkillable transaction.)\r\n\r\nNote - given the new incremental eviction logic, OOM is defined as:  Over maxmemory AND nothing is evictable.  So this change will not impact systems which have a functional eviction policy.\r\n"
+    },
+    {
+      "id": 797720447,
+      "user": "madolson",
+      "created_at": "2021-03-12T19:58:41Z",
+      "body": "Going to re-open since it doesn't look like we seriously considered attempting to evict memory during the first write command. I'm not sure the the approach is valid, imagine you intend to cleanup all the data with a LUA script, but I think we should discuss it. "
+    },
+    {
+      "id": 799396930,
+      "user": "oranagra",
+      "created_at": "2021-03-15T12:56:03Z",
+      "body": "responding with OOM on the first write command in the script would mean that a script that solely contains deletions will fail, imagine a use case with no-eviction, and a script that's responsible on keeping the database size at check.\r\nimagine a case with no eviction, who only uses scripts (any command, even DEL is wrapped in a script who does nothing more)\r\n\r\nThe whole thing with scripts and memory stinks for many reasons, in many of them that's a malicious or badly written script, or an app that generates a new script for each call by embedding it's arguments in the code. for many of these i would argue that after a certain threshold redis can just `exit(1)` (since we can't kill the script and let redis keep running).\r\n\r\nSo putting aside bad use cases, i suppose the current implementation is only problematic with no-eviction:\r\nassuming scripts are always short (no infinite loops), if redis is allowed to evict before the script runs, it's ok for the script to go over the memory limit, and get back in check before the next run.\r\n\r\nso the problem in the above reported cases is that the script is a valid one (not abusive), and the application actually expects it to fail with OOM!\r\ni.e. there's no task of cleanup that runs in parallel to the script, one consuming memory and one releasing it (maybe that task will be triggered by the OOM error).\r\nThe workload (at some point in time, at least in one example) was composed only of the one script which does LREM and then increases memory usage.\r\n\r\nI don't like the suggestion Jim made since it'll mean that a script that only performs cleanup fails too.\r\nThat means that we have to be able to distinguish between scripts that consume memory and scripts that don't.\r\n\r\nSo the other way to \"solve\" this is for the script to somehow declare (before execution) that it's gonna consume memory.\r\nOr have an API with which the script can check the memory state before it performs any modifications (or even after), and abort itself.\r\nThis way, the script can remain atomic (it can decide when it's safe to exit leaving the database in sane / consistent state).\r\n\r\nNote that having a script be able to read the server state is very bad if the script will be replicated as a script, but with today's default of `lua-replicate-commands` (which soon should be the only possibility), this is safe."
+    },
+    {
+      "id": 799568018,
+      "user": "QuChen88",
+      "created_at": "2021-03-15T16:41:37Z",
+      "body": "For now, I opened a Redis documentation PR to better document this Lua behavior under low memory conditions https://github.com/redis/redis-doc/pull/1533"
+    },
+    {
+      "id": 799599678,
+      "user": "JimB123",
+      "created_at": "2021-03-15T17:21:55Z",
+      "body": "@oranagra I understand and concur with your points.  A few clarifications:\r\n1. This is an issue with `noeviction` **OR** the eviction policy is non-functional (a volatile policy with no volatile data)\r\n1. A use case where there is a specific LUA script designed to perform cleanup on a node with `noeviction` seems like a very unusual case (though theoretically possible).  Is there any evidence that users are doing this?\r\n\r\nSo these might be reasonable options:\r\n\r\n### Original proposal\r\n* If we are over maxmemory\r\n* AND nothing is evictable\r\n* THEN disallow LUA scripts which execute ANY write command\r\n\r\n### Add some small/arbitrary safety margin\r\n* If we are over maxmemory\r\n* AND nothing is evictable\r\n* AND we have exceeded an arbitrary safety margin\r\n* THEN disallow LUA scripts which execute ANY write command\r\n\r\n### Consider historical behavior\r\nSince scripts are cached in memory and usually reused, we could add a tag on the stored script which would record its use of memory.  This could be a tag indicating that any command which uses memory was executed.  Alternatively, we could try to determine if the net effect on memory was positive (but I think this is much more complex).\r\n\r\nMy feeling is that this option is unnecessary complex.  But if both of the options above are not acceptable, this may be the only option to \"fix\" the problem.\r\n\r\n* If we are over maxmemory\r\n* AND nothing is evictable\r\n* AND in the past, this script has called commands which use memory\r\n* THEN disallow the script\r\n\r\n(Side note:  If we consider tagging on scripts, it might be useful to tag scripts loaded by LOAD SCRIPT rather than EVAL.  This would allow us to purge scripts loaded by EVAL without risk of hindering EVALSHA.)\r\n\r\n### Re: documentation\r\n\r\nThe current behavior is counter-intuitive.  We expect that Redis will disallow further memory growth after `maxmemory` is exceeded.  No user would expect that we can exceed `maxmemory` and continue adding keys through a loophole, command after command, until the process gets killed.  Furthermore, I don't think any user would be surprised if this \"functionality\" was removed.\r\n\r\n@QuChen88 I don't think documenting the bad behavior is sufficient.  https://github.com/redis/redis-doc/pull/1533"
+    },
+    {
+      "id": 799626127,
+      "user": "QuChen88",
+      "created_at": "2021-03-15T17:57:59Z",
+      "body": "@JimB123 I agree that this is a problem in Redis today that user can unintentionally go above `maxmemory` with poorly programmed Lua scripts and we need to fix this in the long run one way or another. In the interim, I have updated the documentation for better visibility into the current Lua script behavior to help people make more informed decisions"
+    },
+    {
+      "id": 799757436,
+      "user": "yossigo",
+      "created_at": "2021-03-15T21:15:41Z",
+      "body": "We need to work under the assumption that there's no way to determine if a write command is memory net positive or negative, considering all possible side effects (keyspace notifications, client side caching invalidations, etc.).\r\n\r\nBecause of this, I think that even if scripts were consistent and predictable, we'd still not be able to tag them reliably and completely avoid the problem.\r\n\r\nFor the common case, I lean towards accepting the idea that disallow ANY write command if we're OOM and beyond some safety margin.\r\n\r\nTo address @oranagra's use case, we could allow Lua scripts to override this behavior, and fall back to what we have now. This won't be the first dangerous power tool available to those who're willing to dig in the docs (see `redis.set_repl()` for example). \r\n\r\nSo a script that is expected to be memory net negative could invoke `redis.set_mode(redis.IGNORE_OOM)`  and fall back to the current behavior.\r\n\r\nWe can also take in another step forward and provide a `redis.set_mode(redis.NON_ATOMIC)` to indicate violation of atomicity is allowed in certain conditions. While it's not ideal, it's certainly possible after script replication is no longer supported."
+    },
+    {
+      "id": 799892246,
+      "user": "QuChen88",
+      "created_at": "2021-03-16T02:20:31Z",
+      "body": "Just playing the devil's advocate here a bit - if it is impossible to know whether the rest of the Lua script is adding memory by looking at the first write command, why not just treat all the mutating Lua scripts the same? i.e. Simply reject the script as soon as a mutating command is encountered when we are over maxmemory? This change is as simple as this one-liner in `scripting.c`\r\n\r\n```\r\n@@ -668,8 +668,7 @@ int luaRedisGenericCommand(lua_State *lua, int raise_error) {\r\n         !server.loading &&              /* Don't care about mem if loading. */\r\n         !server.masterhost &&           /* Slave must execute the script. */\r\n         server.lua_write_dirty == 0 &&  /* Script had no side effects so far. */\r\n         server.lua_oom &&               /* Detected OOM when script start. */\r\n-        (cmd->flags & CMD_DENYOOM))\r\n+        (cmd->flags & CMD_WRITE))\r\n     {\r\n         luaPushError(lua, shared.oomerr->ptr);\r\n         goto cleanup;\r\n```\r\n\r\nThe `CMD_DENYOOM` flag works fine when the client executes an individual command. So in the context of such command being executed outside of a Lua script, we can safely allow it to happen when over `maxmemory`. We can probably recommend users to do that to free up memory. "
+    },
+    {
+      "id": 799948591,
+      "user": "madolson",
+      "created_at": "2021-03-16T04:57:45Z",
+      "body": "@QuChen88 The reason we don't is that we allow LUA scripts that perform deletions today, so that would be a backwards breaking change. Which is getting at the core of the discussion. \r\n\r\nI like Yossi's idea of being able to set the script mode. The way it naturally makes sense to me is to have three modes, READ_ONLY, DENY_OOM, ALLOW_OOM. Setting the mode gives you different guarantees. READ_ONLY will prevent writes, makings sure the script is abortable, DENY_OOM will deny memory commands, making sure the script always succeeds on memory situations, and ALLOW_OOM does what Jim suggested. It might also make sense to add these as new commands instead, so that people can restrict them based on ACLs. (Like EVALRO, EVALDENYOOM, EVAL)."
+    },
+    {
+      "id": 800244595,
+      "user": "oranagra",
+      "created_at": "2021-03-16T13:09:51Z",
+      "body": "maybe i'm missing something, what's the difference between @QuChen88 last [post](https://github.com/redis/redis/issues/8478#issuecomment-799892246) and what @JimB123 [suggested](https://github.com/redis/redis/issues/8478#issuecomment-796840060)? isn't that the same thing? or om i missing something?\r\n\r\nYossi's suggestion is somewhat similar to what i suggested, just different default behavior.\r\ni.e the script is able to tell you before any modifications, if it is gonna release memory or consume it, or in other words, if it wants to get denied by OOM on deletions or not.\r\nI suppose we can add such a feature even before we deprecate script replication, just need to decide what default to use.\r\nwhich is worse, to break scripts that do cleanup, or stop naive scripts from bloating the memory?"
+    },
+    {
+      "id": 800423507,
+      "user": "QuChen88",
+      "created_at": "2021-03-16T16:39:36Z",
+      "body": "I agree with Yossi's idea that the default behavior in Lua script can be that all write are rejected if redis is over `maxmemory` (which is in line with what I proposed), and we can allow user to override this behavior in Lua with some special flags like `IGNORE_OOM`. \r\n\r\nHowever, this can make it difficult for the user to properly tag the Lua script. Say the script contains multiple different write commands, then it is very hard to know beforehand if the net memory will increase or decrease as it depends on the sizes of the accessed items. "
+    },
+    {
+      "id": 865515319,
+      "user": "nmvk",
+      "created_at": "2021-06-22T04:17:57Z",
+      "body": "Taking a look"
+    },
+    {
+      "id": 968956485,
+      "user": "yoav-steinberg",
+      "created_at": "2021-11-15T14:19:46Z",
+      "body": "Hi all,\r\nI'm going to PR @yossigo's suggestion here https://github.com/redis/redis/issues/8478#issuecomment-799757436\r\nWhat I'm wondering about is the idea of also adding a _break-atomicity_ option. This means that when set the script will allow running non-memory growing commands but will return an OOM error as soon as it reaches a `DENY_OOM` command. This will break the script's atomicity. It might be useful if the user doesn't mind their script aborting in the middle after performing some modifications to the dataset. In terms of replication, this isn't such a big deal since we're going to chuck script replication anyway.\r\nSo WDYT?"
+    },
+    {
+      "id": 969946097,
+      "user": "madolson",
+      "created_at": "2021-11-16T07:19:39Z",
+      "body": "@yoav-steinberg The only question I would ask is if @nmvk is still looking at this. "
+    },
+    {
+      "id": 969969593,
+      "user": "nmvk",
+      "created_at": "2021-11-16T07:48:50Z",
+      "body": "@madolson Apologies for delay, I am still looking at it, will post an update soon"
+    },
+    {
+      "id": 984423940,
+      "user": "oranagra",
+      "created_at": "2021-12-02T08:59:45Z",
+      "body": "Note, when we handle that issue, let's also fix the code that sets `WRITE_DIRTY` on any `CMD_WRITE`, and instead actually look at `server.dirty`."
+    },
+    {
+      "id": 987904208,
+      "user": "yoav-steinberg",
+      "created_at": "2021-12-07T13:01:02Z",
+      "body": "@nmvk ping?"
+    }
+  ]
+}

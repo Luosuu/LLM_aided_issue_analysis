@@ -1,0 +1,36 @@
+{
+  "issue_number": 9877.0,
+  "title": "[BUG] MEMORY USAGE returns wrong value for json objects",
+  "body": "MEMORY USAGE returns wrong value for json objects\r\n\r\nA short description of the bug.\r\n\r\nredis-cli memory usage json-key\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\nI'm testing it on a key that uses 100s of megabytes and always getting back 40 bytes. This broke in the last 48 hours.\r\n",
+  "state": "closed",
+  "created_at": "2021-12-01T12:36:50Z",
+  "updated_at": "2021-12-01T13:10:24Z",
+  "closed_at": "2021-12-01T13:10:24Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 983602597,
+      "user": "oranagra",
+      "created_at": "2021-12-01T12:41:02Z",
+      "body": "what do you mean by \"json\"?\r\nare you referring to https://github.com/RedisJSON/RedisJSON\r\nif so, i think you should move the issue there.\r\nif not, please provide some better reproduction steps."
+    },
+    {
+      "id": 983612964,
+      "user": "papakipos",
+      "created_at": "2021-12-01T12:55:41Z",
+      "body": "Here is how to reproduce the problem using only redis-cli:\r\n\r\nredis-cli json.set foo . '\"bar far war jar gar asdf sdf sdf sfd asdf asdf sfd dzf z fsd fasdf zdf zsd fzsd fzs df zsdf\"'\r\nredis-cli memory usage foo\r\n\r\nNote that no matter how long you make the string in quotes, memory usage always returns 32 bytes."
+    },
+    {
+      "id": 983616624,
+      "user": "papakipos",
+      "created_at": "2021-12-01T13:00:31Z",
+      "body": "I'm running redis version 6.2.3 using module RedisJSON 2.0.4"
+    },
+    {
+      "id": 983625966,
+      "user": "oranagra",
+      "created_at": "2021-12-01T13:10:24Z",
+      "body": "@papakipos please open that issue in https://github.com/RedisJSON/RedisJSON "
+    }
+  ]
+}

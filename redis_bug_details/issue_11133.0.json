@@ -1,0 +1,36 @@
+{
+  "issue_number": 11133.0,
+  "title": "[BUG] Update docs to mark \"ip\" in cluster shards as optional",
+  "body": "**Describe the bug**\r\n\r\nhttps://redis.io/commands/cluster-shards/\r\n\r\nPer discussion here https://github.com/redis/redis/issues/10168#issuecomment-1215922419 it seems that the \"ip\" should be marked as optional and endpoint can be used instead (in general the docs there a bit inaccurate as the example doesn't fit with what's required / optional).",
+  "state": "open",
+  "created_at": "2022-08-16T08:58:10Z",
+  "updated_at": "2022-11-26T02:42:07Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1216398667,
+      "user": "enjoy-binbin",
+      "created_at": "2022-08-16T09:35:57Z",
+      "body": "yes, i see, the example in [cluster-shards doc](https://redis.io/commands/cluster-shards/) is outdated, it doesn't contain the endpoint field, and the endpoint field must be in the response, we will fix the example later\r\n\r\nand the optional one, what do you means? i see the code, now the ip field is also will always be in the response.\r\ndo you mean that we marked it as optional like this:\r\n```\r\nip: The IP address to send requests to for this node.            ---------> become ip (optional)\r\nhostname (optional): The announced hostname to send requests to for this node.\r\n```\r\n\r\nor just add a note that say: endpoint can be used instead  (somethings like that?)"
+    },
+    {
+      "id": 1221386502,
+      "user": "madolson",
+      "created_at": "2022-08-20T18:55:39Z",
+      "body": "Based on our discussion we said it's not required for any correctness reasons, but realistically within Redis it is never omitted, it seems weird to put it as optional when there is no mode where it optional.\r\n\r\nYeah, maybe we should cleanup the documentation, I remember that being a little rushed since it was close to the Redis 7 launch"
+    },
+    {
+      "id": 1268169094,
+      "user": "zuiderkwast",
+      "created_at": "2022-10-05T09:14:37Z",
+      "body": "Is this fixed?"
+    },
+    {
+      "id": 1327965493,
+      "user": "madolson",
+      "created_at": "2022-11-26T02:42:07Z",
+      "body": "@sjpotter Are you happy with the compromise?"
+    }
+  ]
+}

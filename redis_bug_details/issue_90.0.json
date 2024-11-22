@@ -1,0 +1,93 @@
+{
+  "issue_number": 90.0,
+  "title": "Redis silently continues working when RDB persistence fails",
+  "body": "If you have RDB persistence configured to write your data, for instance, into a directory that is not writable by Redis, the background saving will not work but Redis will continue working as expected. This way the user may think everything is ok but actually no persistence at all is performed by the server: when the server goes down no data wil be available at all.\n\nEither Redis should abort when this happens or should return an error to every client trying to write against the server if Redis was not able to persist the latest time it tried. The error will no longer be reported once a successful BGSAVE/SAVE is performed. Or something like that...\n",
+  "state": "closed",
+  "created_at": "2011-09-20T13:25:00Z",
+  "updated_at": "2012-03-07T12:52:26Z",
+  "closed_at": "2012-03-07T12:10:22Z",
+  "labels": [
+    "critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 2211464,
+      "user": "mrb",
+      "created_at": "2011-09-27T14:34:12Z",
+      "body": "I don't think aborting in this case is the right call.  People should be hooking monitoring and metrics in to the running servers and can easily know whether or not it has been too long since the last successful save.  It should be a warning on startup that the dir isn't writeable or whatever, and then messages to the client/logs after that.  I personally wouldn't feel comfortable knowing that the server will crash if this happens, as I prefer to think of Redis as a stable, long-running, easily monitorable server.\n"
+    },
+    {
+      "id": 2211635,
+      "user": "catwell",
+      "created_at": "2011-09-27T14:48:12Z",
+      "body": "I definitely want Redis to refuse to start if it cannot persist and its configuration file says it should. If it ceases being able to persist while running, though, I am not sure what the best thing to do is.\n\nThe options are:\n- Your users see nothing and keep adding data. If the server crashes they lose data.\n- Your users see the service crash and you will be warned ASAP.\n\nI think I prefer the second case but I am not really comfortable with any of those...\n"
+    },
+    {
+      "id": 2211784,
+      "user": "antirez",
+      "created_at": "2011-09-27T15:00:30Z",
+      "body": "Thanks @mrb, @catwel, both you have interesting points in my opinion. Quitting the server just for a transient persistence failure is bad, but at the same time we can't ignore that condition. Replying with an error code sounds like a good compromise: we are not killing the instance but the user will be aware and able to revert the condition using some special command. Looks like a good idea?\n"
+    },
+    {
+      "id": 2211993,
+      "user": "libo",
+      "created_at": "2011-09-27T15:17:50Z",
+      "body": "Redis to refuse to start +1!\n"
+    },
+    {
+      "id": 2212017,
+      "user": "catwell",
+      "created_at": "2011-09-27T15:19:40Z",
+      "body": "Oh, I hadn't noticed you proposed to quit the server. This would be the worst since it would automatically result in unrecoverable data loss.\n\nI'm fine with your idea to return an error to the clients, except if this could happen because of a transient state. Maybe it should only happen after two failed bgsaves?\n"
+    },
+    {
+      "id": 2212018,
+      "user": "antirez",
+      "created_at": "2011-09-27T15:19:44Z",
+      "body": "@libo, @all: redis refusing to start is a good idea, but is not enough:\n- Redis configured to persist into /tmp/foo/bar\n- Then I change the permissions of 'bar', or unmount a device.\n- Redis failing to write even if it started with success.\n\nWe definitely need an alternative solution, even if refusing to start may _also_ be implemented.\n"
+    },
+    {
+      "id": 2212137,
+      "user": "mrb",
+      "created_at": "2011-09-27T15:28:23Z",
+      "body": "@antirez I think that the error returning should be configurable.  For people with non-trivial infrastructure setups with monitoring, available disk space for overflow, automated provisioning, etc., it should be an option to keep the server running and returning normally if the bgsave hasn't executed.\n"
+    },
+    {
+      "id": 2212240,
+      "user": "antirez",
+      "created_at": "2011-09-27T15:37:17Z",
+      "body": "@mrb agreed, but I would have the error as default configuration, and the user can easily switch it off using the CONFIG command. This looks like a good idea after all. Thanks for the help.\n"
+    },
+    {
+      "id": 2212255,
+      "user": "mrb",
+      "created_at": "2011-09-27T15:38:30Z",
+      "body": "@antirez Thanks!\n"
+    },
+    {
+      "id": 2478149,
+      "user": "jokea",
+      "created_at": "2011-10-21T06:23:45Z",
+      "body": "Agree with: refused to start and a configurable return-error-to-client.\nAnother thought, we can add a \"number_of_critical_warnings\" in info output, let the\nuser monitor this field. This field can only be cleared using the CONFIG command\nafter the user take appropriate operation against those warnings.\n"
+    },
+    {
+      "id": 2601241,
+      "user": "richardbarran",
+      "created_at": "2011-11-02T09:34:23Z",
+      "body": "Just wanted to chip in with a +1 for Redis refusing to start/exiting as soon as a write fails - if the user is relying on Redis persisting the data, and it cannot do that, then it's not working as intended.\n"
+    },
+    {
+      "id": 4367008,
+      "user": "antirez",
+      "created_at": "2012-03-07T12:10:20Z",
+      "body": "Issue fixed, for now I'm not testing if the directory is writable at startup, since there are many other conditions that will lead to inability to save... but at the first BGSAVE the user will know for sure ;)\n\nClosing. It is not clear if this also closes issue #163, I'll check later today. Feedbacks welcomed.\n"
+    },
+    {
+      "id": 4367483,
+      "user": "Seldaek",
+      "created_at": "2012-03-07T12:52:26Z",
+      "body": "It's a good start, but [as I've said a year ago](http://code.google.com/p/redis/issues/detail?id=453) a database _should not start_ if it cannot take good care of your data in its current configuration. This is going to hurt people one day and I'm sure we have all seen what kind of shitstorm a blog post by a guy that lost some data can create for a database. Please reconsider.\n\nIMO when it starts, if it's configured with a RDB and there RDB isn't there, it should issue a SAVE itself to make sure saving is possible, and create an empty RDB. If it's not working fail hard please.\n"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "issue_number": 8924.0,
+  "title": "[BUG] xclaim claims the message but returns nil",
+  "body": "### Describe the bug\r\n\r\n![image](https://user-images.githubusercontent.com/22411936/117496580-8870e080-af77-11eb-97a2-65373a3b9713.png)\r\n\r\n(I know 1 as min_idle_time is not the finest idea but it was in order to get an clean example)\r\n\r\nMessage is claimed but it is not returned as the doc specifies.\r\n\r\n![image](https://user-images.githubusercontent.com/22411936/117496751-c5d56e00-af77-11eb-968f-cb1e809da97c.png)\r\n\r\n\r\n### To reproduce\r\n\r\nSadly I do not know :shrug:. We are running redis on aws elasticache, working fine 99.9% of the time but sometimes this happens and it's impossible to access the message.\r\n\r\n### Expected behavior\r\n\r\nThe message to be returned.\r\n\r\n### Additional information\r\n\r\nI spent hours trying to understand this and I'm nearly desperate, i have not idea about what to do and i do not want to drop redis :cry: \r\n",
+  "state": "closed",
+  "created_at": "2021-05-07T19:10:49Z",
+  "updated_at": "2022-02-08T21:54:43Z",
+  "closed_at": "2022-02-08T08:20:09Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 836099994,
+      "user": "madolson",
+      "created_at": "2021-05-10T03:00:45Z",
+      "body": "Hi, I'm from ElastiCache. The only thing ElastiCache specific that might have introduced some interesting behavior is related to full sync during replication, do you know if there were any snapshots going on. Also what Redis version are you running on?\r\n\r\nFor non-elasticache questions, is that example a real example of this odd behavior or just what it looked like? You mentioned you can't reproduce it, just wanted to understand.\r\n\r\nSalvatore clearly saw something similar, https://github.com/redis/redis/commit/6ba50784b5ce2e4eae74da00536ebbc1f81984ae, but I don't know why his fix makes any sense. \"Sometimes entries may not be emitted, producing broken protocol where\r\nthe array length was greater than the emitted entires, blocking the\r\nclient waiting for more data.\" So there are apparently valid cases, so maybe understanding your use case would help a bit."
+    },
+    {
+      "id": 836495919,
+      "user": "theophanevie",
+      "created_at": "2021-05-10T09:58:58Z",
+      "body": "> Hi, I'm from ElastiCache. The only thing ElastiCache specific that might have introduced some interesting behavior is related to full sync during replication, do you know if there were any snapshots going on. Also what Redis version are you running on?\r\n\r\nFirst of all, Thanks a lot for taking the time to help us !\r\nWe are running ElastiCache on version 6.0.5. I just checked snapshots but there were no snapshots running at the time the message was sent.\r\n\r\n> For non-elasticache questions, is that example a real example of this odd behavior or just what it looked like? You mentioned you can't reproduce it, just wanted to understand.\r\n\r\nA consumer crashed and while another one was recovering successfully the ~ 100 000 messages in pending state, 260 messages seem to be stuck. The screen provided is me trying to understand what is happening (via redisinsigh 1.9.0, so yes it is real values). \r\n\r\nIf I consider that despite the fact that XCLAIM returns nil the message is claimed successfully and I XACK the message, the message is acked correctly.\r\n\r\nThis is the second time this appears in 5 weeks, but the first time it was about 9 messages. In both cases all messages are consecutive in time.\r\n\r\n> Salvatore clearly saw something similar, 6ba5078, but I don't know why his fix makes any sense. \"Sometimes entries may not be emitted, producing broken protocol where\r\nthe array length was greater than the emitted entries, blocking the\r\nclient waiting for more data.\" So there are apparently valid cases, so maybe understanding your use case would help a bit.\r\n\r\nWe aren’t doing anything fancy, each time an object is modified in some database we put its new representation in a stream. (max entry is about 500 items of less than 100 Kib per second) There is currently one consumer group reading this stream."
+    },
+    {
+      "id": 1027946462,
+      "user": "guybe7",
+      "created_at": "2022-02-02T13:34:15Z",
+      "body": "@theophanevie please read https://github.com/redis/redis/issues/7021#issuecomment-1027939792"
+    },
+    {
+      "id": 1033099451,
+      "user": "theophanevie",
+      "created_at": "2022-02-08T21:54:43Z",
+      "body": "thanks a lot !"
+    }
+  ]
+}

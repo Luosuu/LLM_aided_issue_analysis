@@ -1,0 +1,164 @@
+{
+  "issue_number": 9647.0,
+  "title": "[BUG] Cluster replica(s) dead loop on \"Failed trying to load the MASTER synchronization DB from disk\"",
+  "body": "**Describe the bug**\r\n\r\nI made a cluster work on 5 masters and 5 replicas.\r\nif I use the command **--repl-diskless-load swapdb** then it's working\r\n( I stopped using swapdb due to playing on https://github.com/RediSearch/RSCoordinator this module does not handle read error )\r\nwhen I switch to **--repl-diskless-sync yes --repl-diskless-sync-delay 5** and **--repl-diskless-load disabled**\r\nsometime it work, sometime it's not.\r\n\r\n**8:S 18 Oct 2021 16:49:21.572 # Failed trying to load the MASTER synchronization DB from disk\r\n8:S 18 Oct 2021 16:49:26.594 # Failed trying to load the MASTER synchronization DB from disk\r\n8:S 18 Oct 2021 16:49:31.614 # Failed trying to load the MASTER synchronization DB from disk\r\n8:S 18 Oct 2021 16:49:36.634 # Failed trying to load the MASTER synchronization DB from disk\r\n8:S 18 Oct 2021 16:49:41.650 # Failed trying to load the MASTER synchronization DB from disk\r\n8:S 18 Oct 2021 16:49:46.671 # Failed trying to load the MASTER synchronization DB from disk\r\n8:S 18 Oct 2021 16:49:51.691 # Failed trying to load the MASTER synchronization DB from disk\r\n8:S 18 Oct 2021 16:49:56.710 # Failed trying to load the MASTER synchronization DB from disk\r\n8:S 18 Oct 2021 16:50:01.729 # Failed trying to load the MASTER synchronization DB from disk**\r\n\r\n**To reproduce**\r\n\r\nConfiguration on the master nodes:\r\n**sh -c 'redis-server /etc/redis/redis.conf --port 6380 --protected-mode yes --maxclients 100000 --loglevel warning --save 720 3000000 --repl-diskless-load disabled --repl-diskless-sync yes --repl-diskless-sync-delay 5 --rdbcompression no  --key-load-delay 5 --repl-timeout 60 --dbfilename o.r --loadmodule /plugin/oss-module.so OSS_GLOBAL_PASSWORD abc123';**\r\n\r\nConfiguration on the slave nodes:\r\n**sh -c 'redis-server /etc/redis/redis.conf --port 6385 --protected-mode yes --maxclients 100000 --loglevel warning --save \"\" --repl-diskless-load disabled --repl-diskless-sync yes --repl-diskless-sync-delay 5 --rdbcompression no  --key-load-delay 5 --repl-timeout 60 --dbfilename o.r --loadmodule /plugin/oss-module.so OSS_GLOBAL_PASSWORD abc123';**\r\n\r\n**Expected behavior**\r\n\r\nThe first time play with that configuration, it's working. \r\nAfter restart, it's keep failing \"**to load the MASTER synchronization DB from disk**\"\r\n\r\n**Additional information**\r\n\r\nGlobal conf file for both (some configs has been overrides from cmd\r\n```\r\nio-threads 4\r\nio-threads-do-reads yes\r\nbind 0.0.0.0\r\nport 6389\r\nmasterauth abc123\r\nrequirepass abc123\r\ntcp-backlog 511\r\ntimeout 0\r\ntcp-keepalive 0\r\nloglevel debug\r\nlogfile \"\"\r\ndatabases 16\r\nstop-writes-on-bgsave-error no\r\nrdbcompression no\r\nrdbchecksum yes\r\ndbfilename app_pmcstech_com.rdb\r\ndir ./\r\nslave-serve-stale-data yes\r\nslave-read-only yes\r\nrepl-diskless-sync yes\r\nrepl-diskless-sync-delay 5\r\nrepl-disable-tcp-nodelay no\r\nslave-priority 100\r\nappendonly no\r\nappendfilename \"appendonly.aof\"\r\nappendfsync everysec\r\nno-appendfsync-on-rewrite no\r\nauto-aof-rewrite-percentage 100\r\nauto-aof-rewrite-min-size 64mb\r\naof-load-truncated yes\r\nlua-time-limit 5000\r\ncluster-enabled yes\r\ncluster-config-file nodes-keydbmaster-9.conf\r\ncluster-node-timeout 15000\r\nslowlog-log-slower-than 10000\r\nslowlog-max-len 128\r\nlatency-monitor-threshold 0\r\nnotify-keyspace-events \"\"\r\nhash-max-ziplist-entries 512\r\nhash-max-ziplist-value 64\r\nlist-max-ziplist-entries 512\r\nlist-max-ziplist-value 64\r\nset-max-intset-entries 512\r\nzset-max-ziplist-entries 128\r\nzset-max-ziplist-value 64\r\nhll-sparse-max-bytes 3000\r\nactiverehashing yes\r\nclient-output-buffer-limit normal 107374182400 26843545600 60\r\nclient-output-buffer-limit slave 107374182400 26843545600 60\r\nclient-output-buffer-limit pubsub 33554432 8388608 60\r\nhz 10\r\naof-rewrite-incremental-fsync yes\r\nrepl-diskless-load swapdb\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-10-18T16:53:59Z",
+  "updated_at": "2021-10-28T08:38:37Z",
+  "closed_at": "2021-10-28T08:38:36Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 946100969,
+      "user": "oranagra",
+      "created_at": "2021-10-18T19:36:03Z",
+      "body": "@pnthai88 from your reproduction steps it looks as if the db is empty, is it really that simple?\r\n\r\nare there no other errors in either the master or the replica log files?\r\n\r\ni see that in the the config file has loglevel set to \"debug\", but the command line overrides it to \"warning\", please try to change to \"verbose\" and see if you get any further details."
+    },
+    {
+      "id": 946285847,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T01:11:28Z",
+      "body": "Yea, here is the full of its log\r\n\r\n```\r\nredismaster-8\r\nredis:6.2.6-bullseye\r\nRUNNING\r\n\r\n\r\n9:C 19 Oct 2021 01:08:21.072 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n\r\n9:C 19 Oct 2021 01:08:21.072 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=9, just started\r\n\r\n#### cleaned ####\r\n```"
+    },
+    {
+      "id": 946286866,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T01:14:05Z",
+      "body": "After load module <search>\r\n\r\n```\r\n\r\n9:C 19 Oct 2021 01:12:31.412 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n\r\n9:C 19 Oct 2021 01:12:31.412 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=9, just started\r\n\r\n#### cleaned ####\r\n```"
+    },
+    {
+      "id": 946289355,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T01:20:25Z",
+      "body": "On the master node\r\n\r\n```\r\n9:C 19 Oct 2021 01:18:28.813 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n\r\n9:C 19 Oct 2021 01:18:28.813 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=9, just started\r\n\r\n#### cleaned ####\r\n```"
+    },
+    {
+      "id": 946507296,
+      "user": "oranagra",
+      "created_at": "2021-10-19T09:00:46Z",
+      "body": "@pnthai88 i don't see any other errors in the log, so i wanna get a better understanding of the reproduction scenario.\r\nis there any data in the cluster? or is it just an empty cluster with a module and a replica failing to sync?\r\ndoes this issue also happen if you remove the module from the equation?"
+    },
+    {
+      "id": 946510469,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T09:04:32Z",
+      "body": "@oranagra : it's not working on data exist or empty or no module loaded or module loaded\n\nIf without swapdb parameter.\n\nIt's keep failing sync, i raised client-output-buffer-limit.... already"
+    },
+    {
+      "id": 946518045,
+      "user": "oranagra",
+      "created_at": "2021-10-19T09:13:06Z",
+      "body": "i'm suspecting it's related to the module. i don't know much about it, but i suppose that if you'll show that without the module it stops failing, then you should report this issue for the module developers to debug."
+    },
+    {
+      "id": 946520588,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T09:16:11Z",
+      "body": "Yea,\n\nBut if i remove the module and run cluster without \"swapdb\" mode, it still failing sync on slaves too.\n\nIf you want to have a look, i'm willing let you access team viewer to discover it :)\n"
+    },
+    {
+      "id": 946536328,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T09:35:57Z",
+      "body": "@oranagra ,\r\nI just try out and it's now working\r\non the replica nodes, i replaced folder mapping with volume in docker\r\n```\r\n# this will not work . Causing dead loop sync error, unable load from disk\r\nvolumes:\r\n   - ./LOCAL_TEST_SERVER_DATA/RedisCluster/volume/vol-redis-replica-3-data:/data\r\n```\r\nwith this one will working:\r\n```\r\n# this will working, no more dead loop\r\nvolumes:\r\n   - vol-redis-replica-3-data:/data\r\n```\r\nvolume define:\r\n```\r\nvolumes:\r\n  vol-redis-replica-0-data:\r\n  vol-redis-replica-1-data:\r\n  vol-redis-replica-2-data:\r\n  vol-redis-replica-3-data:\r\n  vol-redis-replica-4-data:\r\n```\r\nI think the problem is at mapping folder will not work on replication.\n\nNow i'm able to run the cluster without \"swapdb\" mode"
+    },
+    {
+      "id": 946651393,
+      "user": "oranagra",
+      "created_at": "2021-10-19T12:01:21Z",
+      "body": "ok, now i realize that this could be a simple case of not being able to open the file for reading.\r\napparently when that happens we don't print the problem and `errno` to the log (i'll fix it).\r\n\r\nanyway, so this means the problem was the docker configuration (not really a bug in redis).\r\nso we can close this issue, right?"
+    },
+    {
+      "id": 946653655,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T12:04:14Z",
+      "body": "@oranagra \nNo, i think it's a bug... may be.\n\nBecause in docker the master node can read and write to RDB.\n\nBut the replica not. It need volume defined.\n\nI also tried **save \"\"** to prevent rdb writing and it's not working too. You may have a look at it"
+    },
+    {
+      "id": 946659090,
+      "user": "oranagra",
+      "created_at": "2021-10-19T12:11:40Z",
+      "body": "@pnthai88 can you try to apply this patch then and re-test (so we can see which error it is):\r\n```diff\r\n--- a/src/replication.c\r\n+++ b/src/replication.c\r\n@@ -1859,7 +1859,7 @@ void readSyncBulkPayload(connection *conn) {\r\n         if (rdbLoad(server.rdb_filename,&rsi,RDBFLAGS_REPLICATION) != C_OK) {\r\n             serverLog(LL_WARNING,\r\n                 \"Failed trying to load the MASTER synchronization \"\r\n-                \"DB from disk\");\r\n+                \"DB from disk: %s\", strerror(errno));\r\n             cancelReplicationHandshake(1);\r\n             if (server.rdb_del_sync_files && allPersistenceDisabled()) {\r\n                 serverLog(LL_NOTICE,\"Removing the RDB file obtained from \"\r\n```\r\n\r\nor alternatively just edit `rdbLoad` and add some log prints into it to see if `fopen` fails or does it come from inside `rdbLoadRio`.."
+    },
+    {
+      "id": 946660266,
+      "user": "oranagra",
+      "created_at": "2021-10-19T12:13:17Z",
+      "body": "btw, IIUC you're using `--repl-diskless-sync yes`, so the master isn't using the disk either."
+    },
+    {
+      "id": 946661434,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T12:14:49Z",
+      "body": "@oranagra with your incredible of works, i can't refuse it!\nI will try it in next 3 hours, i'm outside for work. Will let you know asap\n"
+    },
+    {
+      "id": 946683304,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T12:43:15Z",
+      "body": "@oranagra  here you are:\r\nFailed trying to load the MASTER synchronization DB from disk: **No such file or directory**\r\n\r\n```\r\n 19 Oct 2021 12:42:31.368 * MASTER <-> REPLICA sync: Flushing old data\r\n\r\n9:S 19 Oct 2021 12:42:31.368 * MASTER <-> REPLICA sync: Loading DB in memory\r\n\r\n9:S 19 Oct 2021 12:42:31.371 # Failed trying to load the MASTER synchronization DB from disk: No such file or directory\r\n\r\n9:S 19 Oct 2021 12:42:31.372 * Reconnecting to MASTER 172.0.0.100:6380 after failure\r\n\r\n9:S 19 Oct 2021 12:42:31.372 * MASTER <-> REPLICA sync started\r\n\r\n9:S 19 Oct 2021 12:42:31.372 * Non blocking connect for SYNC fired the event.\r\n\r\n9:S 19 Oct 2021 12:42:31.372 * Master replied to PING, replication can continue...\r\n```\r\n\r\nThe data name is **o.r**\r\nand it's exist\r\n\r\n![image](https://user-images.githubusercontent.com/8721600/137911702-e042fbbd-678a-4a86-8043-73165f02e216.png)\r\n\r\nlet me know, if you need more test.\r\n"
+    },
+    {
+      "id": 946724808,
+      "user": "oranagra",
+      "created_at": "2021-10-19T13:28:56Z",
+      "body": "@pnthai88 thanks.. \r\nthat's very odd.\r\nfirst because the code in `readSyncBulkPayload` did rename the temp rdb file to that name successfully just a few lines above the call to rdbLoad which fails.\r\nand also because you show that the file exists.\r\ncan you please add some log prints in `rdbLoad` before / after fopen, and maybe also clear errno `errno=0;` before `fopen`, so that we can be sure this error indeed comes from `fopen`, and not from somewhere inside `rdbLoadRio`\r\n\r\n@yossigo can you think of any docker specific issue that can cause such a thing?\r\ni.e. file is writable, but when opening for read we get EEXIST?"
+    },
+    {
+      "id": 946991877,
+      "user": "pnthai88",
+      "created_at": "2021-10-19T18:27:55Z",
+      "body": "@oranagra can you send me debug code and correct where you want these logs?"
+    },
+    {
+      "id": 947003504,
+      "user": "oranagra",
+      "created_at": "2021-10-19T18:38:27Z",
+      "body": "please use this:\r\n```diff\r\ndiff --git a/src/rdb.c b/src/rdb.c\r\nindex 3a1eeb915..23908e507 100644\r\n--- a/src/rdb.c\r\n+++ b/src/rdb.c\r\n@@ -2754,11 +2754,16 @@ int rdbLoad(char *filename, rdbSaveInfo *rsi, int rdbflags) {\r\n     FILE *fp;\r\n     rio rdb;\r\n     int retval;\r\n-\r\n-    if ((fp = fopen(filename,\"r\")) == NULL) return C_ERR;\r\n+    errno = 0;\r\n+    if ((fp = fopen(filename,\"r\")) == NULL) {\r\n+        serverLog(LL_WARNING, \"rdbLoad failed opening %s, %s\", filename, strerror(errno));\r\n+        return C_ERR;\r\n+    }\r\n     startLoadingFile(fp, filename,rdbflags);\r\n     rioInitWithFile(&rdb,fp);\r\n     retval = rdbLoadRio(&rdb,rdbflags,rsi);\r\n+    if (retval==C_ERR)\r\n+        serverLog(LL_WARNING, \"rdbLoadRio failed, %s\", strerror(errno));\r\n     fclose(fp);\r\n     stopLoading(retval==C_OK);\r\n     return retval;\r\n```"
+    },
+    {
+      "id": 947217615,
+      "user": "pnthai88",
+      "created_at": "2021-10-20T00:52:50Z",
+      "body": "@oranagra :\r\n\r\nhere you are:\r\n\r\n```\r\n\r\n10:S 20 Oct 2021 00:51:53.730 * Reconnecting to MASTER 172.0.0.11:6379 after failure\r\n10:S 20 Oct 2021 00:51:53.730 * MASTER <-> REPLICA sync started\r\n10:S 20 Oct 2021 00:51:53.730 * Non blocking connect for SYNC fired the event.\r\n10:S 20 Oct 2021 00:51:53.730 * Master replied to PING, replication can continue...\r\n10:S 20 Oct 2021 00:51:53.730 * Partial resynchronization not possible (no cached master)\r\n10:S 20 Oct 2021 00:51:58.734 * Full resync from master: 8d841222160b2e86e05ca7b9d56d526d13314575:42\r\n10:S 20 Oct 2021 00:51:58.736 * MASTER <-> REPLICA sync: receiving streamed RDB from master with EOF to disk\r\n10:S 20 Oct 2021 00:51:58.737 * MASTER <-> REPLICA sync: Flushing old data\r\n10:S 20 Oct 2021 00:51:58.737 * MASTER <-> REPLICA sync: Loading DB in memory\r\n10:S 20 Oct 2021 00:51:58.740 # **before fopen filename: o.r | log: Resource temporarily unavailable**\r\n10:S 20 Oct 2021 00:51:58.741 # **rdbLoad failed opening o.r, No such file or directory**\r\n10:S 20 Oct 2021 00:51:58.741 # Failed trying to load the MASTER synchronization DB from disk: No such file or directory\r\n```"
+    },
+    {
+      "id": 948488382,
+      "user": "yossigo",
+      "created_at": "2021-10-21T10:48:48Z",
+      "body": "@oranagra This is definitely something funny related to docker.\r\n@pnthai88 If I understand correctly, this works when you're mapping your directory to a volume and doesn't work when you do a simple bindmount - is that correct?"
+    },
+    {
+      "id": 948500963,
+      "user": "pnthai88",
+      "created_at": "2021-10-21T11:06:11Z",
+      "body": "> @oranagra This is definitely something funny related to docker.\n> \n> @pnthai88 If I understand correctly, this works when you're mapping your directory to a volume and doesn't work when you do a simple bindmount - is that correct?\n\nYea, that's correct. This bug is insane 😂"
+    },
+    {
+      "id": 950308551,
+      "user": "yossigo",
+      "created_at": "2021-10-24T11:40:00Z",
+      "body": "@pnthai88 In that case, I'd look for obvious things like permissions bits on the folder, different UIDs, etc. Or just workaround and use volumes if that works for you. Anyway - we can conclude this is not something we have to fix in Redis."
+    },
+    {
+      "id": 950308933,
+      "user": "pnthai88",
+      "created_at": "2021-10-24T11:42:52Z",
+      "body": "> @pnthai88 In that case, I'd look for obvious things like permissions bits on the folder, different UIDs, etc. Or just workaround and use volumes if that works for you. Anyway - we can conclude this is not something we have to fix in Redis.\n\nYea, i'm using volume for local development.\nThis kind of error should be notice in https://redis.com/blog/top-redis-headaches-for-devops-replication-timeouts/"
+    },
+    {
+      "id": 952197121,
+      "user": "pnthai88",
+      "created_at": "2021-10-26T18:23:18Z",
+      "body": "@yossigo , @oranagra \r\ni just found the problem ! i'm making wordpress commerce site for my wife today for our small fun business.\r\nIt's seriously slow , 20 seconds to load simple single page. At first i tried with folder mapping (slow) then i switch to volume mapping (very fast like usual) i think the problem is at Docker.\r\nWhen the cluster replicas write to a very very very slow folder mapping, so it raise error could not find the \"rdb.dump\" file. I think that's the core problem."
+    },
+    {
+      "id": 953632580,
+      "user": "yossigo",
+      "created_at": "2021-10-28T08:38:36Z",
+      "body": "@pnthai88 Thanks for the update, closing this."
+    }
+  ]
+}

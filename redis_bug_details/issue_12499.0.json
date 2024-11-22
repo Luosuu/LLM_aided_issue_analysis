@@ -1,0 +1,66 @@
+{
+  "issue_number": 12499.0,
+  "title": "[BUG]",
+  "body": "**Describe the bug**\r\n\r\nWe are getting failures since version 7.2 when using SSCAN passing the cursor.\r\n\r\n**To reproduce**\r\n\r\nAs reference https://github.com/docker-library/redis/issues/376.\r\n\r\n**Expected behavior**\r\n\r\nThat SSCAN respect the cursor that is provided.\r\n\r\n**Additional information**\r\n\r\nBefore the new release image of docker redis, it was working as expected.\r\n",
+  "state": "closed",
+  "created_at": "2023-08-18T05:22:35Z",
+  "updated_at": "2023-08-21T07:17:24Z",
+  "closed_at": "2023-08-21T07:17:24Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1683465635,
+      "user": "sundb",
+      "created_at": "2023-08-18T07:18:58Z",
+      "body": "@roggervalf Through reading the failed test of bullmq, do you mean that the scan speed is quicker than expected?\r\nSince #11290, the zset starts to support listpack encoding.\r\nWhen scanning a Listpack encoding zset, it does not have a maximum sampling limit like hash encoding,\r\nit is scanned from the entire zset, so faster speeds are possible.\r\nbtw, I have checked the first failed commit is #11290."
+    },
+    {
+      "id": 1684795562,
+      "user": "roggervalf",
+      "created_at": "2023-08-19T04:24:23Z",
+      "body": "hi @sundb, sorry I must add an example, so for example I have a set with 65 keys, but when I use count as 50, I'm getting all values:\r\n```bash\r\n> sscan bull:parent-queue-2b81e4e6-12f8-4218-bec4-00c63e3cbcbe:1:dependencies 0 count 50\r\n1) \"0\"\r\n2) 1) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:1\"\r\n   2) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:2\"\r\n   3) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:3\"\r\n   4) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:4\"\r\n   5) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:5\"\r\n   6) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:6\"\r\n   7) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:7\"\r\n   8) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:8\"\r\n   9) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:9\"\r\n   10) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:10\"\r\n   11) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:11\"\r\n   12) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:12\"\r\n   13) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:13\"\r\n   14) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:14\"\r\n   15) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:15\"\r\n   16) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:16\"\r\n   17) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:17\"\r\n   18) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:18\"\r\n   19) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:19\"\r\n   20) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:20\"\r\n   21) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:21\"\r\n   22) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:22\"\r\n   23) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:23\"\r\n   24) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:24\"\r\n   25) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:25\"\r\n   26) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:26\"\r\n   27) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:27\"\r\n   28) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:28\"\r\n   29) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:29\"\r\n   30) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:30\"\r\n   31) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:31\"\r\n   32) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:32\"\r\n   33) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:33\"\r\n   34) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:34\"\r\n   35) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:35\"\r\n   36) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:36\"\r\n   37) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:37\"\r\n   38) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:38\"\r\n   39) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:39\"\r\n   40) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:40\"\r\n   41) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:41\"\r\n   42) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:42\"\r\n   43) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:43\"\r\n   44) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:44\"\r\n   45) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:45\"\r\n   46) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:46\"\r\n   47) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:47\"\r\n   48) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:48\"\r\n   49) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:49\"\r\n   50) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:50\"\r\n   51) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:51\"\r\n   52) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:52\"\r\n   53) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:53\"\r\n   54) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:54\"\r\n   55) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:55\"\r\n   56) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:56\"\r\n   57) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:57\"\r\n   58) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:58\"\r\n   59) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:59\"\r\n   60) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:60\"\r\n   61) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:61\"\r\n   62) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:62\"\r\n   63) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:63\"\r\n   64) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:64\"\r\n   65) \"bull:test-a2039e6a-7939-406b-9719-d35ed08ccdca:65\"\r\n```\r\neven with any other number, I'm testing this behavior also using redis-cli on version 7.2"
+    },
+    {
+      "id": 1685244855,
+      "user": "Nibbler999",
+      "created_at": "2023-08-20T10:09:07Z",
+      "body": "https://redis.io/docs/manual/keyspace/#why-scan-may-return-all-the-items-of-an-aggregate-data-type-in-a-single-call"
+    },
+    {
+      "id": 1685269635,
+      "user": "oranagra",
+      "created_at": "2023-08-20T12:16:39Z",
+      "body": "The COUNT argument to the SCAN command family doesn't mean that you will get exactly or at most this count.\r\nSCAN and it's cursor is designed so that with the hashtable mechanics, it will never stop in the middle of a hash bucket, so it'll usually return a few items more than you requested with COUNT, and that's normal.\r\nThe COUNT feature is just a general guideline, to prevent the scan from consuming too much time, or producing a result that's too large.\r\nWith ziplist and listpack encoding, it is not possible to scan using a cursor, so in these cases SCAN must return all the items in one go, and that's fine considering these collections are always rather small, so it doesn't conflict with the above concern."
+    },
+    {
+      "id": 1685345706,
+      "user": "manast",
+      "created_at": "2023-08-20T17:20:03Z",
+      "body": "It seems that COUNT did work differently before 7.2 though, as the tests above work well with all versions of Redis before 7.2. It is also worth mentioning that there is no current documentation for the COUNT argument specifying its semantics, not sure if it has been like this before, but I kind of recall that it was documented.\r\n\r\nhttps://redis.io/commands/sscan/ \r\nhttps://redis.io/commands/scan/\r\n"
+    },
+    {
+      "id": 1685346119,
+      "user": "manast",
+      "created_at": "2023-08-20T17:22:09Z",
+      "body": "Ok I found it here: https://redis.io/docs/manual/keyspace/ \r\n\r\n\"While [SCAN](https://redis.io/commands/scan) does not provide guarantees about the number of elements returned at every iteration, it is possible to empirically adjust the behavior of [SCAN](https://redis.io/commands/scan) using the COUNT option. Basically with COUNT the user specified the amount of work that should be done at every call in order to retrieve elements from the collection. This is just a hint for the implementation, however generally speaking this is what you could expect most of the times from the implementation.\"\r\n"
+    },
+    {
+      "id": 1685766168,
+      "user": "oranagra",
+      "created_at": "2023-08-21T07:04:20Z",
+      "body": "since in 7.2 we changed small sets from ziplist encoding to listpack encoding, it could be that some edge cases that in the past were encoded with dict are now encoded as listpack, and thus in these cases in the past it used to SSCAN gradually and now it does in one go.\r\n\r\nmaybe you can validate that and provide some info by running `SCARD <key>` and `OBJECT ENCODING <key>` on the old and new version (as well as state if you're using the default config)"
+    },
+    {
+      "id": 1685775059,
+      "user": "sundb",
+      "created_at": "2023-08-21T07:11:49Z",
+      "body": "> since in 7.2 we changed small sets from ziplist encoding to listpack encoding, it could be that some edge cases that in the past were encoded with dict are now encoded as listpack, and thus in these cases in the past it used to SSCAN gradually and now it does in one go.\r\n\r\n@oranagra set doesn't change from ziplist encoding to listpack, it adds listpack encoding.\r\nThe test fails because the set in this test is a 65 element hash, but in 7.2 it is encoded as a listpack."
+    },
+    {
+      "id": 1685781953,
+      "user": "oranagra",
+      "created_at": "2023-08-21T07:17:24Z",
+      "body": "ohh right. i'm mixed it up with hash."
+    }
+  ]
+}

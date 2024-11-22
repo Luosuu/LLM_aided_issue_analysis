@@ -1,0 +1,24 @@
+{
+  "issue_number": 11353.0,
+  "title": "[BUG]",
+  "body": "**Describe the bug**\r\n\r\nSudden termination of the Redis server .exe program\r\n\r\n**To reproduce**\r\nUnkown\r\n\r\n**Expected behavior**\r\nTo run normally as usual, but this time it crashes\r\n\r\n**Additional information**\r\n```\r\nRedis version: 5.0.14.1\r\n[31792] 04 Oct 19:45:33.084 # --- EXCEPTION_ACCESS_VIOLATION\r\n[31792] 04 Oct 19:45:33.084 # --- STACK TRACE\r\nredis-server.exe!StackTraceInfo((null):0)(0x14018C230, 0x0014FF60, 0x00000001, 0x0014E180)\r\nredis-server.exe!UnhandledExceptiontHandler((null):0)(0x0014E180, 0x00000001, 0x00000000, 0x00000000)\r\nKERNELBASE.dll!UnhandledExceptionFilter((null):0)(0x0005DF99, 0x7FFC80511B60, 0x00000000, 0x7FFC803D11DA)\r\nntdll.dll!RtlMoveMemory((null):0)(0x0014E250, 0x00000000, 0x0014E208, 0x0014E7F0)\r\nntdll.dll!_C_specific_handler((null):0)(0x00000000, 0x0014E750, 0x0014EE30, 0x0014EE30)\r\nntdll.dll!_chkstk((null):0)(0x0014EE30, 0x7FFC803B0000, 0x7FFC8040DF78, 0x7FFC8053CE20)\r\nntdll.dll!RtlFindCharInUnicodeString((null):0)(0x00000000, 0x00000000, 0x0014F200, 0x00000000)\r\nntdll.dll!KiUserExceptionDispatcher((null):0)(0x1D8D7E6CF7B23E0, 0x00000000, 0x00000000, 0x0014F200)\r\nredis-server.exe!dictNext(D:\\dev\\GitHub\\redis\\src\\dict.c:607)(0x0014F200, 0x0000000D, 0x0000000D, 0x00000009)\r\nredis-server.exe!rdbSaveRio(D:\\dev\\GitHub\\redis\\src\\rdb.c:1212)(0x0056F2C0, 0x02340000, 0x00000000, 0x00007C30)\r\nredis-server.exe!rdbSave(D:\\dev\\GitHub\\redis\\src\\rdb.c:1321)(0x038C4370, 0x02340000, 0x02340000, 0x0000009F)\r\nredis-server.exe!QForkChildInit(D:\\dev\\GitHub\\redis\\src\\rdb.c:1321)(0x000001DC, 0x00000000, 0x000001DC, 0x2AAAAAAAAAAAAAAB)\r\nredis-server.exe!main(D:\\dev\\GitHub\\redis\\src\\rdb.c:1321)(0x00000000, 0x00000000, 0x0048E180, 0x00000000)\r\nredis-server.exe!__scrt_common_main_seh(d:\\a01\\_work\\12\\s\\src\\vctools\\crt\\vcstartup\\src\\startup\\exe_common.inl:288)(0x00000000, 0x00000000, 0x00000000, 0x00000000)\r\nKERNEL32.DLL!BaseThreadInitThunk(d:\\a01\\_work\\12\\s\\src\\vctools\\crt\\vcstartup\\src\\startup\\exe_common.inl:288)(0x00000000, 0x00000000, 0x00000000, 0x00000000)\r\nntdll.dll!RtlUserThreadStart(d:\\a01\\_work\\12\\s\\src\\vctools\\crt\\vcstartup\\src\\startup\\exe_common.inl:288)(0x00000000, 0x00000000, 0x00000000, 0x00000000)\r\nntdll.dll!RtlUserThreadStart(d:\\a01\\_work\\12\\s\\src\\vctools\\crt\\vcstartup\\src\\startup\\exe_common.inl:288)(0x00000000, 0x00000000, 0x00000000, 0x00000000)\r\n[31792] 04 Oct 19:45:33.093 # --- INFO OUTPUT\r\n[29732] 04 Oct 19:45:37.947 # fork operation failed\r\n[29732] 04 Oct 19:45:37.981 # Background saving terminated by signal 1\r\n[29732] 04 Oct 19:45:39.073 * 10000 changes in 60 seconds. Saving...\r\n[29732] 04 Oct 19:45:39.083 * Background saving started by pid 35808\r\n[29732] 04 Oct 19:45:39.198 # fork operation complete\r\n[29732] 04 Oct 19:45:39.204 * Background saving terminated with success\r\n\r\n```",
+  "state": "closed",
+  "created_at": "2022-10-04T11:54:43Z",
+  "updated_at": "2022-10-04T12:32:07Z",
+  "closed_at": "2022-10-04T12:28:32Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1266915077,
+      "user": "oranagra",
+      "created_at": "2022-10-04T12:28:32Z",
+      "body": "this project doesn't support windows, please open that issue in the relevant repository of the redis variant you're using"
+    },
+    {
+      "id": 1266922352,
+      "user": "POIB",
+      "created_at": "2022-10-04T12:32:07Z",
+      "body": "Very fast, and thanks a lot, sir!"
+    }
+  ]
+}

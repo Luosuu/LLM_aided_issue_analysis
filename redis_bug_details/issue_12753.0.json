@@ -1,0 +1,18 @@
+{
+  "issue_number": 12753.0,
+  "title": "[BUG] Sentinel failover does not happen when node went down",
+  "body": "**Describe the bug**\r\n\r\nSentinel failover does not happen when node went down.\r\nLog display\r\n```\r\nFailed to resolve hostname 'redis1'\r\n```\r\nwhen I execute\r\n```\r\ndocker stop redis1\r\n```\r\n\r\n**To reproduce**\r\n\r\nenv detail:\r\ndeploy redis with sentinel in High Availiability mode(cluster size =3)\r\n\r\ndocker image redis:6.2.8\r\ndocker network create -d bridge mybridge\r\n\r\nredis1.conf\r\n```txt\r\nport 6379\r\nbind 0.0.0.0\r\nprotected-mode no\r\nreplica-announce-ip \"redis1\"\r\n```\r\n\r\nredis2.conf\r\n```txt\r\nport 6379\r\nbind 0.0.0.0\r\nprotected-mode no\r\nreplica-announce-ip \"redis1\"\r\nreplicaof redis1 6379\r\n```\r\n\r\nredis3.conf\r\n```txt\r\nport 6379\r\nbind 0.0.0.0\r\nprotected-mode no\r\nreplica-announce-ip \"redis1\"\r\nreplicaof redis1 6379\r\n```\r\n\r\nsentinel1.conf\r\n```\r\nbind 0.0.0.0\r\nprotected-mode no\r\nport 26379\r\nsentinel announce-hostnames yes\r\nsentinel resolve-hostnames yes\r\nsentinel monitor mymaster redis1 6379 2\r\nsentinel down-after-milliseconds mymaster 3000\r\nsentinel failover-timeout mymaster 60000\r\nsentinel announce-ip \"sentinel1\"\r\n```\r\n\r\nsentinel2.conf\r\n```\r\nbind 0.0.0.0\r\nprotected-mode no\r\nport 26379\r\nsentinel announce-hostnames yes\r\nsentinel resolve-hostnames yes\r\nsentinel monitor mymaster redis1 6379 2\r\nsentinel down-after-milliseconds mymaster 3000\r\nsentinel failover-timeout mymaster 60000\r\nsentinel announce-ip \"sentinel2\"\r\n```\r\n\r\nsentinel3.conf\r\n```\r\nbind 0.0.0.0\r\nprotected-mode no\r\nport 26379\r\nsentinel announce-hostnames yes\r\nsentinel resolve-hostnames yes\r\nsentinel monitor mymaster redis1 6379 2\r\nsentinel down-after-milliseconds mymaster 3000\r\nsentinel failover-timeout mymaster 60000\r\nsentinel announce-ip \"sentinel3\"\r\n```\r\n\r\nWhen I execute 'docker stop redis', the Docker will remove the host name mapping, but this situation can be understood as the node being unhealthy and causing a failover\r\n\r\n**Expected behavior**\r\n\r\nfailover should start within configure time and slave nodes should be able to serve the request.\r\n\r\n**Additional information**\r\n\r\n1)when node went down failover is not happening and always getting resolve hostname error.\r\n",
+  "state": "open",
+  "created_at": "2023-11-12T05:09:01Z",
+  "updated_at": "2023-11-12T05:10:58Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1807005822,
+      "user": "zhaozhiguang",
+      "created_at": "2023-11-12T05:10:58Z",
+      "body": "Something was described incorrectly\r\nredis2.conf\r\n```\r\nport 6379\r\nbind 0.0.0.0\r\nprotected-mode no\r\nreplica-announce-ip \"redis2\"\r\nreplicaof redis1 6379\r\n```\r\nredis3.conf\r\n```\r\nport 6379\r\nbind 0.0.0.0\r\nprotected-mode no\r\nreplica-announce-ip \"redis3\"\r\nreplicaof redis1 6379\r\n```"
+    }
+  ]
+}

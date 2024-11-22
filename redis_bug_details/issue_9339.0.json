@@ -1,0 +1,18 @@
+{
+  "issue_number": 9339.0,
+  "title": "[BUG][Version 2.8]serveral potential bugs of null pointer dereference",
+  "body": "I analyzed the source code of redis 2.8.4 and found several potential null pointer dereference bugs. I listed them below.all files mentioned below is inside the /redis/redis/deps/hiredis folder.Would you help to check whether this is a true bug? Thanks very much.\r\n\r\n\r\nIn file **dict.c,defination of function dictGetIterator,line 259**,Function **malloc** may fail to allocate memory,and then iter may be a null pointer.Statements following line 259 may derefer a null pointer as following graph showed.\r\n![1](https://user-images.githubusercontent.com/87304478/128618533-e8f43bc2-5c71-49a5-ba86-df6b82bd0421.png)\r\n\r\nIn **file async.c,defination of callbackValDup,line 71**,Function **malloc** may fail to allocate memory and Function **memcpy** may copy data to null pointer as following graph shows.\r\n![2](https://user-images.githubusercontent.com/87304478/128618609-950479c2-cf6c-4f50-a6d5-25dc528b8178.png)\r\n\r\nIn **file async.c,defination of redisAsyncInitialize,line105**,Function realloc may fail to allocate memory(lacking failure check),as such,it may incur null pointer dereference as follwing graph show.\r\n![3](https://user-images.githubusercontent.com/87304478/128618756-764ed16b-4edd-4aba-aced-63c73005b3db.png)\r\n\r\nIn **file dict.c,defination of dictCreate,line 75**,function **_dicInit** is called and ht act as the first parameter.In line 81,function _dictReset is called and in line 66~line 69,there are several statement will execute by derefer ht,which can be null.\r\n![4](https://user-images.githubusercontent.com/87304478/128618789-af0580fe-c0bf-449b-a3c2-395cb6ea6432.png)\r\n\r\nIn **file sds.c,defination of removeFreeSpace,line 159**,zrealloc my fail to allocate memory,so it may incur null pointer dereference as following graph shows.\r\n![5](https://user-images.githubusercontent.com/87304478/128618829-703d6ace-6879-4554-b32e-44ea19fd3e99.png)\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-08-08T03:18:10Z",
+  "updated_at": "2021-08-08T07:06:48Z",
+  "closed_at": "2021-08-08T07:06:48Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 894754063,
+      "user": "oranagra",
+      "created_at": "2021-08-08T07:06:48Z",
+      "body": "@Hyxl1017 this is a very old version, there's no reason to look into it if the bug no longer exist in the latest (`unstable` branch).\r\ni.e. if they're already fixed, we won't \"re-fix\" them, right? and won't re-release 2.8.4 (or any new 2.8.x version since it's so old).\r\nfurther more, if these bugs are in hiredis, specifically if they exist in the latest (`master` branch), they should be reported and fixed there (https://github.com/redis/hiredis)"
+    }
+  ]
+}

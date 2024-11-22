@@ -1,0 +1,18 @@
+{
+  "issue_number": 12521.0,
+  "title": "[CRASH] How to restore crashed dump.rdb",
+  "body": "Notice!\r\n\r\nRedis can not start up after nfs storage is full, the dump.rdb is in nfs.\r\nIs there a way to restore the dump.rdb ?\r\nI used redis-check-aof restoring the appendonly.aof, it is ok, but redis-check-rdb can not restore dump.rdb\r\n\r\n./bin/redis-check-rdb ./data/dump.rdb \r\n[offset 0] Checking RDB file ./data/dump.rdb\r\n--- RDB ERROR DETECTED ---\r\n[offset 9] Wrong signature trying to load DB from file\r\n[additional info] While doing: start\r\n[additional info] Reading type 0 (string)\r\n[info] 0 keys read\r\n[info] 0 expires\r\n[info] 0 already expired\r\n\r\n\r\n**Crash report**\r\n\r\n35572:M 28 Aug 2023 19:09:51.509 # Wrong signature trying to load DB from file\r\n35572:M 28 Aug 2023 19:09:51.509 # Fatal error loading the DB: Invalid argument. Exiting.\r\n\r\n**Additional information**\r\n\r\n1. Centos 7.9\r\n2. Steps to reproduce (can not)\r\n3. redis version: 5.0.5\r\n",
+  "state": "closed",
+  "created_at": "2023-08-28T11:16:09Z",
+  "updated_at": "2023-09-13T03:27:00Z",
+  "closed_at": "2023-09-13T03:27:00Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1704963606,
+      "user": "bugwz",
+      "created_at": "2023-09-04T09:52:49Z",
+      "body": "@WYmindsky \r\nredis-check-aof provides the function of repairing AOF, but it is limited to repairing the resp format content in the AOF. The strategy is to truncate data in abnormal formats, so after the repair is completed, your data may have problems. Because RDB stores binary-encoded data, redis-check-rdb cannot repair the data in RDB and can only perform anomaly detection.\r\n\r\nYou can use the repaired AOF to start redis and regenerate the new RDB file after startup."
+    }
+  ]
+}

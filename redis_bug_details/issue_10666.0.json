@@ -1,0 +1,32 @@
+{
+  "issue_number": 10666.0,
+  "title": "[BUG] ziplist for 24bits  zipSaveInteger() functions",
+  "body": "**Describe the bug**\r\n24 bits Integer saving is error。\r\n\r\n**To reproduce**\r\n```c\r\nvoid zipSaveInteger(unsigned char *p, int64_t value, unsigned char encoding) {\r\n.......\r\n else if (encoding == ZIP_INT_24B) {\r\n        // if LBS\r\n        //        \r\n        // If value is 0x00112233； in memory : 33 22 11 00 \r\n        \r\n        i32 = value<<8;   //--> in memory 00 33 22 11\r\n        memrev32ifbe(&i32);  //--> in memory  11 22 33 00\r\n        // ????   I see  “((uint8_t*)&i32)+1”  is bug\r\n        memcpy(p,((uint8_t*)&i32)+1,sizeof(i32)-sizeof(uint8_t));\r\n    }\r\n.......\r\n}\r\n```\r\n**Expected behavior**\r\n\r\n**Additional information**\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-01T08:34:02Z",
+  "updated_at": "2022-05-01T15:26:41Z",
+  "closed_at": "2022-05-01T15:26:41Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1114183602,
+      "user": "oranagra",
+      "created_at": "2022-05-01T09:29:31Z",
+      "body": "@damagao are you using / referring to a bigendian system?\r\nfrom your comments, it appears that you don't, but then memrev32ifbe should be a NOP (doesn't change the variable).\r\nmaybe you missed something?\r\n\r\nfrom what i could tell, for 24 bit numbers in 32bit variables, the most significant byte would be 0, and in LE that's the last (higher address) byte.\r\nso doing `<<8`, would mean the least significant (lowest address byte) is now 0, which is why we skip it with the `+1`.\r\n\r\ni admit the code is convoluted, but it doesn't seem buggy.\r\non the bright side, we're no longer using it (redis 7.0 shifted away from ziplists to listpacks).\r\nbut still, if we could learn that there's a bug in it, we rather know about it and realize it's implications..."
+    },
+    {
+      "id": 1114251126,
+      "user": "damagao",
+      "created_at": "2022-05-01T14:18:47Z",
+      "body": "Example: value  is 0x00112233 ;  in memory(address low to hight ）by LBS  33 22 11 00\r\ni32 = value<<8;             //   value  is  in memory   00 33 22 11\r\nmemrev32ifbe(&i32);    //   value  is  in memory  11 22 33 00\r\nmemcpy(p,((uint8_t*)&i32)+1,sizeof(i32)-sizeof(uint8_t));     // (uint8_t*)&i32)  point to the  address of   value of 11\r\n\r\nDo you see my mease?"
+    },
+    {
+      "id": 1114254438,
+      "user": "oranagra",
+      "created_at": "2022-05-01T14:36:15Z",
+      "body": "Again in little endian systems, memrev32ifbe is NOP. \r\nFor some reason you show as if to reverses the byte order. \r\nIs that what you're missing? \r\nMaybe you should write a small test that prints the results.. "
+    }
+  ]
+}

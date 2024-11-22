@@ -1,0 +1,26 @@
+{
+  "issue_number": 11901.0,
+  "title": "[BUG] bzpopmin foo 0.001 blocks forever",
+  "body": "**Describe the bug**\r\n\r\n`bzpopmin foo 0.001` should have blocked for 1ms. Instead it blocks forever\r\n\r\n**To reproduce**\r\n\r\n`bzpopmin foo 0.001`\r\n\r\n**Expected behavior**\r\n\r\nI expected it to block for just 1ms and return nil\r\n\r\n**Additional information**\r\n\r\n`bzpopmin foo 0.0011` blocks for about 1ms. When 0 is passed it is supposed to block indefinitely. It looks like it is doing something strange. \r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-10T21:54:05Z",
+  "updated_at": "2023-04-11T16:49:44Z",
+  "closed_at": "2023-04-10T08:55:44Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1464860335,
+      "user": "enjoy-binbin",
+      "created_at": "2023-03-11T08:28:40Z",
+      "body": "i suppose it was fixed in #11688, can you try 7.0.8 version?"
+    },
+    {
+      "id": 1503765754,
+      "user": "NikolaBorisov",
+      "created_at": "2023-04-11T16:49:44Z",
+      "body": "its fixed."
+    }
+  ]
+}

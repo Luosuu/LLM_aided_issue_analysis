@@ -1,0 +1,18 @@
+{
+  "issue_number": 11667.0,
+  "title": "[BUG] big keys can trigger replica buffer overrun/psync loops",
+  "body": "**Describe the bug**\r\nWriting a big key which is almost equal or larger than the replica buffer limit size can trigger buffer overrun / psync loop. The replica won't be able to reconnect and stay connected unless the big keys is dropped from the backlog (and not other big key is written).\r\n\r\n\r\nReplica client output buffer usage calculation is problematic and canlead to buffer overrun/psync loops\r\n\r\nThis can happen when a key almost equal or larger than the\r\nclient output buffer limit of the replica is written.\r\n\r\n\r\n**To reproduce**\r\n\r\n1. DB is empty\r\n2. Backlog size is 1 MB\r\n3. Client out put buffer limit is 2 MB\r\n4. Client writes a 3 MB key\r\nAt this point the primary will drop the replica connection and will keep doing this (until the big key is removed from the backlog)\r\n\r\n**Expected behavior**\r\n\r\nThe replica should not be disconnected if there's nothing to read from the primary.\r\n\r\n**Additional information**\r\n\r\nThe buffer usage calculation is correct but problematic. Please see this PR for more info: https://github.com/redis/redis/pull/11666",
+  "state": "closed",
+  "created_at": "2022-12-30T03:27:54Z",
+  "updated_at": "2023-03-12T17:47:08Z",
+  "closed_at": "2023-03-12T17:47:08Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1465245406,
+      "user": "ranshid",
+      "created_at": "2023-03-12T16:47:08Z",
+      "body": "the name \"buffer overrun\" is misleading. although the buffer might be \"heavily\" occupied it is not exceeding it allocated size (which implies memory overrun) \r\nI suggest to drop it from the title\r\n\r\n@oranagra @xbasel ^"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 9286.0,
+  "title": "[BUG] EVALSHA's documented NOSCRIPT error return value differs from implementation?",
+  "body": "**Describe the bug**\r\n\r\nThe documentation for EVALSHA, in particular its NOSCRIPT error response, is inconsistent with the implementation.\r\n\r\nIn https://redis.io/commands/eval\r\n\r\n```\r\nevalsha ffffffffffffffffffffffffffffffffffffffff 0\r\n(error) `NOSCRIPT` No matching script. Please use [EVAL](/commands/eval).\r\n```\r\n\r\nBut in practice we see\r\n\r\n```\r\nourdb:DEV> evalsha ffffffffffffffffffffffffffffffffffffffff 0\r\n(error) NOSCRIPT No matching script. Please use EVAL.\r\n```\r\n\r\nNotice that the error string is prefixed with `NOSCRIPT `, not enclosed in backticks.\r\n\r\nGiven that the documentation does specifically call out the fact that client libraries can use EVALSHA and catch the NOSCRIPT error specifically, we seek absolute clarity on detecting this error condition.\r\n\r\n**To reproduce**\r\n\r\nCall evalsha, compare with docs\r\n\r\n**Expected behavior**\r\n\r\nDocs match actual behaviours\r\n\r\n**Additional information**\r\n\r\n```\r\n> info\r\n# Server\r\nredis_version:5.0.7\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:3993664ffbfda963\r\nredis_mode:standalone\r\nos:Linux 3.10.0-957.35.2.el7.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:7.3.1\r\nprocess_id:18684\r\nrun_id:c5f95d16aa6f9ad918f4c6b445f313754ae5f868\r\ntcp_port:30866\r\nuptime_in_seconds:608812\r\nuptime_in_days:7\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:171448\r\n```",
+  "state": "closed",
+  "created_at": "2021-07-29T12:27:26Z",
+  "updated_at": "2021-08-01T18:52:05Z",
+  "closed_at": "2021-08-01T18:52:05Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 889077594,
+      "user": "alexweej",
+      "created_at": "2021-07-29T12:31:17Z",
+      "body": "I've just verified this with redis 6.x, too:\r\n\r\n```\r\n127.0.0.1:6379> evalsha ffffffffffffffffffffffffff 0\r\n(error) NOSCRIPT No matching script. Please use EVAL.\r\n127.0.0.1:6379> info\r\n# Server\r\nredis_version:6.0.10\r\n```\r\n"
+    },
+    {
+      "id": 889257798,
+      "user": "enjoy-binbin",
+      "created_at": "2021-07-29T15:46:35Z",
+      "body": "Seems to be a problem with the documentation: https://github.com/redis/redis-doc/pull/1616\r\nAlthough not sure where `(/commands/eval)` came from...\r\n\r\n"
+    }
+  ]
+}

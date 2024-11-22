@@ -1,0 +1,44 @@
+{
+  "issue_number": 11527.0,
+  "title": "[CRASH] Fatal: Can't initialize Background Jobs.",
+  "body": "```\r\nroot@194a131a72e3:/# redis-server\r\n663:C 18 Nov 2022 00:39:01.341 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n663:C 18 Nov 2022 00:39:01.341 # Redis version=6.0.16, bits=64, commit=00000000, modified=0, pid=663, just started\r\n663:C 18 Nov 2022 00:39:01.341 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf\r\n                _._\r\n           _.-``__ ''-._\r\n      _.-``    `.  `_.  ''-._           Redis 6.0.16 (00000000/0) 64 bit\r\n  .-`` .-```.  ```\\/    _.,_ ''-._\r\n (    '      ,       .-`  | `,    )     Running in standalone mode\r\n |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379\r\n |    `-._   `._    /     _.-'    |     PID: 663\r\n  `-._    `-._  `-./  _.-'    _.-'\r\n |`-._`-._    `-.__.-'    _.-'_.-'|\r\n |    `-._`-._        _.-'_.-'    |           http://redis.io\r\n  `-._    `-._`-.__.-'_.-'    _.-'\r\n |`-._`-._    `-.__.-'    _.-'_.-'|\r\n |    `-._`-._        _.-'_.-'    |\r\n  `-._    `-._`-.__.-'_.-'    _.-'\r\n      `-._    `-.__.-'    _.-'\r\n          `-._        _.-'\r\n              `-.__.-'\r\n\r\n663:M 18 Nov 2022 00:39:01.342 # Server initialized\r\n663:M 18 Nov 2022 00:39:01.342 # Fatal: Can't initialize Background Jobs.\r\n```\r\n\r\n3. Steps to reproduce (if any)\r\n$ redis-server",
+  "state": "closed",
+  "created_at": "2022-11-19T05:06:33Z",
+  "updated_at": "2022-12-09T22:43:29Z",
+  "closed_at": "2022-12-09T22:43:29Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1320930266,
+      "user": "madolson",
+      "created_at": "2022-11-19T17:30:26Z",
+      "body": "Can you have more information about the system you are running on and the state of the system? That specific error occurs when we are unable to start background threads, most likely because of insufficient resources."
+    },
+    {
+      "id": 1321060373,
+      "user": "japrogramer",
+      "created_at": "2022-11-20T07:30:30Z",
+      "body": "@madolson the machine has plenty of resources to start a single redis-server with the default config but yet it fails\r\n\r\n```\r\n$\r\n\r\n\r\nLinux  5.4.0-1018-aws #18-Ubuntu SMP Wed Jun 24 01:15:00 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux\r\n\r\n:~$ free -h\r\n              total        used        free      shared  buff/cache   available\r\nMem:           15Gi       6.4Gi       262Mi        54Mi       9.0Gi       8.9Gi\r\nSwap:         2.0Gi        48Mi       2.0Gi\r\n\r\n\r\n\r\n$ lscpu\r\n\r\nArchitecture:                    x86_64\r\nCPU op-mode(s):                  32-bit, 64-bit\r\nByte Order:                      Little Endian\r\nAddress sizes:                   46 bits physical, 48 bits virtual\r\nCPU(s):                          4\r\nOn-line CPU(s) list:             0-3\r\nThread(s) per core:              1\r\nCore(s) per socket:              4\r\nSocket(s):                       1\r\nNUMA node(s):                    1\r\nVendor ID:                       GenuineIntel\r\nCPU family:                      6\r\nModel:                           79\r\nModel name:                      Intel(R) Xeon(R) CPU E5-2686 v4 @ 2.30GHz\r\nStepping:                        1\r\nCPU MHz:                         2300.015\r\nBogoMIPS:                        4600.13\r\nHypervisor vendor:               Xen\r\nVirtualization type:             full\r\nL1d cache:                       128 KiB\r\nL1i cache:                       128 KiB\r\nL2 cache:                        1 MiB\r\nL3 cache:                        45 MiB\r\n\r\n$ nproc --all\r\n4\r\n\r\n##############################################################################################\r\n\r\n# in container\r\n:/# uname -a\r\nLinux  #18-Ubuntu SMP Wed Jun 24 01:15:00 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux\r\n\r\n\r\n/# free -h\r\n               total        used        free      shared  buff/cache   available\r\nMem:            15Gi       6.5Gi       251Mi        77Mi       8.9Gi       8.8Gi\r\nSwap:          2.0Gi        54Mi       1.9Gi\r\n\r\n```"
+    },
+    {
+      "id": 1322849105,
+      "user": "japrogramer",
+      "created_at": "2022-11-22T00:46:18Z",
+      "body": "Tried running redis from the docker redis image. and it works\r\nbut not from my container .. with the same error listed in the first comment ^ \r\n\r\nBoth test were run with just the container in question running so im sure that the resources are not the\r\nissue as one container is able to run the server but not the other. @madolson are there any more debug flags\r\nthat I can pass to see what the issue might be ? I've tried verbose and nothing came up\r\n\r\ndo I need to resort to strace ?\r\n\r\nNote: In the container where redis does not start, so does this error come up.\r\n\r\n```\r\nredis-server --check-system\r\n\r\n*** FATAL CONFIG FILE ERROR (Redis 6.0.16) ***\r\nReading the configuration file, at line 2\r\n>>> 'check-system'\r\nBad directive or wrong number of arguments\r\n\r\n```\r\n\r\n```\r\n$ docker run --name some-redis -d redis\r\n\r\n$ docker logs -f some-redis\r\n\r\n1:C 22 Nov 2022 00:30:46.267 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n1:C 22 Nov 2022 00:30:46.267 # Redis version=7.0.5, bits=64, commit=00000000, modified=0, pid=1, just started\r\n1:C 22 Nov 2022 00:30:46.267 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf\r\n1:M 22 Nov 2022 00:30:46.267 * monotonic clock: POSIX clock_gettime\r\n1:M 22 Nov 2022 00:30:46.268 * Running mode=standalone, port=6379.\r\n1:M 22 Nov 2022 00:30:46.268 # Server initialized\r\n1:M 22 Nov 2022 00:30:46.268 # WARNING Your system is configured to use the 'xen' clocksource which might lead to degraded performance. Check the result of the [slow-clocksource] system check: run 'redis-server --check-system' to check if the system's clocksource isn't degrading performance.\r\n1:M 22 Nov 2022 00:30:46.268 * Ready to accept connections\r\n\r\n\r\n\r\n/data# redis-server --check-system\r\n\r\n[slow-clocksource]...WARNING:\r\nSlow system clocksource detected. This can result in degraded performance. Consider changing the system's clocksource. Current clocksource: xen. Available clocksources: xen tsc hpet acpi_pm. For example: run the command 'echo tsc > /sys/devices/system/clocksource/clocksource0/current_clocksource' as root. To permanently change the system's clocksource you'll need to set the 'clocksource=' kernel command line parameter.\r\n[xen-clocksource]...WARNING:\r\nYour system is configured to use the 'xen' clocksource which might lead to degraded performance. Check the result of the [slow-clocksource] system check: run 'redis-server --check-system' to check if the system's clocksource isn't degrading performance.\r\n[overcommit]...OK\r\n[THP]...OK\r\n```"
+    },
+    {
+      "id": 1323527155,
+      "user": "oranagra",
+      "created_at": "2022-11-22T11:31:40Z",
+      "body": "maybe run it with `strace` to see which system call fails and why."
+    },
+    {
+      "id": 1327960035,
+      "user": "madolson",
+      "created_at": "2022-11-26T02:06:17Z",
+      "body": "@japrogramer on the other thread you mentioned it started working? This seems like a really weird issue, strace seems like a good suggestion to figure out why it's failing otherwise. Marking as \"to be closed\" in case there is no follow up."
+    }
+  ]
+}

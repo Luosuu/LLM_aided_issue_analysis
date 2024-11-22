@@ -1,0 +1,24 @@
+{
+  "issue_number": 9093.0,
+  "title": "[BUG] Redis build failed on suse 11 sp4",
+  "body": "i build Redis on suse 11 sp4 and got error ：\r\n```\r\nnetworking.o: In function `IOThreadMain':\r\n/data/redis/src/networking.c:3058: undefined reference to `pthread_setname_np'\r\nbio.o: In function `bioProcessBackgroundJobs':\r\n/data/redis/src/bio.c:165: undefined reference to `pthread_setname_np'\r\n/data/redis/src/bio.c:159: undefined reference to `pthread_setname_np'\r\n/data/redis/src/bio.c:162: undefined reference to `pthread_setname_np'\r\ncollect2: error: ld returned 1 exit status\r\nmake[1]: *** [redis-server] Error 1\r\nmake[1]: Leaving directory `/data/redis/src'\r\nmake: *** [all] Error 2\r\n```\r\nsystem info：\r\n\r\n```\r\n70461d7ac821:/data/redis # uname -a\r\nLinux 70461d7ac821 3.10.0-862.el7.x86_64 #1 SMP Fri Apr 20 16:44:24 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux\r\n70461d7ac821:/data/redis # cat /etc/issue\r\n\r\nWelcome to SUSE Linux Enterprise Server 11 SP4  (x86_64) - Kernel \\r (\\l).\r\n```\r\n \r\nand i found `pthread_setname_np`  does not exist in `libpthread-2.11.3.so`\r\n```\r\n70461d7ac821:/lib64 # ll | grep thread\r\n-rwxr-xr-x 1 root root  135764 Apr 24  2015 libpthread-2.11.3.so\r\nlrwxrwxrwx 1 root root      20 Dec 29  2017 libpthread.so.0 -> libpthread-2.11.3.so\r\n-rwxr-xr-x 1 root root   36714 Apr 24  2015 libthread_db-1.0.so\r\nlrwxrwxrwx 1 root root      19 Dec 29  2017 libthread_db.so.1 -> libthread_db-1.0.so\r\n70461d7ac821:/lib64 # strings libpthread-2.11.3.so | grep pthread_setname_np\r\n70461d7ac821:/lib64 # \r\n```\r\n\r\nis libpthread too old ？\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-06-17T06:34:13Z",
+  "updated_at": "2021-06-22T02:46:55Z",
+  "closed_at": "2021-06-22T02:46:55Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 862992611,
+      "user": "zeekling",
+      "created_at": "2021-06-17T07:13:57Z",
+      "body": "i try to fix on https://github.com/redis/redis/pull/9094 ,and it build success."
+    },
+    {
+      "id": 865485529,
+      "user": "zeekling",
+      "created_at": "2021-06-22T02:46:49Z",
+      "body": "i close this issue."
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "issue_number": 9333.0,
+  "title": "[BUG]A potential bug of NULL pointer dereference ",
+  "body": "There is a potential bug of null pointer dereference.In **file dict.c,line 259**,Function **malloc** my fail to allocate memory,and then **iter** may be a null pointer.Statements following **line 259** may derefer a null pointer as following graph showed.\r\n![Snipaste_2021-08-07_12-29-02](https://user-images.githubusercontent.com/87304478/128591375-fa39c9e7-f60f-43b7-a391-9997651b1439.png)\r\nWould you help to check whether this is a true bug? Thanks very much.",
+  "state": "closed",
+  "created_at": "2021-08-07T06:58:28Z",
+  "updated_at": "2021-08-08T05:43:05Z",
+  "closed_at": "2021-08-07T13:24:21Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 894652787,
+      "user": "oranagra",
+      "created_at": "2021-08-07T13:06:47Z",
+      "body": "@Hyxl1017 i don't know where you took these screenshot and code, but that's not redis code!  This code you're showing doesn't exist in Redis in that form, and never has. \r\nP.S. If you mention line numbers, you should probably mention a branch name or a git sha. \r\n\r\nRedis doesn't use `malloc` directly. It uses `zmalloc`, and that one never returns NULL. Instead, it panics and exists when an allocation fails. So the few places that do check for NULL in Redis are for the most part dead code. (the reception are the recently introduced `ztrymalloc` calls. \r\n\r\nI didn't go over all the issues you opened, please close the ones that are not applicable to redis, and maybe open in the repo where that code you tested actually exists. \r\nIf there's anything that is applicable for redis, feel free to mention me there, but note that as is clear from my text above, redis doesn't aim to cope with a failed allocation in most places. "
+    },
+    {
+      "id": 894654702,
+      "user": "ash1852",
+      "created_at": "2021-08-07T13:24:16Z",
+      "body": "> @Hyxl1017 i don't know where you took these screenshot and code, but that's not redis code! This code you're showing doesn't exist in Redis in that form, and never has.\r\n> P.S. If you mention line numbers, you should probably mention a branch name or a git sha.\r\n> \r\n> Redis doesn't use `malloc` directly. It uses `zmalloc`, and that one never returns NULL. Instead, it panics and exists when an allocation fails. So the few places that do check for NULL in Redis are for the most part dead code. (the reception are the recently introduced `ztrymalloc` calls.\r\n> \r\n> I didn't go over all the issues you opened, please close the ones that are not applicable to redis, and maybe open in the repo where that code you tested actually exists.\r\n> If there's anything that is applicable for redis, feel free to mention me there, but note that as is clear from my text above, redis doesn't aim to cope with a failed allocation in most places.\r\n\r\nI'm very sorry for what I did. I got the source code on Ubuntu apt. I'm sorry I didn't check the location of these codes carefully. I'm really sorry."
+    },
+    {
+      "id": 894656249,
+      "user": "ash1852",
+      "created_at": "2021-08-07T13:37:53Z",
+      "body": "I checked again. The source file location I mentioned is under the \"redis / DEPs / hiredis /\" path."
+    },
+    {
+      "id": 894664023,
+      "user": "oranagra",
+      "created_at": "2021-08-07T14:48:31Z",
+      "body": "Ohh, I forgot there's also a dict.c file inside the deps/hiredis folder. \r\nI.E. There's also one in the redis src folder with a similar function, that one is the one I referred to that doesn't call malloc directly. \r\n\r\nMaybe you wanna open that issue in the hiredis repo (there a separate repo for it). "
+    },
+    {
+      "id": 894664287,
+      "user": "oranagra",
+      "created_at": "2021-08-07T14:50:49Z",
+      "body": "Btw, one issue to discuss all these similar problems is better than one issue per line. "
+    },
+    {
+      "id": 894725715,
+      "user": "ash1852",
+      "created_at": "2021-08-08T01:06:10Z",
+      "body": "> Btw, one issue to discuss all these similar problems is better than one issue per line.\r\n\r\nok，I wiil open a new issue including all these similar problems there,thank you very much for your advice.\r\n\r\n"
+    },
+    {
+      "id": 894736138,
+      "user": "ash1852",
+      "created_at": "2021-08-08T03:13:23Z",
+      "body": "> Ohh, I forgot there's also a dict.c file inside the deps/hiredis folder.\r\n> I.E. There's also one in the redis src folder with a similar function, that one is the one I referred to that doesn't call malloc directly.\r\n> \r\n> Maybe you wanna open that issue in the hiredis repo (there a separate repo for it).\r\n\r\nI have seen the hiredis repo you refered,but its content is different from the version I got.And I have verified that the source code I got is consistent with branch 2.8.So I want to open a issue about version 2.8 and I will list all potential bug in version 2.8.\r\nThis is the first time I have used GitHub and issue something. If my behavior is not in line with the Convention, please don't mind."
+    },
+    {
+      "id": 894746824,
+      "user": "oranagra",
+      "created_at": "2021-08-08T05:43:05Z",
+      "body": "@Hyxl1017 as far as i can tell, [hiredis](https://github.com/redis/hiredis) doesn't have a `2.8` branch, are you referring to this repo?\r\nthere's no reason to report bugs in old versions, i.e. they're already fixed, or not relevant anymore.\r\nif you see any issues in the latest (`master`) branch, that's what you should report."
+    }
+  ]
+}

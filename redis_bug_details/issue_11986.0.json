@@ -1,0 +1,132 @@
+{
+  "issue_number": 11986.0,
+  "title": "[BUG] `ACL LOAD` results in `ECONNRESET` error on clients",
+  "body": "**Describe the bug**\r\nHi everyone,\r\n\r\nWe've encountered a strange behavior with our Redis servers.\r\nThe servers are running with enabled ACL and use an acl file with a relatively small number of users defined in it.\r\nWhen we invoke `ACL LOAD` to reload ACL rules, Redis clients are being disconnected with an `ECONNRESET` error.\r\nEven if there were no changes in ACL or if the changes were not related to specific user.\r\n\r\n**To reproduce**\r\nTo reproduce this error:\r\n\r\n- Comment out users which were defined in redis.conf.\r\n- Add the needed or default user to an acl file (for example, `/etc/redis/users.acl`).\r\n- Use this file by adding `aclfile \"/etc/redis/users.acl\"` into redis.conf.\r\n- Establish a connection to the Redis server in any application.\r\n- Add a new user to `\"/etc/redis/users.acl\"` or even keep it untouched.\r\n- Invoke `ACL LOAD`.\r\n- Redis clients will be disconnected.\r\n\r\nIn fact, the error can be seen in the redis-cli console as well:\r\n\r\n```\r\n~$ redis-cli\r\n127.0.0.1:6379> ACL LOAD\r\nOK\r\n127.0.0.1:6379> INFO\r\nError: Server closed the connection\r\nnot connected>\r\n```\r\n\r\n**Expected behavior**\r\nWe expect to be able to reload ACL rules without downtime or disconnecting clients from the Redis server, at least for users whose rules remain untouched. \r\n\r\n**Additional info**\r\n```\r\n~$ redis-server --version\r\nRedis server v=7.0.5 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=68bf11aad5b039df\r\n```",
+  "state": "closed",
+  "created_at": "2023-03-31T11:43:39Z",
+  "updated_at": "2023-12-24T09:56:45Z",
+  "closed_at": "2023-12-24T09:56:45Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1492513431,
+      "user": "madolson",
+      "created_at": "2023-03-31T19:49:42Z",
+      "body": "So the reproduction is not quite right, but there is some interesting behavior going on here.\r\n\r\nThe way ACL users work on load is we delete all the existing users, and then replace them with new users. When an old user is deleted, we disconnect all clients connected to that user. This is true for all users `EXCEPT` the default user, which is handled specially, and so it does not disconnect. \r\n\r\nFrom a general security angle this seems \"OK\", if for some reason the old and new user have the same name, they may not be the same user, so probably best to disconnect. However, it seems reasonable that from an availability perspective this is sub-optimal. So I see three options:\r\n1. Change the load  so that all users behave like default, in that they are not-disconnected automatically. [My preferred option]\r\n2. Change the load so that default will still disconnect, making the behavior consistent.\r\n3. Add an option to indicate the intended behavior, and have all users follow that. \r\n\r\nTo me, 1 makes the most sense because I don't think it's obvious that doing `ACL LOAD` would function differently from `ACL SETUSER`. I would generally bias for availability. "
+    },
+    {
+      "id": 1493277923,
+      "user": "oranagra",
+      "created_at": "2023-04-02T09:27:39Z",
+      "body": "i agree we should fix it (take option 1 and only disconnect the client if the user no longer exists after ACL LOAD).\r\nBTW, IIRC it was very much on purpose, but i never understood why since it means ACL LOAD is rather non-useful."
+    },
+    {
+      "id": 1493278258,
+      "user": "oranagra",
+      "created_at": "2023-04-02T09:29:20Z",
+      "body": "@madolson assuming this is rather local and not complicated (we already do it for the default user), i added it to 7.2 (if we can find someone to handle). let me know if you disagree."
+    },
+    {
+      "id": 1493302782,
+      "user": "slavak",
+      "created_at": "2023-04-02T11:16:30Z",
+      "body": "I've talked to @oranagra, and it seems to me the logic should be something along these lines:\r\n\r\n```\r\nin ACLLoadFromFile\r\n...\r\n(After the new users have been loaded but before freeing the old users list.)\r\n\r\nfor each client in server.clients:\r\n    if a user exists in Users rax with the same username AND the same password:\r\n        (2) Verify client is not subscribed to any channels that are blocked by the new user's ACL.\r\n        if (2) passed:\r\n            update the client's user pointer to that new user\r\n            (This should prevent the client from being disconnected in ACLFreeUserAndKillClients)\r\n```\r\n\r\n(2) may be possible to accomplish using `ACLKillPubsubClientsIfNeeded`. I'm not sure about this one though, since `ACLKillPubsubClientsIfNeeded` would modify `server.clients` while we're iterating over it here.\r\n\r\n@madolson @oranagra Does this make sense to you?"
+    },
+    {
+      "id": 1493320896,
+      "user": "oranagra",
+      "created_at": "2023-04-02T12:37:44Z",
+      "body": "during list iteration, you can delete the current node, but not the next one, so that's indeed an issue.\r\ni suppose we should avoid calling ACLKillPubsubClientsIfNeeded (which iterates on all clients) from within a loop that iterates on all clients.\r\nmaybe prepare a list of user that were removed and another one of user which were just changed, and then with a single iteration on all clients do the right thing for each one? i.e. you'll have to break ACLKillPubsubClientsIfNeeded to smaller segments."
+    },
+    {
+      "id": 1495124818,
+      "user": "madolson",
+      "created_at": "2023-04-03T23:34:59Z",
+      "body": "My only doubt was this maybe is a breaking change and should wait for 8. Someone might be relying on this behavior for disconnecting old invalid connections or something. \r\n\r\n"
+    },
+    {
+      "id": 1495377674,
+      "user": "oranagra",
+      "created_at": "2023-04-04T05:44:06Z",
+      "body": "considering this behavior was on purpose, and exists for so long, i don't mind waiting with this for 8.0.\r\n\r\nhowever, i'm not sure what it can break.\r\n* if a user was removed the client will be disconnected\r\n* if it was unchanged (e.g. a plain ACL SAVE followed by ACL LOAD) when nothing really changed, the client will be kept.\r\n* if the client was slightly modified (e.g. someone added a selector / rule to the ACL file and then did ACL LOAD), the client will suddenly get an error when running some command, but had it been disconnected, it would have successfully re-connect and get the same error when running the command.\r\nare \r\n\r\ncan you describe a case where it would break something?"
+    },
+    {
+      "id": 1496438771,
+      "user": "hpatro",
+      "created_at": "2023-04-04T18:45:29Z",
+      "body": "I think certain assumption would be broken, might not be concerning though.\r\n\r\nWith the current implementation, in case of password rotation, it will force a re-authentication of all the clients (users) and the clients could then use the new password to connect. \r\nWith the new approach suggested, server might not disconnect the clients until the old password is removed, so possibly the admin has to do two rotation for forced re-authentication."
+    },
+    {
+      "id": 1500922624,
+      "user": "madolson",
+      "created_at": "2023-04-08T16:07:33Z",
+      "body": "> With the new approach suggested, server might not disconnect the clients until the old password is removed, so possibly the admin has to do two rotation for forced re-authentication.\r\n\r\nI basically agree with this. I can't justify this as a bug fix, so it seems like a behavior change that might be unexpected to some users."
+    },
+    {
+      "id": 1501068786,
+      "user": "oranagra",
+      "created_at": "2023-04-09T07:56:26Z",
+      "body": "i'm not sure i understand the big difference.\r\nso in the past adding a new (additional) password, would cause all users to disconnect and possibly re-reconnect with the new one (although i think it is likely that they'll reconnect with the old one, since it is risky to let the clients know of the new one before the server can accept it).\r\nand now, when adding a password to the server it won't disconnect the clients, they can remain connected and re-authenticate (possibly without even disconnecting) on their own time, and if they won't then, the'll get disconnected on the next time the password is rotated.\r\ni.e. in this case instead of dropping on every password rotation, they'll drop on every second password rotation.\r\n\r\nin any case, i don't think it's urgent to fix it so i don't mind postponing to 8.0.. i just don't see the breakage yet.."
+    },
+    {
+      "id": 1510209797,
+      "user": "slavak",
+      "created_at": "2023-04-16T09:11:03Z",
+      "body": "From what I can see, rotating passwords with `ACL SETUSER` does not disconnect authenticated clients, so I'm not sure this is a strong consideration for the behavior change of `ACL LOAD`.\r\n\r\nAlthough, the most straightforward implementation of this line:\r\n```\r\nif a user exists in Users rax with the same username AND the same password:\r\n``` \r\nWould probably be to compare the password lists by-element, so making _any_ change to the passwords would still maintain the current disconnecting behavior."
+    },
+    {
+      "id": 1510220811,
+      "user": "oranagra",
+      "created_at": "2023-04-16T09:28:32Z",
+      "body": "I think we need to make the change to remember with which password each client connected, and drop the connection only if the credentials became invalid. And have that affect both LOAD and SETUSER.\nIf that's our goal, then we don't want a middle step of disconnecting on any password related change."
+    },
+    {
+      "id": 1519623091,
+      "user": "yossigo",
+      "created_at": "2023-04-24T08:31:08Z",
+      "body": "Chiming in late, but I want to propose a few points.\r\n\r\nIt's reasonable that changing user privileges with `ACL SETUSER` will take place immediately, as those privileges are evaluated on every command execution.\r\n\r\nIt's not reasonable that changing user credentials will take place _retroactively_, dropping connections of users who used a different password. It's also not feasible when different authentication modules are in use. If this is required on password rotation, an explicit `CLIENT KILL USER` can still be used to force reconnections.\r\n\r\nAnother thing I noticed is `ACL SETUSER off` doesn't affect connected users, and I think it should drop them just like `ACL DELUSER` does.\r\n\r\nThe current `ACL LOAD` implementation is wrong, and it should logically be equivalent to an `ACL SETUSER` sequence followed by an `ACL DELUSER` of unlisted old users. I think this constitutes a bug fix that is a potential breaking change, but our policy permits administrative-level breaking changes in minor versions, so we can still go ahead with it."
+    },
+    {
+      "id": 1529011059,
+      "user": "slavak",
+      "created_at": "2023-04-30T12:08:31Z",
+      "body": "I have [a branch with a very initial version of a fix](https://github.com/redis/redis/commit/355d907f87e4ac92fee97ed2c8598dfce19827f4).\r\n\r\nBasically it splits out the relevant logic from `ACLKillPubsubClientsIfNeeded` to be reused by `ACLLoadFromFile`, and uses that to update the client's user pointer for any username which still exists after the `LOAD`. This way that client does not get disconnected.\r\n\r\nI still need to give this a cleanup pass or two, check and fix the tests this has caused to fail, and possibly add extra test coverage. Still, if anyone wants to take a look at the code as-is I would appreciate it."
+    },
+    {
+      "id": 1529018830,
+      "user": "oranagra",
+      "created_at": "2023-04-30T12:51:45Z",
+      "body": "i now realize we have many iterations on the whole server.clients list per-user.\r\nsome are new that you just added, and we actually already had one in `ACLFreeUsersSet`.\r\ni.e. multiple iterations on the client list (seen cases with more than 70k clients).\r\n\r\nwould be a good idea to come up with a solution that somehow iterates on them only once.\r\nmaybe cache some decision on what to do with clients inside each user and then perform it in a clients iteration?\r\ni suppose this gets more complicated with pubsub clients where the decision is also about the client and not just the user, but could still be doable."
+    },
+    {
+      "id": 1529241504,
+      "user": "PingXie",
+      "created_at": "2023-05-01T01:53:54Z",
+      "body": ">It's not reasonable that changing user credentials will take place retroactively, dropping connections of users who used a different password. \r\n\r\nThis is related to #12096 as well. I have seen organizations with security policies that require reconnection to services (not Redis though) after periodic password rotation, despite the risk of \"interruption\". I think we can serve this type of users better if we expose a knob from Redis that allows these users to dictate the max lifetime of a connection themselves.\r\n\r\n>I think we need to make the change to remember with which password each client connected, and drop the connection only if the credentials became invalid.\r\n\r\nThis might be hard to achieve with module based authentication since it is not required for Redis to track the password in this case and these passwords are maintained by an external IAM system. This particular use case (dropping connections after password change) could be approximated via the same new setting mentioned above that controls the max lifetime of a Redis connection. Users who have this requirement (potentially only a small portion of the overall user base) can then enable this policy and balance their security and performance needs as they see fit.\r\n\r\n"
+    },
+    {
+      "id": 1529390291,
+      "user": "oranagra",
+      "created_at": "2023-05-01T06:10:34Z",
+      "body": "@PingXie since i posted that comment about remembering password, Yossi convinced me that it's wrong (and also impossible with module auth).\r\nI think that instead of this policy we just need to extend CLIENT KILL to allow combining USER and AGE arguments or alike."
+    },
+    {
+      "id": 1539469738,
+      "user": "PingXie",
+      "created_at": "2023-05-09T06:06:35Z",
+      "body": "Right I do find it hard to achieve that with module auth.\r\n\r\nIMO, enhancing the `CLIENT KILL` framework with an AGE parameter is a viable choice. It is a very reasonable proposal to integrate with the current filtering system for `CLIENT KILL`. On the other hand, there is also a precedent for a timeout-based mechanism in Redis, although it might not be as widely used. As I previously noted in another [discussion](https://github.com/redis/redis/issues/12096#issuecomment-1534202690), I personally favor extending the timeout method because it would lessen the workload and complexity for application developers.\r\n"
+    },
+    {
+      "id": 1542676237,
+      "user": "oranagra",
+      "created_at": "2023-05-10T19:12:47Z",
+      "body": "we discussed this in a core-team meeting and concluded that we prefer to postpone this for 8.0 rather than introduce an unnecessary breakage for some in a minor version."
+    },
+    {
+      "id": 1546887967,
+      "user": "slavak",
+      "created_at": "2023-05-14T12:24:07Z",
+      "body": "I've opened a PR for this fix (PR #12171).\r\n\r\nThe main change is factoring out the logic in `ACLKillPubsubClientsIfNeeded`, that determines whether a client should be killed, into its own function. Following Oran's notes, I've also refactored the code in a way that performs only one iteration over the clients list. This necessitated adding a \"cache\" field to the user struct; it's not very pretty, but I (and I believe Oran as well) think it's an acceptable compromise."
+    }
+  ]
+}

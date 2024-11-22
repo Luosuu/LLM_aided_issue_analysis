@@ -1,0 +1,36 @@
+{
+  "issue_number": 10466.0,
+  "title": "When using make I get the following error[BUG]",
+  "body": "**When using make I get the following error**\r\n\r\nrelease.c:37:10: fatal error: release.h: No such file or directory\r\n   37 | #include \"release.h\"",
+  "state": "closed",
+  "created_at": "2022-03-22T04:12:40Z",
+  "updated_at": "2022-03-22T06:21:54Z",
+  "closed_at": "2022-03-22T06:21:54Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1074748771,
+      "user": "sundb",
+      "created_at": "2022-03-22T05:43:23Z",
+      "body": "Can you provide more information?\r\nWhich platform are you using?\r\nWhich version of redis?\r\nOr something else."
+    },
+    {
+      "id": 1074771672,
+      "user": "anzunming",
+      "created_at": "2022-03-22T06:01:56Z",
+      "body": "**Platform**\r\nWLS ubuntu \r\nDetails are as follows\r\nLinux DESKTOP-CA3O0E3 4.4.0-19041-Microsoft #1237-Microsoft Sat Sep 11 14:32:00 PST 2021 x86_64 x86_64 x86_64 GNU/Linux\r\n\r\n**Redis version**\r\nIt is today's source code\r\n\r\n**make version**\r\nGNU Make 4.2.1\r\nBuilt for x86_64-pc-linux-gnu\r\nCopyright (C) 1988-2016 Free Software Foundation, Inc.\r\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\r\nThis is free software: you are free to change and redistribute it.\r\nThere is NO WARRANTY, to the extent permitted by law.\r\n\r\n**Compilation details**\r\nroot@DESKTOP-CA3O0E3:/mnt/g/cplusplus/redis# make install\r\ncd src && make install\r\nmake[1]: Entering directory '/mnt/g/cplusplus/redis/src'\r\n./mkreleasehdr.sh: 15: Syntax error: end of file unexpected (expecting \"then\")\r\n/bin/sh: 1: pkg-config: not found\r\n    CC Makefile.dep\r\n./mkreleasehdr.sh: 15: Syntax error: end of file unexpected (expecting \"then\")\r\n/bin/sh: 1: pkg-config: not found\r\n    CC adlist.o\r\n    CC quicklist.o\r\n    CC ae.o\r\n    CC anet.o\r\n    CC dict.o\r\n    CC server.o\r\n    CC sds.o\r\n    CC zmalloc.o\r\n    CC lzf_c.o\r\n    CC lzf_d.o\r\n    CC pqsort.o\r\n    CC zipmap.o\r\n    CC sha1.o\r\n    CC ziplist.o\r\n    CC release.o\r\nrelease.c:37:10: fatal error: release.h: No such file or directory\r\n   37 | #include \"release.h\"\r\n      |          ^~~~~~~~~~~\r\ncompilation terminated.\r\nmake[1]: *** [Makefile:402: release.o] Error 1\r\nmake[1]: Leaving directory '/mnt/g/cplusplus/redis/src'\r\nmake: *** [Makefile:9: install] Error 2\r\nroot@DESKTOP-CA3O0E3:/mnt/g/cplusplus/redis#"
+    },
+    {
+      "id": 1074775189,
+      "user": "sundb",
+      "created_at": "2022-03-22T06:07:35Z",
+      "body": "It seems that you put the code in the window and mount disk to wsl, because the encoding of your file in the window has been modified causing the error.\r\nThe solution is that you don't mount window disk."
+    },
+    {
+      "id": 1074782718,
+      "user": "anzunming",
+      "created_at": "2022-03-22T06:21:49Z",
+      "body": "thank you"
+    }
+  ]
+}

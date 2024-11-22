@@ -1,0 +1,30 @@
+{
+  "issue_number": 13650.0,
+  "title": "[CRASH] MODULE LOADEX invalid config",
+  "body": "**Crash report**\r\nIf an unexisting parameter name is used with MODULE LOADEX the server crashes.\r\n\r\n<details>\r\n<summary> Test with rejson.so\r\n</summary\r\n\r\n```sh\r\n127.0.0.1:6379> module loadex /tmp/rejson.so CONFIG invalid_config 1\r\nError: Server closed the connection\r\n(0.52s)\r\n```\r\n\r\n```c\r\n2365:M 12 Nov 2024 09:51:38.159 * Module 'ReJSON' loaded from /tmp/rejson.so\r\n2365:M 12 Nov 2024 09:51:38.159 # Loadex configurations were not applied, likely due to invalid arguments. Unloading the module.\r\n\r\n\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n2365:M 12 Nov 2024 09:51:38.159 # Redis 255.255.255 crashed by signal: 11, si_code: 2\r\n2365:M 12 Nov 2024 09:51:38.159 # Accessing address: 0x0\r\n2365:M 12 Nov 2024 09:51:38.159 # Crashed running the instruction at: 0x1007a1ef0\r\n\r\n------ STACK TRACE ------\r\nEIP:\r\n0   redis-server-unstable               0x00000001007a1ef0 moduleUnload + 116\r\n\r\nBacktrace:\r\n0   libsystem_platform.dylib            0x000000018e0ba584 _sigtramp + 56\r\n```\r\n</details>\r\n\r\n<details>\r\n<summary> Test with redisearch.so\r\n</summary>\r\n\r\n```sh\r\n127.0.0.1:6379> module loadex /tmp/redisearch.so CONFIG invalid_config 1\r\nError: Server closed the connection\r\n(0.52s)\r\n```\r\n\r\n```sh\r\n1730:M 12 Nov 2024 09:50:18.976 * Module 'search' loaded from /tmp/redisearch.so\r\n1730:M 12 Nov 2024 09:50:18.976 # Loadex configurations were not applied, likely due to invalid arguments. Unloading the module.\r\n\r\n\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n1730:M 12 Nov 2024 09:50:18.976 # Redis 255.255.255 crashed by signal: 11, si_code: 2\r\n1730:M 12 Nov 2024 09:50:18.976 # Accessing address: 0x0\r\n1730:M 12 Nov 2024 09:50:18.976 # Crashed running the instruction at: 0x10257def0\r\n\r\n------ STACK TRACE ------\r\nEIP:\r\n0   redis-server-unstable               0x000000010257def0 moduleUnload + 116\r\n\r\nBacktrace:\r\n0   libsystem_platform.dylib            0x000000018e0ba584 _sigtramp + 56\r\n\r\n```\r\n</details>\r\n\r\n\r\n\r\nThe cause seems to be the invocation of moduleUnload with `const char **errmsg = NULL`\r\nhttps://github.com/redis/redis/blob/cf838038802b6d5049e3368953a3a737dd3aaee5/src/module.c#L12374\r\n",
+  "state": "closed",
+  "created_at": "2024-11-12T15:05:23Z",
+  "updated_at": "2024-11-21T06:15:26Z",
+  "closed_at": "2024-11-21T06:15:25Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2472045543,
+      "user": "sundb",
+      "created_at": "2024-11-13T00:48:51Z",
+      "body": "@nafraf do you wanna make a PR to fix it?"
+    },
+    {
+      "id": 2473534051,
+      "user": "nafraf",
+      "created_at": "2024-11-13T12:51:54Z",
+      "body": "Yes, sure. I'll do it. Thanks."
+    },
+    {
+      "id": 2490162884,
+      "user": "sundb",
+      "created_at": "2024-11-21T06:15:25Z",
+      "body": "Fix via https://github.com/redis/redis/pull/13653"
+    }
+  ]
+}

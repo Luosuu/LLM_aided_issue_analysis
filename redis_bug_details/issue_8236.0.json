@@ -1,0 +1,27 @@
+{
+  "issue_number": 8236.0,
+  "title": "Should the SWAPDB command set CLIENT_DIRTY_CAS?",
+  "body": "![image](https://user-images.githubusercontent.com/13137470/102976296-49983c00-453c-11eb-9f61-8cad8f506fec.png)\r\n\r\nI think step3 should fail, because k=1 in db1, not the original `set k 2`.\r\n\r\nThe [current code](https://github.com/redis/redis/blob/unstable/src/db.c#L1335) handles `db->blocking_keys`, but does not handle `db->watched_keys`. I think the `CLIENT_DIRTY_CAS` flag should be set so that exec returns nil, the example code is as follows:\r\n```\r\n    dictIterator *di = dictGetSafeIterator(db->watched_keys);\r\n    while((de = dictNext(di)) != NULL) {\r\n        list *clients = dictGetVal(de);\r\n        if (!clients) continue;\r\n        /* Mark all the clients watching this key as CLIENT_DIRTY_CAS */\r\n        listRewind(clients,&li);\r\n        while((ln = listNext(&li))) {\r\n            client *c = listNodeValue(ln);\r\n            c->flags |= CLIENT_DIRTY_CAS;\r\n        }\r\n    }\r\n    dictReleaseIterator(di);\r\n```\r\n\r\nTracking does not need to be processed, because tracking does not distinguish db, and the value of key has not changed.\r\n",
+  "state": "closed",
+  "created_at": "2020-12-23T08:43:41Z",
+  "updated_at": "2021-01-08T16:47:39Z",
+  "closed_at": "2021-01-08T16:47:39Z",
+  "labels": [
+    "class:bug",
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 750330588,
+      "user": "hwware",
+      "created_at": "2020-12-23T14:43:47Z",
+      "body": "same thoughts here, I also noticed this issue before..IMHO the swapdb should make transaction fail if there is any client watching keys.."
+    },
+    {
+      "id": 750374491,
+      "user": "madolson",
+      "created_at": "2020-12-23T16:28:35Z",
+      "body": "I agree, we should fix this. "
+    }
+  ]
+}

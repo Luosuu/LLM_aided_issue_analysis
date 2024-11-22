@@ -1,0 +1,11 @@
+{
+  "issue_number": 7777.0,
+  "title": "[BUG] Potential data race on server.loading flag",
+  "body": "**Describe the bug**\r\n\r\nWe are developing a static data race detection tool and detected a potential data race on the `server.loading` flag in redis version 6.0.7\r\n\r\n**To reproduce**\r\n\r\nIf `SIGINT` is sent while the main thread is inside of [`loadDataFromDisk`](https://github.com/redis/redis/blob/6.0.7/src/server.c#L5272), there is a potential data race on the `server.loading` flag.\r\n\r\n The main thread [sets the flag](https://github.com/redis/redis/blob/6.0.7/src/rdb.c#L1996) while the signal handler may [read the flag](https://github.com/redis/redis/blob/6.0.7/src/server.c#L4852) in parallel.\r\n\r\n```C\r\n==== Found a race between: \r\nline 1996 in rdb.c AND line 4852 in server.c\r\nShared variable:\r\n at line 72 of server.c\r\n 72|struct redisServer server; /* Server global state */\r\nThread 1:\r\n 1994|void startLoading(size_t size, int rdbflags) {\r\n 1995|    /* Load the DB */\r\n>1996|    server.loading = 1;\r\n 1997|    server.loading_start_time = time(NULL);\r\n 1998|    server.loading_loaded_bytes = 0;\r\n>>>Stacktrace:\r\n>>>main\r\n>>>  loadDataFromDisk [server.c:5272]\r\n>>>    loadAppendOnlyFile [server.c:4967]\r\n>>>      startLoadingFile [aof.c:740]\r\n>>>        startLoading [rdb.c:2020]\r\nThread 2:\r\n 4850|     rdbRemoveTempFile(getpid());\r\n 4851|     exit(1); /* Exit with an error since this was not a clean shutdown. */\r\n>4852| } else if (server.loading) {\r\n 4853|     serverLogFromHandler(LL_WARNING, \"Received shutdown signal during loading, exiting now.\");\r\n 4854|     exit(0);\r\n\r\n>>>Stacktrace:\r\n>>>sigaction [server.c:4869]\r\n>>>  sigShutdownHandler [server.c:4869]\r\n```\r\n\r\n**Expected behavior**\r\n\r\nShould the read/write to `server.loading` be made atomic?\r\n",
+  "state": "closed",
+  "created_at": "2020-09-10T02:39:08Z",
+  "updated_at": "2020-09-25T13:25:47Z",
+  "closed_at": "2020-09-25T13:25:47Z",
+  "labels": [],
+  "comments_data": []
+}

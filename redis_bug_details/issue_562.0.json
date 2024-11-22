@@ -1,0 +1,57 @@
+{
+  "issue_number": 562.0,
+  "title": "Main thread stuck when loading very large keys",
+  "body": "Similar to #539 the main thread is stuck and redis becomes unresponsive during replication. In this case this happens because rdbLoad processes client events once every 1000 loaded keys but for rdb's with a small number of very large keys this doesn't work well. For example an rdb file with a single list that contains 10 million 1k strings will block for a very long time while reading this list.\n\nI suggest changing the way we periodically process client events by processing them every X bytes loaded from the rdb and not every N (1000) keys.\n\nHere's a patch that seemed to fix the issue for me:\nhttps://github.com/yoav-steinberg/redis_garantia/commit/4d7f4ef49fa29562ec1e4f55ecf0623a4c8715c4\n",
+  "state": "closed",
+  "created_at": "2012-06-20T11:57:32Z",
+  "updated_at": "2013-07-16T13:55:58Z",
+  "closed_at": "2013-07-16T13:55:58Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 8933168,
+      "user": "antirez",
+      "created_at": "2012-09-27T11:24:52Z",
+      "body": "2.6 -> 2.8\n"
+    },
+    {
+      "id": 20740708,
+      "user": "antirez",
+      "created_at": "2013-07-10T13:11:05Z",
+      "body": "Hello, I understand you use the current patch in product, is it right? Everything stable so far? Thank you.\n"
+    },
+    {
+      "id": 20741797,
+      "user": "yoav-steinberg",
+      "created_at": "2013-07-10T13:28:26Z",
+      "body": "This patch was modified to accommodate the \"rio\" layer added in 2.6 (I think it was originally written for 2.4).\nThe latest version is used successfully in production. You can find it here: https://github.com/GarantiaData/redis/commit/3aab06bcc7460b46c96fbb8d3b704ab1227c6be4\n"
+    },
+    {
+      "id": 20970295,
+      "user": "antirez",
+      "created_at": "2013-07-15T13:47:18Z",
+      "body": "Hello @yoav-steinberg, the patch seems good to me, however it must be noted that it introduces an important difference compared to the past, that is, when re-enter the event loop in the current implementation (before applying your patch) we may have a non completely loaded dataset, that is, just a percentage of keys could be present, not all, but keys are well-formed and accessible.\n\nWith the new implementation we may have half-loaded keys, and maybe the representation of keys may not even be ok to access without triggering a crash.\n\nNow given that currently the commands allowed to run in _loading_ state should never touch the dataset, this is fine, but care must be used in the future with the loading flag of the command table.\n\nI think I'll merge ASAP, just doing the last code review right now.\n"
+    },
+    {
+      "id": 20971676,
+      "user": "yoav-steinberg",
+      "created_at": "2013-07-15T14:09:13Z",
+      "body": "Isn't the key/value added \"atomically\" in the addKey(db,key,val) call? Assuming that's the case I don't see how a partial key can exist because addKey doesn't perform any disk access and therefore won't trigger the process events..\nWhat am I missing?\n"
+    },
+    {
+      "id": 20972084,
+      "user": "antirez",
+      "created_at": "2013-07-15T14:15:05Z",
+      "body": "That's a good point indeed, we create the whole value, and _then_ add it to the key space, so actually the same property should hold true after we apply your patch. Thanks!\n"
+    },
+    {
+      "id": 21043279,
+      "user": "antirez",
+      "created_at": "2013-07-16T13:55:58Z",
+      "body": "Merged, thanks! Closing.\n"
+    }
+  ]
+}

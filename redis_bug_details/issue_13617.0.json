@@ -1,0 +1,24 @@
+{
+  "issue_number": 13617.0,
+  "title": "[BUG] RETURN:ing JSONPath breaks HIGHLIGHT",
+  "body": "**Describe the bug**\r\n\r\nIncluding un-indexed fields in FT.SEARCH RETURN, using HIGHLIGHT throws an error\r\n\r\n**To reproduce**\r\n\r\n1. Create an index for JSON with fields \"name\" and \"description\" AS Text.\r\n2. Add an item with \"name\", \"description\" and \"someExtraValue\".\r\n3. Query with HIGHLIGHT\r\n\r\nExample:\r\n`FT.SEARCH myIndex \"term\" RETURN 2 name description HIGHLIGHT FIELDS 2 name description`\r\n\r\nWorks perfectly, the \"term\" is highlighted in the result.\r\n\r\n`FT.SEARCH myIndex \"term\" RETURN 5 name description $.someExtraValue AS extra`\r\n\r\nThis works as well, the results includes the field \"extra\" with the expected content from $.someExtraValue\r\n\r\n`FT.SEARCH myIndex \"term\" RETURN 5 name description $.someExtraValue AS extra HIGHLIGHT FIELDS 2 name description`\r\n\r\nCombining the two queries above throws an error:\r\n\r\n**Property `_$.someExtraValue_` is not in schema**\r\n\r\n\r\n**Expected behavior**\r\n\r\nI expected HIGHLIGHT to only consider the fields provided (FIELDS 2 name description), **not** the other fields in the RETURN ($.someExtraValue AS extra)\r\n\r\n**Additional information**\r\n\r\nTested with Redis Stack 7.4.1, redis-cli, and Redis insight\r\n",
+  "state": "open",
+  "created_at": "2024-10-25T08:55:43Z",
+  "updated_at": "2024-10-25T09:11:02Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2437259519,
+      "user": "sundb",
+      "created_at": "2024-10-25T08:58:25Z",
+      "body": "@carlhaman please move this issue to https://github.com/RediSearch/RediSearch/issues, thanks."
+    },
+    {
+      "id": 2437286036,
+      "user": "carlhaman",
+      "created_at": "2024-10-25T09:11:00Z",
+      "body": "I don´t have the option to transfer the issue, but I created a new one:\r\n\r\n[https://github.com/RediSearch/RediSearch/issues/5132](https://github.com/RediSearch/RediSearch/issues/5132)"
+    }
+  ]
+}

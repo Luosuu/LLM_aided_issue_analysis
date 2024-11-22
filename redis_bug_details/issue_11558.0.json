@@ -1,0 +1,38 @@
+{
+  "issue_number": 11558.0,
+  "title": "[BUG] 64gb client-output-buffer-limit isn't enough for maxmemory 96gb.",
+  "body": "**Describe the bug**\r\n\r\nFor `maxmemory=96gb`, the replicated data size so huge that it's even breaching 64gb client-output-buffer-limit. For example in the below logs when the application get burst of traffic, though the RDB size is around 17147 MB to 26465 MB, the `omem` is `68719730600`. This eventually impacts latency from master node, we are currently killing slaves to get the application back to normal as replication process won't happen when there are no slaves. \r\n\r\n```\r\n248207:C 30 Nov 2022 08:58:55.552 * RDB: 3894 MB of memory used by copy-on-write\r\n161290:M 30 Nov 2022 08:58:56.473 * Background saving terminated with success\r\n161290:M 30 Nov 2022 08:59:57.013 * 1000 changes in 60 seconds. Saving...\r\n161290:M 30 Nov 2022 08:59:57.767 * Background saving started by pid 248452\r\n248452:C 30 Nov 2022 09:01:14.618 * DB saved on disk\r\n248452:C 30 Nov 2022 09:01:15.271 * RDB: 17087 MB of memory used by copy-on-write\r\n161290:M 30 Nov 2022 09:01:17.482 * Background saving terminated with success\r\n161290:M 30 Nov 2022 09:02:18.002 * 1000 changes in 60 seconds. Saving...\r\n161290:M 30 Nov 2022 09:02:18.973 * Background saving started by pid 249718\r\n249718:C 30 Nov 2022 09:03:34.999 * DB saved on disk\r\n249718:C 30 Nov 2022 09:03:35.818 * RDB: 26465 MB of memory used by copy-on-write\r\n161290:M 30 Nov 2022 09:03:38.596 * Background saving terminated with success\r\n161290:M 30 Nov 2022 09:04:39.010 * 1000 changes in 60 seconds. Saving...\r\n161290:M 30 Nov 2022 09:04:40.164 * Background saving started by pid 250021\r\n250021:C 30 Nov 2022 09:05:58.030 * DB saved on disk\r\n250021:C 30 Nov 2022 09:05:59.018 * RDB: 17147 MB of memory used by copy-on-write\r\n161290:M 30 Nov 2022 09:06:01.563 * Background saving terminated with success\r\n161290:M 30 Nov 2022 09:06:18.832 # Client id=46393178 addr=10.32.134.159:44277 fd=1804 name= age=744368 idle=0 flags=S db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=222887 omem=68719730600 events=rw cmd=replconf scheduled to be closed ASAP for overcoming of output buffer limits.\r\n161290:M 30 Nov 2022 09:06:18.847 # Connection with replica 10.32.134.159:6379 lost.\r\n``` \r\n\r\n**To reproduce**\r\n\r\nCan't reproduce this in our lower environments with our load tests.\r\n\r\n**Expected behavior**\r\n\r\nThe compressed data file created by replication fork process to stream to slave should be less than 32gb for maxmemory 96gb assuming  best case 3:1 compression ratio. \r\n\r\n**Additional information**\r\n\r\nRedis version `5.0.6`\r\n\r\nAvailable RAM in server 187gb\r\n\r\nfrom redis.conf\r\n\r\n```\r\nclient-output-buffer-limit replica 64gb 64gb 0\r\nsave 900 1\r\nsave 300 10\r\nsave 60 1000\r\nmaxmemory-policy volatile-ttl\r\nmaxmemory 96gb\r\n```\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-11-30T18:14:28Z",
+  "updated_at": "2022-12-02T02:01:56Z",
+  "closed_at": "2022-12-02T02:01:56Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1333391523,
+      "user": "oranagra",
+      "created_at": "2022-12-01T08:27:11Z",
+      "body": "the size of the output buffer is not directly affected by the size of the dataset, but rather indirectly.\r\nthe main factor here is the write traffic workload during that time (if you have a high rate of writes they'll accumulate).\r\nthe size of the dataset affects the replication time, which you can maybe reduce by switching to diskless replication (if your network is faster than the disk), please look at `repl-diskless-sync` and `repl-diskless-load`.\r\nanother factor here maybe is COW, which you can maybe reduce by switching to redis 7.0 that has some improvement in that area.\r\n\r\nother than that i'll mention that we have some plan to eliminate this buffer buildup in some future version, see [this](https://github.com/redis/redis/pull/8440#issuecomment-771623319)"
+    },
+    {
+      "id": 1333942113,
+      "user": "rgampa",
+      "created_at": "2022-12-01T15:30:16Z",
+      "body": "Thank you @oranagra for the prompt reply. We are already in the process of upgrading to 7.x, which will be completed by this month end. With the 5.x version can we tune `repl-timeout` (currently it's set as 60 seconds) and `repl-backlog-size` (currently it's set as 512 MB) to avoid full sync of data with replica/master was disconnected due to timeouts? If yes, for our data usage what are the recommended values? "
+    },
+    {
+      "id": 1334198151,
+      "user": "oranagra",
+      "created_at": "2022-12-01T18:47:54Z",
+      "body": "i suppose you can do what you suggested, and you can also try diskless replication.\r\nin 5.0, only diskless master (`repl-diskless-sync`) is supported, the replica will still remain disk-based, but it can still probably reduce replication time.\r\ni don't have any numbers though, you'll have to try and figure them out."
+    },
+    {
+      "id": 1334668992,
+      "user": "rgampa",
+      "created_at": "2022-12-02T02:01:52Z",
+      "body": "Thanks @oranagra , this issue can be closed now. \r\n\r\nWe could reproduce the issue with load test, and below settings helped avoiding full sync.\r\n\r\n```\r\nrepl-timeout 600sec\r\nrepl-backlog-size 5gb\r\n```"
+    }
+  ]
+}

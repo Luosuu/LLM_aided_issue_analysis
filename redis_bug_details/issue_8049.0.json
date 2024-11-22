@@ -1,0 +1,48 @@
+{
+  "issue_number": 8049.0,
+  "title": "[BUG] replica receive nested \"multi\" command",
+  "body": "**Describe the bug**\r\n\r\nA short description of the bug.\r\n\r\n1:S 13 Nov 2020 06:18:06.183 # == CRITICAL == This replica is sending an error to its master: 'MULTI calls can not be nested' after processing the command 'multi'\r\n\r\n**To reproduce**\r\n\r\n1、in redismodule, register  mydel command and sub callback\r\n2、delete a key in mydel command (del keya) . and the del cmd need propagateto replica.\r\n3、step 2 delete action will trigger step 1 sub callback. in sub callback, a propagate command is executed (del keyb).\r\n\r\nmaster will generate coomand:\r\n```\r\nmulti    //generate by del keya in custom module command\r\nmulti    //generate by del keyb in subscribe callback\r\ndel keyb\r\nexec     //generate by del keyb in subscribe callback\r\ndel keya\r\nexec     //generate by del keya in custom module command\r\n```\r\n\r\n**Reason**\r\nwhen trigger sub callback ,a new RedisModuleContext will be generated.  the \"REDISMODULE_CTX_MULTI_EMITTED\" in old ctx is lost.",
+  "state": "closed",
+  "created_at": "2020-11-13T08:10:40Z",
+  "updated_at": "2020-12-06T11:14:19Z",
+  "closed_at": "2020-12-06T11:14:19Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 726602560,
+      "user": "oranagra",
+      "created_at": "2020-11-13T08:31:47Z",
+      "body": "@YiLinice which version of redis are you using?\r\nwhat do you mean by \"sub callback\"?\r\nhow do you delete the key in mydel command (using RedisModule_DeleteKey or RedisModule_Call)?\r\n\r\ni seem to remember something like that was recently fixed, i found 616b1cb7a (which was part of 6.0 RC3), maybe there was another later fix, @guybe7 do you remember?"
+    },
+    {
+      "id": 726613897,
+      "user": "guybe7",
+      "created_at": "2020-11-13T08:41:00Z",
+      "body": "I think that this is the scenario:\r\n1. Module command does RM_Call to DEL, sending a key space notification\r\n2. Some module is registered to notifications (maybe same module) and upon the notification calls RM_Call DEL on another key.\r\n\r\nThis will cause a nested multi because each step has its own context\r\n\r\nIt seems to me like we need some global int to count nesting level"
+    },
+    {
+      "id": 726619496,
+      "user": "guybe7",
+      "created_at": "2020-11-13T08:44:56Z",
+      "body": "Or maybe RM call should inherit the multi flag of the caller"
+    },
+    {
+      "id": 726647357,
+      "user": "linyi-xq",
+      "created_at": "2020-11-13T09:17:41Z",
+      "body": "> @YiLinice which version of redis are you using?\r\n> what do you mean by \"sub callback\"?\r\n> how do you delete the key in mydel command (using RedisModule_DeleteKey or RedisModule_Call)?\r\n> \r\n> i seem to remember something like that was recently fixed, i found [616b1cb](https://github.com/redis/redis/commit/616b1cb7ac543360fcffadce1f762e3de9928511) (which was part of 6.0 RC3), maybe there was another later fix, @guybe7 do you remember?\r\n\r\n@oranagra \r\nredis version: 6.0.4\r\nsub callback :     RedisModule_SubscribeToKeyspaceEvents(ctx, mask, sub_callback);\r\nI use RedisModule_Call to delete key.\r\n\r\n"
+    },
+    {
+      "id": 726648958,
+      "user": "linyi-xq",
+      "created_at": "2020-11-13T09:20:55Z",
+      "body": "> I think that this is the scenario:\r\n> \r\n> 1. Module command does RM_Call to DEL, sending a key space notification\r\n> 2. Some module is registered to notifications (maybe same module) and upon the notification calls RM_Call DEL on another key.\r\n> \r\n> This will cause a nested multi because each step has its own context\r\n> \r\n> It seems to me like we need some global int to count nesting level\r\n\r\nyes. this is bug scenario. "
+    },
+    {
+      "id": 733608808,
+      "user": "guybe7",
+      "created_at": "2020-11-25T10:11:16Z",
+      "body": "for the record: i think setting CLIENT_MULTI on `c` in `RM_Call` (if `replicate`) should solve this issue\r\nbut we need to write a test"
+    }
+  ]
+}

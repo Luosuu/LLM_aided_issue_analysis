@@ -1,0 +1,138 @@
+{
+  "issue_number": 12821.0,
+  "title": "[CRASH] Redis 7.0.11 OOM with enough system memory",
+  "body": "**Crash report**\r\n\r\nWe are switching from Redis 6.0.15 on Debian 10(Buster) to Redis 7.0.11 on Debian 12(Bookworm)\r\n\r\nOn previous deployment there were no issues with Redis, but on new deployment it crashes on OOM errors even though the server configuration was identical.\r\n\r\n```\r\n7151:M 29 Nov 2023 23:55:04.068 # Out Of Memory allocating 574036 bytes!\r\n\r\n\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n7151:M 29 Nov 2023 23:55:04.068 # ------------------------------------------------\r\n7151:M 29 Nov 2023 23:55:04.068 # !!! Software Failure. Press left mouse button to continue\r\n7151:M 29 Nov 2023 23:55:04.068 # Guru Meditation: Redis aborting for OUT OF MEMORY. Allocating 574036 bytes! #server.c:6655\r\n\r\n------ STACK TRACE ------\r\n\r\nBacktrace:\r\n/usr/bin/redis-server 0.0.0.0:6379(redisOutOfMemoryHandler+0x2a)[0x55715a6ab3fa]\r\n/usr/bin/redis-server 0.0.0.0:6379(zmalloc_usable+0x6b)[0x55715a6bcbab]\r\n/usr/bin/redis-server 0.0.0.0:6379(_addReplyProtoToList+0xa8)[0x55715a6c7b68]\r\n/usr/bin/redis-server 0.0.0.0:6379(addReplyBulk+0x3b)[0x55715a6ca4ab]\r\n/usr/bin/redis-server 0.0.0.0:6379(getGenericCommand+0x4a)[0x55715a6eb8ca]\r\n/usr/bin/redis-server 0.0.0.0:6379(call+0xdb)[0x55715a6af65b]\r\n/usr/bin/redis-server 0.0.0.0:6379(processCommand+0x98d)[0x55715a6b0c2d]\r\n/usr/bin/redis-server 0.0.0.0:6379(processInputBuffer+0xe6)[0x55715a6c9c16]\r\n/usr/bin/redis-server 0.0.0.0:6379(readQueryFromClient+0x2e8)[0x55715a6cda28]\r\n/usr/bin/redis-server 0.0.0.0:6379(+0x13bb84)[0x55715a77cb84]\r\n/usr/bin/redis-server 0.0.0.0:6379(+0x64ed8)[0x55715a6a5ed8]\r\n/usr/bin/redis-server 0.0.0.0:6379(aeMain+0x1d)[0x55715a6a69cd]\r\n/usr/bin/redis-server 0.0.0.0:6379(main+0x316)[0x55715a6a21f6]\r\n/lib/x86_64-linux-gnu/libc.so.6(+0x271ca)[0x7f766d8461ca]\r\n/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x85)[0x7f766d846285]\r\n/usr/bin/redis-server 0.0.0.0:6379(_start+0x21)[0x55715a6a2911]\r\n\r\n------ INFO OUTPUT ------\r\n# Server\r\nredis_version:7.0.11\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:c4e7f6bf175a885b\r\nredis_mode:standalone\r\nos:Linux 6.1.0-10-amd64 x86_64\r\narch_bits:64\r\nmonotonic_clock:POSIX clock_gettime\r\nmultiplexing_api:epoll\r\natomicvar_api:c11-builtin\r\ngcc_version:12.2.0\r\nprocess_id:7151\r\nprocess_supervised:systemd\r\nrun_id:35be2626b03a76440be1847155aad032268bd2e3\r\ntcp_port:6379\r\nserver_time_usec:1701298504068720\r\nuptime_in_seconds:1431057\r\nuptime_in_days:16\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:6799688\r\nexecutable:/usr/bin/redis-server\r\nconfig_file:/etc/redis/redis.conf\r\nio_threads_active:0\r\n\r\n# Clients\r\nconnected_clients:600\r\ncluster_connections:0\r\nmaxclients:10000\r\nclient_recent_max_input_buffer:262144\r\nclient_recent_max_output_buffer:262168\r\nblocked_clients:0\r\ntracking_clients:0\r\nclients_in_timeout_table:0\r\n\r\n# Memory\r\nused_memory:4979538144\r\nused_memory_human:4.64G\r\nused_memory_rss:5996359680\r\nused_memory_rss_human:5.58G\r\nused_memory_peak:4986502056\r\nused_memory_peak_human:4.64G\r\nused_memory_peak_perc:99.86%\r\nused_memory_overhead:354421960\r\nused_memory_startup:876112\r\nused_memory_dataset:4625116184\r\nused_memory_dataset_perc:92.90%\r\nallocator_allocated:4979424552\r\nallocator_active:5932032000\r\nallocator_resident:6010408960\r\ntotal_system_memory:33656152064\r\ntotal_system_memory_human:31.34G\r\nused_memory_lua:33792\r\nused_memory_vm_eval:33792\r\nused_memory_lua_human:33.00K\r\nused_memory_scripts_eval:632\r\nnumber_of_cached_scripts:3\r\nnumber_of_functions:0\r\nnumber_of_libraries:0\r\nused_memory_vm_functions:32768\r\nused_memory_vm_total:66560\r\nused_memory_vm_total_human:65.00K\r\nused_memory_functions:200\r\nused_memory_scripts:832\r\nused_memory_scripts_human:832B\r\nmaxmemory:24000000000\r\nmaxmemory_human:22.35G\r\nmaxmemory_policy:allkeys-lru\r\nallocator_frag_ratio:1.19\r\nallocator_frag_bytes:952607448\r\nallocator_rss_ratio:1.01\r\nallocator_rss_bytes:78376960\r\nrss_overhead_ratio:1.00\r\nrss_overhead_bytes:-14049280\r\nmem_fragmentation_ratio:1.20\r\nmem_fragmentation_bytes:1017480792\r\nmem_not_counted_for_evict:0\r\nmem_replication_backlog:256002696\r\nmem_total_replication_buffers:256690008\r\nmem_clients_slaves:690008\r\nmem_clients_normal:9761912\r\nmem_cluster_links:0\r\nmem_aof_buffer:0\r\nmem_allocator:jemalloc-5.3.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\nlazyfreed_objects:0\r\n\r\n# Persistence\r\nloading:0\r\nasync_loading:0\r\ncurrent_cow_peak:0\r\ncurrent_cow_size:0\r\ncurrent_cow_size_age:0\r\ncurrent_fork_perc:0.00\r\ncurrent_save_keys_processed:0\r\ncurrent_save_keys_total:0\r\nrdb_changes_since_last_save:302739226\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1699867447\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:9\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_saves:0\r\nrdb_last_cow_size:220016640\r\nrdb_last_load_keys_expired:0\r\nrdb_last_load_keys_loaded:0\r\naof_enabled:0\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:-1\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_rewrites:0\r\naof_rewrites_consecutive_failures:0\r\naof_last_write_status:ok\r\naof_last_cow_size:0\r\nmodule_fork_in_progress:0\r\nmodule_fork_last_cow_size:0\r\n\r\n# Stats\r\ntotal_connections_received:27180229\r\ntotal_commands_processed:596587748\r\ninstantaneous_ops_per_sec:6058\r\ntotal_net_input_bytes:101215260900\r\ntotal_net_output_bytes:519257332480\r\ntotal_net_repl_input_bytes:0\r\ntotal_net_repl_output_bytes:89559888291\r\ninstantaneous_input_kbps:751.46\r\ninstantaneous_output_kbps:4133.02\r\ninstantaneous_input_repl_kbps:0.00\r\ninstantaneous_output_repl_kbps:650.12\r\nrejected_connections:0\r\nsync_full:1\r\nsync_partial_ok:1\r\nsync_partial_err:1\r\nexpired_keys:24387269\r\nexpired_stale_perc:8.46\r\nexpired_time_cap_reached_count:0\r\nexpire_cycle_cpu_milliseconds:73852\r\nevicted_keys:0\r\nevicted_clients:0\r\ntotal_eviction_exceeded_time:0\r\ncurrent_eviction_exceeded_time:0\r\nkeyspace_hits:143287823\r\nkeyspace_misses:15679239\r\npubsub_channels:1\r\npubsub_patterns:0\r\npubsubshard_channels:0\r\nlatest_fork_usec:348508\r\ntotal_forks:1\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\ntotal_active_defrag_time:0\r\ncurrent_active_defrag_time:0\r\ntracking_total_keys:0\r\ntracking_total_items:0\r\ntracking_total_prefixes:0\r\nunexpected_error_replies:0\r\ntotal_error_replies:2\r\ndump_payload_sanitizations:0\r\ntotal_reads_processed:515772612\r\ntotal_writes_processed:767784112\r\nio_threaded_reads_processed:0\r\nio_threaded_writes_processed:0\r\nreply_buffer_shrinks:2626424\r\nreply_buffer_expands:640859\r\n\r\n# Replication\r\nrole:master\r\nconnected_slaves:1\r\nslave0:ip=192.168.4.111,port=6379,state=online,offset=121637812764,lag=1\r\nmaster_failover_state:no-failover\r\nmaster_replid:2115cc938dde60196a7d7143336eed2a0e4e69a7\r\nmaster_replid2:d6b633bc756ded7e6d3fcbc1ad61c7b2b294527f\r\nmaster_repl_offset:121638329551\r\nsecond_repl_offset:32425214122\r\nrepl_backlog_active:1\r\nrepl_backlog_size:256000000\r\nrepl_backlog_first_byte_offset:121382325306\r\nrepl_backlog_histlen:256004246\r\n\r\n# CPU\r\nused_cpu_sys:11178.968550\r\nused_cpu_user:4580.419313\r\nused_cpu_sys_children:2.621047\r\nused_cpu_user_children:6.088434\r\nused_cpu_sys_main_thread:11163.071556\r\nused_cpu_user_main_thread:4579.290099\r\n\r\n# Modules\r\n\r\n# Commandstats\r\ncmdstat_mget:calls=493818,usec=1757723,usec_per_call=3.56,rejected_calls=0,failed_calls=0\r\ncmdstat_del:calls=56145938,usec=43757068,usec_per_call=0.78,rejected_calls=0,failed_calls=0\r\ncmdstat_llen:calls=1,usec=1,usec_per_call=1.00,rejected_calls=0,failed_calls=0\r\ncmdstat_client|setname:calls=6,usec=11,usec_per_call=1.83,rejected_calls=0,failed_calls=0\r\ncmdstat_hset:calls=19613457,usec=28966922,usec_per_call=1.48,rejected_calls=0,failed_calls=0\r\ncmdstat_object|encoding:calls=1,usec=1,usec_per_call=1.00,rejected_calls=0,failed_calls=0\r\ncmdstat_role:calls=27143446,usec=103856356,usec_per_call=3.83,rejected_calls=0,failed_calls=0\r\ncmdstat_eval:calls=54237403,usec=488279286,usec_per_call=9.00,rejected_calls=0,failed_calls=0\r\ncmdstat_info:calls=588656,usec=71363104,usec_per_call=121.23,rejected_calls=0,failed_calls=0\r\ncmdstat_hgetall:calls=196601,usec=288106753,usec_per_call=1465.44,rejected_calls=0,failed_calls=0\r\ncmdstat_command|docs:calls=3,usec=2313,usec_per_call=771.00,rejected_calls=0,failed_calls=0\r\ncmdstat_scard:calls=2,usec=2,usec_per_call=1.00,rejected_calls=0,failed_calls=0\r\ncmdstat_replconf:calls=1424447,usec=1911989,usec_per_call=1.34,rejected_calls=0,failed_calls=0\r\ncmdstat_config|set:calls=1,usec=12,usec_per_call=12.00,rejected_calls=0,failed_calls=0\r\ncmdstat_config|get:calls=9,usec=51,usec_per_call=5.67,rejected_calls=0,failed_calls=0\r\ncmdstat_config|rewrite:calls=1,usec=5842,usec_per_call=5842.00,rejected_calls=0,failed_calls=0\r\ncmdstat_subscribe:calls=3,usec=3,usec_per_call=1.00,rejected_calls=0,failed_calls=0\r\ncmdstat_quit:calls=16050,usec=3644,usec_per_call=0.23,rejected_calls=0,failed_calls=0\r\ncmdstat_dbsize:calls=16,usec=5,usec_per_call=0.31,rejected_calls=0,failed_calls=0\r\ncmdstat_exists:calls=1286663,usec=1486324,usec_per_call=1.16,rejected_calls=0,failed_calls=0\r\ncmdstat_hdel:calls=4796,usec=777434,usec_per_call=162.10,rejected_calls=0,failed_calls=0\r\ncmdstat_set:calls=159266386,usec=379552754,usec_per_call=2.38,rejected_calls=0,failed_calls=0\r\ncmdstat_mset:calls=91172,usec=218643,usec_per_call=2.40,rejected_calls=0,failed_calls=0\r\ncmdstat_setex:calls=12387317,usec=45826111,usec_per_call=3.70,rejected_calls=0,failed_calls=0\r\ncmdstat_scan:calls=133154,usec=1613383,usec_per_call=12.12,rejected_calls=0,failed_calls=0\r\ncmdstat_publish:calls=2106359,usec=11292558,usec_per_call=5.36,rejected_calls=0,failed_calls=0\r\ncmdstat_hmget:calls=19784689,usec=27919585,usec_per_call=1.41,rejected_calls=0,failed_calls=0\r\ncmdstat_expire:calls=73486266,usec=130860480,usec_per_call=1.78,rejected_calls=0,failed_calls=0\r\ncmdstat_sadd:calls=81926,usec=151734,usec_per_call=1.85,rejected_calls=0,failed_calls=0\r\ncmdstat_hget:calls=74,usec=135,usec_per_call=1.82,rejected_calls=0,failed_calls=0\r\ncmdstat_get:calls=134897220,usec=259584551,usec_per_call=1.92,rejected_calls=0,failed_calls=0\r\ncmdstat_type:calls=248748,usec=536221,usec_per_call=2.16,rejected_calls=0,failed_calls=0\r\ncmdstat_rpush:calls=515458,usec=3271857,usec_per_call=6.35,rejected_calls=0,failed_calls=0\r\ncmdstat_select:calls=27148061,usec=11259862,usec_per_call=0.41,rejected_calls=0,failed_calls=0\r\ncmdstat_lpop:calls=1138341,usec=4996212,usec_per_call=4.39,rejected_calls=0,failed_calls=0\r\ncmdstat_hlen:calls=2,usec=1,usec_per_call=0.50,rejected_calls=0,failed_calls=0\r\ncmdstat_keys:calls=1,usec=2,usec_per_call=2.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ttl:calls=1,usec=1,usec_per_call=1.00,rejected_calls=0,failed_calls=0\r\ncmdstat_ping:calls=4151253,usec=4002631,usec_per_call=0.96,rejected_calls=0,failed_calls=0\r\ncmdstat_psync:calls=2,usec=132,usec_per_call=66.00,rejected_calls=0,failed_calls=0\r\n\r\n# Errorstats\r\nerrorstat_ERR:count=2\r\n\r\n# Latencystats\r\nlatency_percentiles_usec_mget:p50=3.007,p99=16.063,p99.9=38.143\r\nlatency_percentiles_usec_del:p50=1.003,p99=5.023,p99.9=17.023\r\nlatency_percentiles_usec_llen:p50=1.003,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_client|setname:p50=2.007,p99=2.007,p99.9=2.007\r\nlatency_percentiles_usec_hset:p50=1.003,p99=8.031,p99.9=26.111\r\nlatency_percentiles_usec_object|encoding:p50=1.003,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_role:p50=3.007,p99=17.023,p99.9=43.007\r\nlatency_percentiles_usec_eval:p50=7.007,p99=47.103,p99.9=99.327\r\nlatency_percentiles_usec_info:p50=56.063,p99=1318.911,p99.9=2572.287\r\nlatency_percentiles_usec_hgetall:p50=1286.143,p99=3342.335,p99.9=4030.463\r\nlatency_percentiles_usec_command|docs:p50=794.623,p99=815.103,p99.9=815.103\r\nlatency_percentiles_usec_scard:p50=1.003,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_replconf:p50=1.003,p99=8.031,p99.9=13.055\r\nlatency_percentiles_usec_config|set:p50=12.031,p99=12.031,p99.9=12.031\r\nlatency_percentiles_usec_config|get:p50=4.015,p99=20.095,p99.9=20.095\r\nlatency_percentiles_usec_config|rewrite:p50=5865.471,p99=5865.471,p99.9=5865.471\r\nlatency_percentiles_usec_subscribe:p50=0.001,p99=3.007,p99.9=3.007\r\nlatency_percentiles_usec_quit:p50=0.001,p99=1.003,p99.9=2.007\r\nlatency_percentiles_usec_dbsize:p50=0.001,p99=2.007,p99.9=2.007\r\nlatency_percentiles_usec_exists:p50=1.003,p99=7.007,p99.9=20.095\r\nlatency_percentiles_usec_hdel:p50=118.271,p99=655.359,p99.9=872.447\r\nlatency_percentiles_usec_set:p50=2.007,p99=12.031,p99.9=33.023\r\nlatency_percentiles_usec_mset:p50=2.007,p99=12.031,p99.9=34.047\r\nlatency_percentiles_usec_setex:p50=3.007,p99=16.063,p99.9=40.191\r\nlatency_percentiles_usec_scan:p50=7.007,p99=31.103,p99.9=1581.055\r\nlatency_percentiles_usec_publish:p50=5.023,p99=16.063,p99.9=28.031\r\nlatency_percentiles_usec_hmget:p50=1.003,p99=8.031,p99.9=33.023\r\nlatency_percentiles_usec_expire:p50=1.003,p99=10.047,p99.9=27.007\r\nlatency_percentiles_usec_sadd:p50=2.007,p99=9.023,p99.9=25.087\r\nlatency_percentiles_usec_hget:p50=1.003,p99=7.007,p99.9=8.031\r\nlatency_percentiles_usec_get:p50=1.003,p99=11.007,p99.9=33.023\r\nlatency_percentiles_usec_type:p50=2.007,p99=9.023,p99.9=25.087\r\nlatency_percentiles_usec_rpush:p50=5.023,p99=29.055,p99.9=108.031\r\nlatency_percentiles_usec_select:p50=0.001,p99=3.007,p99.9=14.015\r\nlatency_percentiles_usec_lpop:p50=1.003,p99=30.079,p99.9=70.143\r\nlatency_percentiles_usec_hlen:p50=0.001,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_keys:p50=2.007,p99=2.007,p99.9=2.007\r\nlatency_percentiles_usec_ttl:p50=1.003,p99=1.003,p99.9=1.003\r\nlatency_percentiles_usec_ping:p50=1.003,p99=2.007,p99.9=16.063\r\nlatency_percentiles_usec_psync:p50=61.183,p99=71.167,p99.9=71.167\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=400,expires=393,avg_ttl=261284231\r\ndb1:keys=18249,expires=18249,avg_ttl=4158556\r\ndb2:keys=246047,expires=246047,avg_ttl=681110\r\ndb3:keys=478922,expires=478922,avg_ttl=130206241\r\ndb4:keys=3,expires=0,avg_ttl=0\r\ndb5:keys=556,expires=542,avg_ttl=52180218\r\ndb6:keys=214699,expires=214699,avg_ttl=681619\r\n``` \r\n\r\n\r\n**Additional information**\r\nPrevious deployment was usually filled to around 15G memory\r\n\r\nIssue above happened when VM had 23.8G free memory.\r\nChanges made to new deployment's VM after looking through other Redis issues:\r\nvm.overcommit_memory=1\r\nvm.max_map_count=262144\r\n\r\n1. OS distribution and version - Debian 12 (Bookworm)\r\n- 4cpu, 32G RAM, 0 swap\r\n",
+  "state": "open",
+  "created_at": "2023-11-30T08:12:08Z",
+  "updated_at": "2023-12-11T14:19:26Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1834389006,
+      "user": "madolson",
+      "created_at": "2023-11-30T19:06:24Z",
+      "body": "```\r\n7151:M 29 Nov 2023 23:55:04.068 # Guru Meditation: Redis aborting for OUT OF MEMORY. Allocating 574036 bytes! #server.c:6655\r\n```\r\nThis message is pretty straightforward to interpret. The memory allocator returned NULL back to us, so we interpreted that as out of memory. Can you validate that you don't get the exception when moving to 7.0.11 while on the same OS version? "
+    },
+    {
+      "id": 1835562470,
+      "user": "radsed",
+      "created_at": "2023-12-01T06:51:27Z",
+      "body": "I can try it, but we are using Debian packages with our automation for the installation, and the only official Debian package for \"Bookworm\" is 7.0.11, also \"Buster\" is EOL already hence why we are trying to move directly to Bookworm. \r\nI did a little digging and on the older OS version with 6.0.15 the Redis consumes 144 maps. On the new OS version it reached the limit of 262144, can this be caused by the memory allocator? Since it changed from jemalloc-5.1.0 to jemalloc-5.3.0"
+    },
+    {
+      "id": 1837465080,
+      "user": "oranagra",
+      "created_at": "2023-12-03T12:23:40Z",
+      "body": "so you're saying that even with `vm.overcommit_memory=1` the issue still happens?\r\ndoes Redis print any warning about THP on startup?"
+    },
+    {
+      "id": 1838047731,
+      "user": "radsed",
+      "created_at": "2023-12-04T08:21:54Z",
+      "body": "Yes vm.overcommit_memory is set to 1 and issue still happens. No warning on startup is displayed."
+    },
+    {
+      "id": 1838238329,
+      "user": "oranagra",
+      "created_at": "2023-12-04T10:19:03Z",
+      "body": "> I can try it, but we are using Debian packages with our automation for the installation, and the only official Debian package for \"Bookworm\" is 7.0.11, also \"Buster\" is EOL already hence why we are trying to move directly to Bookworm. I did a little digging and on the older OS version with 6.0.15 the Redis consumes 144 maps. On the new OS version it reached the limit of 262144, can this be caused by the memory allocator? Since it changed from jemalloc-5.1.0 to jemalloc-5.3.0\r\n\r\n@jasone can you comment on the above? is it expected that the newer jemalloc will behave that way? is there any info we can extract to learn more about it?\r\n\r\nAFAIK the only relevant previous discussion about it in redis is this one: https://github.com/redis/redis/issues/10319#issuecomment-1047739925, leading to #11357"
+    },
+    {
+      "id": 1839147840,
+      "user": "jasone",
+      "created_at": "2023-12-04T17:38:48Z",
+      "body": "There are three possibilities I can think of:\r\n\r\n- [`opt.retain`](https://jemalloc.net/jemalloc.3.html#opt.retain) has been manually disabled.\r\n- There's a leak in the application.\r\n- There's a bug in jemalloc."
+    },
+    {
+      "id": 1839214211,
+      "user": "oranagra",
+      "created_at": "2023-12-04T18:19:13Z",
+      "body": "neither of these seems likely.\r\n\r\n@radsed maybe you can dig some info before it crashes (when we have far more than 144 maps, but still not enough to panic).\r\n* value of `/proc/<pid>/maps`\r\n* `MEMORY MALLOC-STATS` command"
+    },
+    {
+      "id": 1840170501,
+      "user": "radsed",
+      "created_at": "2023-12-05T07:42:27Z",
+      "body": "Here is the amount of maps:\r\n```\r\ncat /proc/3163582/maps | wc -l\r\n18640\r\n```\r\n\r\nAlso i have the output here.\r\n[malloc_stats.txt](https://github.com/redis/redis/files/13556608/malloc_stats.txt)\r\n\r\nHopefully this is sufficient?"
+    },
+    {
+      "id": 1840189974,
+      "user": "oranagra",
+      "created_at": "2023-12-05T07:54:06Z",
+      "body": "@jasone can you check if you see something suspicious in that file?"
+    },
+    {
+      "id": 1840875294,
+      "user": "judeng",
+      "created_at": "2023-12-05T14:14:35Z",
+      "body": "> Here is the amount of maps:\r\n```\r\ncat /proc/3163582/maps | wc -l\r\n18640\r\n```\r\n\r\nIs 3163582  the pid of redis-server?\r\nI think the maps output is suspicious, `18640` maybe too big, it's weird, I guess stack or heap sections may have too many fragments.\r\n"
+    },
+    {
+      "id": 1840978236,
+      "user": "radsed",
+      "created_at": "2023-12-05T15:06:15Z",
+      "body": "Yes this is the PID of redis-server:\r\n```\r\n> ps -ef|grep redis\r\nredis        666       1  0 Nov13 ?        01:24:19 /usr/bin/redis-sentinel\r\nredis    3163582       1  0 Nov30 ?        00:23:24 /usr/bin/redis-server\r\n``` \r\n"
+    },
+    {
+      "id": 1841552358,
+      "user": "jasone",
+      "created_at": "2023-12-05T20:19:04Z",
+      "body": "```\r\n[...]\r\n  opt.retain: true\r\n[...]\r\nAllocated: 260290168, active: 333275136, metadata: 50658240 (n_thp 0), resident: 383844352, mapped: 391995392, retained: 5549760512\r\n```\r\n\r\nI don't see anything obviously wrong in the jemalloc stats; assuming correct jemalloc internals, even my most pessimistic upper bound estimates would place the number of maps at under 60,000. But that's a much higher upper bound than I expected to come up with because there's a guard page mechanism that was added to jemalloc in 2021 that I know very little about. If there's a bug in the guard page (renamed from `guard` to `san` during development), that could explain the map fragmentation, but I'd expect such a flaw to have been discovered and fixed long ago.\r\n\r\nCC: @interwq, @Lapenkov"
+    },
+    {
+      "id": 1841581404,
+      "user": "interwq",
+      "created_at": "2023-12-05T20:42:34Z",
+      "body": "Like Jason mentioned this is certainly not expected. The sanitizer / guard page feature is default off so shouldn't be a factor here. Were the stats gathered when the workload is finished / low? Asking because the retained VM size is >20x of the total allocated bytes, which is too high unless there was a much higher memory peak previously.\r\n\r\n@radsed can you also help to get stats with jemalloc 5.1 running the same / similar workload, ideally for similar duration?"
+    },
+    {
+      "id": 1842410574,
+      "user": "radsed",
+      "created_at": "2023-12-06T08:23:45Z",
+      "body": "Data provided is without any load. We found the issue and rollbacked to old servers, so the data is from new servers with data (crash time - rollback time).\r\nHere are map count and stats from active server with jemalloc 5.1.0, Debian 10, Redis 6.0.15\r\n```\r\n> cat /proc/647/maps | wc -l\r\n145\r\n```\r\n\r\nMalloc-stats:\r\n[redis_6.txt](https://github.com/redis/redis/files/13578382/redis_6.txt)\r\n"
+    },
+    {
+      "id": 1842959092,
+      "user": "radsed",
+      "created_at": "2023-12-06T14:07:18Z",
+      "body": "We ran a test on our Beta environment which also uses jemalloc 5.3.0, Redis 7.0.11, Debian 12. I tried to manually watch memory and maps usage. The usage of maps was very low (maybe around 260) during testing, but when we reached memory limit for Redis and keys were evicted i saw briefly more than 110000 maps used for redis-server process and then started to come down bit by bit. My assumption is that during eviction/expiration of keys the maps usage goes up, and then slowly comes down, but by the time other keys are expired it won't clear totally and stacks up until it overflows."
+    },
+    {
+      "id": 1843500071,
+      "user": "interwq",
+      "created_at": "2023-12-06T18:49:15Z",
+      "body": "@radsed the workload of the two stats are rather different so it's hard to draw any conclusion. A couple of things to check:\r\n1) the older system has `opt.thp: \"not supported\"` while the new one supports it. Can you check the value of `/sys/kernel/mm/transparent_hugepage/enabled` on the new system? In case it's default using THP always.\r\n2) One notable default config change difference between 5.3 and 5.1, is that [muzzy decay](https://jemalloc.net/jemalloc.3.html#opt.muzzy_decay_ms) is enabled by default in 5.1 but not in 5.3. I don't really expect it to affect the mapping count this much. But to test it, you can try adding `MALLOC_CONF=muzzy_decay_ms:10000` with the new system when launching the binary, and see if any changes regarding the mappings.\r\n\r\n> The usage of maps was very low (maybe around 260) during testing, but when we reached memory limit for Redis and keys were evicted i saw briefly more than 110000 maps used for redis-server process and then started to come down bit by bit.\r\n\r\nDoes the old system exhibit the same pattern as well, or stays low all the time?"
+    },
+    {
+      "id": 1843523135,
+      "user": "interwq",
+      "created_at": "2023-12-06T19:03:06Z",
+      "body": "@oranagra BTW how wide spread is this issue? Are there other users seeing the same problem? FWIW we haven't seeing anything similar in our internal use cases. Trying to think if it's more likely from different allocator behaviors, or OS / kernel level settings."
+    },
+    {
+      "id": 1845313389,
+      "user": "oranagra",
+      "created_at": "2023-12-07T13:06:38Z",
+      "body": "@interwq i haven't seen any similar report. i assume it's related to the system configuration in some way.\r\n@judeng any chance you can try the older redis on the newer OS or vice versa?\r\nassuming this debian package uses the jemalloc version that's bundled with redis (maybe you can try building both versions yourself)"
+    },
+    {
+      "id": 1850020710,
+      "user": "judeng",
+      "created_at": "2023-12-11T12:52:48Z",
+      "body": "@oranagra I use wsl2 that can easy install debian 12, but the kernel is 5.15. I'll try it."
+    },
+    {
+      "id": 1850121940,
+      "user": "oranagra",
+      "created_at": "2023-12-11T13:52:29Z",
+      "body": "@judeng maybe i tagged you by mistake, and meant to tag @radsed in my previous message."
+    },
+    {
+      "id": 1850174644,
+      "user": "radsed",
+      "created_at": "2023-12-11T14:19:25Z",
+      "body": "@oranagra unfortunately as mentioned in our infrastructure we are using automation to have environments basically the same, and since we are using Redis packages that come in Debian repositories that means on Debian 12 we can only use Redis 7.0.11.\r\n@interwq The workload should be the same, as stats from new 7.0.11 are after application rollback and stats on 6.0.15 are during normal run. (Same application running) Old system seems to always stay within low numbers no big peaks seen."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 12319.0,
+  "title": "[CRASH] Redis Docker image 7.0.11 crashes on startup in AWS",
+  "body": "**Crash report**\r\n\r\n```\r\n1:C 15 Jun 2023 09:46:03.711 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n1:C 15 Jun 2023 09:46:03.711 # Redis version=7.0.11, bits=64, commit=00000000, modified=0, pid=1, just started\r\n1:C 15 Jun 2023 09:46:03.711 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf\r\n1:M 15 Jun 2023 09:46:03.712 * monotonic clock: POSIX clock_gettime\r\n                _._\r\n           _.-``__ ''-._\r\n      _.-``    `.  `_.  ''-._           Redis 7.0.11 (00000000/0) 64 bit\r\n  .-`` .-```.  ```\\/    _.,_ ''-._\r\n (    '      ,       .-`  | `,    )     Running in standalone mode\r\n |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379\r\n |    `-._   `._    /     _.-'    |     PID: 1\r\n  `-._    `-._  `-./  _.-'    _.-'\r\n |`-._`-._    `-.__.-'    _.-'_.-'|\r\n |    `-._`-._        _.-'_.-'    |           https://redis.io\r\n  `-._    `-._`-.__.-'_.-'    _.-'\r\n |`-._`-._    `-.__.-'    _.-'_.-'|\r\n |    `-._`-._        _.-'_.-'    |\r\n  `-._    `-._`-.__.-'_.-'    _.-'\r\n      `-._    `-.__.-'    _.-'\r\n          `-._        _.-'\r\n              `-.__.-'\r\n\r\n1:M 15 Jun 2023 09:46:03.712 # Server initialized\r\n1:M 15 Jun 2023 09:46:03.712 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.\r\n1:M 15 Jun 2023 09:46:03.712 # Fatal: Can't initialize Background Jobs.\r\n```\r\n\r\n**Additional information**\r\n\r\nThe new redis Image version 7.0.11 will crash on startup when started in AWS instance. Version 7.0.10 works fine.\r\n\r\n1. AWS instance tested on m4a.large and r4a.xlarge\r\n```\r\nNAME=\"Ubuntu\"\r\nVERSION=\"20.04.2 LTS (Focal Fossa)\"\r\nID=ubuntu\r\nID_LIKE=debian\r\nPRETTY_NAME=\"Ubuntu 20.04.2 LTS\"\r\nVERSION_ID=\"20.04\"\r\nHOME_URL=\"https://www.ubuntu.com/\"\r\nSUPPORT_URL=\"https://help.ubuntu.com/\"\r\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\r\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\r\nVERSION_CODENAME=focal\r\nUBUNTU_CODENAME=focal\r\n```\r\n\r\nDocker version 20.10.7, build f0df350\r\ndocker-compose version 1.24.0, build 0aa59064",
+  "state": "closed",
+  "created_at": "2023-06-15T09:53:53Z",
+  "updated_at": "2023-06-15T11:12:57Z",
+  "closed_at": "2023-06-15T11:12:57Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1592752755,
+      "user": "boserup",
+      "created_at": "2023-06-15T10:06:41Z",
+      "body": "May be related to this: https://github.com/docker-library/redis/issues/365"
+    },
+    {
+      "id": 1592848625,
+      "user": "Its-treason",
+      "created_at": "2023-06-15T11:12:57Z",
+      "body": "@boserup Yes that the crash only happens with the bookworm image. Just tested with the 7.0.11-bookworm and 7.0.11-bullseye Tags. Bullseye still works and bookworm is broken.\r\n\r\nStarting the image 7.0.11-bookworm on my local machine works, but it doesn't on an AWS instance. Both images, local and on AWS, got the same image ID: `8e69fcb59ff4`\r\n\r\nAs this is not an issue with Redis itself but with the docker image, I'm closing this issue. "
+    }
+  ]
+}

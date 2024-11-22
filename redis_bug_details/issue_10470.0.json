@@ -1,0 +1,42 @@
+{
+  "issue_number": 10470.0,
+  "title": "[BUG] Sentinel test 08 can't run on its own",
+  "body": "**Describe the bug**\r\n\r\nSentinel test `08-hostname-conf` cannot be run on its own.\r\n\r\n**To reproduce**\r\n\r\nCompile Redis on Ubuntu 20.04, for example.\r\n`./runtest-sentinel --single 08-hostname-conf`\r\nThe test will fail because the procedure `restart_killed_instances` is missing.\r\n\r\n**Expected behavior**\r\n\r\nThe test runs correctly.\r\n\r\n**Additional information**\r\n\r\nN/A\r\n",
+  "state": "closed",
+  "created_at": "2022-03-23T13:12:52Z",
+  "updated_at": "2022-03-30T17:42:51Z",
+  "closed_at": "2022-03-30T17:42:51Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1076400985,
+      "user": "enjoy-binbin",
+      "created_at": "2022-03-23T13:51:56Z",
+      "body": "i see, we need to move `source \"../tests/includes/init-tests.tcl\"` to the top. it is a easy fix, let me fix it"
+    },
+    {
+      "id": 1076406999,
+      "user": "ivanstosic-janea",
+      "created_at": "2022-03-23T13:57:27Z",
+      "body": "I suspected this but the test's name is `pre-init ...`, meaning that maybe it has to be run before `init-tests.tcl`?"
+    },
+    {
+      "id": 1076439937,
+      "user": "enjoy-binbin",
+      "created_at": "2022-03-23T14:26:52Z",
+      "body": "yes, maybe. but i do test it without any errors, ping @yossigo \r\ni see other two options:\r\n1. copy restart_killed_instances to the file (a easy fix)\r\n2. move it to a new utils.tcl file, and source it in everywhere"
+    },
+    {
+      "id": 1083289118,
+      "user": "yossigo",
+      "created_at": "2022-03-30T15:28:06Z",
+      "body": "@enjoy-binbin Option 2 is the better one IMHO. There are actually two procs that can be moved to utils. Do you want to handle that or shall I?"
+    },
+    {
+      "id": 1083305521,
+      "user": "enjoy-binbin",
+      "created_at": "2022-03-30T15:41:21Z",
+      "body": "i can handle that (i remember i make a local fix for option 2), just let me do some tests later"
+    }
+  ]
+}

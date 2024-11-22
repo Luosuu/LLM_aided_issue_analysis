@@ -1,0 +1,30 @@
+{
+  "issue_number": 11091.0,
+  "title": "[BUG]incr and get command return not equal",
+  "body": "when I use the incr and expire a new key in a pipeline,it return success,the use get comand ,it return false.\r\n\r\n$pipe = $cur_redis->multi(Redis::PIPELINE);\r\n$pipe->incr($ref_times_key);\r\n$pipe->expire($ref_times_key, $this->getNextRefTimestamp() - time());\r\n$rst=$pipe->exec();\r\n\r\n\r\n$cur_redis->get($ref_times_key) #return false",
+  "state": "closed",
+  "created_at": "2022-08-08T05:40:22Z",
+  "updated_at": "2022-08-08T06:14:39Z",
+  "closed_at": "2022-08-08T06:14:08Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1207695007,
+      "user": "sundb",
+      "created_at": "2022-08-08T05:49:35Z",
+      "body": "@spierman Can you give more information about this issue?\r\n1. Is multi executed successfully?\r\n2. What is the value of `$this->getNextRefTimestamp() - time()`? "
+    },
+    {
+      "id": 1207699981,
+      "user": "spierman",
+      "created_at": "2022-08-08T05:58:37Z",
+      "body": "> \r\n1.the two command all success response.\r\n2.this is a second val >0.\r\n\r\n3.the response is below:\r\npipeline: [1,true]\r\nget : false"
+    },
+    {
+      "id": 1207710444,
+      "user": "spierman",
+      "created_at": "2022-08-08T06:14:39Z",
+      "body": "is the our redis child class logic error"
+    }
+  ]
+}

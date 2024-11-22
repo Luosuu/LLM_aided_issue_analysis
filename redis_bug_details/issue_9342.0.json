@@ -1,0 +1,24 @@
+{
+  "issue_number": 9342.0,
+  "title": "[BUG] hiredis Makefile needs similar SSL detection as found in src/Makefile",
+  "body": "When trying to compile redis on an M1, the test in the hiredis `Makefile` uses a hard-coded pathname for the openssl \r\nincludes and library files which is wrong using the latest version of Homebrew on Apple Silicon (it should be something like `/opt/homebrew/Cellar/openssl\\@1.1/1.1.1k/`) \r\n\r\n**To reproduce**\r\n\r\nClone redis from GH and try to compile.\r\n\r\n**Expected behavior**\r\n\r\nShould compile w/o issues.\r\n\r\n**Additional information**\r\n\r\nHomebrew version is 3.2.5, redis branch is unstable.",
+  "state": "closed",
+  "created_at": "2021-08-08T08:57:23Z",
+  "updated_at": "2021-08-08T15:07:25Z",
+  "closed_at": "2021-08-08T15:07:25Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 894786382,
+      "user": "yossigo",
+      "created_at": "2021-08-08T11:55:39Z",
+      "body": "Hi @chrisAtRedisLabs, pushed a trivial fix but I'll still appreciate you can confirm it does the job on an M1. Thanks!"
+    },
+    {
+      "id": 894811160,
+      "user": "chrisAtRedisLabs",
+      "created_at": "2021-08-08T15:07:25Z",
+      "body": "Works as I implemented the same hack to get this to work after opening the issue (but hardcoded w/o the platform check) :-). Thanks for the quick reaction."
+    }
+  ]
+}

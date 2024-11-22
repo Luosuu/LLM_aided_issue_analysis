@@ -1,0 +1,48 @@
+{
+  "issue_number": 10845.0,
+  "title": "[BUG] Redis7 Lua engine and readonly table script",
+  "body": "**Describe the bug**\r\n\r\nLua user scripts stopped to work due to \"readonly table script\" in redis7\r\n\r\n**To reproduce**\r\n\r\nsee a function that worked with redis 6: https://github.com/getsentry/sentry/blob/ce94aae1da18376b01440e3954f4f292a40d1729/src/sentry/scripts/digests/digests.lua#L11-L20\r\n\r\nI haven't found anything related to a readonly table script in release notes.\r\n\r\n**Expected behavior**\r\n\r\nthere should be an ability to override table's Lua functions\r\n\r\n**Additional information**\r\n\r\nsee https://github.com/getsentry/sentry/issues/35487\r\n",
+  "state": "closed",
+  "created_at": "2022-06-10T11:59:22Z",
+  "updated_at": "2022-06-11T18:34:15Z",
+  "closed_at": "2022-06-11T18:34:15Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1152299795,
+      "user": "oranagra",
+      "created_at": "2022-06-10T12:19:51Z",
+      "body": "Could be related to https://github.com/redis/redis/pull/10651\r\nCan you try 6.2.7? "
+    },
+    {
+      "id": 1152305221,
+      "user": "kayrus",
+      "created_at": "2022-06-10T12:26:30Z",
+      "body": "@oranagra thanks, I tried to find it in issues, but not pulls."
+    },
+    {
+      "id": 1152338723,
+      "user": "oranagra",
+      "created_at": "2022-06-10T13:04:36Z",
+      "body": "@kayrus i didn't mean that that PR solves your issue. That's the one that probably created it. \r\nIn which case 6.2.6 will be OK, but 6.2.7 won't. "
+    },
+    {
+      "id": 1152628812,
+      "user": "kayrus",
+      "created_at": "2022-06-10T18:30:30Z",
+      "body": "@oranagra it doesn't solve an issue, but I noticed related issues/PR there, which at the end led me to a proper solution. Therefore please feel free to close this issue. I apologies that I haven't been able to find this PR at the first place and consumed your time."
+    },
+    {
+      "id": 1152860742,
+      "user": "oranagra",
+      "created_at": "2022-06-11T05:33:09Z",
+      "body": "@kayrus can you please elaborate. \r\nWhy did that script mess with the Lua table? was it necessary? what solution have you found? \r\n\r\nWe'd like to keep that change in Redis, but I want to try and estimate how many other apps will be broken by it. "
+    },
+    {
+      "id": 1152861097,
+      "user": "oranagra",
+      "created_at": "2022-06-11T05:36:15Z",
+      "body": "Ohhh, I now see you already did in the other PR. Thanks. "
+    }
+  ]
+}

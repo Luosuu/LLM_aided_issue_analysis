@@ -1,0 +1,56 @@
+{
+  "issue_number": 11339.0,
+  "title": "[BUG] Bad message length or signature received from Cluster bus & quorum reached",
+  "body": "**Describe the bug**\r\n\r\nIncreased resources for redis-cluster & redis-exporter.\r\nUninstall & install again redis-cluster completely.\r\n\r\nStill, I faced some similar issues and it might relates to resources but I've no really idea what is the root cause for getting this error:\r\n```\r\n1:M 29 Sep 2022 14:52:25.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:25.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:25.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:25.003 # Bad message length or signature received from Cluster bus.\r\n```\r\n\r\n**To reproduce**\r\n\r\nRun redis-cluster of bitnami/redis-cluster:6.2.4.0\r\n\r\n**Expected behavior**\r\n\r\nRun like it should be without errors.\r\n\r\n**Additional information**\r\n\r\n```\r\n1:M 29 Sep 2022 14:52:09.997 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.\r\n1:M 29 Sep 2022 14:52:09.997 # Server initialized\r\n1:M 29 Sep 2022 14:52:10.000 * Reading RDB preamble from AOF file...\r\n1:M 29 Sep 2022 14:52:10.000 * Loading RDB produced by version 6.2.4\r\n1:M 29 Sep 2022 14:52:10.000 * RDB age 13606 seconds\r\n1:M 29 Sep 2022 14:52:10.000 * RDB memory usage when created 27.48 Mb\r\n1:M 29 Sep 2022 14:52:10.000 * RDB has an AOF tail\r\n1:M 29 Sep 2022 14:52:10.077 * Reading the remaining AOF tail...\r\n1:M 29 Sep 2022 14:52:10.287 * DB loaded from append only file: 0.289 seconds\r\n1:M 29 Sep 2022 14:52:10.287 * Ready to accept connections\r\n1:M 29 Sep 2022 14:52:15.001 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:19.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:20.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:25.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:29.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:30.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:35.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:39.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:40.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:40.335 * Clear FAIL state for node 1f36f2dde0ac35466ddf12212cf10a218831b3f6: is reachable again and nobody is serving its slots after some time.\r\n1:M 29 Sep 2022 14:52:40.335 # Cluster state changed: ok\r\n1:M 29 Sep 2022 14:52:45.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:49.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:50.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:55.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:52:59.218 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:00.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:00.427 * Marking node 8679627cdd105319f0c298ed0846c98a6f8b77c8 as failing (quorum reached).\r\n1:M 29 Sep 2022 14:53:00.427 # Cluster state changed: fail\r\n1:M 29 Sep 2022 14:53:05.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:09.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:10.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:10.070 * 10000 changes in 60 seconds. Saving...\r\n1:M 29 Sep 2022 14:53:10.071 * Background saving started by pid 319\r\n319:C 29 Sep 2022 14:53:10.094 * DB saved on disk\r\n319:C 29 Sep 2022 14:53:10.095 * RDB: 0 MB of memory used by copy-on-write\r\n1:M 29 Sep 2022 14:53:10.173 * Background saving terminated with success\r\n1:M 29 Sep 2022 14:53:15.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:19.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:19.209 # Address updated for node 8679627cdd105319f0c298ed0846c98a6f8b77c8, now 240b:c0e0:204:5400:b414:2:0:5752:6379\r\n1:M 29 Sep 2022 14:53:20.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:25.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:29.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:30.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:30.577 * Clear FAIL state for node 8679627cdd105319f0c298ed0846c98a6f8b77c8: is reachable again and nobody is serving its slots after some time.\r\n1:M 29 Sep 2022 14:53:30.577 # Cluster state changed: ok\r\n1:M 29 Sep 2022 14:53:35.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:39.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:40.006 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:43.636 * Marking node 1f36f2dde0ac35466ddf12212cf10a218831b3f6 as failing (quorum reached).\r\n1:M 29 Sep 2022 14:53:43.636 # Cluster state changed: fail\r\n1:M 29 Sep 2022 14:53:45.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:49.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:50.003 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:55.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:53:55.443 # Address updated for node 1f36f2dde0ac35466ddf12212cf10a218831b3f6, now 240b:c0e0:204:5400:b414:2:0:6a24:6379\r\n1:M 29 Sep 2022 14:53:59.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:54:00.004 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:54:05.002 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:54:09.206 # Bad message length or signature received from Cluster bus.\r\n1:M 29 Sep 2022 14:54:10.002 # Bad message length or signature received from Cluster bus.\r\n```\r\n\r\nPlease help fellas!\r\n",
+  "state": "open",
+  "created_at": "2022-09-29T15:04:01Z",
+  "updated_at": "2022-11-26T02:29:51Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1263334277,
+      "user": "madolson",
+      "created_at": "2022-09-30T09:27:37Z",
+      "body": "That is a pretty delightfully useless error message.\r\n\r\nWe almost always see these errors when some external actor is trying to send messages to the clusterbus. All cluster bus messages must start with 'RCmb' and be of a given length. However, the failures of the cluster are kind of weird. Did the cluster eventually stabilize?"
+    },
+    {
+      "id": 1264578575,
+      "user": "n1vgabay",
+      "created_at": "2022-10-02T07:57:30Z",
+      "body": "@madolson The only change I made is basically enabling the **Redis exporter** as part of the statefulset.\r\nSo when **metrics** are enabled, then I started to notice those messages.\r\n\r\nIt does affect our platform so I don't think there is no meaning for those messages. redis isn't functioning as it used before."
+    },
+    {
+      "id": 1267263013,
+      "user": "madolson",
+      "created_at": "2022-10-04T16:29:23Z",
+      "body": "@n1vgabay This exporter? https://github.com/oliver006/redis_exporter\r\n\r\n> It does affect our platform so I don't think there is no meaning for those messages. redis isn't functioning as it used before.\r\n\r\nMy guess is that it has nothing to do with Redis, and for some reason the exporter is sending data to the Redis clusterbus port."
+    },
+    {
+      "id": 1271862025,
+      "user": "madolson",
+      "created_at": "2022-10-07T17:31:23Z",
+      "body": "As a follow up to this, I think we should add a print statement here to indicate which IP/port is sending these messages. That way we can at least check to see if it's a node in the cluster or some other nefarious node."
+    },
+    {
+      "id": 1291469394,
+      "user": "enjoy-binbin",
+      "created_at": "2022-10-26T04:08:01Z",
+      "body": "@madolson Is this kind of output ok?\r\n```\r\n15731:S 02 Nov 2022 10:46:21.570 # Bad message length or signature received on the Cluster bus from 198.235.24.18:58868\r\n15731:S 02 Nov 2022 10:53:43.206 # Bad message length or signature received on the Cluster bus from 180.101.244.11:32978\r\n15731:S 02 Nov 2022 10:53:43.774 # Bad message length or signature received on the Cluster bus from 180.101.245.246:37640\r\n15731:S 02 Nov 2022 10:53:43.899 # Bad message length or signature received on the Cluster bus from 220.196.160.117:58744\r\n15731:S 02 Nov 2022 10:53:44.003 # Bad message length or signature received on the Cluster bus from 59.83.208.105:24878\r\n15731:S 02 Nov 2022 10:53:44.104 # Bad message length or signature received on the Cluster bus from 180.101.244.15:33072\r\n15731:S 02 Nov 2022 10:53:44.220 # Bad message length or signature received on the Cluster bus from 180.101.245.251:26738\r\n15731:S 02 Nov 2022 10:53:44.320 # Bad message length or signature received on the Cluster bus from 59.83.208.105:25046\r\n15731:S 02 Nov 2022 10:53:44.417 # Bad message length or signature received on the Cluster bus from 220.196.160.84:53780\r\n15731:S 02 Nov 2022 10:53:44.510 # Bad message length or signature received on the Cluster bus from 59.83.208.104:55362\r\n15731:S 02 Nov 2022 10:53:44.642 # Bad message length or signature received on the Cluster bus from 220.196.160.125:39512\r\n```"
+    },
+    {
+      "id": 1292253671,
+      "user": "madolson",
+      "created_at": "2022-10-26T15:49:21Z",
+      "body": "@enjoy-binbin LGTM"
+    },
+    {
+      "id": 1327963347,
+      "user": "madolson",
+      "created_at": "2022-11-26T02:29:45Z",
+      "body": "As far as I can tell this isn't on us any more, so marking this as to be closed. "
+    }
+  ]
+}

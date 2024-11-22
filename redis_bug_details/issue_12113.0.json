@@ -1,0 +1,24 @@
+{
+  "issue_number": 12113.0,
+  "title": "[BUG] Sentinel failover trigger resulting in replicas Full Sync",
+  "body": "Greetings Team!\r\n\r\nIn one of our heavy write use case, with shard size over 60GB and AOF(no RDB) enabled, triggering the sentinel fail-over resulting in Full syncs, according to [this documentation ](https://redis.io/docs/management/replication/), that shouldn't cause full syncs.\r\n\r\n\r\n```\r\n20404:M 27 Apr 2023 19:40:47.949 # Connection with master lost.\r\n20404:M 27 Apr 2023 19:40:47.949 * Caching the disconnected master state.\r\n20404:M 27 Apr 2023 19:40:47.949 * Discarding previously cached master state.\r\n20404:M 27 Apr 2023 19:40:47.949 # Setting secondary replication ID to 691f96323dbfd7763e2d712e3b481ea6916735d9, valid up to offset: 7579144700778. New replication ID is 00f662899e24b5b8eeb1345e2ed55407a62af0db\r\n20404:M 27 Apr 2023 19:40:47.949 * MASTER MODE enabled (user request from 'id=667 addr=X.X.X.X:59596 laddr=X.X.X.X16379 fd=397 name=sentinel-89efe05b-cmd age=172862 idle=0 flags=x db=0 sub=0 psub=0 multi=3 qbuf=140 qbuf-free=40814 argv-mem=4 obl=36 oll=0 omem=0 tot-mem=61468 events=r cmd=exec user=default redir=-1')\r\n20404:M 27 Apr 2023 19:40:47.952 # CONFIG REWRITE executed with success.\r\n20404:M 27 Apr 2023 19:40:48.943 * Replica X.X.X.X:16379 asks for synchronization\r\n20404:M 27 Apr 2023 19:40:48.943 * Partial resynchronization not accepted: Requested offset for second ID was 7579144822181, but I can reply up to 7579144700778\r\n20404:M 27 Apr 2023 19:40:48.943 * Starting BGSAVE for SYNC with target: disk\r\n20404:M 27 Apr 2023 19:40:49.613 * Background saving started by pid 38188\r\n20404:M 27 Apr 2023 19:40:59.828 * Replica X.X.X.X:16383 asks for synchronization\r\n20404:M 27 Apr 2023 19:40:59.828 * Partial resynchronization not accepted: Requested offset for second ID was 7579144828920, but I can reply up to 7579144700778\r\n20404:M 27 Apr 2023 19:40:59.829 * Waiting for end of BGSAVE for SYNC\r\n20404:M 27 Apr 2023 19:41:19.389 * Replica X.X.X.X:16379 asks for synchronization\r\n20404:M 27 Apr 2023 19:41:19.389 * Partial resynchronization not accepted: Requested offset for second ID was 7579144828920, but I can reply up to 7579144700778\r\n20404:M 27 Apr 2023 19:41:19.397 * Waiting for end of BGSAVE for SYNC\r\n38188:C 27 Apr 2023 19:51:38.712 * DB saved on disk\r\n\r\n```\r\n\r\nis there some config we can tune to avoid full syncs upon fail-over or is this a bug?\r\n\r\n\r\n<img width=\"766\" alt=\"Screenshot 2023-04-28 at 1 07 05 PM\" src=\"https://user-images.githubusercontent.com/7914152/235243765-b2839085-617c-4d82-b15f-2b9ccc2769d3.png\">\r\n",
+  "state": "closed",
+  "created_at": "2023-04-28T20:12:06Z",
+  "updated_at": "2023-04-30T06:54:41Z",
+  "closed_at": "2023-04-30T06:54:41Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1528042679,
+      "user": "satheeshaGowda",
+      "created_at": "2023-04-28T20:13:39Z",
+      "body": "Hello @itamarhaber @oranagra  @hwware @oranagra , hope all is well!\r\n\r\nwould you mind if I request you to share some insight here ?"
+    },
+    {
+      "id": 1528953912,
+      "user": "oranagra",
+      "created_at": "2023-04-30T06:54:41Z",
+      "body": "> Requested offset for second ID was 7579144822181, but I can reply up to 7579144700778\r\n\r\nthere are about 120kb of data processed on the master and not on the replica.\r\nthis switch over mechanism can only when the replica is fully in-sync with the master.\r\ne.g. using a coordinated failover after applying `CLIENT PAUSE WRITE`.\r\n\r\nMaybe this discussion can help #12097"
+    }
+  ]
+}

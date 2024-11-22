@@ -1,0 +1,30 @@
+{
+  "issue_number": 7877.0,
+  "title": "[BUG] Blocking reads don't work on Redis Cluster replica nodes",
+  "body": "**Describe the bug**\r\n\r\nBlocking reads on Redis Cluster replica nodes (in readonly mode) always get redirected to a master node.\r\n\r\n**To reproduce**\r\n\r\nConnect to a replica node, go into a readonly mode, do a blocking read, e.g.:\r\n```\r\n127.0.0.1:6381> CONNECT 127.0.0.1 6385\r\n127.0.0.1:6385> READONLY\r\nOK\r\n127.0.0.1:6385> XREAD STREAMS k 0\r\n(nil)\r\n127.0.0.1:6385> XREAD BLOCK 100 STREAMS k 0\r\n-> Redirected to slot [7629] located at 127.0.0.1:6381\r\n(nil)\r\n127.0.0.1:6381> \r\n```\r\n\r\n**Expected behavior**\r\n\r\nAccording to documentation of [`READONLY`](https://redis.io/commands/readonly):\r\n> When the connection is in readonly mode, the cluster will send a redirection to the client only if the operation involves keys not served by the replica's master node.\r\n\r\nblocking reads should not get redirected to a master node.\r\n\r\n**Additional information**\r\n\r\nIIUC the `clusterRedirectBlockedClientIfNeeded` does not handle the case when the blocking read is on a replica node:\r\nhttps://github.com/redis/redis/blob/3945a321779a0be52e556aa11babb3fe15883a78/src/cluster.c#L5856-L5862",
+  "state": "closed",
+  "created_at": "2020-10-02T07:32:13Z",
+  "updated_at": "2020-10-06T18:43:31Z",
+  "closed_at": "2020-10-06T18:43:31Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 703249387,
+      "user": "oranagra",
+      "created_at": "2020-10-04T12:36:42Z",
+      "body": "@o948 thanks for reporting, please have a look at the fix in #7881 and let me know what you think."
+    },
+    {
+      "id": 704020649,
+      "user": "o948",
+      "created_at": "2020-10-06T04:31:24Z",
+      "body": "Thanks for a quick fix, looks good to me.\r\nDo you know whether this fix is important enough to go to the next minor 5.0 release?"
+    },
+    {
+      "id": 704091103,
+      "user": "oranagra",
+      "created_at": "2020-10-06T07:39:16Z",
+      "body": "it's relatively safe, so it can get there, but i'm not sure if / when we'll make another 5.0 release. we are likely to do that only if there's some critical issue that's found.\r\ni'll mark the PR for followup."
+    }
+  ]
+}

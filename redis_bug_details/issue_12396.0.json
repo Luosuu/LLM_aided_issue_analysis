@@ -1,0 +1,48 @@
+{
+  "issue_number": 12396.0,
+  "title": "[BUG] Building fails with fatal error: (FreeBSD 9.2)",
+  "body": "**Describe the bug**\r\n\r\nBuilding fails with fatal error.\r\n\r\n**To reproduce**\r\n gmake CC='/usr/local/bin/gcc' CXX='/usr/local/bin/g++'\r\n\r\ncd src && gmake all\r\n\r\ngmake[1]: Entering directory `/root/tmp/redis-7.0.11/src'\r\n\r\n    CC debug.o\r\n\r\ndebug.c:47:10: fatal error: execinfo.h: No such file or directory\r\n\r\n #include <execinfo.h>\r\n\r\n          ^~~~~~~~~~~~\r\n\r\ncompilation terminated.\r\n\r\ngmake[1]: *** [debug.o] Error 1\r\n\r\ngmake[1]: Leaving directory `/root/tmp/redis-7.0.11/src'\r\n\r\n**Additional information**\r\n\r\n /usr/local/bin/gcc -v\r\nUsing built-in specs.\r\nCOLLECT_GCC=/usr/local/bin/gcc\r\nCOLLECT_LTO_WRAPPER=/usr/local/libexec/gcc/x86_64-unknown-freebsd9.2/7.5.0/lto-wrapper\r\nTarget: x86_64-unknown-freebsd9.2\r\nConfigured with: ./configure --with-gmp=/usr/local --with-mpc=/usr/local --with-mpfr=/usr/local\r\nThread model: posix\r\ngcc version 7.5.0 (GCC) \r\n",
+  "state": "closed",
+  "created_at": "2023-07-08T13:18:53Z",
+  "updated_at": "2023-07-09T07:08:40Z",
+  "closed_at": "2023-07-09T06:57:15Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1627447511,
+      "user": "madolson",
+      "created_at": "2023-07-08T17:59:35Z",
+      "body": "According to https://stackoverflow.com/questions/20388937/how-to-print-backtrace-in-a-freebsd-machine, it seems like exec info isn't available by default before FreeBSD 10. "
+    },
+    {
+      "id": 1627614696,
+      "user": "oranagra",
+      "created_at": "2023-07-09T05:54:39Z",
+      "body": "@devnexen maybe you can help here."
+    },
+    {
+      "id": 1627617334,
+      "user": "devnexen",
+      "created_at": "2023-07-09T06:11:33Z",
+      "body": "hey @onthefly I find you here too 🙂, so again FreeBSD 9.2 is EOL since [end of 2014, released in 2013](https://endoflife.date/freebsd). Still same question than in your PHP issue, any particular reason to use such old release ?"
+    },
+    {
+      "id": 1627624164,
+      "user": "devnexen",
+      "created_at": "2023-07-09T06:42:18Z",
+      "body": "The only things I may suggest @oranagra, if you want to pursue :\r\n- you decide to not support unsupported releases.\r\n- or if you do want to, making `HAVE_BACKTRACE` optional for FreeBSD with the `USE_BACKTRACE` option like some other oses."
+    },
+    {
+      "id": 1627627141,
+      "user": "oranagra",
+      "created_at": "2023-07-09T06:57:15Z",
+      "body": "i'd generally prefer to support (or avoid braking), older platforms, even if they're obsolete.\r\nespecially considering it's just one small thing in debug.c, and not really needed for redis to actually perform it's job.\r\n\r\nhowever, i don't think requiring people to manually define USE_BACKTRACE is a good approach (in most cases people won't do that, and when they run into trouble, it'll already be too late).\r\n\r\nthe other solution could maybe be to somehow automatically detect that (maybe by matching the FreeBSD version).\r\nbut considering this will only be added in the future (e.g. Redis 8.0 or 7.2), not sure it'll help much (as time passes the chances people use fresh redis builds, on obsolete platforms decrease, it's more likely that they'll be using v5.0 and 6.x).\r\nin theory we can \"backport\" this fix to 7.0 (and even 6.x), but i don't think it worth the trouble.\r\ninstead, it's actually rather easy for anyone who runs into that problem to work around it with a simple patch."
+    },
+    {
+      "id": 1627628964,
+      "user": "devnexen",
+      "created_at": "2023-07-09T07:08:23Z",
+      "body": "> \r\n> the other solution could maybe be to somehow automatically detect that (maybe by matching the FreeBSD version). but considering this will only be added in the future (e.g. Redis 8.0 or 7.2).\r\n\r\nah yes that s better indeed (if you mean config.h I forgot about this). Ok fair enough your decision makes sense."
+    }
+  ]
+}

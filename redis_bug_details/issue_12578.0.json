@@ -1,0 +1,24 @@
+{
+  "issue_number": 12578.0,
+  "title": "[BUG]libc dependency while uplifting redis library from 6.2.12 to 6.2.13",
+  "body": "**Describe the bug**\r\nI am using Oracle Linux 7, which is similar to redhat 7. In this, the default supported libc version is libc-2.17.so. With the above setup, when we install Redis 6.2.12 version, everything seems to be working properly. Recently, I have uplifted to Redis 6.2.13 and there is a direct dependency on libc library. It specifically requires libc-2.28.so instead of libc-2.17.so. However, in the previous version of Redis i.e 6.2.12, the libc used was libc-2.17.so.\r\n\r\nNOTE : From what I understand, libc-2.28.so is generally available from linux 8 onwards. So, can someone please let me know if the dependency on libc-2.28.so is added intentionally for Redis 6.2.13? If not, how this dependency can be resolved ?\r\nA short description of the bug.\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2023-09-14T05:46:59Z",
+  "updated_at": "2023-09-18T19:18:01Z",
+  "closed_at": "2023-09-18T19:18:00Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1720684856,
+      "user": "pavithra8j",
+      "created_at": "2023-09-15T05:08:45Z",
+      "body": "Hi Team, can you please help us with this issue. It is quite an urgent requirement for our project right now. "
+    },
+    {
+      "id": 1724228824,
+      "user": "yossigo",
+      "created_at": "2023-09-18T19:18:00Z",
+      "body": "Duplicate of #12580 "
+    }
+  ]
+}

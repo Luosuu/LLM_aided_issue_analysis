@@ -1,0 +1,102 @@
+{
+  "issue_number": 10404.0,
+  "title": "[BUG] Problems with the KeySpace if the number of keys is high.",
+  "body": "**Describe the bug**\r\nwhen you subscribe on huge number of keys with KeySpace, redis will block.\r\nwhen i check procedure i found that in keyspace, redis will store all patterns and iterate on patterns to check client subscribed on key or not. when we subscribed on huge number of keys , the list size will be to large and iterate on list take long time.\r\n\r\n**To reproduce**\r\n\r\nenable keyspace notification and subscribed on huge number of keys and update them.\r\n\r\n**Expected behavior**\r\n\r\nredis works normaly and did not block.\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-03-09T09:29:00Z",
+  "updated_at": "2022-03-14T09:23:44Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1062745422,
+      "user": "sundb",
+      "created_at": "2022-03-09T09:54:58Z",
+      "body": "~~Some of my thoughts.~~\r\n~~In practice, when keyspace notify is used, most clients should be using the same pattern to listen, so it would be too much cpu overhead to iterate through all users' patterns.~~\r\n~~Maybe we should add a new `pubsubtype` (e.g `pubSubNotifyType`) to send keyspace notifications by traversing the `serverPubSubChannels` by pattern, instead of traversing all users.~~\r\nMisunderstanding, please ignore me.\r\n"
+    },
+    {
+      "id": 1063590036,
+      "user": "sundb",
+      "created_at": "2022-03-10T02:30:01Z",
+      "body": "@KhDanial Each of your clients is using a different pattern for keyspace?\r\nWhich version of redis are you using?"
+    },
+    {
+      "id": 1066089397,
+      "user": "KhDanial",
+      "created_at": "2022-03-13T12:16:07Z",
+      "body": "4.0.14\r\n\r\nthey can use same pattern, for example both of user subscribe on key \"SampleKey\".\r\n\r\nimagine a situation that single client subscribe on 1e7 key then redis will be block and does not work properly,\r\n"
+    },
+    {
+      "id": 1066119416,
+      "user": "sundb",
+      "created_at": "2022-03-13T14:58:06Z",
+      "body": "@KhDanial The same patern optimization for pubsub has been implemented at https://github.com/redis/redis/commit/dfb12f06283f22c157d99830de21700a7f86c139.\r\nBut it is after version 6, maybe you can upgrade redis to a newer version."
+    },
+    {
+      "id": 1066128032,
+      "user": "KhDanial",
+      "created_at": "2022-03-13T15:44:41Z",
+      "body": "@sundb \r\nthanks\r\nWas I able to clarify the problem correctly?"
+    },
+    {
+      "id": 1066249558,
+      "user": "sundb",
+      "created_at": "2022-03-14T01:35:29Z",
+      "body": "@KhDanial You mean you use a client that subscribes to a large number of patterns? \r\nCan you tell us about your usage scenario?  (or the pattern you use)"
+    },
+    {
+      "id": 1066505380,
+      "user": "KhDanial",
+      "created_at": "2022-03-14T08:28:40Z",
+      "body": "@sundb If you mean a lot of patterns, a lot of keys, yes, that's my problem.\r\ni tested this https://github.com/redis/redis/commit/dfb12f06283f22c157d99830de21700a7f86c139 and it was not ok.\r\n\r\nIn a scenario imagine just one user subscribe on a large number of keys with KeySpace. as number of keys incresed, insert new keys will be so slow, because after each insertion redis will iterate on all keys(patterns) and it is not okay.\r\nDid the problem clear up?"
+    },
+    {
+      "id": 1066517322,
+      "user": "sundb",
+      "created_at": "2022-03-14T08:42:39Z",
+      "body": "If you use keyspace notifications with a large number of patterns, it should be inevitable to iterate through all of them.\r\nI'm not sure why you're using so many patterns, can you tell us what patterns you're using?"
+    },
+    {
+      "id": 1066535201,
+      "user": "KhDanial",
+      "created_at": "2022-03-14T09:03:09Z",
+      "body": "@sundb \r\npsubscribe --keyspace@3--:key1\r\npsubscribe --keyspace@3--:key2\r\npsubscribe --keyspace@3--:key3\r\n.....\r\npsubscribe --keyspace@3--:key_100000\r\n\r\n\r\n\r\nif you subscribe on these keys, redis will be to slow"
+    },
+    {
+      "id": 1066536934,
+      "user": "KhDanial",
+      "created_at": "2022-03-14T09:05:02Z",
+      "body": "It's important for me to understand what happened to some of the keys.\r\nTo further clarify the issue, keep in mind that two clients may make changes to a database and shared keys that both parties need to be aware of."
+    },
+    {
+      "id": 1066546790,
+      "user": "sundb",
+      "created_at": "2022-03-14T09:15:26Z",
+      "body": "@KhDanial Using pattern matching a lot is bound to consume a lot of cpu time, just as we recommend using `scan` instead of `keys` to traverse all keys.\r\nI'm surprised that you subscribed to 100000 patterns, why not use `__keyspace@3__:key*`?\r\nIf you have N clients subscribed to 100000 patterns, if one of them changes the key, it will cause the key to be matched by 100000 patterns, and then send a notification to (N-1) clients."
+    },
+    {
+      "id": 1066549341,
+      "user": "KhDanial",
+      "created_at": "2022-03-14T09:18:13Z",
+      "body": "what does this do?\r\n__keyspace@3__:key*\r\n"
+    },
+    {
+      "id": 1066549945,
+      "user": "sundb",
+      "created_at": "2022-03-14T09:18:47Z",
+      "body": "`psubscribe __keyspace@3__:key*`"
+    },
+    {
+      "id": 1066551688,
+      "user": "KhDanial",
+      "created_at": "2022-03-14T09:20:30Z",
+      "body": "i use your pattern, but i cant write in same format as you write  :))))"
+    },
+    {
+      "id": 1066554751,
+      "user": "sundb",
+      "created_at": "2022-03-14T09:23:44Z",
+      "body": "> i use your pattern, but i cant write in same format as you write :))))\r\n\r\n    I cant follow you, can't use it anymore?"
+    }
+  ]
+}

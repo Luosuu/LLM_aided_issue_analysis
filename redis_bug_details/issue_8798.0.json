@@ -1,0 +1,24 @@
+{
+  "issue_number": 8798.0,
+  "title": "[BUG] A potential use after free bug in clusterCron",
+  "body": "**Describe the bug**\r\nFile: src/cluster.c\r\n\r\nIn function clusterCron, `node->link` is freed by ` freeClusterLink(node->link)` at line 3,674.\r\nBut the freed `node->link` could be used by `clusterSendPing(node->link, CLUSTERMSG_TYPE_PING)` at line 3,696.\r\n\r\n```\r\n        if (node->link && /* is connected */\r\n            now - node->link->ctime >\r\n            server.cluster_node_timeout && /* was not already reconnected */\r\n            node->ping_sent && /* we already sent a ping */\r\n            /* and we are waiting for the pong more than timeout/2 */\r\n            ping_delay > server.cluster_node_timeout/2 &&\r\n            /* and in such interval we are not seeing any traffic at all. */\r\n            data_delay > server.cluster_node_timeout/2)\r\n        {\r\n            /* Disconnect the link, it will be reconnected automatically. */\r\n 3674:       freeClusterLink(node->link);  // --> node->link is freed here !!\r\n        }\r\n       ......\r\n      if (server.cluster->mf_end &&\r\n            nodeIsMaster(myself) &&\r\n            server.cluster->mf_slave == node &&\r\n            node->link)\r\n        {\r\n3696:       clusterSendPing(node->link, CLUSTERMSG_TYPE_PING); // freed node->link could be used here !!.\r\n            continue;\r\n        }\r\n```\r\n\r\n**Expected behavior**\r\n\r\nIf this path is feasible, it could cause crash when the uaf is triggered.\r\n\r\nMaybe it is better to add some checks to make this path unfeasible.\r\n",
+  "state": "closed",
+  "created_at": "2021-04-16T12:30:41Z",
+  "updated_at": "2021-04-18T06:14:09Z",
+  "closed_at": "2021-04-18T06:14:09Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 821226922,
+      "user": "huangzhw",
+      "created_at": "2021-04-16T14:42:44Z",
+      "body": "`freeClusterLink(node->link);` will set `node->link` to `NULL`. So this code path will not happen."
+    },
+    {
+      "id": 821237432,
+      "user": "Yunlongs",
+      "created_at": "2021-04-16T14:58:47Z",
+      "body": "> `freeClusterLink(node->link);` will set `node->link` to `NULL`. So this code path will not happen.\r\n\r\nOk, by inspecting the implementation of freeClusterLink() carefully, i found that it sets `node->link` to `NULL`  because `node->link->node = node`.\r\n\r\nThanks."
+    }
+  ]
+}

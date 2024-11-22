@@ -1,0 +1,93 @@
+{
+  "issue_number": 11363.0,
+  "title": "[BUG] Missing command stat metrics at parent command level",
+  "body": "**Describe the bug**\r\n\r\nStarting with Redis 7, the `info commandstats` output has changed for commands with parent and subcommands structure. The metrics are missing at the parent command level which used to be available prior to Redis 7.\r\n\r\n**To reproduce**\r\n\r\nRun commands which has parent and subcommand structure and look at the `info commandstats` output. \r\n\r\n```\r\n# Output from Redis 7 node\r\n127.0.0.1:6379> cluster myid\r\n(error) ERR This instance has cluster support disabled\r\n127.0.0.1:6379> info commandstats\r\n# Commandstats\r\ncmdstat_cluster|myid:calls=1,usec=5,usec_per_call=5.00,rejected_calls=0,failed_calls=1\r\n```\r\n\r\n```\r\n# Output from Redis 6 node\r\n127.0.0.1:6381> cluster myid\r\n(error) ERR This instance has cluster support disabled\r\n127.0.0.1:6381> info commandstats\r\n# Commandstats\r\ncmdstat_cluster:calls=1,usec=3,usec_per_call=3.00,rejected_calls=0,failed_calls=1\r\n```\r\n\r\n**Expected behavior**\r\n\r\nCommand stats output should have metrics at both parent (aggregated) and sub commands level.\r\n\r\n```\r\n# Output from Redis 7 node\r\n127.0.0.1:6379> cluster myid\r\n(error) ERR This instance has cluster support disabled\r\n127.0.0.1:6379> info commandstats\r\n# Commandstats\r\ncmdstat_cluster:calls=1,usec=3,usec_per_call=3.00,rejected_calls=0,failed_calls=1\r\ncmdstat_cluster|myid:calls=1,usec=5,usec_per_call=5.00,rejected_calls=0,failed_calls=1\r\n```",
+  "state": "closed",
+  "created_at": "2022-10-07T16:34:15Z",
+  "updated_at": "2022-10-18T05:38:56Z",
+  "closed_at": "2022-10-18T05:38:56Z",
+  "labels": [
+    "state:to-be-closed",
+    "status:wontfix"
+  ],
+  "comments_data": [
+    {
+      "id": 1271809312,
+      "user": "hpatro",
+      "created_at": "2022-10-07T16:35:05Z",
+      "body": "@redis/core-team Thoughts ?"
+    },
+    {
+      "id": 1271834101,
+      "user": "madolson",
+      "created_at": "2022-10-07T16:59:50Z",
+      "body": "I guess I missed that this was a breaking change. I was looking at the comment from https://github.com/redis/redis/pull/9504:\r\n```\r\nCommand stats now show the stats per subcommand (e.g. instead of stats just\r\nfor \"config\" you will have stats for \"config|set\", \"config|get\", etc.)\r\n```\r\n\r\nWhich seems to imply that we will have it both at the aggregated level as well as the per command level, but that wasn't the implementation . We did list it in the potentially breaking changes.\r\n```\r\n* INFO commandstats now shows the stats per sub-command (#9504)\r\n```\r\n\r\nWe internally have metrics for aggregating various commands together which was broken by this. So it's definitely a breaking change. Since we have the container object, I don't really see the reason why we introduced this breaking change here?"
+    },
+    {
+      "id": 1271876795,
+      "user": "oranagra",
+      "created_at": "2022-10-07T17:49:06Z",
+      "body": "I think this was very much on purpose, and i think we did know it's a breaking change and we clearly documented it in the release notes.\r\n\r\n> We internally have metrics for aggregating various commands together which was broken by this.\r\n\r\nwhat do you mean?\r\n\r\n> Since we have the container object, I don't really see the reason why we introduced this breaking change here?\r\n\r\nyou could argue that there's no harm in counting things twice, and the user (application) can deduct things and do some math.\r\nbut:\r\n1. keep in mind that it can be a little more complicated for commands that can be executed without sub-command (e.g. INFO)\r\n2. in many cases the sub-commands are so unrelated to each other, it's a complete shame to count them together (e.g. CLIENT SETNAME and CLIENT KILL, CONFIG SET and GET).\r\n\r\nI see some advantage in un-breaking this, i.e. old applications that just look for the parent command will still find what they're looking for, but i'm not sure changing it now after 7.0 is already out makes much sense.\r\ni do think that for any person (not software) looking at the raw INFO COMMANDSTATS, seeing them without aggregation is probably much better."
+    },
+    {
+      "id": 1271927720,
+      "user": "madolson",
+      "created_at": "2022-10-07T18:27:26Z",
+      "body": "> what do you mean?\r\n\r\nWe had automation looking for the cluster field field, that info field disappeared. It's possible other folks are looking for that as well.\r\n\r\n> I see some advantage in un-breaking this, i.e. old applications that just look for the parent command will still find what they're looking for, but i'm not sure changing it now after 7.0 is already out makes much sense.\r\n\r\nI don't think the timing is all that consequential, we can re-introduce it."
+    },
+    {
+      "id": 1271940659,
+      "user": "oranagra",
+      "created_at": "2022-10-07T18:34:56Z",
+      "body": "One (worse?) case, is that maybe some application (one that complies to multiple versions of Redis) already adapted itself to get the information from both sources (possibly with `+`), and now that we'll add it in the parent command we break it (again). "
+    },
+    {
+      "id": 1272442421,
+      "user": "madolson",
+      "created_at": "2022-10-09T03:03:00Z",
+      "body": "I'm not convinced people adopted the new functionality all that quickly. I think it's more likely software just silently stopped working. In our case, our code was looking for the presence of an info field to know if the commands had been called at all.  Since now in 7.0, this situation just looks like the \"zero\" call case from earlier versions. I'm fine committing to this new strategy, but it was a larger breaking change than I realized. @itamarhaber any thoughts?"
+    },
+    {
+      "id": 1273566022,
+      "user": "ranshid",
+      "created_at": "2022-10-10T16:34:00Z",
+      "body": "I think that applications are capable to do the math externally. but in order to be more backword compatible I would suggest having all commands which have subcommands include the '|' even if it was executed without the subcommand. so for example:\r\n```\r\n127.0.0.1:6379> CLUSTER BUMPEPOCH\r\n(error) ERR This instance has cluster support disabled\r\n127.0.0.1:6379> CLUSTER BUMPEPOCH\r\n(error) ERR This instance has cluster support disabled\r\n127.0.0.1:6379> CLUSTER\r\n(error) ERR wrong number of arguments for 'cluster' command\r\n127.0.0.1:6379> info Commandstats\r\n# Commandstats\r\ncmdstat_cluster:calls=1,usec=0,usec_per_call=0.00,rejected_calls=2,failed_calls=1\r\ncmdstat_cluster|:calls=0,usec=0,usec_per_call=0.00,rejected_calls=1,failed_calls=0\r\ncmdstat_cluster|bumpepoch:calls=1,usec=8,usec_per_call=8.00,rejected_calls=0,failed_calls=1\r\ncmdstat_cluster|addslots:calls=0,usec=0,usec_per_call=0.00,rejected_calls=1,failed_calls=0\r\n```"
+    },
+    {
+      "id": 1274122544,
+      "user": "oranagra",
+      "created_at": "2022-10-11T05:53:56Z",
+      "body": "I'm not sure i understand your suggestion.\r\nwhat's `cmdstat_cluster|` (the second line in commandstats output)?\r\n\r\ni think that argument about backwards compatibility was valid if it was argued 5 months ago. i'm not certain it's still valid.\r\nalso, i'd argue that if we were to design Redis 1.0.0 today, i don't think we would be summing things in that table, or include redundant information.\r\n\r\nanyway, i might be in a minority opinion, and like other recent fixes, i agree it could be that not many already adopted to this change and that it's possible we'll want to re-break it quickly (we did that for other things).\r\n@redis/core-team please share your thoughts."
+    },
+    {
+      "id": 1274159028,
+      "user": "ranshid",
+      "created_at": "2022-10-11T06:41:37Z",
+      "body": "> I'm not sure i understand your suggestion. what's `cmdstat_cluster|` (the second line in commandstats output)?\r\n\r\nI meant that in order to distinguish between the aggregated values of the parent command  (in my example the first line) and the case where a command was run without providing a subcommand (in my example the second line)\r\n  \r\n"
+    },
+    {
+      "id": 1274826783,
+      "user": "itamarhaber",
+      "created_at": "2022-10-11T14:51:34Z",
+      "body": "This one's quite a dilemma, but I'm more comfortable rejecting it than accepting it."
+    },
+    {
+      "id": 1274868388,
+      "user": "soloestoy",
+      "created_at": "2022-10-11T15:19:58Z",
+      "body": "I'm not strongly agree or disagree it.\r\n\r\nOn the one hand, the application should accept the new version's change, for example they should be aware of new commands and deprecated commands, they can just take the subcommand as new commands, and some parent commands are deprecated.\r\n\r\nOn the other hand, backward compatible is always correct, but some parent command can be executed without subcommands, and I'm not comfortable with the `cmdstat_cluster|` format.\r\n\r\nIf we have to make a choice, I prefer keep the current status."
+    },
+    {
+      "id": 1278878659,
+      "user": "yossigo",
+      "created_at": "2022-10-14T11:26:40Z",
+      "body": "I also slightly prefer to remain with the change as-is. While not backward compatible, it's solid and makes sense on its own, and it *is* a major version, after all."
+    },
+    {
+      "id": 1279882073,
+      "user": "madolson",
+      "created_at": "2022-10-16T03:23:13Z",
+      "body": "I think everyone has weighed in, consensus seems to be to accept the change. Will close unless someone else provides more justification."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "issue_number": 13234.0,
+  "title": "[BUG] redis cluster can not failover",
+  "body": "**Describe the bug**\r\nredis version: 6.2.7\r\nredis cluster nodes:9(each have 1 replica)\r\nI stop a primary shard and its corresponding replica shard, and then start the replica shard. After 20 minutes, the replica shard is not promoted to the primary shard.\r\nerror message:\r\n```\r\n1209:S 25 Apr 2024 15:02:30.462 * Connecting to MASTER 192.168.24.44:28800\r\n1209:S 25 Apr 2024 15:02:30.462 * MASTER <-> REPLICA sync started\r\n1209:S 25 Apr 2024 15:02:30.462 # Error condition on socket for SYNC: (null)\r\n```\r\n\r\n**To reproduce**\r\nAfter the primary shard and its replica shard are stopped at the same time, only the replica shard is started, and the replica shard will never be automatically promoted to the primary shard.\r\n\r\n**Expected behavior**\r\n\r\nThe replica shard is automatically promoted to primary.\r\n\r\n**Additional information**\r\n",
+  "state": "open",
+  "created_at": "2024-04-25T07:18:08Z",
+  "updated_at": "2024-04-30T22:17:58Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2087563262,
+      "user": "worming004",
+      "created_at": "2024-04-30T22:17:57Z",
+      "body": "How many other instances of redis are online at the restart of the replica ? Is there enought other instance to acknowledge that it is the master that disappears from cluster ? Because without other instances to agree, the replica can be the one that is partitionned and should not become the master"
+    }
+  ]
+}

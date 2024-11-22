@@ -1,0 +1,54 @@
+{
+  "issue_number": 9469.0,
+  "title": "[BUG] XADD/XTRIM approximate (~) MAXLEN not trimming stream",
+  "body": "**Describe the bug**\r\n\r\nWe recently upgraded our redises from `6.0.8` to `6.2.3`. We are now seeing very odd behavior on streams where a command of the form\r\n```\r\nXADD <stream> MAXLEN ~ 10 <payload>\r\n```\r\nis causing stream lengths to reach >20k entries. \r\n\r\nWe rolled back our redis instances to `6.0.8` with the same config file and cannot repro -- the stream stays put around 10 entries fairly well. We've been running this code/stream paradigm for 2+ years at this point without issue.\r\n\r\nIn investigating further, we ran the `XINFO` command on the offending stream (20k+ entries) and found the following:\r\n```\r\nlength\r\n27969\r\nradix-tree-keys\r\n1\r\nradix-tree-nodes\r\n2\r\n```\r\n\r\nTo compare, when we try to repro on `6.0.8`, we get:\r\n```\r\nlength\r\n10\r\nradix-tree-keys\r\n10\r\nradix-tree-nodes\r\n23\r\n```\r\n\r\nIn looking at the code changes between `6.0.8` and `6.2.3` it seems a few things might have changed, not sure which is the culprit here, but perhaps:\r\n1. Radix tree implementation changed s.t. all entries are being put in one node. This would impact the node removal logic since there's not \"one node that can be removed s.t. the stream's length is greater than the max length\"\r\n2. LIMIT operation/changes impacted the trimming logic\r\n\r\nOther notes:\r\n-  We're using large binary payloads for this XADD (JPEG compressed images/thumbnails) on the order of 1-100kB each. Not sure if it impacts the debugging here.\r\n- We're setting the stream ID in the XADD and not using `*`\r\n- We're not setting the LIMIT argument\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n1. Add items to stream with approximate maxlen\r\n2. Observe stream is not capped at maxlen\r\n3. Use XINFO to observe radix tree allocation\r\n\r\n**Expected behavior**\r\n\r\nThe stream should be capped around 10 entries, give or take tens of entries (per the XADD docs)\r\n\r\n**Additional information**\r\n\r\nRunning the command without the approximate (~) flag does not show this issue, i.e. it caps the stream as expected. ",
+  "state": "closed",
+  "created_at": "2021-09-07T23:41:27Z",
+  "updated_at": "2021-09-09T16:14:18Z",
+  "closed_at": "2021-09-09T15:59:44Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 915689405,
+      "user": "huangzhw",
+      "created_at": "2021-09-09T01:32:04Z",
+      "body": "What is config of\r\n\r\n```\r\nstream-node-max-bytes\r\nstream-node-max-entries\r\n```"
+    },
+    {
+      "id": 916161770,
+      "user": "dpipemazo",
+      "created_at": "2021-09-09T14:38:35Z",
+      "body": "```\r\nstream-node-max-bytes 0\r\nstream-node-max-entries 0\r\n```\r\nThe same config was used for the tests for both 6.0.8 and 6.2.3 . The only difference between the two tests was building from the `redis:6.0.8` docker container vs the `redis:6.2.3` docker container in our Dockerfile."
+    },
+    {
+      "id": 916172905,
+      "user": "guybe7",
+      "created_at": "2021-09-09T14:51:47Z",
+      "body": "@dpipemazo can you please change them tp 4096 and 100 respectively and try again?"
+    },
+    {
+      "id": 916201103,
+      "user": "guybe7",
+      "created_at": "2021-09-09T15:24:31Z",
+      "body": "just for the record: the behavior in 6.2.3 is as expected: if all stream entries are in a single node, using `~` is futile \r\nit seems like there's a bug in 6.0.8, where it ignores the `stream-node-max-entries` config"
+    },
+    {
+      "id": 916204816,
+      "user": "dpipemazo",
+      "created_at": "2021-09-09T15:29:11Z",
+      "body": "That seemed to work, here is the config change that I did dynamically on a system showing the issue (XADDs paused, previously had been written with `MAXLEN ~ 10`)\r\n```\r\n127.0.0.1:6383> CONFIG GET stream-node-max-bytes\r\n1) \"stream-node-max-bytes\"\r\n2) \"0\"\r\n127.0.0.1:6383> CONFIG GET stream-node-max-entries\r\n1) \"stream-node-max-entries\"\r\n2) \"0\"\r\n127.0.0.1:6383> CONFIG SET stream-node-max-bytes 4096\r\nOK\r\n127.0.0.1:6383> CONFIG SET stream-node-max-entries 100\r\nOK\r\n127.0.0.1:6383> CONFIG GET stream-node-max-entries\r\n1) \"stream-node-max-entries\"\r\n2) \"100\"\r\n127.0.0.1:6383> CONFIG GET stream-node-max-bytes\r\n1) \"stream-node-max-bytes\"\r\n2) \"4096\"\r\n127.0.0.1:6383> XLEN some-stream\r\n(integer) 58859\r\n```\r\n\r\n\r\nWe then resumed XADDs with `MAXLEN ~ 10` and the stream is now trimming itself\r\n```\r\n127.0.0.1:6383> XLEN some-stream\r\n(integer) 10\r\n```\r\n\r\n`XINFO STREAM some-stream` also returned what looks to be nominal results:\r\n```\r\nlength\r\n10\r\nradix-tree-keys\r\n10\r\nradix-key-nodes\r\n23\r\n```\r\n\r\nDid the defaults/settings change across these versions? We're using an off-the-shelf config file that I believe is just set to defaults; would this still be a bug or expected behavior?"
+    },
+    {
+      "id": 916212249,
+      "user": "guybe7",
+      "created_at": "2021-09-09T15:37:35Z",
+      "body": "as i mentioned, it seems like 6.0.8 is buggy (ignores `stream-node-max-entries`)\r\n\r\ncan you please try with 6.0.15?\r\n\r\nand where did you get the config file? using 0 for any of the datatypes sizing limits is almost never a good idea..."
+    },
+    {
+      "id": 916229563,
+      "user": "dpipemazo",
+      "created_at": "2021-09-09T15:59:38Z",
+      "body": "@guybe7 @huangzhw thanks for the help. I thought that I had pulled these from the [redis conf file](https://github.com/redis/redis/blame/03b59cd5f0788a52039287daa83229d459641ff5/redis.conf) but can see from the `git blame` that the values in this file are the correct defaults and have been more or less since streams were released.\r\n\r\nThis is on me then, and I appreciate the help in diagnosing/debugging. Sorry for the trouble. "
+    }
+  ]
+}

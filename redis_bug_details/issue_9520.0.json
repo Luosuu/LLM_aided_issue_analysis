@@ -1,0 +1,30 @@
+{
+  "issue_number": 9520.0,
+  "title": "[BUG] APPEND KEY \"\" creates an empty string",
+  "body": "**Describe the bug**\r\n\r\nAppending `\"\"` to an empty key creates an empty string. To my knowledge, a string with an empty value is equivalent to a nil value in redis so the value should not be created.\r\n\r\n**To reproduce**\r\n\r\nAppend an empty string to a missing key.\r\n\r\n```\r\n127.0.0.1:6379> type x\r\nnone\r\n127.0.0.1:6379> append x \"\"\r\n(integer) 0\r\n127.0.0.1:6379> type x\r\nstring\r\n```\r\n\r\n**Expected behavior**\r\n\r\nNo key should be created.\r\n\r\n```\r\n127.0.0.1:6379> type x\r\nnone\r\n127.0.0.1:6379> append x \"\"\r\n(integer) 0\r\n127.0.0.1:6379> type x\r\nnone\r\n```\r\n\r\n**Additional information**\r\n\r\nUsing redis 6.2.5.",
+  "state": "closed",
+  "created_at": "2021-09-17T13:37:22Z",
+  "updated_at": "2021-09-17T14:18:37Z",
+  "closed_at": "2021-09-17T14:18:37Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 921819992,
+      "user": "mgravell",
+      "created_at": "2021-09-17T13:59:57Z",
+      "body": "Conversely, though:\r\n\r\n``` txt\r\n127.0.0.1:6379> type x\r\nnone\r\n127.0.0.1:6379> exists x\r\n(integer) 0\r\n127.0.0.1:6379> get x\r\n(nil)\r\n\r\n127.0.0.1:6379> set x \"\"\r\nOK\r\n\r\n127.0.0.1:6379> type x\r\nstring\r\n127.0.0.1:6379> exists x\r\n(integer) 1\r\n127.0.0.1:6379> get x\r\n\"\"\r\n```\r\n\r\nAn empty string can exist and have a type."
+    },
+    {
+      "id": 921828561,
+      "user": "sundb",
+      "created_at": "2021-09-17T14:10:39Z",
+      "body": "@braddunbar An empty string is not the same as null, which is allowed in redis."
+    },
+    {
+      "id": 921835104,
+      "user": "braddunbar",
+      "created_at": "2021-09-17T14:18:37Z",
+      "body": "Huh…I was really wrong about that. Thanks @sundb and @mgravell! I'll close this and continue on then. 😆 "
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "issue_number": 12614.0,
+  "title": "[BUG] quicklist iterator bug",
+  "body": "Function quicklistDelEntry() doesn't keep iterator behavior as expected. Here is the code:\r\n<pre>\r\n    TEST(\"quicklistDelEntry()\") {\r\n        quicklist *ql = quicklistNew(-2, 1);\r\n        quicklistPushTail(ql, \"aa\", 3);\r\n        quicklistPushTail(ql, \"bb\", 3);\r\n        quicklistPushTail(ql, \"cc\", 3);\r\n        quicklistPushTail(ql, \"dd\", 3);\r\n        quicklistPushTail(ql, \"ee\", 3);\r\n        quicklistIter *iter = quicklistGetIteratorAtIdx(ql, AL_START_TAIL, 2);\r\n        quicklistEntry entry;\r\n        assert(quicklistNext(iter, &entry));\r\n        quicklistDelEntry(iter, &entry);\r\n        assert(quicklistNext(iter, &entry));\r\n        assert(strcmp((char *)entry.value, \"bb\") == 0);\r\n        quicklistReleaseIterator(iter);\r\n        quicklistRelease(ql);\r\n    }\r\n</pre>\r\n\r\nI think function quicklistGetIteratorAtIdx() should be rewrite to meet the following assertion:\r\n<pre>\r\nassert((quicklistIter->derection == AL_START_HEAD && quicklistIter->offset >= 0) || \r\n(quicklistIter->derection == AL_START_TAIL && quicklistIter->offset < 0))\r\n</pre>\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-09-26T17:26:03Z",
+  "updated_at": "2023-09-27T02:33:41Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1736579270,
+      "user": "sundb",
+      "created_at": "2023-09-27T02:33:41Z",
+      "body": "Indeed, the quicklistIterator can be confusing in its current location after deletion.\r\nWhen position 2 is deleted, it points to `dd` (the new position 2), not bb.\r\nBut I can think of another confusion when using `quicklistGetIteratorAtIdx(ql, AL_START_TAIL, -3);`, when position -3 is deleted, it points to `bb`(the new position -3).\r\nAlthough 2 and -3 are in the same position, they have different results.\r\n\r\nI'm not sure we should fix this, today, we haven't used `quicklistDelEntry()` to delete entries in the iterator loop."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "issue_number": 10678.0,
+  "title": "[BUG] The method xgroup_create of the redis cluster client fails when running on redis version 7.0.0.",
+  "body": "**Describe the bug**\r\n\r\nThe method **xgroup_create** of the redis cluster client fails when running on redis version 7.0.0.\r\nUsing the version 4.2.2 of the python redis client, the python version is 3.10.4, OS is Ubuntu 22.04.\r\n\r\n**To reproduce**\r\n\r\n```\r\nfrom redis import RedisCluster\r\nfrom redis.cluster import ClusterNode\r\n\r\nclient = RedisCluster(\r\n    startup_nodes=[\r\n        ClusterNode(\"127.0.0.1\", 7001),\r\n        ClusterNode(\"127.0.0.1\", 7002),\r\n        ClusterNode(\"127.0.0.1\", 7003),\r\n        ClusterNode(\"127.0.0.1\", 7004),\r\n        ClusterNode(\"127.0.0.1\", 7005),\r\n    ]\r\n)\r\n\r\nclient.xgroup_create(\"test\", \"test\")\r\n\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe method should work just like it did when using the same client version with redis version 6.2.6.\r\n\r\n**Additional information**\r\n\r\nThis is the output of the python stack trace.\r\n\r\n```\r\nFile ~/.cache/pypoetry/virtualenvs/poetry_venv-py3.10/lib/python3.10/site-packages/redis/cluster.py:976, in RedisCluster.determine_slot(self, *args)File ~/.cache/pypoetry/virtualenvs/ubi.events-engine-94LnMkf1-py3.10/lib/python3.10/site-packages/redis/cluster.py:976, in RedisCluster.determine_slot(self, *args)\r\n    974         if command in (\"FCALL\", \"FCALL_RO\"):\r\n    975             return random.randrange(0, REDIS_CLUSTER_HASH_SLOTS)\r\n--> 976         raise RedisClusterException(\r\n    977             \"No way to dispatch this command to Redis Cluster. \"\r\n    978             \"Missing key.\\nYou can execute the command by specifying \"\r\n    979             f\"target nodes.\\nCommand: {args}\"\r\n    980         )\r\n    982 # single key command\r\n    983 if len(keys) == 1:\r\n\r\nRedisClusterException: No way to dispatch this command to Redis Cluster. Missing key.\r\nYou can execute the command by specifying target nodes.\r\nCommand: ('XGROUP CREATE', 'test', 'test', '$')\r\n\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-05-03T19:48:57Z",
+  "updated_at": "2022-05-03T20:03:03Z",
+  "closed_at": "2022-05-03T20:03:03Z",
+  "labels": [],
+  "comments_data": []
+}

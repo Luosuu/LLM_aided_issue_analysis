@@ -1,0 +1,24 @@
+{
+  "issue_number": 7935.0,
+  "title": "[BUG] HINCRBYFLOAT representation on ARM 32bit",
+  "body": "**Describe the bug**\r\n\r\n`HINCRBYFLOAT` return different results on different platforms.\r\n\r\n**To reproduce**\r\nFollowing https://redis.io/commands/hincrbyfloat\r\n\r\nARM 32bit arch:\r\n```\r\n127.0.0.1:6379>  HSET mykey field 10.50\r\n(integer) 1\r\n127.0.0.1:6379> HINCRBYFLOAT mykey field 0.1\r\n\"10.59999999999999964\"\r\n```\r\n\r\nwhile ARM 64bit, x86_64, i586, PPC64LE:\r\n```\r\n127.0.0.1:6379> HSET mykey field 10.50\r\n(integer) 1\r\n127.0.0.1:6379> HINCRBYFLOAT mykey field 0.1\r\n\"10.6\"\r\n```\r\n\r\n**Expected behavior**\r\nI expect that all the representations would be the same on all supported arches.\r\n\r\n**Additional information**\r\n\r\n```\r\n127.0.0.1:6379> info\r\n# Server\r\nredis_version:6.0.8\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:f90de2fc9727c7fa\r\nredis_mode:standalone\r\nos:Linux 4.19.128-lts-alt1 armv8l\r\narch_bits:32\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:9.3.1\r\nprocess_id:2978876\r\nrun_id:579e6409cac0f684ce2c0f4d8f2fdf2078e2f2c6\r\ntcp_port:6379\r\nuptime_in_seconds:3116\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:9426086\r\nexecutable:/usr/sbin/redis-server\r\nconfig_file:\r\nio_threads_active:0\r\n```",
+  "state": "closed",
+  "created_at": "2020-10-21T06:31:54Z",
+  "updated_at": "2020-11-10T22:25:39Z",
+  "closed_at": "2020-11-10T22:25:39Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 713412551,
+      "user": "oranagra",
+      "created_at": "2020-10-21T08:45:54Z",
+      "body": "Redis is using [long double](https://en.wikipedia.org/wiki/Long_double), which on most platforms is implemented as 80-bit [Extended precision](https://en.wikipedia.org/wiki/Extended_precision#x86_extended_precision_format).\r\nBut this isn't mandatory by the spec, and some architectures (e.g. 32 bit ARM and a few others) simply use it as a synonym for double (64-bit)."
+    },
+    {
+      "id": 725004574,
+      "user": "madolson",
+      "created_at": "2020-11-10T22:25:39Z",
+      "body": "Looks resolved"
+    }
+  ]
+}

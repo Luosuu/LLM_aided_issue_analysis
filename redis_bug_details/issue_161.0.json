@@ -1,0 +1,44 @@
+{
+  "issue_number": 161.0,
+  "title": "a bug about aofrewrite_scheduled",
+  "body": "i has post in google group.\n\nwhen bgsave is doing, if user trigger bgrewriteaof,  then \naofrewrite_scheduled = 1 \nbut there not other set aofrewrite_scheduled back to 0, possible \nbug??? \n==============all code about aofrewrite_scheduled ==== \n./src/redis.h:    int aofrewrite_scheduled;       /\\* Rewrite once \nBGSAVE terminates. */ \n./src/redis.c:        server.aofrewrite_scheduled) \n./src/redis.c:    server.aofrewrite_scheduled = 0;            #just \ninit \n./src/redis.c:            server.aofrewrite_scheduled); \n./src/aof.c:        server.aofrewrite_scheduled = 1; \nwhere server.aofrewrite_scheduled = 0; \n==============use gdb test log ============= \n[15108] 26 Oct 15:46:52 \\* Background append only file rewriting \nstarted by pid 15259 \n[15259] 26 Oct 15:46:52 \\* SYNC append only file rewrite performed \n[15108] 26 Oct 15:46:52 \\* Background AOF rewrite terminated with \nsuccess \n[15108] 26 Oct 15:46:52 \\* Parent diff successfully flushed to the \nrewritten AOF (0 bytes) \n[15108] 26 Oct 15:46:52 \\* Background AOF rewrite successful \n[15108] 26 Oct 15:46:52 - Background AOF rewrite signal handler took \n277us \n[15108] 26 Oct 15:46:52 \\* Background append only file rewriting \nstarted by pid 15260 \n[15260] 26 Oct 15:46:52 \\* SYNC append only file rewrite performed \n[15108] 26 Oct 15:46:53 \\* Background AOF rewrite terminated with \nsuccess \n[15108] 26 Oct 15:46:53 \\* Parent diff successfully flushed to the \nrewritten AOF (0 bytes) \n[15108] 26 Oct 15:46:53 \\* Background AOF rewrite successful \n[15108] 26 Oct 15:46:53 - Background AOF rewrite signal handler took \n207us \n[15108] 26 Oct 15:46:53 \\* Background append only file rewriting \nstarted by pid 15261 \n[15261] 26 Oct 15:46:53 \\* SYNC append only file rewrite performed \n[15108] 26 Oct 15:46:53 \\* Background AOF rewrite terminated with \nsuccess \n[15108] 26 Oct 15:46:53 \\* Parent diff successfully flushed to the \nrewritten AOF (0 bytes) \n[15108] 26 Oct 15:46:53 \\* Background AOF rewrite successful \n[15108] 26 Oct 15:46:53 - Background AOF rewrite signal handler took \n239us \n[15108] 26 Oct 15:46:53 \\* Background append only file rewriting \nstarted by pid 15262 \n[15262] 26 Oct 15:46:53 \\* SYNC append only file rewrite performed \n[15108] 26 Oct 15:46:53 \\* Background AOF rewrite terminated with \nsuccess \n[15108] 26 Oct 15:46:53 \\* Parent diff successfully flushed to the \nrewritten AOF (0 bytes) \n[15108] 26 Oct 15:46:53 \\* Background AOF rewrite successful \n[15108] 26 Oct 15:46:53 - Background AOF rewrite signal handler took \n212us \n............................. repeat bgrewriteaof ............................ \n\n================my fix   ========================== \n 598     if (server.bgsavechildpid == -1 && server.bgrewritechildpid \n== -1 && \n 599         server.aofrewrite_scheduled) \n 600     { \n 601         rewriteAppendOnlyFileBackground(); \n                server.aofrewrite_scheduled = 0        // my add \n 602     } \n\nCode i tested, is ok \n",
+  "state": "closed",
+  "created_at": "2011-10-26T08:05:54Z",
+  "updated_at": "2011-10-26T14:32:05Z",
+  "closed_at": "2011-10-26T14:08:03Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2529024,
+      "user": "antirez",
+      "created_at": "2011-10-26T10:57:44Z",
+      "body": "Hello, thanks, the bug exists indeed. My fix is marginally different compared to your fix since I clear the flag every time a background rewrite actually happens, this has two advantages mainly:\n- If the user asks BGREWRITEAOF again before the scheduler is albe to launch the scheduled one, the scheduled one is cancelled. Otherwise it would be repeated again.\n- If the scheduled rewrite fails for some reason, like fork(), it remains scheduled.\n\nTaking this issue open as I'm still testing that it works well.\n"
+    },
+    {
+      "id": 2530726,
+      "user": "antirez",
+      "created_at": "2011-10-26T14:08:03Z",
+      "body": "Verified that the bug is fixed now. Closing, thank you.\n"
+    },
+    {
+      "id": 2530919,
+      "user": "hoterran",
+      "created_at": "2011-10-26T14:24:28Z",
+      "body": "ok, nice.\n"
+    },
+    {
+      "id": 2530929,
+      "user": "antirez",
+      "created_at": "2011-10-26T14:25:20Z",
+      "body": "@hoterran: thank you again, great bug report without frills but with what was needed to get it fixed ASAP.\n"
+    },
+    {
+      "id": 2530999,
+      "user": "hoterran",
+      "created_at": "2011-10-26T14:32:05Z",
+      "body": "@antirez yeah bug report is important.\ni see 2.4.2 release has included this bug fix, you are so quickly ~~~~\n"
+    }
+  ]
+}

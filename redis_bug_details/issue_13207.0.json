@@ -1,0 +1,24 @@
+{
+  "issue_number": 13207.0,
+  "title": "[BUG] `GETRANGE` returns incorrect response with negative indices",
+  "body": "**Describe the bug**\r\n`GETRANGE mykey -200 -100` returns a non-empty string\r\n```\r\nredis> GETRANGE mykey -200 -100\r\n\"T\"\r\n```\r\n\r\n**To reproduce**\r\n\r\n1. Go to https://redis.io/docs/latest/commands/getrange/\r\n2. Submit `GETRANGE mykey -200 -100`\r\n\r\n**Expected behavior**\r\n\r\nShould return an empty string due to incorrect range specified\r\n\r\n**Additional information**\r\n\r\nReproduced on 7.2.4\r\n\r\n**Bonus**\r\n```\r\nredis> getrange mykey -0 2\r\n(error) value is not an integer or out of range\r\n```",
+  "state": "closed",
+  "created_at": "2024-04-13T07:31:48Z",
+  "updated_at": "2024-04-13T07:48:12Z",
+  "closed_at": "2024-04-13T07:48:11Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2053561124,
+      "user": "sundb",
+      "created_at": "2024-04-13T07:46:02Z",
+      "body": "thanks, it's fixed in https://github.com/redis/redis/pull/12272"
+    },
+    {
+      "id": 2053562084,
+      "user": "Yury-Fridlyand",
+      "created_at": "2024-04-13T07:48:11Z",
+      "body": "good news! Sorry, I failed to find that."
+    }
+  ]
+}

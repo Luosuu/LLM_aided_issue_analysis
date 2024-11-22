@@ -1,0 +1,30 @@
+{
+  "issue_number": 8797.0,
+  "title": "[BUG] A use after free bug in replicationCron",
+  "body": "**Describe the bug**\r\nFile:  src/replication.c\r\n\r\nIn function `replicationCron()`, `slave` is freed by `freeClient(slave)` at line 3,404.\r\nBut the freed `slave` is dereferenced at line 3,410 by `slave->replstate`.\r\n\r\n```\r\n        while((ln = listNext(&li))) {\r\n            client *slave = ln->value;\r\n\r\n            if (slave->replstate == SLAVE_STATE_ONLINE) {\r\n                if (slave->flags & CLIENT_PRE_PSYNC)\r\n                    continue;\r\n                if ((server.unixtime - slave->repl_ack_time) > server.repl_timeout) {\r\n                    serverLog(LL_WARNING, \"Disconnecting timedout replica (streaming sync): %s\",\r\n                          replicationGetSlaveName(slave));\r\n                    freeClient(slave);  /* ------> Freed Here */\r\n                }\r\n            }\r\n\r\n            if (slave->replstate == SLAVE_STATE_WAIT_BGSAVE_END && server.rdb_child_type == RDB_CHILD_TYPE_SOCKET) {\r\n             /* ----> Used Here!*/\r\n```\r\n\r\nIt causes a use after free. \r\n\r\n**Expected behavior**\r\n\r\nAfter the `slave` is freed, the freed chunk could be allocated by other objects and rewrite the value of `slave->replstate`,\r\nit could cause crash or others.\r\n\r\nI think we should set a new variable to accept the value of `slave->replstate` before the first `if` branch, and use the new variable later.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-04-16T12:15:20Z",
+  "updated_at": "2021-04-16T13:56:39Z",
+  "closed_at": "2021-04-16T13:56:39Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 821141954,
+      "user": "oranagra",
+      "created_at": "2021-04-16T12:32:58Z",
+      "body": "Thanks @Yunlongs \r\nThis is new code, Wanna make a PR to solve it? "
+    },
+    {
+      "id": 821149225,
+      "user": "Yunlongs",
+      "created_at": "2021-04-16T12:46:52Z",
+      "body": "> Thanks @Yunlongs\r\n> This is new code, Wanna make a PR to solve it?\r\n\r\nMy network proxy is something wrong, i cannot subimt a PR now..\r\nI need some time to fix it. Or can you just fix this bug?"
+    },
+    {
+      "id": 821154151,
+      "user": "oranagra",
+      "created_at": "2021-04-16T12:55:34Z",
+      "body": "Yeah, no worries. If you can't, we'll fix soon. "
+    }
+  ]
+}

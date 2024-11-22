@@ -1,0 +1,18 @@
+{
+  "issue_number": 10686.0,
+  "title": "[BUG] Once start aof-use-rdb-preamble, redis does not use partial REPLICA after restarted",
+  "body": "**Describe the bug**\r\n\r\nI use redis6.0. However I found that redis slave does not always use  partial REPLICA after restarted.\r\n\r\n\r\n**To reproduce**\r\n\r\n1. start aof-use-rdb-preamble in redis.conf\r\naof-use-rdb-preamble yes\r\n2.restart redis6.0 \r\nthen the log is written that:\r\n\r\n134:S 06 May 2022 20:05:19.957 * Connecting to MASTER 127.0.0.1:6379\r\n134:S 06 May 2022 20:05:19.959 * MASTER <-> REPLICA sync started\r\n134:S 06 May 2022 20:05:19.962 * Non blocking connect for SYNC fired the event.\r\n134:S 06 May 2022 20:05:19.965 * Master replied to PING, replication can continue...\r\n134:S 06 May 2022 20:05:19.968 * Partial resynchronization not possible (no cached master)\r\n134:S 06 May 2022 20:05:25.224 * Full resync from master: 996dd0912cf1949fcd763d8db34897f6073c66da:191\r\n134:S 06 May 2022 20:05:25.572 * MASTER <-> REPLICA sync: receiving streamed RDB from master with EOF to disk\r\n134:S 06 May 2022 20:05:25.575 * MASTER <-> REPLICA sync: Flushing old data\r\n134:S 06 May 2022 20:05:25.580 * MASTER <-> REPLICA sync: Loading DB in memory\r\n134:S 06 May 2022 20:05:25.584 * Loading RDB produced by version 6.0.16\r\n134:S 06 May 2022 20:05:25.586 * RDB age 0 seconds\r\n134:S 06 May 2022 20:05:25.588 * RDB memory usage when created 1.49 Mb\r\n134:S 06 May 2022 20:05:25.591 * MASTER <-> REPLICA sync: Finished with success\r\n\r\n**Expected behavior**\r\n\r\nI hope that slave redis will use partial REPLICA once restarted.\r\n\r\n**Additional information**\r\n\r\nI found why the aof file will not use partial replication. **Because in aof.c does not save the redis slave info.**\r\nsee below:\r\nfunction: rewriteAppendOnlyFile()\r\n**the last para in rdbSaveRio is null. So why we pass null into it? Is there any meaningful thought?**\r\n\r\n`int rewriteAppendOnlyFile(char *filename) {\r\n  //do something\r\n\r\n    if (server.aof_use_rdb_preamble) {\r\n        int error;\r\n        if (rdbSaveRio(&aof,&error,RDBFLAGS_AOF_PREAMBLE,NULL) == C_ERR) {\r\n            errno = error;\r\n            goto werr;\r\n        }\r\n    } else {\r\n        if (rewriteAppendOnlyFileRio(&aof) == C_ERR) goto werr;\r\n    }\r\n}`\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-06T12:17:27Z",
+  "updated_at": "2022-05-08T06:09:18Z",
+  "closed_at": "2022-05-08T06:09:17Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1120357503,
+      "user": "oranagra",
+      "created_at": "2022-05-08T06:09:17Z",
+      "body": "this topic is tracked in #9796"
+    }
+  ]
+}

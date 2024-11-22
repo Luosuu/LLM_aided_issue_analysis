@@ -1,0 +1,11 @@
+{
+  "issue_number": 11254.0,
+  "title": "[BUG] server.stat_expired_stale_perc be compared with an integer in src/expire.c",
+  "body": "By definition and usage, ``server.stat_expired_stale_perc`` should be a decimal, but it is compared with an integer of % here:\r\nhttps://github.com/redis/redis/blob/5389fa62a64ddb277a58db4b21934d47cd298028/src/expire.c#L148-L150",
+  "state": "open",
+  "created_at": "2022-09-08T11:54:51Z",
+  "updated_at": "2022-09-08T11:54:51Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

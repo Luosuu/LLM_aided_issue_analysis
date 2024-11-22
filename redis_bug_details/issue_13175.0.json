@@ -1,0 +1,11 @@
+{
+  "issue_number": 13175.0,
+  "title": "[BUG]If \"appendonly yes\" in the cluster, the full sync occurs after the replica reboot",
+  "body": "When creating a cluster, #[this web](https://redis.io/docs/management/scaling/#create-and-use-a-redis-cluster) says that \"appendonly yes\" is one of the minimum configurations.\r\n\r\nWhen the cluster uses the minimum configurations, after the replica rebooting ,the full sync occurs whether or not new data exists in the master.\r\nBut If appendonly is no and RDB is enabled, PSYNC can be allowed.Is it a issue?\r\n\r\nMoreover，if appendonly is no,the cluster will also be created without problems and can read and write data normally.\r\n So why \"appendonly yes\" is a minimum configurations? \r\n\r\nmy redis version: 7.2.3\r\nthe minimum configurations:\r\n- port 7000\r\n- cluster-enabled yes\r\n- cluster-config-file nodes.conf\r\n- cluster-node-timeout 5000\r\n- appendonly yes\r\n\r\nother configurations(by default):\r\n- repl-diskless-sync yes\r\n- RDB enable(save 3600 1 300 100 60 10000)\r\n- aof-use-rdb-preamble yes",
+  "state": "open",
+  "created_at": "2024-03-28T03:27:43Z",
+  "updated_at": "2024-03-28T03:27:43Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

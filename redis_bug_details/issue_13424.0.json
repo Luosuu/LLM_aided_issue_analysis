@@ -1,0 +1,11 @@
+{
+  "issue_number": 13424.0,
+  "title": "[BUG]Sentinels doesn't select one master node when all nodes are declared as master node",
+  "body": "**Describe the bug**\r\nI am using Bitnami's redis helm chart(redis:6.2.7) to deploy my redis (3 nodes + 3 sentinels) in kubernetes. Normally there will be 1 master node and 2 slave nodes.\r\n\r\nHowever, after restarted the Kubernetes cluster, all 3 redis nodes are selected as master node. \r\nIt is pretty much like a brainsplit, but still those 3 nodes are trying to sync RDB and AOF data from each other.\r\n\r\nAnd sentinels seems didn't detected this situation.\r\n\r\n**To reproduce**\r\nForcely  restart kubernetes cluster could reproduce this issue with a chance like 20%.\r\n\r\n**Expected behavior**\r\n\r\nSentinels notices this situation and automatically failover 2 of the 3 masters.\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-07-17T09:32:37Z",
+  "updated_at": "2024-07-17T09:33:46Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

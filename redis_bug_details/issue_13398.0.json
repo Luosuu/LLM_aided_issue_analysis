@@ -1,0 +1,24 @@
+{
+  "issue_number": 13398.0,
+  "title": "[CRASH] Docker Image 'arm64v8/redis' cannot startup with log 'Failed to test the kernel for a bug that could lead to data corruption during background save.'",
+  "body": "**Crash report**\r\nI'm now trying to download latest arm64v8 Redis image and deploy. Then I get error and cannot startup the container.\r\nI have added 'ignore-warnings ARM64-COW-BUG' in my config file, and the error log is not related with it.\r\nI also added 'save \"\"' to ignore persistence of the data.\r\n\r\nCan someone help to give me any suggestion or support? \r\n\r\nRedis version:\r\n```\r\n\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\", \r\n\"GOSU_VERSION=1.17\", \r\n\"REDIS_VERSION=7.2.5\", \r\n\"REDIS_DOWNLOAD_URL=http://download.redis.io/releases/redis-7.2.5.tar.gz\", \r\n\"REDIS_DOWNLOAD_SHA=5981179706f8391f03be91d951acafaeda91af7fac56beffb2701963103e423d\"\r\n```\r\n\r\nDocker run script:\r\n```\r\ndocker run -it \\\r\n  --name redis_singleton \\\r\n  -p 6379:6379 \\\r\n  -v /mnt/usb/volumes/redis_singleton/conf:/usr/local/etc/redis \\\r\n  -v /mnt/usb/volumes/redis_singleton/logs:/var/log/redis \\\r\n  -v /mnt/usb/volumes/redis_singleton/data/:/data \\\r\n  --user root \\\r\n  --workdir /usr/local \\\r\n  arm64v8/redis \\\r\n  redis-server /usr/local/etc/redis/redis.conf\r\n```\r\n\r\nredis.conf:\r\n```\r\ndaemonize yes\r\nport 6379\r\nbind 0.0.0.0\r\nlogfile \"\"\r\ndir \"/data\"\r\ndbfilename \"dump.rdb\"\r\nsave \"\"\r\nmaxmemory 512mb\r\nmaxmemory-policy allkeys-lru\r\nappendonly yes\r\nappendfilename \"appendonly.aof\"\r\nappendfsync everysec\r\nignore-warnings ARM64-COW-BUG\r\n```\r\n\r\nDocker logs: \r\n```\r\n/data #  docker logs -f redis_singleton\r\n1:C 06 Jul 2024 14:21:35.794 # Failed to test the kernel for a bug that could lead to data corruption during background save. Your system could be affected, please report this error.\r\n1:C 06 Jul 2024 14:26:12.362 # Failed to test the kernel for a bug that could lead to data corruption during background save. Your system could be affected, please report this error.\r\n```\r\n\r\n**Additional information**\r\n\r\n1. OS distribution and version\r\n```\r\nroot@XiaoQiang:/mnt/usb-56ac155b/volumes/redis_singleton/conf# uname -a\r\nLinux XiaoQiang 5.4.164 #0 SMP PREEMPT Thu Dec 21 01:45:39 2023 aarch64 GNU/Linux\r\n```\r\n\r\n3. Steps to reproduce (if any)\r\n",
+  "state": "closed",
+  "created_at": "2024-07-06T14:44:57Z",
+  "updated_at": "2024-07-06T16:27:14Z",
+  "closed_at": "2024-07-06T16:27:14Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2211803221,
+      "user": "sundb",
+      "created_at": "2024-07-06T15:51:47Z",
+      "body": "we shouldn't use `daemonize yes` in docker, docker need a foreground process."
+    },
+    {
+      "id": 2211812440,
+      "user": "yangshuyi",
+      "created_at": "2024-07-06T16:27:14Z",
+      "body": "> we shouldn't use `daemonize yes` in docker, docker need a foreground process.\r\n\r\nYou are correct. Thank you for your kindly help."
+    }
+  ]
+}

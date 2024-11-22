@@ -1,0 +1,98 @@
+{
+  "issue_number": 2479.0,
+  "title": "Error registering fd event for event for the new client:No such file or direcory",
+  "body": "`Redis:2.8.9`\n`Linux Kernel:2.6.32`\n\nThe redis.log shows that an error occured to the accept fd, and the log always flush the same line and the client can not connect to the server. The log screenshot as shows:\n![2015-05-15 9 32 34](https://cloud.githubusercontent.com/assets/3875656/7645313/c115ffee-fae5-11e4-9118-de0afee0d9c3.png)\n\nThe strace output is as follows:\n\n```\nepoll_ctl(3, EPOLL_CTL_MOD, 31, {EPOLLIN, {u32=31, u64=31}}) = 0\nepoll_wait(3, {{EPOLLIN, {u32=4, u64=4}}}, 204928, 19) = 1\naccept(4, {sa_family=AF_INET, sin_port=htons(50585), sin_addr=inet_addr(\"10.52.88.57\")}, [11080262466804908048]) = 70\nfcntl(70, F_GETFL)                      = 0x2 (flags O_RDWR)\nfcntl(70, F_SETFL, O_RDWR|O_NONBLOCK)   = 0\nsetsockopt(70, SOL_TCP, TCP_NODELAY, [1], 4) = 0\nepoll_ctl(3, EPOLL_CTL_MOD, 70, {EPOLLIN, {u32=70, u64=70}}) = -1 ENOENT (No such file or directory)\nclose(70)                               = 0\nopen(\"./log/redis.log\", O_WRONLY|O_APPEND|O_CREAT, 0666) = 70\nfstat(70, {st_mode=S_IFREG|0644, st_size=13118790, ...}) = 0\nmmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f32777ff000\nfstat(70, {st_mode=S_IFREG|0644, st_size=13118790, ...}) = 0\nlseek(70, 13118790, SEEK_SET)           = 13118790\nstat(\"/etc/localtime\", {st_mode=S_IFREG|0644, st_size=165, ...}) = 0\nwrite(70, \"[65061] 26 Mar 09:59:04.530 # Er\"..., 111) = 111\nclose(70)                               = 0\nmunmap(0x7f32777ff000, 4096)            = 0\nclose(70)                               = -1 EBADF (Bad file descriptor)\nepoll_wait(3, {{EPOLLIN, {u32=4, u64=4}}}, 204928, 18) = 1\naccept(4, {sa_family=AF_INET, sin_port=htons(50586), sin_addr=inet_addr(\"10.52.88.57\")}, [11152320060842835984]) = 70\nfcntl(70, F_GETFL)                      = 0x2 (flags O_RDWR)\nfcntl(70, F_SETFL, O_RDWR|O_NONBLOCK)   = 0\nsetsockopt(70, SOL_TCP, TCP_NODELAY, [1], 4) = 0\nepoll_ctl(3, EPOLL_CTL_MOD, 70, {EPOLLIN, {u32=70, u64=70}}) = -1 ENOENT (No such file or directory)\nclose(70)                               = 0\nopen(\"./log/redis.log\", O_WRONLY|O_APPEND|O_CREAT, 0666) = 70\nfstat(70, {st_mode=S_IFREG|0644, st_size=13118901, ...}) = 0\nmmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f32777ff000\nfstat(70, {st_mode=S_IFREG|0644, st_size=13118901, ...}) = 0\nlseek(70, 13118901, SEEK_SET)           = 13118901\nstat(\"/etc/localtime\", {st_mode=S_IFREG|0644, st_size=165, ...}) = 0\nwrite(70, \"[65061] 26 Mar 09:59:04.531 # Er\"..., 111) = 111\nclose(70)                               = 0\nmunmap(0x7f32777ff000, 4096)            = 0\nclose(70)                               = -1 EBADF (Bad file descriptor)\nepoll_wait(3, {{EPOLLIN, {u32=36, u64=36}}}, 204928, 17) = 1\nread(36, \"*3\\r\\n$6\\r\\nEXPIRE\\r\\n$19\\r\\npsnlpHash36\"..., 16384) = 51\nepoll_wait(3, {{EPOLLIN, {u32=40, u64=40}}}, 204928, 13) = 1\nread(40, \"*3\\r\\n$5\\r\\nHMGET\\r\\n$19\\r\\npsnlpHash365\"..., 16384) = 59\nepoll_ctl(3, EPOLL_CTL_MOD, 40, {EPOLLIN|EPOLLOUT, {u32=40, u64=40}}) = 0\nepoll_wait(3, {{EPOLLOUT, {u32=40, u64=40}}}, 204928, 12) = 1\nwrite(40, \"*1\\r\\n$-1\\r\\n\", 9)           = 9\nepoll_ctl(3, EPOLL_CTL_MOD, 40, {EPOLLIN, {u32=40, u64=40}}) = 0\nepoll_wait(3, {{EPOLLIN, {u32=36, u64=36}}}, 204928, 12) = 1\nread(36, \"*8\\r\\n$5\\r\\nHMSET\\r\\n$15\\r\\nforumHash101\"..., 16384) = 113\n```\n\nThe output shows that when new client connected to the server, the server accpet the request and return a fd=70, but epoll_ctl on the socket is failed and return -1:（No such file or directory）and close on it.\nThen the open file system call also return the fd=70 and rewrite the log properly.\nBut the accept can not work.（this period may have network shake）\nIs this a bug in redis?\n",
+  "state": "closed",
+  "created_at": "2015-03-27T12:13:42Z",
+  "updated_at": "2015-12-20T05:27:29Z",
+  "closed_at": "2015-12-20T05:27:29Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 141952060,
+      "user": "mp911de",
+      "created_at": "2015-09-21T12:02:19Z",
+      "body": "Same error for me:\n\n```\nError registering fd event for the new client: No such file or directory (fd=28)\n```\n\nThe bug is rather sporadic but occurs quite regularly and it's always fd=28 and always the first cluster node.\n\nOccurs regularly when executing my integration tests. \nVersions:\n- Redis: unstable, 3.1.999 (846da5b2/0) 64 bit, Cluster Mode\n- OS: Ubuntu 14.04.1 LTS (GNU/Linux 3.13.0-63-generic x86_64)\n\nHow to reproduce the config state (Build, configure & start Redis):\n\n``` bash\n$ git clone https://github.com/mp911de/lettuce.git && checkout 3.4\n$ make prepare ssl-keys\n$ make start\n```\n"
+    },
+    {
+      "id": 148826976,
+      "user": "Fry-kun",
+      "created_at": "2015-10-16T20:34:05Z",
+      "body": "I'm having same (or similar) problem with sentinel.\nAfter some time, some clients can't connect properly (sporadic), and I'm seeing errors in the sentinel log:\n27586:X 16 Oct 13:18:04.371 # Error registering fd event for the new client: No such file or directory (fd=1280)\nFrom what I've seen in the code, it sounds like a list of events (kept in server.el->events[]) gets de-synched from actual file descriptors and ae_epoll.c's aeApiAddEvent uses the wrong flag for the epoll_ctl:\n\n``` c\n    /* If the fd was already monitored for some event, we need a MOD\n     * operation. Otherwise we need an ADD operation. */\n    int op = eventLoop->events[fd].mask == AE_NONE ?\n            EPOLL_CTL_ADD : EPOLL_CTL_MOD;\n...\n    if (epoll_ctl(state->epfd,op,fd,&ee) == -1) return -1;\n```\n\nBasically, epoll complains that EPOLL_CTL_MOD was used but fd was not already registered with it. From man 2 epoll_ctl:\n\n```\n       ENOENT op was EPOLL_CTL_MOD or EPOLL_CTL_DEL, and fd is not registered with this epoll instance.\n```\n\nAs of yet, I don't know where the masks get out of sync... maybe some unexpected/unhandled connection drop..?\n\nAnother interesting piece of information is that the fds are usually powers of 2 (here's a grep from the 2 days worth of logs):\n\n256\n512\n768\n1024\n1280\n1536\n"
+    },
+    {
+      "id": 161500054,
+      "user": "jaykei",
+      "created_at": "2015-12-03T02:48:49Z",
+      "body": "Looks like same problem for me.\n\nIn my case, I sent a \"slaveof no one\" to a redis which was waiting for the replication stream from other redis.\n\nLogs are following : \n\n```\n[24319] 02 Dec 18:47:50.152 * SLAVE OF 0:20500 enabled (user request)\n[24319] 02 Dec 18:47:50.435 * Connecting to MASTER 0:20500\n[24319] 02 Dec 18:47:50.435 * MASTER <-> SLAVE sync started\n[24319] 02 Dec 18:47:50.435 * Non blocking connect for SYNC fired the event.\n[24319] 02 Dec 18:47:50.435 * Master replied to PING, replication can continue...\n[24319] 02 Dec 18:47:50.435 * Trying a partial resynchronization (request 5e71ae871bd6c661bff956ed5bc370eff121bd72:108896861).\n[24319] 02 Dec 18:47:58.336 * MASTER MODE enabled (user request)\n[24319] 02 Dec 18:48:28.119 # Error registering fd event for the new client: No such file or directory (fd=7)\n[24319] 02 Dec 18:48:30.439 # Error registering fd event for the new client: No such file or directory (fd=7)\n```\n\nAs you guys can see in the 4 lines from the bottom, my slave redis [24319] was waiting for a response from other redis, and got requested to be a master before previous replication process was finished.\nSo my redis [24319] canceled to get a replication and became a master.\nAnd then, as you can see, \"Error registering fd ...\"  showed up.\n\nI found the reason and I think it's a bug in syncWithMaster() in replication.c\nThe problem was that redis closed a socket but didn't delete that socket number from epoll.\nThat's why new socket can't be added to epoll because 'that number' is still set in the epoll.\nI wrote my fix as following : (you can see the comment as '//<--- added line')\n\n```\nvoid syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {\n    char tmpfile[256], *err = NULL;\n    int dfd, maxtries = 5;\n    int sockerr = 0, psync_result;\n    socklen_t errlen = sizeof(sockerr);\n    REDIS_NOTUSED(el);\n    REDIS_NOTUSED(privdata);\n    REDIS_NOTUSED(mask);\n\n    /* If this event fired after the user turned the instance into a master\n     * with SLAVEOF NO ONE we must just return ASAP. */\n    if (server.repl_state == REDIS_REPL_NONE) {\n        aeDeleteFileEvent(server.el,fd,AE_READABLE|AE_WRITABLE); // <---- added line\n        server.repl_transfer_s = -1;                             // <---- added line\n        close(fd);\n        return;\n    }\n\n```\n\nI'm not sure you guys' problem were just same as mine, but you guys can check this out.\n\nI'll make a pull request soon. Until then, you can fix your redis code yourself if this issue is still a problem for you.\n"
+    },
+    {
+      "id": 161571376,
+      "user": "antirez",
+      "created_at": "2015-12-03T09:52:56Z",
+      "body": "Hello, thanks for reporting this issue. I checked the code and @jaykei fix, and there is something that is strange, the fix should actually make no difference in theory, because when we send SLAVEOF NO ONE to the slave, it calls:\n1. replicationUnsetMaster() with calls in turn:\n2. cancelReplicationHandshake()\n\nNow cancelReplicationHandshake() has the following code inside Redis 3.0:\n\n```\nint cancelReplicationHandshake(void) {\n    if (server.repl_state == REDIS_REPL_TRANSFER) {\n        replicationAbortSyncTransfer();\n    } else if (server.repl_state == REDIS_REPL_CONNECTING ||\n               slaveIsInHandshakeState())\n    {\n        undoConnectWithMaster();\n    } else {\n        return 0;\n    }\n    return 1;\n}\n```\n\nIn which state we are? I'll take as example @jaykei logs which are the only ones complete enough to guess the state. I see:\n\n```\n[24319] 02 Dec 18:47:50.435 * Trying a partial resynchronization (request 5e71ae871bd6c661bff956ed5bc370eff121bd72:108896861).\n```\n\nSo, we should be in `REDIS_REPL_RECEIVE_PSYNC` state.\n\nIn this state `slaveIsInHandshakeState()` returns true, this means that the function `cancelReplicationHandshake()` calls `undoConnectWithMaster()`:\n\n```\nvoid undoConnectWithMaster(void) {\n    int fd = server.repl_transfer_s;\n\n    redisAssert(server.repl_state == REDIS_REPL_CONNECTING ||\n                slaveIsInHandshakeState());\n    aeDeleteFileEvent(server.el,fd,AE_READABLE|AE_WRITABLE);\n    close(fd);\n    server.repl_transfer_s = -1;\n    server.repl_state = REDIS_REPL_CONNECT;\n}\n```\n\nThis function both closes the file descriptor _and_ unregisters readable and writable events, so to close again them in syncWithMaster should be useless.\n\nHowever I agree that the bug here is the fact a socket is closed without cleaning up the registered events, so epoll is called to modify an `fd` which is not registered at all, and returns -1 with `ENONENT`.\n\nI'll try if I can reproduce the issue locally, so to investigate further what the heck it could be. Thanks.\n"
+    },
+    {
+      "id": 161591413,
+      "user": "antirez",
+      "created_at": "2015-12-03T10:36:44Z",
+      "body": "@mp911de oh I read now that you can reproduce this issue in a consistent way. Very interesting! Please could you kindly check if this is still the case, even using exactly the commit you used in the past? Thank you. I'm trying locally as well.\n"
+    },
+    {
+      "id": 161592674,
+      "user": "antirez",
+      "created_at": "2015-12-03T10:38:53Z",
+      "body": "@mp911de unstable to follow your instructions here, command not found `checkout 3.4`. I assumed was a typo for `git checkout` but there is no `3.4` branch.\n"
+    },
+    {
+      "id": 161593198,
+      "user": "antirez",
+      "created_at": "2015-12-03T10:40:45Z",
+      "body": "Just an additional note, I want to discover **the source** of this issue, however we can make `ae.c` more resistant to this kind of errors by trapping the error, and when it's clear there is events about FDs no longer existing, it should just clean up the state and continue, and of course log very clearly that there is _something wrong_, but yet that would be a lot more resilient than the current implementation we have. I'll do it at the end of this investigation, for now let's see if we can fix the cause which is 10 times better.\n"
+    },
+    {
+      "id": 161605771,
+      "user": "antirez",
+      "created_at": "2015-12-03T11:33:07Z",
+      "body": "I just noticed that before commit ed6228851cfc7731a4e84201a3b2d6c11d925438 it was possible to step into this bug, maybe this was the case? About the original bug report in this issue by the original poster, I believe this is likely a _different_ issue desynchronizing the epoll set for another reason, that is possibly fixed now.\n\nAt this point it would be extremely interesting to see if @mp911de tests passes with latest `unstable`.\n"
+    },
+    {
+      "id": 161617704,
+      "user": "mp911de",
+      "created_at": "2015-12-03T12:15:21Z",
+      "body": "Will check. Sorry for the typo from above.\n"
+    },
+    {
+      "id": 161618206,
+      "user": "antirez",
+      "created_at": "2015-12-03T12:17:57Z",
+      "body": "@mp911de thanks!\n"
+    },
+    {
+      "id": 161852428,
+      "user": "jaykei",
+      "created_at": "2015-12-04T02:22:21Z",
+      "body": "Oh, I see. I met this problem because I'm using redis 2.8 that is not the latest version.\n\nIn my redis, cancelRepilicationHandshake() was like this :\n\n```\nint cancelReplicationHandshake(void) {\n    if (server.repl_state == REDIS_REPL_TRANSFER) {                                                   \n        replicationAbortSyncTransfer();\n    } else if (server.repl_state == REDIS_REPL_CONNECTING ||                                          \n             server.repl_state == REDIS_REPL_RECEIVE_PONG)                                            \n    {   \n        undoConnectWithMaster();                                                                      \n    } else {\n        return 0;                                                                                     \n    }\n    return 1;                                                                                         \n}                                                                                                     \n```\n\nAs @antirez analyzed, repl_state was REDIS_REPL_RECEIVE_PSYNC.\nSo it just returned 0, not calling undoConnectWithMaster().\n\nBut I just checked commit logs and found that it was fixed about 2 months ago at following commit :\n\n```\ncommit 3e0b34cf6dbf0803f5d7aa9617a3c4497bcb5959\nAuthor: Kevin McGehee <mcgehee@amazon.com>\nDate:   Wed Oct 14 12:03:47 2015 -0700\n```\n\nI'm sorry that I didn't  check the latest version before making comment. I'll cancel my pull request right away.\nAnyway I'm happy that I re-ignited this issue, haha.\n\nThanks !\n"
+    },
+    {
+      "id": 161892054,
+      "user": "mp911de",
+      "created_at": "2015-12-04T06:45:25Z",
+      "body": "@antirez I checked the current `unstable` branch and I cannot reproduce the bug anymore. Hit me if you want me to test it with certain commits.\n"
+    },
+    {
+      "id": 161892717,
+      "user": "antirez",
+      "created_at": "2015-12-04T06:47:48Z",
+      "body": "That's great, thanks @mp911de! At RedisLabs we cannot reproduce it as well. Clearly my commit fixed it so I would not advice to spend any more time on this. Just let's close and be happy that it's gone :-) However I'm tempted to add more resilience for this classes of bugs. It's simple to do. Errors to unregister FDs which are closed will result in just warnings printed by Redis and nothing more. What do you think?\n"
+    },
+    {
+      "id": 161895396,
+      "user": "mp911de",
+      "created_at": "2015-12-04T07:08:26Z",
+      "body": "It was a thing that I noticed when building/testing lettuce on a particular ubuntu box. Works for me, close the ticket if the others do not object.\n"
+    }
+  ]
+}

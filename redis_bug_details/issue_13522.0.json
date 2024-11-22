@@ -1,0 +1,30 @@
+{
+  "issue_number": 13522.0,
+  "title": "[CRASH] Redis 7.0.3 crashed by signal: 11, si_code: 1",
+  "body": "Notice!\r\n- If a Redis module was involved, please open an issue in the module's repo instead!\r\n- If you're using docker on Apple M1, please make sure the image you're using was compiled for ARM!\r\n\r\n\r\n**Crash report**\r\n\r\nPaste the complete crash log between the quotes below. Please include a few lines from the log preceding the crash report to provide some context.\r\n\r\n```\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n4186020:M 06 Sep 2024 05:37:42.052 # Redis 7.0.3 crashed by signal: 11, si_code: 1\r\n4186020:M 06 Sep 2024 05:37:42.052 # Accessing address: 0x138a20\r\n4186020:M 06 Sep 2024 05:37:42.052 # Crashed running the instruction at: 0x138a20\r\n1226725:C 06 Sep 2024 05:37:42.528 * Supervised by systemd. Please make sure you set appropriate values for TimeoutStartSec and TimeoutStopSec in your service unit.\r\n1226725:C 06 Sep 2024 05:37:42.528 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n1226725:C 06 Sep 2024 05:37:42.528 # Redis version=7.0.3, bits=64, commit=00000000, modified=0, pid=1226725, just started\r\n1226725:C 06 Sep 2024 05:37:42.528 # Configuration loaded\r\n1226725:M 06 Sep 2024 05:37:42.537 * Increased maximum number of open files to 25032 (it was originally set to 1024).\r\n1226725:M 06 Sep 2024 05:37:42.537 * monotonic clock: POSIX clock_gettime\r\n1226725:M 06 Sep 2024 05:37:42.538 * Node configuration loaded, I'm f6fee237b4fa79a0d430c154dc0785c41def8b88\r\n1226725:M 06 Sep 2024 05:37:42.538 * Running mode=cluster, port=26379.\r\n1226725:M 06 Sep 2024 05:37:42.538 # Server initialized\r\n1226725:M 06 Sep 2024 05:37:42.540 * <search> redis version observed by redisearch : 7.0.3\r\n1226725:M 06 Sep 2024 05:37:42.540 * <search> Redis version found by RedisSearch : 7.0.3 - oss\r\n1226725:M 06 Sep 2024 05:37:42.540 * <search> RediSearch version 2.6.12 (Git=HEAD-11b44a2d)\r\n1226725:M 06 Sep 2024 05:37:42.540 * <search> Low level api version 1 initialized successfully\r\n1226725:M 06 Sep 2024 05:37:42.552 * <search> Initialized thread pool!\r\n1226725:M 06 Sep 2024 05:37:42.540 * <search> concurrent writes: OFF, gc: ON, prefix min length: 2, prefix max expansions: 200, query timeout (ms): 500, timeout policy: return, cursor read size: 1000, cursor max idle (ms): 300000, max doctable size: 1000000, max number of search results:  1000000, search pool size: 20, index pool size: 8,\r\n1226725:M 06 Sep 2024 05:37:42.552 * <search> Initialized thread pool!\r\n1226725:M 06 Sep 2024 05:37:42.552 * <search> Enabled role change notification\r\n1226725:M 06 Sep 2024 05:37:42.552 * <search> Cluster configuration: 0 partitions, type: 0, coordinator timeout: 0ms\r\n1226725:M 06 Sep 2024 05:37:42.563 * <search> Register write commands\r\n1226725:M 06 Sep 2024 05:37:42.563 * Module 'search' loaded from /usr/local/bin/redis-modules-RediSearchv2.6.12_Ubuntuv22.so\r\n1226725:M 06 Sep 2024 05:37:42.564 * <ReJSON> version: 20407 git sha: a4412b3 branch: HEAD\r\n1226725:M 06 Sep 2024 05:37:42.564 * <ReJSON> Exported RedisJSON_V1 API\r\n1226725:M 06 Sep 2024 05:37:42.564 * <ReJSON> Exported RedisJSON_V2 API\r\n1226725:M 06 Sep 2024 05:37:42.564 * <ReJSON> Exported RedisJSON_V3 API\r\n1226725:M 06 Sep 2024 05:37:42.564 * <ReJSON> Enabled diskless replication\r\n1226725:M 06 Sep 2024 05:37:42.564 * <ReJSON> Created new data type 'ReJSON-RL'\r\n1226725:M 06 Sep 2024 05:37:42.564 * Module 'ReJSON' loaded from /usr/local/bin/redis-modules-RedisJSONv2.4.7_Ubuntuv22.so\r\n1226725:M 06 Sep 2024 05:37:42.564 * <search> Acquired RedisJSON_V3 API\r\n1226725:M 06 Sep 2024 05:37:42.564 * <search> Loading event starts\r\n1226725:M 06 Sep 2024 05:37:42.564 * Loading RDB produced by version 7.0.3\r\n1226725:M 06 Sep 2024 05:37:42.564 * RDB age 1555905 seconds\r\n1226725:M 06 Sep 2024 05:37:42.564 * RDB memory usage when created 8.01 Mb\r\n1226725:M 06 Sep 2024 05:37:42.579 * Done loading RDB, keys loaded: 2259, keys expired: 0.\r\n```\r\n\r\n**Additional information**\r\n\r\n1. OS distribution and version\r\n\r\nPRETTY_NAME=\"Ubuntu 22.04.3 LTS\"\r\nNAME=\"Ubuntu\"\r\nVERSION_ID=\"22.04\"\r\nVERSION=\"22.04.3 LTS (Jammy Jellyfish)\"\r\n\r\n2. Steps to reproduce (if any)\r\na. Using Redis 7.0.3\r\nb. Add Search and JSON modules\r\nc. Edit RDB config 'config set save 1800 1'\r\n",
+  "state": "open",
+  "created_at": "2024-09-06T09:25:47Z",
+  "updated_at": "2024-09-06T09:38:17Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2333651108,
+      "user": "sundb",
+      "created_at": "2024-09-06T09:30:10Z",
+      "body": "@muvelus do you have the fully crash report?"
+    },
+    {
+      "id": 2333658907,
+      "user": "muvelus",
+      "created_at": "2024-09-06T09:33:16Z",
+      "body": "@sundb Is there a command I can run to get the complete crash report? If required, I can attach more logs. Please do let me know. Thank you!"
+    },
+    {
+      "id": 2333670028,
+      "user": "sundb",
+      "created_at": "2024-09-06T09:38:17Z",
+      "body": "@muvelus normally the crash log is what you sent, but it is missing most of the crash information, can you find keyword `crashed by signal` from other log files?"
+    }
+  ]
+}

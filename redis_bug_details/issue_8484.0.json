@@ -1,0 +1,156 @@
+{
+  "issue_number": 8484.0,
+  "title": "[BUG] EVAL returning undocumented results",
+  "body": "**Describe the bug**\r\n\r\nAfter a period of time, the 'eval' command will stop functioning correctly. Examples.\r\n\r\nredis.call('exists', key) will always return the key regardless of the value or its existence\r\nredis.call('get', key) will always return the key regardless of the value or its existence\r\n\r\n**To reproduce**\r\n\r\nWe've seen this issue occur twice. We current do not have deterministic steps to reproduce. In one case the issue occurred after approx. ~10 days of instance EVAL command usage before it surfaced. It can be corrected by restarting the Redis instance.\r\n\r\n**Expected behavior**\r\n\r\nLUA script calls should adhere to documented behavior and return a valid result or error.\r\n\r\n**Additional information**\r\n\r\nWe have seen this issue occur on instances in Redis 6.0.7 and 6.0.9.\r\nWe have never seen this issue occur on Redis 5.0.3.\r\n",
+  "state": "closed",
+  "created_at": "2021-02-11T23:04:22Z",
+  "updated_at": "2021-07-07T23:42:59Z",
+  "closed_at": "2021-07-07T23:42:59Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 778020181,
+      "user": "oranagra",
+      "created_at": "2021-02-12T07:07:16Z",
+      "body": "@Sunbir you mean that a short running script (one without loops, a that exists after issuing a few commands) will start behaving incorrectly after running many times, and a restart of Redis solves it? \r\n\r\nWhen you say it returns the key regardless of its value or its existence, what do you mean? What value does it return? \r\nHow do you know the key doesn't exist? \r\nAre these volatile keys? "
+    },
+    {
+      "id": 778336116,
+      "user": "Sunbir",
+      "created_at": "2021-02-12T17:34:52Z",
+      "body": "> @Sunbir you mean that a short running script (one without loops, a that exists after issuing a few commands) will start behaving incorrectly after running many times, and a restart of Redis solves it?\r\n> \r\n\r\nThat is correct. In one case there was a loop (a small number of iterations < 100).\r\n\r\n> When you say it returns the key regardless of its value or its existence, what do you mean? What value does it return?\r\n\r\nE.g.\r\nIf the DB has a (key, value) pair of ('foo', 'bar')....\r\n\r\nEVAL \"return redis.call('get', 'foo')\"\r\n\r\n...would return \"foo\" as a result.\r\n\r\n> How do you know the key doesn't exist?\r\n\r\nI checked replicas and they returned expected results.\r\n\r\n> Are these volatile keys?\r\n\r\nNo, I don't think key expiry was at play here.\r\n\r\n"
+    },
+    {
+      "id": 778372034,
+      "user": "oranagra",
+      "created_at": "2021-02-12T18:42:29Z",
+      "body": "So that state is remains for a long time, and you can tell that this key is missing on the replica, did you check on the master too (not using Lua)?\r\nIt is quite impossible for the key to not exist, and for the script to return it anyway. \r\nWhat could in theory happen is that a command propagated a DEL to the replica and forgot to actually delete the key from the master. \r\ndo you know how that key was deleted? which command, and if it was a module, script, multi-exec, or just a DEL command? "
+    },
+    {
+      "id": 779397444,
+      "user": "Sunbir",
+      "created_at": "2021-02-15T18:50:31Z",
+      "body": "Hi Oran, I think there is some confusion. GET/SET work fine. It seems the Lua interpreter enters a bad state and calls to redis.* executed by EVAL start returning wrong results. However the GET or SET of keys directly always works."
+    },
+    {
+      "id": 779437093,
+      "user": "oranagra",
+      "created_at": "2021-02-15T20:36:35Z",
+      "body": "> If the DB has a (key, value) pair of ('foo', 'bar')....\r\nEVAL \"return redis.call('get', 'foo')\"\r\n...would return \"foo\" as a result.\r\n\r\nsorry, i didn't notice it before, you mean that it returns the key **name** (as if that's the value)?"
+    },
+    {
+      "id": 779438168,
+      "user": "oranagra",
+      "created_at": "2021-02-15T20:39:41Z",
+      "body": "next time it happens, can you try to do `SCRIPT FLUSH` instead of a restart.\r\nit should reset the lua library, maybe something got corrupted in its stack."
+    },
+    {
+      "id": 779453541,
+      "user": "Sunbir",
+      "created_at": "2021-02-15T21:22:26Z",
+      "body": "> > If the DB has a (key, value) pair of ('foo', 'bar')....\r\n> > EVAL \"return redis.call('get', 'foo')\"\r\n> > ...would return \"foo\" as a result.\r\n> \r\n> sorry, i didn't notice it before, you mean that it returns the key **name** (as if that's the value)?\r\n\r\nYep, that's one of the symptoms."
+    },
+    {
+      "id": 780174945,
+      "user": "Sunbir",
+      "created_at": "2021-02-16T23:05:20Z",
+      "body": "We encountered the issue again and have learned a few things:\r\n\r\n* SCRIPT FLUSH does not fix the issue\r\n\r\n* Write operations performed via EVAL still work (e.g redis.call('set', ...)\r\n**eval \"return redis.call('set', 'foo', 'bar')\" 0**\r\n\"bar\"\r\n**eval \"return redis.call('get', 'foo')\" 0**\r\n\"foo\"\r\n**get foo**\r\n\"bar\"\r\n\r\n* Any read operation just returns the last argument provided:\r\n**eval \"return redis.call('ping')\" 0**\r\n\"ping\"\r\n**eval \"return redis.call('mget', 'foo', 'bar', 'baz')\" 0**\r\n\"baz\"\r\n**eval \"return redis.call('randomkey')\" 0**\r\n\"randomkey\"\r\n\r\n* A replica instance does not exhibit any issues when running read commands via EVAL. However when we failover the problematic instance to the replica it begins exhibiting the same strange behavior."
+    },
+    {
+      "id": 780492930,
+      "user": "yossigo",
+      "created_at": "2021-02-17T11:28:03Z",
+      "body": "The internal Lua client state is not reset in this case, so if it gets into corrupt/unexpected state (e.g. not generating replies) that could lead to the same behavior.\r\n\r\n@Sunbir Can you provide more information like output of `INFO ALL` on the environment where this reproduces (not necessarily after it reproduced)?"
+    },
+    {
+      "id": 780867607,
+      "user": "Sunbir",
+      "created_at": "2021-02-17T21:31:17Z",
+      "body": "Here is the output of INFO ALL. The instance is currently not in the broken state.\r\n\r\n# Server\r\nredis_version:6.0.9\r\nredis_git_sha1:d316f5e1\r\nredis_git_dirty:0\r\nredis_build_id:bd2220b5b9e0d9ef\r\nredis_mode:standalone\r\nos:Linux 5.4.77-7.el7pie x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:4.2.1\r\nprocess_id:1\r\nrun_id:f23797edfff86eedc27203076f4f010d04c6bd91\r\ntcp_port:6201\r\nuptime_in_seconds:88830\r\nuptime_in_days:1\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:2984645\r\nexecutable:/redis-server\r\nconfig_file:/mnt/work/redis-10000001.conf\r\nio_threads_active:0\r\n\r\n# Clients\r\nconnected_clients:372\r\nclient_recent_max_input_buffer:8\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:0\r\ntracking_clients:0\r\nclients_in_timeout_table:0\r\n\r\n# Memory\r\nused_memory:10387456\r\nused_memory_human:9.91M\r\nused_memory_rss:36241408\r\nused_memory_rss_human:34.56M\r\nused_memory_peak:430454712\r\nused_memory_peak_human:410.51M\r\nused_memory_peak_perc:2.41%\r\nused_memory_overhead:9528280\r\nused_memory_startup:804296\r\nused_memory_dataset:859176\r\nused_memory_dataset_perc:8.97%\r\nallocator_allocated:10601416\r\nallocator_active:12652544\r\nallocator_resident:20078592\r\ntotal_system_memory:540677386240\r\ntotal_system_memory_human:503.55G\r\nused_memory_lua:48128\r\nused_memory_lua_human:47.00K\r\nused_memory_scripts:1216\r\nused_memory_scripts_human:1.19K\r\nnumber_of_cached_scripts:4\r\nmaxmemory:1000000000\r\nmaxmemory_human:953.67M\r\nmaxmemory_policy:allkeys-lru\r\nallocator_frag_ratio:1.19\r\nallocator_frag_bytes:2051128\r\nallocator_rss_ratio:1.59\r\nallocator_rss_bytes:7426048\r\nrss_overhead_ratio:1.80\r\nrss_overhead_bytes:16162816\r\nmem_fragmentation_ratio:3.44\r\nmem_fragmentation_bytes:25712680\r\nmem_not_counted_for_evict:0\r\nmem_replication_backlog:1048576\r\nmem_clients_slaves:20512\r\nmem_clients_normal:7605504\r\nmem_aof_buffer:0\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\n\r\n# Persistence\r\nloading:0\r\nrdb_changes_since_last_save:360791\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1613547967\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:0\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_last_cow_size:675840\r\naof_enabled:0\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:-1\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_last_write_status:ok\r\naof_last_cow_size:0\r\nmodule_fork_in_progress:0\r\nmodule_fork_last_cow_size:0\r\n\r\n# Stats\r\ntotal_connections_received:473803\r\ntotal_commands_processed:3972074\r\ninstantaneous_ops_per_sec:39\r\ntotal_net_input_bytes:318458296\r\ntotal_net_output_bytes:1348520040\r\ninstantaneous_input_kbps:0.75\r\ninstantaneous_output_kbps:1.79\r\nrejected_connections:0\r\nsync_full:2\r\nsync_partial_ok:0\r\nsync_partial_err:1\r\nexpired_keys:3858\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nexpire_cycle_cpu_milliseconds:3202\r\nevicted_keys:0\r\nkeyspace_hits:43699\r\nkeyspace_misses:126646\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:2212\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\ntracking_total_keys:0\r\ntracking_total_items:0\r\ntracking_total_prefixes:0\r\nunexpected_error_replies:0\r\ntotal_reads_processed:4169264\r\ntotal_writes_processed:4349069\r\nio_threaded_reads_processed:0\r\nio_threaded_writes_processed:0\r\npassword_matches:473208\r\nalt_password_matches:0\r\n\r\n# Replication\r\nrole:master\r\nconnected_slaves:1\r\nslave0:ip=100.102.97.219,port=6201,state=online,offset=72320086626,lag=1\r\nmaster_replid:803f1dcd8263dde50cb1619d7aa7fee7fce80949\r\nmaster_replid2:860fcfa3b238858dd23aceda9e97c0d501a5b84a\r\nmaster_repl_offset:72320086626\r\nsecond_repl_offset:72090959695\r\nrepl_backlog_active:1\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:72319038051\r\nrepl_backlog_histlen:1048576\r\n\r\n# CPU\r\nused_cpu_sys:381.626564\r\nused_cpu_user:371.242911\r\nused_cpu_sys_children:0.030339\r\nused_cpu_user_children:0.083104\r\n\r\n# Modules\r\n\r\n# Commandstats\r\ncmdstat_exists:calls=139010,usec=228180,usec_per_call=1.64\r\ncmdstat_get:calls=31038,usec=1133482,usec_per_call=36.52\r\ncmdstat_multi:calls=9,usec=3,usec_per_call=0.33\r\ncmdstat_exec:calls=8,usec=311,usec_per_call=38.88\r\ncmdstat_set:calls=76552,usec=239396,usec_per_call=3.13\r\ncmdstat_del:calls=171765,usec=647106,usec_per_call=3.77\r\ncmdstat_setex:calls=3235,usec=19639,usec_per_call=6.07\r\ncmdstat_ttl:calls=297,usec=1562,usec_per_call=5.26\r\ncmdstat_zadd:calls=74467,usec=505466,usec_per_call=6.79\r\ncmdstat_psync:calls=2,usec=4119,usec_per_call=2059.50\r\ncmdstat_auth:calls=473208,usec=2709611,usec_per_call=5.73\r\ncmdstat_script:calls=1274,usec=675862,usec_per_call=530.50\r\ncmdstat_replconf:calls=88258,usec=149944,usec_per_call=1.70\r\ncmdstat_client:calls=15,usec=31,usec_per_call=2.07\r\ncmdstat_select:calls=2,usec=1,usec_per_call=0.50\r\ncmdstat_slaveof:calls=2,usec=167,usec_per_call=83.50\r\ncmdstat_setnx:calls=98664,usec=407751,usec_per_call=4.13\r\ncmdstat_zpopmin:calls=165048,usec=1042641,usec_per_call=6.32\r\ncmdstat_eval:calls=60039,usec=3930464,usec_per_call=65.47\r\ncmdstat_info:calls=268276,usec=9650620,usec_per_call=35.97\r\ncmdstat_ping:calls=2320905,usec=1517116,usec_per_call=0.65\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=556,expires=398,avg_ttl=11173207"
+    },
+    {
+      "id": 782854287,
+      "user": "yossigo",
+      "created_at": "2021-02-21T12:59:00Z",
+      "body": "@Sunbir I had another look at this but came up with nothing so far. Please update if you get any additional information or find a reliable way to reproduce this."
+    },
+    {
+      "id": 785394463,
+      "user": "Sunbir",
+      "created_at": "2021-02-24T21:24:55Z",
+      "body": "I'm working on trying to repro this consistently."
+    },
+    {
+      "id": 794372012,
+      "user": "Sunbir",
+      "created_at": "2021-03-09T19:52:28Z",
+      "body": "Quick update: another internal Redis deployment experienced this issue. It occurred on a replica that was made primary after the original primary instance was terminated."
+    },
+    {
+      "id": 852459385,
+      "user": "Sunbir",
+      "created_at": "2021-06-01T21:31:48Z",
+      "body": "I have a running replica instance exhibiting this behavior. Let me know if there is any add'l information I can provide. The Redis instance is running 6.0.10 and was built with Clang and is running on Oracle Linux Server 7.9\r\n\r\n$ redis-cli -p <port> -a <pass> eval \"return redis.call('get','foo')\" 0\r\nWarning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\r\n\"foo\"\r\n\r\n$ redis-cli -p <port> -a <pass> info\r\nWarning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\r\n# Server\r\nredis_version:6.0.10\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:75a316aa4aaf378\r\nredis_mode:standalone\r\nos:Linux 4.14.35-1902.305.4.el7uek.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:4.9.1\r\nprocess_id:44176\r\nrun_id:2902240a505fa97d77118fee1e64d0e416755c48\r\ntcp_port:6201\r\nuptime_in_seconds:13991\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:11969830\r\nexecutable:/opt/ais/local/CIEDb/redis-six-zero-ten/redis-six-zero-ten1BUILD44.18a8dcad06fc/bin/redis-server\r\nconfig_file:/opt/ais/local/work/redis/sharedqa_pv/101000201/redis.conf\r\nio_threads_active:0\r\n\r\n# Clients\r\nconnected_clients:875\r\nclient_recent_max_input_buffer:8\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:0\r\ntracking_clients:0\r\nclients_in_timeout_table:0\r\n\r\n# Memory\r\nused_memory:186881808\r\nused_memory_human:178.22M\r\nused_memory_rss:273817600\r\nused_memory_rss_human:261.13M\r\nused_memory_peak:193951320\r\nused_memory_peak_human:184.97M\r\nused_memory_peak_perc:96.36%\r\nused_memory_overhead:20711296\r\nused_memory_startup:805144\r\nused_memory_dataset:166170512\r\nused_memory_dataset_perc:89.30%\r\nallocator_allocated:187873112\r\nallocator_active:203857920\r\nallocator_resident:209801216\r\ntotal_system_memory:134798123008\r\ntotal_system_memory_human:125.54G\r\nused_memory_lua:61440\r\nused_memory_lua_human:60.00K\r\nused_memory_scripts:7664\r\nused_memory_scripts_human:7.48K\r\nnumber_of_cached_scripts:14\r\nmaxmemory:8000000000\r\nmaxmemory_human:7.45G\r\nmaxmemory_policy:allkeys-lru\r\nallocator_frag_ratio:1.09\r\nallocator_frag_bytes:15984808\r\nallocator_rss_ratio:1.03\r\nallocator_rss_bytes:5943296\r\nrss_overhead_ratio:1.31\r\nrss_overhead_bytes:64016384\r\nmem_fragmentation_ratio:1.46\r\nmem_fragmentation_bytes:86099144\r\nmem_not_counted_for_evict:0\r\nmem_replication_backlog:1048576\r\nmem_clients_slaves:0\r\nmem_clients_normal:17872728\r\nmem_aof_buffer:0\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\n\r\n# Persistence\r\nloading:0\r\nrdb_changes_since_last_save:835891\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1622568575\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:-1\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_last_cow_size:0\r\naof_enabled:0\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:-1\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_last_write_status:ok\r\naof_last_cow_size:0\r\nmodule_fork_in_progress:0\r\nmodule_fork_last_cow_size:0\r\n\r\n# Stats\r\ntotal_connections_received:279016\r\ntotal_commands_processed:12882283\r\ninstantaneous_ops_per_sec:966\r\ntotal_net_input_bytes:1884232603\r\ntotal_net_output_bytes:149108049\r\ninstantaneous_input_kbps:120.14\r\ninstantaneous_output_kbps:8.12\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_keys:0\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nexpire_cycle_cpu_milliseconds:0\r\nevicted_keys:0\r\nkeyspace_hits:318653\r\nkeyspace_misses:835196\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:0\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\ntracking_total_keys:0\r\ntracking_total_items:0\r\ntracking_total_prefixes:0\r\nunexpected_error_replies:0\r\ntotal_reads_processed:12634954\r\ntotal_writes_processed:11483259\r\nio_threaded_reads_processed:0\r\nio_threaded_writes_processed:0\r\npassword_matches:279003\r\nalt_password_matches:0\r\n\r\n# Replication\r\nrole:slave\r\nmaster_host:pv44q01if-ztei07033301.pv.if1.apple.com\r\nmaster_port:6201\r\nmaster_link_status:up\r\nmaster_last_io_seconds_ago:0\r\nmaster_sync_in_progress:0\r\nslave_repl_offset:124158236026\r\nslave_priority:100\r\nslave_read_only:1\r\nconnected_slaves:0\r\nmaster_replid:d4f59a1ca4505ceda348994d61f53b89dba3e379\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:124158236026\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:1\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:124157187451\r\nrepl_backlog_histlen:1048576\r\n\r\n# CPU\r\nused_cpu_sys:285.335566\r\nused_cpu_user:752.527966\r\nused_cpu_sys_children:0.000000\r\nused_cpu_user_children:0.000000\r\n\r\n# Modules\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=16483,expires=1639,avg_ttl=0\r\n"
+    },
+    {
+      "id": 853616170,
+      "user": "MeirShpilraien",
+      "created_at": "2021-06-03T06:45:50Z",
+      "body": "Hey @Sunbir,\r\nI would like to try to extract some information while the issue happened. Do you have debug symbols on Redis? If you do can we run a gdb command while the issue happened to extract some information? Or even better, can we get a core dump while the issue happened to analyze offline?\r\nIf this is not possible, can I give you a private branch to run with that will contain some extra logs that will help identify the issue?"
+    },
+    {
+      "id": 854150468,
+      "user": "Sunbir",
+      "created_at": "2021-06-03T20:17:29Z",
+      "body": "We use the default build configuration with no add'l flags (% make BUILD_TLS=yes) so I believe debug symbols have been stripped.\r\n\r\nYes, we can run the private branch in a deployment where we've noticed this issue happen. We could also build it with debug symbols. Just let us know the details. Thanks!"
+    },
+    {
+      "id": 855346495,
+      "user": "MeirShpilraien",
+      "created_at": "2021-06-06T06:22:14Z",
+      "body": "@Sunbir if you compiled normally (`make BUILD_TLS=yes`) you should have the symbols so we can run the gdb command (if possible, it might be even better to compile without optimizations using `make noopt BUILD_TLS=yes`). The next time this happened, if you can run this command and share the output it will be great : \r\n``gdb -p `pgrep -f redis-server` -ex=\"p server->lua_client->flags\" --batch`` \r\n(assuming you have only one redis-server process. If you have more than one, please put the relevant PID after the -p option)."
+    },
+    {
+      "id": 856188522,
+      "user": "Sunbir",
+      "created_at": "2021-06-07T19:10:10Z",
+      "body": "Here's the output from a replica instance exhibiting the issue:\r\n\r\n$ sudo gdb -p $pid -ex=\"p server->lua_client->flags\" --batch\r\n[New LWP 44303]\r\n[New LWP 44182]\r\n[New LWP 44181]\r\n[New LWP 44180]\r\n[New LWP 44179]\r\n[Thread debugging using libthread_db enabled]\r\nUsing host libthread_db library \"/lib64/libthread_db.so.1\".\r\n0x00007f1ffadd3ca7 in __memcmp_sse4_1 () from /lib64/libc.so.6\r\n$1 = 320\r\n[Inferior 1 (process 44176) detached]"
+    },
+    {
+      "id": 856749867,
+      "user": "MeirShpilraien",
+      "created_at": "2021-06-08T13:05:50Z",
+      "body": "@Sunbir so at least we have a clue now why this happens, we can see from the information you provided that the lua_client has a flag set which is `CLIENT_CLOSE_AFTER_REPLY`. Once this flag is set the Redis will not write the replies to the client buffer (because it thinks the client is going to be disconnected). No reply means no reply is pushed to the Lua stack and the return value will be the first element on the Lua stack which is the last element you sent to the `call` function.\r\nI tried to find how come this flag was set on the Lua client but could not find any way this could happen, we can continue in 3 directions:\r\n\r\n1. I can give you a branch to run that asserts that when this flag is set we are not using the Lua client. This will catch the next time it will happen and will give us a full detail crash report of when it happened. But it will crash the server, so if this is not acceptable then we can not try this approach and we should try option 2.\r\n2. I will still give you another branch that will not crash but instead will print the full report (including trace) to the log file and will continue. The downside of this approach is that it will take me longer to prepare it, so if options 1 is possible I prefer it over this one.\r\n3. If you can share your Lua script with us I can try to look at it and maybe reproduce it locally.\r\n\r\nLet us know which one you prefer."
+    },
+    {
+      "id": 862611521,
+      "user": "Sunbir",
+      "created_at": "2021-06-16T18:26:25Z",
+      "body": "Hi Meir, sorry for delayed response. We are validating some things internally here... this may not be a Redis issue. Once we validate the issue is on our end, I'll post an update so you can close this."
+    },
+    {
+      "id": 862623189,
+      "user": "MeirShpilraien",
+      "created_at": "2021-06-16T18:44:31Z",
+      "body": "@Sunbir thanks but I do believe its a Redis issue if you managed to get this flag turned on the Lua client (this should not happened and if it does then its a bug, unless you changed the Redis source?)"
+    },
+    {
+      "id": 869150639,
+      "user": "MeirShpilraien",
+      "created_at": "2021-06-27T12:04:11Z",
+      "body": "@Sunbir any news?"
+    },
+    {
+      "id": 876004738,
+      "user": "Sunbir",
+      "created_at": "2021-07-07T23:39:19Z",
+      "body": "Yes, this was the result of a patch we had... we wanted to close connections from an instance that had failed-over to becoming a replica. An error in that logic caused this issue. Apologies for the time spent here. Please close/resolve this as needed. Thanks for your assistance in pinpointing the exact cause!"
+    },
+    {
+      "id": 876005929,
+      "user": "madolson",
+      "created_at": "2021-07-07T23:42:51Z",
+      "body": "😱 Better a bug on your end is better than a bug on our end!"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 9820.0,
+  "title": "[BUG] The problem of using strcmp to compare `localhost` ip",
+  "body": "**Describe the bug**\r\n\r\nIn Jedis's local [regression test](https://github.com/redis/jedis/blob/master/src/test/java/redis/clients/jedis/tests/commands/FailoverCommandsTest.java#L111), the ip address was specified as `127.0.0.1`, but because Redis was started according to ipv6, the test failed because of `::1 != 127.0.0.1`.\r\n\r\n\r\n![image](https://user-images.githubusercontent.com/13137470/142796828-630233fb-b321-4a88-adeb-191a751f7ee6.png)\r\n\r\n\r\nRedis Code :\r\n![image](https://user-images.githubusercontent.com/13137470/142796984-ac38d6fc-a908-43b1-a0c6-0b1c3d37b125.png)\r\n\r\n**Expected behavior**\r\n\r\ntest should be passed.\r\n\r\n**Possible repair options**\r\n\r\nWe may need to customize the ip comparison function to treat `127.0.0.1` and `::1` equally.\r\n\r\nThe sample repair code is as follows. The function naming and location may need to be adjusted. In addition, I suggest that we can use `ipCmp` to replace all `strcmp` or `strcasecmp` used for ip comparison in the Redis code.\r\n\r\n```\r\ndiff --git a/src/replication.c b/src/replication.c\r\nindex 0f2512fcb..26eea14b5 100644\r\n--- a/src/replication.c\r\n+++ b/src/replication.c\r\n@@ -3755,6 +3755,19 @@ void replicationStartPendingFork(void) {\r\n     }\r\n }\r\n \r\n+int ipIsLocalHost(char *ip) {\r\n+    return !strcmp(ip, \"127.0.0.1\") ||\r\n+           !strcmp(ip, \"localhost\") ||\r\n+           !strcmp(ip, \"::1\");\r\n+}\r\n+\r\n+int ipCmp(char *ip1, char *ip2) {\r\n+   if (ipIsLocalHost(ip1) && ipIsLocalHost(ip2)) {\r\n+       return 0;\r\n+   }\r\n+   return strcasecmp(ip1, ip2);\r\n+}\r\n+\r\n /* Find replica at IP:PORT from replica list */\r\n static client *findReplica(char *host, int port) {\r\n     listIter li;\r\n@@ -3772,7 +3785,7 @@ static client *findReplica(char *host, int port) {\r\n             replicaip = ip;\r\n         }\r\n \r\n-        if (!strcasecmp(host, replicaip) &&\r\n+        if (!ipCmp(host, replicaip) &&\r\n                 (port == replica->slave_listening_port))\r\n             return replica;\r\n     }\r\n```\r\n\r\n\r\n**Additional information**\r\n\r\nRedis Version: unstable branch\r\nJedis Version: master branch",
+  "state": "open",
+  "created_at": "2021-11-22T03:42:46Z",
+  "updated_at": "2021-11-22T12:19:41Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 975300303,
+      "user": "yossigo",
+      "created_at": "2021-11-22T09:02:46Z",
+      "body": "@yangbodong22011 Did you track down a specific change in Redis that broke this regression test?"
+    },
+    {
+      "id": 975305711,
+      "user": "yangbodong22011",
+      "created_at": "2021-11-22T09:08:40Z",
+      "body": "> @yangbodong22011 Did you track down a specific change in Redis that broke this regression test?\r\n\r\nNo, you reminded me, I will try to find.\r\n\r\nEDIT:\r\nWhen Jedis introduced this [test](https://github.com/redis/jedis/pull/2610/files), it should have failed on macOS, but Jedis's test environment did not include macOs until I encountered this error in my macOS laptop test.\r\n\r\n@yossigo It doesn't seem to be the start of a particular PR. On my machine, with version 4.0 of Redis, `info replication` will also display the following information:\r\n\r\n![image](https://user-images.githubusercontent.com/13137470/142860560-b69765fc-0a5f-4173-8006-0729c029b506.png)\r\n\r\n```\r\n➜  redis git:(unstable) ✗ cat /tmp/redis-master.conf \r\ndaemonize yes\r\nprotected-mode no\r\nport 6388\r\npidfile /tmp/redis10.pid\r\nlogfile /tmp/redis10.log\r\nsave \"\"\r\nappendonly no\r\n➜  redis git:(unstable) ✗ cat /tmp/redis-slave.conf \r\ndaemonize yes\r\nprotected-mode no\r\nport 6389\r\npidfile /tmp/redis11.pid\r\nlogfile /tmp/redis11.log\r\nsave \"\"\r\nappendonly no\r\nslaveof localhost 6388\r\n➜  redis git:(unstable) ✗\r\n```"
+    }
+  ]
+}

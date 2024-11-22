@@ -1,0 +1,30 @@
+{
+  "issue_number": 12798.0,
+  "title": "[BUG] Sentinel publishing wrong master switch info on switch-master event, whereas the sentinel logs shows the correct master switch info.",
+  "body": "**Describe the bug**\r\n\r\nSentinel publishing wrong master switch info on switch-master event, whereas the sentinel logs shows the correct master switch info.\r\n\r\n**To reproduce**\r\n\r\nCouldn't reproduce, this was detected with Jedis client as it subscribe for +switch-master. \r\nProblem happens when one of the 3 sentinels is down for patching and meanwhile master switches. And when the patched sentinel comes back up, it publishes +switch-master[problem always happened with this particular publish]\r\n\r\n**Expected behavior**\r\n\r\nJedis client basically change the master, and try writing to replica. \r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "open",
+  "created_at": "2023-11-22T20:32:46Z",
+  "updated_at": "2023-11-29T19:16:46Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1826374128,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-25T16:43:45Z",
+      "body": "can you post the event and the sentinel logs?"
+    },
+    {
+      "id": 1828542129,
+      "user": "benimohit",
+      "created_at": "2023-11-27T20:27:15Z",
+      "body": "Sentinel logs\r\nOne running sentinel  \r\n17:X 20 Nov 2023 22:16:31.682 # +switch-master master-6371 ad1-fd1-401 6371 ad3-fd1-401 6371\r\nOther Sentinel publishing +switch-master once its up \r\n13:X 20 Nov 2023 22:27:53.117 # +switch-master master-6371 ad1-fd1-401 6371 ad3-fd1-401 6371\r\n\r\nclient switching the pool to a new master[Correctly] \r\n20 Nov 2023 22:16:31.694 Created JedisSentinelPool to master at ad3-fd1-401:6371\r\nclient switching the pool to a new master[Incorrectly] \r\n20 Nov 2023 22:27:53.132 Created JedisSentinelPool to master at ad1-fd1-401:6371"
+    },
+    {
+      "id": 1832550052,
+      "user": "benimohit",
+      "created_at": "2023-11-29T19:16:10Z",
+      "body": "My suspicion is on Sentinel because we have been using the same jedis client version for almost 2 years now and started seeing this issue when we made infrastructure changes that allow one sentinel to be down during failover. \r\nAlso, it's really hard to reproduce and when this happens it happens with all 10-15 of our clients using jedis."
+    }
+  ]
+}

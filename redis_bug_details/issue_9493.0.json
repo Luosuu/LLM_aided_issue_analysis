@@ -1,0 +1,24 @@
+{
+  "issue_number": 9493.0,
+  "title": "[BUG] Error from `command getkeys eval \"…\" 0`",
+  "body": "**Describe the bug**\r\n\r\nUsing `command getkeys` with `eval` returns an error when there are zero keys.\r\n\r\n**To reproduce**\r\n\r\n```\r\n127.0.0.1:6379> command getkeys eval \"return 1\" 0\r\n(error) ERR Invalid arguments specified for command\r\n```\r\n\r\n**Expected behavior**\r\n\r\nReturns an empty array.\r\n\r\n**Additional information**\r\n\r\nThis may be intentional, but I couldn't figure out why it would be. The syntax of the command is correct, so at least a separate error should be returned. Is there a reason we should return an error here instead of an empty array of keys?",
+  "state": "closed",
+  "created_at": "2021-09-12T20:44:27Z",
+  "updated_at": "2021-11-03T12:38:27Z",
+  "closed_at": "2021-11-03T12:38:27Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 917783869,
+      "user": "enjoy-binbin",
+      "created_at": "2021-09-13T02:20:13Z",
+      "body": "I suppose only eval can do this? allow numkeys to be 0. It will hit the `num < 1` and return 0\r\n```c\r\nint genericGetKeys(int storeKeyOfs, int keyCountOfs, int firstKeyOfs, int keyStep,\r\n                    robj **argv, int argc, getKeysResult *result) {\r\n    int i, num, *keys;\r\n\r\n    num = atoi(argv[keyCountOfs]->ptr);\r\n    /* Sanity check. Don't return any key if the command is going to\r\n     * reply with syntax error. (no input keys). */\r\n    if (num < 1 || num > (argc - firstKeyOfs)/keyStep) {\r\n        result->numkeys = 0;\r\n        return 0;\r\n    }\r\n```"
+    },
+    {
+      "id": 917858848,
+      "user": "oranagra",
+      "created_at": "2021-09-13T05:41:55Z",
+      "body": "Looks like this is a bug in the GETKEYS command.\r\n\r\n```c\r\n        if (!cmd) {\r\n            addReplyError(c,\"Invalid command specified\");\r\n            return;\r\n        } else if (cmd->getkeys_proc == NULL && cmd->firstkey == 0) {\r\n            addReplyError(c,\"The command has no key arguments\");\r\n            return;\r\n        } else if ((cmd->arity > 0 && cmd->arity != c->argc-2) ||\r\n                   ((c->argc-2) < -cmd->arity))\r\n        {\r\n            addReplyError(c,\"Invalid number of arguments specified for command\");\r\n            return;\r\n        }\r\n\r\n        if (!getKeysFromCommand(cmd,c->argv+2,c->argc-2,&result)) {\r\n            addReplyError(c,\"Invalid arguments specified for command\");\r\n        } else {\r\n            addReplyArrayLen(c,result.numkeys);\r\n            for (j = 0; j < result.numkeys; j++) addReplyBulk(c,c->argv[result.keys[j]+2]);\r\n        }\r\n```\r\n\r\nIt has one case that returns `ERR The command has no key arguments` (e.g. for PING).\r\nand another case that returns `ERR Invalid arguments specified for command` if the command is one that can take keys, but none are provided.\r\nit doesn't consider the EVAL case were it can take keys, but is also valid without them.\r\n\r\non the bright side, looks like this bug is not a recent regression, and it probably existed sine forever.\r\nand also, since GETKEYS is slow (extra round trip), and EVAL is popular, most client libraries have client side code to extract the keys and don't rely on the GETKEYS command.\r\n\r\n@guybe7 i would like to consider this in #8324 or #9359. we probably need some metadata in order to fix GETKEYS specifically for EVAL."
+    }
+  ]
+}

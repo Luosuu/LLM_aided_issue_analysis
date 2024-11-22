@@ -1,0 +1,18 @@
+{
+  "issue_number": 8034.0,
+  "title": "[BUG] Invalidation message wrongly produced for key when key of the same name is changed in a different db",
+  "body": "**Describe the bug**\r\n\r\nChanging a key in some db will produce invalidation messages for all clients who have a key with the same name in SOME database. \r\ne.g., if client 1 is in db 1, client 2 is in db 2, client 3 is in db  3, and all three dbs contain a key named \"key\" which is tracked by the clients, then changing key in db 1 will produce invalidation messages for all three of the clients.\r\n\r\n**To reproduce**\r\n\r\nFor example:\r\n\r\nclient 1 is used as a redirection client for client 2.\r\nclient 3 is used as a redirection client for client 4.\r\n\r\n-----\r\nclient 5:\r\n```\r\nset a 1\r\n```\r\nclient 2:\r\nselect 1\r\n```\r\nget a\r\n```\r\nclient 4:\r\nselect 2\r\n```\r\nget a\r\n```\r\nclient 5:\r\n```\r\nset a 2\r\n```\r\nat this point, invalidation messages are produced in the redirection clients.\r\n\r\n**Expected behavior**\r\n\r\nFor the above example, I would expect no invalidation messages to be produced, since client 5 was in db 0, and the other clients were not. In the case where one of the other clients were on db 0, I would expect an invalidation message to be produced only there. \r\n\r\n\r\n**Additional Info**\r\n\r\nI think this happens because the tracking table maps key->id, without anything to do with db num. We can change this to be (map, key)->id, or to have one tracking table per db, instead of just one global tracking table.",
+  "state": "closed",
+  "created_at": "2020-11-08T10:33:27Z",
+  "updated_at": "2020-11-08T11:49:56Z",
+  "closed_at": "2020-11-08T11:49:31Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 723566664,
+      "user": "nitaicaro",
+      "created_at": "2020-11-08T11:49:31Z",
+      "body": "Found in the docs:\r\n\r\n> There is a single keys namespace, not divided by database numbers. So if a client is caching the key foo in database 2, and some other client changes the value of the key foo in database 3, an invalidation message will still be sent. This way we can ignore database numbers reducing both the memory usage and the implementation complexity.\r\n\r\nSeems like this is intended."
+    }
+  ]
+}

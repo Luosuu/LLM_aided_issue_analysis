@@ -1,0 +1,78 @@
+{
+  "issue_number": 10936.0,
+  "title": "[CRASH] <vm.swapiness = 1 / 10 / 30 RHEL Default crushing the server with Redis>",
+  "body": "Hello guys, how are you? (Shalom)\r\n\r\nI have issues with the swap and Redis.\r\nI have E2 Small (2x2) on GCP (google cloud).\r\nIt's a shared core\r\n\r\nMy SSD disk is not local disk, but it's SSD.\r\n\r\nFrom what i see online on Red Hat aware to the issue on clouds\r\n(i have Linux RHEL from what i see):\r\nhttps://www.redhat.com/sysadmin/cloud-swap\r\n\r\nMy cPanel server get series overload when server need to swap.\r\nWhat causing on and off of swap, even if the vm.swapiness = 1\r\nI get a lot of swaps with Redis and CPU overload.\r\n(i tried a lot of values, included red hat default – 30)\r\n\r\nRedis writing on the disk in the same time with the swap, what's causing on the shared core reach to 10 CPU when i have only 2…\r\n\r\nServer survive, even in so high overload, but not crushing huh (i think it because the shared cores machine)\r\n\r\nNow GCP (google cloud platform) offers instance on the same machine with **Redis Enterprise.**\r\nFrom what i see online, Redis Enterprise recommended turn swap off:\r\nhttps://docs.redis.com/latest/rs/installing-upgrading/configuring/linux-swap/\r\n\r\n(I know they little different from the open source \"Redis\" i have, but still they are very strong on GCP marketplace, i believe have reason for this instruction)\r\n\r\nFrom the other hand, when i see the OPEN SOURCE doc's, i see it recommended to keep swap for Redis:\r\nhttps://redis.io/docs/manual/admin/\r\n\r\ni got confused.\r\nBTW\r\nserver work better when i turn vm.swapiness = 0\r\n\r\n**But still, i prefer your advice guys what actually to do?**\r\n",
+  "state": "closed",
+  "created_at": "2022-07-05T05:38:52Z",
+  "updated_at": "2022-07-11T05:02:05Z",
+  "closed_at": "2022-07-10T15:38:13Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1174739293,
+      "user": "oranagra",
+      "created_at": "2022-07-05T07:57:35Z",
+      "body": "I suppose the advise in redis.io to enable swap is just so that on the rare case you run out of memory, the process isn't killed and you'll be able to notice the latency and fix the issues (change things so that swap is not really used).\r\n\r\nIn Redis Enterprise the software controls  resource allocation / provisioning, runtime `maxmemory` adjustments, and `oom-score-adj-values` thresholds so that processes are not killed, and if one ends up being killed, it'll be less likely to cause real damage.\r\n\r\n> Title \"[CRASH] ... crushing the server with Redis\"\r\n\r\n> Redis writing on the disk in the same time with the swap, what's causing on the shared core reach to 10 CPU when i have only 2…\r\n\r\n> Server survive, even in so high overload, but not crushing huh (i think it because the shared cores machine)\r\n\r\ni'm confused by a mismatch between the title and part of the body of your post.\r\n\r\nAre you reporting that despite enabling swap, the OOM killer still kills your processes? or that using swap (together with additional disk activity, on a non-local disk) is slow?\r\n \r\ni suppose it can also be related to your usage pattern and commands.\r\ntry to figure out what you're doing on the moment it is killed, or at times it gets swapped out (it's surely a bad idea to really make sure of a non-local swap disk, if it's there it's just to avoid being killed on an extreme moment)."
+    },
+    {
+      "id": 1175723135,
+      "user": "Yossifsolman",
+      "created_at": "2022-07-06T02:56:42Z",
+      "body": "Thanks, @oranagra \r\non your response.\r\n\r\n1. Ok, i think i found the problem.\r\n2. I don't use Redis Enterprise, i use the open source.\r\n3. maxmemory is 1 GB and not default (80%) system of 2ram x 2cpu.\r\n4. I think the problem is:\r\n\r\n`echo never > /sys/kernel/mm/transparent_hugepage/enabled`\r\n\r\nExplanation:\r\nOk. this cmd not stay every server reboot.\r\nThis thing need startup script.\r\n\r\nFrom what i see online and try by myself.\r\nHave a file called `rc.local`\r\nbut `TUNED` application from Kernel, bring back the HUGEPAGE feature.\r\nSo the local boot script can't help.\r\n\r\nNow, better if Redis was doing a script for this thing.\r\n1. First, to activate rc.local file it's not recommended (this note on the script himself).\r\n2. The **Hugepage feature** actually recommended, improve latency if Redis not installed. (this why the KERNEL put it as default)\r\n\r\nI am trying to create the startup script from Google Cloud, i will back to you about that and if its work good.\r\n\r\nBut i think the best solution if Redis will do a startup script along to redis:\r\n\r\n`echo never > /sys/kernel/mm/transparent_hugepage/enabled`\r\n\r\nThis because:\r\nAny time a client, me or you reboot any linux server / vm, the Huge page feature comeback by default.\r\n\r\nSo a client like me, want to UNINSTALL Redis, can do it EASY, I just reboot the server after uninstalling redis and puff magic.\r\nEverything comeback be default as should be, and recommended by KERNEL to have this feature on Linux, its only Redis not work well with that.\r\n\r\n------------\r\n\r\n**The must important question haha i almost forget:**\r\nWhat is the best vm.swapiness for Redis ?\r\n\r\nValue 1? \r\nValue 10? (Red Hat / Orcala distro recommended this value with Redis)\r\nValue default? (30 – it's a lot, i knows RHEL default go wild but its work fine)\r\nValue of 0? \r\n\r\nOr maybe turn it off completely ( Redis Enterprise recommendation, say the SWAP very aggressive ):\r\nswapoff ?\r\n\r\nWhat is the best SWAP VALUE for the open source Redis 7.0.2 on Linux?\r\n\r\n"
+    },
+    {
+      "id": 1175854807,
+      "user": "oranagra",
+      "created_at": "2022-07-06T07:01:03Z",
+      "body": "Regarding transparent huge pages, nowadays (since redis 6.2), redis **attempts** to disable it specifically for the redis process, and may not warn or care if the system is not configured to disable THP, see #7381.\r\nplease specify which version of redis are you using, and if the log file had a warning about that when you didn't disable it in the system.\r\n\r\nBesides that, it is not redis's job to tune system global configs automaticlly, this is why neither redis, not any startup script will ever set it for you, and instead it only warns.\r\n\r\nRegarding the swapiness, i'm sorry, but i don't have an answer for that."
+    },
+    {
+      "id": 1175959647,
+      "user": "Yossifsolman",
+      "created_at": "2022-07-06T08:51:21Z",
+      "body": "Ok, @oranagra thanks for your time.\r\n\r\n1. Solution for the start script, and i recommended you put it in redis.io\r\nand notified people why to do cronjob on reboot for that.\r\n**i verified it, its works:**\r\n\r\ncron job:\r\n```\r\n# Transparent Hugepages (Disable CMD with ECHO) | Karnel vs Redis (Remove it if you remove Redis)\r\n@reboot root echo never > /sys/kernel/mm/transparent_hugepage/enabled\r\n```\r\n\r\n2. SWAP:\r\nI found a lot of articles recommended swapiness 1 or 10 but not disable it.\r\nOOM Killer is strong in the new kernel and this can lead to issue,\r\nfor now, i pretty good with 30... the default of Red Hat.\r\n\r\nBut i checking it.\r\nIf you can light me the way for the right VALUE, it will be awesome.\r\nIf not, you can close the topic.\r\n\r\nThank you on your time.\r\n"
+    },
+    {
+      "id": 1175970052,
+      "user": "oranagra",
+      "created_at": "2022-07-06T09:01:43Z",
+      "body": "@Yossifsolman which version of redis are you using? i wonder why THP was at all an issue.."
+    },
+    {
+      "id": 1175972408,
+      "user": "Yossifsolman",
+      "created_at": "2022-07-06T09:04:02Z",
+      "body": "@oranagra still not sure if it's all the issue.\r\nBut the CPU, it's very improved.\r\nI have the latest version 7.0.2"
+    },
+    {
+      "id": 1175998232,
+      "user": "oranagra",
+      "created_at": "2022-07-06T09:28:59Z",
+      "body": "Before you disabled the THP in the system, did redis print a warning (log message) at startup about THP?\r\nmaybe it attempted to disable it (with `prctl`) and failed for some reason."
+    },
+    {
+      "id": 1178431643,
+      "user": "Yossifsolman",
+      "created_at": "2022-07-08T01:21:31Z",
+      "body": "No, it didn't print any error. And i notice only now, so all this time Redis was to work with this.\r\n\r\nBut still i have CPU problem and i think i understand why:\r\n![bestcpubursting](https://user-images.githubusercontent.com/104964400/177896601-ac84c576-06db-49f0-92b1-5cb8df1c730f.png)\r\n\r\n\r\nI don't know, but Redis and the swap create overload and Google have CPU burst.\r\n\r\nLook at the screenshot. 20+ CPU and i have only 2 (have interface huh)\r\nI don't know, the swap is very expensive on the machine.\r\n\r\nIf you look on the swap in the bottom of the right screenshot\r\nyou will see the swap grow in the process 300megabyte! And i set the swapiness to 1... (any swap partition is 256kb)\r\n\r\nit's mean in this process was more than\r\n300000kb : 256kb = 1,171.875\r\n\r\n1171 swap process…\r\nIt's insane and this not stop as you see… google give you the bursting.\r\nSo the swaps continue with Redis on and on and on…\r\n\r\nYou see something like that before @oranagra ?\r\n\r\nBtw, this is the machine page from Google:\r\nhttps://cloud.google.com/compute/docs/general-purpose-machines?hl=en#e2_machine_types\r\n\r\nI have e2-small\r\nI have SSD too, but it's not Local SSD so i little bit got lost why Redis do this with the swap\r\n(it's like not have limits to swaps when Redis is active)\r\n\r\nHelp please \r\n"
+    },
+    {
+      "id": 1179624480,
+      "user": "Yossifsolman",
+      "created_at": "2022-07-10T00:07:16Z",
+      "body": "Ok i think the problem is Redis memory, when i set up the memory for 128 mg\r\nit's much better (still have CPU burst, but it's not reaching the 5 CPUs…\r\n\r\nI think is not actual CPU and processing issue.\r\n\r\n**I think it is a memory issue, and Redis finish the memory when have a swap Redis still use the memory.**\r\n\r\nWhat causing non stops of CPU Bursts, (its default by google for e2 machine)\r\nand Redis use the RAM in the same time.\r\n\r\nThen, on all this actions of google and Redis, comes the time of Linux process SWAP.\r\nThe machine got blow up haha\r\n**but never turn on the OOM Killer.**\r\nWhat causing 28 – 50 CPUs when i have only 2. (shows in my previous message here on the topic)\r\n\r\n\r\nAnother thing i suspect is timeout and keep alive timeout in Redis.\r\n\r\nTimeout – of 0 (unlimited)\r\nand\r\nKeep alive timeout – of 300 sec\r\n\r\nI think this what do the issue.\r\n\r\nI think “timeout” maybe need to be 300 seconds (even less)\r\nand keep alive around the 5 – 10 seconds…\r\n\r\nFor my machine i think need to design the architecture of redis.conf\r\nI already changed the sysctl.conf and this help a lot too.\r\n\r\nBut still, i sure have a way on Google Cloud to use this machine with Redis and the swap of Linux.\r\nAfter all, you have Redis Enterprise based on those machines ( i not have Redis Enterprise, i just give an example )\r\n\r\n\r\n\r\n"
+    },
+    {
+      "id": 1179703589,
+      "user": "oranagra",
+      "created_at": "2022-07-10T10:48:45Z",
+      "body": "> > Before you disabled the THP in the system, did redis print a warning (log message) at startup about THP?\r\nmaybe it attempted to disable it (with prctl) and failed for some reason.\r\n\r\n> No, it didn't print any error. And i notice only now, so all this time Redis was to work with this.\r\n\r\nso if disabling THP system-wide helped, and `PR_SET_THP_DISABLE` which redis does didn't, then i'm guessing THP affected something else in your system (not redis).\r\n\r\n@pizhenwei you were involved with that (#7381), maybe you have some guess."
+    },
+    {
+      "id": 1179732882,
+      "user": "Yossifsolman",
+      "created_at": "2022-07-10T13:50:48Z",
+      "body": "Ok, server not crushing only because Redis.\r\n\r\nYou can close the case \r\nbut still max memory of 128 work much better from default and from 1gb\r\n\r\n1gb and even default. Overload the server.\r\n\r\nhttps://github.com/munin-monitoring/munin/issues/1480\r\n\r\nthank you on your time @oranagra \r\n\r\n\r\n"
+    }
+  ]
+}

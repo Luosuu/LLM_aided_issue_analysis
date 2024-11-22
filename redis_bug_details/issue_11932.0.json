@@ -1,0 +1,11 @@
+{
+  "issue_number": 11932.0,
+  "title": "[BUG] 03-failover-loop.tcl failed with connection abort  ",
+  "body": "**Describe the bug**\r\n\r\n./runtest-cluster --single 03 \r\n\r\nfailed with \" Cluster is writable again: Expected error reading \"socka00715510\": software caused connection abort eq {OK} (context: type eval line 4 cmd {assert {$err eq {OK}}} proc ::test)\r\n\"\r\n\r\n![image](https://user-images.githubusercontent.com/10794822/225859759-a5ec93ad-44a1-4a65-b5ad-812d58d7c6fb.png)\r\n\r\n ./runtest-cluster --single 03 \r\n\r\n**Expected behavior**\r\n\r\nexpect   \"GOOD! No errors.\" \r\n\r\n**Additional information**\r\n\r\nbug reason:    while kill a master node , conenctions should refresh; \r\n\r\n",
+  "state": "open",
+  "created_at": "2023-03-17T09:07:41Z",
+  "updated_at": "2023-03-17T09:07:41Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

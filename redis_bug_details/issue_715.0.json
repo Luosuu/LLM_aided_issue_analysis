@@ -1,0 +1,21 @@
+{
+  "issue_number": 715.0,
+  "title": "SCRIPT KILL should return a different error prefix for the two possible errors.",
+  "body": "When calling SCRIPT KILL currently you can get two errors:\n- No script running.\n- The script already performed a write.\n\nYou need to be able to distinguish the two errors, but right now both start with \"ERR\" prefix, so string matching (that is fragile) must be used.\n",
+  "state": "closed",
+  "created_at": "2012-10-19T17:47:11Z",
+  "updated_at": "2012-10-22T08:32:14Z",
+  "closed_at": "2012-10-22T08:32:14Z",
+  "labels": [
+    "non critical bug",
+    "state-op-waiting-for-reply"
+  ],
+  "comments_data": [
+    {
+      "id": 9656110,
+      "user": "antirez",
+      "created_at": "2012-10-22T08:32:14Z",
+      "body": "Fixed into unstable and 2.6. Closing.\n"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "issue_number": 3618.0,
+  "title": "Redis 3.2.0 - Crash in hash function caused by access to misaligned memory on Sparc",
+  "body": "Using Redis 3.2.0 on Sparc Solaris an access to misaligned memory causes a fatal bus error. \r\n\r\nThe memory is accessed in dictGenHashFunction() on line 117 in dict.c:\r\n`uint32_t k = *(uint32_t*)data;`\r\n\r\nIf data points to memory that is not aligned to an even 4-byte address this results in bus error on the Sparc architecture. However, this is also a performance issue for all platforms since it will result in at least one extra read.\r\n\r\nI have been unable to track down exactly where this memory is allocated. Either all memory should be stored on even-aligned addresses, or the first uneven bytes should be accessed the same way the trailing last few bytes are. \r\n\r\nEdit: Same for 3.2.5.",
+  "state": "closed",
+  "created_at": "2016-11-18T10:21:50Z",
+  "updated_at": "2017-02-23T15:57:15Z",
+  "closed_at": "2017-02-23T15:57:15Z",
+  "labels": [
+    "non critical bug",
+    "crash report",
+    "portability"
+  ],
+  "comments_data": [
+    {
+      "id": 261505343,
+      "user": "antirez",
+      "created_at": "2016-11-18T10:59:36Z",
+      "body": "Hello, please could you tell me how to reproduce this? I've an idea about where this is likely happening. It could definitely worth to fix it, even if AFAIK in modern Intel platforms the speed penalty for unaligned addresses is reduced to zero. I think this may be due to recent `sds.c` changes, however turning the hash function into an alignment safe one is not going to be very hard AFAIK.\n"
+    },
+    {
+      "id": 261514337,
+      "user": "Caislen",
+      "created_at": "2016-11-18T11:49:55Z",
+      "body": "As for reproducing I have no idea how you would do that without actually running on a sparc platform. On that platform **the issue is replicated by starting the Redis server, and running redis-cli. The command \"set foo bar\" works fine. The command \"set foobar 1\" always result in a server bus error.** Most likely because of how memory for the argument vector is allocated and the key ptr ends up pointing to an uneven address. \n\nI actually first now noticed the disclaimer in the function header for dictGetHashFunction():\n_\"This code makes a few assumptions about how your machine behaves - 1. We can read a 4-byte value from any address ...\"_\n\nThis is not the case on sparc. \n\nMy temporary working, albeit slower, workaround now is assigning the variable k a value based on or-ing together the four separate bytes instead of reading them as a 32-bit int. \n\nI am not sure if adapting the hashfunction or making sure that the key ptr is always aligned is the correct approach to fixing this. \n\n(Also note that there now exists an updated MurmurHash3 function (https://en.wikipedia.org/wiki/MurmurHash))\n"
+    },
+    {
+      "id": 261518647,
+      "user": "antirez",
+      "created_at": "2016-11-18T12:15:35Z",
+      "body": "Yep I mean, how to reproduce on a machine that causes a bus error when an unaligned address is accessed :-) Perfect this happens with everything. The good news is that I believe this is pretty narrowed because of `sds.c` changes and nothing else, since I used to check, up to 3.0, that every access was aligned. About the hash function, given that MurmurHash actually does not help with security (of triggering pathological hashing fo all keys in the same hash slot), we could switch either to something more secure (see D.J.Bernstein work) or to something faster with an acceptable distribution. In Redis the distribution is not very critical because of chaining. Let's see what we can do before Redis 4.0 is out, not sure about the priority of this issue but it's something I want to fix conceptually.\n"
+    },
+    {
+      "id": 261520425,
+      "user": "antirez",
+      "created_at": "2016-11-18T12:26:24Z",
+      "body": "For instance: https://github.com/veorq/SipHash/blob/master/siphash24.c\n"
+    },
+    {
+      "id": 261520759,
+      "user": "antirez",
+      "created_at": "2016-11-18T12:28:18Z",
+      "body": "Moreover it's worth to note that having a 64 bit output in the hash function is interesting for Redis regardless of this problem, in order to support very large datasets in single instances deployments.\n"
+    },
+    {
+      "id": 280933630,
+      "user": "IronBlood",
+      "created_at": "2017-02-19T17:24:19Z",
+      "body": "@Gurubashi I've just compiled redis-3.2.8 with the flag `-xmemalign=1i` using cc from Oracle Developer Studio 12.5 on Solaris 11.2(SPARC), and it's running for a while, not crashing any more. I also run `gmake test` and the result told me that all tests passed without errors. (Of couse I made some tricks to the test scripts, replacing `tail` with `/usr/xpg4/bin/tail`, to make `tail` command executed with parameter `-nX`)\r\n\r\nWould you like to have a try?\r\n\r\nSee more at [Oracle® Developer Studio 12.5: C User's Guide#B.2.139 -xmemalign=ab](https://docs.oracle.com/cd/E60778_01/html/E60745/bjapr.html#OSSCGbjavc)"
+    },
+    {
+      "id": 281354951,
+      "user": "Caislen",
+      "created_at": "2017-02-21T14:12:59Z",
+      "body": "@IronBlood Yes, that would be interesting to try. We normally use gcc for production builds, but I got access to Sun Studio 12.3 for development and testing. Do you build using your own makefiles or the ones bundled with Redis?"
+    },
+    {
+      "id": 281357107,
+      "user": "antirez",
+      "created_at": "2017-02-21T14:20:49Z",
+      "body": "Please try the \"siphash\" branch. More fixes are in the \"arm\" branch. I'll\nsoon consolidate everything into 4.0. Have you the ability to give me a\nshell account into a Solaris box with a Sparc processor? This will make\nsimpler to test this things in the future. Thanks\n\nOn Feb 21, 2017 3:13 PM, \"Gurubashi\" <notifications@github.com> wrote:\n\n> @IronBlood <https://github.com/IronBlood> Yes, that would be interesting\n> to try. We normally use gcc for production builds, but I got access to Sun\n> Studio 12.3 for development and testing. Do you build using your own\n> makefiles or the ones bundled with Redis?\n>\n> —\n> You are receiving this because you commented.\n> Reply to this email directly, view it on GitHub\n> <https://github.com/antirez/redis/issues/3618#issuecomment-281354951>, or mute\n> the thread\n> <https://github.com/notifications/unsubscribe-auth/AAEAYH4K5yQmJxxPZATY5xMx3_p0W8OYks5revDsgaJpZM4K2U6d>\n> .\n>\n"
+    },
+    {
+      "id": 281361520,
+      "user": "IronBlood",
+      "created_at": "2017-02-21T14:36:37Z",
+      "body": "@Gurubashi I made some changes to `src/Makefile` `deps/Makefile` and `deps/lua/Makefile`, mostly added `-m64` flag and removed flags which are not compatible with Sun cc such as `-ggdb` / `-Wall`."
+    },
+    {
+      "id": 281361977,
+      "user": "Caislen",
+      "created_at": "2017-02-21T14:38:16Z",
+      "body": "@antirez Unfortunately our Solaris machines are not at all accessible from outside our corporate network. I will have look at the siphash branch though. "
+    },
+    {
+      "id": 281363184,
+      "user": "IronBlood",
+      "created_at": "2017-02-21T14:42:37Z",
+      "body": "@antirez That will be great! I'll discuss with my colleagues tomorrow(my timezone is UTC+8). If I can, I'll send you mail to antirez [at] gmail."
+    },
+    {
+      "id": 281379539,
+      "user": "antirez",
+      "created_at": "2017-02-21T15:36:55Z",
+      "body": "Thanks!\n\nOn Tue, Feb 21, 2017 at 3:42 PM, Yang Shen <notifications@github.com> wrote:\n\n> @antirez <https://github.com/antirez> That will be great! I'll discuss\n> with my colleagues tomorrow(my timezone is UTC+8). If I can, I'll send you\n> mail to antirez [at] gmail.\n>\n> —\n> You are receiving this because you were mentioned.\n> Reply to this email directly, view it on GitHub\n> <https://github.com/antirez/redis/issues/3618#issuecomment-281363184>, or mute\n> the thread\n> <https://github.com/notifications/unsubscribe-auth/AAEAYN3TaH0hRuVA8X_B9rHWz1BkGYbAks5revfggaJpZM4K2U6d>\n> .\n>\n\n\n\n-- \nSalvatore 'antirez' Sanfilippo\nopen source developer - Redis Labs https://redislabs.com\n\n\"If a system is to have conceptual integrity, someone must control the\nconcepts.\"\n       — Fred Brooks, \"The Mythical Man-Month\", 1975.\n"
+    },
+    {
+      "id": 281595864,
+      "user": "IronBlood",
+      "created_at": "2017-02-22T07:57:46Z",
+      "body": "@Gurubashi I made a gist with all the changes to execute `gmake` and `gmake test`\r\n\r\nhttps://gist.github.com/IronBlood/5c1304238c32a918852a8cf028bfba0e"
+    },
+    {
+      "id": 281660244,
+      "user": "Caislen",
+      "created_at": "2017-02-22T12:49:55Z",
+      "body": "@IronBlood, thanks, I'll have look into it. "
+    },
+    {
+      "id": 281668222,
+      "user": "Caislen",
+      "created_at": "2017-02-22T13:25:36Z",
+      "body": "@antirez Looks like you merged siphash to unstable, so I did some testing on that. **Short version, unstable seems to work fine, and this particular bug is solved.** \r\nLonger version, using Solaris 10 on sparc Redis appears to work fine for our current (albeit very light) usage. However, I need to change usage of Solaris \"tail\" command (\"tail -n1\" -> \"tail -1\") for tests to run (aofrw.tcl, aof.tcl, rdb.tcl). Test framework still fails after a few test with \"[exception]: Executing test client: I/O error reading reply.\" followed by call stack. Using tcl 8.6.5. Let me know if and how you want more information on this. \r\nI also built unstable on CentOS 6.7 x86/64. Missing a \"-lrt\" for Linux on line 91 of src/Makefile, otherwise it builds ok. All tests pass, except \"Test replication partial resync: ok psync\" for both diskless yes and no. Again, let me know if, how, and where you want more details on this. \r\n"
+    },
+    {
+      "id": 281670916,
+      "user": "antirez",
+      "created_at": "2017-02-22T13:36:58Z",
+      "body": "Thank you @Gurubashi fortunately @IronBlood provided me with an access to Solaris/SPARC so I'm already fixing things. I fixed the \"tail\" bug as well as the atomic variables issue. Now I'm going to check how it still crashes (the `[exception]` outputs you report), I think a few fixes I already have under `__arm__` ifdefs so it will be simple to fix those, however for SPARC there will be definitely more places to fix since SPARC does not allow the subset of unaligned accesses that ARM does. News soon."
+    },
+    {
+      "id": 281671137,
+      "user": "antirez",
+      "created_at": "2017-02-22T13:37:56Z",
+      "body": "Oh I forgot about the other issue @Gurubashi: basically the PSYNC test is a long time false positive that I was never able to reproduce consistently... It's harmless. The `-lrt` is a new issue, I'll fix it as well."
+    },
+    {
+      "id": 282032436,
+      "user": "antirez",
+      "created_at": "2017-02-23T15:57:15Z",
+      "body": "UPDATE: Now Redis `unstable` no longer contains unaligned memory accesses and runs well on Solaris/SPARC 64 bit. The Makefile was also fixed in order to allow building it with the Solaris build chain. A few fixes were performed on the test suite as well. Now I fresh `unstable` tree will happily build and pass all the tests, AFAIK. However I'm working a bit more at it, perhaps I'll be able to remove a few warnings.\r\n\r\nNote: you still need GNU make btw, building with the Solaris default `make` is unlikely to be supported. Thank you for the help. Closing this issue since at this point it's kinda off-topic, but please, if you try and experience problems, open a specific issue for Solaris and/or SPARC, and I'll be happy to address it."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 12615.0,
+  "title": "[BUG] LPOP respond with `false` inside lua",
+  "body": "According to the documentation, `LPOP` should respond with `nil` when key does not exist [[reference](https://redis.io/commands/lpop/)] , but when invoked inside lua script it respond with `false` (as boolean) instead.\r\n\r\nFor example:\r\n```\r\n127.0.0.1:30003>  eval \"return redis.call('LPOP', KEYS[1]) == false\" 1 not-existing-key\r\n(integer) 1\r\n```\r\n\r\ntested on versions 6.0.9, 6.2.5, 6.2.6",
+  "state": "closed",
+  "created_at": "2023-09-27T09:35:08Z",
+  "updated_at": "2023-09-27T11:29:47Z",
+  "closed_at": "2023-09-27T11:21:40Z",
+  "labels": [
+    "class:question"
+  ],
+  "comments_data": [
+    {
+      "id": 1737201488,
+      "user": "enjoy-binbin",
+      "created_at": "2023-09-27T11:20:53Z",
+      "body": "it is not a bug, please take a look in https://redis.io/docs/interact/programmability/lua-api/#resp2-to-lua-type-conversion\r\n\r\nRESP2 null bulk reply and null multi bulk reply -> Lua false boolean type\r\n\r\n```markdown\r\nRESP2 to Lua type conversion\r\nThe following type conversion rules apply to the execution's context by default as well as after calling redis.setresp(2):\r\n\r\n[RESP2 integer reply](https://redis.io/topics/protocol#resp-integers) -> Lua number\r\n[RESP2 bulk string reply](https://redis.io/topics/protocol#resp-bulk-strings) -> Lua string\r\n[RESP2 array reply](https://redis.io/topics/protocol#resp-arrays) -> Lua table (may have other Redis data types nested)\r\n[RESP2 status reply](https://redis.io/topics/protocol#resp-simple-strings) -> Lua table with a single ok field containing the status string\r\n[RESP2 error reply](https://redis.io/topics/protocol#resp-errors) -> Lua table with a single err field containing the error string\r\n[RESP2 null bulk reply](https://redis.io/topics/protocol#null-elements-in-arrays) and [null multi bulk reply](https://redis.io/topics/protocol#resp-arrays) -> Lua false boolean type\r\n```"
+    }
+  ]
+}

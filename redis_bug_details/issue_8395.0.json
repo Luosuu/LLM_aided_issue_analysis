@@ -1,0 +1,54 @@
+{
+  "issue_number": 8395.0,
+  "title": "[BUG] Redis cluster 5.0.10 in docker: Opening the temp file needed for MASTER <-> REPLICA synchronization: Permission denied",
+  "body": "**Describe the bug**\r\n\r\nI've started having issues with redis cluster `redis:5-buster` running in Docker. Topology:\r\n\r\n3 sentinels\r\n1 redis master\r\n1 redis replica\r\n\r\nLogs from Master\r\n\r\n```\r\n8615:C 25 Jan 2021 13:12:48.771 * DB saved on disk\r\n8615:C 25 Jan 2021 13:12:48.794 * RDB: 7 MB of memory used by copy-on-write\r\n1:M 25 Jan 2021 13:12:48.832 * Background saving terminated with success\r\n1:M 25 Jan 2021 13:12:48.832 * Starting BGSAVE for SYNC with target: disk\r\n1:M 25 Jan 2021 13:12:48.859 * Background saving started by pid 8616\r\n1:M 25 Jan 2021 13:12:53.861 # Connection with replica xxx.xxx.xxx.245:6379 lost.\r\n1:M 25 Jan 2021 13:12:54.566 * Replica xxx.xxx.xxx.245:6379 asks for synchronization\r\n1:M 25 Jan 2021 13:12:54.566 * Full resync requested by replica xxx.xxx.xxx.245:6379\r\n1:M 25 Jan 2021 13:12:54.566 * Can't attach the replica to the current BGSAVE. Waiting for next BGSAVE for SYNC\r\n```\r\n\r\nLogs from Replica:\r\n\r\n```\r\n1:S 25 Jan 2021 13:13:25.220 * MASTER <-> REPLICA sync started\r\n1:S 25 Jan 2021 13:13:25.220 * Non blocking connect for SYNC fired the event.\r\n1:S 25 Jan 2021 13:13:25.221 * Master replied to PING, replication can continue...\r\n1:S 25 Jan 2021 13:13:25.222 * Partial resynchronization not possible (no cached master)\r\n1:S 25 Jan 2021 13:13:25.942 * Full resync from master: d26f602945057e24da769885e86e166677b19f55:4116624791\r\n1:S 25 Jan 2021 13:13:30.944 # Opening the temp file needed for MASTER <-> REPLICA synchronization: Permission denied\r\n```\r\n\r\nI've docker-it into container as `redis` user and I was able to create empty temp files in /tmp, datadir and directory where redis.conf resides. I'm not sure what can cause this issue.\r\n",
+  "state": "open",
+  "created_at": "2021-01-25T14:28:26Z",
+  "updated_at": "2021-01-28T13:57:52Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 766889981,
+      "user": "pySilver",
+      "created_at": "2021-01-25T15:19:59Z",
+      "body": "Interestingly 6.10.x does not have this issue. I've migrated to 6x keeping all settings exactly the same. "
+    },
+    {
+      "id": 766891086,
+      "user": "pySilver",
+      "created_at": "2021-01-25T15:21:35Z",
+      "body": "Since the problem arised recently, and we were using `5-buster` I guess it was introduced by 5.0.10"
+    },
+    {
+      "id": 768965147,
+      "user": "yossigo",
+      "created_at": "2021-01-28T10:44:12Z",
+      "body": "@pySilver Please double check the version numbers you mention, 6.10.x doesn't exist. How do you run docker? You need to make sure your `dir` is writable, if you bindmount it may not be the case."
+    },
+    {
+      "id": 769045495,
+      "user": "pySilver",
+      "created_at": "2021-01-28T13:16:31Z",
+      "body": "@yossigo I'm seeing tag `5.0.10, 5.0, 5, 5.0.10-buster, 5.0-buster, 5-buster` [here](https://hub.docker.com/_/redis/) and the problem I've described relates to 5.0.10 as stated in ticket title. \r\n\r\nBut you are right, I've tested 6.0.10 and it works fine there, so my 6.10.x is a typo.\r\n\r\nI'm highly positive its not a data directory permission error, I've tried to set directory to 777 with no success. I've logged into docker container as `redis` user and tried to create files in conf dir, in /tmp dir and in data dir and it all went fine. This problem was't appearing until 5.0.10; \r\n\r\nIm using this setup for ~6months, and as I've mentioned I was using `5-buster` tag so it deploys `latest` version of this branch on occasional re-deployment. Once it upgraded to 5.0.10 problems appeared.\r\n\r\nData directory on a host machine has the following perms: \r\n\r\n```\r\nnomad_host_volumes:\r\n  - name: redis\r\n    path: /opt/redis\r\n    read_only: false\r\n    owner: 999\r\n    group: 999\r\n    mode: \"0700\"\r\n```\r\n\r\nOnce I start using 6.0.10 problem simply disappeared. So it doesn't look like data directory permissions issue.\r\n"
+    },
+    {
+      "id": 769054796,
+      "user": "yossigo",
+      "created_at": "2021-01-28T13:32:55Z",
+      "body": "@pySilver I don't see anything obvious that could explain this. After this fails, do you see some temp file created in the directory?"
+    },
+    {
+      "id": 769063580,
+      "user": "pySilver",
+      "created_at": "2021-01-28T13:47:10Z",
+      "body": "@yossigo yes, I'm positive I've seen files named temp-%s.rdb that made me search for references and brought me here https://github.com/redis/redis/blob/ad7d4c6b709ce94ed9a2fa3a1fcf9b8cf7843eff/src/replication.c#L2417"
+    },
+    {
+      "id": 769070781,
+      "user": "yossigo",
+      "created_at": "2021-01-28T13:57:52Z",
+      "body": "@pySilver As you can see there were practically no changes around this. If you do see the file get created, can you provide info on file permissions and ownership?\r\n\r\nTheoretically if the file gets created with some restricted permissions (e.g. due to `umask` settings), Redis would not be able to re-create it. I think it would be very unlikely because the name should be unique (using system time) but not totally impossible."
+    }
+  ]
+}

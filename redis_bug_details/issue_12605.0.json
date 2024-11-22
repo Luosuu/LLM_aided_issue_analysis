@@ -1,0 +1,11 @@
+{
+  "issue_number": 12605.0,
+  "title": "[BUG] In k8s cluster, pod restart, the redis cluster is not working properly and cannot repair itself.",
+  "body": "**Describe the bug**\r\nFor redis-cluster . When deploying a redis cluster in k8s, the ip may change if the cluster pod restarts. When redis uses gossip for messaging, it happens that part of the ip fails to connect.\r\n\r\nthere the log and redis-node.conf\r\n![QQ图片20230925010440](https://github.com/redis/redis/assets/49065855/e46482b5-d8d8-4474-9f55-6257ebffcf79)\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-09-24T17:33:17Z",
+  "updated_at": "2023-09-24T17:49:03Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

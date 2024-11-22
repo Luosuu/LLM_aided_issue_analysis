@@ -1,0 +1,48 @@
+{
+  "issue_number": 9653.0,
+  "title": "[BUG] Potential integer overflow in moduleCreateArgvFromUserFormat",
+  "body": "In the function moduleCreateArgvFromUserFormat, we have the following code:\r\n\r\n```\r\nrobj **moduleCreateArgvFromUserFormat(const char *cmdname, const char *fmt, int *argcp, int *flags, va_list ap) {\r\n    int argv_size;\r\n    argv_size = strlen(fmt)+1;\r\n    const char *p = fmt;\r\n    while(*p) {\r\n        ...\r\n        else if (*p == 'v') {\r\n             robj **v = va_arg(ap, void*);\r\n             size_t vlen = va_arg(ap, size_t);\r\n\r\n             argv_size += vlen-1;\r\n             // The multiplication can overflow with a particularly large vlen!\r\n             argv = zrealloc(argv,sizeof(robj*)*argv_size);\r\n             ...\r\n        }\r\n    }\r\n}\r\n```\r\nThe variable vlen is taken from the argument list. Suppose it is a large 64 bits integer (e.g., UINT64_MAX), assigning its value to argv_size (which is of int type) can result in a negative value for argv_size due to truncation. Later, when argv_size is used to compute the allocation size for zrealloc, it will be sign-extended to 64 bits,  causing an integer overflow in the multiplication sizeof(robj*)*argv_size. This can cause memory allocation of a size smaller than expected, which is dangerous.\r\n\r\nThis is not directly exploitable since the only possible attack vector is a loaded module. Still, it is a bug that worth fixing.",
+  "state": "open",
+  "created_at": "2021-10-20T02:32:17Z",
+  "updated_at": "2021-10-24T11:55:30Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 947289080,
+      "user": "sundb",
+      "created_at": "2021-10-20T03:26:24Z",
+      "body": "Hi @yiyuaner,  I wonder if the stack will overflow if vlen reaches such a large size?"
+    },
+    {
+      "id": 947300511,
+      "user": "yiyuaner",
+      "created_at": "2021-10-20T03:49:51Z",
+      "body": "> Hi @yiyuaner, I wonder if the stack will overflow if vlen reaches such a large size?\r\n\r\nI am not certain whether the variable list `ap`  is always sanitized. Since `vlen = va_arg(ap, size_t)` is just one argument from the argument list `ap`, there is no need to provide a very long argument list to trigger it (as long as `ap` contains a large value of type `size_t` that will assign to `vlen`). \r\n\r\nAm I right? I am assuming that the caller for the function `moduleCreateArgvFromUserFormat` may pass in arbitrary arguments. Under that assumption, we do not need a large number of objects on the stack to trigger the bug. "
+    },
+    {
+      "id": 947340317,
+      "user": "sundb",
+      "created_at": "2021-10-20T05:27:09Z",
+      "body": "@yiyuaner That's true, but why bother when the attacker can already load the module?\r\nThe client does not seem to be able to use this overflow to attack(Unless the module developer allows).\r\nI'm not sure it needs to be fixed."
+    },
+    {
+      "id": 947377923,
+      "user": "yiyuaner",
+      "created_at": "2021-10-20T06:49:21Z",
+      "body": "> @yiyuaner That's true, but why bother when the attacker can already load the module? The client does not seem to be able to use this overflow to attack(Unless the module developer allows). I'm not sure it needs to be fixed.\r\n\r\nOk, seems like it is the responsibility of the module developer to avoid this case. The fix is just an one line assertion though.  Please close this issue and pr if it is not needed."
+    },
+    {
+      "id": 947379778,
+      "user": "sundb",
+      "created_at": "2021-10-20T06:52:41Z",
+      "body": "@yiyuaner Wait to see if others have other opinions."
+    },
+    {
+      "id": 950310838,
+      "user": "yossigo",
+      "created_at": "2021-10-24T11:55:30Z",
+      "body": "@sundb I agree this is not a big problem but also the fix is not big, and it does prevent a careless module from being exploited if it doesn't do its own input validation properly."
+    }
+  ]
+}

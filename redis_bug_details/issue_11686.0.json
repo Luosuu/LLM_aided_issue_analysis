@@ -1,0 +1,24 @@
+{
+  "issue_number": 11686.0,
+  "title": "[BUG] UNWATCH should be rejected within a MULTI/EXEC transaction just like WATCH is",
+  "body": "**Describe the bug**\r\n\r\nCurrently, if one attempts to do a WATCH within a transaction, it fails.\r\n\r\n`ERR WATCH inside MULTI is not allowed`\r\n\r\nHowever, if one does an UNWATCH within a MULTI/EXEC transaction it doesn't fail, but also has zero effect (i.e. its only executed at exec time when the dirty/cleanliness of the client's WATCHes was already decided.  So, one just either get a nil back (EXEC was aborted due to WATCH being dirty) or one gets a pointless \"OK\" back in the response array where the UNWATCH was issued.\r\n\r\n**To reproduce**\r\n\r\ninsert an UNWATCH into a MULTI/EXEC transaction.\r\n\r\n**Expected behavior**\r\n\r\nShould be rejected similarly to WATCH.",
+  "state": "closed",
+  "created_at": "2023-01-04T14:56:42Z",
+  "updated_at": "2023-01-08T13:54:22Z",
+  "closed_at": "2023-01-08T13:54:22Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1374431993,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-07T10:15:44Z",
+      "body": "#9108, I remember I had this question before"
+    },
+    {
+      "id": 1374842092,
+      "user": "oranagra",
+      "created_at": "2023-01-08T13:54:22Z",
+      "body": "thanks @enjoy-binbin for the reference.\r\nso the conclusion is that it's wrong, but we rather leave it like that than make a change that can cause some apps to break."
+    }
+  ]
+}

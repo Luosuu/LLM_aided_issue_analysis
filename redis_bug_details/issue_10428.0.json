@@ -1,0 +1,96 @@
+{
+  "issue_number": 10428.0,
+  "title": "[BUG]replicationFeedSlaves  still high CPU utilization in redis7.0 when it Replication backlog and replicas use one global shared replication buffer",
+  "body": "**Describe the bug**\r\nhere is  valgrind CPU between  redis6.x  and redis7.x   when execute replicationFeedSlaves.\r\n\r\nin redis6.x  copy argv&argc  to echo replica\r\nredis-server\r\nreplicationFeedSlaves\r\n67.42%\r\n(1.44%)\r\n1040385×\r\n\r\nin redis7.x  use one global shared replication buffer,\r\nredis-server\r\nreplicationFeedSlaves\r\n58.22%\r\n(0.67%)\r\n4099731×\r\n\r\nredis-server\r\nfeedReplicationBuffer\r\n56.16%\r\n(9.35%)\r\n41089161×\r\n\r\n\r\n\r\n**To reproduce**\r\n\r\nreplicationFeedSlaves  funcation  still high flow rate cpu 。 when master have 10 Slaves ,\r\n\r\n\r\n\r\n**Expected behavior**\r\n\r\nreplicationFeedSlaves CPU utilization < 10% \r\n\r\n**Additional information**\r\n\r\nredis-server.valgrind2.out.svg\r\nredis-server.valgrind.buf.out.svg\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-03-14T10:58:30Z",
+  "updated_at": "2022-04-17T06:41:46Z",
+  "closed_at": "2022-04-17T06:41:46Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1066643773,
+      "user": "xiaozhitaba",
+      "created_at": "2022-03-14T10:59:18Z",
+      "body": "redis-server.valgrind2.out.svg::\r\n\r\n![redis-server valgrind2 out](https://user-images.githubusercontent.com/10022712/158159008-b4883790-1fa0-41c8-ab53-5e61cdca9a9c.svg)\r\nredis-server.valgrind.buf.out.svg::\r\n![redis-server valgrind buf out](https://user-images.githubusercontent.com/10022712/158159017-1fa2c398-1d0e-4464-8f56-d7c47a1e8583.svg)\r\n\r\n"
+    },
+    {
+      "id": 1066659504,
+      "user": "xiaozhitaba",
+      "created_at": "2022-03-14T11:15:48Z",
+      "body": "we call  prepareReplicasToWrite in feedReplicationBuffer may be inappropriate.\r\n\r\n redis-server\r\nprepareReplicasToWrite\r\n38.55%\r\n(7.14%)\r\n41089161×"
+    },
+    {
+      "id": 1066698292,
+      "user": "oranagra",
+      "created_at": "2022-03-14T11:56:46Z",
+      "body": "@xiaozhitaba i'm not sure i follow you.\r\nplease take a step backwards and explain what you mean to report.\r\nis there any regression here compared to previous versions?\r\nor is it just that you where expecting some improvement and it didn't materialize?\r\nor do you have a suggestion? in which case maybe push a PR?\r\n\r\nyour reproduction steps are not very clear to me.\r\nyou mean you have 10 replicas on the one master?"
+    },
+    {
+      "id": 1066750090,
+      "user": "xiaozhitaba",
+      "created_at": "2022-03-14T12:53:43Z",
+      "body": "@oranagra when we sent 1000k \"set key value\" , prepareReplicasToWrite in feedReplicationBuffer cost too much cpu. \r\ndo we have  a better way to avoid this problem?\r\nwhen we exec feedReplicationBuffer in replicationFeedSlaves , we need to traverse all Slaves, too waste cpu resources"
+    },
+    {
+      "id": 1066755728,
+      "user": "xiaozhitaba",
+      "created_at": "2022-03-14T13:00:26Z",
+      "body": "@oranagra \r\nI suggest\r\n\r\nvoid feedReplicationBuffer(char *s, size_t len) {\r\n#if 0\r\n    /* Install write handler for all replicas. */\r\n    prepareReplicasToWrite();\r\n#endif\r\n......\r\n}\r\n\r\nvoid replicationFeedSlaves(list *slaves, int dictid, robj **argv, int argc) {\r\n......\r\n#if 1\r\n    /* Install write handler for all replicas. */\r\n    prepareReplicasToWrite();\r\n#endif\r\n}\r\n\r\n"
+    },
+    {
+      "id": 1066764773,
+      "user": "oranagra",
+      "created_at": "2022-03-14T13:08:56Z",
+      "body": "are you sure the problem is just the traversal of slaves and CPU utilization?\r\nif you're suggesting to move the call to `prepareReplicasToWrite` to `replicationFeedSlaves` (and `replicationFeedStreamFromMasterStream`) seems valid.\r\ndid you / can you benchmark that impact of this?\r\n\r\nplease note that in the scenario you're describing, there's a severe amplification problem that is unavoidable.\r\ni.e. on every input byte from a client, there are 10 output bytes.\r\neach command that is read from a client socket, is written to 10 sockets."
+    },
+    {
+      "id": 1067540973,
+      "user": "xiaozhitaba",
+      "created_at": "2022-03-15T04:04:43Z",
+      "body": "@oranagra \r\nhere is my  way\r\nvoid feedReplicationBuffer(char s, size_t len) {\r\n#if 0\r\n/ Install write handler for all replicas. */\r\nprepareReplicasToWrite();\r\n#endif\r\n......\r\n}\r\n\r\nvoid replicationFeedSlaves(list *slaves, int dictid, robj *argv, int argc) {\r\n#if 1\r\n/ Install write handler for all replicas. */\r\nprepareReplicasToWrite();\r\n#endif\r\n......\r\n}\r\n\r\n send 1000k \"set key value\"  replication  to  10 salves, watch cpu utilization  in valgrind.  it is  much better .\r\nreplicationFeedSlaves\r\n34.48%\r\n(0.99%)\r\n1000096×\r\n\r\n10 sockets write . cpu cost only 0.76%.\r\nwriteToClient\r\n0.76%\r\n(0.19%)\r\n393860×\r\n\r\n\r\n![redis-server-10-slaves valgrind out](https://user-images.githubusercontent.com/10022712/158303288-95c480c9-c9fd-4914-82e9-f26ceb8a4be8.svg)\r\n\r\n"
+    },
+    {
+      "id": 1067566735,
+      "user": "ShooterIT",
+      "created_at": "2022-03-15T05:03:04Z",
+      "body": "I will have a look. before 7.0, i noticed it costs much on appending buffer into replicas' output buffer. I thought #9166 resolved it, but from your test, it seems there still is an issue, thanks, i will test ASAP."
+    },
+    {
+      "id": 1070921964,
+      "user": "ShooterIT",
+      "created_at": "2022-03-17T13:23:39Z",
+      "body": "Hi @xiaozhitaba except different call number of prepareReplicasToWrite, did you find performance loss? I found your way has better performance,\r\nbefore\r\n```\r\nSummary:\r\n  throughput summary: 62438.34 requests per second\r\n  latency summary (msec):\r\n          avg       min       p50       p95       p99       max\r\n        0.726     0.096     0.703     1.007     1.383     2.599\r\n```\r\nafter\r\n```\r\nSummary:\r\n  throughput summary: 65684.89 requests per second\r\n  latency summary (msec):\r\n          avg       min       p50       p95       p99       max\r\n        0.683     0.096     0.671     0.943     1.335     2.215\r\n```\r\n\r\nYou can submit a PR, as oranagra said,\r\n\r\n> call to prepareReplicasToWrite to replicationFeedSlaves (and replicationFeedStreamFromMasterStream) seems valid."
+    },
+    {
+      "id": 1070924154,
+      "user": "ShooterIT",
+      "created_at": "2022-03-17T13:26:05Z",
+      "body": "Hi @oranagra BTW, we may call much times of `prepareClientToWrite` for complex reply."
+    },
+    {
+      "id": 1073239067,
+      "user": "oranagra",
+      "created_at": "2022-03-20T12:19:34Z",
+      "body": "> Hi @oranagra BTW, we may call much times of prepareClientToWrite for complex reply.\r\n\r\nyes, but this is not a conceptually complex of expensive function to call.\r\ni.e. it does a series of checks which will end up doing nothing if it is called for the second time.\r\nit would be silly to call it in a loop if we can move the call out of the loop. but i don't see any reason to change it or avoid calling it."
+    },
+    {
+      "id": 1084173190,
+      "user": "soloestoy",
+      "created_at": "2022-03-31T07:02:04Z",
+      "body": "anything news about this issue? i think 7.0 GA should take this optimization, @xiaozhitaba could you submit a PR to fix it?"
+    },
+    {
+      "id": 1096050034,
+      "user": "oranagra",
+      "created_at": "2022-04-12T05:05:35Z",
+      "body": "@ShooterIT maybe you want to pick this up?"
+    },
+    {
+      "id": 1096161009,
+      "user": "ShooterIT",
+      "created_at": "2022-04-12T06:32:10Z",
+      "body": "OK, done this week"
+    }
+  ]
+}

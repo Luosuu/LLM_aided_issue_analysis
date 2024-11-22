@@ -1,0 +1,18 @@
+{
+  "issue_number": 11019.0,
+  "title": "[BUG] JSONPath OR operator || returns empty result if one predicate fails",
+  "body": "**Describe the bug**\r\n\r\nThe logical operator ``||`` in rejson is currently broken that if one of the conditions ored together returns no data the results from other predicates are all ignored and the result is set to empty.\r\n\r\n**To reproduce**\r\n\r\n```\r\n>>> import json\r\n>>> from redis import asyncio as aioredis\r\n>>> redis = aioredis.from_url(\"redis://some-url\", encoding=\"utf-8\", decode_responses=True)\r\n>>> payload = [\r\n    {\"first\": \"Joe\", \"nickname\": \"Master\", \"last\": \"Weider\"},\r\n    {\"first\": \"Arnold\", \"nickname\": \"Arnie\", \"last\": \"Schwarzenegger\"},\r\n    {\"first\": \"Dorian\", \"nickname\": \"The Shadow\", \"last\": \"Yates\"},\r\n    {\"first\": \"Lee\", \"nickname\": \"\", \"last\": \"Haney\"},\r\n    {\"first\": \"Phil\", \"middle\": \"Gift\", \"last\": \"Heath\"},\r\n]\r\n>>> await redis.execute_command('json.set', \"names\", '$', json.dumps(payload))`\r\n```\r\n\r\nThe line below works as expected\r\n```\r\n>>> json.loads(await redis.execute_command('json.get', 'names', ('$.*[?((@.first == \"Joe\" && @.last == \"Weider\")||(@.first == \"Dorian\" && @.last == \"Yates\"))]')))\r\n[{'first': 'Joe', 'nickname': 'Master', 'last': 'Weider'}, {'first': 'Dorian', 'nickname': 'The Shadow', 'last': 'Yates'}]\r\n```\r\n\r\nWhereas replacing \"Yates\" with \"Gray\" does not and return ``[]``\r\n\r\n```\r\n>>> json.loads(await redis.execute_command('json.get', 'names', ('$.*[?((@.first == \"Joe\" && @.last == \"Weider\")||(@.first == \"Dorian\" && @.last == \"Gray\"))]')))\r\n[]\r\n```\r\n\r\n\r\n**Expected behavior**\r\n\r\nWe expect to return one record for \"Joe Weider\"\r\n```\r\n>>> json.loads(await redis.execute_command('json.get', 'names', ('$.*[?((@.first == \"Joe\" && @.last == \"Weider\")||(@.first == \"Dorian\" && @.last == \"Gray\"))]')))\r\n[{'first': 'Joe', 'nickname': 'Master', 'last': 'Weider'}]\r\n```\r\n\r\n**Additional information**\r\n\r\nIt appears that the or operator ``||`` nullifies the entire result when one record fails to meet the predicate, which is not correct.  The expected behavior is to get the remaining records where the predicates have matched.",
+  "state": "closed",
+  "created_at": "2022-07-20T16:02:59Z",
+  "updated_at": "2022-07-20T16:12:10Z",
+  "closed_at": "2022-07-20T16:12:09Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1190479802,
+      "user": "oranagra",
+      "created_at": "2022-07-20T16:12:09Z",
+      "body": "please open in https://github.com/RedisJSON/RedisJSON"
+    }
+  ]
+}

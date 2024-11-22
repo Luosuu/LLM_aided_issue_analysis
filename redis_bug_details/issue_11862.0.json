@@ -1,0 +1,50 @@
+{
+  "issue_number": 11862.0,
+  "title": "[BUG] Inconsistent behaviour of Lua msgpack between platforms",
+  "body": "**Describe the bug**\r\n\r\nThe results of Lua cmsgpack are dependent on the host platform.\r\n\r\n**To reproduce**\r\n\r\n```\r\neval \"return cmsgpack.pack(cmsgpack.unpack('\\\\211\\\\127\\\\255\\\\255\\\\255\\\\255\\\\255\\\\255\\\\255'))\" 0\r\n```\r\n\r\nThis binary string is a msgpack encoded 64bit signed integer - specifically 9223372036854775807\r\nThe first byte is 0xd3 which denotes this format.\r\n\r\nRunning this command on Redis 7.0.8 / OSX (Apple Silicon M2 - OSX 13.1):\r\n```\r\n\"\\xcf\\x7f\\xff\\xff\\xff\\xff\\xff\\xff\\xff\"\r\n```\r\nThis is the 64bit unsigned encoding of the same number (so 'fine')\r\n\r\nRunning this command on Redis 7.0.8 / Linux (Ubuntu 22.04.2 LTS):\r\n```\r\n\"\\xca_\\x00\\x00\\x00\"\r\n```\r\nThis is a float32 encoding of roughly the right value.\r\n\r\n**Expected behavior**\r\n\r\nActually unsure, what is the correct behaviour, as Lua 5.1 doesn't support 64-bit integers I am somewhat surprised by the OSX response being lossless - but at the same time i'm surprised at the float32-float64 conversion that occurred in the Linux variant.\r\n\r\nMy expected result is more that both OSen should have identical output. \r\n\r\n**Additional information**\r\n\r\nI personally favour the route of an accurate-as-possible int64/float64 result.\r\n",
+  "state": "open",
+  "created_at": "2023-02-28T21:54:37Z",
+  "updated_at": "2023-03-06T07:15:30Z",
+  "closed_at": null,
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 1449442499,
+      "user": "sundb",
+      "created_at": "2023-03-01T06:50:03Z",
+      "body": "Because the precision of `double` is not consistent across platforms, `IS_INT64_EQUIVALENT` is inconsistent in determining whether 9223372036854775807 is int64.\r\nso `cmsgpack.pack` will pack `9223372036854775807` as int64(\\xcf\\x7f\\xff\\xff\\xff\\xff\\xff\\xff\\xff) or double(\\xca_\\x00\\x00\\x0)\r\n\r\nsimple test\r\n```c\r\n#include <stdio.h>\r\n#include <stdint.h>\r\n\r\nint main() {\r\n    double d = 9223372036854775807;\r\n    printf(\"%d\\n\", (int64_t)d == d);\r\n}\r\n\r\n# output\r\nubuntu: 0\r\nmac: 1\r\n```"
+    },
+    {
+      "id": 1450443724,
+      "user": "nicknotfun",
+      "created_at": "2023-03-01T16:29:56Z",
+      "body": "Suspected that would be the case, it does suggest a better approach however might be available? I'd have expected 'same in same out' for Redis x-platform."
+    },
+    {
+      "id": 1451182713,
+      "user": "sundb",
+      "created_at": "2023-03-02T02:32:09Z",
+      "body": "@nicknotfun i don't know how to do that.\r\njust like the following  `INCRBYFLOAT` command example that also shows different results on different platforms.\r\n```sh\r\n> INCRBYFLOAT key 9223372036854775807\r\n\r\n# mac\r\n\"9223372036854775808\"\r\n\r\n# ubuntu\r\n\"9223372036854775807\"\r\n```\r\n\r\nThe ways I can think of are:\r\n1) treat `9223372036854775807` as a string.\r\n2) upgrade the version of lua to 5.3"
+    },
+    {
+      "id": 1452271101,
+      "user": "nicknotfun",
+      "created_at": "2023-03-02T17:47:54Z",
+      "body": "In the case of msgpack it arguably should just only ever encode as the most precise it can, e.g. something like:\r\n\r\n<=32bit, integer = i32\r\n<=53bit, integer = i64\r\nf32 if lossless, otherwise f64\r\n\r\nNothing guarantees the precise representation of the 53+bit numbers ; and without this it means you cannot reliably communicate with Redis-Lua. The incrbyfloat example I think is distinct as it's solely on Redis to decide; but msgpack is a data interchange format, and round-tripping is an important property for it to have for communication"
+    },
+    {
+      "id": 1452920937,
+      "user": "sundb",
+      "created_at": "2023-03-03T03:49:10Z",
+      "body": "@nicknotfun In lua(5.3) there is support for storing number in a similar way to what you said, when the number can be stored to `int64`, it will be `lua_integer(int64_t), otherwise lua_Number(double).\r\nbut in lua(<5.3) all the numbers are always stored as lua_Number, so precision problem is unavoidable."
+    },
+    {
+      "id": 1452931759,
+      "user": "nicknotfun",
+      "created_at": "2023-03-03T04:04:22Z",
+      "body": "I agree lua 5.3 is better, but under 5.1 I think it should prefer consistency. "
+    }
+  ]
+}

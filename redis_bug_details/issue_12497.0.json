@@ -1,0 +1,20 @@
+{
+  "issue_number": 12497.0,
+  "title": "[BUG] REDIS_BUILD_ID_RAW not getting defined in release.h building stable",
+  "body": "Attempting to build redis from source using redis-stable is failing with the following error.\r\n\r\n```\r\nrelease.c: In function ‘redisBuildIdRaw’:\r\nrelease.c:49:12: error: ‘REDIS_BUILD_ID_RAW’ undeclared (first use in this function); did you mean ‘REDIS_BUILD_ID’?\r\n   49 |     return REDIS_BUILD_ID_RAW;\r\n      |            ^~~~~~~~~~~~~~~~~~\r\n```\r\n\r\n**To reproduce**\r\npulled down a fresh copy, failed on a simple make.  Attempted to make clean, and make distclean, with no changes.\r\n\r\n**Additional information**\r\n\r\nrelease.h appears to be generated incorrectly, and does not contain the REDIS_BUILD_ID_RAW\r\n\r\n#define REDIS_GIT_SHA1 \"00000000\"\r\n#define REDIS_GIT_DIRTY \"0\"\r\n#define REDIS_BUILD_ID \"prd-jen-ti-1-1689632937\"\r\n\r\n\r\nremoving this file, and running make install from the src directory appears to generate this file correctly.\r\n\r\ncat src/release.h\r\n#define REDIS_GIT_SHA1 \"00000000\"\r\n#define REDIS_GIT_DIRTY \"0\"\r\n#define REDIS_BUILD_ID \"prd-jen-ti-1-1692285669\"\r\n#include \"version.h\"\r\n#define REDIS_BUILD_ID_RAW REDIS_VERSION REDIS_BUILD_ID REDIS_GIT_DIRTY REDIS_GIT_SHA1\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-08-17T16:14:35Z",
+  "updated_at": "2023-09-01T17:30:52Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1687628028,
+      "user": "hwware",
+      "created_at": "2023-08-22T07:29:52Z",
+      "body": "I just pull the latest commit (commit 1407ac1f3ece8f7e4094f92e649e5d0b7c5e5bde) and build it, it is successful.\r\nThe step is:\r\n1. make distclean\r\n2. make\r\n\r\nmy environment is：\r\n\r\nPRETTY_NAME=\"Ubuntu 22.04.2 LTS\"\r\nNAME=\"Ubuntu\"\r\nVERSION_ID=\"22.04\"\r\nVERSION=\"22.04.2 LTS (Jammy Jellyfish)\"\r\nVERSION_CODENAME=jammy\r\nID=ubuntu\r\nID_LIKE=debian\r\n\r\nCould you please try the latest version? Or provide more detail of your compile environment,  Thanks"
+    }
+  ]
+}

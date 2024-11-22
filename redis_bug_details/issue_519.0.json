@@ -1,0 +1,20 @@
+{
+  "issue_number": 519.0,
+  "title": "ZINTERSTORE mixing sets and sorted sets may produce wrong results.",
+  "body": "**Joel Stevenson reports:**\n\nI have two sets and a single sorted set and I'm trying to use zinterstore to get the scored intersection of all three.  The operation is failing with my production data but succeeding if I substitute a test sorted set it works in some cases but not all and I'm stumped about why.\n\nTo setup the test, add three entries to set \"one\", four entries to set \"two\" - including a signle entry that exists in set \"one\", and four entries in the sorted set - including that same single entry from set \"one\"\n\nsadd one 100 101 102 103 \nsadd two 100 200 201 202\nzadd three 1 500 1 501 1 502 1 503 1 100\n\nNow if you run\n\nzinterstore to_here 3 one two three WEIGHTS 0 0 1\n\nNothing is found to intersect.\n\nCreate a new sort set \"four\":\n\nzadd four 1 600 1 100 \n\nzinterstore to_here 3 one two four WEIGHTS 0 0 1\n\nThere is an intersection on the entry 100!\n\nMy production data isn't so simple but I'm seeing the same result, some intersections appear to work, at least in part, but others fail completely.  I'm sure I must be doing something wrong but I can't see what it is.  Can anyone help me out?\n\nThis happens on redis versions 2.4.13 and the latest 2.6 RC.\n\n**Josiah Carlson adds:**\n\nTesting against Redis 2.4.1, 2.4.7, 2.4.10 your intersection works for me.\nTesting against Redis 2.4.13 however, fails.\n\nThis looks like a bug to me.\n",
+  "state": "closed",
+  "created_at": "2012-05-23T08:35:57Z",
+  "updated_at": "2012-05-23T09:53:45Z",
+  "closed_at": "2012-05-23T09:53:45Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 5867747,
+      "user": "antirez",
+      "created_at": "2012-05-23T08:37:37Z",
+      "body": "Sorry this one was duplicated of #516. Closing.\n"
+    }
+  ]
+}

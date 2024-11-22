@@ -1,0 +1,30 @@
+{
+  "issue_number": 7675.0,
+  "title": "[BUG] Service Redis-Server Fails to Start",
+  "body": "I have a docker image which is being run in a Bitbucket pipeline, pretty standard stuff\r\nEverything was running fine before I updated the docker image. Then `service redis-server restart` results in the error \"Service redis-server: failed\".\r\nJournalctl -xe is empty\r\n/var/log/redis.log is empty\r\nEvery log file is empty, stdout is empty, error code is empty\r\n\r\nThe OS is ubuntu 20.04 and redis version is `Redis server v=5.0.7 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=636cde3b5c7a3923`\r\n\r\nAny advice?",
+  "state": "closed",
+  "created_at": "2020-08-18T17:16:48Z",
+  "updated_at": "2020-08-28T19:31:04Z",
+  "closed_at": "2020-08-28T19:31:04Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 675612770,
+      "user": "oranagra",
+      "created_at": "2020-08-18T17:29:17Z",
+      "body": "try to execute redis manually (possibly with the same config file). maybe you'll see what's the problem."
+    },
+    {
+      "id": 675613361,
+      "user": "gofish543",
+      "created_at": "2020-08-18T17:30:29Z",
+      "body": "That's the weird part... starting redis manually works.\r\n\r\nUpon editing /etc/init.d/redis.service to print out the start-stop-daemon error code, it prints the error code of 2. I've got no idea what this means and is way out of my knowledge scope"
+    },
+    {
+      "id": 677813644,
+      "user": "gofish543",
+      "created_at": "2020-08-20T17:59:58Z",
+      "body": "Downgrading the docker container to Ubuntu 18.04 and redis 4 fixes the problem. \r\n\r\nSo something is wrong with Ubuntu 20.04 and 5.0.7 within a bitbucket pipeline"
+    }
+  ]
+}

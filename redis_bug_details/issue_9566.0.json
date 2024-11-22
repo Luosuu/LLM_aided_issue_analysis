@@ -1,0 +1,18 @@
+{
+  "issue_number": 9566.0,
+  "title": "[BUG] Instance with RDB enabled will block and timeout any client requests when shutting down",
+  "body": "When an instance with RDB persistence enabled is shutting down it will block and timeout any client requests.\r\nA dataset with between 1 and 2GBs is enough to keep the instance serving timeouts for about 14 secs in a setup I have with pretty decent storage.\r\nThat's hard to handle from client side because it doesn't know it needs to reconnect to a different replica. Timeouts could be genuine during the lifetime of the instance or be a shutdown, which we know we want to move to another replica in this case.\r\n\r\nHealth probes on the instance will detect it's timing out, but that can't be immediately, meaning a period of unavailability.\r\n\r\n**Expected behavior**\r\n\r\nAt least keep serving reads on read-only replicas or kill all clients (and don't allow reconnection) so they try to reconnect to a different replica (not sure about master/replicas connected)\r\n\r\n**Additional information**\r\n\r\nOn server.c : prepareForShutdown() we can see this behavior:\r\n```\r\n    /* Create a new RDB file before exiting. */\r\n    if ((server.saveparamslen > 0 && !nosave) || save) {\r\n        serverLog(LL_NOTICE,\"Saving the final RDB snapshot before exiting.\");\r\n        if (server.supervised_mode == SUPERVISED_SYSTEMD)\r\n            redisCommunicateSystemd(\"STATUS=Saving the final RDB snapshot\\n\");\r\n        /* Snapshotting. Perform a SYNC SAVE and exit */\r\n        rdbSaveInfo rsi, *rsiptr;\r\n        rsiptr = rdbPopulateSaveInfo(&rsi);\r\n        if (rdbSave(server.rdb_filename,rsiptr) != C_OK) {\r\n            /* Ooops.. error saving! The best we can do is to continue\r\n             * operating. Note that if there was a background saving process,\r\n             * in the next cron() Redis will be notified that the background\r\n             * saving aborted, handling special stuff like slaves pending for\r\n             * synchronization... */\r\n            serverLog(LL_WARNING,\"Error trying to save the DB, can't exit.\");\r\n            if (server.supervised_mode == SUPERVISED_SYSTEMD)\r\n                redisCommunicateSystemd(\"STATUS=Error trying to save the DB, can't exit.\\n\");\r\n            return C_ERR;\r\n        }\r\n    }\r\n```\r\n",
+  "state": "open",
+  "created_at": "2021-09-29T15:37:40Z",
+  "updated_at": "2021-11-25T17:07:08Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 979364967,
+      "user": "zuiderkwast",
+      "created_at": "2021-11-25T17:07:08Z",
+      "body": "Related to #9693"
+    }
+  ]
+}

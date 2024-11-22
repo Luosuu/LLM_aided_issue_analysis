@@ -1,0 +1,48 @@
+{
+  "issue_number": 8318.0,
+  "title": "Snapshotting enabled with no save directive in config file (redis 6.2-rc1) [BUG]",
+  "body": "**Describe the bug**\r\n\r\nIn Redis 6.0.9 snapshotting was disabled if there was no `save` directive in the config file. This is consistent with the docs: https://raw.githubusercontent.com/redis/redis/6.0/redis.conf\r\n> Note: you can disable saving completely by commenting out all \"save\" lines.\r\n\r\nIn Redis 6.2-rc1 snapshotting seems to be enabled even with no `save` directive in the config file.\r\n\r\n**To reproduce**\r\n```\r\necho > redis-config\r\ndocker run -v $(pwd)/redis-config:/redis-config -p 6379:6379 redis:6.2-rc1-alpine redis-server /redis-config\r\n```\r\n\r\n```\r\nfor VARIABLE in {1..200}; do redis-cli set one two; done\r\n```\r\n\r\n**Expected behavior**\r\n\r\nDon't expect to see after 5 mins:\r\n> 100 changes in 300 seconds. Saving...\r\n",
+  "state": "closed",
+  "created_at": "2021-01-13T05:05:45Z",
+  "updated_at": "2021-01-20T21:56:09Z",
+  "closed_at": "2021-01-19T18:31:31Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 759242759,
+      "user": "ShooterIT",
+      "created_at": "2021-01-13T06:44:21Z",
+      "body": "Related PRs: https://github.com/redis/redis/pull/7092 , https://github.com/redis/redis/pull/7767\r\n\r\nNow, There is a basic question, default SAVE param is? 🤔 \r\nFrom `redis.conf` comments, it likely should be empty."
+    },
+    {
+      "id": 759493352,
+      "user": "oranagra",
+      "created_at": "2021-01-13T14:43:12Z",
+      "body": "There used to be a bug (#5629) in which passing any command line configuration (which is probably happens in docker) would reset the default save config.\r\n\r\nThis bug is now fixed in 6.2, and the behavior change is mentioned in the release notes:\r\n```\r\n* Not resetting \"save\" config when Redis is started with command line arguments. (#7092)\r\n  In case you provide command line arguments without \"save\" and count on it\r\n  being disabled, Now the defaults \"save\" config will kick in.\r\n```\r\n\r\nThe default behavior of redis (when just lunched like `./redis-server`) was that it has a default save, and that's always been the case.\r\n```\r\nsrc/redis-server &\r\n...\r\nredis-cli config get save\r\n1) \"save\"\r\n2) \"3600 1 300 100 60 10000\"\r\n```\r\n\r\nSo it seems like the documentation in redis.conf is simply incorrect, and that but i mentioned above made it look correct, but only in certain scenarios.\r\n\r\n@itamarhaber maybe you have something to contribute here? can we just update redis.conf doc line?"
+    },
+    {
+      "id": 759613894,
+      "user": "simonkotwicz",
+      "created_at": "2021-01-13T17:50:54Z",
+      "body": "Note that this has the potential to break anyone using a config file (passed as a command line arg - `redis-server my-redis-config`) and if snapshotting fails (due to a file permission error for example) it will also fail writes due to the default `stop-writes-on-bgsave-error yes`."
+    },
+    {
+      "id": 759981222,
+      "user": "oranagra",
+      "created_at": "2021-01-14T07:25:49Z",
+      "body": "@simonkotwicz indeed this is a behavior change, i'm hoping people read the release notes carefully, specifically the ones in the \"behavior change\" section.\r\n\r\nas far as i understand your example i don't think there's a behavior change in that case.\r\nlet's consider these\r\n* `./redis-server` - when no arguments, redis starts with default save config as it always has.\r\n* `./redis-server redis.conf` - also no change, it'll use the default or what specified in the config file.\r\n* `./redis-server redis.conf --port 12345` - this is where the bug was (the argument was resetting the save config)\r\n* `./redis-server --port 12345` - same as the above."
+    },
+    {
+      "id": 760158134,
+      "user": "itamarhaber",
+      "created_at": "2021-01-14T12:12:25Z",
+      "body": "I concur with @oranagra "
+    },
+    {
+      "id": 763975004,
+      "user": "simonkotwicz",
+      "created_at": "2021-01-20T21:56:09Z",
+      "body": "PR to fix a typo https://github.com/redis/redis/pull/8362"
+    }
+  ]
+}

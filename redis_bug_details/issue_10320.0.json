@@ -1,0 +1,20 @@
+{
+  "issue_number": 10320.0,
+  "title": "[BUG] Floating point Rounding error when running on Mac M1.",
+  "body": "**Describe the bug**\r\n\r\n```\r\n bin (stable) redis-cli\r\n127.0.0.1:6379> set foo 123.23\r\nOK\r\n127.0.0.1:6379> incrbyfloat foo 1.2\r\n\"124.43000000000000682\"\r\n127.0.0.1:6379> \r\n```\r\n\r\n**To reproduce**\r\n\r\nSee above\r\n\r\n**Expected behavior**\r\n\r\nThe output should be 124.43.\r\n\r\n**Additional information**\r\n\r\nThis bug was discovered by running tests on ioredis https://github.com/luin/ioredis/issues/1510\r\nI was able to confirm that running on the same version of redis on Ubuntu had no issues. (version 6.2.6)\r\nredis was installed using homebrew.\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-02-22T00:37:00Z",
+  "updated_at": "2022-02-22T06:20:51Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1047363184,
+      "user": "sundb",
+      "created_at": "2022-02-22T02:20:39Z",
+      "body": "@dipunm Since long double has different precision at different points, this return is normal.\r\nref #9709"
+    }
+  ]
+}

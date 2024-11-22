@@ -1,0 +1,54 @@
+{
+  "issue_number": 11683.0,
+  "title": "[BUG] hincrby/incrby -0 will report an error",
+  "body": null,
+  "state": "closed",
+  "created_at": "2023-01-04T07:54:08Z",
+  "updated_at": "2023-01-05T05:14:46Z",
+  "closed_at": "2023-01-05T05:14:46Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1370594341,
+      "user": "sundb",
+      "created_at": "2023-01-04T08:06:08Z",
+      "body": "0 is neither a positive nor a negative number... So it doesn't have a negative sign."
+    },
+    {
+      "id": 1370625059,
+      "user": "lijinliangyihao",
+      "created_at": "2023-01-04T08:41:50Z",
+      "body": "@sundb But it isn't an error, and should be treated as 0.\r\nMy lua script crashed because of this.\r\nIn any programming language, expression `int a = -0` is considered legal."
+    },
+    {
+      "id": 1370630322,
+      "user": "sundb",
+      "created_at": "2023-01-04T08:48:12Z",
+      "body": "@lijinliangyihao You're right, also I found that `HINCRBYFLOAT -0` is legal.\r\nDo you wanna make a PR to fix it?"
+    },
+    {
+      "id": 1370686713,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-04T09:33:20Z",
+      "body": "Does this mean we need to support +0 or -0000 or +1 ... ? these are all legal in Python\r\n\r\nif we just want to support -0, we can simply modify string2ll to support it\r\n"
+    },
+    {
+      "id": 1370692147,
+      "user": "sundb",
+      "created_at": "2023-01-04T09:38:26Z",
+      "body": "@enjoy-binbin I think -0 is enough, in some scenarios we might add `-` sign in front of a positive number to make it negative, but not a `+` sign in front of a negative number."
+    },
+    {
+      "id": 1370703202,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-04T09:48:41Z",
+      "body": "noted that HINCRBYFLOAT is support +0 and -0 and +00000 and -0000000, and even -00001, +00001. it using `string2ld` and support these"
+    },
+    {
+      "id": 1371791710,
+      "user": "lijinliangyihao",
+      "created_at": "2023-01-05T05:14:45Z",
+      "body": "It seems fix this problem is not very helpful, and may cause other problems. This error can be bypassed by not using -0. Users should be more careful when using script:\r\n```\r\nlocal num = tonumber(ARGV[1])\r\nredis.call('incrby', KEYS[1], -num)\r\n```\r\nthey should make sure num is not zero."
+    }
+  ]
+}

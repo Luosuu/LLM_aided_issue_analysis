@@ -1,0 +1,36 @@
+{
+  "issue_number": 13021.0,
+  "title": "[BUG] Build fails due to undefined reference to `backtrace_symbols_fd': 6.0.13",
+  "body": "while compiling the source code getting below \r\nsrc/debug.c:1454: undefined reference to `backtrace'\r\nsrc/debug.c:1461: undefined reference to `backtrace_symbols_fd'\r\nsrc/debug.c:1466: undefined reference to `backtrace_symbols_fd'\r\n\r\n**To reproduce**\r\n$ gmake BUILD_TLS=yes\r\n<img width=\"750\" alt=\"Screenshot 2024-02-01 at 11 19 26 AM\" src=\"https://github.com/redis/redis/assets/39419246/c2fbe229-8a05-4c98-9b18-657e798b624b\">\r\n",
+  "state": "closed",
+  "created_at": "2024-02-01T18:31:12Z",
+  "updated_at": "2024-02-05T23:42:54Z",
+  "closed_at": "2024-02-05T23:42:54Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1923666760,
+      "user": "sundb",
+      "created_at": "2024-02-02T12:00:04Z",
+      "body": "@jaiswalpuru Which operation system are you using and what is its version?"
+    },
+    {
+      "id": 1924674490,
+      "user": "jaiswalpuru",
+      "created_at": "2024-02-02T20:46:48Z",
+      "body": "I am trying to compile on freebsd version - 24-r\r\nredis version 6.0.13\r\nFound a workaround, in config.h have removed defined(__FREEBSD__)\r\n<img width=\"551\" alt=\"Screenshot 2024-02-02 at 12 46 41 PM\" src=\"https://github.com/redis/redis/assets/39419246/41ee9b39-f8c5-4e1b-9c3c-2e8ec8d4cb8a\">\r\n"
+    },
+    {
+      "id": 1925201070,
+      "user": "sundb",
+      "created_at": "2024-02-03T07:43:34Z",
+      "body": "> I am trying to compile on freebsd version - 24-r\r\n\r\n14-r?"
+    },
+    {
+      "id": 1925247218,
+      "user": "jaiswalpuru",
+      "created_at": "2024-02-03T09:42:27Z",
+      "body": "my bad yes, its 14-r"
+    }
+  ]
+}

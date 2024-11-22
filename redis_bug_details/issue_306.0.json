@@ -1,0 +1,44 @@
+{
+  "issue_number": 306.0,
+  "title": "redis-cli incorrect prompt string on socket connect",
+  "body": "I have a redis 2.4.6 installation under Linux.  It is configured to listen on port 6111 and domain socket /tmp/redis.sock .\n\nWhen I do\n`redis-cli -s /tmp/redis.sock`\nI get the following prompt:\n`redis 127.0.0.1:6379>`\n\nMy server is NOT listening on port 6379.  So this prompt is incorrect.\n\nCan you change it to show the socket name when -s is used?  The correct prompt would be:\n`redis /tmp/redis.sock>`\n\nThank you!\n",
+  "state": "closed",
+  "created_at": "2012-01-19T19:23:56Z",
+  "updated_at": "2012-02-23T02:23:13Z",
+  "closed_at": "2012-02-22T16:14:05Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 3645663,
+      "user": "tchajed",
+      "created_at": "2012-01-25T04:08:14Z",
+      "body": "Here's a patch that fixes this issue:\n\n```\nFrom d792cc5350e9b31d1c3bc54ed2e8fe0d1199bf36 Mon Sep 17 00:00:00 2001\nFrom: Tej Chajed <tchajed@gmail.com>\nDate: Tue, 24 Jan 2012 22:01:24 -0600\nSubject: [PATCH] fixed prompt in redis-cli when connecting to a socket\n\n---\n src/redis-cli.c |   18 ++++++++++++------\n 1 files changed, 12 insertions(+), 6 deletions(-)\n\ndiff --git a/src/redis-cli.c b/src/redis-cli.c\nindex 3f60a13..2e02f78 100644\n--- a/src/redis-cli.c\n+++ b/src/redis-cli.c\n@@ -91,12 +91,18 @@ static long long mstime(void) {\n }\n\n static void cliRefreshPrompt(void) {\n-    if (config.dbnum == 0)\n-        snprintf(config.prompt,sizeof(config.prompt),\"redis %s:%d> \",\n-            config.hostip, config.hostport);\n-    else\n-        snprintf(config.prompt,sizeof(config.prompt),\"redis %s:%d[%d]> \",\n-            config.hostip, config.hostport, config.dbnum);\n+   sds prompt = sdsnew(\"redis \");\n+   if (config.hostsocket != NULL) {\n+       prompt = sdscat(prompt, config.hostsocket);\n+   } else {\n+        prompt = sdscatprintf(prompt, \"%s:%d\", config.hostip, config.hostport);\n+        if (config.dbnum > 0) {\n+            prompt = sdscatprintf(prompt, \"[%d]\", config.dbnum);\n+        }\n+    }\n+    prompt = sdscat(prompt, \"> \");\n+    strcpy(config.prompt, prompt);\n+    //snprintf(config.prompt, sizeof(config.prompt), \"redis \");\n }\n\n /*------------------------------------------------------------------------------\n-- \n1.7.8.4\n```\n"
+    },
+    {
+      "id": 3657774,
+      "user": "pietern",
+      "created_at": "2012-01-25T19:56:20Z",
+      "body": "This is being addressed in #314. Leaving this issue open until fixed and merged.\n"
+    },
+    {
+      "id": 4071440,
+      "user": "antirez",
+      "created_at": "2012-02-21T09:19:52Z",
+      "body": "The patch still needs some care, trivial to fix but I think the original author wants to care about it himself. Maybe at this point it makes sense to submit a new pull request with a single commit given that the issue is trivial and three commits are confusing in this context ;)\n"
+    },
+    {
+      "id": 4107201,
+      "user": "antirez",
+      "created_at": "2012-02-22T16:14:05Z",
+      "body": "Issue fixed with a different patch, original patcher credited in comments. Thank you, closing.\n"
+    },
+    {
+      "id": 4129543,
+      "user": "jamarshall",
+      "created_at": "2012-02-23T02:23:13Z",
+      "body": "Thanks for fixing the issue!  I look forward to seeing it in a production release.\n\n--Jonathan\n"
+    }
+  ]
+}

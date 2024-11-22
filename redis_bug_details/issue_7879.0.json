@@ -1,0 +1,54 @@
+{
+  "issue_number": 7879.0,
+  "title": "[BUG] RedisModule_UnblockClient behaviour does not match the documentation",
+  "body": "**Describe the bug**\r\nsorry if this text is a bit confusing, it has been many hours of debugging until I realized this may be an issue with redis.\r\n\r\nThe documentation for ```RedisModule_UnblockClient``` is either incorrect or something does not add up in how to use the function when blocking a client with ```RedisModule_BlockClientOnKeys```.\r\n\r\nDue to issue #7878 I am using the function above as a workaround for unblocking the client. In this case the client is unblocked as expected, and this time as the documentation states (confusingly since it first talks about reply callback then clarifies that it is the timeout callback) it calls the Timeout callback instead of the reply callback (https://redis.io/topics/modules-api-ref)\r\n```\r\nNote 2: when we unblock a client that is blocked for keys using the API RedisModule_BlockClientOnKeys(),\r\nthe privdata argument here is not used, and the reply callback is called with\r\nthe privdata pointer that was passed when blocking the client.\r\n\r\nUnblocking a client that was blocked for keys using this API will still require\r\nthe client to get some reply, so the function will use the \"timeout\" handler in\r\norder to do so.\r\n```\r\nThe problem is that the signature of the timeout callback is this one (in zig):\r\n```zig\r\nfn TimeoutReplyCallback(ctx: ?*RedisModuleCtx, argv: [*c]?*RedisModuleString, argc: c_int) callconv(.C) c_int\r\n```\r\nThere is no privdata argument in the signature, so that must be a mismatch with the documentation. But the biggest problem is that if you try to get the privdata with \r\n```zig\r\n    const pData: *ReplyData = @ptrCast(*ReplyData, RedisModule_GetBlockedClientPrivateData.?(ctx));\r\n``` \r\npData will always be NULL. Therefore it becomes impossible to access the privdata in this scenario.\r\n\r\nI am missing something?\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-10-02T21:22:25Z",
+  "updated_at": "2020-10-12T14:13:39Z",
+  "closed_at": "2020-10-12T14:13:39Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 706973668,
+      "user": "guybe7",
+      "created_at": "2020-10-12T08:40:58Z",
+      "body": "hello @manast \r\nthere are two different mechanisms for blocking a client:\r\n1. \"regular\" blocking: the module blocks a client, does some processing in a different thread and unblocks the client using RM_UnblockClient\r\n2. \"key\" blocking: the module blocks a client pending a specific state of a key. when the key reaches some desired state RM_SignalKeyAsReady should be called and the client is unblocked\r\n\r\nin the first case, when you block the client by calling RM_BlockClient (which doesn't have a privdata argument). when you unblock using RM_UnblockClient you provide a privdata which is accessible in the reply_callback via RedisModule_GetBlockedClientPrivateData\r\n\r\nin the second case you call RM_BlockClientOnKeys and you may provide a privdata. if you choose to unblock the client with RM_UnblockClient (which also takes a privdata) **none of the privdata is used** and the client is released with the timeout_callback (the logic is that if you chose to unblock a blocked-on-keys-client with RM_UnblockClient instead of RM_SIgnalKeyAsReady it means that something is wrong)\r\n\r\ngeneral comment: the privdata (both the one provided in RM_UnblockClient and optionally in RM_BlockClientOnKeys) is not accessible in the timeout_callback (only in the reply_callback and disconnect_callback)\r\n\r\nso yes, there is a problem with the docs. the section you sent should be corrected to:\r\n```\r\nNote 2: when we unblock a client that is blocked for keys using the API RedisModule_BlockClientOnKeys(),\r\nthe privdata argument here is not used.\r\nUnblocking a client that was blocked for keys using this API will still require\r\nthe client to get some reply, so the function will use the \"timeout\" handler in\r\norder to do so. Please note that both the privdata provided here and the one provided to\r\nRedisModule_BlockClientOnKeys are not accessible from the timeout_callback.\r\n```\r\n\r\nwe should change the doc of RedisModule_GetBlockedClientPrivateData:\r\n```\r\nGet the private data set by RedisModule_UnblockClient()\r\nNote: This API will return NULL if called from within the timeout_callback.\r\n```"
+    },
+    {
+      "id": 706988092,
+      "user": "manast",
+      "created_at": "2020-10-12T09:06:04Z",
+      "body": "yeah, basically I knew already all you wrote above after many tests and investigations. The problem is that as I show in https://github.com/redis/redis/issues/7880  RM_SignalKeyAsReady does not work when called from a timer callback or from a thread (probably the timer callback is called from a thread too it is my guessing). So I am forced to use RM_UnblockClient and of course is a bit inconvenient not having access to the privdata anymore."
+    },
+    {
+      "id": 707019475,
+      "user": "guybe7",
+      "created_at": "2020-10-12T10:01:18Z",
+      "body": "it seems to me the \"problem\" here is that there's no access to privdata from the timeout callback (after #7880 is cleared that won't be a problem for you as you will not need to call RM_UnblockClient any more)\r\n\r\nTBH i don't really see an advantage on accessing privdata in the timeout_callback... after all, it's just a timeout, why would you need privdata? @oranagra thoughts?"
+    },
+    {
+      "id": 707028207,
+      "user": "oranagra",
+      "created_at": "2020-10-12T10:16:17Z",
+      "body": "I think it's always better if any callback would get a privdata.\r\nquestion is if we can do that easily, and without breaking backwards compatibility."
+    },
+    {
+      "id": 707046124,
+      "user": "guybe7",
+      "created_at": "2020-10-12T10:53:32Z",
+      "body": "yes it's very simple, we just need to assign `ctx->blocked_privdata` before calling timeout_callback"
+    },
+    {
+      "id": 707074286,
+      "user": "manast",
+      "created_at": "2020-10-12T11:54:53Z",
+      "body": "> TBH i don't really see an advantage on accessing privdata in the timeout_callback... after all, it's just a timeout, why would you need privdata? @oranagra thoughts?\r\n\r\nNormally it is a timeout but when you call UnblockClient manually even though it calls Timeout it has been called before the actual timeout time has passed. What is a bit confusing to me is why UnblockClient has a different behaviour when using RedisModule_BlockClientOnKeys than when used with RM_BlockClient."
+    },
+    {
+      "id": 707083682,
+      "user": "guybe7",
+      "created_at": "2020-10-12T12:15:10Z",
+      "body": "the reason is that under normal circumstances a client that was blocked with BlockOnKeys should be released with SignalKeyAsReady and not by UnblockClient.\r\n\r\nwhen you use BlockClient you don't provide privdata; when you unblock it you do (this is usually the case for threads: the worker thread has some information that should be in the reply of the unblocked client).\r\n\r\nwhen you use BlockClientOnKeys you provide a privdata (usually has to do with the target state of the key); when you unblock it (hopefully with SignalKeyAsReady) you don't provide privdata.\r\n\r\nusing UnblockClient for a client blocked on keys is undesired and the only reason it exists is so that the module can do a proper cleanup in case it is unloaded etc.\r\n\r\ni know it's a bit confusing but just remember the pairs BlockClient/UnblockClient and BlockClientOnKeys/SignalKeyAsReady"
+    }
+  ]
+}

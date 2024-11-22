@@ -1,0 +1,18 @@
+{
+  "issue_number": 8503.0,
+  "title": "[BUG] SRANDMEMBER with a negative count should return an Array when using RESP3",
+  "body": "**Describe the bug**\r\n\r\nSRANDMEMBER with a negative count is supposed to return elements from the set, with replacement, so it's possible to repeat elements. When using RESP3, the type returned is a Set. That's correct when count is positive and elements can't be repeated, but incorrect when count is negative. I believe when count is negative, an Array should be returned.\r\n\r\nThe current behavior causes varying results depending on the parser used. Hiredis just returns a \"set\" with duplicate elements, since there is no Set type that enforces the uniqueness of elements. [Justredis](https://github.com/tzickel/justredis) returns a Set with only unique elements. My project doesn't return anything at all, because the way it parses a set gets stuck when it contains duplicate elements.\r\n\r\n**To reproduce**\r\n\r\nOn redis-cli:\r\n```\r\n127.0.0.1:6379> HELLO 3\r\n1# \"server\" => \"redis\"\r\n2# \"version\" => \"255.255.255\"\r\n3# \"proto\" => (integer) 3\r\n4# \"id\" => (integer) 1273\r\n5# \"mode\" => \"standalone\"\r\n6# \"role\" => \"master\"\r\n7# \"modules\" => (empty array)\r\n\r\n127.0.0.1:6379> SADD set_key a b c\r\n(integer) 3\r\n\r\n127.0.0.1:6379> SRANDMEMBER set_key -4\r\n1~ \"c\"\r\n2~ \"b\"\r\n3~ \"b\"\r\n4~ \"c\"\r\n```\r\n**Expected behavior**\r\n\r\nWhen count is negative, SRANDMEMBER should return an Array.\r\n",
+  "state": "closed",
+  "created_at": "2021-02-16T16:54:24Z",
+  "updated_at": "2021-02-22T13:00:59Z",
+  "closed_at": "2021-02-22T13:00:59Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 780082587,
+      "user": "hwware",
+      "created_at": "2021-02-16T19:59:13Z",
+      "body": "agree for this change, also we may need to clearly docment the return type difference for SRANDMEMBER in doc."
+    }
+  ]
+}

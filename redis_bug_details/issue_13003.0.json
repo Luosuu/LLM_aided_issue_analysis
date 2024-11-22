@@ -1,0 +1,20 @@
+{
+  "issue_number": 13003.0,
+  "title": "[BUG] Performance drops severely when io-threads number larger than online cpus.",
+  "body": "**Describe the bug**\r\n\r\nSet io-threads greater than online CPU numbers, the performance drops severely. \r\n\r\n**To reproduce**\r\n\r\n1. taskset -c 0-3 ./redis-server /tmp/redis.conf \r\n```\r\nport 9001\r\nbind * -::*\r\nprotected-mode no\r\nsave \"\"\r\nio-threads 5\r\nio-threads-do-reads yes\r\n```\r\n2. Use below command to simulate multiple requests.\r\n ```\r\nmemtier_benchmark -s 127.0.0.1 -p 9001 \\\r\n--data-size 100 --ratio 0:1 \\\r\n--key-pattern R:R -c 25 -t 4 --hide-histogram --test-time 60\r\n```\r\n\r\n**Expected behavior**\r\nThe QPS result should be similar with `io-threads 4 `. \r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-01-29T08:00:20Z",
+  "updated_at": "2024-03-04T05:37:10Z",
+  "closed_at": "2024-03-04T05:37:10Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1917885648,
+      "user": "madolson",
+      "created_at": "2024-01-30T21:00:49Z",
+      "body": "This isn't really a bug, I think we can trust operators to only configure a reasonable number of CPUs. The exact same problem might exist with noisy neighbors if you're running multiple Redis processes on the same physical machine. "
+    }
+  ]
+}

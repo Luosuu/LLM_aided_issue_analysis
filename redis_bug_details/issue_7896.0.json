@@ -1,0 +1,18 @@
+{
+  "issue_number": 7896.0,
+  "title": "[BUG] Error: Protocol error, got \"H\" as reply type byte when trying to run any command",
+  "body": "**Describe the bug**\r\nI can access Redis inside the Redis docker container and from other docker containers, but am not able to from the host machine. I am using Docker NAT and connect to the database correctly but cannot run any commands from the host machine without this error.\r\n**To reproduce**\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\nredis-cli\r\n> ping\r\n> Error: Protocol error, got \"H\" as reply type byte\r\n\r\n**Expected behavior**\r\nPONG\r\n**Additional information**\r\nAny additional information that is relevant to the problem.\r\nOS: macOS Catalina 10.15.5\r\nRedis client version: 6.0.8\r\nRedis server version: 6.0.8",
+  "state": "closed",
+  "created_at": "2020-10-10T18:13:06Z",
+  "updated_at": "2020-10-10T18:46:12Z",
+  "closed_at": "2020-10-10T18:46:12Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 706594418,
+      "user": "monney",
+      "created_at": "2020-10-10T18:46:11Z",
+      "body": "Binding configuration issue on my end"
+    }
+  ]
+}

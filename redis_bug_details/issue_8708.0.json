@@ -1,0 +1,48 @@
+{
+  "issue_number": 8708.0,
+  "title": "[BUG] repeatedly Execute bgsave command， Occasionally, the process status is abnormal, such as Z status and D status",
+  "body": "repeatedly Execute bgsave command， Occasionally, the process status is abnormal, such as Z status and D status\r\n\r\nbgsave shell\r\n```\r\n#!/bin/bash\r\nfunction dataSave()\r\n{\r\n    requirepass=\"xxxxxx\"\r\n    INSTALL_DEST_DIR=\"/opt/redis\"\r\n    cmd=\"bgsave\"\r\n    result=`${INSTALL_DEST_DIR}/bin/redis-cli -cipherdir ${INSTALL_DEST_DIR}/cipher/ -h xxxx-p xxxx --no-auth-warning << EOF\r\nAUTH '${requirepass}'\r\n$cmd\r\nEOF`\r\n}\r\n\r\nfunction main()\r\n{\r\n    while [ 1 ];do\r\n        dataSave\r\n        sleep 10\r\n    done\r\n}\r\nmain\r\nexit 0\r\n```\r\n\r\ncheck process command\r\n```\r\n    local z_check=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[Zz]' | grep 'redis-server\\|redis-sentinel' | awk 'END{print NR}'`\r\n    local t_check=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[T]' | grep 'redis-server\\|redis-sentinel' | awk 'END{print NR}'`\r\n    local d_check=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[D]' | grep 'redis-server\\|redis-sentinel' | awk 'END{print NR}'`\r\n```\r\n\r\nthe log\r\n```\r\n[ERROR][21-03-27 03:04:06 /opt/redis-service/health_liveness.sh] check_process_alarm:49 isSentinel: . process check, Z status: 1, T status: 0. [/ERROR]\r\n[ERROR][21-03-27 05:32:21 /opt/redis-service/health_liveness.sh] check_process_alarm:49 isSentinel: . process check, Z status: 1, T status: 0. [/ERROR]\r\n[ERROR][21-03-27 05:32:51 /opt/redis-service/health_liveness.sh] check_process_alarm:49 isSentinel: . process check, Z status: 1, T status: 0. [/ERROR]\r\n```\r\n",
+  "state": "open",
+  "created_at": "2021-03-27T01:01:01Z",
+  "updated_at": "2021-03-30T09:50:09Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 808767066,
+      "user": "oranagra",
+      "created_at": "2021-03-27T17:35:35Z",
+      "body": "@wangxieliang007 which redis version are you using and on what OS? "
+    },
+    {
+      "id": 809202029,
+      "user": "wangxieliang007",
+      "created_at": "2021-03-29T08:57:14Z",
+      "body": "redis 5.0.8 \r\ncentos x86"
+    },
+    {
+      "id": 809225460,
+      "user": "oranagra",
+      "created_at": "2021-03-29T09:27:31Z",
+      "body": "i can't (easily) reproduce this.\r\nhow long did you run that script? what's the configuration of that redis and how much data it holds?\r\nmaybe you can improve the script to abort as soon as it finds an anomaly, and / or print the PID of the problematic child process, and then look at the redis log around the time it created it."
+    },
+    {
+      "id": 809867773,
+      "user": "wangxieliang007",
+      "created_at": "2021-03-30T02:59:08Z",
+      "body": "hi\r\nthis time i test on redis 5.0.11 (centos 7.5 x86). ，it Occurs every 20 minutes.\r\n1 . the bgsave script as follow, test every 10 second\r\n```\r\n#!/bin/bash\r\nfunction dataSave()\r\n{\r\n    cmd=\"bgsave\"\r\n    result=`/usr1/w00347323/redis-5.0.11/src/redis-cli  -h 127.0.0.1 -p 6379 << EOF\r\n$cmd\r\nEOF`\r\n}\r\n\r\nfunction main()\r\n{\r\n    while [ 1 ];do\r\n        dataSave\r\n        sleep 10\r\n    done\r\n}\r\nmain\r\nexit 0\r\n```\r\n2 . the check script, check every 3 second\r\n```\r\n#!/bin/bash\r\nfunction check_process()\r\n{\r\n    while [ 1 ];do\r\n        sleep 3\r\n        local z_check=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[Zz]' | grep 'redis-server\\|redis-sentinel' | awk 'END{print NR}'`\r\n        local t_check=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[T]' | grep 'redis-server\\|redis-sentinel' | awk 'END{print NR}'`\r\n        local d_check=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[D]' | grep 'redis-server\\|redis-sentinel' | awk 'END{print NR}'`\r\n        local s_check=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[S]' | grep 'redis-server\\|redis-sentinel' | awk 'END{print NR}'`\r\n        local z_result=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[Zz]' | grep 'redis-server\\|redis-sentinel'`\r\n        local t_result=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[T]' | grep 'redis-server\\|redis-sentinel'`\r\n        local d_result=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[D]' | grep 'redis-server\\|redis-sentinel'`\r\n        local s_result=`ps -A -o stat,pid,ppid,user,cmd | grep -v grep | grep -e '^[S]' | grep 'redis-server\\|redis-sentinel'`\r\n        if [[ ${z_check} -ne 0 || ${t_check} -ne 0 || ${d_check} -ne 0 ]]; then\r\n            echo \"z_check:${z_check} t_check:${t_check} d_check:${d_check}\" `date` >> health.log\r\n            echo \"z_result:${z_result} t_result:${t_result} d_result:${d_result}\" `date` >> health.log\r\n        fi\r\n    done\r\n}\r\ncheck_process\r\nexit 0\r\n```\r\n3 . the  health.log\r\nz_check:1 t_check:0 d_check:0 Tue Mar 30 10:21:06 CST 2021\r\nz_result:Z      2573  66041 root     [redis-server-5.] <defunct> t_result: d_result: Tue Mar 30 10:21:06 CST 2021\r\n4  redis.log \r\nNo exception is found in logs.\r\nthe logs as follow:\r\n```\r\n66041:M 30 Mar 2021 10:20:56.911 * Background saving terminated with success\r\n66041:M 30 Mar 2021 10:21:06.855 * Background saving started by pid 2573\r\n2573:C 30 Mar 2021 10:21:06.858 * DB saved on disk\r\n2573:C 30 Mar 2021 10:21:06.858 * RDB: 4 MB of memory used by copy-on-write\r\n66041:M 30 Mar 2021 10:21:06.933 * Background saving terminated with success\r\n66041:M 30 Mar 2021 10:21:16.865 * Background saving started by pid 2911\r\n2911:C 30 Mar 2021 10:21:16.868 * DB saved on disk\r\n2911:C 30 Mar 2021 10:21:16.868 * RDB: 4 MB of memory used by copy-on-write\r\n66041:M 30 Mar 2021 10:21:16.955 * Background saving terminated with success\r\n```"
+    },
+    {
+      "id": 810045731,
+      "user": "wangxieliang007",
+      "created_at": "2021-03-30T08:57:08Z",
+      "body": "i find th z status is the bgsave child process, th pid is 2573,not the redis-server process 66041,\r\nDoes the abnormal status of the child process have any impact?"
+    },
+    {
+      "id": 810082625,
+      "user": "oranagra",
+      "created_at": "2021-03-30T09:50:09Z",
+      "body": "IIRC there were some bugs in that area, but only for diskless-replication (not for normal BGSAVE).\r\nif you can, i invite you to test redis 6.2, if we'll see it's solved there, we can look at the diff."
+    }
+  ]
+}

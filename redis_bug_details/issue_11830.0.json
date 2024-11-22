@@ -1,0 +1,60 @@
+{
+  "issue_number": 11830.0,
+  "title": "[BUG] fat argv caused oom reply even redis had enough memory",
+  "body": "**Describe the bug**\r\n\r\nour user wrote a string to redis with almost 500MB length, and my redis's maxmemory configured to 1GB, but it always responded \"OOM command not allowed when used memory > 'maxmemory'\" to client.\r\n\r\n**To reproduce**\r\n\r\n1. redis-cli flushall\r\n2. redis-cli config set maxmemory 1GB\r\n3. memtier_benchmark -s 127.0.0.1 -p 6379 -c 1 -t 1 --ratio=1:0 --data-size 512000000 --key-maximum=1\r\n4. redis-cli info memory keyspace\r\n```\r\n127.0.0.1:6379> info memory keyspace\r\n# Memory\r\nused_memory:537860680\r\nused_memory_human:512.94M\r\nused_memory_rss:492453888\r\nused_memory_rss_human:469.64M\r\nused_memory_peak:544027376\r\nused_memory_peak_human:518.82M\r\nused_memory_peak_perc:98.87%\r\nused_memory_overhead:537739292\r\nused_memory_startup:864576\r\nused_memory_dataset:121388\r\nused_memory_dataset_perc:0.02%\r\nallocator_allocated:538548720\r\nallocator_active:538828800\r\nallocator_resident:545976320\r\ntotal_system_memory:8332824576\r\ntotal_system_memory_human:7.76G\r\nused_memory_lua:31744\r\nused_memory_vm_eval:31744\r\nused_memory_lua_human:31.00K\r\nused_memory_scripts_eval:0\r\nnumber_of_cached_scripts:0\r\nnumber_of_functions:0\r\nnumber_of_libraries:0\r\nused_memory_vm_functions:32768\r\nused_memory_vm_total:64512\r\nused_memory_vm_total_human:63.00K\r\nused_memory_functions:184\r\nused_memory_scripts:184\r\nused_memory_scripts_human:184B\r\nmaxmemory:1073741824\r\nmaxmemory_human:1.00G\r\nmaxmemory_policy:noeviction\r\nallocator_frag_ratio:1.00\r\nallocator_frag_bytes:280080\r\nallocator_rss_ratio:1.01\r\nallocator_rss_bytes:7147520\r\nrss_overhead_ratio:0.90\r\nrss_overhead_bytes:-53522432\r\nmem_fragmentation_ratio:0.92\r\nmem_fragmentation_bytes:-45386040\r\nmem_not_counted_for_evict:0\r\nmem_replication_backlog:0\r\nmem_total_replication_buffers:0\r\nmem_clients_slaves:0\r\nmem_clients_normal:536874532\r\nmem_cluster_links:0\r\nmem_aof_buffer:0\r\nmem_allocator:jemalloc-5.2.1\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\nlazyfreed_objects:0\r\n\r\n# Keyspace\r\n127.0.0.1:6379>\r\n```\r\n\r\nI think there are two small problems of Redis in this test case:\r\n**1. client always anticipate that we'll see another fat argument, but not consider the expense.**\r\n```c\r\nnetworking.c\r\nint processMultibulkBuffer(client *c) {\r\n...\r\n                c->argv[c->argc++] = createObject(OBJ_STRING,c->querybuf);\r\n                c->argv_len_sum += c->bulklen;\r\n                sdsIncrLen(c->querybuf,-2); /* remove CRLF */\r\n                /* Assume that if we saw a fat argument we'll see another one\r\n                 * likely... */\r\n                c->querybuf = sdsnewlen(SDS_NOINIT,c->bulklen+2);   ---------------------->here we should consider if the bulklen is too long. IMO, it is appropriate to limit the max length to the  PROTO_MBULK_BIG_ARG*2\r\n                sdsclear(c->querybuf);\r\n...\r\n}\r\n```\r\n**2. used_memory_peak not updated when a oom error reply to client, it looks weird for user**\r\n```\r\nevict.c\r\nint getMaxmemoryState(size_t *total, size_t *logical, size_t *tofree, float *level) {\r\n...\r\n    /* Check if we are over the memory usage limit. If we are not, no need\r\n     * to subtract the slaves output buffers. We can just return ASAP. */\r\n    mem_reported = zmalloc_used_memory();\r\n    if (total) *total = mem_reported;\r\n  \r\n    if (server.stat_peak_memory < mem_reported) {\r\n        server.stat_peak_memory = mem_reported;----------------> /*we should immediately update memory peak in here, so when eviction occurs, we can see  that used_memory_peak is indeed greater than maxmeory through info command*/\r\n    }\r\n\r\n...\r\n}\r\n```",
+  "state": "open",
+  "created_at": "2023-02-23T13:22:56Z",
+  "updated_at": "2023-02-24T15:58:14Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1441991155,
+      "user": "judeng",
+      "created_at": "2023-02-23T15:36:19Z",
+      "body": "I'm trying to fix this bug, but I have a question now: why is redis updated the `used_memory_peak` in `serverCron` and info command, it looks like that real-time updates in `zmalloc` just need to add an IF statement, which does not look affecting performance"
+    },
+    {
+      "id": 1441993140,
+      "user": "hwware",
+      "created_at": "2023-02-23T15:37:21Z",
+      "body": "It looks like it should not happen because in the redis documentation, it says that elements representing single\r\nstrings, are normally limited to 512 mb.  Please try to fix, Thanks"
+    },
+    {
+      "id": 1442071838,
+      "user": "hwware",
+      "created_at": "2023-02-23T16:27:06Z",
+      "body": "@judeng I think this maybe not be a bug, this happen due to the maxmemory_policy. If you change the maxmemory_policy to allkeys-lru instead of noviction, it works well.\r\n\r\nBTW: the default maxmemory_policy is noviction"
+    },
+    {
+      "id": 1442686284,
+      "user": "sundb",
+      "created_at": "2023-02-24T01:58:17Z",
+      "body": "@hwware it doesn't seem to be related to maxmemory_policy.\r\nPlease see the comment `Assume that if we saw a fat argument we'll see another one likely...`\r\n```c\r\n                c->argv[c->argc++] = createObject(OBJ_STRING,c->querybuf); <- alloc 512M memory\r\n                c->argv_len_sum += c->bulklen;\r\n                sdsIncrLen(c->querybuf,-2); /* remove CRLF */\r\n                /* Assume that if we saw a fat argument we'll see another one\r\n                 * likely... */\r\n                c->querybuf = sdsnewlen(SDS_NOINIT,c->bulklen+2);  <- alloc 512M memory\r\n                sdsclear(c->querybuf);\r\n```\r\nThis will cause the overall memory to exceed maxmemory(1GB)."
+    },
+    {
+      "id": 1442707147,
+      "user": "judeng",
+      "created_at": "2023-02-24T02:25:51Z",
+      "body": "> This will cause the overall memory to exceed maxmemory(1GB).\r\n\r\nAgree, and when maxmemory_policy is allkesy-lru and Redis has many keys that occupies a total of 500MB of space , redis will evict all these keys  due to the fat client. `maxmemory-clients` perhapse helpfull, but still didn't solve the problem. "
+    },
+    {
+      "id": 1442713044,
+      "user": "judeng",
+      "created_at": "2023-02-24T02:34:52Z",
+      "body": "I have created a pr to fix this bug, please see #11833 "
+    },
+    {
+      "id": 1443800514,
+      "user": "hwware",
+      "created_at": "2023-02-24T14:55:13Z",
+      "body": "> ```c\r\n> Assume that if we saw a fat argument\r\n> ```\r\n\r\nYes, you are right, This case is not related to the maxmemory_policy. Becuase I notice there is no any key existing when this error happen (It should at least store 2 keys in the database). But overall memory exceed maxmemory is acceptable, it will cause key eviction process happens if there is a new command comming. (Of course, if the maxmemory_policy is not noeviction)"
+    },
+    {
+      "id": 1443894453,
+      "user": "judeng",
+      "created_at": "2023-02-24T15:58:13Z",
+      "body": "> But overall memory exceed maxmemory is acceptable, it will cause key eviction process happens if there is a new command comming.\r\n\r\n@hwware  Yes, I re-did a similar test, same conclusion as yours, please refer [here](https://github.com/redis/redis/pull/11833#discussion_r1116745453)"
+    }
+  ]
+}

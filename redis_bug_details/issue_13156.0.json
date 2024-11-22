@@ -1,0 +1,24 @@
+{
+  "issue_number": 13156.0,
+  "title": "[BUG] docker.io/library/redis:7.2.4-alpine not worked in containerd",
+  "body": "**Describe the bug**\r\n\r\nWe pull over a Proxy: www.proxy.com/docker.io/library/redis:7.2.4-alpine \r\n\r\nRuntime is containerd \r\n\r\n```\r\nThen we get \r\nfailed commit on ref \"index-sha256:641c365890fc79f182fb198c80ee807d040b9cfdb19cceb7f10c55a26 ││ 8d212b8\": \"index-sha256:641c365890fc79f182fb198c80ee807d040b9cfdb19cceb7f10c55a268d212b8\" failed size validation: 8518 != 7223: failed precondition\r\n```\r\n\r\nPulling this with \r\n\r\nwww.proxy.com/docker.io/library/redis:7.2.4-alpine@sha256:3487aa5cf06dceb38202b06bba45b6e6d8a92288848698a6518eee5f63a293a3\r\n\r\nworks fine \r\n\r\nalso www.proxy.com/docker.io/library/redis:7.2.4-alpine  lokal in Docker Desktop works fine\r\n\r\n**To reproduce**\r\n\r\nrunning redis:7.2.4-alpine@sha256:641c365890fc79f182fb198c80ee807d040b9cfdb19cceb7f10c55a268d212b8\r\nin ContainerD runtime\r\n\r\n**Expected behavior**\r\n\r\nRunning redis:7.2.4-alpine@sha256:641c365890fc79f182fb198c80ee807d040b9cfdb19cceb7f10c55a268d212b8 \r\nin ContainerD\r\n",
+  "state": "closed",
+  "created_at": "2024-03-19T15:52:47Z",
+  "updated_at": "2024-03-22T10:36:18Z",
+  "closed_at": "2024-03-22T10:36:18Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2007570383,
+      "user": "teimyBr",
+      "created_at": "2024-03-19T16:00:27Z",
+      "body": "https://github.com/containerd/containerd/issues/9830 maybe related"
+    },
+    {
+      "id": 2014803826,
+      "user": "teimyBr",
+      "created_at": "2024-03-22T10:36:18Z",
+      "body": "The new redis:7.2.4-alpine docker.io fixed the issue "
+    }
+  ]
+}

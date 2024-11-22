@@ -1,0 +1,11 @@
+{
+  "issue_number": 12684.0,
+  "title": "[BUG] When IPv4 and IPv6 coexist, active/standby switching in sentinel mode fails.",
+  "body": "**Describe the bug**\r\n\r\nWhen IPv4 and IPv6 coexist, active/standby switching in sentinel mode fails. \r\n\r\nsubscribe message from  \" +switch-master\"  \r\n\r\ngot message loop as below \r\n![image](https://github.com/redis/redis/assets/10794822/d0cb1fe8-f3c9-4993-8267-3e566cd0b98b)\r\n\r\n\r\n**To reproduce**\r\nhere is my configure for redis\r\nredis1.conf\r\n```\r\ndaemonize yes\r\nprotected-mode no\r\nport 6390\r\nrequirepass \"foobared\"\r\nmasterauth \"foobared\"\r\npidfile \"/tmp/redis12.pid\"\r\nlogfile \"/tmp/redis12.log\"\r\nsave \"\"\r\nappendonly no\r\n```\r\nredis2.conf\r\n```\r\ndaemonize yes\r\nprotected-mode no\r\nport 6391\r\nrequirepass \"foobared\"\r\nmasterauth \"foobared\"\r\npidfile \"/tmp/redis13.pid\"\r\nlogfile \"/tmp/redis13.log\"\r\nsave \"\"\r\nappendonly no\r\n\r\nslaveof localhost 6390\r\n```\r\nsentinel.conf\r\n```\r\nport 26384\r\ndaemonize yes\r\nprotected-mode no\r\nsentinel monitor mymasterfailover2 127.0.0.1 6390 1\r\nsentinel auth-pass mymasterfailover2 foobared\r\nsentinel down-after-milliseconds mymasterfailover2 2000\r\nsentinel failover-timeout mymasterfailover2 120000\r\n\r\npidfile \"/tmp/sentinel6.pid\"\r\nlogfile \"/tmp/sentinel6.log\"\r\n```\r\n\r\nexecute command on sentinel:\r\n\r\n`sentinel failover mymasterfailover2`\r\n\r\n\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\nswitch master to slave \r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n\r\nredis version 6.2\r\n",
+  "state": "open",
+  "created_at": "2023-10-20T08:43:52Z",
+  "updated_at": "2023-10-20T08:43:52Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

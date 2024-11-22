@@ -1,0 +1,36 @@
+{
+  "issue_number": 8786.0,
+  "title": "[BUG] Handling of known Sentinel Instances",
+  "body": "Hi there,\r\n\r\nI was hoping for some clarification around how sentinel handles known sentinel instances. (Version 6.2.1)\r\n\r\nThe documentation for sentinel (https://redis.io/topics/sentinel#sentinels-and-replicas-auto-discovery) states the following.\r\n\r\n> Before adding a new sentinel to a master a Sentinel always checks if there is already a sentinel with the same runid or the same address (ip and port pair). In that case all the matching sentinels are removed, and the new added.\r\n\r\nI have a deployment setup wherein I overwrite the sentinel.conf and therefore a new runid is created. The documentation would lead me to believe that the new sentinel (due to having the same ip/port) would replace the old in the other sentinels config.\r\n\r\nHowever I was noticing that my sentinel count via `INFO SENTINEL` (from the view of the other sentinel) was 1 greater than expected and if I called `SENTINEL SENTINEL my-leader` I would see an entry for both the new and old run id.\r\n\r\nFollowing the +sentinel-invalid-addr in the logs, I came across this bit of source code and commit (https://github.com/redis/redis/commit/751b5666fbbe5c415f6fad64e7f59e24721996be) which states that if the port/ip of sentinel matches an existing one the old ones port is set to 0 (meaning its invalid).\r\n\r\nIts not entirely clear to me what the state of this old sentinel (identified by a run id) is, for example is it considered/counted in the total number of sentinels when trying to decide if you have a majority for failover.\r\n\r\nEither way there would seem to be a bug/inconsistency around how the documentation states new sentinels with matching addresses are handled and how they are actually handled (they do not replace the old entry).\r\n\r\nApologies for not following the standard format for bugs, I had originally intended to send this to the google group, but decided there might be a bug, or at least a lack of clarity in the documentation. Happy to move this to the google group if I'm mistaken in my belief. \r\n\r\nI can also try to provide a minimal example if that's helpful, although I hope my description is enough to reproduce.\r\n\r\nThanks,\r\n\r\nMatt",
+  "state": "closed",
+  "created_at": "2021-04-14T15:53:21Z",
+  "updated_at": "2021-07-29T09:32:52Z",
+  "closed_at": "2021-07-29T09:32:52Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 820589114,
+      "user": "brokoli18",
+      "created_at": "2021-04-15T17:06:00Z",
+      "body": "I am having the same issue as @mbutlerw with old sentinel ids breaking failover elections (more detail in [8791](https://github.com/redis/redis/issues/8791))."
+    },
+    {
+      "id": 853242190,
+      "user": "mbutlerw",
+      "created_at": "2021-06-02T17:28:58Z",
+      "body": "Hi, is it possible to get some input on this?\r\n\r\nIt would be good to at least understand what the intended approach is when redeploying a sentinel.\r\n\r\nThanks again,\r\n\r\nMatt"
+    },
+    {
+      "id": 878595305,
+      "user": "hwware",
+      "created_at": "2021-07-12T21:06:20Z",
+      "body": "@mbutlerw Sorry for so long time giving you the feedback.  I can not reproduce your problem, can you describe more details about your steps?  I provide working steps following as your references:\r\n\r\n1.\tMake a master and slave redis instance.\r\n2.\tMake two sentinel instances.\r\n3.\tOpen redis-cli for one sentinel using command “./redis-cli -p 5000”. This gives the number of sentinels as 2.\r\n4.\tManually change the config file of one sentinel.\r\n5.\tRepeat step 3 and we get the number of sentinels as 2 again.\r\n\r\nLet me know if you need more information about your problem."
+    },
+    {
+      "id": 878640099,
+      "user": "mbutlerw",
+      "created_at": "2021-07-12T22:29:11Z",
+      "body": "Thanks for taking the time to look at this. Your steps look good except potentially number 4.\r\n\r\nHere I would suggest you need to edit the config file in any way that would remove the run-id.\r\n\r\nThanks again,\r\n\r\nMatt\r\n"
+    }
+  ]
+}

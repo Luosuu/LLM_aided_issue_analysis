@@ -1,0 +1,39 @@
+{
+  "issue_number": 8558.0,
+  "title": "[BUG] HELLO AUTH command changes behaviour when default user is secured",
+  "body": "Hi Redis gurus,\r\n\r\nI'm sorry to be a bother, but the below behaviour has me stumped :/\r\n\r\n\r\n**Describe the bug**\r\n\r\nMy goal; disable/deactivate the `default` user, in-order to limit users to [ACL](https://redis.io/topics/acl) only.\r\n\r\nUnfortunately it seems attempts to secure the `default` user affects the `HELLO` behaviour for the other ACL users on Redis.\r\n\r\nSymptom discovered in v6.0.5, but also reproducible in v6.0.11 & v6.2.\r\n\r\n\r\n**To reproduce**\r\nStart Redis as outlined below; adding a password to the `default` user + defining a new ACL user:\r\n\r\n```\r\nroot@ab948e714298:/data# redis-server --port 1236 \"--user default on >somepw\" \"--user redisun on >redispw +@all\" &\r\n[2] 44\r\nroot@ab948e714298:/data# 44:C 25 Feb 2021 09:07:01.224 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n44:C 25 Feb 2021 09:07:01.224 # Redis version=6.2.0, bits=64, commit=00000000, modified=0, pid=44, just started\r\n44:C 25 Feb 2021 09:07:01.224 # Configuration loaded\r\n44:M 25 Feb 2021 09:07:01.225 * monotonic clock: POSIX clock_gettime\r\n                _._\r\n           _.-``__ ''-._\r\n      _.-``    `.  `_.  ''-._           Redis 6.2.0 (00000000/0) 64 bit\r\n  .-`` .-```.  ```\\/    _.,_ ''-._\r\n (    '      ,       .-`  | `,    )     Running in standalone mode\r\n |`-._`-...-` __...-.``-._|'` _.-'|     Port: 1236\r\n |    `-._   `._    /     _.-'    |     PID: 44\r\n  `-._    `-._  `-./  _.-'    _.-'\r\n |`-._`-._    `-.__.-'    _.-'_.-'|\r\n |    `-._`-._        _.-'_.-'    |           http://redis.io\r\n  `-._    `-._`-.__.-'_.-'    _.-'\r\n |`-._`-._    `-.__.-'    _.-'_.-'|\r\n |    `-._`-._        _.-'_.-'    |\r\n  `-._    `-._`-.__.-'_.-'    _.-'\r\n      `-._    `-.__.-'    _.-'\r\n          `-._        _.-'\r\n              `-.__.-'\r\n\r\n44:M 25 Feb 2021 09:07:01.226 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.\r\n44:M 25 Feb 2021 09:07:01.226 # Server initialized\r\n44:M 25 Feb 2021 09:07:01.227 * Ready to accept connections\r\n```\r\n\r\nConnect via `redis-cli`\r\n\r\n```\r\nroot@ab948e714298:/data# redis-cli -p 1236\r\n```\r\n\r\nAttempt to execute `HELLO` as the new user\r\n\r\n```\r\n127.0.0.1:1236> HELLO 2 AUTH redisun redispw\r\n(error) NOPERM this user has no permissions to run the 'hello' command or its subcommand\r\n```\r\n\r\nAttempt to execute `HELLO` as the `default` user (mostly for completeness)\r\n\r\n```\r\n127.0.0.1:1236> HELLO 2 AUTH default somepw\r\n(error) NOPERM this user has no permissions to run the 'hello' command or its subcommand\r\n```\r\n\r\nAttempt to execute `HELLO` as the `default` user by authorising explicitly first\r\n\r\n```\r\n127.0.0.1:1236> AUTH default somepw\r\nOK\r\n127.0.0.1:1236> HELLO 2\r\n(error) NOPERM this user has no permissions to run the 'hello' command or its subcommand\r\n```\r\n\r\nAttempt to execute `HELLO` as the new user by authorising explicitly first\r\n\r\n```\r\n127.0.0.1:1236> AUTH redisun redispw\r\nOK\r\n127.0.0.1:1236> HELLO 2\r\n 1) \"server\"\r\n 2) \"redis\"\r\n 3) \"version\"\r\n 4) \"6.2.0\"\r\n 5) \"proto\"\r\n 6) (integer) 2\r\n 7) \"id\"\r\n 8) (integer) 3\r\n 9) \"mode\"\r\n10) \"standalone\"\r\n11) \"role\"\r\n12) \"master\"\r\n13) \"modules\"\r\n14) (empty array)\r\n```\r\n\r\nIn this case, 2 steps are required to get `HELLO` to work.\r\n\r\n\r\n**Expected behavior**\r\n\r\n`HELLO 2 AUTH redisun redispw`\r\n\r\nIs expected to work, independently of the `default` user (or any other user) when redisun is defined in the ACL.\r\n\r\n\r\n**Additional information**\r\n\r\nSymptom is also present if the the `default` user is disabled ala `--user default off`\r\n\r\n\r\n**\"Workaround\"**\r\nWhen only defining a new ACL user, the `HELLO` behaviour matches expectations. Expect now anyone can now use the `default` user :/\r\n\r\nStart Redis as outlined below, defining a new ACL user:\r\n\r\n```\r\nroot@ab948e714298:/data# redis-server --port 1235 \"--user redisun on >redispw +@all\" &\r\n```\r\n\r\nConnect via `redis-cli`\r\n\r\n```\r\nroot@ab948e714298:/data# redis-cli -p 1235\r\n```\r\n\r\nAttempt to execute `HELLO` as the new user\r\n\r\n```\r\n127.0.0.1:1235> HELLO 2 AUTH redisun redispw\r\n 1) \"server\"\r\n 2) \"redis\"\r\n 3) \"version\"\r\n 4) \"6.2.0\"\r\n 5) \"proto\"\r\n 6) (integer) 2\r\n 7) \"id\"\r\n 8) (integer) 4\r\n 9) \"mode\"\r\n10) \"standalone\"\r\n11) \"role\"\r\n12) \"master\"\r\n13) \"modules\"\r\n14) (empty array)\r\n```\r\n\r\nAttempt to execute `HELLO` as the `default` user\r\n\r\n```\r\n127.0.0.1:1235> HELLO\r\n 1) \"server\"\r\n 2) \"redis\"\r\n 3) \"version\"\r\n 4) \"6.2.0\"\r\n 5) \"proto\"\r\n 6) (integer) 2\r\n 7) \"id\"\r\n 8) (integer) 4\r\n 9) \"mode\"\r\n10) \"standalone\"\r\n11) \"role\"\r\n12) \"master\"\r\n13) \"modules\"\r\n14) (empty array)\r\n127.0.0.1:1235>\r\n```\r\n\r\nThanks in advance 🤓",
+  "state": "closed",
+  "created_at": "2021-02-25T10:57:44Z",
+  "updated_at": "2021-03-21T14:24:16Z",
+  "closed_at": "2021-03-21T14:24:16Z",
+  "labels": [
+    "state:to-be-closed",
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 785965831,
+      "user": "hpatro",
+      "created_at": "2021-02-25T15:00:30Z",
+      "body": "I also believe this is an issue, HELLO should be treated similar to AUTH and shouldn't get restricted from getting executed.\r\n\r\nhttps://github.com/redis/redis/blob/unstable/src/acl.c#L1185-L1186\r\n\r\nAs initially the client isn't authenticated in the above scenario, the user is set to `default` and doesn't have permission to the command it's failing. \r\n\r\n@madolson I'm thinking we can handle this in two ways, \r\n\r\n1. Let the command execution if hello command has auth subcommand in it. \r\n2. The second approach which might be a breaking one is to let the `hello` command irrespective of `auth` in it.\r\n\r\nLet me know what you think."
+    },
+    {
+      "id": 786101222,
+      "user": "madolson",
+      "created_at": "2021-02-25T18:14:38Z",
+      "body": "Well this is some weird behavior. \r\n\r\n@dlehammer Technically you can resolve your issue with:\r\n```redis-server --port 1236 \"--user default off +@all\" \"--user redisun on >redispw +@all\" &```\r\n\r\nThis will prevent users from logging in as default and securing it, but will still let you use hello for auth. \r\n\r\n@hpatro I would do #2. The HelloCommand already does special handling for authentication: https://github.com/redis/redis/blob/d828f90c26bf796cb54d6622389e5c14fcc9cbf0/src/networking.c#L2959. I would also use the \"CMD_NO_AUTH\" flag check instead of checking for the hello command, to allow module authentication to work."
+    },
+    {
+      "id": 786621764,
+      "user": "dlehammer",
+      "created_at": "2021-02-26T12:35:22Z",
+      "body": "Thanks a bunch @madolson, the `user default off +@all` workaround is sufficient for now - and has been verified on Redis v6.0.5.\r\n\r\nI think the key here is whether the `HELLO` request explicitly includes `AUTH` ~ as a user I would [expect](https://en.wikipedia.org/wiki/Principle_of_least_astonishment) Redis to evaluate the explicit `AUTH` if present :)"
+    },
+    {
+      "id": 803590860,
+      "user": "itamarhaber",
+      "created_at": "2021-03-21T14:24:16Z",
+      "body": "Fixed via #8633 - closing."
+    }
+  ]
+}

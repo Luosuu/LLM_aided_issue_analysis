@@ -1,0 +1,99 @@
+{
+  "issue_number": 333.0,
+  "title": "firelist is unstable",
+  "body": "  yes, that's my question about firelist in network module (ae).\n  Currently, the firelist store some active events, but aeProcessEvents() only check the mask for the event whether or not has been removed. So, there may be an event not only removed another event but also reused the fd to create a new event into epoll, then the check will failed.\n\n  So, I think maybe we can add a new sparse array to store and relate the firelist, when an event active, we add event fd into firelist and add index of event into sparse array. Then aeProcessEvents() can check the event whether valid safely in current loop.\n\n  eg: \n  clear_firelist();\n  int num = epoll_wait(...);\n  for( ... ) {\n      if ( is_fired(fd) ) continue;\n      process(...);\n  }\n",
+  "state": "closed",
+  "created_at": "2012-02-10T03:20:30Z",
+  "updated_at": "2023-11-24T08:19:35Z",
+  "closed_at": "2023-11-24T08:19:35Z",
+  "labels": [
+    "non critical bug",
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 4000577,
+      "user": "antirez",
+      "created_at": "2012-02-16T13:29:33Z",
+      "body": "@finaldie When what you suggest happens, is't it simpler to just wait for the next call to aeProcessEvents()? It will get called again without delays if there are more events waiting for us.\n\np.s. I mean, this is what happens already, isn't it enough?\n"
+    },
+    {
+      "id": 4001724,
+      "user": "finaldie",
+      "created_at": "2012-02-16T14:37:46Z",
+      "body": "@antirez Maybe I didn't say that clearly. I mean it will got a wrong event to process when the already removed event fd be reused. Maybe it will get a result,but it is not we expected. That's because the reused fd maybe not active at that moment. :)\n"
+    },
+    {
+      "id": 4001892,
+      "user": "antirez",
+      "created_at": "2012-02-16T14:46:17Z",
+      "body": "@finaldie Ok I get it, you mean:\n- An event fires\n- The handler will close(fd); and open something else, that will get the same fd.\n- The new fd is associated with a new handler.\n- The new handler is called, even if there was not really a readable/writable event for this fd.\n\nRight?\n\nif this happens you call an handler without the actual event was fired by the OS, so if the handler is designed to work well in that case (for instance recover from read() == 0) it's fine, otherwise you get troubles.\n\nPlease can you ACK that? I think I've a simpler solution, that is, add a new flag AE_MODIFIED, that will simply prevent the event from being processed in the current run. This means that we need another for loop that will clear all the AE_MODIFIED if any.\n\nMakes sense for you as well?\n"
+    },
+    {
+      "id": 4002870,
+      "user": "finaldie",
+      "created_at": "2012-02-16T15:39:41Z",
+      "body": "@antirez Thank you for your reply :D, That's exactly what I mean. My first section is just for solving this issue.\n\nFor your solution, that's simple but it will get a low performance. \nAnother \"for loop\" make the run time in O(N), so I said that in my first section \"add another sparse array for assist\", it will make the run time in O(1). \n\nWhen I first found this issue, I got the same solution as you, but that's not very good. So I try to improve the performance of the solution. Until I found a article http://research.swtch.com/sparse, it can solve the performance better. And the details of the principle you can take a look at it if you have time. Maybe we can use it for improvement. :D\n"
+    },
+    {
+      "id": 4002928,
+      "user": "antirez",
+      "created_at": "2012-02-16T15:42:52Z",
+      "body": "I think you don't really need the second for loop, that is what you could conceptually do, actually what you really need is a simple \"epoch\" counter, that is incremented at every iteration, and you skip the event only if eventLoop->epoch matches event->epoch, otherwise you process the event as usually, so there is no added overhead, but there is no need to add too much complexity.\n"
+    },
+    {
+      "id": 4003535,
+      "user": "antirez",
+      "created_at": "2012-02-16T16:12:06Z",
+      "body": "Note sure I was clear about this. I suggest something like that:\n- A new field in the eventLoop structure, called 'epoch'. Initialized to 1.\n- A new field in the eventLoop structure, called 'processing', that's set to 1 when we are inside the aeProcessEvents(); firing events around.\n- A new field in every event aeFileEvent structure, called 'filter', set to 0 at start.\n\nNow what happen is that if a new event is registered, and processing is set to 1, we set event->filter = eventLoop->epoch.\n\naeProcessEvents() will make sure to skip event that have event->filter == eventLoop->epoch.\n\nSounds good?\n"
+    },
+    {
+      "id": 4003558,
+      "user": "antirez",
+      "created_at": "2012-02-16T16:13:00Z",
+      "body": "Of course after aeEventLoop() ends its loop, eventLoop->epoch is incremented by 1.\n"
+    },
+    {
+      "id": 4004047,
+      "user": "finaldie",
+      "created_at": "2012-02-16T16:32:45Z",
+      "body": "@antirez Yes, you are great!! Your solution as above is more simpler than me. The \"epoch\" counter is a great idea.\nFor my understand, that work follow as below:\n\nfor( ..., eventLoop->epoch++ ) {\n      if( eventLoop->epoch == event->epoch ) {\n          goto LOOP_END;\n      }\n\n```\n  process(...);\n```\n\nLOOP_END:\n      event->epoch = -1;\n}\n\n  And set event->epoch also when the event be removed. :D, Am I right? \n  And the eventLoop->epoch maybe can declare as a local variable. :D\n"
+    },
+    {
+      "id": 4004467,
+      "user": "finaldie",
+      "created_at": "2012-02-16T16:53:07Z",
+      "body": "@antirez \nOk, I saw you last comment about the detail solution. \nOf course, it will works correct :D\n\nplease ignore my last comment as above.\n"
+    },
+    {
+      "id": 4004870,
+      "user": "finaldie",
+      "created_at": "2012-02-16T17:11:10Z",
+      "body": "@antirez \nMy suggestion is :\nA new field in event, called 'fireIdx'\n\nwhen we remove a event, we set event->fireIdx = j and active[j] = fd. So when we finally process the event, we can simply check 'if ( active[ j ] == fd && event->fireIdx < j )' to verify whether the event has been removed.\n\nAnyway, they both can solve this issue. :D \nbtw, happy every day. \n"
+    },
+    {
+      "id": 4342440,
+      "user": "antirez",
+      "created_at": "2012-03-06T11:03:59Z",
+      "body": "Hello @finaldie thank you for your pull request. Unfortunately this is not going to work in our case, because when I proposed that solution I forget that we re-enter the event loop, so after the first recursive call to the event loop we'll get epoch incremented. By the way, since I performed a review there are a few tips about the code anyway:\n- It should use long long because otherwise will overflow in little time.\n- processing should be incremented / decremented when you enter/exit the processing stage, because otherwise have even more issues with recursive calls to the event loop.\n- the if statement that checks if epoch == filter to continue is strange even if it works, does not really reflect the intention that is to \"only fire old events\".\n\nSo we need a different and better solution maybe? Or maybe not (read the full message ;).\n\nAnother problem with this solution is that after, for instance, accept() event fires and registers readable events, we should be able for a matter of efficiency of the implementation to process the new events without problems IF they don't are at risk of firing because they share the file descriptor number with an other file.\n\nIn short we should probably mask a specific event with AE_MASKED only _on unregistering_ of the event loop, if processing is > 0. We should also add the masked FDs into a list, so when the event processing finished we can unmask those FDs.\n\nHow this work with recursive calls to the event loop? It should work great as if the same event is (in a recursive call) registered or removed or alike, we already have it marked as masked, so nothing strange happens. So far it's nice, but when we unmask the events? When we are at \"level 0\" and not returning from nested calls? This works but our FD will remain masked, so if we keep calling again and again the function to process the events in a nested way, like we do while loading the RDB or AOF file, or when an EVAL script time outs, we'll never have our new FDs unmasked, and will never fire if the event loop at level 0 does not return as well. So we should handle different \"levels\" with different level-specific data, but this is going to be complex expansive.\n\n(Sorry if this message is getting long but I'm thinking at solutions while writing)\n\nProbably the best thing we can do is that after a recursive call to the event loop (that in turn may call the event loop again and so forth) we stop processing events in the previos calls. After all if there were FDs ready to fire, they'll get processed anyway in the nested calls.\n\nSince this is this way since Redis 0.1 and causes no issues because all the events are designed to play well with firing them without any need I'll think a bit  more about this before to write/merge code... keeping this open for now. Thanks for the help.\n"
+    },
+    {
+      "id": 4345183,
+      "user": "finaldie",
+      "created_at": "2012-03-06T14:28:59Z",
+      "body": "@antirez  thanks for your reply, it may have taken you a long time.\nFor your tips:\nFor 1. I have never got a exact time from a test, so that's my mistake.\nFor 2 and 3. Current solution doesn't support recursive call, so it also can't solve the problems.\n\nSo, I also think about it carefully again, as you said in the end \"because all the events are designed to play well with firing them without any need\", I very agree that everything will play well if it have a good design, so the key point is the good design but not the other complex scene.\n\nIf we can limit our system to never recursive call the eventLoop, and then the problem will be solved simply. (eg: current solution or add another assist list), in my opinion, that's a good way to solve this issue, and keep the system simple as well. My point is to limit the system and keep it simple.\n\nAnd I'll make a deep thinking, maybe we can find the other way to solve this issue.\n"
+    },
+    {
+      "id": 4590805,
+      "user": "antirez",
+      "created_at": "2012-03-20T08:35:38Z",
+      "body": "Milestone moved to Redis 3.0\n"
+    },
+    {
+      "id": 939810936,
+      "user": "yoav-steinberg",
+      "created_at": "2021-10-11T08:35:04Z",
+      "body": "This isn't a critical bug, and to tell you the truth I'm not sure I understand how without calling `epoll` a second time we can have an event handler called for an fd after it was closed. `close` is always called together with `aeDeleteFileEvent` which clears the masks preventing any wrong event handler to be called.\r\nMarking to be closed as this is very old and obviously not a real issue. "
+    }
+  ]
+}

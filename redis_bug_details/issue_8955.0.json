@@ -1,0 +1,24 @@
+{
+  "issue_number": 8955.0,
+  "title": "[BUG] redis-cli CLIENT UNBLOCK suggestion is incomplete",
+  "body": "redis-cli typing suggestion for `CLIENT UNBLOCK`/`CLIENT U` shows:\r\n\r\n    CLIENT UNBLOCK [TIMEOUT|ERROR]\r\n\r\nBut it should be:\r\n\r\n    CLIENT UNBLOCK client-id [TIMEOUT|ERROR]\r\n\r\nTested on `unstable` branch.",
+  "state": "closed",
+  "created_at": "2021-05-17T12:38:19Z",
+  "updated_at": "2021-05-17T13:52:41Z",
+  "closed_at": "2021-05-17T13:52:41Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 842296201,
+      "user": "oranagra",
+      "created_at": "2021-05-17T12:47:23Z",
+      "body": "I think this would be resolved by https://github.com/redis/redis/pull/8914\r\n@huangzhw please confirm if you get a chance."
+    },
+    {
+      "id": 842324616,
+      "user": "huangzhw",
+      "created_at": "2021-05-17T13:28:02Z",
+      "body": "Yes. Every command longer than one word has this problem. https://github.com/redis/redis/pull/8914 will fix it."
+    }
+  ]
+}

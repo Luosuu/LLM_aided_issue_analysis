@@ -1,0 +1,69 @@
+{
+  "issue_number": 91.0,
+  "title": "Redis should close the connection when the client output buffer is too big",
+  "body": "I'm marking this as non critical as we rarely seen problems about that, but actually in theory this is a critical bug.\n\nWhat happens is that if for an error a Redis client (especially a Pub/Sub client, or a slave) is not albe to consume the output produced by the server fast enough, the output buffer for that client will grow more and more at the point that could crash the server for out of memory.\n\nAfter a given limit is reached we should simply close the connection?\n\nShould Pub/Sub handle this in a different way sending warning messages to the client when we are near to the limit?\n\n**Additional points:** Also close slave (and monitors) connections if the output buffer gets too big.\n## Plan\n- Add max-client-output-buffer `<class>` `<hard-limit-bytes>` `<soft-limit-bytes>` `<seconds>`\n\nThe semantic is:\n\n1) Close the connection if the client stays over the soft-limit for the specified amount of seconds.\n2) Close the connection ASAP once the client reaches the hard-limit.\n\nThe `class` argument is used to tell Redis what clients are affected by the limit, and can be:\n- pubsub (Clients subscribed to one or more Pub Sub channels)\n- slave (Slave instances or clients running the MONITOR command)\n- standard (Normal clients)\n\nIt will be possible to use the `max-client-output-buffer` statement multiple times to configure the limits for the three different classes of clients.\n",
+  "state": "closed",
+  "created_at": "2011-09-20T13:34:15Z",
+  "updated_at": "2012-01-25T18:09:05Z",
+  "closed_at": "2012-01-25T18:09:05Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 3034696,
+      "user": "brettkiefer",
+      "created_at": "2011-12-06T16:41:43Z",
+      "body": "It looks like this is affecting us -- we've been having some short Trello outages where more or less simultaneously, all of our processes show this error, then die:\n\nError: Error: ERR command not allowed when used memory > 'maxmemory'\n    at Command.callback (/home/trellis/trellis/node_modules/redis/index.js:774:27)\n    at RedisClient.return_error (/home/trellis/trellis/node_modules/redis/index.js:382:25)\n    at RedisReplyParser.<anonymous> (/home/trellis/trellis/node_modules/redis/index.js:78:14)\n    at RedisReplyParser.emit (events.js:64:17)\n    at RedisReplyParser.send_error (/home/trellis/trellis/node_modules/redis/lib/parser/javascript.js:265:14)\n    at RedisReplyParser.execute (/home/trellis/trellis/node_modules/redis/lib/parser/javascript.js:124:22)\n    at RedisClient.on_data (/home/trellis/trellis/node_modules/redis/index.js:358:27)\n    at Socket.<anonymous> (/home/trellis/trellis/node_modules/redis/index.js:93:14)\n    at Socket.emit (events.js:64:17)\n    at Socket._onReadable (net.js:672:14)\n\nRedis is serving as a data structure cache and a pubsub server for us.\nWe run with\nmaxmemory 2G\nmaxmemory-policy allkeys-lru\n\nMonitoring Redis around one of these outages, we can see\npubsub_channels:9665\nclient_longest_output_list:4490\nclient_biggest_input_buf:497\nblocked_clients:0\nused_memory:2020084624\n\nIt seems like what is happening is that one of our clients is temporarily not receiving pubsub, and that causes its output list to fill up, which then consumes a bunch of memory, driving all evictable DB keys out, then causing errors on write.\n\nI can simulate this in test by having one healthy Redis client and one client occupied so that it cannot get free to receive pubsub, then throwing a bunch of data at a pubsub channel the occupied client is subscribed to.\n\nWhile we're looking to mitigate and/or fix this on the client side, we'd love to fix it on the server, too. It sounds like you already have an idea for how you'd like to see it done. Can you offer guidance (or, of course, a patch, if you know exactly how you want to do it)?\n\nThanks! Redis has been a really great tool for Trello.\n"
+    },
+    {
+      "id": 3050934,
+      "user": "brettkiefer",
+      "created_at": "2011-12-07T18:09:51Z",
+      "body": "We discovered that actually the client that was getting the long output_list was making a lot of requests as part of a job that fired every 5 minutes, and that this always generated a long output_list for that client. This was fine, and was consumed in a few seconds unless the server was close to the configured maxmemory. In that case, the queue stayed large as the server evicted all of its keys. It seems like there was some sort of sympathetic response, where the server had queues building up because it could not evict keys quickly enough to keep up. Does that make sense?\n"
+    },
+    {
+      "id": 3258473,
+      "user": "jokea",
+      "created_at": "2011-12-23T06:28:10Z",
+      "body": "I've seen this problem when a slow MONITOR client cause the server's memory grew rapidly and we had to\nshut it down to let all clients connect to it's slave.(So lucky that we had a slave for that server). The instance\nis running redis-2.0.4 so we have no way to identify or close the MONITOR client on the server side.\n\nThe length of client/slave's reply list and query buffer should be limited, and slow clients should be closed.\n"
+    },
+    {
+      "id": 3327431,
+      "user": "mranney",
+      "created_at": "2012-01-02T05:02:12Z",
+      "body": "This sounds great to me.  This has caused some production outages for us.\n"
+    },
+    {
+      "id": 3630405,
+      "user": "antirez",
+      "created_at": "2012-01-24T10:40:47Z",
+      "body": "The proposed new feature is now implemented into the 'limits' branch: https://github.com/antirez/redis/compare/unstable...limits\n\nFeedbacks/testing welcomed. I'm going to write tests for this code today.\n"
+    },
+    {
+      "id": 3632428,
+      "user": "brettkiefer",
+      "created_at": "2012-01-24T13:46:11Z",
+      "body": "That's great! I'll check it out - it looks way more sophisticated than what I had in mind, which I guess should not be a surprise.\n"
+    },
+    {
+      "id": 3633035,
+      "user": "brettkiefer",
+      "created_at": "2012-01-24T14:25:23Z",
+      "body": "Neat. This looks perfect for preventing the problems we were seeing; the first few we saw would have been caught by the defaults (they were because of non-responsive slaves), and we'll configure our normal clients with a limit as well - those event-driven servers are awesome at requesting too many things at once.\n"
+    },
+    {
+      "id": 3633050,
+      "user": "antirez",
+      "created_at": "2012-01-24T14:26:18Z",
+      "body": "@brettkiefer very cool to know this will work for you! Thanks for the ACK\n"
+    },
+    {
+      "id": 3655630,
+      "user": "antirez",
+      "created_at": "2012-01-25T18:09:05Z",
+      "body": "Tests added, merged into unstable, closing. Thank you.\n"
+    }
+  ]
+}

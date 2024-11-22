@@ -1,0 +1,54 @@
+{
+  "issue_number": 8184.0,
+  "title": "[BUG] Memory fragmentation when using log-normal value sizes",
+  "body": "**Describe the bug**\r\n\r\nThere is a memory fragmentation issue in Redis. Given a log-normal value size distribution, it can lead to out of memory conditions. The problem is solved, if you upgrade the jemalloc bundled within Redis from 5.1.0 to 5.2.0. \r\n\r\nThe issue happens with read-only and read-write workloads.\r\n\r\nThe only requirement to reproduce the issue is to load the database with values of log-normal size. \r\n\r\n**To reproduce**\r\n\r\nHere is a Python script to load the database:\r\n\r\n```python\r\n#!/usr/bin/env python3\r\n\r\nimport redis\r\nimport scipy.stats\r\n\r\ndef main():\r\n    scipy.random.seed(1)\r\n    dist = scipy.stats.lognorm(3.43, scale=206)\r\n    conn = redis.Redis()\r\n\r\n    for i in range(100000):\r\n        key = 'key:' + str(i).zfill(12)\r\n        value_len = max(1, int(dist.rvs()))\r\n        value = 'x' * value_len\r\n        conn.set(key, value)\r\n\r\nif __name__ == \"__main__\":\r\n    main()\r\n```\r\n\r\nHere are the reproduction steps:\r\n\r\n```sh\r\ngit clone --depth=1 https://github.com/redis/redis.git\r\ncd redis\r\nmake -sj\r\npip3 install redis scipy\r\nsrc/redis-server --save '' &\r\n./load_redis.py\r\ntimeout 10 src/redis-benchmark -c 500 -e -n 9999999 -r 100000 -t get\r\nsleep 1\r\nsrc/redis-cli info | grep mem_fr\r\n```\r\n\r\nThe output will look like this:\r\n\r\n```\r\nmem_fragmentation_ratio:1.68\r\nmem_fragmentation_bytes:4666941768\r\n```\r\n\r\nA ratio > 1 means that the memory is fragmented.\r\n\r\n**Expected behavior**\r\n\r\nHere are the steps to upgrade jemalloc:\r\n\r\n```sh\r\ncd deps\r\nmv jemalloc jemalloc.original\r\nwget https://github.com/jemalloc/jemalloc/releases/download/5.2.0/jemalloc-5.2.0.tar.bz2\r\ntar xf jemalloc-5.2.0.tar.bz2\r\nmv jemalloc-5.2.0 jemalloc\r\ncd ..\r\nmake distclean\r\nmake -sj\r\n```\r\n\r\nIf you run the benchmark again, the output will look like this:\r\n\r\n```\r\nmem_fragmentation_ratio:0.93\r\nmem_fragmentation_bytes:-485601336\r\n```\r\n\r\n**Additional information**\r\n\r\nFor your information, these are the commits in jemalloc that fix the issue:\r\nhttps://github.com/jemalloc/jemalloc/commit/fb56766ca9b398d07e2def5ead75a021fc08da03\r\nhttps://github.com/jemalloc/jemalloc/commit/350809dc5d43ea994de04f7a970b6978a8fec6d2\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-12-13T20:34:04Z",
+  "updated_at": "2021-02-02T10:32:03Z",
+  "closed_at": "2021-02-02T10:32:02Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 744072517,
+      "user": "oranagra",
+      "created_at": "2020-12-13T21:37:15Z",
+      "body": "@prekageo thanks for that tip. we do indeed need to upgrade jemalloc sooner or later.\r\n\r\nFrom what i understand, this benchmark (python part) generates about 6GB of memory usage,\r\nAnd the redis-benchmark execution generates high client output buffer consumption, during which redis reaches a peak of some 12GB usage.\r\nFrom what i can tell, at neither of these points in time there's no fragmentation (the process RSS matches the `used_memory`, and the mem_fragmentation_ratio is near 1.0).\r\n\r\nThen when the clients disconnect, redis releases all the output buffer memory, and redis's memory usage goes back to 6GB.\r\n`allocator_active` and even `allocator_resident` (both sampled from jemalloc metrics) also show only 6GB (there's no actual memory **\"fragmentation\"**).\r\n\r\nIf we look at MEMORY MALLOC-STATS, we can see that the `retained` memory is very high, and that's why the process RSS is still high.\r\nI.E. jemalloc returned memory with MADV_FREE (not with the immediate MADV_DONTNEED), so the pages are still mapped to the process and still shown as RSS. (note that this is **not** fragmentation!).\r\n\r\nThen if you'll wait a minute, the `mem_fragmentation_ratio` (which is misnamed since it doesn't really show fragmentation), will get back to normal, when the kernel is done reclaiming these pages and the RSS is back to 6GB."
+    },
+    {
+      "id": 744075138,
+      "user": "oranagra",
+      "created_at": "2020-12-13T21:58:46Z",
+      "body": "@prekageo putting aside what this test actually achieves.\r\nBy looking at your script, it seems you're aiming for a very specific pathological edge case (considering the use of `lognorm`).\r\nSo i suppose that one may exist and your script just didn't manage to expose it (yet)?\r\nalthough in that case, i have to wonder why are the redis-benchmark and sleep needed.\r\n\r\nAre you trying to reproduce a problem which you observed somewhere? or maybe something you learned by reading the code?\r\n\r\nP.s. as far as i know jemalloc 5.2 no longer uses MADV_FREE by default, so that's probably one reason why this test would produce different results (i didn't check the two commits you referred to)."
+    },
+    {
+      "id": 744117207,
+      "user": "prekageo",
+      "created_at": "2020-12-14T01:48:30Z",
+      "body": "Hi @oranagra. Thanks for the detailed explanation.\r\n\r\nI have observed in real-world situations that Redis was running out of memory while doing a read-only workload. That was unexpected for me so I started looking deeper into the problem. Then, I realized that the problem happens when using a heavy tailed distribution for the value sizes (such as log-normal). The script and reproduction steps are just a minimal example that uncovers this behavior.\r\n\r\nI have not read the code of jemalloc to understand why this behavior happens. I have bisected its git history and I've come up with the 2 mentioned commits.\r\n\r\nThe execution of the redis-benchmark is the one that causes this behavior. If you actually remove the `timeout 10` and let it run for a longer amount of time, Linux will kill either Redis or redis-benchmark due to OOM. The `sleep` is part of my reproduction script just to be sure that the benchmark has finished. It might not be necessary."
+    },
+    {
+      "id": 744234619,
+      "user": "oranagra",
+      "created_at": "2020-12-14T07:29:11Z",
+      "body": "@prekageo thank you for clearing it up.\r\nRead operations in redis do indeed consume memory and can either trigger key eviction (if `maxmemory` is set), or cause the process to grow which can lead to an OOM kill.\r\nThere is a `client-output-buffer-limit` config that can be used to disconnect clients when they're output buffer grows too much, and we also have other plans for improving this in the future, but all of that has nothing to do with fragmentation.\r\n\r\nAs i said, from what i can see with your specific reproduction scenario, the difference between old and new jemalloc here is just because new one tells the kernel to immediately release pages, and old one tells it to do it later, but in both cases these pages are eventually freed.\r\nAlso, this specific problem would happen regardless of the size distribution of the data, it's just a matter of querying big values.\r\n\r\nMaybe what you saw in the real case is indeed a fragmentation problem, in which case you may want to try reproducing it again in a different way."
+    },
+    {
+      "id": 744463657,
+      "user": "prekageo",
+      "created_at": "2020-12-14T14:07:48Z",
+      "body": "@oranagra you are right. I've tried with a fixed value size of 300 MB and I observe the same behavior. And indeed the memory is eventually freed (as long as you stop the client before OOM).\r\n\r\nMaybe it's my misunderstanding that this behavior is caused by fragmentation. I supposed so because one of the commits of jemalloc that fixes this behavior mentions \"...which significantly improves VM fragmentation...\".\r\n\r\nIn any case, this behavior prohibits reading from Redis large values for a long period of time with long lasting connections. I don't know how common scenario that is and if it's worth upgrading jemalloc to fix it. It is counter-intuitive, though, that Redis will consume more and more memory while running a read-only workload."
+    },
+    {
+      "id": 744503810,
+      "user": "oranagra",
+      "created_at": "2020-12-14T15:09:13Z",
+      "body": "if client-output-buffer-limit and maxmemory are not set, and the client sends an uncontrolled pipeline, it can cause OOM kill anyway, the new version of jemalloc doesn't change that.\r\nThere are also other problems with client output buffers (even if limited), see #7676, we hope to get to handle that some day soon."
+    },
+    {
+      "id": 771537969,
+      "user": "oranagra",
+      "created_at": "2021-02-02T10:32:02Z",
+      "body": "Closing this as it turns out to be a different issues (client output buffers and MADV_FREE).\r\nfeel free to reopen if needed."
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "issue_number": 8003.0,
+  "title": "[BUG] Duplicate invalidation message when turning tracking with BCAST option on with and without prefixes",
+  "body": "**Describe the bug**\r\n\r\nWhen turning tracking on with the bcast option, one time without any prefixes specified, and then again with prefixes (WITHOUT turning tracking off between them), we get duplicate invalidation messages for the same key.\r\n\r\n**To reproduce**\r\n\r\n```\r\nCLIENT TRACKING on BCAST redirect 6\r\nCLIENT TRACKING on BCAST redirect 6 PREFIX key1:\r\nINCR key1:1\r\n```\r\n(client 6 is a client that has subscribed to __redis__:invalidate)\r\nWhat we get in the redirection client:\r\n```\r\n1) \"message\"\r\n2) \"__redis__:invalidate\"\r\n3) 1) \"key1:1\"\r\n1) \"message\"\r\n2) \"__redis__:invalidate\"\r\n3) 1) \"key1:1\"\r\n```\r\n**Expected behavior**\r\n\r\nI'd expect redis to return an error after the second tracking command (like it does when we turn tracking on twice and don't use the BCAST option), or to only produce one invalidation message.\r\n",
+  "state": "closed",
+  "created_at": "2020-11-01T11:13:17Z",
+  "updated_at": "2021-01-08T15:53:24Z",
+  "closed_at": "2021-01-08T15:53:24Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 720112828,
+      "user": "hwware",
+      "created_at": "2020-11-01T16:17:15Z",
+      "body": "Hi @nitaicaro , thanks for reporting this, i also notice this issue before.  But the bcast mode is a little bit different than other modes, since it need to maintain the prefixes. Currently AFAIK there is no separate API for doing the prefix management(like add, delete, show, reset etc) but if we calling CLIENT TRACKING on BCAST mode again with prefixes, it registers the new prefix in the prefix table, but not deleting the previous one. I think this is the cause of this issue. Not sure whether we can choose the first option (return error for second call of bcast mode )since if we do that we disabled the feature for register new prefixes (at least for now).. @oranagra how do you think this? do you think we provide a separate API for prefix management make sense or we simply choose the second option (need to delete the \"\" in prtefix table when the first prefix was set)? Thanks!"
+    },
+    {
+      "id": 720113275,
+      "user": "hwware",
+      "created_at": "2020-11-01T16:20:24Z",
+      "body": "Also pinging @madolson for this."
+    },
+    {
+      "id": 720786355,
+      "user": "madolson",
+      "created_at": "2020-11-02T23:35:44Z",
+      "body": "I don't think we should add a new API that introduces add/remove semantics, since that can already be achieved with disable than enable. . We already have a reset with tracking off, so the only thing missing is introspective information. \r\n\r\nI would vote that the second command throw an error, and require disabling and re-enabling it to change prefixes.\r\n\r\nI also think the double printing is still a real bug, since you could include two prefixes which are subsets of each other. "
+    },
+    {
+      "id": 720801912,
+      "user": "hwware",
+      "created_at": "2020-11-03T00:24:10Z",
+      "body": "Hi @madolson , I think the disable/enable the client tracking can do the job for add/delete, but in some scenario this maybe too cumbersome..  Consider about the following scenario below:\r\nIf a stateless client enables a client tracking with bcast mode for big number of prefixes, when the client side needs to delete a prefix, it needs to do the following operation if no add/delete is available:\r\n1. retrive all prefixes from server for bcast tracking (assume the list API is available).\r\n2. remove the prefix from the list\r\n3. disable tracking\r\n4. enable tracking with new prefix list\r\nHowever if we can have a separate API for deregistering a specific prefix, this will just one call for delete the prefix..\r\nTherefore i think providing the incremental/decremental api for add/delete prefix make sense to me, or do you think I am i missing something here?  Thank you!\r\n"
+    },
+    {
+      "id": 720804594,
+      "user": "madolson",
+      "created_at": "2020-11-03T00:31:55Z",
+      "body": "Do people actually do that though? I understand it would simplify the add/remove use case, but most production workloads the configuration is determined outside of redis and applied. So they would do disable + enable with the new configuration.\r\n\r\nThe add/remove case is more of a debugging feature."
+    },
+    {
+      "id": 720809786,
+      "user": "hwware",
+      "created_at": "2020-11-03T00:51:01Z",
+      "body": "Hi @madolson , I think it depends, if it is a stateless application the add/remove case could be true. For now maybe we can leave this topic, if some user request this feature(the add/remove one) we can pick it up later.. But maybe we need to fix this actual bug and showing the bcast prefixes to user. How do you think?"
+    },
+    {
+      "id": 721269960,
+      "user": "madolson",
+      "created_at": "2020-11-03T17:25:51Z",
+      "body": "I understand it could exist, but I'm not sure it would ever make sense to build an application that way. I'm not clear why you would selectively decide what to and what to not cache when there is also the explicit key caching option.\r\n\r\nTo fix this, I agree we should just throw an error and then we can implement the CLIENT TRACKING INFO as mentioned in #7995 "
+    },
+    {
+      "id": 721314648,
+      "user": "hwware",
+      "created_at": "2020-11-03T18:55:17Z",
+      "body": "thank you @madolson , we can leave this discussion until some more use cases we can analysis later, maybe I was missing something here but I am not sure.\r\nRegarding the fix, I think in addition to just returning errors for the second bcast call, we also need to do a sanity check for all the prefixes user provided, whether one is a prefix of another, otherwise we still have this mutiple invalidation issue for a single cllient. This could happen for the following case if key '1234' was modified by another client.\r\n`client tracking on bcast prefix 1234 prefix 12 redirect 4`\r\nthanks!"
+    },
+    {
+      "id": 756830655,
+      "user": "oranagra",
+      "created_at": "2021-01-08T15:53:23Z",
+      "body": "Fixed by #8176"
+    }
+  ]
+}

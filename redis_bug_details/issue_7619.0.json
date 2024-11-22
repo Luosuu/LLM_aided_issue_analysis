@@ -1,0 +1,30 @@
+{
+  "issue_number": 7619.0,
+  "title": "delete key then get key , key is existed [BUG]",
+  "body": "I use Spring RedisTemplate ， this is my code ：\r\n```java\r\nfor (int i = 0; i < 10000; i++) {\r\n            redisTemplate.execute(\r\n                    connection -> {\r\n                        Long del = connection.del(new StringRedisSerializer().serialize(name));\r\n                        if (del == null) {\r\n                            log.info(\"delete lock - error , count {} , del : {} \", PlatformApplication.THREAD_LOCAL.get(), del);\r\n                        }\r\n\r\n                        Long aLong = redisTemplate.opsForValue().get(name);\r\n                        if (aLong != null) {\r\n                            log.info(\"delete lock - error name : {} , value : {}  ,count : {} ,del : {} \", name, aLong, PlatformApplication.THREAD_LOCAL.get(), del);\r\n                        }\r\n                        return null;\r\n                    }, true);\r\n        }\r\n```\r\n![image](https://user-images.githubusercontent.com/30279020/89529931-318b7e80-d820-11ea-8451-6a9683589fc2.png)\r\n\r\nbut sometime , I can get key what I deleted。\r\n\r\n2020-08-06 19:58:37.811  INFO 83489 --- [           main] c.d.p.c.runtime.RedisLockSupplierImpl    : delete lock - error name : .sdk.DefaultPlatformNameGenerator.123213213 , value : 1596715127810  ,count : 1414 ,del : 1 \r\n\r\n![image](https://user-images.githubusercontent.com/30279020/89530014-5a137880-d820-11ea-9607-5aec598fe9cc.png)\r\n\r\n\r\n\r\nI hava only one redis。\r\n",
+  "state": "closed",
+  "created_at": "2020-08-06T12:07:01Z",
+  "updated_at": "2020-08-06T12:59:26Z",
+  "closed_at": "2020-08-06T12:59:26Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 669893519,
+      "user": "itamarhaber",
+      "created_at": "2020-08-06T12:20:35Z",
+      "body": "Hello @shenjianeng \r\n\r\nI'm guessing that the key was created after your code deleted it, perhaps by another process?\r\n\r\nIn any case, please keep in mind that this issue tracker should be used for reporting bugs or proposing improvements to the Redis server. Your issue appears to be related Spring, so perhaps you should investigate it there and kindly close this one."
+    },
+    {
+      "id": 669899521,
+      "user": "shenjianeng",
+      "created_at": "2020-08-06T12:33:47Z",
+      "body": "this key is  just being used by me。\r\n\r\nNow I use this URL as my key\r\n\r\n\r\n2020-08-06 20:32:13.623  INFO 83856 --- [           main] c.d.p.c.runtime.RedisLockSupplierImpl    : delete lock - error name : .sdk.DefaultPlatformNameGenerator.https://github.com/redis/redis/issues/7619 , value : 1596717143622  ,count : 154 ,del : 1 \r\n\r\n\r\n![image](https://user-images.githubusercontent.com/30279020/89532221-0440cf80-d824-11ea-9ece-7afdc7eeaefa.png)\r\n"
+    },
+    {
+      "id": 669911165,
+      "user": "shenjianeng",
+      "created_at": "2020-08-06T12:59:24Z",
+      "body": "sorry 。 this is my code bug"
+    }
+  ]
+}

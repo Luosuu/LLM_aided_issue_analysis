@@ -1,0 +1,42 @@
+{
+  "issue_number": 11880.0,
+  "title": "[BUG] Why not set a flag variable to determine if it is a shallow copy",
+  "body": "```c\r\nlist *listDup(list *orig)\r\n{\r\n    list *copy;\r\n    listIter iter;\r\n    listNode *node;\r\n    int shallow_flag = 1; // first \r\n\r\n    if ((copy = listCreate()) == NULL)\r\n        return NULL;\r\n    copy->dup = orig->dup;\r\n    copy->free = orig->free;\r\n    copy->match = orig->match;\r\n    listRewind(orig, &iter);\r\n    while((node = listNext(&iter)) != NULL) {\r\n        void *value;\r\n\r\n        if (copy->dup) {\r\n            value = copy->dup(node->value);\r\n            if (value == NULL) {\r\n                listRelease(copy);\r\n                return NULL;\r\n            }\r\n           shallow_flag = 0; // second\r\n        } else {\r\n            value = node->value;\r\n        }\r\n        \r\n        if (listAddNodeTail(copy, value) == NULL) {\r\n        \r\n            if (!shallow_flag && copy->free) copy->free(value); // third\r\n\r\n            listRelease(copy);\r\n            return NULL;\r\n        }\r\n    }\r\n    return copy;\r\n}\r\n```",
+  "state": "closed",
+  "created_at": "2023-03-03T09:52:34Z",
+  "updated_at": "2023-03-05T19:08:11Z",
+  "closed_at": "2023-03-05T09:59:57Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1453495221,
+      "user": "sundb",
+      "created_at": "2023-03-03T12:58:01Z",
+      "body": "I don't understand the meaning of `shallow copy`.\r\nSince all the OOM are handled by `zmalloc_default_oom`, so `value` will never be NULL and `shallow_flag` will be always `0`.\r\n"
+    },
+    {
+      "id": 1453561076,
+      "user": "Weihnachtsmannn",
+      "created_at": "2023-03-03T13:50:42Z",
+      "body": "> I don't understand the meaning of `shallow copy`.\r\n> Since all the OOM are handled by `zmalloc_default_oom`, so `value` will never be NULL and `shallow_flag` will be always `0`.\r\n\r\nIf no dup function is defined in the list, a node in the orig list contains a valid element, value = node-&gt; value means that value also references the resource. If listAddNodeTail fails (though it's unlikely to fail), and the free function is defined in the copy list, won't the data of a node in orig that has a valid element be corrupted?"
+    },
+    {
+      "id": 1455028322,
+      "user": "zuiderkwast",
+      "created_at": "2023-03-05T08:50:14Z",
+      "body": "This doesn't appear to cause any problem in redis currently, but maybe it does if adlist is used separately?\r\n\r\nWe have unit tests for other internal libs (dict, listpack, sds, ...) that are enabled by the define REDIS_TEST and run from the main() function in server.c. Maybe you want to add some test for adlist to show that this is actually a bug and that your fix solves it?"
+    },
+    {
+      "id": 1455043088,
+      "user": "Weihnachtsmannn",
+      "created_at": "2023-03-05T09:59:47Z",
+      "body": "> This doesn't appear to cause any problem in redis currently, but maybe it does if adlist is used separately?\r\n> \r\n> We have unit tests for other internal libs (dict, listpack, sds, ...) that are enabled by the define REDIS_TEST and run from the main() function in server.c. Maybe you want to add some test for adlist to show that this is actually a bug and that your fix solves \r\n\r\n\r\n\r\n> This doesn't appear to cause any problem in redis currently, but maybe it does if adlist is used separately?\r\n> \r\n> We have unit tests for other internal libs (dict, listpack, sds, ...) that are enabled by the define REDIS_TEST and run from the main() function in server.c. Maybe you want to add some test for adlist to show that this is actually a bug and that your fix solves it?\r\n\r\nI'm actually new to redis source code and treat Adlist from a general linked list perspective. Thank you for your reply."
+    },
+    {
+      "id": 1455176034,
+      "user": "zuiderkwast",
+      "created_at": "2023-03-05T19:08:11Z",
+      "body": "Ok. I agree it seems like the dup function can fail in general because the adlist should be independent, but since it is not seen in practice it's not very high prio to fix it. I think a PR with test included could be nice to have."
+    }
+  ]
+}

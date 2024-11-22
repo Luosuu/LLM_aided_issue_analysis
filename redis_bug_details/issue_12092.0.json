@@ -1,0 +1,44 @@
+{
+  "issue_number": 12092.0,
+  "title": "[BUG] RESP string as number parsing restrictive",
+  "body": "**Describe the bug**\r\n\r\nRESP parsing of strings as numbers, in an RPUSH at least, is highly restrictive. It rejects what would be valid for https://linux.die.net/man/3/sscanf.\r\n\r\n**To reproduce**\r\n\r\nAny of the following trigger a disconnect (my app uses CLIENT REPLY OFF, so I don't know what error message might be reported, but Redis logs nothing):\r\n`@3\\r\\n$5\\r\\nRPUSH\\r\\n$3\\r\\nkey\\r\\n$00000000000000001024\\r\\n<1024 bytes of data>\\r\\n`\r\n`@3\\r\\n$5\\r\\nRPUSH\\r\\n$3\\r\\nkey\\r\\n$                1024\\r\\n<1024 bytes of data>\\r\\n`\r\n`@3\\r\\n$5\\r\\nRPUSH\\r\\n$3\\r\\nkey\\r\\n                $1024\\r\\n<1024 bytes of data>\\r\\n`\r\n\r\n**Expected behavior**\r\n\r\nThis works:\r\n`@3\\r\\n$5\\r\\nRPUSH\\r\\n$3\\r\\nkey\\r\\n$1024\\r\\n<1024 bytes of data>\\r\\n`\r\n\r\nThere is no documentation on what's acceptable, but it seems reasonable to accept anything that `sprintf()` would accept. Therefore, I'd expect the variations shown of `$1024\\r\\n` to work, too.\r\n\r\n**Additional information**\r\n\r\nI was trying to add a placeholder to a buffer to which I then appended data in chunks as it was being compressed. I don't know the length of the compressed data until that process is finished and I didn't want to have to copy the compressed data from one buffer to another. The idea was to go back to the placeholder and write the actual size within the pre-allocated space. Nothing I tried was allowed.",
+  "state": "open",
+  "created_at": "2023-04-21T19:22:38Z",
+  "updated_at": "2023-04-30T15:48:42Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1520197488,
+      "user": "oranagra",
+      "created_at": "2023-04-24T13:49:30Z",
+      "body": "This happens because we use this to parse the bulk length (in `processMultibulkBuffer`) \r\nhttps://github.com/redis/redis/blob/bedecec786767b84215f4002a02d18110585915a/src/util.c#L423-L435\r\n\r\nYou said you're expect it to accept anything that sprintf would accept, and i suppose you meant scanf, but note that scanf is pretty permissive, and maybe it'll be more appropriate to refer to `endptr` (while also matching that the `endptr` argument points to a newline and there's no garbage after it.\r\n\r\nbut anyway, out of the 3 examples you gave above, the only one that would be remotely appropriate is the `00000000000000001024` one, and sadly for your use case isn't supported.\r\n\r\nwhat would really probably have solved your issue is if redis had supported the [Streamed strings](https://github.com/redis/redis-specifications/blob/master/protocol/RESP3.md#streamed-strings) feature of the RESP3 protocol (which is yet to be supported)"
+    },
+    {
+      "id": 1521710588,
+      "user": "rob-stewart",
+      "created_at": "2023-04-25T12:31:50Z",
+      "body": "Yes, I did mean `sscanf()`. A format string of `\" %Ld\"` would allow zero or more leading spaces, and then convert to `long long`. Yes, there are other things needed to verify a complete conversion with no trailing garbage. The code you referenced has a curious, purposely-added constraint: round-tripping. Anyway, it is highly restrictive and _**undocumented.**_\r\n\r\nI could probably make streamed strings work for my use case, but since they aren't supported, I'm stuck. Thanks for the response."
+    },
+    {
+      "id": 1523174437,
+      "user": "oranagra",
+      "created_at": "2023-04-26T10:19:29Z",
+      "body": "We can relax the constraints for the bulk and muli-bulk lengths and allow leading zeroes. We can maybe also do that for other numeric arguments, but we must keep it for values (e.g. INCRBY).\n\n@yossigo WDYT?"
+    },
+    {
+      "id": 1528991498,
+      "user": "yossigo",
+      "created_at": "2023-04-30T10:33:33Z",
+      "body": "@oranagra I don't support such a fundamental change to RESP, as it has a far-reaching and possibly unexpected impact. For example, would `*0<xtrillion times>1` be a valid request? How does that impact the parser?\r\n\r\nImplementing the RESP3 streamed strings makes more sense to me as it avoids these problems while addressing the full scope of the problem (replies as well)."
+    },
+    {
+      "id": 1529058076,
+      "user": "rob-stewart",
+      "created_at": "2023-04-30T15:48:42Z",
+      "body": "A trillion leading zeroes would simply spin a CPU for a bit. That could be a source of a denial of service attack, but that can be mitigated by limiting the number of characters you’re willing to process before failing the conversion. In my example, I padded with enough zeroes for the number of digits in the maximum possible value for the data type: 20. Thus, if you find a 21st character to convert, you could fail the conversation (and, presumably, disconnect from the client). That doesn’t seem harmful. "
+    }
+  ]
+}

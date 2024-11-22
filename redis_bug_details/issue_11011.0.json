@@ -1,0 +1,24 @@
+{
+  "issue_number": 11011.0,
+  "title": "[BUG][QUESTION]rediscluster  node  no slot but have keys ， the keys can scan it ,But when reading, it will ask for move",
+  "body": "127.0.0.1:6379> scan 10\r\n1) \"25165834\"\r\n2)  1) \"ac:462262851295219346089:$h\"\r\n    2) \"ac:73244725777718607779631:$h\"\r\n    3) \"ac:49736152545177773847163:$h\"\r\n    4) \"ac:6977706739628641233132:$h\"\r\n    5) \"ac:4613325082181445689196:$h\"\r\n    6) \"ac:786490290122956665225135:$h\"\r\n    7) \"ac:79182828723706138306336:$h\"\r\n    8) \"ac:722817271722227621783437:$h\"\r\n    9) \"ac:74772312392728607323065:$h\"\r\n   10) \"ac:70052316129801965935959:$h\"\r\n127.0.0.1:16028> hgetall \"ac:462262851295219346089:$h\"\r\n(error) MOVED 10455 10.123.123.12:6379\r\n\r\n\r\nI want to delete the key to free up space, and  scan it . When reading the key, an error of move. is reported. Then I went to the  move node and prompted that the key does not exist. After I migrated all the slots on this node, the info keyspace of this node still has many keys. flushall can free up space, why? Is there a way to handle this situation\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-07-19T09:46:30Z",
+  "updated_at": "2023-04-11T13:51:47Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1188889939,
+      "user": "553589912",
+      "created_at": "2022-07-19T10:35:08Z",
+      "body": "https://github.com/redis/redis/issues/4810   和这个问题类似"
+    },
+    {
+      "id": 1503396242,
+      "user": "DriverX",
+      "created_at": "2023-04-11T13:51:47Z",
+      "body": "I found intresting command in redis-cli cluster management - `--cluster-search-multiple-owners`. \r\nIntroduced in https://github.com/redis/redis/pull/5681"
+    }
+  ]
+}

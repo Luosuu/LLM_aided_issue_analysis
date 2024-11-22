@@ -1,0 +1,48 @@
+{
+  "issue_number": 11976.0,
+  "title": "[BUG]  `Info Errorstats` confusion when reply error at `EVAL`",
+  "body": "**Describe the bug**\r\n\r\nWhen the `EVAL` method reply error, the monitoring indicators will be confused:\r\n\r\n```bash\r\n>  EVAL \"return { err = '{\\\"code\\\": 40000}'}\" 0\r\n(error) {\"code\": 40000}\r\n\r\n> info Errorstats\r\n# Errorstats\r\nerrorstat_{\"code\"_:count=4\r\n```\r\n\r\n**Expected behavior**\r\n\r\nI think the correct return should be：\r\n\r\n```bash\r\n> info Errorstats\r\n# Errorstats\r\nerrorstat_ERR:count=1\r\n```\r\n\r\n> No user message in `Errorstats`\r\n\r\n**Additional information**\r\nI have tried it in the flow versions(both have problems):\r\n* 6.2.7\r\n* 7.0\r\n",
+  "state": "closed",
+  "created_at": "2023-03-28T08:17:01Z",
+  "updated_at": "2023-04-13T09:36:49Z",
+  "closed_at": "2023-04-13T09:36:49Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1486462796,
+      "user": "jarpson",
+      "created_at": "2023-03-28T08:50:14Z",
+      "body": "Lua error reply here: https://github.com/redis/redis/blob/6.2.11/src/scripting.c#L474"
+    },
+    {
+      "id": 1486712797,
+      "user": "enjoy-binbin",
+      "created_at": "2023-03-28T11:42:28Z",
+      "body": "You may need to do this to return an error `EVAL \"return { err = 'ERR {\\\"code\\\": 40000}'}\" 0`\r\n```\r\n[root@binblog redis]# src/redis-cli\r\n127.0.0.1:6379> info Errorstats\r\n# Errorstats\r\n127.0.0.1:6379> foo bar\r\n(error) ERR unknown command 'foo', with args beginning with: 'bar' \r\n127.0.0.1:6379> info Errorstats\r\n# Errorstats\r\nerrorstat_ERR:count=1\r\n127.0.0.1:6379> EVAL \"return { err = 'ERR {\\\"code\\\": 40000}'}\" 0\r\n(error) ERR {\"code\": 40000}\r\n127.0.0.1:6379> info Errorstats\r\n# Errorstats\r\nerrorstat_ERR:count=2\r\n```"
+    },
+    {
+      "id": 1488265996,
+      "user": "jarpson",
+      "created_at": "2023-03-29T09:35:36Z",
+      "body": "I think the error type is defined in the Redis system, and is it appropriate to define it in the script?\r\n\r\n> An extreme example: \r\n>\r\n> `EVAL \"return { err = 'MOVED 6379 127.0.0.1' }\" 0`\r\n>\r\n> User can return system error from script"
+    },
+    {
+      "id": 1488272157,
+      "user": "enjoy-binbin",
+      "created_at": "2023-03-29T09:39:58Z",
+      "body": "i am pinging @MeirShpilraien, he may have more ideas :)"
+    },
+    {
+      "id": 1502128348,
+      "user": "yossigo",
+      "created_at": "2023-04-10T18:04:53Z",
+      "body": "@jarpson Scripts are given enough power to control the error code returned rather than always enforcing `-ERR`. This is a feature, not a bug. The only issue here is that the documentation may need to be more elaborate and clear."
+    },
+    {
+      "id": 1506656769,
+      "user": "enjoy-binbin",
+      "created_at": "2023-04-13T09:36:45Z",
+      "body": "closing in favor of https://github.com/redis/redis-doc/pull/2382"
+    }
+  ]
+}

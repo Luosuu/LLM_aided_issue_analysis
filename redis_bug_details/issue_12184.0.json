@@ -1,0 +1,80 @@
+{
+  "issue_number": 12184.0,
+  "title": "[BUG] Sentinel failover does not happen when node went down",
+  "body": "**Describe the bug**\r\nSentinel failover does not happen when node went down.\r\nenv detail: - ocp Kubernetes multi node environment.\r\n\r\n**To reproduce**\r\n\r\n1)deploy redis with sentinel in High Availiability mode (cluster size =3).\r\n2) shutdown the master node.\r\n3) when node went down failover should start but always getting \"45:X 15 May 2023 11:41:47.224 # Failed to resolve hostname\".\r\n\r\n**Expected behavior**\r\nfailover should start within configure time and slave nodes should be able to serve the request.\r\n\r\n\r\n**Additional information**\r\n1)when node went down failover is not happening and always getting resolve hostname error.\r\n2)when the same node comes up other two instances are able to resolve hostname and failover happens.\r\n",
+  "state": "closed",
+  "created_at": "2023-05-16T10:34:48Z",
+  "updated_at": "2023-11-12T04:45:44Z",
+  "closed_at": "2023-07-09T05:56:51Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1549523459,
+      "user": "moticless",
+      "created_at": "2023-05-16T11:57:23Z",
+      "body": "Hi @rimverma, I am sorry but a lot of details are missing. What are the configuration files? What is the scenario? Need recorded logs of the problem. Which version are you using? did you try to isolate the problematic version?\r\nAre you assisting any other repo to deploy  k8s - if that so, maybe try get there help for a start. Thank you."
+    },
+    {
+      "id": 1569489413,
+      "user": "rimverma",
+      "created_at": "2023-05-31T04:47:18Z",
+      "body": "Hi moticless, Sorry for Delayed Response .\r\nRedis version which i am using is 6.2.12 but i tested the scenario with version 7.0.11 also but issue persist.\r\nscenario:- whenever master node went down , other slave node is unable to resolve hostname and they are unable to serve to services also failover is not starting when node went down.\r\nconfiguration file and log i am attaching  for your reference .\r\n[statefulset-ricplt-dbaas-cluster-0-server-1_sentinel_shutdownserver2.log](https://github.com/redis/redis/files/11608668/statefulset-ricplt-dbaas-cluster-0-server-1_sentinel_shutdownserver2.log)\r\nsentinel.conf:-\r\n![image](https://github.com/redis/redis/assets/133629637/65eb7db1-551b-4cd8-8500-aa090cca82b3)\r\nredis.conf:-\r\n![image](https://github.com/redis/redis/assets/133629637/179cd843-35f8-4fb1-91ca-1e72f942e678)\r\n"
+    },
+    {
+      "id": 1580229613,
+      "user": "rimverma",
+      "created_at": "2023-06-07T08:51:31Z",
+      "body": "Hi Team, \r\nGentle Reminder.\r\nI have attached logs and config file, kindly check.\r\nRegards,\r\nRimjhim "
+    },
+    {
+      "id": 1580293161,
+      "user": "moticless",
+      "created_at": "2023-06-07T09:26:12Z",
+      "body": "Hi,\r\nIt looks like basic networking issue. Please verify that the sentinel that fails to resolve hostname, can reach `statefulset-ricplt-dbaas-cluster-0-server-2.service-ricplt-dbaas-tcp-cluster-0.ricinfra.svc.cluster.local` and DNS resolve it to corresponding ip.\r\n"
+    },
+    {
+      "id": 1586673455,
+      "user": "rimverma",
+      "created_at": "2023-06-12T06:32:23Z",
+      "body": "Hi,\r\nThis pod (server 2) went down so when pod went down after some seconds it should start failover but in my case failover is not getting start it is always checking for hostname for pod(statefulset-ricplt-dbaas-cluster-0-server-2.service-ricplt-dbaas-tcp-cluster-0.ricinfra.svc.cluster.local) which is already down. Please check  this ."
+    },
+    {
+      "id": 1586812259,
+      "user": "moticless",
+      "created_at": "2023-06-12T08:12:38Z",
+      "body": "according to your logs, the \"resolve hostname\" error happens around 20sec after the sentinel starts, before any switch over.\r\nThe master is `dbaasmaster-cluster-0 statefulset-ricplt-dbaas-cluster-0-server-0.service-ricplt-dbaas-tcp-cluster-0.ricinfra.svc.cluster.local` and is responsive at start. But from the start the replica `statefulset-ricplt-dbaas-cluster-0-server-2.service-ricplt-dbaas-tcp-cluster-0.ricinfra.svc.cluster.local` is not respnosive and you get \"resolve hostname\" error. Fix it before you carry on."
+    },
+    {
+      "id": 1589191002,
+      "user": "rimverma",
+      "created_at": "2023-06-13T12:18:11Z",
+      "body": "Hi,\r\nyes resolve hostname error is there for server2 but if we see in log that time services are fine when master(server0) pod went down we started getting error (below in the log )for server0  \"45:X 03 May 2023 12:12:20.989 # Failed to resolve hostname 'statefulset-ricplt-dbaas-cluster-0-server-0.service-ricplt-dbaas-tcp-cluster-0.ricinfra.svc.cluster.local'\" this error continues until unless we are not starting pod again , but normally it should start failover scenario after some sec when pod went down  .\r\n\r\n\r\n\r\n"
+    },
+    {
+      "id": 1591115242,
+      "user": "rimverma",
+      "created_at": "2023-06-14T12:39:46Z",
+      "body": "Hi moticless ,\r\nYou can reproduce this in our local environment also, below are steps to reproduce.\r\nenv detail: - ocp Kubernetes multi node environment.\r\nTo reproduce\r\n1)deploy redis with sentinel in High Availiability mode (cluster size =3).\r\n2) shutdown the cluster node where dbaas master is present."
+    },
+    {
+      "id": 1623267398,
+      "user": "rimverma",
+      "created_at": "2023-07-06T09:05:30Z",
+      "body": "Hi team ,\r\nCan you  please update on this .\r\nRegards,\r\nRimjhim"
+    },
+    {
+      "id": 1627614983,
+      "user": "moticless",
+      "created_at": "2023-07-09T05:56:51Z",
+      "body": "The failover scenario that you are describing is rather basic one and regularily tested. It is most probably due to integration with kubernetes which involve network configuration, pod presistency and it is behind the scope of this repo.\r\n\r\nPlease put an effort to further isolate the issue and if you verified that it is Redis issue alone, please open a new issue with the details irrelated to Kuberentes.\r\n\r\n"
+    },
+    {
+      "id": 1807001678,
+      "user": "zhaozhiguang",
+      "created_at": "2023-11-12T04:45:44Z",
+      "body": "I have also encountered a similar problem. I am using the Docker Bridge network mode, and an error occurred when I stopped the master node of the Docker\r\n\r\n"
+    }
+  ]
+}

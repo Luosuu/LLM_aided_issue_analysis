@@ -1,0 +1,11 @@
+{
+  "issue_number": 13304.0,
+  "title": "[BUG] Java 21 VT with Netty and Pool exhausted",
+  "body": "Hi, I am getting Pool exhausted when I pass a ClientResources which does use an executor with virtual threads.\r\n\r\n```\r\njava.util.concurrent.CompletionException: java.util.NoSuchElementException: Pool exhausted\r\n\tat java.base/java.util.concurrent.CompletableFuture.encodeThrowable(Unknown Source) ~[?:?]\r\n\tat java.base/java.util.concurrent.CompletableFuture.uniApplyNow(Unknown Source) ~[?:?]\r\n\tat java.base/java.util.concurrent.CompletableFuture.uniApplyStage(Unknown Source) ~[?:?]\r\n\tat java.base/java.util.concurrent.CompletableFuture.thenApply(Unknown Source) ~[?:?]\r\n\tat io.lettuce.core.support.AsyncConnectionPoolSupport$1.acquire(AsyncConnectionPoolSupport.java:189) ~[lettuce-core-6.3.2.RELEASE.jar:6.3.2.RELEASE/8941aea]\r\n```\r\n\r\n```\r\nvar executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory());\r\nEventLoopGroup customEventLoopGroup = new NioEventLoopGroup(0, executor);\r\nvar clientResources =\r\n        ClientResources.builder().eventExecutorGroup(customEventLoopGroup).build();\r\nRedisClient.create(clientResources, ...);\r\n```\r\n\r\nhow can I fix this?\r\nThanks!\r\n",
+  "state": "closed",
+  "created_at": "2024-05-29T18:47:37Z",
+  "updated_at": "2024-05-29T18:53:35Z",
+  "closed_at": "2024-05-29T18:53:35Z",
+  "labels": [],
+  "comments_data": []
+}

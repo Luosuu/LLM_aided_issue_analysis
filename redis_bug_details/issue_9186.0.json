@@ -1,0 +1,54 @@
+{
+  "issue_number": 9186.0,
+  "title": "[BUG] User parsing in redis-cli URI should ignore empty string",
+  "body": "**Describe the bug**\r\n\r\nUser parsing #8048 the redis URI will always set `config.user` even in the case of `''` empty string.\r\n\r\nhttps://github.com/redis/redis/blob/74fe15b3602ed7c003b5c53e45e31f7aa6d4a86f/src/redis-cli.c#L423-L432\r\n\r\n**To reproduce**\r\n\r\nGiven the redis URI following the standard format:\r\n\r\n```\r\nredis://:<password>@<host>:<port>\r\n```\r\n\r\nThe user will be parsed as `''` empty string. Failing to `AUTH` as the default user.\r\n\r\n**Expected behavior**\r\n\r\nThe same behavior as the redis URI:\r\n\r\n```\r\nredis://<password>@<host>:<port>\r\n```\r\n\r\nWhich will correctly `AUTH` as the default user.\r\n",
+  "state": "closed",
+  "created_at": "2021-07-02T16:16:37Z",
+  "updated_at": "2023-11-19T13:14:01Z",
+  "closed_at": "2023-11-19T13:14:01Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 873320022,
+      "user": "huangzhw",
+      "created_at": "2021-07-03T01:02:53Z",
+      "body": "@beornf I test for now \"\" is a valid user."
+    },
+    {
+      "id": 873346915,
+      "user": "beornf",
+      "created_at": "2021-07-03T05:04:35Z",
+      "body": "I see that `\"\"` may be a valid user however you could still invoke redis-cli with `--user \"\"`. In Redis client libraries (javascript, python, go etc.) that do URL parsing I've seen that user is parsed as `\"\"` by default and hence is not used in `AUTH`. The URI spec states that `redis://<password>@<host>:<port>` should be treated as user `<password>` and password `\"\"` . The standard URI format for userinfo is `<user>:<password>` see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1."
+    },
+    {
+      "id": 874477651,
+      "user": "huangzhw",
+      "created_at": "2021-07-06T05:45:33Z",
+      "body": "But in redis:\r\n```\r\n *   scheme:    \"redis://\"\r\n *   authority: [[<username> \":\"] <password> \"@\"] [<hostname> [\":\" <port>]]\r\n *   path:      [\"/\" [<db>]]\r\n```\r\n\r\nI think the major reason is at first redis only had password. So username is optional."
+    },
+    {
+      "id": 874491447,
+      "user": "beornf",
+      "created_at": "2021-07-06T06:17:36Z",
+      "body": "I'm currently using `redis://:<password>@<host>:<post>` and that works with clients that ignore empty usernames. In redis-cli prior to version 6.2 the username isn't parsed so this URI was compatible with the default user. I can connect explicitly with `-a <password> -h <hostname> -p <port>` just thought the URI connect string is more convenient."
+    },
+    {
+      "id": 874495062,
+      "user": "huangzhw",
+      "created_at": "2021-07-06T06:26:09Z",
+      "body": "So your problem is `redis://:<password>@<host>:<post>` works for 6.0 not 6.2. But we can't treat `\"\"` as `default` user, as `\"\"` is valid user. You can use `redis://default:<password>@<host>:<post>`.\r\nI'm not sure whether treat `\"\"` as `default` is valid."
+    },
+    {
+      "id": 874498356,
+      "user": "beornf",
+      "created_at": "2021-07-06T06:33:22Z",
+      "body": "In that case and I guess I'd open as a different feature request would it be possible to change the name of the `default` user similar to `requirepass` configuration option. I know I can probably just set some `acl` options and turn off the default user."
+    },
+    {
+      "id": 1817852216,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-19T13:13:57Z",
+      "body": "closing, see #12746"
+    }
+  ]
+}

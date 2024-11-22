@@ -1,0 +1,50 @@
+{
+  "issue_number": 8032.0,
+  "title": "[BUG] expireGenericCommand overflow time and The key is deleted by mistake",
+  "body": "**Describe the bug**\r\n\r\nIn expireGenericCommand, if input time for expire  causes to overflow on \"when\" variable , so we have a undefined behavior.\r\n \r\n**To reproduce**\r\n\r\nThis is a long time but it may be requested\r\n\r\nwhen = LLONG_MAX - 1000;\r\n\r\n**Expected behavior**\r\n\r\nexpected ttl set to  LLONG_MAX - 1000;\r\nbut an overflow occurs.\r\n\r\n**Additional information**\r\n\r\n my solution is \r\n\r\n\r\n```\r\n\r\nif (unit == UNIT_SECONDS)\r\n{\r\nif (when >= (LLONG_MAX / 1000) - basetime)\r\n{\r\npersistcommand();\r\nreturn;\r\n}\r\nwhen *=1000;\r\n}\r\nif (when >= LLONG_MAX  - basetime)\r\n{\r\npersistcommand();\r\nreturn;\r\n}\r\nwhen += basetime;\r\n```",
+  "state": "closed",
+  "created_at": "2020-11-07T08:27:09Z",
+  "updated_at": "2021-07-20T12:30:28Z",
+  "closed_at": "2021-07-20T12:30:28Z",
+  "labels": [
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 723648099,
+      "user": "itamarhaber",
+      "created_at": "2020-11-08T18:30:01Z",
+      "body": "Thanks for the report @mmhatami - I can verify that an overflow occurs when, for example, calling `SET foo bar EX 9223372036854774807`. This leads to the key being deleted, naturally."
+    },
+    {
+      "id": 723663650,
+      "user": "filipecosta90",
+      "created_at": "2020-11-08T20:47:58Z",
+      "body": "@itamarhaber @mmhatami I believe this PR should fix it correct? https://github.com/redis/redis/pull/6801\r\nPS: this issue is a duplicate of https://github.com/redis/redis/issues/6800"
+    },
+    {
+      "id": 723798802,
+      "user": "oranagra",
+      "created_at": "2020-11-09T06:45:57Z",
+      "body": "why would someone want to have the key expire in 292471208677 years?"
+    },
+    {
+      "id": 724025968,
+      "user": "itamarhaber",
+      "created_at": "2020-11-09T13:51:19Z",
+      "body": "Thanks @filipecosta90 - totally forgot about that one :)\r\n\r\nAs for why would someone want to do that, I guess no one will really do it (and anyway, 2038 is the end of everything) but the edge case of the overflow is still there for static analyzers and hoomans alike.\r\n\r\nIf everyone's in agreement, I think this can be closed as a duplicate."
+    },
+    {
+      "id": 724036046,
+      "user": "oranagra",
+      "created_at": "2020-11-09T14:09:18Z",
+      "body": "they're not strictly duplicate since each of them is about the same bug in a different command.\r\ni've set the PR to close both when merged, assuming @filipecosta90 will update his PR (commented there)."
+    },
+    {
+      "id": 883354233,
+      "user": "oranagra",
+      "created_at": "2021-07-20T12:30:28Z",
+      "body": "fixed by #8287"
+    }
+  ]
+}

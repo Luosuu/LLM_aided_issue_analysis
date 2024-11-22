@@ -1,0 +1,24 @@
+{
+  "issue_number": 7715.0,
+  "title": "[BUG] using redis 6.0.4，lua CVE vulnerabilities not fixed. Is there any plan to upgrade or fix it?",
+  "body": "using redis 6.0.4，lua CVE vulnerabilities not fixed：\r\nCVE-2020-15888\r\nCVE-2020-15889\r\nCVE-2020-15945\r\nCVE-2014-5461\r\n\r\nIs there any plan to upgrade or fix it?\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-08-27T06:53:51Z",
+  "updated_at": "2020-08-31T17:43:01Z",
+  "closed_at": "2020-08-31T17:43:01Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 683920120,
+      "user": "yossigo",
+      "created_at": "2020-08-31T17:29:04Z",
+      "body": "The Lua fix for CVE-2014-5461 is resolved by #7733. As for the other reported Lua vulnerabilities, they seem to have been introduced (and solved) by newer versions of Lua only (Redis uses Lua 5.1)."
+    },
+    {
+      "id": 683927209,
+      "user": "oranagra",
+      "created_at": "2020-08-31T17:43:01Z",
+      "body": "Thanks Yossi. closing the issue.\r\n@plainee please feel free to respond or re-open if you have other info."
+    }
+  ]
+}

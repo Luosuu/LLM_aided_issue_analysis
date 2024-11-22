@@ -1,0 +1,26 @@
+{
+  "issue_number": 128.0,
+  "title": "TTL not preserved when key is renamed",
+  "body": "**Description**\nWhen a key is renamed, the TTL is not preserved.\n\n**Steps to reproduce**\n\n```\nredis> SET foo \"asdf\" \nOK\nredis> EXPIRE foo 300 \n(integer) 1 \nredis> TTL foo \n(integer) 298 \nredis> RENAME foo bar \nOK \nredis> TTL bar \n(integer) -1\n```\n\n**What was expected**\n\n```\nredis> TTL bar \n(integer) 296\n```\n\n**Versions affected**\nTested with the same result on these version:\n- Latest git clone\n  \n  redis_version:2.9.0 \n  redis_git_sha1:ff15dba0 \n- Latest arch linux package: \n  \n  redis_version:2.2.14 \n  redis_git_sha1:00000000 \n- Interface from the redis website: \n  \n  redis_version:2.3.9 \n  redis_git_sha1:214cf637 \n\n**Links**\nGoogle groups thread: http://groups.google.com/group/redis-db/browse_frm/thread/d6288ac22427cad6\n",
+  "state": "closed",
+  "created_at": "2011-10-09T16:04:03Z",
+  "updated_at": "2011-10-10T13:26:20Z",
+  "closed_at": "2011-10-10T13:26:20Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2344510,
+      "user": "antirez",
+      "created_at": "2011-10-10T09:47:28Z",
+      "body": "It is the same bug, but it can have also other effects:\n```redis 127.0.0.1:9999> set a ciao\nOK\nredis 127.0.0.1:9999> expire a 1000000\n(integer) 1\nredis 127.0.0.1:9999> ttl a\n(integer) 1000000\nredis 127.0.0.1:9999> ttl a\n(integer) 999997\nredis 127.0.0.1:9999> set b zak\nOK\nredis 127.0.0.1:9999> get b\n\"zak\"\nredis 127.0.0.1:9999> rename b a\nOK\nredis 127.0.0.1:9999> get a\n\"zak\"\nredis 127.0.0.1:9999> ttl a\n(integer) 999975\n\n```\n\nSo the target key if overwritten will still retain the old expire. While the originating key expire is lost as the original bug report pointed out. Fixing the bug.\n```\n"
+    },
+    {
+      "id": 2347302,
+      "user": "antirez",
+      "created_at": "2011-10-10T13:26:20Z",
+      "body": "Fixed on unstable and 2.4. Closing the bug. Thanks for reporting.\n"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 9275.0,
+  "title": "[BUG] bgrewriteaof command result in lua script loss",
+  "body": "**Describe the bug**\r\n\r\n lua script will not persist in aof file when  aof-use-rdb-preamble is set as no, and then execute bgrewriteaof command.\r\n\r\n**To reproduce**\r\n```\r\n# turn off aof and rdb preamble\r\n127.0.0.1:6379> CONFIG GET appendonly\r\n1) \"appendonly\"\r\n2) \"no\"\r\n127.0.0.1:6379> config get aof-use-rdb-preamble\r\n1) \"aof-use-rdb-preamble\"\r\n2) \"no\"\r\n```\r\n```\r\n# load lua script\r\n127.0.0.1:6379> SCRIPT FLUSH\r\nOK\r\n127.0.0.1:6379> script load \"return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}\"\r\n\"a42059b356c875f0717db19a51f6aaca9ae659ea\"\r\n127.0.0.1:6379> BGREWRITEAOF\r\nBackground append only file rewriting started\r\n```\r\nwe can find that the aof file is empty。\r\n\r\n\r\n**Additional information**\r\nredis_version:6.2.4\r\n",
+  "state": "closed",
+  "created_at": "2021-07-26T09:37:54Z",
+  "updated_at": "2021-07-29T05:58:37Z",
+  "closed_at": "2021-07-29T05:58:37Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 886555475,
+      "user": "oranagra",
+      "created_at": "2021-07-26T09:58:10Z",
+      "body": "@opt-m LUA scripts were never intended to be persisted, the contract with the application is that it needs to re-load them when needed if they're missing.. or put differently, EVAL was initially intended to always be used (i.e. the script is part of the application client side, not the server side), and SCRIPT LOAD and EVALSHA is just an optimization.\r\n\r\nThe reasons scripts may find themselves replicated or persisted were in case these were write scripts (ones that perform modifications to the data), in which case they had to be propagated to AOF and replicas and get executed there too.\r\nFor many years this was only done by propagating an EVAL or SCRIPT LOAD command to the AOF or replication stream, and only recently, they were added to the RDB file to comply with PSYNC2 (a way for a master and replica to change roles without full-sync).\r\n\r\nalso worth to mention that today scripts are by default propagated as effects (see `lua-replicate-commands` config), and the next version of redis (7.0), is going to completely disable the old way of script replication (delete all the code that handles that together with that config). so after doing that, we won't save any scripts to the RDB anymore, or propagate a SCRIPT LOAD or EVAL commands to either AOF or replicas."
+    }
+  ]
+}

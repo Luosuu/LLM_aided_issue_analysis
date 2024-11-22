@@ -1,0 +1,32 @@
+{
+  "issue_number": 87.0,
+  "title": "BRPOPLPUSH and a single LPUSH with several items doesn't work well together\t",
+  "body": "Moving here from http://code.google.com/p/redis/issues/detail?id=656, thanks to @hampusw for the original report that follows:\n\nThis is in the unstable branch (but possibly in the other ones too). Try doing the following on a clean Redis instance (in this order):\n1. Client A blocks on 'BRPOPLPUSH a b 0'\n2. Client B runs 'LPUSH a data1 data2 data3'\n\nResult: 'a' is empty and 'b' contains only \"data1\". AOF and replication shows the same.\n\nThe reason is that rpoplpushHandlePush calls rewriteClientCommandVector when the first item is pushed to 'a' and that interferes with the pushing of the other items. Even if pushGenericCommand was changed so that it would push all the items regardless (using a local copy of them), the replication and AOF would only register one of the items. This seems to require some minor redesign to fix it.\n\nEverything works when BRPOPLPUSH isn't involved, of course.\n",
+  "state": "closed",
+  "created_at": "2011-09-20T12:52:24Z",
+  "updated_at": "2012-02-29T21:11:40Z",
+  "closed_at": "2012-02-29T21:11:40Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2144737,
+      "user": "antirez",
+      "created_at": "2011-09-20T12:56:38Z",
+      "body": "This is a critical bug as it breaks Redis blocking push semantics, but unfortunately it is not possible to fix it for the 2.4 release as this requires some not so small redesign. The idea is fixing it in the unstable branch before we'll fork it into 2.6, so that 2.6 will get the fix for sure.\n\nThere are several options in order to fix this bug, but my feeling is that we should have a different way to propagate commands into the AOF file and replication link, with an explicit API to do this, so that messing with the client command vector is no longer useful. This would simplify many other parts of Redis at this point.\n"
+    },
+    {
+      "id": 3548283,
+      "user": "pietern",
+      "created_at": "2012-01-18T16:15:17Z",
+      "body": "This is fixed in #297, but is yet to be merged.\n"
+    },
+    {
+      "id": 4246899,
+      "user": "antirez",
+      "created_at": "2012-02-29T21:11:39Z",
+      "body": "Fixed in unstable, a larger fix / refactoring was needed in order to completely fix the issue that was more complexed than expected. Thanks.\n"
+    }
+  ]
+}

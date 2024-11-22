@@ -1,0 +1,26 @@
+{
+  "issue_number": 10619.0,
+  "title": "[BUG] Redis sentinel can not run in k8s with environment variables in config file",
+  "body": "**Describe the bug**\r\n\r\nI try to run a redis sentinel in k8s that there is a environgment variables in config file to set the master's hostname.\r\nThen I will show a error \"Can't resolve master instance hostname\";\r\n\r\n**To reproduce**\r\n  \r\n  \r\nVersion: **5.0.12**    \r\n\r\nSome of yaml:\r\n````\r\n....\r\n        env:\r\n          - name: REDIS_MASTER_IP\r\n            value: \"alink-redis\" \r\n        ports:\r\n        - containerPort: 6379\r\n.....\r\n````\r\nalink-redis is a name of svc which is point to this deployment.  \r\n  \r\nMy sentinel config file:\r\n````\r\nport 6380\r\ndaemonize yes\r\nprotected-mode no\r\n\r\npidfile \"/data/redis/sentinel.pid\"\r\ndir \"/data/redis\"\r\nlogfile \"/data/redis/sentinel.log\"\r\n\r\nsentinel myid 577f953b52f42c08e85ffb2b48024520154209a9\r\nsentinel deny-scripts-reconfig yes\r\n\r\nsentinel monitor mymaster $REDIS_MASTER_IP 6379 2\r\nsentinel auth-pass mymaster rrDs5KYV3\r\nsentinel config-epoch mymaster 0\r\nsentinel leader-epoch mymaster 0\r\nsentinel current-epoch 0\r\n\r\n````\r\n  \r\nWhen I use `echo $REDIS_MASTER_IP` it can print `alink-redis`.\r\nWhen I use `ping alink-redis` and it reutn  the ip of this svc.\r\n\r\nBut when I run redis-server it print:\r\n````\r\n *** FATAL CONFIG FILE ERROR ***\r\nReading the configuration file, at line 27\r\n>>> 'sentinel monitor mymaster $REDIS_MASTER_IP 6379 2'\r\nCan't resolve master instance hostname.\r\n````\r\n  \r\nBut if I change `$REDIS_MASTER_IP` to `alink-redis` in config file.\r\nIt can run successfully.\r\n\r\n  \r\n**Expected behavior**\r\n\r\nsupport variables  \r\n  \r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2022-04-22T03:34:10Z",
+  "updated_at": "2022-04-24T04:05:22Z",
+  "closed_at": "2022-04-24T04:05:22Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1107541152,
+      "user": "yossigo",
+      "created_at": "2022-04-23T17:42:41Z",
+      "body": "Hi @lystormenvoy, this is not a bug - Redis configuration files don't support expansion of environment variables."
+    },
+    {
+      "id": 1107679701,
+      "user": "lystormenvoy",
+      "created_at": "2022-04-24T01:21:14Z",
+      "body": "> Hi @lystormenvoy, this is not a bug - Redis configuration files don't support expansion of environment variables.\r\n\r\nok\r\nI get it."
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "issue_number": 8538.0,
+  "title": "[BUG] redis 6.0.11 build failed on FreeBSD 12.2",
+  "body": "```\r\ncc -std=c11 -pedantic -DREDIS_STATIC='' -Wall -W -Wno-missing-field-initializers   -O2 -pipe -fstack-protector-strong -fno-strict-aliasing   -I../deps/hiredis -I../deps/linenoise -I../deps/lua/src -MMD -o sds.o -c sds.c\r\ncc -std=c11 -pedantic -DREDIS_STATIC='' -Wall -W -Wno-missing-field-initializers   -O2 -pipe -fstack-protector-strong -fno-strict-aliasing   -I../deps/hiredis -I../deps/linenoise -I../deps/lua/src -MMD -o zmalloc.o -c zmalloc.c\r\nzmalloc.c:59:5: error: function-like macro 'sizeof' is not defined\r\n#if PREFIX_SIZE > 0\r\n    ^\r\nzmalloc.c:55:22: note: expanded from macro 'PREFIX_SIZE'\r\n#define PREFIX_SIZE (sizeof(size_t))\r\n                     ^\r\n1 error generated.\r\ngmake[3]: *** [Makefile:339: zmalloc.o] Error 1\r\ngmake[3]: Leaving directory 'redis-6.0.11/src'\r\ngmake[2]: *** [Makefile:6: all] Error 2\r\ngmake[2]: Leaving directory 'redis-6.0.11'\r\n*** Error code 1\r\n```\r\nHere's the patch to fix the build issue.\r\n[patch-src-zmalloc.c.txt](https://github.com/redis/redis/files/6030814/patch-src-zmalloc.c.txt)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-02-23T17:40:40Z",
+  "updated_at": "2021-02-24T16:12:50Z",
+  "closed_at": "2021-02-23T18:26:37Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 784389622,
+      "user": "oreilco",
+      "created_at": "2021-02-23T17:57:02Z",
+      "body": "seeing the same in 5.0.11 on FreeBSD 12.2-RELEASE-p3\r\n\r\n```\r\nzmalloc.c:59:5: error: function-like macro 'sizeof' is not defined\r\n#if PREFIX_SIZE > 0\r\n    ^\r\nzmalloc.c:55:22: note: expanded from macro 'PREFIX_SIZE'\r\n#define PREFIX_SIZE (sizeof(size_t))\r\n                     ^\r\n1 error generated.\r\ngmake[3]: *** [Makefile:262: zmalloc.o] Error 1\r\ngmake[3]: *** Waiting for unfinished jobs....\r\ngmake[3]: Leaving directory '/usr/ports/databases/redis5/work/redis-5.0.11/src'\r\ngmake[2]: *** [Makefile:6: all] Error 2\r\ngmake[2]: Leaving directory '/usr/ports/databases/redis5/work/redis-5.0.11'\r\n===> Compilation failed unexpectedly.\r\n```"
+    },
+    {
+      "id": 784390447,
+      "user": "osokin",
+      "created_at": "2021-02-23T17:58:19Z",
+      "body": "> seeing the same in 5.0.11 on FreeBSD 12.2-RELEASE-p3\r\n> \r\n> ```\r\n> zmalloc.c:59:5: error: function-like macro 'sizeof' is not defined\r\n> #if PREFIX_SIZE > 0\r\n>     ^\r\n> zmalloc.c:55:22: note: expanded from macro 'PREFIX_SIZE'\r\n> #define PREFIX_SIZE (sizeof(size_t))\r\n>                      ^\r\n> 1 error generated.\r\n> gmake[3]: *** [Makefile:262: zmalloc.o] Error 1\r\n> gmake[3]: *** Waiting for unfinished jobs....\r\n> gmake[3]: Leaving directory '/usr/ports/databases/redis5/work/redis-5.0.11/src'\r\n> gmake[2]: *** [Makefile:6: all] Error 2\r\n> gmake[2]: Leaving directory '/usr/ports/databases/redis5/work/redis-5.0.11'\r\n> ===> Compilation failed unexpectedly.\r\n> ```\r\n\r\nI've just committed a fix, https://svnweb.freebsd.org/changeset/ports/566418"
+    },
+    {
+      "id": 784414675,
+      "user": "oranagra",
+      "created_at": "2021-02-23T18:26:37Z",
+      "body": "Sorry about that. \r\nAlready solved in unstable: https://github.com/redis/redis/pull/8533\r\nI guess we'll have to release these versions again very soon "
+    },
+    {
+      "id": 784423146,
+      "user": "osokin",
+      "created_at": "2021-02-23T18:39:49Z",
+      "body": "> Sorry about that.\r\n> Already solved in unstable: #8533\r\n> I guess we'll have to release these versions again very soon\r\n\r\nPlease note: this issue is related to all recent releases, i.e.: 6.2.0, 6.0.11, 5.0.11.\r\n"
+    },
+    {
+      "id": 784424642,
+      "user": "oreilco",
+      "created_at": "2021-02-23T18:42:26Z",
+      "body": "Thanks - validated as fixed for me (I use 5.0.11) - plus it prompted me to switch from `portsnap` to using git to keep my ports tree updated. 👍 "
+    },
+    {
+      "id": 784850457,
+      "user": "yossigo",
+      "created_at": "2021-02-24T07:16:05Z",
+      "body": "@osokin Please also note #8545, this was overlooked and will improve memory usage."
+    },
+    {
+      "id": 785188798,
+      "user": "osokin",
+      "created_at": "2021-02-24T16:12:50Z",
+      "body": "> @osokin Please also note #8545, this was overlooked and will improve memory usage.\r\n\r\nThanks very much, @yossigo !  While we are here, would you mind to take a look on databases/redis repo in FreeBSD ports tree, https://svnweb.freebsd.org/ports/head/databases/redis/files/.  There're several patches there, hope some of those are useful at least in some cases.  Thanks in advance!"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "issue_number": 8024.0,
+  "title": "[BUG] TimeoutStartSec and TimeoutStopSec values are valid, but redis still warns",
+  "body": "**OS**: CentOS 8.2\r\n**Redis**: v6.0.9\r\nRedis is installed via remi repo.\r\n\r\nThis is my service file for systemd:\r\n\r\n```bash\r\n[root@test ~]# cat /etc/systemd/system/redis-server.service\r\n[Unit]\r\nDescription=Advanced key-value store\r\nWants=network-online.target\r\nAfter=network-online.target\r\nDocumentation=http://redis.io/documentation, man:redis-server(1)\r\n\r\n[Service]\r\nType=notify\r\nExecStart=/usr/bin/redis-server /etc/redis.conf --supervised systemd --daemonize no\r\nExecStop=/bin/kill -s TERM $MAINPID\r\nPIDFile=/run/redis/redis-server.pid\r\nRestart=always\r\nUser=redis\r\nGroup=redis\r\nRuntimeDirectory=redis\r\nRuntimeDirectoryMode=2755\r\nTimeoutStopSec=infinity\r\nTimeoutStartSec=infinity\r\nUMask=0077\r\nPrivateTmp=yes\r\nNoNewPrivileges=yes\r\nLimitNOFILE=65535\r\nPrivateDevices=yes\r\nProtectHome=yes\r\nReadOnlyDirectories=/\r\nWorkingDirectory=/var/lib/redis\r\nReadWriteDirectories=-/var/lib/redis\r\nReadWriteDirectories=-/var/log/redis\r\nReadWriteDirectories=-/var/run/redis\r\n\r\nNoNewPrivileges=true\r\nCapabilityBoundingSet=CAP_SETGID CAP_SETUID CAP_SYS_RESOURCE\r\nMemoryDenyWriteExecute=true\r\nProtectKernelModules=true\r\nProtectKernelTunables=true\r\nProtectControlGroups=true\r\nRestrictRealtime=true\r\nRestrictNamespaces=true\r\nRestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX\r\n\r\nProtectSystem=true\r\nReadWriteDirectories=-/etc/redis\r\n\r\n[Install]\r\nWantedBy=multi-user.target\r\nAlias=redis.service\r\n```\r\n\r\nRedis starts fine and accepts connections. However, the logs describe, what looks to me, a heavy warning:\r\n\r\n```bash\r\n5425:C 05 Nov 2020 20:17:29.707 # WARNING supervised by systemd - you MUST set appropriate values for TimeoutStartSec and TimeoutStopSec in your service unit.\r\n5425:C 05 Nov 2020 20:17:29.707 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n5425:C 05 Nov 2020 20:17:29.707 # Redis version=6.0.9, bits=64, commit=00000000, modified=0, pid=5425, just started\r\n5425:C 05 Nov 2020 20:17:29.707 # Configuration loaded\r\n5425:M 05 Nov 2020 20:17:29.708 * Running mode=standalone, port=6379.\r\n5425:M 05 Nov 2020 20:17:29.708 # Server initialized\r\n5425:M 05 Nov 2020 20:17:29.708 * Loading RDB produced by version 6.0.9\r\n5425:M 05 Nov 2020 20:17:29.708 * RDB age 9 seconds\r\n5425:M 05 Nov 2020 20:17:29.708 * RDB memory usage when created 0.32 Mb\r\n5425:M 05 Nov 2020 20:17:29.708 * DB loaded from disk: 0.000 seconds\r\n5425:M 05 Nov 2020 20:17:29.708 * Ready to accept connections\r\n```\r\n\r\nBetween 'systemctl daemon-reload' and restarting the redis server, I've tried changing the values of TimeoutStopSec and TimeoutStartSec to either 0, 0s, 1, 1s, 90, 90s and I've removed both keys to see whether Redis stopped complaining about the issue, but it doesn't. I've also fiddled around with other values to see whether it would made a change, but it doesn't...\r\n\r\nI assume this is a bug, since I've tried various settings and copied the settings [as per the documentation](https://github.com/redis/redis/blob/8e937ce4cc1462d996bae6a45e8c0a66f71e7ee6/utils/systemd-redis_server.service).\r\n\r\nFor convience, here is my /etc/redis.conf\r\n\r\n```bash\r\npidfile /var/run/redis/redis.pid\r\nport 6379\r\nbind 127.0.0.1\r\ntimeout 300\r\nloglevel notice\r\nlogfile /var/log/redis/redis-server.log\r\ndatabases 16\r\nsave 900 1\r\nsave 300 10\r\nsave 60 10000\r\nrdbcompression yes\r\ndbfilename dump.rdb\r\ndir /var/lib/redis\r\nmaxclients 128\r\ntcp-backlog 511\r\nappendonly no\r\nappendfsync everysec\r\nno-appendfsync-on-rewrite no\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2020-11-05T20:26:34Z",
+  "updated_at": "2024-03-18T17:14:17Z",
+  "closed_at": "2020-11-06T21:41:02Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 722636125,
+      "user": "yossigo",
+      "created_at": "2020-11-05T20:49:37Z",
+      "body": "@csuka This is not strictly a bug, but the warning message is not totally clear. It does not indicate the configuration is wrong (there's no way to determine that AFAIK) but it just provides a reminder when systemd supervision is enabled/detected."
+    },
+    {
+      "id": 722654159,
+      "user": "csuka",
+      "created_at": "2020-11-05T21:24:08Z",
+      "body": "@yossigo Well, this is absurd right, as a user seeing this message from Redis (which is at version 6!).\r\n\r\nI mean, look at this:\r\n**WARNING supervised by systemd - you MUST set appropriate values for TimeoutStartSec and TimeoutStopSec in your service unit.**\r\n\r\nI assume either the text has to be changed, the warning has to be removed, or the redis has to check for the correct values and report on that. \r\n\r\nThe warning clearly states \"you MUST\", which leads me to believe my configuration is faulty and Redis will perform poorly."
+    },
+    {
+      "id": 1300883805,
+      "user": "uhlhosting",
+      "created_at": "2022-11-02T16:47:53Z",
+      "body": "This seems to occur in redis 6."
+    },
+    {
+      "id": 1609214506,
+      "user": "erikdemarco",
+      "created_at": "2023-06-27T10:18:29Z",
+      "body": "This still occur in redis v6.0.16. \r\nThumbs up if you come from search engine and frustating about this"
+    },
+    {
+      "id": 1770096057,
+      "user": "cueedee",
+      "created_at": "2023-10-19T05:48:16Z",
+      "body": "@erikdemarco - I did come across this ticket from googling, but the message _does_ appear to have changed when I encountered it in a `redis` `v7.2.2` log:\r\n\r\n> Supervised by `systemd`. Please make sure you set appropriate values for `TimeoutStartSec` and `TimeoutStopSec` in your service unit\r\n\r\nI'm still puzzled about what it means, though. What do these settings do? - and how am I supposed to figure out what values are \"appropriate\" in this case?\r\n\r\n- `man systemd.service` will have the definitions on `TimeoutStartSec` and `TimeoutStopSec`;\r\n- `systemctl show redis-server.service | grep -E 'TimeoutSt(art|op)'` will list any currently effective values (though do note that the labels are listed as ending in -`USec` here);\r\n\r\nMy install lists these values. I think they are defaults since the (`apt-get install`-provided)` redis-server.service` doesn't explicitly define them. But are they \"appropriate\"?\r\n\r\n> ```ini\r\n>TimeoutStartUSec=1min 30s\r\n>TimeoutStopUSec=infinity\r\n>```"
+    },
+    {
+      "id": 2004494780,
+      "user": "spagu",
+      "created_at": "2024-03-18T17:14:16Z",
+      "body": "7.2.4 - have precisely the same output as @cueedee. Redis restarts randomly, suggesting that these values be defined, but still, there is no answer to whether they are correct or which should be correct. Anyone?"
+    }
+  ]
+}

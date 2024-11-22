@@ -1,0 +1,152 @@
+{
+  "issue_number": 10341.0,
+  "title": "[CRASH] Redis / Docker / Apple M1",
+  "body": "**Crash report**\r\n\r\n```\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n1:M 24 Feb 2022 13:48:00.049 # Redis 6.2.6 crashed by signal: 11, si_code: 1\r\n1:M 24 Feb 2022 13:48:00.050 # Accessing address: 0x34643234333035\r\n1:M 24 Feb 2022 13:48:00.050 # Crashed running the instruction at: 0x4000049fc3\r\n\r\n------ STACK TRACE ------\r\nEIP:\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(dictSdsKeyCompare+0x33)[0x4000049fc3]\r\n\r\nBacktrace:\r\n/lib/x86_64-linux-gnu/libpthread.so.0(+0x12730)[0x4002182730]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(dictSdsKeyCompare+0x33)[0x4000049fc3]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(dictAddRaw+0x15d)[0x4000048f4d]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(dictAdd+0x1a)[0x40000490fa]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(zsetAdd+0x16c)[0x400008c44c]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(zaddGenericCommand+0x38d)[0x400008d1ad]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(call+0xa1)[0x400004e1e1]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(execCommand+0x1f4)[0x40000a0524]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(loadAppendOnlyFile+0x639)[0x400009e419]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(loadDataFromDisk+0x13c)[0x40000543fc]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(main+0x2b8)[0x4000043698]\r\n/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xeb)[0x40021b509b]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(_start+0x2a)[0x4000043bea]\r\n\r\n------ REGISTERS ------\r\n1:M 24 Feb 2022 13:48:00.060 #\r\nRAX:000000400004a080 RBX:000000400a2111cb\r\nRCX:0000000000000024 RDX:6634643234333036\r\nRDI:000000400a2111cb RSI:0000004000195398\r\nRBP:0000004001c31010 RSP:0000004001c30fa8\r\nR8 :000000400b03a64b R9 :0000004005c47650\r\nR10:000000000000000e R11:0000fffffffffffe\r\nR12:a9d9bfd3ba1e740a R13:000000000000040a\r\nR14:0000000000000000 R15:0000004005c47620\r\nRIP:0000004000049fc3 EFL:0000000000000213\r\nCSGSFS:002b000000000033\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fb7) -> 000000400a2111a3\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fb6) -> 00000040000490fa\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fb5) -> 0000004001c31040\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fb4) -> 0000004001c31114\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fb3) -> 0000004001c31118\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fb2) -> 000000400a211108\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fb1) -> 000000400a2111a3\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fb0) -> 0000004005c47620\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30faf) -> 0000004001c31040\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fae) -> 000000400b03a64b\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fad) -> 0000004005c47650\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fac) -> 0000000000002050\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fab) -> 0000004005c47670\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30faa) -> 0000004005c47630\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fa9) -> 0000004001c30fe0\r\n1:M 24 Feb 2022 13:48:00.060 # (0000004001c30fa8) -> 0000004000048f4d\r\n\r\n------ INFO OUTPUT ------\r\n# Server\r\nredis_version:6.2.6\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:40f6d3ded4e576d9\r\nredis_mode:standalone\r\nos:Linux 5.10.76-linuxkit x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:c11-builtin\r\ngcc_version:8.3.0\r\nprocess_id:1\r\nprocess_supervised:no\r\nrun_id:8dc6e00a1c11342826c4b1915f6883e8ae087f85\r\ntcp_port:6379\r\nserver_time_usec:1645710480048610\r\nuptime_in_seconds:5\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:1543306\r\nexecutable:/opt/bitnami/redis/bin/redis-server\r\nconfig_file:/opt/bitnami/redis/etc/redis.conf\r\nio_threads_active:0\r\n\r\n# Clients\r\nconnected_clients:0\r\ncluster_connections:0\r\nmaxclients:10000\r\nclient_recent_max_input_buffer:0\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:0\r\ntracking_clients:0\r\nclients_in_timeout_table:0\r\n\r\n# Memory\r\nused_memory:109558080\r\nused_memory_human:104.48M\r\nused_memory_rss:0\r\nused_memory_rss_human:0B\r\nused_memory_peak:117882312\r\nused_memory_peak_human:112.42M\r\nused_memory_peak_perc:92.94%\r\nused_memory_overhead:2020376\r\nused_memory_startup:810088\r\nused_memory_dataset:107537704\r\nused_memory_dataset_perc:98.89%\r\nallocator_allocated:109598136\r\nallocator_active:117264384\r\nallocator_resident:122642432\r\ntotal_system_memory:6227804160\r\ntotal_system_memory_human:5.80G\r\nused_memory_lua:37888\r\nused_memory_lua_human:37.00K\r\nused_memory_scripts:0\r\nused_memory_scripts_human:0B\r\nnumber_of_cached_scripts:0\r\nmaxmemory:0\r\nmaxmemory_human:0B\r\nmaxmemory_policy:noeviction\r\nallocator_frag_ratio:1.07\r\nallocator_frag_bytes:7666248\r\nallocator_rss_ratio:1.05\r\nallocator_rss_bytes:5378048\r\nrss_overhead_ratio:0.00\r\nrss_overhead_bytes:-122642432\r\nmem_fragmentation_ratio:0.00\r\nmem_fragmentation_bytes:-109530976\r\nmem_not_counted_for_evict:0\r\nmem_replication_backlog:0\r\nmem_clients_slaves:0\r\nmem_clients_normal:0\r\nmem_aof_buffer:0\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\nlazyfreed_objects:0\r\n\r\n# Persistence\r\nloading:1\r\ncurrent_cow_size:0\r\ncurrent_cow_size_age:0\r\ncurrent_fork_perc:0.00\r\ncurrent_save_keys_processed:0\r\ncurrent_save_keys_total:0\r\nrdb_changes_since_last_save:268436\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1645710475\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:-1\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_last_cow_size:0\r\naof_enabled:0\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:-1\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_last_write_status:ok\r\naof_last_cow_size:0\r\nmodule_fork_in_progress:0\r\nmodule_fork_last_cow_size:0\r\naof_current_size:0\r\naof_base_size:0\r\naof_pending_rewrite:0\r\naof_buffer_length:0\r\naof_rewrite_buffer_length:0\r\naof_pending_bio_fsync:0\r\naof_delayed_fsync:0\r\nloading_start_time:1645710475\r\nloading_total_bytes:120511889\r\nloading_rdb_used_mem:70428624\r\nloading_loaded_bytes:112653660\r\nloading_loaded_perc:93.48\r\nloading_eta_seconds:0\r\n\r\n# Stats\r\ntotal_connections_received:0\r\ntotal_commands_processed:75003\r\ninstantaneous_ops_per_sec:0\r\ntotal_net_input_bytes:0\r\ntotal_net_output_bytes:0\r\ninstantaneous_input_kbps:0.00\r\ninstantaneous_output_kbps:0.00\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_keys:0\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nexpire_cycle_cpu_milliseconds:0\r\nevicted_keys:0\r\nkeyspace_hits:0\r\nkeyspace_misses:0\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:0\r\ntotal_forks:0\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\ntracking_total_keys:0\r\ntracking_total_items:0\r\ntracking_total_prefixes:0\r\nunexpected_error_replies:0\r\ntotal_error_replies:0\r\ndump_payload_sanitizations:0\r\ntotal_reads_processed:0\r\ntotal_writes_processed:0\r\nio_threaded_reads_processed:0\r\nio_threaded_writes_processed:0\r\n\r\n# Replication\r\nrole:master\r\nconnected_slaves:0\r\nmaster_failover_state:no-failover\r\nmaster_replid:55abb53945fe5a4a9e19226b01dd6fb0b3eae260\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:0\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:0\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n\r\n# CPU\r\nused_cpu_sys:1.175487\r\nused_cpu_user:4.461741\r\nused_cpu_sys_children:0.366965\r\nused_cpu_user_children:0.881499\r\nused_cpu_sys_main_thread:1.173902\r\nused_cpu_user_main_thread:4.453474\r\n\r\n# Modules\r\n\r\n# Commandstats\r\n\r\n# Errorstats\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=22457,expires=1395,avg_ttl=0\r\n\r\n------ CLIENT LIST OUTPUT ------\r\n\r\n------ MODULES INFO OUTPUT ------\r\n\r\n------ FAST MEMORY TEST ------\r\n1:M 24 Feb 2022 13:48:00.069 # Bio thread for job type #0 terminated\r\n1:M 24 Feb 2022 13:48:00.069 # Bio thread for job type #1 terminated\r\n1:M 24 Feb 2022 13:48:00.070 # Bio thread for job type #2 terminated\r\n*** Preparing to test memory region 4000205000 (2547712 bytes)\r\n*** Preparing to test memory region 4001c5b000 (12288 bytes)\r\n*** Preparing to test memory region 4001de4000 (8192 bytes)\r\n*** Preparing to test memory region 400216c000 (16384 bytes)\r\n*** Preparing to test memory region 400218d000 (16384 bytes)\r\n*** Preparing to test memory region 400234e000 (40960 bytes)\r\n*** Preparing to test memory region 4002600000 (2097152 bytes)\r\n*** Preparing to test memory region 4002958000 (2097152 bytes)\r\n*** Preparing to test memory region 4003000000 (4194304 bytes)\r\n*** Preparing to test memory region 4003558000 (8388608 bytes)\r\n*** Preparing to test memory region 4003d59000 (8388608 bytes)\r\n*** Preparing to test memory region 400455a000 (8388608 bytes)\r\n*** Preparing to test memory region 4004d5b000 (8388608 bytes)\r\n*** Preparing to test memory region 400555b000 (141557760 bytes)\r\n.O.O.O.O.O.O.O.O.O.O.O.O.O.O\r\nFast memory test PASSED, however your memory can still be broken. Please run a memory test for several hours if possible.\r\n\r\n------ DUMPING CODE AROUND EIP ------\r\nSymbol: dictSdsKeyCompare (base: 0x4000049f90)\r\nModule: /opt/bitnami/redis/bin/redis-server 0.0.0.0:6379 (base 0x4000000000)\r\n$ xxd -r -p /tmp/dump.hex /tmp/dump.bin\r\n$ objdump --adjust-vma=0x4000049f90 -D -b binary -m i386:x86-64 /tmp/dump.bin\r\n------\r\n1:M 24 Feb 2022 13:48:01.130 # dump of function (hexdump of 112 bytes):\r\n0fb64eff4889f789c883e0073c040f87f5000000488d35edb314000fb6c0486304864801f0ffe0660f1f8400000000008b4ff7440fb642ff4489c083e0073c040f8790000000488d35cfb314000fb6c0486304864801f0ffe00f1f8000000000448b42f731c04439c17529554889d648\r\n\r\n=== REDIS BUG REPORT END. Make sure to include from START to END. ===\r\n```\r\n\r\n**Additional information**\r\n\r\n- Mac M1 \r\n- Docker \r\n",
+  "state": "closed",
+  "created_at": "2022-02-24T13:52:06Z",
+  "updated_at": "2022-04-22T08:07:26Z",
+  "closed_at": "2022-03-18T12:50:56Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1049908520,
+      "user": "enjoy-binbin",
+      "created_at": "2022-02-24T14:21:13Z",
+      "body": "did you have any reproduce steps? i see it came from AOF load, and crash on exec | zadd, any chance that you can upload the AOF file?\r\n```\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(dictSdsKeyCompare+0x33)[0x4000049fc3]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(dictAddRaw+0x15d)[0x4000048f4d]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(dictAdd+0x1a)[0x40000490fa]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(zsetAdd+0x16c)[0x400008c44c]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(zaddGenericCommand+0x38d)[0x400008d1ad]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(call+0xa1)[0x400004e1e1]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(execCommand+0x1f4)[0x40000a0524]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(loadAppendOnlyFile+0x639)[0x400009e419]\r\n/opt/bitnami/redis/bin/redis-server 0.0.0.0:6379(loadDataFromDisk+0x13c)[0x40000543fc]\r\n```"
+    },
+    {
+      "id": 1049924329,
+      "user": "sundb",
+      "created_at": "2022-02-24T14:37:15Z",
+      "body": "Same as #10162.\r\nCan you upload your docker-compose.yml?"
+    },
+    {
+      "id": 1049926721,
+      "user": "bartkappenburg",
+      "created_at": "2022-02-24T14:39:54Z",
+      "body": "Relevant part of the docker-compose.yml:\r\n\r\n```\r\nredis:\r\n    image: 'bitnami/redis:6.2.6'\r\n    environment:\r\n      - ALLOW_EMPTY_PASSWORD=yes\r\n      - BITNAMI_DEBUG=true\r\n    ports:\r\n      - 6379:6379\r\n    volumes:\r\n      - /bitnami/redis/data\r\n```\r\n"
+    },
+    {
+      "id": 1049935428,
+      "user": "sundb",
+      "created_at": "2022-02-24T14:49:03Z",
+      "body": "@bartkappenburg Thanks, can you check if there is qemu-system-aarch64 process on your mac when you start the redis docker?"
+    },
+    {
+      "id": 1049952736,
+      "user": "bartkappenburg",
+      "created_at": "2022-02-24T15:05:56Z",
+      "body": "Yes, there is:\r\n```\r\nbartkappenburg@MacBook-Air-van-Bart` ~ % ps -ax | grep qemu\r\n 5088 ??       6136:33.58 /Applications/Docker.app/Contents/MacOS/qemu-system-aarch64 -accel hvf -cpu host -machine virt,highmem=off -m 6144 -smp 4 -kernel /Applications/Docker.app/Contents/Resources/linuxkit/kernel -append page_poison=1 vsyscall=emulate panic=1 nospec_store_bypass_disable noibrs noibpb no_stf_barrier mitigations=off linuxkit.unified_cgroup_hierarchy=1   vpnkit.connect=tcp+bootstrap+client://192.168.65.2:50721/f60310c4a9a7b4898e3d9d878c939f43b92129c13fed21a538da37842bb086ec console=ttyAMA0 -initrd /Applications/Docker.app/Contents/Resources/linuxkit/initrd.img -serial pipe:/var/folders/ms/9m3_648j55j5ksw8gnvw0zbc0000gn/T/qemu-console775062191/fifo -drive if=none,file=/Users/bartkappenburg/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw,format=raw,id=hd0 -device virtio-blk-pci,drive=hd0,serial=dummyserial -netdev socket,id=net1,fd=3 -device virtio-net-device,netdev=net1,mac=02:50:00:00:00:01 -vga none -nographic -monitor none\r\n```\r\n\r\nThis is the last line of the crash in docker by the way:\r\n`qemu: uncaught target signal 11 (Segmentation fault) - core dumped`\r\n"
+    },
+    {
+      "id": 1049961287,
+      "user": "sundb",
+      "created_at": "2022-02-24T15:14:27Z",
+      "body": "Same as #9561.\r\n@bartkappenburg Since the docker image you are using is built with linux/amd(default),\r\nbut docker in m1 dose not support use it directly, it needs to run it with qumu.\r\nI've tried to reproduct the issue with m1 before, and it looks like due to qumu.\r\nPerhaps ypu can use a redis docker image that supports linux/arm64.\r\nI'll do more tests stomorrow."
+    },
+    {
+      "id": 1049965179,
+      "user": "bartkappenburg",
+      "created_at": "2022-02-24T15:18:22Z",
+      "body": "Thanks! I will search for a linux/arm64 image. Let me know if you find anything else! Much appreciated."
+    },
+    {
+      "id": 1053583263,
+      "user": "ashtul",
+      "created_at": "2022-02-27T15:08:01Z",
+      "body": "@sundb any news?"
+    },
+    {
+      "id": 1053586522,
+      "user": "ashtul",
+      "created_at": "2022-02-27T15:19:11Z",
+      "body": "You can try using the container which is built for arm64 `redisfab/redis:6.2.6-arm64v8-bionic`"
+    },
+    {
+      "id": 1053778833,
+      "user": "sundb",
+      "created_at": "2022-02-28T01:40:09Z",
+      "body": "@ashtul I reproduced the crash you mentioned by using `bitnami/redis:6.2.6`, but I'm not sure why it crash yes, I'm still working on it.\r\nI also tried official redis docker image(https://hub.docker.com/_/redis), and it does not crash."
+    },
+    {
+      "id": 1053789795,
+      "user": "sundb",
+      "created_at": "2022-02-28T01:52:20Z",
+      "body": "It seems that docker has given the appropriate hints.\r\n![微信截图_20220228094837](https://user-images.githubusercontent.com/965798/155911340-9dd41bb8-f44a-4648-bc4f-0d0ae512930a.png)\r\n![微信截图_20220228094915](https://user-images.githubusercontent.com/965798/155911343-613533c9-55e7-4639-960b-8819f56424ff.png)\r\n\r\n@ashtul I ran a test that crashes under `bitnami/redis:6.2.6`, and not under `redisfab/redis:6.2.6-arm64v8-bionic`, which seems to be due to `bitnami` use `qemu`."
+    },
+    {
+      "id": 1054120917,
+      "user": "sundb",
+      "created_at": "2022-02-28T10:40:42Z",
+      "body": "@bartkappenburg @ashtul I should have found the problem, it was indeed a bug caused by qemu.\r\nhttps://lists.nongnu.org/archive/html/qemu-devel/2020-05/msg03119.html\r\nhttps://github.com/jemalloc/jemalloc/pull/2005\r\n\r\nI added an assertion to the 6.2.6 code and found that `calloc` does not zero out the memory, causing a crash.\r\n```c\r\n# dict.c\r\nn.table = zcalloc(realsize*sizeof(dictEntry*));\r\nfor (size_t i = 0; i < realsize; i++) {\r\n    assert(n.table[i] == NULL);\r\n}\r\n```\r\n\r\ncrash log\r\n```\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n41825:M 28 Feb 2022 10:39:43.987 # === ASSERTION FAILED ===\r\n41825:M 28 Feb 2022 10:39:43.987 # ==> dict.c:176 'n.table[i] == NULL' is not true\r\n```\r\n"
+    },
+    {
+      "id": 1054893309,
+      "user": "sundb",
+      "created_at": "2022-03-01T01:45:37Z",
+      "body": "@oranagra Is it worthwhile to backport jemalloc 5.2.1 to 6 only for qemu?"
+    },
+    {
+      "id": 1055096467,
+      "user": "oranagra",
+      "created_at": "2022-03-01T07:08:30Z",
+      "body": "so it's a bug on jemalloc that causes it to not zero memory on calloc only qemu over arm.\r\ni don't think we can afford to change the jemalloc version what we ship with redis on a patch-level release, but maybe we can backport just that fix.\r\nor we can just ask these users to upgrade to the latest redis (7.0).\r\n@yossigo WDYT?"
+    },
+    {
+      "id": 1055126227,
+      "user": "sundb",
+      "created_at": "2022-03-01T07:55:56Z",
+      "body": "@oranagra I was wrong, this pr(jemalloc/jemalloc#2005) doesn't fix the qemu bug, it just gives a warning.\r\nAnd jemalloc 5.2.1 does not include the commit of this pr.\r\nMy tests with unstable also crash."
+    },
+    {
+      "id": 1055166832,
+      "user": "oranagra",
+      "created_at": "2022-03-01T08:46:37Z",
+      "body": "So jemalloc doesn't have a fix for this (rather old) issue? and is practically unusable on qemu/arm?"
+    },
+    {
+      "id": 1055194609,
+      "user": "sundb",
+      "created_at": "2022-03-01T09:15:23Z",
+      "body": "> So jemalloc doesn't have a fix for this (rather old) issue? and is practically unusable on qemu/arm?\r\n\r\n    Yes. It is possible that not only arm, just using qemu can cause problems.\r\n    It looks like all we can do is remind users not to use it, or add a warning.\r\n    Clickhouse also encountered the same problem: https://github.com/ClickHouse-Extras/jemalloc/pull/1\r\n"
+    },
+    {
+      "id": 1055202495,
+      "user": "oranagra",
+      "created_at": "2022-03-01T09:20:55Z",
+      "body": "another alternative is build redis with libc malloc."
+    },
+    {
+      "id": 1055211557,
+      "user": "sundb",
+      "created_at": "2022-03-01T09:30:03Z",
+      "body": "The awkward part is that the docker image doesn't know it's going to be running on qemu, it's already using jemalloc when building.\r\nUnless the user knows they want to run on qemu."
+    },
+    {
+      "id": 1055218791,
+      "user": "oranagra",
+      "created_at": "2022-03-01T09:37:51Z",
+      "body": "maybe someone needs to make another image just for that purpose 8-("
+    },
+    {
+      "id": 1072380520,
+      "user": "oranagra",
+      "created_at": "2022-03-18T12:50:55Z",
+      "body": "closing, see https://github.com/redis/redis/issues/10162#issuecomment-1072375709"
+    },
+    {
+      "id": 1106137734,
+      "user": "davidpenso",
+      "created_at": "2022-04-22T08:01:14Z",
+      "body": "@bartkappenburg @sundb anyone know how to fix this issue?"
+    },
+    {
+      "id": 1106142901,
+      "user": "sundb",
+      "created_at": "2022-04-22T08:07:26Z",
+      "body": "@davidpenso Use the docker images in comment https://github.com/redis/redis/issues/10162#issuecomment-1072359526."
+    }
+  ]
+}

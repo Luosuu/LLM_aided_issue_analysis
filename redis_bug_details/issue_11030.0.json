@@ -1,0 +1,24 @@
+{
+  "issue_number": 11030.0,
+  "title": "[BUG] EVAL \"return _G\" 0  leads to immediate panic",
+  "body": "**Describe the bug**\r\n\r\nredis-server crashes with message:\r\n\r\n`PANIC: unprotected error in call to Lua API (Script attempted to access nonexistent global variable 'err')`\r\n\r\n**To reproduce**\r\n\r\n```\r\n$ redis-cli -h localhost\r\nlocalhost:6379> EVAL \"return _G\" 0\r\nError: Server closed the connection\r\n```\r\n\r\n**Expected behavior**\r\n\r\nServer just returns error\r\n\r\n**Additional information**\r\n\r\nThe problem reproduced on version 6.2 and 7.0.4 on x86_64\r\n",
+  "state": "closed",
+  "created_at": "2022-07-22T20:28:58Z",
+  "updated_at": "2022-07-26T07:33:51Z",
+  "closed_at": "2022-07-26T07:33:51Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1193060390,
+      "user": "enjoy-binbin",
+      "created_at": "2022-07-23T04:56:41Z",
+      "body": "for the record: 6.2.6 is ok (6.2.7 will panic), introduced #10651, calling in a function also will panic"
+    },
+    {
+      "id": 1193266859,
+      "user": "MeirShpilraien",
+      "created_at": "2022-07-24T07:52:45Z",
+      "body": "@pragus Thanks reporting, already open a PR that will fix it: https://github.com/redis/redis/pull/11032."
+    }
+  ]
+}

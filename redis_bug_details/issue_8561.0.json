@@ -1,0 +1,11 @@
+{
+  "issue_number": 8561.0,
+  "title": "[BUG] command line redis-cli --scan incorrectly returns binary keys",
+  "body": "**Describe the bug**\r\n\r\nredis-cli --scan does not work correctly with binary keys:\r\n- binary data is not returned to terminal\r\n- scan operation yields no matches when MATCH pattern contains binary data\r\n\r\n**To reproduce**\r\nSet binary key\r\n```\r\n127.0.0.1:6379> set \"cp\\x00\\x01\\x15\\xc5\\x00\\x01\\x15\\xc5b64068ae-3d87-4d9a-b928-847adf4e22bf\" \"\\x00\\x02\"\r\nOK\r\n```\r\n\r\ncommand line scan with binary pattern yields no results\r\n```\r\n~ $ redis-cli --scan --pattern \"cp\\x00*\"\r\n~ $\r\n```\r\n\r\ncommand line scan without binary pattern (does not return binary part of the key)\r\n```\r\n~ $ redis-cli --scan --pattern \"cp*\"\r\ncp\r\n~ $\r\n```\r\n\r\n**Expected behavior**\r\n\r\nExpected to set key and retrieve in command line scan\r\n```\r\n127.0.0.1:6379> set \"cp\\x00\\x01\\x15\\xc5\\x00\\x01\\x15\\xc5b64068ae-3d87-4d9a-b928-847adf4e22bf\" \"\\x00\\x02\"\r\nOK\r\n```\r\n\r\ncommand line scan by with binary pattern\r\n```\r\n~ $ redis-cli --scan --pattern \"cp\\x00*\"\r\ncp\\x00\\x01\\x15\\xc5\\x00\\x01\\x15\\xc5b64068ae-3d87-4d9a-b928-847adf4e22bf\r\n~ $\r\n```\r\n\r\ncommand line scan without binary pattern \r\n```\r\n~ $ redis-cli --scan --pattern \"cp*\"\r\ncp\\x00\\x01\\x15\\xc5\\x00\\x01\\x15\\xc5b64068ae-3d87-4d9a-b928-847adf4e22bf\r\n~ $\r\n```\r\n\r\n**Additional information**\r\nrunning scan from the client works as expected:\r\n```\r\n127.0.0.1:6379> scan 0 match cp* count 10000\r\n1) \"0\"\r\n2) 1) \"cp\\x00\\x01\\x15\\xc5\\x00\\x01\\x15\\xc5b64068ae-3d87-4d9a-b928-847adf4e22bf\"\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-02-25T15:12:47Z",
+  "updated_at": "2021-03-04T13:03:49Z",
+  "closed_at": "2021-03-04T13:03:49Z",
+  "labels": [],
+  "comments_data": []
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 103.0,
+  "title": "Redis should abort when can't load the RDB file",
+  "body": "When Redis can't load an RDB file since the RDB version is wrong or when the file signature does not match a log is emitted and the server starts without loading data, with an empty key space. It should instead abort after logging the error.\nThis was not intentional, and is an error introduced later, but never found since it is not common to have mismatching RDB versions or file signature.\n",
+  "state": "closed",
+  "created_at": "2011-09-24T16:31:36Z",
+  "updated_at": "2011-10-14T15:04:47Z",
+  "closed_at": "2011-10-14T15:04:47Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2407615,
+      "user": "antirez",
+      "created_at": "2011-10-14T15:04:46Z",
+      "body": "Fixed in 2.4 and unstable. Closing.\n"
+    }
+  ]
+}

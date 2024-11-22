@@ -1,0 +1,24 @@
+{
+  "issue_number": 11599.0,
+  "title": "[BUG] Setting `port 0` maybe disables listening, but will instead bind `port 10000` for some reason",
+  "body": "**Describe the bug**\r\n\r\nSetting `port 0` (and instead using TLS port numbers) maybe disables listening, but still leads to reserving port `10000`. This prevents using TLS with 2 Redis instances in the same machine + properly disabling non-encrypted transactions at the same time.\r\n\r\n**To reproduce**\r\n\r\nYou can easily witness this when trying to start 2 Redis servers on the same machine. Both use different `tls-port`s but set `port 0` in their config. The first one will start as usual. The second one will refuse to start with `Warning: Could not create server TCP listening socket *:10000: bind: Address already in use...`.\r\n\r\nIf you specify a random other port for non-encrypted connections, it will work. But that will again re-enable unencrypted traffic through that port.\r\n\r\n**Expected behavior**\r\n\r\n1. It is odd that a port is even reserved if it isn't supposed to be used. That shouldn't happen.\r\n2. The mapping `port 0` => leads to reserving `port 10000`, which makes it unusable for other applications, is IMHO undocumented.",
+  "state": "open",
+  "created_at": "2022-12-08T10:53:02Z",
+  "updated_at": "2022-12-13T06:23:39Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1342548207,
+      "user": "bashimao",
+      "created_at": "2022-12-08T11:09:18Z",
+      "body": "Actually, I figured it out myself. The other port was listening because I had not specified `tls-cluster yes`. So, the communication between the two instances was still unencrypted.\r\n\r\nIt would have been cool (and saved me some time of frustrated searching) if this would have been noted in the example config at the location where the `port 0` option is explained."
+    },
+    {
+      "id": 1347807024,
+      "user": "ranshid",
+      "created_at": "2022-12-13T06:23:39Z",
+      "body": "@bashimao \r\nI think the redis documentation explains the logic of port selection [here](https://redis.io/docs/reference/cluster-spec/#the-cluster-bus). I suggest in case you want to keep traffic unencrypted on the cluster bus, it is better to use cluster-port config.\r\nIt is basically possible to add feature to fail the startup in such cases (identify that the data-port is not configured, eg. set to zero), and fail in such cases, but I am not aware that this was reported as a problem before, and I guess it is possible that there are existing configurations that could be effected by it.\r\n"
+    }
+  ]
+}

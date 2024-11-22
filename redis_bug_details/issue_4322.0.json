@@ -1,0 +1,27 @@
+{
+  "issue_number": 4322.0,
+  "title": "r->io.file.buffered is incorrect in function 'rioFileWrite'",
+  "body": "// Original code :\r\nstatic size_t rioFileWrite(rio *r, const void *buf, size_t len) {\r\n    size_t retval;\r\n\r\n    retval = fwrite(buf,len,1,r->io.file.fp);\r\n    r->io.file.buffered += len;\r\n\r\n    if (r->io.file.autosync &&\r\n        r->io.file.buffered >= r->io.file.autosync)\r\n    {\r\n        fflush(r->io.file.fp);\r\n        aof_fsync(fileno(r->io.file.fp));\r\n        r->io.file.buffered = 0;\r\n    }\r\n    return retval;\r\n}\r\n\r\nthis line:\r\n    r->io.file.buffered += len;\r\n\r\nshould be:\r\n    if ( retval >= 0 ) {\r\n        r->io.file.buffered += retval ;\r\n    }\r\n",
+  "state": "open",
+  "created_at": "2017-09-21T02:46:15Z",
+  "updated_at": "2017-09-22T06:28:16Z",
+  "closed_at": null,
+  "labels": [
+    "non critical bug",
+    "WAITING-OP-REPLY"
+  ],
+  "comments_data": [
+    {
+      "id": 331094170,
+      "user": "antirez",
+      "created_at": "2017-09-21T08:51:10Z",
+      "body": "Hello, yes @chenkline your fix looks correct to me. Just a question, did you find this bug in real world scenarios or is just an analysis you are doing in the Redis code? Because it looks like that when the fwrite() call failed, anyway the underlying RIO process aborted, so this change does not remove any real world bug. It's important to me to understand if a given bug also had real-world effects or not. Thanks."
+    },
+    {
+      "id": 331361838,
+      "user": "chenkline",
+      "created_at": "2017-09-22T06:28:16Z",
+      "body": "it's not in real world scenarios."
+    }
+  ]
+}

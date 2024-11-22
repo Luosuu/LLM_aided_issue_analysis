@@ -1,0 +1,24 @@
+{
+  "issue_number": 9850.0,
+  "title": "[BUG] One BLMPOP test case may fail on external server",
+  "body": "**Describe the bug**\r\nThis test may fail on external server. \r\nIt succeeds normaly, but fails occasionally on my environment with some arbitrary network deny.\r\n```\r\n    test \"BLMPOP with multiple blocked clients\" {\r\n        set rd1 [redis_deferring_client]\r\n        set rd2 [redis_deferring_client]\r\n        set rd3 [redis_deferring_client]\r\n        set rd4 [redis_deferring_client]\r\n        r del blist{t} blist2{t}\r\n\r\n        $rd1 blmpop 0 2 blist{t} blist2{t} left count 1\r\n        $rd2 blmpop 0 2 blist{t} blist2{t} right count 10\r\n        $rd3 blmpop 0 2 blist{t} blist2{t} left count 10\r\n        $rd4 blmpop 0 2 blist{t} blist2{t} right count 1\r\n        wait_for_blocked_clients_count 4\r\n\r\n        r multi\r\n        r lpush blist{t} a b c d e\r\n        r lpush blist2{t} 1 2 3 4 5\r\n        r exec\r\n\r\n        assert_equal {blist{t} e} [$rd1 read]\r\n        assert_equal {blist{t} {a b c d}} [$rd2 read]\r\n        assert_equal {blist2{t} {5 4 3 2 1}} [$rd3 read]\r\n\r\n        r lpush blist2{t} 1 2 3\r\n        assert_equal {blist2{t} 1} [$rd4 read]\r\n        $rd1 close\r\n        $rd2 close\r\n        $rd3 close\r\n        $rd4 close\r\n    }\r\n```\r\n**To reproduce**\r\n\r\nI guess it may depend on the order of sending the four `blmpop` commands.\r\nJust changing the sending order like this to simulate the disordered arrival due to network deny, it  almost always fails.\r\n\r\n```\r\n        $rd4 blmpop 0 2 blist{t} blist2{t} right count 1\r\n        $rd1 blmpop 0 2 blist{t} blist2{t} left count 1\r\n        $rd2 blmpop 0 2 blist{t} blist2{t} right count 10\r\n        $rd3 blmpop 0 2 blist{t} blist2{t} left count 10\r\n```\r\n\r\n\r\n**Expected behavior**\r\n\r\nThis test may not depend on the sending order or be removed out of external server tests because the unreliable network condition.\r\n\r\n**Additional information**\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-11-26T11:48:20Z",
+  "updated_at": "2021-11-28T13:37:35Z",
+  "closed_at": "2021-11-28T13:37:35Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 979922155,
+      "user": "aakejiang",
+      "created_at": "2021-11-26T11:52:04Z",
+      "body": "+1\r\nThe test is based on the wrong assumption that commands sent first would be arrived first in Redis server, which is not always true for the network delay."
+    },
+    {
+      "id": 979999992,
+      "user": "enjoy-binbin",
+      "created_at": "2021-11-26T14:03:24Z",
+      "body": "ohh sorry... I actually wrote this... i see the problem now, i will take a look later"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 8648.0,
+  "title": "[BUG] Environment variables are not exposed to redis modules",
+  "body": "**Describe the bug**\r\n\r\nWhen building a redis module, environment variables are not exposed to the module.\r\n\r\n**To reproduce**\r\n\r\nAttached is sample code, and a Makefile. As long as you have gcc, running make will yield a redis module. \r\n\r\n1. Untar the attached zip file (for reference, this includes a compiled version, on Arch latest).\r\n[rediscrypt-bug.zip](https://github.com/redis/redis/files/6139353/rediscrypt-bug.zip)\r\n\r\n\r\n2. cd into the directory and run make\r\n\r\n3. Start the redis server, and load the [module via redis.conf](https://redis.io/topics/modules-intro), by adding _loadmodule dist/redicrypt.so_ from this folder into a redis.conf file.\r\n\r\n4. Use the redis-cli to execute _helloworld.rand_ by running _redis-cli helloworld.rand_\r\n\r\n\ta. Restart your redis server by setting an environment variable in the command call, and repeat step 4. **SOMETESTVAR=avalue redis-server redis.conf**\r\n\r\n\tb. Restart your redis server by setting an environment variable prior to the command call, and repeat step 4. **export SOMETESTVAR=avalue && redis-server redis.conf** \r\n\r\n**Expected behavior**\r\n\r\nI would expect the environment variables to be made available to the module, meaning I can get their values with getenv. Running redis-cli hellworld.rand should output the value of the environment variable.",
+  "state": "closed",
+  "created_at": "2021-03-15T07:02:02Z",
+  "updated_at": "2021-03-15T10:45:26Z",
+  "closed_at": "2021-03-15T10:45:26Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 799309776,
+      "user": "yossigo",
+      "created_at": "2021-03-15T10:34:19Z",
+      "body": "@chayim I don't manage to reproduce this problem. Specifically with the example you provide, the problem is with the `printf` and not the `getenv` -- it would go to the server's `stdout` and vanish.\r\n\r\nYou can confirm this by returning the value instead:\r\n\r\n```c\r\nint HelloworldRand_RedisCommand(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {\r\n    RedisModule_ReplyWithSimpleString(ctx,getenv(\"SOMETESTVAR\"));\r\n    return REDISMODULE_OK;\r\n}\r\n```"
+    },
+    {
+      "id": 799316404,
+      "user": "chayim",
+      "created_at": "2021-03-15T10:45:26Z",
+      "body": "This works perfectly - confirmed. It's possible that I had an environment issue. Closing."
+    }
+  ]
+}

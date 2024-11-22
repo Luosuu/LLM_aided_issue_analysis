@@ -1,0 +1,36 @@
+{
+  "issue_number": 8838.0,
+  "title": "[BUG] SET with NX and GET parameters",
+  "body": "Hi there,\r\n\r\nI want to execute the command (version 6.2):\r\n`SET mykey \"Hello\" NX GET`\r\n\r\nI get an error in response. Is this the expected behavior? \r\n\r\n`ERR syntax error`\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-04-21T18:22:34Z",
+  "updated_at": "2023-09-07T19:06:35Z",
+  "closed_at": "2021-04-22T05:17:54Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 824470938,
+      "user": "sundb",
+      "created_at": "2021-04-22T01:32:50Z",
+      "body": "nx and get cannot exist at the same time."
+    },
+    {
+      "id": 824545356,
+      "user": "oranagra",
+      "created_at": "2021-04-22T05:17:54Z",
+      "body": "right. these two contradict each other.\r\nyou can't ask for the value only if the key doesn't exist."
+    },
+    {
+      "id": 1710088168,
+      "user": "andsens",
+      "created_at": "2023-09-07T12:44:03Z",
+      "body": "@skylar I assume you want to set a key if it doesn't already exist and end up with whatever the value of the key is regardless of whether you managed to set it or not.\r\nTo that end you should use a transaction ([MULTI](https://redis.io/commands/multi/)).\r\n![image](https://github.com/redis/redis/assets/342823/9ebcac18-517a-442b-ae9e-bc546ded7761)\r\n"
+    },
+    {
+      "id": 1710641008,
+      "user": "skylar",
+      "created_at": "2023-09-07T19:06:35Z",
+      "body": "@sklyar "
+    }
+  ]
+}

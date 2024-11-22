@@ -1,0 +1,20 @@
+{
+  "issue_number": 12565.0,
+  "title": "[BUG] redis-benchmark lua  script not working",
+  "body": "**Describe the bug**\r\nI've a requirement to pass custom values in benchmark. I followed https://redis.io/docs/management/optimization/benchmarks/ and came across `script load` but it doesn't seem to be working as expected. Here is the command that I'm running -\r\n\r\n**To reproduce**\r\n```\r\nredis-benchmark -n 100000 -q script load \"redis.call('set','foo','bar')\"\r\n```\r\n\r\n**Ouput**\r\nWhen I run above command, it doesn't set any keys -\r\n\r\n```shell\r\n❯ redis-cli dbsize\r\n(integer) 0\r\n❯ redis-benchmark -n 100000 -q script load \"redis.call('set','foo','bar')\"\r\nscript load redis.call('set','foo','bar'): 36469.73 requests per second, p50=0.767 msec\r\n❯ redis-cli dbsize\r\n(integer) 0\r\n```\r\nAm I missing any steps here?\r\n",
+  "state": "closed",
+  "created_at": "2023-09-09T18:11:22Z",
+  "updated_at": "2023-09-09T22:20:45Z",
+  "closed_at": "2023-09-09T22:20:39Z",
+  "labels": [
+    "class:question"
+  ],
+  "comments_data": [
+    {
+      "id": 1712652617,
+      "user": "filipecosta90",
+      "created_at": "2023-09-09T22:20:40Z",
+      "body": "@himanshusahu06 a stated in [docs](https://redis.io/commands/script-load/), the scrip load command \"Load a script into the scripts cache, without executing it\".\r\nYou should use the returned SHA1 digest to execute it [EVALSHA](https://redis.io/commands/evalsha/). \r\nHere's an example:\r\n\r\n```\r\n❯ redis-cli dbsize\r\n(integer) 0\r\n\r\n❯ redis-cli script load \"redis.call('set','foo','bar')\"\r\n\"a3862cfaeddaf7c3473803cba58cdd0bdca53397\"\r\n\r\n❯ redis-benchmark -q -n 100000 EVALSHA a3862cfaeddaf7c3473803cba58cdd0bdca53397 0\r\nEVALSHA a3862cfaeddaf7c3473803cba58cdd0bdca53397 0: 161812.31 requests per second, p50=0.175 msec         \r\n           \r\n❯  redis-cli dbsize                                                               \r\n(integer) 1\r\n```\r\n\r\nFeel free to reopen the issue if you still believe there's is some doubts. \r\n"
+    }
+  ]
+}

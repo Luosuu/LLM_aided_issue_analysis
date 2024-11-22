@@ -1,0 +1,56 @@
+{
+  "issue_number": 12699.0,
+  "title": "[BUG] TIME is now freezed in script and there is no way to know the elapsed time inside script during his execution.",
+  "body": "**Describe the bug**\r\n\r\n#10300 introduce TIME freeze and doesn't  gave alternative\r\n\r\n**To reproduce**\r\n\r\nIn script, call \"TIME\", do lot of things, recall \"TIME\" == no TIME elapsed. \r\n\r\nI use the previous behavior to store the result of queries that take a long time to execute.\r\n",
+  "state": "closed",
+  "created_at": "2023-10-26T13:19:29Z",
+  "updated_at": "2024-02-22T09:29:53Z",
+  "closed_at": "2024-02-22T09:29:53Z",
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 1781551020,
+      "user": "madolson",
+      "created_at": "2023-10-26T17:35:14Z",
+      "body": "We didn't consider this when making the change in #10300, since it was causing other unintended side effects. \r\n\r\nIt seems reasonable to introduce some type of function which is basically, \"Current script execution time\" that is available in lua. "
+    },
+    {
+      "id": 1782822818,
+      "user": "oranagra",
+      "created_at": "2023-10-27T12:21:02Z",
+      "body": "IIRC we argued that long execution scripts are an anti-pattern and that script that uses time to exit a loop would be wrong too.\n\nIn your use case, do you measure it for debug / introspection? Or as a cache to avoid repeating long calculations?"
+    },
+    {
+      "id": 1783079009,
+      "user": "jgoudinou",
+      "created_at": "2023-10-27T15:09:24Z",
+      "body": "@oranagra Both. \r\n\r\nI migrated a piece of business code from backend to stored functions in order to save latency between backend and redis.\r\nOne execution usually run in less than 5 ms, but some of them may take 1 or 2 seconds (depending on the amount of data). I put in cache the result of functions that use more data and are slower, proportional to their slowness.\r\n\r\nFor my defense, i don't exit loop using \"time\".\r\nThe backend let the function running and if it has a waiting call since 20ms, it call function kill. There is no problem with the writes cause the cache is writen at the end of traitment. "
+    },
+    {
+      "id": 1783485575,
+      "user": "madolson",
+      "created_at": "2023-10-27T20:37:51Z",
+      "body": "> For my defense, i don't exit loop using \"time\".\r\n\r\nYeah, this is the anti-pattern that I think oran was referring to. I agree that I don't think `time` should be an exit criteria, but using it as extra information seems fine. \r\n\r\nIt sounds like you could re-implement most of the logic by basing the caching off of the size of the data instead of the time taken."
+    },
+    {
+      "id": 1783721446,
+      "user": "oranagra",
+      "created_at": "2023-10-28T06:30:56Z",
+      "body": "I think we should expose Lua's `os.clock()`"
+    },
+    {
+      "id": 1784755768,
+      "user": "jgoudinou",
+      "created_at": "2023-10-30T09:02:10Z",
+      "body": "@oranagra : If I trust the documentation : \"The os.clock function returns the number of seconds of CPU time for the program\", Os.clock gives a number of seconds and it's not precise enought.\r\n\r\n@madolson : Good idea but it's not the best way for me. On a existing dataset, i need to produces a relationship graph (nodes, edges, ... ) with lot of input parameters. I do that with recursive functions. The course may return more or fewer nodes depending of data explored, input parameters, ....  Sometimes data are fetched then filtered or not require to explore more ... The size of the resultset is just a hint but the elapsed time to produce it is better. "
+    },
+    {
+      "id": 1786828492,
+      "user": "oranagra",
+      "created_at": "2023-10-31T09:27:16Z",
+      "body": "os.clock() returns a fractional number. it is precise enough. the thing is that if the system is overloaded, unlike wall-clock or monotonic clock, it doesn't count time of other processes.\r\nbut anyway, i don't mind exposing several types of clocks, i'm just arguing it can be via Lua, (not a redis command)\r\n@MeirShpilraien FYI."
+    }
+  ]
+}

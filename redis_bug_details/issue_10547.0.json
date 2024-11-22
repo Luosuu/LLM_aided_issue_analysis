@@ -1,0 +1,314 @@
+{
+  "issue_number": 10547.0,
+  "title": "[CRASH] Redis sentinel enters tilt mode and dies after a time",
+  "body": "**Crash report**\r\n\r\n```\r\n...\r\nMon, Apr 4 2022 9:35:15 pm | 1:X 05 Apr 2022 03:35:15.396 # -sdown sentinel 33f1828dea40e299b1c83d4824a2c329cc4e3ac7 redis1-node-1.redis1 30018 @ mymaster redis1-node-1.redis1 30019\r\nMon, Apr 4 2022 9:37:22 pm | 1:X 05 Apr 2022 03:37:22.709 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:37:52 pm | 1:X 05 Apr 2022 03:37:52.796 # -tilt #tilt mode exited\r\nMon, Apr 4 2022 9:39:49 pm | 1:X 05 Apr 2022 03:39:49.641 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:40:19 pm | 1:X 05 Apr 2022 03:40:19.698 # -tilt #tilt mode exited\r\nMon, Apr 4 2022 9:47:31 pm | 1:X 05 Apr 2022 03:47:31.739 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:48:01 pm | 1:X 05 Apr 2022 03:48:01.793 # -tilt #tilt mode exited\r\nMon, Apr 4 2022 9:48:18 pm | 1:X 05 Apr 2022 03:48:18.242 # +sdown sentinel 034a2c242957d1854224b48c3583b3fb18173e51 redis1-node-2.redis1 30020 @ mymaster redis1-node-1.redis1 30019\r\nMon, Apr 4 2022 9:48:21 pm | 1:X 05 Apr 2022 03:48:21.916 # -sdown sentinel 034a2c242957d1854224b48c3583b3fb18173e51 redis1-node-2.redis1 30020 @ mymaster redis1-node-1.redis1 30019\r\nMon, Apr 4 2022 9:49:21 pm | 1:X 05 Apr 2022 03:49:21.832 # +sdown sentinel 33f1828dea40e299b1c83d4824a2c329cc4e3ac7 redis1-node-1.redis1 30018 @ mymaster redis1-node-1.redis1 30019\r\nMon, Apr 4 2022 9:49:35 pm | 1:X 05 Apr 2022 03:49:35.659 # -sdown sentinel 33f1828dea40e299b1c83d4824a2c329cc4e3ac7 redis1-node-1.redis1 30018 @ mymaster redis1-node-1.redis1 30019\r\nMon, Apr 4 2022 9:49:47 pm | 1:X 05 Apr 2022 03:49:47.207 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:03 pm | 1:X 05 Apr 2022 03:50:03.126 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:14 pm | 1:X 05 Apr 2022 03:50:14.364 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:26 pm | 1:X 05 Apr 2022 03:50:26.260 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:36 pm | 1:X 05 Apr 2022 03:50:36.989 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:37 pm | 1:signal-handler (1649130637) Received SIGTERM scheduling shutdown...\r\nMon, Apr 4 2022 9:50:38 pm | 1:X 05 Apr 2022 03:50:38.052 # User requested shutdown...\r\nMon, Apr 4 2022 9:50:38 pm | 1:X 05 Apr 2022 03:50:38.052 # Sentinel is now ready to exit, bye bye..\r\n```\r\n\r\n**Additional information**\r\n\r\n1. OS distribution and version\r\nDeployed onto k8s, issue appears on multiple k8s versions and OS's\r\n\r\n2. Steps to reproduce (if any)\r\nDeploy bitnami helm chart, with simple values.\r\nWait about an hour for sentinel to crash.\r\n\r\nI first opened the issue on bitnami chart, https://github.com/bitnami/charts/issues/9689\r\nFor full information you can go to that issue and see additional info.\r\nHowever it should not be a chart issue, but an infra issue.\r\n\r\nI am posting here hoping that someone has seen something like this before. Any help would be greatly appreciated. ",
+  "state": "closed",
+  "created_at": "2022-04-06T15:32:22Z",
+  "updated_at": "2024-04-11T14:55:01Z",
+  "closed_at": "2022-11-03T13:30:03Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1091380689,
+      "user": "moticless",
+      "created_at": "2022-04-07T09:05:15Z",
+      "body": "Hi @jonathon2nd,\r\nThe logic of entering tilt mode is rather simple:\r\n```\r\nvoid sentinelCheckTiltCondition(void) {\r\n    mstime_t now = mstime();\r\n    mstime_t delta = now - sentinel.previous_time;\r\n\r\n    if (delta < 0 || delta > sentinel_tilt_trigger) {\r\n        sentinel.tilt = 1;\r\n        sentinel.tilt_start_time = mstime();\r\n        sentinelEvent(LL_WARNING,\"+tilt\",NULL,\"#tilt mode entered\");\r\n    }\r\n    sentinel.previous_time = mstime();\r\n}\r\n```\r\nIt enters either because the clock is negative compared to the last sample (server.hz=100msec by default) or because it is more than 2 seconds than last sample (mstime() simply calls gettimeofday()). Can you think of a reason why the setup experience such clock instability? \r\n\r\nTo isolate whether it is because negative clock or because process being delayed behind 2 seconds, you can change the 2sec default value with command `SENTINEL DEBUG tilt-trigger <millisec>`.\r\n\r\nI do notice that your timing configuration of Sentinel might be too short: ` downAfterMilliseconds: 2000, failoverTimeout: 1000`. I highly recommend to enlarge those values, or at least to better isolate the problem as first step. "
+    },
+    {
+      "id": 1091833013,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-07T14:47:01Z",
+      "body": "Hi @moticless \r\nThanks for responding!\r\n\r\nI will try modifying `SENTINEL DEBUG tilt-trigger <millisec>` and let you know how that goes. \r\n\r\nDuring my testing I stripped the values file all the way down to the following, and the behavior still happens. I was thinking it may be something like `downAfterMilliseconds` or one of our other configurations, but sadly no. \r\n```\r\n---\r\nimage:\r\n  debug: true\r\nauth:\r\n  password: \"password\"\r\nreplica:\r\n  replicaCount: 3\r\n  persistence:\r\n    enabled: false\r\nsentinel:\r\n  enabled: true\r\n  image:\r\n    debug: true\r\n  quorum: 2\r\n```"
+    },
+    {
+      "id": 1091864809,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-07T15:14:19Z",
+      "body": "hmm. Not seeing how to run the command.\r\nI am connected to the sentinel port.\r\n\r\n```\r\n> SENTINEL DEBUG tilt-trigger 5000\r\n(error) ERR Unknown subcommand or wrong number of arguments for 'DEBUG'. Try SENTINEL HELP.\r\n> SENTINEL HELP\r\n...\r\n> SENTINEL DEBUG HELP\r\n(error) ERR Unknown subcommand or wrong number of arguments for 'DEBUG'. Try SENTINEL HELP.\r\n> SENTINEL CONFIG GET\r\n(error) ERR Only SENTINEL CONFIG GET <option> / SET <option> <value> are supported.\r\n> SENTINEL CONFIG GET tilt-trigger\r\n(empty list or set)\r\n```"
+    },
+    {
+      "id": 1091928875,
+      "user": "moticless",
+      "created_at": "2022-04-07T16:10:07Z",
+      "body": "Your command is correct (`SENTINEL DEBUG tilt-trigger 5000`).\r\n\r\nYou need to connect to each sentinel instance, and not redis server, and change its default tilt-trigger value. For example, apply it to a sentinel on localhost and port 5001:\r\n```\r\n> redis-cli -p 5001\r\n127.0.0.1:5001> SENTINEL DEBUG tilt-trigger 5000\r\nOK\r\n```\r\n"
+    },
+    {
+      "id": 1091963475,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-07T16:34:53Z",
+      "body": "I am 100% connected to the sentinel port. But I can not get that command to run. Any idea why that could happen?\r\n\r\n```\r\n> SENTINEL DEBUG tilt-trigger 5000\r\n(error) ERR Unknown subcommand or wrong number of arguments for 'DEBUG'. Try SENTINEL HELP.\r\n> SENTINEL tilt-trigger 5000\r\n(error) ERR Unknown subcommand or wrong number of arguments for 'tilt-trigger'. Try SENTINEL HELP.\r\n```\r\n\r\nI tried a bunch of other things, they did not work obviously\r\n```\r\n> SENTINEL CONFIG SET tilt-trigger 5000\r\n(error) ERR Invalid argument 'tilt-trigger' to SENTINEL CONFIG SET\r\n> SENTINEL CONFIG GET tilt-trigger\r\n(empty list or set)\r\n\r\n> SENTINEL DEBUG\r\n(error) ERR Unknown subcommand or wrong number of arguments for 'DEBUG'. Try SENTINEL HELP.\r\n> SENTINEL DEBUG HELP\r\n(error) ERR Unknown subcommand or wrong number of arguments for 'DEBUG'. Try SENTINEL HELP.\r\n> SENTINEL HELP\r\n 1) SENTINEL <subcommand> [<arg> [value] [opt] ...]. Subcommands are:\r\n 2) CKQUORUM <master-name>\r\n 3)     Check if the current Sentinel configuration is able to reach the quorum\r\n 4)     needed to failover a master and the majority needed to authorize the\r\n 5)     failover.\r\n 6) CONFIG SET <param> <value>\r\n 7)     Set a global Sentinel configuration parameter.\r\n 8) CONFIG GET <param>\r\n 9)     Get global Sentinel configuration parameter.\r\n10) GET-MASTER-ADDR-BY-NAME <master-name>\r\n11)     Return the ip and port number of the master with that name.\r\n12) FAILOVER <master-name>\r\n13)     Manually failover a master node without asking for agreement from other\r\n14)     Sentinels\r\n15) FLUSHCONFIG\r\n16)     Force Sentinel to rewrite its configuration on disk, including the current\r\n17)     Sentinel state.\r\n18) INFO-CACHE <master-name>\r\n19)     Return last cached INFO output from masters and all its replicas.\r\n20) IS-MASTER-DOWN-BY-ADDR <ip> <port> <current-epoch> <runid>\r\n21)     Check if the master specified by ip:port is down from current Sentinel's\r\n22)     point of view.\r\n23) MASTER <master-name>\r\n24)     Show the state and info of the specified master.\r\n25) MASTERS\r\n26)     Show a list of monitored masters and their state.\r\n27) MONITOR <name> <ip> <port> <quorum>\r\n28)     Start monitoring a new master with the specified name, ip, port and quorum.\r\n29) MYID\r\n30)     Return the ID of the Sentinel instance.\r\n31) PENDING-SCRIPTS\r\n32)     Get pending scripts information.\r\n33) REMOVE <master-name>\r\n34)     Remove master from Sentinel's monitor list.\r\n35) REPLICAS <master-name>\r\n36)     Show a list of replicas for this master and their state.\r\n37) RESET <pattern>\r\n38)     Reset masters for specific master name matching this pattern.\r\n39) SENTINELS <master-name>\r\n40)     Show a list of Sentinel instances for this master and their state.\r\n41) SET <master-name> <option> <value>\r\n42)     Set configuration paramters for certain masters.\r\n43) SIMULATE-FAILURE (CRASH-AFTER-ELECTION|CRASH-AFTER-PROMOTION|HELP)\r\n44)     Simulate a Sentinel crash.\r\n45) HELP\r\n46)     Prints this help.\r\n```"
+    },
+    {
+      "id": 1092113689,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-07T19:18:53Z",
+      "body": "~~I can only find this doc, with not that much information: https://redis.io/commands/debug/~~\r\nAnd exec into the sentinel container does not help. `Sentinel debug` is not a command there either. \r\n\r\n```\r\nI have no name!@redis-node-1:/$ redis-cli -p 26379\r\n127.0.0.1:26379> SENTINEL DEBUG tilt-trigger 5000\r\n(error) ERR Unknown subcommand or wrong number of arguments for 'DEBUG'. Try SENTINEL HELP.\r\n127.0.0.1:26379> SENTINEL DEBUG\r\n(error) ERR Unknown subcommand or wrong number of arguments for 'DEBUG'. Try SENTINEL HELP.\r\n```"
+    },
+    {
+      "id": 1092120764,
+      "user": "moticless",
+      "created_at": "2022-04-07T19:27:45Z",
+      "body": "Sorry, i wasn't paying attention to your version. It is It isn't available on 6.2.6. Can you try please run sentinel with 7.0-rc3? You can still can stay with 6.2.6 for redis servers."
+    },
+    {
+      "id": 1092124414,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-07T19:32:07Z",
+      "body": "AAAAAAAAAAAH, that explains that.\r\nhttps://hub.docker.com/r/bitnami/redis-sentinel/tags?page=1&ordering=last_updated\r\n\r\nIt does not appear that is an option with this chart."
+    },
+    {
+      "id": 1092630073,
+      "user": "moticless",
+      "created_at": "2022-04-08T09:08:13Z",
+      "body": "@jonathon2nd,\r\nCan you try please to build and test, as suggested above, with 7.0-rc3? "
+    },
+    {
+      "id": 1093082002,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-08T16:49:01Z",
+      "body": "The redis and the bitnami/redis images are not interchangeable. I attempted that yesterday and that did not work. I also do not see a way to built my own bitnami/redis image with different redis version. \r\n\r\nI am attempting now to manually setup in k8s to be able to test, as are no charts or yamls I can find for that. "
+    },
+    {
+      "id": 1093139641,
+      "user": "moticless",
+      "created_at": "2022-04-08T17:55:53Z",
+      "body": "I am totally unfamiliar with bitnami ... but I managed to do the following steps to have a modified image with sentinel redis-7.0-rc3 (please see if it makes sense or requires fine-tuning):\r\n```\r\ndocker pull bitnami/redis\r\ndocker run --name bitnami --rm --user root --privileged  -ti bitnami/redis bash\r\n```\r\nInside container:\r\n```\r\ncd /tmp\r\ncurl -L https://github.com/redis/redis/archive/refs/tags/7.0-rc3.tar.gz  | tar zx\r\napt-get update\r\napt-get install build-essential make\r\ncd redis-7.0-rc3/\r\nmake MALLOC=libc\r\ncp ./redis-sentinel /opt/bitnami/redis/bin/redis-sentinel\r\n```\r\nOutside container make `docker commit` and we have now a modified image.\r\n"
+    },
+    {
+      "id": 1093259568,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-08T19:09:53Z",
+      "body": "Something like that won't work for k8s. What I did do earlier to continue testing is create a manual deployment with the following. I created these items in the Rancher UI, but here are their yamls at the end.\r\n\r\nWith this I was able to setup single redis and redis sentinel.\r\nSo far it has not sentinel tilt problem occurred, this could be because it is a problem with the bitnami image, or a single sentinel is not enough for the behavior to arise. \r\n\r\nWe are still looking into things\r\n\r\nredis-0 sentinel log\r\n```\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.823 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.823 # Redis version=6.9.242, bits=64, commit=00000000, modified=0, pid=9, just started\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.823 # Configuration loaded\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.824 * monotonic clock: POSIX clock_gettime\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.825 * Running mode=sentinel, port=26379.\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.825 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.841 * Sentinel new configuration saved on disk\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.841 # Sentinel ID is 209285edbe46b79a38d29488944e2bbc5df29db8\r\nFri, Apr 8 2022 11:20:03 am | 9:X 08 Apr 2022 17:20:03.841 # +monitor master redismaster 127.0.0.1 6379 quorum 1\r\n```\r\n\r\nredis-0 redis log\r\n```\r\n1:C 08 Apr 2022 17:20:03.307 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n1:C 08 Apr 2022 17:20:03.307 # Redis version=6.9.242, bits=64, commit=00000000, modified=0, pid=1, just started\r\n1:C 08 Apr 2022 17:20:03.307 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf\r\n1:M 08 Apr 2022 17:20:03.308 * monotonic clock: POSIX clock_gettime\r\n1:M 08 Apr 2022 17:20:03.309 * Running mode=standalone, port=6379.\r\n1:M 08 Apr 2022 17:20:03.309 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.\r\n1:M 08 Apr 2022 17:20:03.309 # Server initialized\r\n1:M 08 Apr 2022 17:20:03.309 * The AOF directory appendonlydir doesn't exist\r\n1:M 08 Apr 2022 17:20:03.309 * Ready to accept connections\r\n```\r\n\r\nand with that I can connect to both\r\n```\r\nroot@test-59d74889d7-gn45t:/# redis-cli -h redis-0.default.svc.cluster.local\r\nredis-0.default.svc.cluster.local:6379> \r\nroot@test-59d74889d7-gn45t:/# redis-cli -h redis-0.default.svc.cluster.local -p 26379\r\nredis-0.default.svc.cluster.local:26379> \r\n```\r\n\r\n\r\nyamls for deployment in k8s (this should be everything) Adding in case some unfortunate person needs it later.\r\n```\r\n---\r\napiVersion: apps/v1\r\nkind: StatefulSet\r\nmetadata:\r\n  labels:\r\n    app: redis\r\n    workload.user.cattle.io/workloadselector: apps.statefulset-default-redis\r\n  name: redis\r\n  namespace: default\r\nspec:\r\n  replicas: 1\r\n  selector:\r\n    matchLabels:\r\n      workload.user.cattle.io/workloadselector: apps.statefulset-default-redis\r\n  serviceName: redis-headless\r\n  template:\r\n    metadata:\r\n      labels:\r\n        app: redis\r\n        workload.user.cattle.io/workloadselector: apps.statefulset-default-redis\r\n    spec:\r\n      affinity: {}\r\n      containers:\r\n      - image: redis:7.0-rc3\r\n        imagePullPolicy: Always\r\n        name: redis\r\n        ports:\r\n        - containerPort: 6379\r\n          name: redis\r\n          protocol: TCP\r\n      - args:\r\n        - cp /redis/sentinel.conf /tmp/sentinel.conf; redis-server /tmp/sentinel.conf\r\n          --sentinel\r\n        command:\r\n        - sh\r\n        - -c\r\n        image: redis:7.0-rc3\r\n        imagePullPolicy: Always\r\n        name: sentinel\r\n        ports:\r\n        - containerPort: 26379\r\n          name: sentinel\r\n          protocol: TCP\r\n        volumeMounts:\r\n        - mountPath: /redis/\r\n          name: vol-luloi\r\n      volumes:\r\n      - configMap:\r\n          defaultMode: 511\r\n          name: redis-sentinel-test\r\n          optional: false\r\n        name: vol-luloi\r\n\r\n---\r\napiVersion: v1\r\nkind: Service\r\nmetadata:\r\n  name: redis-headless\r\n  namespace: default\r\nspec:\r\n  ports:\r\n  - name: redis\r\n    port: 6379\r\n    protocol: TCP\r\n    targetPort: 6379\r\n  - name: sentinel\r\n    port: 26379\r\n    protocol: TCP\r\n    targetPort: 26379\r\n  selector:\r\n    app: redis\r\n  type: ClusterIP\r\n\r\n---\r\napiVersion: v1\r\ndata:\r\n  sentinel.conf: |-\r\n    port 26379\r\n\r\n    dir /tmp\r\n\r\n    sentinel monitor redismaster 127.0.0.1 6379 1\r\n    sentinel down-after-milliseconds redismaster 5000\r\n    sentinel parallel-syncs redismaster 1\r\n    sentinel failover-timeout redismaster 5000\r\nkind: ConfigMap\r\nmetadata:\r\n  name: redis-sentinel-test\r\n  namespace: default\r\n\r\n---\r\napiVersion: v1\r\nkind: Service\r\nmetadata:\r\n  name: redis-0\r\n  namespace: default\r\nspec:\r\n  ports:\r\n  - name: redis\r\n    port: 6379\r\n    protocol: TCP\r\n    targetPort: 6379\r\n  - name: sentinel\r\n    port: 26379\r\n    protocol: TCP\r\n    targetPort: 26379\r\n  selector:\r\n    workload.user.cattle.io/workloadselector: apps.statefulset-default-redis\r\n  type: ClusterIP\r\n  \r\n---\r\napiVersion: v1\r\nkind: Service\r\nmetadata:\r\n  name: redis\r\n  namespace: default\r\nspec:\r\n  ports:\r\n  - name: redis\r\n    port: 6379\r\n    protocol: TCP\r\n    targetPort: 6379\r\n  - name: sentinel\r\n    port: 26379\r\n    protocol: TCP\r\n    targetPort: 26379\r\n  selector:\r\n    workload.user.cattle.io/workloadselector: apps.statefulset-default-redis\r\n  type: ClusterIP\r\n  ```\r\n\r\n"
+    },
+    {
+      "id": 1093284614,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-08T19:30:34Z",
+      "body": "@moticless A single sentinel should be able to enter `tilt mode`, is that correct?"
+    },
+    {
+      "id": 1093396965,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-08T22:02:38Z",
+      "body": "At first we were thinking it was either host or hypervisor/vm related. \r\n\r\nHowever, I deployed a node pool onto a public cloud, and setup a centos 7 node there. The problem still persists. So it could be a centos/rocky Linux thing, As the vms we use for our on prem k8s is rocky linux. \r\n\r\nWe are not sure yet, but it is very puzzling. Even doing full upgrades on the cloud node and on prem node did not help. "
+    },
+    {
+      "id": 1094194736,
+      "user": "moticless",
+      "created_at": "2022-04-10T06:35:46Z",
+      "body": "Yes, a single instance can enter tilt mode. \r\n\r\nSince a single instance doesn't enter into tilt mode, I assume there is nothing wrong with this VM (i.e., clocking issue). So we probably left with too long period of time delay between two sampling of the clock of sentinel periodic task, behind 2 seconds (server.hz=100msec by default). \r\n\r\nDoes the machine is loaded at some points that might starve Sentinel process, up-to 2 seconds or more? \r\nIf so, either try reduce load, or future upgrade to Redis 7.0 will give you the option to configure more relaxed threshold value to enter tilt period.\r\n\r\n"
+    },
+    {
+      "id": 1095317519,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-11T17:12:43Z",
+      "body": "That's the thing. The k8s workers have lots of spare util. They typically sit at around %200 total cpu util, and they have 6 cores each. They also have lots of spare memory. \r\n\r\nAdditionally, the public cloud node I mentioned before was a 16 core vm, and the only thing running on it other than the typical k8s overhead, was that redis pod. \r\n\r\nSo I am having a real hard time believing this has anything to do with node/vm load. \r\n\r\n\r\nTo test, I have downgraded the manual redis (not bitnami) deployment to 6.2.6, and it does not exhibit the issue either. My lead was thinking it may be because of redis 7.0 that was not tilting, so I wanted to try that out. Too soon to tell though, it is not tilting yet. "
+    },
+    {
+      "id": 1095419929,
+      "user": "jurschel",
+      "created_at": "2022-04-11T18:41:13Z",
+      "body": "I'm in the same boat actually.  Installed the bitnami redis helm chart with sentinel enabled.  Things are tilting all over the place.   What did you change over to exactly?"
+    },
+    {
+      "id": 1095427254,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-11T18:47:51Z",
+      "body": "@jurschel Is it on prem or cloud that you have deployed to? What OS is the worker running?\r\n\r\nWe have no solution yet. I have just manually setup using the official redis images using [these yamls](https://github.com/redis/redis/issues/10547#issuecomment-1093259568) that I created for testing. I really do not want to write my own chart for HA redis with sentinel so that is as far as I have gone for testing. \r\n\r\nThe only place we have deployed bitnami redis chart that does not tilt was OVH public managed k8s. Which looks like they use ubuntu, but I could be wrong. \r\n\r\nDuring testing we have also deployed a node pool with OVH node driver, making a cluster hybrid with on prem and public cloud workers. The public worker was setup with centos 7, and it also tilts and dies. Our on prem workers use Rocky Linux 8.5."
+    },
+    {
+      "id": 1095457259,
+      "user": "jurschel",
+      "created_at": "2022-04-11T19:14:06Z",
+      "body": "We're on-prem.  I'm starting to feel like my problem has more to do with timing than anything else.  Tilt mode will start tilting if there's a drift of 2s or more I think I was reading.  Mine aren't dying after the tilts just tilting an awful lot."
+    },
+    {
+      "id": 1095657290,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-11T22:35:55Z",
+      "body": "Ok interesting development. I deployed an ubuntu vm into the test k8s cluster and the bitnami redis sentinel also tilted a bunch there. So my idea of it being a centos/rocky thing is out the window. \r\n\r\nThe only time redis sentinel did not tilt was when we had a remotely managed k8s as part of a multi cluster test setup. So I am thinking somehow it is a k8s thing that is causing? I have setup a new k8s cluster, all default and base setup, and I have deployed bitnami/redis there. ~~Going to see if the same behavior happens. ~~ The same behavior happens. Sentinel tilts and then dies.\r\n![Screenshot_20220411_164321](https://user-images.githubusercontent.com/52681917/162845231-88f87205-74be-4e7a-8881-1e1f238cec26.png)\r\n\r\n\r\nDisabling all health checks/probes did not remedy the behavior. \r\n\r\nI would think it has something to do with out infra or host/vm setup/config, but it also happened on a beefy public cloud vm. \r\n\r\n\r\n@jurschel What k8s platform/manager are you using? We are using Rancher and RKE managed clusters."
+    },
+    {
+      "id": 1096104008,
+      "user": "moticless",
+      "created_at": "2022-04-12T05:47:59Z",
+      "body": "@jonathon2nd, investigating the frequent tilt periods is one issue. Another issue that is interesting is to understand why sentinel crashes when it is having frequent tilt periods. Can you supply core dump of the crash? Thank you. "
+    },
+    {
+      "id": 1097167779,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-12T20:09:57Z",
+      "body": "Hi @moticless \r\nThe crashing seems to be because of health and live checks. We have removed them from a couple of deployments we are testing with. Tilting still continues, but the containers no longer restart. \r\n\r\nSo at some point the liveness check fails, and k8s restarts the container. \r\n\r\nEdit: But the traffic / process is still being affected by something since we're seeing broken pipes from other client / sentinels when tilt mode is triggered, meaning the pod process is being halted for some time, and the healthcheck can't trigger, and connections are dropped."
+    },
+    {
+      "id": 1097325935,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-12T23:03:45Z",
+      "body": "I setup a k3s cluster, and it has not tilted at all. All signs are currently pointing to this being an RKE problem somehow. This is on the same hosts, same vm template, same rancher management cluster.\r\n\r\n@jurschel by change, did you use RKE?"
+    },
+    {
+      "id": 1098197509,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-13T15:33:45Z",
+      "body": "Yup, 17 hours later and redis sentinel in k3s has not tilted once. Deployed on the same infra with same vm template and terraform plan. Only difference is k3s instead of rke. Redis sentinels on other test cluster (rke) have been tilting away meanwhile.\r\n\r\nSo now can anyone else replica with Rancher RKE cluster I wonder?"
+    },
+    {
+      "id": 1098526902,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-13T22:00:37Z",
+      "body": "hmmm, tilting problem also happens with RKE2. Same infra and everything.\r\n![Screenshot_20220413_160016](https://user-images.githubusercontent.com/52681917/163277450-9539c284-4d39-4808-908c-caeaab4eb96e.png)\r\n\r\n\r\n```\r\n21:54:20.79 INFO ==> about to run the command: REDISCLI_AUTH=$REDIS_PASSWORD redis-cli -h redis.redis.svc.cluster.local -p 26379 sentinel get-master-addr-by-name mymaster\r\n--\r\nWed, Apr 13 2022 3:54:21 pm | Could not connect to Redis at redis.redis.svc.cluster.local:26379: Connection refused\r\nWed, Apr 13 2022 3:54:22 pm | 1:X 13 Apr 2022 21:54:22.065 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\nWed, Apr 13 2022 3:54:22 pm | 1:X 13 Apr 2022 21:54:22.065 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=1, just started\r\nWed, Apr 13 2022 3:54:22 pm | 1:X 13 Apr 2022 21:54:22.065 # Configuration loaded\r\nWed, Apr 13 2022 3:54:22 pm | 1:X 13 Apr 2022 21:54:22.066 * monotonic clock: POSIX clock_gettime\r\nWed, Apr 13 2022 3:54:22 pm | 1:X 13 Apr 2022 21:54:22.067 * Running mode=sentinel, port=26379.\r\nWed, Apr 13 2022 3:54:22 pm | 1:X 13 Apr 2022 21:54:22.067 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.\r\nWed, Apr 13 2022 3:54:22 pm | 1:X 13 Apr 2022 21:54:22.068 # Sentinel ID is 2a09ba7abbb41ee71e79087310d75f9809c3c815\r\nWed, Apr 13 2022 3:54:22 pm | 1:X 13 Apr 2022 21:54:22.068 # +monitor master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 quorum 2\r\nWed, Apr 13 2022 3:54:52 pm | 1:X 13 Apr 2022 21:54:52.188 * +slave slave redis-node-1.redis-headless.redis.svc.cluster.local:6379 redis-node-1.redis-headless.redis.svc.cluster.local 6379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:54:53 pm | 1:X 13 Apr 2022 21:54:53.166 * +sentinel sentinel 33535e4e17bf8f9f9ff9ce8f9ddf609e558ff4f2 redis-node-1.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:27 pm | 1:X 13 Apr 2022 21:55:27.437 * +slave slave redis-node-2.redis-headless.redis.svc.cluster.local:6379 redis-node-2.redis-headless.redis.svc.cluster.local 6379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:27 pm | 1:X 13 Apr 2022 21:55:27.439 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:55:32 pm | 1:X 13 Apr 2022 21:55:32.786 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:55:32 pm | 1:X 13 Apr 2022 21:55:32.786 # waitpid() returned a pid (204) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:55:32 pm | 1:X 13 Apr 2022 21:55:32.786 # waitpid() returned a pid (214) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:55:33 pm | 1:X 13 Apr 2022 21:55:33.125 # waitpid() returned a pid (223) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:55:35 pm | 1:X 13 Apr 2022 21:55:35.283 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:35 pm | 1:X 13 Apr 2022 21:55:35.342 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:40 pm | 1:X 13 Apr 2022 21:55:40.667 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:40 pm | 1:X 13 Apr 2022 21:55:40.708 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:40 pm | 1:X 13 Apr 2022 21:55:40.784 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:40 pm | 1:X 13 Apr 2022 21:55:40.800 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:55:40 pm | 1:X 13 Apr 2022 21:55:40.841 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:40 pm | 1:X 13 Apr 2022 21:55:40.876 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.181 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.243 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.288 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.478 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.532 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.631 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.658 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.852 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:41 pm | 1:X 13 Apr 2022 21:55:41.944 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:42 pm | 1:X 13 Apr 2022 21:55:42.455 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:42 pm | 1:X 13 Apr 2022 21:55:42.531 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:42 pm | 1:X 13 Apr 2022 21:55:42.764 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:42 pm | 1:X 13 Apr 2022 21:55:42.795 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:42 pm | 1:X 13 Apr 2022 21:55:42.937 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:42 pm | 1:X 13 Apr 2022 21:55:42.968 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:43 pm | 1:X 13 Apr 2022 21:55:43.171 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:43 pm | 1:X 13 Apr 2022 21:55:43.198 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:43 pm | 1:X 13 Apr 2022 21:55:43.379 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:43 pm | 1:X 13 Apr 2022 21:55:43.482 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:43 pm | 1:X 13 Apr 2022 21:55:43.886 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:43 pm | 1:X 13 Apr 2022 21:55:43.910 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:43 pm | 1:X 13 Apr 2022 21:55:43.979 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.137 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.163 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.191 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.685 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.685 # waitpid() returned a pid (270) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.685 # waitpid() returned a pid (261) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.740 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.785 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:44 pm | 1:X 13 Apr 2022 21:55:44.880 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.077 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.109 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.198 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.283 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.314 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.382 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.489 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.521 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.635 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.701 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.730 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.810 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.896 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:45 pm | 1:X 13 Apr 2022 21:55:45.982 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.032 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.057 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.139 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.169 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.265 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.329 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.527 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.673 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.742 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.771 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.798 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.843 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.939 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:46 pm | 1:X 13 Apr 2022 21:55:46.965 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:47 pm | 1:X 13 Apr 2022 21:55:47.056 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:47 pm | 1:X 13 Apr 2022 21:55:47.145 # waitpid() returned a pid (290) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:55:47 pm | 1:X 13 Apr 2022 21:55:47.486 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:47 pm | 1:X 13 Apr 2022 21:55:47.584 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:47 pm | 1:X 13 Apr 2022 21:55:47.616 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:49 pm | 1:X 13 Apr 2022 21:55:49.119 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:49 pm | 1:X 13 Apr 2022 21:55:49.477 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:51 pm | 1:X 13 Apr 2022 21:55:51.232 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:51 pm | 1:X 13 Apr 2022 21:55:51.499 * +sentinel-address-switch master mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379 ip redis-node-2.redis-headless.redis.svc.cluster.local port 26379 for 9fe32540b27937ed9f341b0f610a0d8df405bb63\r\nWed, Apr 13 2022 3:55:51 pm | 1:X 13 Apr 2022 21:55:51.737 * +sentinel sentinel 9fe32540b27937ed9f341b0f610a0d8df405bb63 redis-node-2.redis-headless.redis.svc.cluster.local 26379 @ mymaster redis-node-0.redis-headless.redis.svc.cluster.local 6379\r\nWed, Apr 13 2022 3:55:57 pm | 1:X 13 Apr 2022 21:55:57.484 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:56:08 pm | 1:X 13 Apr 2022 21:56:08.506 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:56:08 pm | 1:X 13 Apr 2022 21:56:08.506 # waitpid() returned a pid (328) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:08 pm | 1:X 13 Apr 2022 21:56:08.507 # waitpid() returned a pid (319) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:08 pm | 1:X 13 Apr 2022 21:56:08.507 # waitpid() returned a pid (346) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:08 pm | 1:X 13 Apr 2022 21:56:08.507 # waitpid() returned a pid (337) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:09 pm | 1:X 13 Apr 2022 21:56:09.192 # waitpid() returned a pid (356) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:09 pm | 1:X 13 Apr 2022 21:56:09.269 # waitpid() returned a pid (366) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:17 pm | 1:X 13 Apr 2022 21:56:17.338 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:56:23 pm | 1:X 13 Apr 2022 21:56:23.206 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:56:23 pm | 1:X 13 Apr 2022 21:56:23.206 # waitpid() returned a pid (403) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:23 pm | 1:X 13 Apr 2022 21:56:23.206 # waitpid() returned a pid (393) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:28 pm | 1:X 13 Apr 2022 21:56:28.760 # +tilt #tilt mode entered\r\nWed, Apr 13 2022 3:56:28 pm | 1:X 13 Apr 2022 21:56:28.760 # waitpid() returned a pid (422) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:28 pm | 1:X 13 Apr 2022 21:56:28.760 # waitpid() returned a pid (413) we can't find in our scripts execution queue!\r\nWed, Apr 13 2022 3:56:46 pm | 1:signal-handler (1649887006) Received SIGTERM scheduling shutdown...\r\nWed, Apr 13 2022 3:56:54 pm | 1:X 13 Apr 2022 21:56:54.671 # User requested shutdown...\r\nWed, Apr 13 2022 3:56:54 pm | 1:X 13 Apr 2022 21:56:54.671 # Sentinel is now ready to exit, bye bye...\r\n```\r\n"
+    },
+    {
+      "id": 1099116058,
+      "user": "moticless",
+      "created_at": "2022-04-14T12:05:29Z",
+      "body": "IMO, I see currently 2 directions of investigation:\r\n1. **Configure Tilt period** - Manage to use 7.0-RC3 and have longer tilt period threshold which might be too aggressive for your setup. \r\n2. **Reduce load** - Try to isolate environment (RKE/k3s/..). Try to isolate feature usage (avoid using scripts in sentinel, etc). Don't run additional heavy processes on the same VM or isolate sentinel on another VM.\r\n\r\nBut even taking the second path, once you identify that it is load issue  - you still probably goanna need configure more relaxed tilt period. So i guess there is no escape but to put an effort to have setup that run with 7.0-RC3  (or later...). "
+    },
+    {
+      "id": 1099484509,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-14T18:09:37Z",
+      "body": "> Reduce load - ... Don't run additional heavy processes on the same VM or isolate sentinel on another VM.\r\n\r\nAs mentioned before, I have setup a public cloud vm with 16 dedicated cores. This worker was tainted and the only workload on it was a redis pod. The sentinel container still tilted, and did it quickly at that. \r\n\r\n> Configure Tilt period - Manage to use 7.0-RC3 ...\r\n\r\nThe bitnami/redis and redis images are not interchangeable. I have to wait till 7.0 is fully released and they come out with their own image. https://github.com/bitnami/charts/issues/9689#issuecomment-1094621694\r\nI have a manual setup of one redis node using official redis image and it did not tilt. \r\n\r\nThe problem is somehow caused by an interaction between bitnami/redis and Rancher RKE.\r\n\r\nAt this point we do not think the problem has anything to do with redis, but modifications and scripts of bitnami's and some strange interaction with RKE. "
+    },
+    {
+      "id": 1100693018,
+      "user": "moticless",
+      "created_at": "2022-04-16T15:44:46Z",
+      "body": "@jonathon2nd,  please keep us update with any new findings. Thanks."
+    },
+    {
+      "id": 1108822281,
+      "user": "jonathon2nd",
+      "created_at": "2022-04-25T17:04:17Z",
+      "body": "Nothing new yet, unfortunately.\r\n@moticless , I do find it weird that sentinel will enter `tilt mode` multiple times. Is that standard redis behavior?\r\n```\r\nMon, Apr 4 2022 9:49:47 pm | 1:X 05 Apr 2022 03:49:47.207 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:03 pm | 1:X 05 Apr 2022 03:50:03.126 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:14 pm | 1:X 05 Apr 2022 03:50:14.364 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:26 pm | 1:X 05 Apr 2022 03:50:26.260 # +tilt #tilt mode entered\r\nMon, Apr 4 2022 9:50:36 pm | 1:X 05 Apr 2022 03:50:36.989 # +tilt #tilt mode entered\r\n```"
+    },
+    {
+      "id": 1109369382,
+      "user": "moticless",
+      "created_at": "2022-04-26T05:46:10Z",
+      "body": "It is not a standard behavior. It shouldn't happen that often within such short time, unless something ״significant״ is happening to the VM. Like I mentioned [above](https://github.com/redis/redis/issues/10547#issuecomment-1091380689) the TILT logic is rather straightforward and tested over multiple environments. "
+    },
+    {
+      "id": 1120357386,
+      "user": "moticless",
+      "created_at": "2022-05-08T06:08:29Z",
+      "body": "@jonathon2nd , any new findings? "
+    },
+    {
+      "id": 1121271487,
+      "user": "jonathon2nd",
+      "created_at": "2022-05-09T15:46:05Z",
+      "body": "Kinda? We are still at a loss. \r\n\r\nWas out sick last week, but before that I did some tests you can see here: https://github.com/bitnami/charts/issues/9689#issuecomment-1113846711\r\n\r\nTLDR: It really seems to be a bitnami config/script/something that is cause the problem, and sentinel is tilting in an unexpected (maybe?). Single nodes of official redis or bitnami/redis do not tilt. Built out a 3 node manual official redis and it does not tilt. Deployed three node bitnami/redis onto the same vm and they do not tilt at the same time every time. \r\n\r\nOthers have chimed in that it is happening to them too."
+    },
+    {
+      "id": 1122277000,
+      "user": "moticless",
+      "created_at": "2022-05-10T11:39:36Z",
+      "body": "ok. Thanks for the update."
+    },
+    {
+      "id": 1122850149,
+      "user": "jonathon2nd",
+      "created_at": "2022-05-10T20:53:55Z",
+      "body": "@moticless , do you have any insight on how a single node will not tilt (bitnami or official), multi-node official does not tilt, but then multi node bitnami tilts?"
+    },
+    {
+      "id": 1123209227,
+      "user": "moticless",
+      "created_at": "2022-05-11T05:43:05Z",
+      "body": "@jonathon2nd , I think we need here some level of profiling to understand why tilt mode is considerably delayed."
+    },
+    {
+      "id": 1203029714,
+      "user": "lord-kyron",
+      "created_at": "2022-08-02T17:42:02Z",
+      "body": "@moticless @jonathon2nd \r\nDid you guys found the core of the problem here?\r\nWe are using bitnami redis helm chart 16.8.0 in GKE and sentinel is tilting as crazy.\r\nNodes are Ubuntu based."
+    },
+    {
+      "id": 1301188951,
+      "user": "Samgarr",
+      "created_at": "2022-11-02T20:28:09Z",
+      "body": "Same issue here. Redis+Sentinel deployed on on-prem Kubernetes server."
+    },
+    {
+      "id": 1301216919,
+      "user": "fmendez89",
+      "created_at": "2022-11-02T20:46:44Z",
+      "body": "> Same issue here. Redis+Sentinel deployed on on-prem Kubernetes server.\r\n\r\nAre you using Bitnami's charts? I'm experiencing the same issue with the the latest version too.\r\nRKE2 + Rocky 8.6 in my case."
+    },
+    {
+      "id": 1301243782,
+      "user": "jonathon2nd",
+      "created_at": "2022-11-02T20:59:28Z",
+      "body": "Yeah this is not on redis problem. Manually build clusters using redis images never tilted. Somehow this is bitnami related, though we never figured out how. It does make no sense: https://github.com/bitnami/charts/issues/9689 \r\n\r\nFor the most part, we are using redis-operator: https://github.com/spotahome/redis-operator \r\nIt is currently less robust than bitnami's chart, but we have fully migrated into k8s, so no need for external access. It uses redis images, and so far we have encountered no tilting. "
+    },
+    {
+      "id": 1301265649,
+      "user": "Samgarr",
+      "created_at": "2022-11-02T21:09:59Z",
+      "body": "Actually i'm using operator like @jonathon2nd on Debian 11 and it's tilting sometimes. There is no load on worker nodes running Sentinel pods. And because i don't have any other clues i'm trying to follow the ntpd if there is no sudden or large time offsets. No result so far."
+    },
+    {
+      "id": 1301274793,
+      "user": "fmendez89",
+      "created_at": "2022-11-02T21:14:24Z",
+      "body": "> Yeah this is not on redis problem. Manually build clusters using redis images never tilted. Somehow this is bitnami related, though we never figured out how. It does make no sense: [bitnami/charts#9689](https://github.com/bitnami/charts/issues/9689)\r\n> \r\n> For the most part, we are using redis-operator: https://github.com/spotahome/redis-operator It is currently less robust than bitnami's chart, but we have fully migrated into k8s, so no need for external access. It uses redis images, and so far we have encountered no tilting.\r\n\r\nThanks for the reply @jonathon2nd will try it."
+    },
+    {
+      "id": 1302118932,
+      "user": "moticless",
+      "created_at": "2022-11-03T13:30:02Z",
+      "body": "Most of the indications shows it is not core Redis issue but releted to bitnami project."
+    },
+    {
+      "id": 1302184606,
+      "user": "fmendez89",
+      "created_at": "2022-11-03T14:18:50Z",
+      "body": "@jonathon2nd @Samgarr We are testing now the [Medium tutorial](https://faun.pub/redis-high-availability-with-sentinel-on-kubernetes-k8s-a1d67842e0ce) to see if tilts or does anything weird, but probably will be our next bet.\r\n\r\nThanks "
+    },
+    {
+      "id": 1403862362,
+      "user": "ChrisNoSim",
+      "created_at": "2023-01-25T16:12:20Z",
+      "body": "@fmendez89 Any new findings in that regard? We have the same 'problem' with the \"tilt mode entered\" in GKE using the bitnami helm-chart and a 3 node sentiel setup.. "
+    },
+    {
+      "id": 1405748092,
+      "user": "fmendez89",
+      "created_at": "2023-01-26T22:19:51Z",
+      "body": "> @fmendez89 Any new findings in that regard? We have the same 'problem' with the \"tilt mode entered\" in GKE using the bitnami helm-chart and a 3 node sentiel setup..\r\n\r\nNo @ChrisNoSim, we left the 3 node sentinel setup from Medium tutorial running for a while and had no problems nor warnings, but we haven't migrated it to production yet, we need to add the scripts for live and readiness probe first. We've had no time to do it because it's not a priority for us right now, but our first step will be the probes and then migrate to production."
+    },
+    {
+      "id": 1406532487,
+      "user": "ChrisNoSim",
+      "created_at": "2023-01-27T13:48:05Z",
+      "body": "Thanks for that kind of information @fmendez89! I have dropped my log lines in [that issue](https://github.com/bitnami/charts/issues/9689#issuecomment-1406519558), because as discussed here it is more a chart/image thingy.."
+    },
+    {
+      "id": 1484558301,
+      "user": "rsidhaarth",
+      "created_at": "2023-03-27T06:16:59Z",
+      "body": "Hi All,\r\n\r\nIs there any solution for tilt mode? I just deployed 6.2.11 version yesterday and have not even been using it. But today, I noticed reds sentinel keeps entering tilt mode and dies."
+    },
+    {
+      "id": 1840080751,
+      "user": "SreCode6",
+      "created_at": "2023-12-05T06:18:21Z",
+      "body": "![472ee6387d23644eae6d198d5c0d4ec9](https://github.com/redis/redis/assets/48826401/18a70e16-25e7-4c63-b5cf-ad840a4320d5)\r\nHello, is this a business code problem or a redis problem"
+    },
+    {
+      "id": 1840082734,
+      "user": "SreCode6",
+      "created_at": "2023-12-05T06:20:41Z",
+      "body": "@moticless I had a similar problem today"
+    },
+    {
+      "id": 2049885450,
+      "user": "kamikaze",
+      "created_at": "2024-04-11T14:54:59Z",
+      "body": "having same with bitnami/redis + k3s"
+    }
+  ]
+}

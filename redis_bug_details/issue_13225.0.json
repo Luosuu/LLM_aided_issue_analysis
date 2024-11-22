@@ -1,0 +1,18 @@
+{
+  "issue_number": 13225.0,
+  "title": "[BUG] Systemd Notify stays activating on startup",
+  "body": "We have a Yocto (Kirkstone) Linux build and we updated redis from 7.0.13 to 7.0.15 because of the CVEs. Our embedded redis application no longer works because the redis server does not start accepting connections until it is fully up. We noticed the CVE code has to do with unix sockets which the notify setup in systemd uses.\r\n\r\nTo get around this for now, we adjusted systemd to use type=fork and adjusted the redis config to daemonize=yes and supervised=no. Is anyone else seeing this? Redis for Ubuntu is old (6.7). I could possibly try the redis labs ppa or building from scratch. I will update this when that is done.\r\n\r\nUpdate: I checked out the code for tag 7.0.15 on Ubuntu 22.04 and it built and installed just fine (turned on systemd). Yocto kernel is 5.15 I believe, so not too old. I adjusted the service file to the one we use for Yocto and pointed to the /usr/local/bin instance. I could not replicate this problem yet. \r\n",
+  "state": "closed",
+  "created_at": "2024-04-18T22:20:54Z",
+  "updated_at": "2024-04-23T22:08:24Z",
+  "closed_at": "2024-04-23T22:08:24Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2073554673,
+      "user": "kramik1",
+      "created_at": "2024-04-23T22:08:11Z",
+      "body": "We found the issue with Yocto. We were overriding the PV value on a bbappend which still built redis and installed it on the box but for some reason it was missing a number of sed commands on install to adjust the configuration depending on whether it had systemd or not. Instead we added our own recipe which referenced the previous one for the LTS layer. Not sure why bitbake broke in some odd ways but it isn't redis of course. "
+    }
+  ]
+}

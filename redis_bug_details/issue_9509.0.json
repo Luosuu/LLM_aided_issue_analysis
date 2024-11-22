@@ -1,0 +1,30 @@
+{
+  "issue_number": 9509.0,
+  "title": "[BUG] cannot get redis to bind localhost when --port argument specified",
+  "body": "**Describe the bug**\r\n\r\nThe redis.conf file already contains `bind 127.0.0.1 ::1`.  This seems to work.  But if redis is started with `--port 7777` for example, then I'm seeing it bind to all interfaces on port 7777, not just loopback on port 7777.\r\n\r\n**To reproduce**\r\n\r\nFrom the CLI, run:  `/usr/bin/redis-server --port 7777`.\r\n\r\nThen run `netstat -lntp` to see all the opened ports:\r\n\r\n~~~~\r\n> sudo netstat -lntp | egrep -i \"redis|Local\"\r\nProto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    \r\ntcp        0      0 127.0.0.1:6379          0.0.0.0:*               LISTEN      1582/redis-server 1 \r\ntcp        0      0 0.0.0.0:7777            0.0.0.0:*               LISTEN      25902/redis-server  \r\ntcp        0      0 0.0.0.0:7778            0.0.0.0:*               LISTEN      25906/redis-server  \r\ntcp6       0      0 ::1:6379                :::*                    LISTEN      1582/redis-server 1 \r\ntcp6       0      0 :::7777                 :::*                    LISTEN      25902/redis-server  \r\ntcp6       0      0 :::7778                 :::*                    LISTEN      25906/redis-server  \r\n~~~~\r\n\r\n**Expected behavior**\r\n\r\nShouldn't it bind only localhost, not 0.0.0.0?\r\n\r\nIf not, is there a different parameter to get it to bind to a local address?  I also tried:  `/usr/bin/redis-server --port 127.0.0.1:7777`\r\n...but unsurprisingly this did not work.  Instead, that results in Redis binding to 0.0.0.0:127 instead.\r\n\r\n**Additional information**\r\n\r\n~~~~\r\n> dpkg -l | grep redis\r\nii  libhiredis-dev:amd64                            0.13.3-2.2                                                amd64        minimalistic C client library for Redis (development files)\r\nii  libhiredis0.13:amd64                            0.13.3-2.2                                                amd64        minimalistic C client library for Redis\r\nii  redis                                           5:4.0.9-1ubuntu0.2                                        all          Persistent key-value database with network interface (metapackage)\r\nii  redis-server                                    5:4.0.9-1ubuntu0.2                                        amd64        Persistent key-value database with network interface\r\nii  redis-tools                                     5:4.0.9-1ubuntu0.2                                        amd64        Persistent key-value database with network interface (client)\r\n~~~~\r\n",
+  "state": "closed",
+  "created_at": "2021-09-16T00:20:49Z",
+  "updated_at": "2021-09-16T12:53:40Z",
+  "closed_at": "2021-09-16T12:17:39Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 920611173,
+      "user": "oranagra",
+      "created_at": "2021-09-16T06:18:22Z",
+      "body": "@stephanecharette i'm not entirely sure what you're missing or if indeed there's a problem.\r\n\r\nfirst there's the `--bind` argument that corresponds to the `bind` line in the config file.\r\nso like you used `--port` you can use `--bind`.\r\n\r\nsecondly you should be aware (in case you're not), that redis doesn't include the redis.conf by default, if you want it you need to use `redis-server redis.conf`, and you can add extra config arguments to add or override configs, e.g. `redis-server redis.conf --port 7777`.\r\n\r\nalso, be aware that the defaults with which redis starts are not necessarily the defaults that are in the bundled redis.conf file.\r\nspecifically, the default bind is currently defined here:\r\n```c\r\n#define CONFIG_DEFAULT_BINDADDR { \"*\", \"-::*\" }\r\n```\r\nin the past, it was defined differently, but with similar outcome:\r\n```c\r\n    /* Force binding of 0.0.0.0 if no bind address is specified, always\r\n     * entering the loop if j == 0. */\r\n```\r\n\r\nlastly, you should be aware that there where quite a few changes in that area recently, so maybe the bug you're seeing is already solved.\r\nlook for `bind` in https://github.com/redis/redis/blob/6.2/00-RELEASENOTES\r\nand also have a look at this (only in the unstable now for now): https://github.com/redis/redis/pull/9034"
+    },
+    {
+      "id": 920850949,
+      "user": "stephanecharette",
+      "created_at": "2021-09-16T12:17:39Z",
+      "body": "Thank you.  The `--help` output does not mention the `--bind` parameter.  That does give us what we need.  I was also not aware that the redis.conf file is not included by default.  That is good to know, I'll let the team know."
+    },
+    {
+      "id": 920874626,
+      "user": "oranagra",
+      "created_at": "2021-09-16T12:53:40Z",
+      "body": "i see the help is just a bunch of examples. basically any parameter in the config file can also be provided by command line arguments."
+    }
+  ]
+}

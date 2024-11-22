@@ -1,0 +1,84 @@
+{
+  "issue_number": 8614.0,
+  "title": "[CRASH] Can't replicate data from master to slave",
+  "body": "**Crash report**\r\n\r\nPaste the complete crash log between the quotes below. Please include a few lines from the log preceding the crash report to provide some context.\r\n\r\n```\r\nRedis cluster contains 5 master and 5 slave. And I have found can't replicate data from master to slave and slave promote to master only 1 pair. Please see the log from master node:\r\n-------------------------------------------------------------------------------------------------\r\n34111:M 07 Mar 2021 18:50:00.166 * Background saving terminated with success\r\n34111:M 07 Mar 2021 18:50:44.889 * FAIL message received from 195b4a7a2664b34f76833620c633731ffb2d5171 about d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179\r\n34111:M 07 Mar 2021 18:50:44.889 # Cluster state changed: fail\r\n34111:M 07 Mar 2021 18:50:45.968 # Failover auth granted to ef52c82a131c1ab206379d18d6337adc597ad482 for epoch 11\r\n34111:M 07 Mar 2021 18:50:45.986 # Cluster state changed: ok\r\n34111:M 07 Mar 2021 18:51:01.010 * 10000 changes in 60 seconds. Saving...\r\n34111:M 07 Mar 2021 18:51:01.444 * Background saving started by pid 26351\r\n34111:M 07 Mar 2021 18:55:13.811 * Clear FAIL state for node d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179: master without slots is reachable again.\r\n34111:M 07 Mar 2021 18:55:13.818 # Configuration change detected. Reconfiguring myself as a replica of 122ceb58645dd2b0952abed790122c818ff30f75\r\n34111:S 07 Mar 2021 18:55:13.820 # Connection with replica 10.1.xxx.xxx:8000 lost.\r\n34111:S 07 Mar 2021 18:55:13.820 * Before turning into a replica, using my master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.\r\n34111:S 07 Mar 2021 18:55:14.475 * Connecting to MASTER 10.1.xxx.xxx:8000\r\n34111:S 07 Mar 2021 18:55:14.475 * MASTER <-> REPLICA sync started\r\n34111:S 07 Mar 2021 18:55:14.475 * Non blocking connect for SYNC fired the event.\r\n34111:S 07 Mar 2021 18:55:14.475 * Master replied to PING, replication can continue...\r\n34111:S 07 Mar 2021 18:55:14.476 * Trying a partial resynchronization (request 2ee7f1c1389150dc756f14ca1e3548b3d17d2427:138317955027).\r\n34111:S 07 Mar 2021 18:55:14.876 * Full resync from master: 6759d702213c0d5ef1bf1733b7b1e21d7ff8d7fe:138319544125\r\n34111:S 07 Mar 2021 18:55:14.876 * Discarding previously cached master state.\r\n26351:C 07 Mar 2021 18:57:49.593 * DB saved on disk\r\n26351:C 07 Mar 2021 18:57:50.025 * RDB: 202 MB of memory used by copy-on-write\r\n34111:S 07 Mar 2021 18:57:50.655 * Background saving terminated with success\r\n34111:S 07 Mar 2021 18:58:47.025 * MASTER <-> REPLICA sync: receiving 20036023309 bytes from master\r\n34111:S 07 Mar 2021 19:01:06.577 * FAIL message received from 122ceb58645dd2b0952abed790122c818ff30f75 about d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179\r\n34111:S 07 Mar 2021 19:02:51.054 * 10 changes in 300 seconds. Saving...\r\n34111:S 07 Mar 2021 19:02:51.455 * Background saving started by pid 26656\r\n34111:S 07 Mar 2021 19:02:53.322 * Clear FAIL state for node d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179: replica is reachable again.\r\n34111:S 07 Mar 2021 19:05:04.236 * Replica is about to load the RDB file received from the master, but there is a pending RDB child running. Killing process 26656 and removing its temp file to avoid any race\r\n34111:S 07 Mar 2021 19:05:05.572 * MASTER <-> REPLICA sync: Flushing old data\r\n34111:S 07 Mar 2021 19:07:09.554 * MASTER <-> REPLICA sync: Loading DB in memory\r\n34111:S 07 Mar 2021 19:09:43.051 * MASTER <-> REPLICA sync: Finished with success\r\n34111:S 07 Mar 2021 19:09:43.065 # Background saving terminated by signal 10\r\n```\r\n\r\n**Aditional information**\r\n\r\n1. OS distribution and version\r\n    RedHAT v8.3 on VM and Redis v5.0.5\r\n2. Steps to reproduce (if any)\r\n    Can't reproduce. ",
+  "state": "open",
+  "created_at": "2021-03-07T15:22:26Z",
+  "updated_at": "2021-03-11T09:44:29Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 792716980,
+      "user": "yossigo",
+      "created_at": "2021-03-08T12:15:48Z",
+      "body": "@guguri12 I don't see a crash in the logs, just a master node being demoted to replica and performing a full sync from its new master. Please provide more information if you believe there's an issue here."
+    },
+    {
+      "id": 793821645,
+      "user": "guguri12",
+      "created_at": "2021-03-09T12:34:54Z",
+      "body": "@yossigo Please see in below lines. Why the master node fail over to replica node? And Why the master node can't connect to replica node? I can't finding the root cause. \r\n\r\n34111:M 07 Mar 2021 18:50:00.166 * Background saving terminated with success\r\n34111:M 07 Mar 2021 18:50:44.889 * FAIL message received from 195b4a7a2664b34f76833620c633731ffb2d5171 about d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179\r\n34111:M 07 Mar 2021 18:50:44.889 # Cluster state changed: fail\r\n34111:M 07 Mar 2021 18:50:45.968 # Failover auth granted to ef52c82a131c1ab206379d18d6337adc597ad482 for epoch 11\r\n34111:M 07 Mar 2021 18:50:45.986 # Cluster state changed: ok\r\n34111:M 07 Mar 2021 18:51:01.010 * 10000 changes in 60 seconds. Saving...\r\n34111:M 07 Mar 2021 18:51:01.444 * Background saving started by pid 26351\r\n34111:M 07 Mar 2021 18:55:13.811 * Clear FAIL state for node d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179: master without slots is reachable again.\r\n34111:M 07 Mar 2021 18:55:13.818 # Configuration change detected. Reconfiguring myself as a replica of 122ceb58645dd2b0952abed790122c818ff30f75\r\n34111:S 07 Mar 2021 18:55:13.820 # Connection with replica 10.1.xxx.xxx:8000 lost.\r\n**34111:S 07 Mar 2021 18:55:13.820 * Before turning into a replica, using my master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.**\r\n34111:S 07 Mar 2021 18:55:14.475 * Connecting to MASTER 10.1.xxx.xxx:8000"
+    },
+    {
+      "id": 793830992,
+      "user": "yossigo",
+      "created_at": "2021-03-09T12:40:27Z",
+      "body": "@guguri12 It was instructed by another node to fail over, after a majority of the nodes has determined the node is indeed failing. To see the full picture, you'll need to look at the logs of the other nodes as well."
+    },
+    {
+      "id": 793842769,
+      "user": "guguri12",
+      "created_at": "2021-03-09T12:47:59Z",
+      "body": "@yossigo Do you mean to look at the log file from replica node? In replica node, the message has shown as below: \r\n\r\n8674:S 07 Mar 2021 18:50:44.889 * FAIL message received from 195b4a7a2664b34f76833620c633731ffb2d5171 about d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179\r\n8674:S 07 Mar 2021 18:50:44.889 # Cluster state changed: fail\r\n8674:S 07 Mar 2021 18:50:45.987 # Cluster state changed: ok\r\n30728:C 07 Mar 2021 18:51:26.740 * DB saved on disk\r\n30728:C 07 Mar 2021 18:51:27.198 * RDB: 751 MB of memory used by copy-on-write\r\n8674:S 07 Mar 2021 18:51:27.800 * Background saving terminated with success\r\n8674:S 07 Mar 2021 18:51:28.035 * FAIL message received from b991ee84cfff581481bf630437bea929255681ce about 411331e5641bcbd7b4906e36e8e1783a50064c24\r\n8674:S 07 Mar 2021 18:51:28.035 # Cluster state changed: fail\r\n8674:S 07 Mar 2021 18:51:28.102 # Start of election delayed for 788 milliseconds (rank #0, offset 138317741254).\r\n8674:S 07 Mar 2021 18:51:28.906 # Starting a failover election for epoch 12.\r\n8674:S 07 Mar 2021 18:51:28.911 # Failover election won: I'm the new master.\r\n8674:S 07 Mar 2021 18:51:28.911 # configEpoch set to 12 after successful failover\r\n8674:M 07 Mar 2021 18:51:28.911 # Setting secondary replication ID to 2ee7f1c1389150dc756f14ca1e3548b3d17d2427, valid up to offset: 138317741255. New replication ID is 6759d702213c0d5ef1bf1733b7b1e21d7ff8d7fe\r\n8674:M 07 Mar 2021 18:51:28.911 # Connection with master lost.\r\n"
+    },
+    {
+      "id": 793848337,
+      "user": "yossigo",
+      "created_at": "2021-03-09T12:51:59Z",
+      "body": "@guguri12 No, the decision to initiate failover is reached by a majority of master nodes. You need to look at the logs of all master nodes to try to understand the sequence of events."
+    },
+    {
+      "id": 793861306,
+      "user": "guguri12",
+      "created_at": "2021-03-09T12:58:17Z",
+      "body": "@yossigo Do you mean view log file of the master node in the same shard or other master node? "
+    },
+    {
+      "id": 794089998,
+      "user": "yossigo",
+      "created_at": "2021-03-09T16:02:22Z",
+      "body": "@guguri12 All master instances."
+    },
+    {
+      "id": 794533471,
+      "user": "guguri12",
+      "created_at": "2021-03-09T22:20:50Z",
+      "body": "@yossigo When the redis client connect to redis server cluster, should i set configuration to all instances (master and slave) ?  "
+    },
+    {
+      "id": 794557518,
+      "user": "guguri12",
+      "created_at": "2021-03-09T22:42:56Z",
+      "body": "@yossigo I have attached the log files from all master instances. After review again, i think there are 2 master instances that found this issue. \r\n\r\n\r\n"
+    },
+    {
+      "id": 795368990,
+      "user": "yossigo",
+      "created_at": "2021-03-10T12:50:39Z",
+      "body": "@guguri12 configuration is done locally on a per-instance basis, so yes if you perform `CONFIG SET` you need to apply it to all relevant Redis instances.\r\n\r\nThere are no logs attached, have you been able to trace them and get to a resolution? Or do you still suspect there is an issue with Redis here?"
+    },
+    {
+      "id": 796526214,
+      "user": "guguri12",
+      "created_at": "2021-03-11T07:26:21Z",
+      "body": "[master_node_logs.txt](https://github.com/redis/redis/files/6121078/master_node_logs.txt)\r\n@yossigo I didn't run command config set at that time. So i think there are something in redis server. Please kindly help to review the redis log file from master instances. \r\n"
+    },
+    {
+      "id": 796607769,
+      "user": "yossigo",
+      "created_at": "2021-03-11T09:44:29Z",
+      "body": "@guguri12 Looks like you have experienced a temporary node/network failure which resulted with a quorum decision to failover the node. Later on the failed over node was again communicating with the other nodes and re-synced with the new master as a replica.\r\n\r\nThis is where it all started:\r\n```\r\n34111:M 07 Mar 2021 18:50:44.889 * FAIL message received from 195b4a7a2664b34f76833620c633731ffb2d5171 about d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179\r\n33609:M 07 Mar 2021 18:50:44.889 * FAIL message received from 195b4a7a2664b34f76833620c633731ffb2d5171 about d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179\r\n32484:M 07 Mar 2021 18:50:44.889 * FAIL message received from 195b4a7a2664b34f76833620c633731ffb2d5171 about d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179\r\n33018:M 07 Mar 2021 18:50:44.883 * Marking node d8afbeb06e23e5f5a5f7afe4f6b87f6169d73179 as failing (quorum reached).\r\n```"
+    }
+  ]
+}

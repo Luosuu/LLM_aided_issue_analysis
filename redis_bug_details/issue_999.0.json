@@ -1,0 +1,45 @@
+{
+  "issue_number": 999.0,
+  "title": "multi exec change rdb",
+  "body": "hi,\n\nusing any multi exec, even an empty one will produce one change in the rdb and so will generate a background save process\n\ndoes redis internally store in his dataset that a \"multi\" is initiated ?\n",
+  "state": "closed",
+  "created_at": "2013-03-12T14:15:02Z",
+  "updated_at": "2013-04-02T09:17:51Z",
+  "closed_at": "2013-04-02T09:17:51Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 15412401,
+      "user": "antirez",
+      "created_at": "2013-03-25T18:34:54Z",
+      "body": "Hello, this is a bug indeed... Thanks for reporting. Fixing ASAP, probably tomorrow.\n"
+    },
+    {
+      "id": 15413257,
+      "user": "r043v",
+      "created_at": "2013-03-25T18:44:02Z",
+      "body": "thank a lot :)\n"
+    },
+    {
+      "id": 15457893,
+      "user": "antirez",
+      "created_at": "2013-03-26T13:28:32Z",
+      "body": "Fixed into unstable and 2.8 branches, I'll backport this into 2.6 later today or tomorrow after more testing.\n"
+    },
+    {
+      "id": 15747487,
+      "user": "r043v",
+      "created_at": "2013-04-02T00:56:43Z",
+      "body": "it work fine in 2.6, thank again :)\n"
+    },
+    {
+      "id": 15764793,
+      "user": "antirez",
+      "created_at": "2013-04-02T09:17:51Z",
+      "body": "Very cool to get an ACK on that, thanks.\n"
+    }
+  ]
+}

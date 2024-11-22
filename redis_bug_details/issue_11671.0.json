@@ -1,0 +1,60 @@
+{
+  "issue_number": 11671.0,
+  "title": "[BUG] `hrandfield` hangs the server",
+  "body": "**Describe the bug**\r\n\r\nUsing `hrandfield` in the following way hangs the server. Other clients are then not able to connect to the server and get any response, potentially leading to DoS.\r\n\r\n**To reproduce**\r\n\r\nRun the following commands in the cli with the server running:\r\n\r\n```\r\nhmset myhash a 1\r\nhrandfield myhash -9223372036854770000\r\n```\r\n\r\n**Expected behavior**\r\n\r\nReturns an error code or a result, instead of hanging.\r\n\r\n**Additional information**\r\n\r\nTested on:\r\n```\r\nUbuntu 22.04.1 LTS\r\nRedis ver: built from commit af0a4fe20771603f0eab75a1f60748d124cf33c3\r\n```",
+  "state": "open",
+  "created_at": "2022-12-31T07:00:10Z",
+  "updated_at": "2023-01-12T02:49:40Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1368198914,
+      "user": "sundb",
+      "created_at": "2022-12-31T10:48:45Z",
+      "body": "@yype Thanks, Perhaps we just need an issue to discuss these similar crashes(#11670, #11669, #11668).\r\nDo you wanna make a PR to fix them?"
+    },
+    {
+      "id": 1368262524,
+      "user": "yype",
+      "created_at": "2022-12-31T18:26:57Z",
+      "body": "> @yype Thanks, Perhaps we just need an issue to discuss these similar crashes(#11670, #11669, #11668). Do you wanna make a PR to fix them?\r\n\r\n@sundb Thanks for the reply. I agree that we can discuss these crashes together if they share the same root cause, but I may not have time to make a PR for them. At a glance, some of them are triggered by an abort and others are triggered by segfaults, and for this issue we are looking at right now, it's also related to a 'large' number, which I thought could all be (potentially) prevented by putting precondition checks for these commands (to restrict the maxsize of memory allocation.) "
+    },
+    {
+      "id": 1368502092,
+      "user": "oranagra",
+      "created_at": "2023-01-01T18:12:29Z",
+      "body": "The issue here is essentially the same as with [KEYS *](https://redis.io/commands/keys/), asking redis to do too much work in one go, it'll loop forever and keep eating memory uncontrolled.\r\ncan possibly be mitigated by [Client Eviction](https://github.com/redis/redis/pull/8687), although not completely solved (the loop will keep running).\r\n\r\nNote that causing redis to hang is not really a challenge (Lua scripts can easily do that too)"
+    },
+    {
+      "id": 1368543694,
+      "user": "yype",
+      "created_at": "2023-01-01T21:52:13Z",
+      "body": "> The issue here is essentially the same as with [KEYS *](https://redis.io/commands/keys/), asking redis to do too much work in one go, it'll loop forever and keep eating memory uncontrolled. can possibly be mitigated by [Client Eviction](https://github.com/redis/redis/pull/8687), although not completely solved (the loop will keep running).\r\n> \r\n>  Note that causing redis to hang is not really a challenge (Lua scripts can easily do that too)\r\n\r\nYeah, I'm not sure if Client Eviction could mitigate this problem since the loop keeps running, and force-killing the client issuing the command won't unhang the server. We might need other heuristics to abort such operations."
+    },
+    {
+      "id": 1368785677,
+      "user": "oranagra",
+      "created_at": "2023-01-02T09:47:33Z",
+      "body": "i attempted to mitigate that in the above refereed PR, not sure i'd like to proceed in that direction, and in any case it'll not kick in by default since it depends on a non default config."
+    },
+    {
+      "id": 1378345275,
+      "user": "oranagra",
+      "created_at": "2023-01-11T07:37:15Z",
+      "body": "update with decisions here: https://github.com/redis/redis/pull/11676#issuecomment-1378341710\r\nactions:\r\n1. merge https://github.com/redis/redis/pull/11676 as a bug fix (detach it from this issue)\r\n2. consider improving the solution for issue and other loops for redis 7.2 and 8.0"
+    },
+    {
+      "id": 1378347175,
+      "user": "oranagra",
+      "created_at": "2023-01-11T07:39:47Z",
+      "body": "The plan is to add a config with some limit to loops such as this one and others.\r\nthis config will be set to a default of unlimited in Redis 7.2, and will be changed to a sensible limit in 8.0 (for being a breaking change)"
+    },
+    {
+      "id": 1379744071,
+      "user": "yype",
+      "created_at": "2023-01-12T02:49:40Z",
+      "body": "> The plan is to add a config with some limit to loops such as this one and others. this config will be set to a default of unlimited in Redis 7.2, and will be changed to a sensible limit in 8.0 (for being a breaking change)\r\n\r\nSounds good to me. Thanks for the feedback!"
+    }
+  ]
+}

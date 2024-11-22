@@ -1,0 +1,11 @@
+{
+  "issue_number": 10631.0,
+  "title": "Calling RedisModule_OpenKey from a Database which isn't 0 twice in the 2nd time it always returns NULL [BUG]",
+  "body": "**Describe the bug**\r\nCalling RedisModule_OpenKey from a Database which isn't 0 twice in the 2nd time it always returns NULL.\r\n\r\nHow to reproduce:\r\nCall twice from Database 2:\r\n_key = RedisModule_OpenKey(ctx, keyName, REDISMODULE_READ);\r\nRedisModule_CloseKey(_key);\r\nIn the 2nd time _key == NULL Although when doing keys * I can see the key and I can also send commands on this key.\r\n\r\n\r\nThis is the context passed:\r\n`(lldb) p *ctx\r\n(RedisModuleCtx) $14 = {\r\n  getapifuncptr = 0x000000010009e420\r\n  module = 0x00006000026061c0\r\n  client = 0x000000010101cc00\r\n  blocked_client = NULL\r\n  amqueue = NULL\r\n  amqueue_len = 0\r\n  amqueue_used = 0\r\n  flags = 16\r\n  postponed_arrays = 0x0000000000000000\r\n  postponed_arrays_count = 0\r\n  blocked_privdata = 0x0000000000000000\r\n  blocked_ready_key = NULL\r\n  keys_result = NULL\r\n  pa_head = NULL\r\n  saved_oparray = {\r\n    ops = NULL\r\n    numops = 0\r\n  }\r\n}`\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-04-25T12:58:43Z",
+  "updated_at": "2022-04-25T13:26:38Z",
+  "closed_at": "2022-04-25T13:26:38Z",
+  "labels": [],
+  "comments_data": []
+}

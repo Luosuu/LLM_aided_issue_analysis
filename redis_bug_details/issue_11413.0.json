@@ -1,0 +1,48 @@
+{
+  "issue_number": 11413.0,
+  "title": "[BUG] TYPE command does not return a string in LUA",
+  "body": "**Describe the bug**\r\nThe TYPE command is supposed to return a string with the type of the key.\r\n\r\nWhen called from a LUA script, the command does not return a string, it returns an empty table instead.\r\n\r\n**To reproduce**\r\n\r\nJust run this code and see the results:\r\n\r\n```\r\n127.0.0.1:6379> EVAL \"redis.call(\\\"LPUSH\\\", \\\"dummy\\\", \\\"dummy\\\")\\nlocal dummyType = redis.call(\\\"TYPE\\\", \\\"dummy\\\")\\nredis.call(\\\"SET\\\", \\\"type\\\", type(dummyType))\\nredis.call(\\\"SET\\\", \\\"len\\\", #dummyType)\" 0\r\n(nil)\r\n127.0.0.1:6379> GET \"type\"\r\n\"table\"\r\n127.0.0.1:6379> GET \"len\"\r\n\"0\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nIt should return a string, in this case the string \"list\"\r\n\r\n**Additional information**\r\n\r\nWorks well if called directly on the redis-cli but not within a LUA script.\r\n",
+  "state": "open",
+  "created_at": "2022-10-20T20:24:49Z",
+  "updated_at": "2022-10-24T15:26:54Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1286419917,
+      "user": "enjoy-binbin",
+      "created_at": "2022-10-21T03:45:22Z",
+      "body": "This is indeed a very strange problem, and it look like it has always been there, i guess it is because TYPE did not return the \"simple string\" like GET\r\n\r\nin this case, you can get the right result, by using `dummyType['ok']` odd way\r\n```\r\n127.0.0.1:6379> EVAL \"redis.call('LPUSH', 'dummy', 'dummy') local dummyType=redis.call('TYPE', 'dummy') redis.call('SET', 'type', dummyType['ok']) return dummyType\" 0\r\nlist\r\n127.0.0.1:6379> get type\r\n\"list\"\r\n```\r\n\r\nlet see what @MeirShpilraien would suggest, PTAL\r\n"
+    },
+    {
+      "id": 1286463110,
+      "user": "oranagra",
+      "created_at": "2022-10-21T05:00:28Z",
+      "body": "i'd like to call @itamarhaber to take a look too"
+    },
+    {
+      "id": 1286527804,
+      "user": "manast",
+      "created_at": "2022-10-21T06:43:47Z",
+      "body": "If the result is indeed in dummyType['ok'] and this issue has been there forever, maybe it is better to just document it instead of potentially breaking scripts?\r\n\r\nI also found another inconsistent behavior, if you use redis.pcall on for example \"ZADD\", it returns an int if it succeeds and a table with 'err' if it fails. But this is not the same behavior as the example in the documentation where the command 'ECHO' is used, which always returns a table."
+    },
+    {
+      "id": 1289089123,
+      "user": "MeirShpilraien",
+      "created_at": "2022-10-24T14:05:06Z",
+      "body": "As far as I understand, the idea was to distinguish between bulk string reply and simple string reply. I guess that bulk string reply are simply converted to Lua string because it is more common and simple string are returned as a Lua table with `OK` key. Maybe we can find a better way to distinguish them, but then we need to think about backward compatability.\r\nI also believe this is already documented: https://redis.io/docs/manual/programmability/lua-api/#resp2-to-lua-type-conversion"
+    },
+    {
+      "id": 1289166983,
+      "user": "itamarhaber",
+      "created_at": "2022-10-24T14:57:05Z",
+      "body": "Indeed - simple strings are converted from RESP to Lua as such, and [`TYPE`'s return](https://redis.io/commands/type/#return) is also documented.\r\n\r\nI agree this isn't ideal, but it has been this way for a long time, so changing the behavior now isn't recommended."
+    },
+    {
+      "id": 1289209333,
+      "user": "oranagra",
+      "created_at": "2022-10-24T15:26:54Z",
+      "body": "@itamarhaber what do client libraries usually do with simple string return?\r\ni understand that changing it is a breaking change, bug this feels a little awkward"
+    }
+  ]
+}

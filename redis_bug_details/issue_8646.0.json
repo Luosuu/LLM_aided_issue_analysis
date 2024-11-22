@@ -1,0 +1,26 @@
+{
+  "issue_number": 8646.0,
+  "title": "[BUG] Broken/Inconsistent parsing behavior when applying ACL with wildcard",
+  "body": "**Describe the bug**\r\n\r\nI've been playing with ACL trying to get a sense of how it works and noticed some weird parsing inconsistency. Output below\r\n\r\n**To reproduce**\r\n\r\n```\r\n127.0.0.1:6379> ACL SETUSER windsor on allcommands ~com::royalendicott::windsor::* &com::royalendicott::windsor::* >windsor\r\n(error) ERR Error in ACL SETUSER modifier '&com::royalendicott::windsor::*': Adding a pattern after the * pattern (or the 'allchannels' flag) is not valid and does not have any effect. Try 'resetchannels' to start with an empty list of channels\r\n127.0.0.1:6379> ACL SETUSER windsor on allcommands ~com::royalendicott::windsor::* >windsor\r\nOK\r\n127.0.0.1:6379> ACL SETUSER windsor &com::royalendicott::windsor::*\r\n(error) ERR Error in ACL SETUSER modifier '&com::royalendicott::windsor::*': Adding a pattern after the * pattern (or the 'allchannels' flag) is not valid and does not have any effect. Try 'resetchannels' to start with an empty list of channels\r\n127.0.0.1:6379> ACL SETUSER windsor &com::royalendicott::windsor::*\r\n(error) ERR Error in ACL SETUSER modifier '&com::royalendicott::windsor::*': Adding a pattern after the * pattern (or the 'allchannels' flag) is not valid and does not have any effect. Try 'resetchannels' to start with an empty list of channels\r\n127.0.0.1:6379> ACL SETUSER windsor resetchannels\r\nOK\r\n127.0.0.1:6379> ACL SETUSER windsor &com::royalendicott::windsor::*\r\nOK\r\n127.0.0.1:6379>\r\n```\r\n\r\n**Expected behavior**\r\n\r\nI expected the first form to work, but it appears to put things in some kind of weird state that requires me to reset the channel permissions.\r\n\r\n**Additional information**\r\n\r\nredis_version:6.2.1\r\nredis_build_id:cfaa1431404ef25b\r\n",
+  "state": "closed",
+  "created_at": "2021-03-15T01:47:08Z",
+  "updated_at": "2021-03-16T13:48:06Z",
+  "closed_at": "2021-03-16T13:47:46Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 799075621,
+      "user": "huangzhw",
+      "created_at": "2021-03-15T04:10:40Z",
+      "body": "Because acl channels are added 6.2. To ensure backward compatibility while upgrading Redis 6.0, channels are grants by default.\r\nYou can change config `acl-pubsub-default`, like `config set acl-pubsub-default resetchannels`."
+    },
+    {
+      "id": 800272242,
+      "user": "slithernix",
+      "created_at": "2021-03-16T13:48:05Z",
+      "body": "Appreciate the explanation!"
+    }
+  ]
+}

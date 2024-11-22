@@ -1,0 +1,26 @@
+{
+  "issue_number": 9439.0,
+  "title": "[BUG] redis.setex() has different ordering of arguments in python2.7 and python3.7 (docs not mentioning)",
+  "body": "**Describe the bug**\r\n\r\nredis,setex() has its arguments ordered differently in python2 and python3, but documents show it should only be in one way.\r\n\r\nFunction declaration states `def setex(self, time, name, value)` which is the correct order of arguments in python3, but in python2, this gives the error:\r\n\r\n```\r\nTraceback (most recent call last):\r\n  File \"my_module.py\", line 221, in <module>\r\n    sys.exit(run(jobid))\r\n  File \"my_module.py\", line 201, in run\r\n    redis.setex(\"SNAPSHOT_{}\".format(jobid), expiry, SNAPSHOT_DIR)\r\n  File \"/sww/tools/lib64/python2.7/redis/client.py\", line 1384, in setex\r\n    return self.execute_command('SETEX', name, time, value)\r\n  File \"/sww/tools/lib64/python2.7/redis/client.py\", line 361, in execute_command\r\n    return self.parse_response(connection, command_name, **options)\r\n  File \"/sww/tools/lib64/python2.7/redis/client.py\", line 371, in parse_response\r\n    response = connection.read_response()\r\n  File \"/sww/tools/lib64/python2.7/redis/connection.py\", line 311, in read_response\r\n    raise response\r\nredis.exceptions.ResponseError: value is not an integer or out of range\r\n```\r\n\r\n**To reproduce**\r\n\r\nSimple program that works in Python3 but fails in Python2:\r\n\r\n```\r\nimport redis as _redis\r\nredis._redis(host=HOST, port=PORT,  db=0)\r\nexpiry = timedelta(days=7)\r\n\r\nredis.setex(\"MY_KEY\", expiry, \"/var/log/my_value_to_store\")\r\n```\r\n\r\nThe change of order in `redis.setex()` from `name, value, time` to `name, time, value` fixes the problem:\r\n\r\n```\r\nOLD (not working in python2): redis.setex(\"MY_KEY\", expiry, \"/var/log/my_value_to_store\") \r\nNEW (works in python2): redis.setex(\"MY_KEY\", \"/var/log/my_value_to_store\", expiry)\r\n```\r\nAs you see, I swapped the **time** and **value** argument placements, which now works in python2.7.\r\n\r\n**Expected behavior**\r\n\r\nExpected behaviour should either be that the documents would show it being different in python2, but is showing this: https://redis-py.readthedocs.io/en/stable/index.html#redis.Redis.setex\r\n\r\n**Additional information**\r\n\r\nI stumbled upon this when trying to make my script backward compatible, I now have to check if the script is running in python2.7 or python3.7 and then swap arguments around accordingly.\r\n\r\n> redis-server --version\r\nRedis server v=2,6,3\r\n",
+  "state": "closed",
+  "created_at": "2021-09-01T08:02:23Z",
+  "updated_at": "2021-09-01T09:12:20Z",
+  "closed_at": "2021-09-01T09:12:20Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 910063368,
+      "user": "oranagra",
+      "created_at": "2021-09-01T08:31:36Z",
+      "body": "@christiandahlberg maybe you should open this issue in https://github.com/andymccurdy/redis-py ?"
+    },
+    {
+      "id": 910073767,
+      "user": "christiandahlberg",
+      "created_at": "2021-09-01T08:46:38Z",
+      "body": "Alright, will do. Thanks @oranagra "
+    }
+  ]
+}

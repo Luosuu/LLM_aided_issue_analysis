@@ -1,0 +1,44 @@
+{
+  "issue_number": 8622.0,
+  "title": "[BUG] hset does not support multiple dict mapping",
+  "body": "**Describe the bug**\r\n\r\nhset does not support multiple dict mapping. \r\n\r\nThe code in hset and hmset are exactly same, but it seems hset mapping not working as good as hmset\r\n\r\n**To reproduce**\r\n\r\n```\r\nconn = redis.Redis()\r\n\r\nuser = {\"Name\":\"Pradeep\", \"Company\":\"SCTL\", \"Address\":\"Mumbai\", \"Location\":\"RCP\"}\r\n\r\nconn.hset(name = \"pythonDict\", mapping = user)\r\n\r\nconn.hget(\"pythonDict\",\"Name\")\r\n```\r\nI got this error message\r\n\r\n> ---------------------------------------------------------------------------\r\n> ResponseError                             Traceback (most recent call last)\r\n> <ipython-input-470-b65fc3b6e753> in <module>\r\n>       3 user = {\"Name\":\"Pradeep\", \"Company\":\"SCTL\", \"Address\":\"Mumbai\", \"Location\":\"RCP\"}\r\n>       4 \r\n> ----> 5 conn.hset(name = \"pythonDict\", mapping = user)\r\n>       6 \r\n>       7 conn.hget(\"pythonDict\",\"Name\")\r\n> \r\n> ~\\miniconda3\\lib\\site-packages\\redis\\client.py in hset(self, name, key, value, mapping)\r\n>    3048                 items.extend(pair)\r\n>    3049 \r\n> -> 3050         return self.execute_command('HSET', name, *items)\r\n>    3051 \r\n>    3052     def hsetnx(self, name, key, value):\r\n> \r\n> ~\\miniconda3\\lib\\site-packages\\redis\\client.py in execute_command(self, *args, **options)\r\n>     899         try:\r\n>     900             conn.send_command(*args)\r\n> --> 901             return self.parse_response(conn, command_name, **options)\r\n>     902         except (ConnectionError, TimeoutError) as e:\r\n>     903             conn.disconnect()\r\n> \r\n> ~\\miniconda3\\lib\\site-packages\\redis\\client.py in parse_response(self, connection, command_name, **options)\r\n>     913         \"Parses a response from the Redis server\"\r\n>     914         try:\r\n> --> 915             response = connection.read_response()\r\n>     916         except ResponseError:\r\n>     917             if EMPTY_RESPONSE in options:\r\n> \r\n> ~\\miniconda3\\lib\\site-packages\\redis\\connection.py in read_response(self)\r\n>     754 \r\n>     755         if isinstance(response, ResponseError):\r\n> --> 756             raise response\r\n>     757         return response\r\n>     758 \r\n> \r\n> ResponseError: wrong number of arguments for 'hset' command\r\n\r\n\r\nHowever, the source code for hset and hmset are same:\r\n\r\n![image](https://user-images.githubusercontent.com/38824707/110406513-59f68800-8050-11eb-81e3-d2e1dfdb038d.png)\r\n\r\n\r\n\r\n**Expected behavior**\r\n\r\nIt's expected that hset mapping should behave as same as hmset mapping\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-03-09T01:54:26Z",
+  "updated_at": "2021-03-15T03:03:09Z",
+  "closed_at": "2021-03-15T03:03:09Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 793676091,
+      "user": "huangzhw",
+      "created_at": "2021-03-09T10:23:37Z",
+      "body": "What is your version of redis. \r\nAs of Redis 4.0.0, HSET is variadic and allows for multiple field/value pairs."
+    },
+    {
+      "id": 794098215,
+      "user": "AdriandLiu",
+      "created_at": "2021-03-09T16:08:53Z",
+      "body": "@huangzhw Thank you for your response. I am using redis 3.0.504, which is the latest version of https://github.com/microsoftarchive/redis/releases. Is there any newer version for Windows user? Thanks"
+    },
+    {
+      "id": 794612658,
+      "user": "huangzhw",
+      "created_at": "2021-03-09T23:41:38Z",
+      "body": "Redis doesn't support Windows. This is a fork of redis and not officially maintained."
+    },
+    {
+      "id": 798795913,
+      "user": "ptjm",
+      "created_at": "2021-03-13T22:31:59Z",
+      "body": "I've only used the redis-cli from this once or twice, but the most up-to-date windows port appears to be:\r\n\r\nhttps://github.com/tporadowski/redis/releases\r\n\r\nThis is currently at version 5.0.10, which is reasonably fully featured. It doesn't make a lot of sense to use a much older port."
+    },
+    {
+      "id": 799057152,
+      "user": "AdriandLiu",
+      "created_at": "2021-03-15T03:03:03Z",
+      "body": "> I've only used the redis-cli from this once or twice, but the most up-to-date windows port appears to be:\r\n> \r\n> https://github.com/tporadowski/redis/releases\r\n> \r\n> This is currently at version 5.0.10, which is reasonably fully featured. It doesn't make a lot of sense to use a much older port.\r\n\r\n@ptjm Thank you very much for the helpful info!! Much appreciated!"
+    }
+  ]
+}

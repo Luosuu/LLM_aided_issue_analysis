@@ -1,0 +1,11 @@
+{
+  "issue_number": 12248.0,
+  "title": "[BUG] INFO command in some cases can return integer reply",
+  "body": "**Describe the bug**\r\nINFO command can return type 3, which is REDIS_REPLY_INTEGER. As it stated in document the normal return type is REDIS_REPLY_ARRAY.\r\n\r\n**To reproduce**\r\nWe are lacking steps to reproduce, as long as the info about error is also missing, the only information that I've got is the logs from the binary that is working with redis-server (using hiredis library), it is possible that initial error was occured while redis-server was having hard times, possible memory lack.\r\n\r\n**Expected behavior**\r\nExpected REDIS_REPLY_ARRAY type to return.\r\n\r\n**Additional information**\r\n\r\n```\r\nREDIS_INFO  :main.cpp:2859:redisCommand undefined result type: 3\r\nR:USER:2:6c50ebf8:114336:7f42768f1500:001:20230311:144956797733:REDIS_INFO  :main.cpp:2859:redisCommand undefined result type: 3\r\n```",
+  "state": "open",
+  "created_at": "2023-05-30T09:20:24Z",
+  "updated_at": "2023-05-30T09:20:24Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

@@ -1,0 +1,180 @@
+{
+  "issue_number": 9060.0,
+  "title": "[BUG] Redis version 6.2.4 stores data data loss",
+  "body": "**Describe the bug**\r\n\r\nThe use of Redis version V6.2.4, Docker mirror, in the use of data storage and read and write data resulting in data loss\r\n\r\n**To reproduce**\r\n\r\n![image](https://user-images.githubusercontent.com/28696399/121331239-4574a500-c949-11eb-8562-c72e62b6dc0e.png)\r\n\r\n**Expected behavior**\r\n\r\nIn the use of 6.2.4 version of the storage, about 10 read and write per second, about ten minutes later will prompt 'DB saved on disk', did not prompt success, to view the data found that all Redis data does not exist.\r\n\r\nIt becomes an empty database, and everything is as good as new\r\n\r\n**Additional information**\r\n\r\ndocker: 19.0.3\r\n\r\nredis: 6.2.4\r\n\r\ncentos: 7.6\r\n",
+  "state": "closed",
+  "created_at": "2021-06-09T09:39:43Z",
+  "updated_at": "2021-06-10T05:48:11Z",
+  "closed_at": "2021-06-09T14:45:11Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 857580194,
+      "user": "sundb",
+      "created_at": "2021-06-09T10:29:07Z",
+      "body": "Possibly similar to #9044.\r\nCan you look at the ``info all`` output?\r\n"
+    },
+    {
+      "id": 857611603,
+      "user": "oranagra",
+      "created_at": "2021-06-09T11:20:48Z",
+      "body": "@warriorBrian from the logs, it looks like you're using the SAVE command (i.e. foreground save, rather than BGSAVE).\r\nit doesn't look like the mechanism behind the periodic snapshot persistence (the `save` config).\r\nthe periodic saving mechanism produces these logs:\r\n```\r\n14991:M 09 Jun 2021 14:15:04.869 * 1 changes in 1 seconds. Saving...\r\n14991:M 09 Jun 2021 14:15:04.869 * Background saving started by pid 15210\r\n15210:C 09 Jun 2021 14:15:04.891 * DB saved on disk\r\n15210:C 09 Jun 2021 14:15:04.891 * RDB: 0 MB of memory used by copy-on-write\r\n14991:M 09 Jun 2021 14:15:04.969 * Background saving terminated with success\r\n```\r\nand BGSAVE command produces all of them except for the first one.\r\n\r\ni'm not sure what is your complaint, are you complaining that the file on disk is missing? or did some keys also disappear from redis (without a restart)?\r\n\r\ndid you use any previous version of redis in that configuration?\r\ni.e. is that a regression? or could it be that something in your docker setup is causing the file to get lost?"
+    },
+    {
+      "id": 857618998,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T11:33:43Z",
+      "body": "@oranagra \r\nTo prevent interference, I used a new environment, using docker-compose for startup, and the file configuration is as follows\r\n\r\n```sh\r\nversion: \"3.3\"\r\nservices:\r\n  redis:\r\n    container_name: redis\r\n    image: redis:5.0.9\r\n    restart: always\r\n    ports:\r\n      - 6379:6379\r\n    volumes:\r\n      - \"./redis.conf:/etc/redis.conf:ro\"\r\n      - \"/etc/localtime:/etc/localtime\"\r\n    entrypoint: [\"redis-server\", \"/etc/redis.conf\"]\r\n```\r\n\r\nThen I started to use it normally, reading and writing data, and after about ten minutes, all the keys and values in Redis were lost"
+    },
+    {
+      "id": 857620019,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T11:35:32Z",
+      "body": "@sundb info all:\r\n\r\n```sh\r\n# Server\r\nredis_version:6.2.1\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:b54db1313f408a09\r\nredis_mode:standalone\r\nos:Linux 3.10.0-1160.25.1.el7.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:c11-builtin\r\ngcc_version:8.3.0\r\nprocess_id:1\r\nprocess_supervised:no\r\nrun_id:e137655b84e0d1f342c489dc8c5c62fe4f9f41ba\r\ntcp_port:6379\r\nserver_time_usec:1623238485789277\r\nuptime_in_seconds:8042\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:12625749\r\nexecutable:/data/redis-server\r\nconfig_file:/etc/redis.conf\r\nio_threads_active:0\r\n\r\n# Clients\r\nconnected_clients:4\r\ncluster_connections:0\r\nmaxclients:10000\r\nclient_recent_max_input_buffer:56\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:0\r\ntracking_clients:0\r\nclients_in_timeout_table:0\r\n\r\n# Memory\r\nused_memory:937432\r\nused_memory_human:915.46K\r\nused_memory_rss:7360512\r\nused_memory_rss_human:7.02M\r\nused_memory_peak:1617184\r\nused_memory_peak_human:1.54M\r\nused_memory_peak_perc:57.97%\r\nused_memory_overhead:892136\r\nused_memory_startup:809904\r\nused_memory_dataset:45296\r\nused_memory_dataset_perc:35.52%\r\nallocator_allocated:1000240\r\nallocator_active:1331200\r\nallocator_resident:3698688\r\ntotal_system_memory:1927114752\r\ntotal_system_memory_human:1.79G\r\nused_memory_lua:37888\r\nused_memory_lua_human:37.00K\r\nused_memory_scripts:0\r\nused_memory_scripts_human:0B\r\nnumber_of_cached_scripts:0\r\nmaxmemory:0\r\nmaxmemory_human:0B\r\nmaxmemory_policy:noeviction\r\nallocator_frag_ratio:1.33\r\nallocator_frag_bytes:330960\r\nallocator_rss_ratio:2.78\r\nallocator_rss_bytes:2367488\r\nrss_overhead_ratio:1.99\r\nrss_overhead_bytes:3661824\r\nmem_fragmentation_ratio:8.23\r\nmem_fragmentation_bytes:6465880\r\nmem_not_counted_for_evict:0\r\nmem_replication_backlog:0\r\nmem_clients_slaves:0\r\nmem_clients_normal:82040\r\nmem_aof_buffer:0\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\nlazyfreed_objects:0\r\n\r\n# Persistence\r\nloading:0\r\ncurrent_cow_size:0\r\ncurrent_fork_perc:0.00%\r\ncurrent_save_keys_processed:0\r\ncurrent_save_keys_total:0\r\nrdb_changes_since_last_save:0\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1623235757\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:0\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_last_cow_size:483328\r\naof_enabled:0\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:-1\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_last_write_status:ok\r\naof_last_cow_size:0\r\nmodule_fork_in_progress:0\r\nmodule_fork_last_cow_size:0\r\n\r\n# Stats\r\ntotal_connections_received:52\r\ntotal_commands_processed:60218\r\ninstantaneous_ops_per_sec:0\r\ntotal_net_input_bytes:1755109\r\ntotal_net_output_bytes:1098843\r\ninstantaneous_input_kbps:0.00\r\ninstantaneous_output_kbps:0.00\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_keys:0\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nexpire_cycle_cpu_milliseconds:357\r\nevicted_keys:0\r\nkeyspace_hits:24779\r\nkeyspace_misses:15039\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:662\r\ntotal_forks:125\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\ntracking_total_keys:0\r\ntracking_total_items:0\r\ntracking_total_prefixes:0\r\nunexpected_error_replies:0\r\ntotal_error_replies:69\r\ndump_payload_sanitizations:0\r\ntotal_reads_processed:60264\r\ntotal_writes_processed:60212\r\nio_threaded_reads_processed:0\r\nio_threaded_writes_processed:0\r\n\r\n# Replication\r\nrole:master\r\nconnected_slaves:0\r\nmaster_failover_state:no-failover\r\nmaster_replid:f88134f9daef89cae97aca48bd070aa7978606f1\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:0\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:0\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n\r\n# CPU\r\nused_cpu_sys:42.580776\r\nused_cpu_user:18.663659\r\nused_cpu_sys_children:0.360094\r\nused_cpu_user_children:0.075961\r\nused_cpu_sys_main_thread:42.452486\r\nused_cpu_user_main_thread:18.659545\r\n\r\n# Modules\r\n\r\n# Commandstats\r\ncmdstat_get:calls=39816,usec=342764,usec_per_call=8.61,rejected_calls=0,failed_calls=0\r\ncmdstat_config:calls=146,usec=4282,usec_per_call=29.33,rejected_calls=0,failed_calls=49\r\ncmdstat_select:calls=21,usec=99,usec_per_call=4.71,rejected_calls=0,failed_calls=0\r\ncmdstat_command:calls=18,usec=14903,usec_per_call=827.94,rejected_calls=0,failed_calls=0\r\ncmdstat_exists:calls=2,usec=6,usec_per_call=3.00,rejected_calls=0,failed_calls=0\r\ncmdstat_flushall:calls=32,usec=89249,usec_per_call=2789.03,rejected_calls=0,failed_calls=0\r\ncmdstat_cluster:calls=11,usec=104,usec_per_call=9.45,rejected_calls=0,failed_calls=11\r\ncmdstat_ping:calls=12,usec=21,usec_per_call=1.75,rejected_calls=0,failed_calls=0\r\ncmdstat_auth:calls=9,usec=34,usec_per_call=3.78,rejected_calls=0,failed_calls=9\r\ncmdstat_del:calls=2,usec=10,usec_per_call=5.00,rejected_calls=0,failed_calls=0\r\ncmdstat_save:calls=81,usec=222491,usec_per_call=2746.80,rejected_calls=0,failed_calls=0\r\ncmdstat_set:calls=20046,usec=237230,usec_per_call=11.83,rejected_calls=0,failed_calls=0\r\ncmdstat_scan:calls=5,usec=116,usec_per_call=23.20,rejected_calls=0,failed_calls=0\r\ncmdstat_info:calls=17,usec=3208,usec_per_call=188.71,rejected_calls=0,failed_calls=0\r\n\r\n# Errorstats\r\nerrorstat_ERR:count=69\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=4,expires=0,avg_ttl=0\r\n```"
+    },
+    {
+      "id": 857621743,
+      "user": "oranagra",
+      "created_at": "2021-06-09T11:38:37Z",
+      "body": "@warriorBrian is it 6.2.4 6.2.1 or 5.0.9? each of your comments says something different.\r\ni do see many calls to FLUSHALL in your command stats.\r\n\r\nis it possible in some way this server is exposed to the internet without any password and someone's abusing it?\r\n\r\nthis is consistent with the pretense of SAVE calls, and CONFIG calls. someone is probably trying to write into your crontab or some other system folder."
+    },
+    {
+      "id": 857623030,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T11:40:48Z",
+      "body": "@oranagra To repeat the error, I used three versions to verify the error, and all three versions were the same error. That's why there are three versions.\r\n\r\nI will use public network IP to access Redis, the port is completely open, there is no password, to write, is this the reason for the problem?"
+    },
+    {
+      "id": 857623820,
+      "user": "oranagra",
+      "created_at": "2021-06-09T11:42:07Z",
+      "body": "yeah. seems that someone is trying to attack your computer though the open redis.\r\nrun a quick MONITOR `redis-cli monitor` session and you'll probably see what they're attempting."
+    },
+    {
+      "id": 857624415,
+      "user": "oranagra",
+      "created_at": "2021-06-09T11:43:11Z",
+      "body": "or do a `config get dbfilename` to see which file they're trying to write to. and check it's contents to see if they succeeded."
+    },
+    {
+      "id": 857624632,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T11:43:32Z",
+      "body": "@oranagra I can confirm that only I am accessing this IP at present. Do you mean that Redis thinks an attacker is accessing this IP, and the result causes this problem?\r\n"
+    },
+    {
+      "id": 857626390,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T11:46:43Z",
+      "body": "@oranagra Yesterday I used Intranet localhost for access, but Redis was still open to the public, so I turned off the safe mode. In redis.conf, after this problem occurred, I used the public IP, and wrote a loop to write to verify the problem, the problem still exists.\r\n\r\nThe strange problem is that I set up a server in the Intranet, the same configuration, read and write is not a problem, on the online access server has this problem."
+    },
+    {
+      "id": 857628004,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T11:49:24Z",
+      "body": "@oranagra I used `config get dbfilename`, read and write redis is successful at the beginning, in more than ten minutes later the problem appeared. Then it quickly saves successfully, but at this time all the keys and values in Redis will not exist.\r\n\r\nThis problem occurs some time in the future, not in the near future when reading and writing is started"
+    },
+    {
+      "id": 857630270,
+      "user": "oranagra",
+      "created_at": "2021-06-09T11:53:23Z",
+      "body": "i'm not sure i follow you.\r\nwhat's the value returned by `config get dbfilename`?\r\ni see in the command stats 32 to FLUSHALL and 81 calls to SAVE. did you do these? if not, then i'm saying that it is likely someone connected to the open redis, and call them.\r\n\r\nthe usual pattern is that attackers try to change `dbfilename` to `/var/spool/cron` or alike, put some data in the db, and call SAVE, hoping that linux will execute his code on your machine."
+    },
+    {
+      "id": 857630807,
+      "user": "oranagra",
+      "created_at": "2021-06-09T11:54:21Z",
+      "body": "please also do `config get dir`"
+    },
+    {
+      "id": 857633907,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T11:59:38Z",
+      "body": "config get  dbfilename:\r\n\r\n```sh\r\n1) \"dbfilename\"\r\n2) \"dump.rdb\"\r\n```\r\n\r\nconfig get dir:\r\n\r\n```sh\r\n1) \"dir\"\r\n2) \"/data\"\r\n```"
+    },
+    {
+      "id": 857682445,
+      "user": "oranagra",
+      "created_at": "2021-06-09T13:12:35Z",
+      "body": "maybe it was restarted since that abuse attempt?\r\nis it possible that the 32 calls to FLUSHDB and 81 calls to SAVE were triggered by you?\r\nif not, i suggest you either use a MONITOR to confirm, or just protect your redis with a password (and better look at some sensitive places in your system to check if they weren't compromised by an attack)."
+    },
+    {
+      "id": 857737421,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T14:22:06Z",
+      "body": "@oranagra I have been idle for a period of time without any read or write operations. His log:\r\n\r\n```sh\r\n1:M 09 Jun 2021 20:50:36.008 * DB saved on disk\r\n1:M 09 Jun 2021 20:50:36.053 * DB saved on disk\r\n1:M 09 Jun 2021 20:50:36.362 * DB saved on disk\r\n1:M 09 Jun 2021 20:50:36.497 * DB saved on disk\r\n1:S 09 Jun 2021 21:01:56.515 * Before turning into a replica, using my master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.\r\n1:S 09 Jun 2021 21:01:56.515 * REPLICAOF 194.38.20.199:8886 enabled (user request from 'id=21 addr=109.237.96.124:54182 fd=8 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=47 qbuf-free=32721 obl=0 oll=0 omem=0 events=r cmd=slaveof')\r\n1:S 09 Jun 2021 21:01:57.378 * Connecting to MASTER 194.38.20.199:8886\r\n1:S 09 Jun 2021 21:01:57.378 * MASTER <-> REPLICA sync started\r\n1:S 09 Jun 2021 21:01:57.682 * Non blocking connect for SYNC fired the event.1:S 09 Jun 2021 21:01:57.986 * Master replied to PING, replication can continue...\r\n1:S 09 Jun 2021 21:01:58.596 * Trying a partial resynchronization (request 3a82f8add111a6fb478fbacc825811ea1c31a888:1).\r\n1:S 09 Jun 2021 21:01:58.901 * Full resync from master: ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ:1\r\n1:S 09 Jun 2021 21:01:58.901 * Discarding previously cached master state.\r\n1:S 09 Jun 2021 21:01:58.901 * MASTER <-> REPLICA sync: receiving 55648 bytes from master\r\n1:S 09 Jun 2021 21:01:59.532 * MASTER <-> REPLICA sync: Flushing old data\r\n1:S 09 Jun 2021 21:01:59.533 * MASTER <-> REPLICA sync: Loading DB in memory\r\n1:S 09 Jun 2021 21:01:59.533 # Wrong signature trying to load DB from file\r\n1:S 09 Jun 2021 21:01:59.533 # Failed trying to load the MASTER synchronization DB from disk\r\n1:S 09 Jun 2021 21:02:00.392 * Connecting to MASTER 194.38.20.199:8886\r\n1:S 09 Jun 2021 21:02:00.392 * MASTER <-> REPLICA sync started\r\n1:S 09 Jun 2021 21:02:00.677 * Non blocking connect for SYNC fired the event.1:S 09 Jun 2021 21:02:00.961 # Error condition on socket for SYNC: Connection reset by peer\r\n1:S 09 Jun 2021 21:02:01.399 * Connecting to MASTER 194.38.20.199:8886\r\n1:S 09 Jun 2021 21:02:01.399 * MASTER <-> REPLICA sync started\r\n1:S 09 Jun 2021 21:02:01.702 * Non blocking connect for SYNC fired the event.1:S 09 Jun 2021 21:02:02.005 # Error condition on socket for SYNC: Connection reset by peer\r\n1:S 09 Jun 2021 21:02:02.405 * Connecting to MASTER 194.38.20.199:8886\r\n1:S 09 Jun 2021 21:02:02.405 * MASTER <-> REPLICA sync started\r\n1:S 09 Jun 2021 21:02:02.709 * Non blocking connect for SYNC fired the event.1:S 09 Jun 2021 21:02:03.013 # Error condition on socket for SYNC: Connection reset by peer\r\n1:S 09 Jun 2021 21:02:03.410 * Connecting to MASTER 194.38.20.199:8886\r\n1:S 09 Jun 2021 21:02:03.410 * MASTER <-> REPLICA sync started\r\n1:S 09 Jun 2021 21:02:03.715 * Non blocking connect for SYNC fired the event.1:S 09 Jun 2021 21:02:04.019 # Error condition on socket for SYNC: Connection reset by peer\r\n1:S 09 Jun 2021 21:02:04.311 * Module 'system' loaded from ./red2.so\r\n1:S 09 Jun 2021 21:02:04.413 * Connecting to MASTER 194.38.20.199:8886\r\n1:S 09 Jun 2021 21:02:04.413 * MASTER <-> REPLICA sync started\r\n1:M 09 Jun 2021 21:02:04.702 # Setting secondary replication ID to 3a82f8add111a6fb478fbacc825811ea1c31a888, valid up to offset: 1. New replication ID is 99cfdf93777e15d2795e52eb550df39e1e74e75d\r\n1:M 09 Jun 2021 21:02:04.702 * MASTER MODE enabled (user request from 'id=21 addr=109.237.96.124:54182 fd=8 name= age=8 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=34 qbuf-free=32734 obl=0 oll=0 omem=0 events=r cmd=slaveof')\r\n1:M 09 Jun 2021 21:02:37.085 * Module system unloaded\r\n1:M 09 Jun 2021 21:04:48.455 * DB saved on disk\r\n1:M 09 Jun 2021 21:04:48.484 * DB saved on disk\r\n1:M 09 Jun 2021 21:04:48.653 * DB saved on disk\r\n1:M 09 Jun 2021 21:04:48.715 * DB saved on disk\r\n```"
+    },
+    {
+      "id": 857757921,
+      "user": "oranagra",
+      "created_at": "2021-06-09T14:45:11Z",
+      "body": "@warriorBrian don't you think it's clear that someone is attacking your redis???\r\nhe even loaded a redis-module named \"system\"?\r\ni'd consider that computer compromised, disconnect it from my LAN, and wipe it, and even, consider my LAN compromised!"
+    },
+    {
+      "id": 857759214,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T14:46:42Z",
+      "body": "@oranagra I think this should be the mechanism of redis. I think someone is attacking. In fact, only I am using it. I try to use the password to test whether this problem will occur. Thank you very much."
+    },
+    {
+      "id": 857762732,
+      "user": "oranagra",
+      "created_at": "2021-06-09T14:50:52Z",
+      "body": "There is a mechanism in redis to discourage people from exposing an unprotected server, it seems you turned it off.\r\nhttps://github.com/redis/redis/blob/8a86bca5ed09094b561284fcb5b1fc416a4016dc/redis.conf#L77-L94"
+    },
+    {
+      "id": 857762981,
+      "user": "sundb",
+      "created_at": "2021-06-09T14:51:12Z",
+      "body": "@warriorBrian It is best to disable external access ports."
+    },
+    {
+      "id": 857770781,
+      "user": "warriorBrian",
+      "created_at": "2021-06-09T14:59:36Z",
+      "body": "@sundb @oranagra I will try to use the protected mode and set the password to test the occurrence of the problem, thank you very much!"
+    },
+    {
+      "id": 858246412,
+      "user": "warriorBrian",
+      "created_at": "2021-06-10T03:12:49Z",
+      "body": "@oranagra I found these logs in Monitor, which indicated that Redis had cleared all of my data, I used an Intranet connection and enabled protected mode.\r\n\r\nI found that he had executed `flushall` command and would empty all my keys. After clearing them, there was no action to restore them\r\n\r\n![image](https://user-images.githubusercontent.com/28696399/121458629-4aceff80-c9dc-11eb-92f2-a7cbc1c171c9.png)\r\n"
+    },
+    {
+      "id": 858248754,
+      "user": "sundb",
+      "created_at": "2021-06-10T03:20:10Z",
+      "body": "@warriorBrian I'm not sure I fully understand what you mean.\r\nAre you saying you're still under attack? Or that you want to recover the erased data?"
+    },
+    {
+      "id": 858249750,
+      "user": "warriorBrian",
+      "created_at": "2021-06-10T03:23:14Z",
+      "body": "@sundb I opened the Intranet and used the LAN to access it, but it was not open to the outside. I started the protected mode, and I did not read or write data. After a few minutes, I used `redis-cli monitor` and found that he had executed `flushall`, which made me confused"
+    },
+    {
+      "id": 858250822,
+      "user": "warriorBrian",
+      "created_at": "2021-06-10T03:26:08Z",
+      "body": "I didn't do any read-write operations on Redis, but I found that Redis will automatically perform the `flushall` operation, which will empty all my keys. I'm not sure why.\r\n\r\n"
+    },
+    {
+      "id": 858251261,
+      "user": "sundb",
+      "created_at": "2021-06-10T03:27:28Z",
+      "body": "@warriorBrian Look at the ``client list`` and see if the client's ip is from the intranet, if it is a LAN, then you better add auth."
+    },
+    {
+      "id": 858319158,
+      "user": "oranagra",
+      "created_at": "2021-06-10T05:37:44Z",
+      "body": "@warriorBrian this system was already compromised (hacked).\r\nif i were you, i would stop worrying about the data that got lost, and start worrying about what the other damage the attacker caused and what it gained access to.\r\n\r\nin the logs you posted earlier we see the attacker's IP address (`109.237.96.124`), and we see that he succeeded in running his code on your machine (`Module 'system' loaded from ./red2.so`), so this machine, and anything else it can freely access should be considered compromised and wiped (that's what i would do)."
+    },
+    {
+      "id": 858324264,
+      "user": "warriorBrian",
+      "created_at": "2021-06-10T05:48:11Z",
+      "body": "@oranagra This server is an online service, I will re-install the system, I think the problem should have occurred in a scanner or the place where the vulnerability was injected, I will continue to observe the problem, I set the access password to protect my server"
+    }
+  ]
+}

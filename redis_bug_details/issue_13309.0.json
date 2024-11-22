@@ -1,0 +1,18 @@
+{
+  "issue_number": 13309.0,
+  "title": "[BUG] sentinel error after second switch master",
+  "body": "**Describe the bug**\r\n\r\nI have created a sentinel cluster with docker compose made of 3 sentinels (ports 5000, 5001, 5002), 1 master (port 6385) and 2 slaves (6386 and 6387); then I connect a client to sentinel node 5000 and start to execute the following steps:\r\n\r\n| time | action |\r\n| ------------- | ------------- |\r\n|t0| delete key 'mykey'  |\r\n|t1| sleep 3 seconds|\r\n|t2(+3 sec)|set mykey=myvalue |\r\n|t3|sleep_t3 3 seconds|\r\n|t4(+6 sec)|dispatch sleep command 30 seconds to redis 6385 (using a separate connection)|\r\n|t5|sleep_t5 7 seconds|\r\n|t6(+13 sec)|set mykey=newvalue|\r\n|t7|sleep_t7 50 seconds|\r\n|t8(+63 sec)|get new master config (using a separate connection)|\r\n||dispatch sleep command 3000 seconds to new redis master (using a separate connection)|\r\n|t9|sleep_t9 5 seconds|\r\n|t10(+70sec)|set mykey=newvalue|\r\n \t\r\nso at time t4 master on port 6385 enters debug mode for 30 seconds and sentinels elect a new master (everything works fine), but at time t8 the new master enters debug mode for 3000 seconds and sentinels are unable to elect a new master; if a separate client tries to connect it either hangs or connects but cannot modify data (receice error message: readonly, you can't write against a read only replica)\r\n\r\n\r\n**To reproduce**\r\n\r\n1. (edit) download files from https://fastupload.io/f993031e9a01f2fd\r\n2. extract the attached file master-slave-sentinel.zip in a folder and start the sentinel cluster: `docker compose -f docker-compose-sentinel.yml up -d`\r\n3. add the entry 127.0.01 host.docker.internal in your hosts file\r\n4. copy the attached file test-lettuce-0.0.1-SNAPSHOT-jar-with-dependencies.jar and run with the following command:  `java -jar test-lettuce-0.0.1-SNAPSHOT-jar-with-dependencies.jar`   (the source files can be found in attachment test-lettuce-0.0.1-SNAPSHOT-sources.jar)\r\n5. alternatively, perform the previously described steps manually\r\n\r\nsee the attachement for the console logs \r\n\r\ntools used: redis 7.2.5-alpine, docker desktop  4.28.0 (windows)\r\nfor the client: java jre 17, lettuce-core 6.3.1\r\n\r\ntested on : \r\n* windows 10 - Intel(R) Core(TM) i7-10510U \r\n* windows 10 - Intel(R) Core(TM) i7-1260P \r\n\r\n\r\n**Expected behavior**\r\n\r\nthe expected behaviour is that a new master is elected correctly after the second elected master stop working\r\n\r\n**Additional information**\r\n\r\n\r\nAny additional information that is relevant to the problem.\r\n![readonly_error](https://github.com/redis/redis/assets/171339258/c7ccbcfd-a189-4bc9-b2cf-65af57c65911)\r\n![client_java_logs](https://github.com/redis/redis/assets/171339258/ba50ef54-4c53-40ae-8f18-77f7cc214131)\r\n![sentinel_logs](https://github.com/redis/redis/assets/171339258/aecf5d68-93c0-4baf-9f5f-4a03dda327e3)\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-05-31T15:13:42Z",
+  "updated_at": "2024-05-31T16:19:59Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2142502955,
+      "user": "imazzeii",
+      "created_at": "2024-05-31T15:28:00Z",
+      "body": "![client-settings](https://github.com/redis/redis/assets/171339258/8bef2a22-72bf-42de-b03a-8c8bdb8136da)\r\n"
+    }
+  ]
+}

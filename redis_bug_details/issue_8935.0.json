@@ -1,0 +1,75 @@
+{
+  "issue_number": 8935.0,
+  "title": "Expiration based invalidation PUSH messages sometimes embedded within other replies. ",
+  "body": "I sometimes see `CLIENT TRACKING` key invalidation messages embedded within an outer multi-bulk reply, which I believe is not supposed to happen.\r\n\r\n> Push data may be interleaved with any protocol data, but always at the top level, so the client will never find push data in the middle of a Map reply for instance.\r\n\r\n**To reproduce**\r\n\r\nCompile and run [this code](https://gist.github.com/michael-grunder/c61bf31c5347911c14339b7799466b60) locally.  The problem doesn't occur every run but it does more often than not so it shouldn't take any time to reproduce.\r\n\r\nThe heart of the logic that triggers the problem is as follows:\r\n\r\n```c\r\n    /* Set some fast expiring keys and immetiately request them back */\r\n    execAndDumpCommand(c, r, 0, \"PSETEX %s %d %s\", \"key:0\", 10, \"A\");\r\n    execAndDumpCommand(c, r, 0, \"GETBIT %s %d\", \"key:0\", 1);\r\n    execAndDumpCommand(c, r, 0, \"PSETEX %s %d %s\", \"key:1\", 10, \"A\");\r\n    execAndDumpCommand(c, r, 0, \"GETBIT %s %d\", \"key:1\", 1);\r\n    execAndDumpCommand(c, r, 0, \"PSETEX %s %d %s\", \"key:2\", 10, \"A\");\r\n    execAndDumpCommand(c, r, 0, \"GETBIT %s %d\", \"key:2\", 1);\r\n\r\n    /* Invoke MGET against the keys with a short delay between calls.\r\n     * At some point Redis will fire the expiration invalidation which\r\n     * sometimes is embedded inside the MGET multi-bulk reply. */\r\n    execAndDumpCommand(c, r, 1, \"MGET %s\", \"key:0\");\r\n    usleep(10000);\r\n    execAndDumpCommand(c, r, 1, \"MGET %s\", \"key:1\");\r\n    usleep(10000);\r\n    execAndDumpCommand(c, r, 1, \"MGET %s\", \"key:2\");\r\n    usleep(10000);\r\n```\r\n\r\nJust to make sure I wasn't going crazy I also reproduced the behavior in a docker container.\r\n\r\n**Expected behavior**\r\n\r\nPush messages should always exist as top-level replies.\r\n\r\n**Additional information**\r\n\r\n[redis-cli info](https://gist.github.com/michael-grunder/46953b6d5b95b6db724338c11a5288f9)\r\n[tcpflow data showing the raw replies](https://gist.github.com/michael-grunder/08a442637df623399d7ddeaecff4ad25)\r\n\r\nAs always I'm happy to help test any fixes, etc\r\n\r\nCheers!\r\n",
+  "state": "closed",
+  "created_at": "2021-05-11T21:48:44Z",
+  "updated_at": "2022-07-26T10:28:38Z",
+  "closed_at": "2022-07-26T10:28:38Z",
+  "labels": [
+    "class:bug",
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 839322715,
+      "user": "huangzhw",
+      "created_at": "2021-05-12T00:22:01Z",
+      "body": "When execute `MGET`, it uses `lookupKeyRead` and finds the key is expired, so `signalModifiedKey` is called, replies are interleaved."
+    },
+    {
+      "id": 839328153,
+      "user": "huangzhw",
+      "created_at": "2021-05-12T00:27:58Z",
+      "body": "@yossigo @oranagra This is something like https://github.com/redis/redis/issues/8206. But I think this one is more severe. For multi key command, the invalidate messeages are interleaved with command reply."
+    },
+    {
+      "id": 840146345,
+      "user": "madolson",
+      "created_at": "2021-05-12T22:58:19Z",
+      "body": "@huangzhw I believe the solution that Yossi called out, \"scheduleSignalModifiedKey\" would still work in this case. This seems worth trying to solve now."
+    },
+    {
+      "id": 840211524,
+      "user": "huangzhw",
+      "created_at": "2021-05-13T01:12:13Z",
+      "body": "@madolson Yes. If at first we doubt whether we need it, now this is needed."
+    },
+    {
+      "id": 844040892,
+      "user": "yossigo",
+      "created_at": "2021-05-19T12:08:40Z",
+      "body": "I agree, it's definitely broken bad enough to justify a fix now."
+    },
+    {
+      "id": 852774895,
+      "user": "nmvk",
+      "created_at": "2021-06-02T06:30:37Z",
+      "body": "Taking a look"
+    },
+    {
+      "id": 853059322,
+      "user": "oranagra",
+      "created_at": "2021-06-02T14:07:50Z",
+      "body": "@nmvk please also follow #8206 so we don't step on each other's toes."
+    },
+    {
+      "id": 1193416812,
+      "user": "michael-grunder",
+      "created_at": "2022-07-24T23:28:52Z",
+      "body": "Hi everyone :wave:\r\n\r\nI believe I have found a different edge case that can trigger this issue.  As far as I can tell the issue still exists in 7.0.4, 6.2.7, and unstable.\r\n\r\nShould be easy to reproduce.  Simply enable RESP3, client tracking, and then execute a `FLUSHDB` or `FLUSHALL` inside of a `MULTI`..`EXEC` block.\r\n\r\n```bash\r\n❯ redis-cli info|grep git\r\nredis_git_sha1:39d216a3\r\nredis_git_dirty:0\r\n❯ redis-cli -3\r\n127.0.0.1:6379> client tracking on\r\nOK\r\n127.0.0.1:6379> multi\r\nOK\r\n127.0.0.1:6379(TX)> flushdb\r\nQUEUED\r\n127.0.0.1:6379(TX)> exec\r\n1) 1) \"invalidate\"\r\n   2) (nil)\r\n```\r\n\r\ntcpflow shows the invalidation message embedded in the `*1` `EXEC` reply:\r\n\r\n```bash\r\n127.000.000.001.06379-127.000.000.001.51228: +OK                # CLIENT TRACKING\r\n127.000.000.001.06379-127.000.000.001.51228: +OK                # MULTI\r\n127.000.000.001.06379-127.000.000.001.51228: +QUEUED            # FLUSHDB\r\n127.000.000.001.06379-127.000.000.001.51228: *1                 # EXEC\r\n>2\r\n$10\r\ninvalidate\r\n_\r\n+OK\r\n```"
+    },
+    {
+      "id": 1193588032,
+      "user": "huangzhw",
+      "created_at": "2022-07-25T05:13:26Z",
+      "body": "We missed `trackingInvalidateKeysOnFlush`."
+    },
+    {
+      "id": 1195083173,
+      "user": "huangzhw",
+      "created_at": "2022-07-26T06:57:39Z",
+      "body": "I made https://github.com/redis/redis/pull/11038 to solve it."
+    }
+  ]
+}

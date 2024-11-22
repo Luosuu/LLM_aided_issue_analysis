@@ -1,0 +1,60 @@
+{
+  "issue_number": 7753.0,
+  "title": "Sentinel failover aborted - failover-abort-not-elected error[BUG]",
+  "body": "**Describe the bug**\r\n\r\nI have 2 redis and 3 sentinels. Sometimes when master down, sentinels vote to elect a leader, and a leader was elected by voting, but no failover was performed and an \"failover-abort-not-elected\" error  was reported. The next epoch has recovered by itself\r\n\r\n**To reproduce**\r\n\r\nWhen master server went down, it just appeared by accident\r\n\r\n**Expected behavior**\r\n\r\nFailover instead of reporting errors\r\n\r\n**Additional information**\r\n\r\nredis version is 5.0.6, docker image is redis:5.0.6-alpine\r\n\r\n![sentinel-hide](https://user-images.githubusercontent.com/5226023/92361709-60e42280-f121-11ea-96e9-9e74f38a03c3.png)\r\n\r\n@antirez ",
+  "state": "closed",
+  "created_at": "2020-09-07T07:48:01Z",
+  "updated_at": "2021-06-09T15:21:24Z",
+  "closed_at": "2020-11-04T08:17:35Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 688842829,
+      "user": "cl51287",
+      "created_at": "2020-09-08T12:47:08Z",
+      "body": "@yossigo Can you give me a hand?"
+    },
+    {
+      "id": 688845612,
+      "user": "yossigo",
+      "created_at": "2020-09-08T12:52:39Z",
+      "body": "@cl51287 Does this reproduce easily/often?"
+    },
+    {
+      "id": 688910867,
+      "user": "cl51287",
+      "created_at": "2020-09-08T14:22:37Z",
+      "body": "@yossigo It does not appear often, but once in a while."
+    },
+    {
+      "id": 715201181,
+      "user": "zhouyixiang",
+      "created_at": "2020-10-23T08:53:24Z",
+      "body": "From the log, it looks like you have more than 3 sentinels and some of them are sdown."
+    },
+    {
+      "id": 721003367,
+      "user": "cl51287",
+      "created_at": "2020-11-03T09:31:28Z",
+      "body": "@zhouyixiang thank you very mush, it should be that the data is not cleared after the sentinel container is offline, resulting in too much sentinel total and unable to elect a leader"
+    },
+    {
+      "id": 854658529,
+      "user": "a28283878",
+      "created_at": "2021-06-04T12:13:01Z",
+      "body": "@cl51287 I encounter the same problem, may I ask how did you solve this problem.\r\nI google the problem and people use to **SENTINEL RESET * **, but i'm searching for a smarter way."
+    },
+    {
+      "id": 857770492,
+      "user": "cl51287",
+      "created_at": "2021-06-09T14:59:17Z",
+      "body": "@a28283878 I just used **SENTINEL RESET * ** to solve this problem. I used the operator to monitor sentinel. If an abnormal sentinel was found, I would reset"
+    },
+    {
+      "id": 857796087,
+      "user": "a28283878",
+      "created_at": "2021-06-09T15:21:24Z",
+      "body": "@cl51287 After searching for days, I found a solution for my scenario. \r\nI specify the ID of sentinel in k8s deployment pod. So after the sentinel down and restart it use the same ID, and other sentinels will treat it as the old one, no need to use **SENTINEL RESET**."
+    }
+  ]
+}

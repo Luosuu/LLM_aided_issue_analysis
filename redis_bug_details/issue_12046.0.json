@@ -1,0 +1,74 @@
+{
+  "issue_number": 12046.0,
+  "title": "[CRASH] Redis Docker container crash on Beaglebone Black (armhf)",
+  "body": "\r\n**Crash report**\r\n\r\ndebian@beaglebone:~$ docker run redis\r\nUnable to find image 'redis:latest' locally\r\nlatest: Pulling from library/redis\r\n99c2a28b4a43: Pull complete\r\ne49d8abac2cf: Pull complete\r\n035016c3fd20: Pull complete\r\n77f3f1b60400: Pull complete\r\nb723fda1bb7c: Pull complete\r\ncc255c521622: Pull complete\r\nDigest: sha256:92b8b307ee28ed74da17578064c73307ad41e43f422f0b7e4e91498b406c59e3\r\nStatus: Downloaded newer image for redis:latest\r\n1:C -14180 Jan 1970 -18:-12:-56.-1091086 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n1:C -14180 Jan 1970 -18:-12:-56.-1091086 # Redis version=7.0.10, bits=32, commit=00000000, modified=0, pid=1, just started\r\n1:C -14180 Jan 1970 -18:-12:-56.-1091086 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf\r\nredis-server: monotonic.c:149: monotonicInit_posix: Assertion `rc == 0' failed.\r\n\r\n\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n1:M -12627 Jan 1970 -8:-2:-24.6247 # Redis 7.0.10 crashed by signal: 6, si_code: -6\r\n1:M -12627 Jan 1970 -8:-2:-24.6247 # Crashed running the instruction at: 0xb6b7e7e6\r\n\r\n------ STACK TRACE ------\r\nEIP:\r\n/lib/arm-linux-gnueabihf/libc.so.6(+0x177e6)[0xb6b7e7e6]\r\n\r\nBacktrace:\r\n/lib/arm-linux-gnueabihf/libc.so.6(+0x27840)[0xb6b8e840]\r\n/lib/arm-linux-gnueabihf/libc.so.6(+0x177e6)[0xb6b7e7e6]\r\n/lib/arm-linux-gnueabihf/libc.so.6(gsignal+0x7b)[0xb6b8da20]\r\n\r\n------ REGISTERS ------\r\n1:M -14215 Jan 1970 -20:-29:-48.000 #\r\nR10:00000000ffffffff R9 :000000000061ac68\r\nR8 :000000000061ac4c R7 :00000000000000af\r\nR6 :0000000000000001 R5 :00000000bef75924\r\nR4 :0000000000000000 R3 :0000000000000008\r\nR2 :0000000000000000 R1 :00000000bef75924\r\nR0 :0000000000000000 EC :0000000000000000\r\nfp: 0000000000683ad8 ip:00000000000000af\r\npc:00000000b6b7e7e6 sp:00000000bef75918\r\ncpsr:0000000000010030 fault_address:0000000000000000\r\n\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75927) -> 005d1103\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75926) -> b680c700\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75925) -> 00000000\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75924) -> 00000000\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75923) -> b65b0000\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75922) -> b6f75728\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75921) -> b68007c0\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75920) -> b6f75728\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef7591f) -> b68007c0\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef7591e) -> b68017c0\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef7591d) -> 00000000\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef7591c) -> 00000000\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef7591b) -> 00000000\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef7591a) -> bef759e3\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75919) -> b6b8da21\r\n1:M -14215 Jan 1970 -20:-29:-48.000 # (bef75918) -> 00000095\r\n\r\n------ INFO OUTPUT ------\r\n1:M 01 Jan 1970 00:00:01.000 # Redis 7.0.10 crashed by signal: 11, si_code: 1\r\n1:M 01 Jan 1970 00:00:01.000 # Accessing address: 0x10\r\n1:M 01 Jan 1970 00:00:01.000 # Crashed running the instruction at: 0x594d20\r\n\r\n------ STACK TRACE ------\r\nEIP:\r\nredis-server(lua_gc+0x3)[0x594d20]\r\n\r\nBacktrace:\r\n/lib/arm-linux-gnueabihf/libc.so.6(+0x27840)[0xb6b8e840]\r\n\r\n------ REGISTERS ------\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 #\r\nR10:000000000003e488 R9 :00000000bef75378\r\nR8 :0000000000000000 R7 :0000000000002710\r\nR6 :0000000000000000 R5 :0000000000683ad8\r\nR4 :0000000000000000 R3 :0000000000691f98\r\nR2 :0000000000000000 R1 :0000000000000003\r\nR0 :0000000000000000 EC :0000000000000005\r\nfp: 00000000b6ad0c20 ip:00000000b6540304\r\npc:0000000000594d20 sp:00000000bef74f68\r\ncpsr:00000000200f0030 fault_address:0000000000000010\r\n\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f77) -> 005f685c\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f76) -> 005f41f8\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f75) -> 00000000\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f74) -> 00000000\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f73) -> 00684aa8\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f72) -> 00000000\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f71) -> 00000000\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f70) -> 00000000\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f6f) -> 00000000\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f6e) -> 00002710\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f6d) -> 004fc843\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f6c) -> 00691f98\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f6b) -> 0058950f\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f6a) -> 00683ad8\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f69) -> b6540005\r\n1:M -14226 Jan 1970 -2:-55:-13.-1228526 # (bef74f68) -> 00691f98\r\n\r\n------ INFO OUTPUT ------\r\n\r\n\r\n**Additional information**\r\n\r\n1. OS distribution : Debian Buster\r\ndebian@beaglebone:~$ hostnamectl\r\n   Static hostname: beaglebone\r\n         Icon name: computer\r\n        Machine ID: 2f66158e454f99f602ac1f6564396522\r\n           Boot ID: d1b85498cbe5465d943a4e9e848dda4f\r\n  Operating System: Debian GNU/Linux 10 (buster)\r\n            Kernel: Linux 4.19.94-ti-r42\r\n      Architecture: arm\r\n\r\n2. Steps to reproduce\r\n  - Download and flash the latest Debian image for the Beaglebone Black from [here](https://debian.beagleboard.org/images/bone-debian-10.3-iot-armhf-2020-04-06-4gb.img.xz)\r\n  - Install Docker for Debian. Follow instructions from [here](https://docs.docker.com/engine/install/debian/#install-from-a-package)\r\n  - Run \"docker run redis\"\r\n",
+  "state": "open",
+  "created_at": "2023-04-14T15:31:39Z",
+  "updated_at": "2023-04-23T16:01:10Z",
+  "closed_at": null,
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 1510084203,
+      "user": "oranagra",
+      "created_at": "2023-04-16T05:29:00Z",
+      "body": "looks like `clock_gettime(CLOCK_MONOTONIC)` fails.\r\n@sounak-1989 sadly our code doesn't print `errno`, maybe you can modify the code or write a simple program that attempts to call `clock_gettime(CLOCK_MONOTONIC)`?\r\n\r\n@JimB123 FYI in case you have any other advise."
+    },
+    {
+      "id": 1510084617,
+      "user": "oranagra",
+      "created_at": "2023-04-16T05:31:19Z",
+      "body": "maybe this hardware simply doesn't support monotonic clock, and if we are to support it we need to fallback to another clock?"
+    },
+    {
+      "id": 1510779522,
+      "user": "oranagra",
+      "created_at": "2023-04-17T06:30:00Z",
+      "body": "I suppose this is a regression of redis 6.2 (using monotonic clock), so if we wanna fix it, we should have an automatic fallback to a non-monotonic clock (possibly with some warning print)"
+    },
+    {
+      "id": 1511614350,
+      "user": "sounak-1989",
+      "created_at": "2023-04-17T15:37:42Z",
+      "body": "> maybe this hardware simply doesn't support monotonic clock, and if we are to support it we need to fallback to another clock?\r\n\r\n@oranagra An earlier version used to work. I explicitly don't run redis by itself. It is a part of EdgeX which is an open source edge computing IOT framework. I can't remember which version it was. \r\n\r\nOne more thing that I tested was it crashes only when run using Docker container. I tried running redis directly using the apt package manager following the instruction on Redis website. It did work on the same Hardware. Only when I try to run using Docker it crashes."
+    },
+    {
+      "id": 1511638854,
+      "user": "oranagra",
+      "created_at": "2023-04-17T15:53:12Z",
+      "body": "\n@sounak-1989 are you sure the version that worked outside docker is the same one? Specifically was it 6.2 or newer?\n"
+    },
+    {
+      "id": 1511644366,
+      "user": "sounak-1989",
+      "created_at": "2023-04-17T15:57:02Z",
+      "body": "Yes I am sure. Using Docker I tried several versions: 6.2-alpine, 6.2.6 and latest (which is 7+ I think). All of them crashed.\r\nWithout docker I used apt package manager without specifying any specific version, so I guess it pulled the latest."
+    },
+    {
+      "id": 1511649734,
+      "user": "sounak-1989",
+      "created_at": "2023-04-17T15:58:54Z",
+      "body": "I can try an older version of Docker and try to pull Redis using that. I saw Docker made a few updates recently and I am wondering if that is making Redis to crash."
+    },
+    {
+      "id": 1511659120,
+      "user": "oranagra",
+      "created_at": "2023-04-17T16:03:29Z",
+      "body": "i'm guessing that 6.0 will work for you in docker since it doesn't use that monotonic clock that seems to cause the issue.\r\nbut if indeed 7.0 works outside docker, then the problem might be with docker, and in order to figure out what it is, you'll need to either add some `errno` log print to redis, or a simple standalone application that uses clock_gettime to get to the bottom of it."
+    },
+    {
+      "id": 1511665471,
+      "user": "sounak-1989",
+      "created_at": "2023-04-17T16:06:03Z",
+      "body": "@oranagra Thanks for the suggestion. I am not too familiar with the Redis code. So I will first try with Redis 6.0 and then an older version of Docker. That will help me narrow down the problem. I'll keep you posted. Thanks."
+    },
+    {
+      "id": 1519099518,
+      "user": "yossigo",
+      "created_at": "2023-04-23T16:01:10Z",
+      "body": "@sounak-1989 Please also try to run docker with `--security-opt seccomp=unconfined`, this could be related to a [known issue with seccomp](https://github.com/alpinelinux/docker-alpine/issues/135) (the link provided is related to alpine, but IIRC the problem can affect other images as well)."
+    }
+  ]
+}

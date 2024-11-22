@@ -1,0 +1,27 @@
+{
+  "issue_number": 5225.0,
+  "title": "[BUG] why use gettimeofday to measure latency",
+  "body": "in file server.c\r\n```c\r\n    dirty = server.dirty;\r\n    start = ustime();\r\n    c->cmd->proc(c);\r\n    duration = ustime()-start;\r\n```\r\nwhere ustime defined as\r\n```c\r\n/* Return the UNIX time in microseconds */\r\nlong long ustime(void) {\r\n    struct timeval tv;\r\n    long long ust;\r\n\r\n    gettimeofday(&tv, NULL);\r\n    ust = ((long long)tv.tv_sec)*1000000;\r\n    ust += tv.tv_usec;\r\n    return ust;\r\n}\r\n```\r\n\r\n`gettimeofday` will be influence by setting of wall clock, such as system admin or NTP. Maybe it is better to use `MONOTONIC` time to measure time cost of function(such as `clock_gettime`)?\r\n\r\n* ref https://github.com/antirez/redis/issues/5217\r\n* ref https://github.com/antirez/redis/issues/4851",
+  "state": "closed",
+  "created_at": "2018-08-08T12:06:30Z",
+  "updated_at": "2021-05-07T08:38:18Z",
+  "closed_at": "2021-05-07T08:38:18Z",
+  "labels": [
+    "state:to-be-closed",
+    "status:duplicate"
+  ],
+  "comments_data": [
+    {
+      "id": 413176344,
+      "user": "0xtonyxia",
+      "created_at": "2018-08-15T11:57:25Z",
+      "body": "There is discussion very long time ago and explained why.  #416 "
+    },
+    {
+      "id": 831594368,
+      "user": "filipecosta90",
+      "created_at": "2021-05-03T23:18:00Z",
+      "body": "Requesting core team to close as this was addressed by #7644."
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "issue_number": 10950.0,
+  "title": "[BUG] Ubuntu 22.04 , gcc 11.2.0 , Active defrag test failed",
+  "body": "**Describe the bug**\r\n\r\n**redis-server --version**\r\n```\r\nRedis server v=7.0.2 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=15c2c3973ed24647\r\n```\r\n\r\n**free -h**\r\n```\r\n               total        used        free      shared  buff/cache   available\r\nMem:           7.8Gi       231Mi       7.0Gi       1.0Mi       547Mi       7.3Gi\r\nSwap:          1.8Gi          0B       1.8Gi\r\n```\r\n\r\n**lsb_release -a**\r\n```\r\nNo LSB modules are available.\r\nDistributor ID:\tUbuntu\r\nDescription:\tUbuntu 22.04 LTS\r\nRelease:\t22.04\r\nCodename:\tjammy\r\n```\r\n\r\n**make test**\r\n```\r\nCleanup: may take some time... OK\r\nStarting test server at port 21079\r\n...\r\n...\r\n...\r\n\u001b[1;31;49m!!! WARNING\u001b[0m The following tests failed:\r\n\r\n*** [\u001b[0;31;49merr\u001b[0m]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 72 <= 30 (context: type eval line 113 cmd {assert {$max_latency <= 30}} proc ::test)\r\nCleanup: may take some time... OK\r\nmake[1]: *** [Makefile:427: test] Error 1\r\nmake[1]: Leaving directory '/opt/redis-stable/src'\r\nmake: *** [Makefile:6: test] Error 2\r\n```\r\n\r\n**To reproduce**\r\n\r\n`make test`\r\n\r\n**Expected behavior**\r\n\r\n```\r\n\\o/ All tests passed without errors!\r\n```\r\n\r\n\r\n**Additional information**\r\n\r\nI have noticed that in a similar issue #10053 reported was asked to execute the following `./runtest --single unit/memefficiency --verbose` output included below.\r\n\r\n```\r\nCleanup: may take some time... OK\r\nStarting test server at port 21079\r\n[ready]: 24144\r\n\u001b[1;37;49mTesting unit/memefficiency\u001b[0m\r\n[ready]: 24143\r\n[ready]: 24145\r\n[ready]: 24146\r\n[ready]: 24147\r\n[ready]: 24148\r\n[ready]: 24149\r\n[ready]: 24150\r\n[ready]: 24151\r\n[ready]: 24152\r\n[ready]: 24153\r\n[ready]: 24155\r\n[ready]: 24156\r\n[ready]: 24157\r\n[ready]: 24154\r\n[ready]: 24158\r\n=== (memefficiency external:skip) Starting server 127.0.0.1:21611 ok\r\n[\u001b[0;32;49mok\u001b[0m]: Memory efficiency with values in range 32 (154 ms)\r\n[\u001b[0;32;49mok\u001b[0m]: Memory efficiency with values in range 64 (153 ms)\r\n[\u001b[0;32;49mok\u001b[0m]: Memory efficiency with values in range 128 (157 ms)\r\n[\u001b[0;32;49mok\u001b[0m]: Memory efficiency with values in range 1024 (190 ms)\r\n[\u001b[0;32;49mok\u001b[0m]: Memory efficiency with values in range 16384 (557 ms)\r\n[1/1 \u001b[0;33;49mdone\u001b[0m]: unit/memefficiency (1 seconds)\r\n\u001b[1;37;49mTesting solo test\u001b[0m\r\n=== (defrag external:skip) Starting server 127.0.0.1:21612 ok\r\nfrag 1.52\r\nfrag 1.02\r\nhits: 393676\r\nmisses: 2141633\r\nmax latency 7\r\n{active-defrag-cycle 1657221160 7 7} {command 1657221157 889 889}\r\n{1657221158 7} {1657221159 7} {1657221160 7}\r\nAOF loading:\r\nfrag 1.05\r\nhits: 1360602\r\nmisses: 8892575\r\nmax latency 176\r\n{while-blocked-cron 1657221183 85 176} {active-defrag-cycle 1657221183 7 7} {command 1657221183 21993 21993}\r\n{1657221171 39} {1657221172 39} {1657221173 143} {1657221174 52} {1657221175 124} {1657221176 53} {1657221177 91} {1657221178 33} {1657221179 176} {1657221181 20} {1657221182 104} {1657221183 85}\r\n[\u001b[0;31;49merr\u001b[0m]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 176 <= 30 (context: type eval line 113 cmd {assert {$max_latency <= 30}} proc ::test)\r\nused 54570536\r\nrss 54878208\r\nfrag 1.01\r\nfrag_bytes 307672\r\nused 29315448\r\nrss 54050816\r\nfrag 1.84\r\nfrag_bytes 24735368\r\nused 29356232\r\nrss 30638080\r\nfrag 1.04\r\nfrag_bytes 1281848\r\n[\u001b[0;32;49mok\u001b[0m]: Active defrag eval scripts (3830 ms)\r\nfrag 1.86\r\nfrag 1.03\r\nhits: 499087\r\nmisses: 1509516\r\nmax latency 8\r\n{active-defrag-cycle 1657221200 7 8} {command 1657221198 729 729}\r\n{1657221198 8} {1657221199 8} {1657221200 7}\r\n[\u001b[0;32;49mok\u001b[0m]: Active defrag big keys (13727 ms)\r\nfrag 2.00\r\nfrag 1.02\r\nmisses: 101247\r\nhits: 98756\r\nmax latency 8\r\n{active-defrag-cycle 1657221214 8 8} {command 1657221213 335 335}\r\n{1657221214 8}\r\n[\u001b[0;32;49mok\u001b[0m]: Active defrag big list (13411 ms)\r\n=== (defrag) Starting server 127.0.0.1:21613 ok\r\nfrag 1.96\r\nfrag 1.05\r\nhits: 626861\r\nmisses: 1716405\r\n[\u001b[0;32;49mok\u001b[0m]: Active defrag edge case (17771 ms)\r\n[1/1 \u001b[0;33;49mdone\u001b[0m]: defrag (87 seconds)\r\n\r\n                   The End\r\n\r\nExecution time of different units:\r\n  1 seconds - unit/memefficiency\r\n  87 seconds - defrag\r\n\r\n\u001b[1;31;49m!!! WARNING\u001b[0m The following tests failed:\r\n\r\n*** [\u001b[0;31;49merr\u001b[0m]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 176 <= 30 (context: type eval line 113 cmd {assert {$max_latency <= 30}} proc ::test)\r\nCleanup: may take some time... OK\r\n```\r\n\r\nI have tried building version 6.2.7 on the same machine, `make test` is successful \r\n",
+  "state": "closed",
+  "created_at": "2022-07-07T19:33:16Z",
+  "updated_at": "2022-12-09T11:33:39Z",
+  "closed_at": "2022-12-09T11:33:39Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1178612546,
+      "user": "oranagra",
+      "created_at": "2022-07-08T06:39:22Z",
+      "body": "Looks like timing / threshold issue (although the gap seem high) . \r\nIs it consistent? maybe the machine was busy at that time. "
+    },
+    {
+      "id": 1178618028,
+      "user": "judeng",
+      "created_at": "2022-07-08T06:46:40Z",
+      "body": "Are you using WSL？"
+    },
+    {
+      "id": 1184931793,
+      "user": "0xD4n",
+      "created_at": "2022-07-14T21:59:27Z",
+      "body": "@oranagra it fails every single time I run the test, I'll attach output from another run below.\r\n\r\nThe output included in my original post was generated in a vbox vm, but I am also able to re-create it on the host.\r\n\r\nI'm running this on a bare metal machine with\r\n`AMD Ryzen 9 5900X 12-Core Processor`\r\n`load average: 0.14, 0.29, 0.22`\r\n```\r\n               total        used        free      shared  buff/cache   available\r\nMem:           125Gi       2.9Gi       119Gi        60Mi       3.1Gi       121Gi\r\n```\r\n\r\noutput from another run `./runtest --single unit/memefficiency --verbose`\r\n\r\n```\r\nCleanup: may take some time... OK\r\nStarting test server at port 21079\r\n[ready]: 5256\r\nTesting unit/memefficiency\r\n[ready]: 5258\r\n[ready]: 5257\r\n[ready]: 5259\r\n[ready]: 5260\r\n[ready]: 5261\r\n[ready]: 5262\r\n[ready]: 5263\r\n[ready]: 5264\r\n[ready]: 5265\r\n[ready]: 5266\r\n[ready]: 5267\r\n[ready]: 5269\r\n[ready]: 5268\r\n[ready]: 5271\r\n[ready]: 5270\r\n=== (memefficiency external:skip) Starting server 127.0.0.1:21111 ok\r\n[ok]: Memory efficiency with values in range 32 (147 ms)\r\n[ok]: Memory efficiency with values in range 64 (132 ms)\r\n[ok]: Memory efficiency with values in range 128 (133 ms)\r\n[ok]: Memory efficiency with values in range 1024 (151 ms)\r\n[ok]: Memory efficiency with values in range 16384 (449 ms)\r\n[1/1 done]: unit/memefficiency (1 seconds)\r\nTesting solo test\r\n=== (defrag external:skip) Starting server 127.0.0.1:21112 ok\r\nfrag 1.52\r\nfrag 1.02\r\nhits: 377763\r\nmisses: 2165981\r\nmax latency 7\r\n{active-defrag-cycle 1657835794 7 7} {command 1657835791 762 762}\r\n{1657835792 7} {1657835793 7} {1657835794 7}\r\nAOF loading:\r\nfrag 1.52\r\nhits: 0\r\nmisses: 0\r\nmax latency 0\r\n{active-defrag-cycle 1657835794 7 7} {command 1657835798 2745 2745}\r\n\r\n[err]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 0 > 100000 (context: type eval line 106 cmd {assert {$hits > 100000}} proc ::test)\r\nused 54563040\r\nrss 54910976\r\nfrag 1.01\r\nfrag_bytes 347936\r\nused 29336704\r\nrss 54042624\r\nfrag 1.84\r\nfrag_bytes 24705920\r\nused 29372000\r\nrss 30605312\r\nfrag 1.04\r\nfrag_bytes 1233312\r\n[ok]: Active defrag eval scripts (2601 ms)\r\nfrag 1.86\r\nfrag 1.03\r\nhits: 498676\r\nmisses: 1510522\r\nmax latency 8\r\n{active-defrag-cycle 1657835812 8 8} {command 1657835811 646 646}\r\n{1657835811 8} {1657835812 8}\r\n[ok]: Active defrag big keys (12693 ms)\r\nfrag 1.99\r\nfrag 1.01\r\nmisses: 101263\r\nhits: 98740\r\nmax latency 7\r\n{active-defrag-cycle 1657835825 7 7} {command 1657835825 297 297}\r\n{1657835825 7}\r\n[ok]: Active defrag big list (12314 ms)\r\n=== (defrag) Starting server 127.0.0.1:21113 ok\r\nfrag 1.96\r\nfrag 1.05\r\nhits: 625759\r\nmisses: 1718340\r\n[ok]: Active defrag edge case (16879 ms)\r\n[1/1 done]: defrag (62 seconds)\r\n\r\n                   The End\r\n\r\nExecution time of different units:\r\n  1 seconds - unit/memefficiency\r\n  62 seconds - defrag\r\n\r\n!!! WARNING The following tests failed:\r\n\r\n*** [err]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 0 > 100000 (context: type eval line 106 cmd {assert {$hits > 100000}} proc ::test)\r\nCleanup: may take some time... OK\r\n```\r\n"
+    },
+    {
+      "id": 1185572804,
+      "user": "reybog90",
+      "created_at": "2022-07-15T13:57:00Z",
+      "body": "I don't know, if it's related, but I am also seeing intermittent Active defrag test failures on `6.2.7` running on a somewhat occupied bare-metal `i7-7700K CPU @ 4.20GHz`. So far that test fails about 10% of the time. Are these tests expected to fail on busy machines?\r\n\r\n```\r\n!!! WARNING The following tests failed:\r\n\r\n*** [err]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 1.52 < 1.4 (context: type eval line 109 cmd {assert {$frag < 1.4}} proc ::test)\r\n```\r\n\r\n```\r\n$ ./src/redis-server --version\r\nRedis server v=6.2.7 sha=e6f67092:0 malloc=jemalloc-5.1.0 bits=64 build=d8ac2d77249547e3\r\n\r\n$ lsb_release -a\r\nNo LSB modules are available.\r\nDistributor ID:\tUbuntu\r\nDescription:\tUbuntu 18.04.6 LTS\r\nRelease:\t18.04\r\nCodename:\tbionic\r\n\r\n$ gcc --version\r\ngcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0\r\n\r\n\r\n$ free -h\r\n              total        used        free      shared  buff/cache   available\r\nMem:            31G         14G         13G        204M        3,3G         16G\r\nSwap:          2,0G        326M        1,7G\r\n\r\n$ uptime\r\n 15:34:19 up 32 days,  3:08,  1 user,  load average: 1,39, 1,83, 3,00\r\n```"
+    },
+    {
+      "id": 1185637844,
+      "user": "oranagra",
+      "created_at": "2022-07-15T15:08:37Z",
+      "body": "These tests are a bit sensitive, they're expected to fail on a ver busy or slow machine.. We should probably improve, but it's complicated.. \r\n\r\nNote that the first failure mentioned here is due to a latency threshold, the second one is not seeing enough defragmentation, and the third is about defrag not reaching its target threshold. "
+    },
+    {
+      "id": 1340358569,
+      "user": "bsdelf",
+      "created_at": "2022-12-07T04:29:09Z",
+      "body": "I have same issue for both 7.0.5 and unstable, the wierd thing is, the unit test fails in tmux but passes in konsole.\r\n\r\n```\r\nCPU: 6-core 12th Gen Intel Core i5-12500 (-MT MCP-) speed/min/max: 3343/800/5900 MHz \r\nKernel: 6.0.10_1 x86_64\r\nMem: 5330.5/64093.2 MiB (8.3%)\r\n```\r\n\r\n```\r\n% ./src/redis-server --version\r\nRedis server v=7.0.5 sha=1571907e:0 malloc=jemalloc-5.2.1 bits=64 build=bed131ec13dc8ff6\r\n\r\n% gcc --version\r\ngcc (GCC) 10.2.1 20201203\r\nCopyright (C) 2020 Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.  There is NO\r\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\r\n\r\n% lsb_release -a\r\nLSB Version:    1.0\r\nDistributor ID: VoidLinux\r\nDescription:    Void Linux\r\nRelease:        rolling\r\nCodename:       void\r\n```\r\n\r\n```\r\nredis git:(7.0.5) ? % ./runtest --single unit/memefficiency --verbose\r\nCleanup: may take some time... OK\r\nStarting test server at port 21079\r\n[ready]: 16464\r\nTesting unit/memefficiency\r\n[ready]: 16465\r\n[ready]: 16463\r\n[ready]: 16466\r\n[ready]: 16467\r\n[ready]: 16468\r\n[ready]: 16469\r\n[ready]: 16470\r\n[ready]: 16471\r\n[ready]: 16472\r\n[ready]: 16473\r\n[ready]: 16474\r\n[ready]: 16475\r\n[ready]: 16478\r\n[ready]: 16477\r\n[ready]: 16476\r\n=== (memefficiency external:skip) Starting server 127.0.0.1:21611 ok\r\n[ok]: Memory efficiency with values in range 32 (109 ms)\r\n[ok]: Memory efficiency with values in range 64 (109 ms)\r\n[ok]: Memory efficiency with values in range 128 (110 ms)\r\n[ok]: Memory efficiency with values in range 1024 (118 ms)\r\n[ok]: Memory efficiency with values in range 16384 (257 ms)\r\n[1/1 done]: unit/memefficiency (1 seconds)\r\nTesting solo test\r\n=== (defrag external:skip) Starting server 127.0.0.1:21612 ok\r\nfrag 1.52\r\nfrag 1.04\r\nhits: 372063\r\nmisses: 2181656\r\nmax latency 7\r\n{command 1670386874 465 465} {active-defrag-cycle 1670386878 7 7}\r\n{1670386875 7} {1670386876 7} {1670386877 7} {1670386878 7}\r\nAOF loading:\r\nfrag 1.52\r\nhits: 0\r\nmisses: 0\r\nmax latency 0\r\n{command 1670386882 2723 2723} {active-defrag-cycle 1670386878 7 7}\r\n\r\n[err]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 0 > 100000 (context: type eval line 106 cmd {assert {$hits > 100000}} proc ::test)\r\nused 54309504\r\nrss 54632448\r\nfrag 1.01\r\nfrag_bytes 322944\r\nused 29064688\r\nrss 53747712\r\nfrag 1.85\r\nfrag_bytes 24683024\r\nused 29100352\r\nrss 30318592\r\nfrag 1.04\r\nfrag_bytes 1218240\r\n[ok]: Active defrag eval scripts (2601 ms)\r\nfrag 1.87\r\nfrag 1.03\r\nhits: 499297\r\nmisses: 1509532\r\nmax latency 8\r\n{command 1670386893 386 386} {active-defrag-cycle 1670386896 6 8}\r\n{1670386893 8} {1670386894 8} {1670386895 8} {1670386896 6}\r\n[ok]: Active defrag big keys (11916 ms)\r\nfrag 2.00\r\nfrag 1.01\r\nmisses: 101248\r\nhits: 98755\r\nmax latency 8\r\n{command 1670386906 183 183} {active-defrag-cycle 1670386907 8 8}\r\n{1670386907 8}\r\n[ok]: Active defrag big list (11490 ms)\r\n=== (defrag) Starting server 127.0.0.1:21613 ok\r\nfrag 1.96\r\nfrag 1.05\r\nhits: 627696\r\nmisses: 1715533\r\n[ok]: Active defrag edge case (15351 ms)\r\n[1/1 done]: defrag (58 seconds)\r\n\r\n                   The End\r\n\r\nExecution time of different units:\r\n  1 seconds - unit/memefficiency\r\n  58 seconds - defrag\r\n\r\n!!! WARNING The following tests failed:\r\n\r\n*** [err]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 0 > 100000 (context: type eval line 106 cmd {assert {$hits > 100000}} proc ::test)\r\nCleanup: may take some time... OK\r\n```\r\n"
+    },
+    {
+      "id": 1340469349,
+      "user": "oranagra",
+      "created_at": "2022-12-07T06:41:35Z",
+      "body": "@bsdelf please try to increase the play with the following line and see if it helps (e.g. try -200)\r\n```\r\nr config set key-load-delay -50 ;# sleep on average 1/50 usec\r\n```"
+    },
+    {
+      "id": 1340748333,
+      "user": "bsdelf",
+      "created_at": "2022-12-07T10:40:20Z",
+      "body": "Change to -200 or even -2000 does not help,  I've tried several times. Run in konsole can also fail, so terminal emulator is irrelevant. But I do observe, if add some constant loads to system instead of idle before running that test case, the success rate increases."
+    },
+    {
+      "id": 1340876811,
+      "user": "oranagra",
+      "created_at": "2022-12-07T12:10:25Z",
+      "body": "i'm sorry, i mixed it up, please try to make it lower. e.g. -25 or -5 (effectively making AOF loading slower, and giving the defragger a chance to get triggered and run)"
+    },
+    {
+      "id": 1341930775,
+      "user": "bsdelf",
+      "created_at": "2022-12-08T03:17:53Z",
+      "body": "It works, thanks."
+    },
+    {
+      "id": 1342110024,
+      "user": "oranagra",
+      "created_at": "2022-12-08T06:07:42Z",
+      "body": "so i suppose your machine is too fast for that test.\r\ni'll consider changing the threshold if we see it again."
+    },
+    {
+      "id": 1342113538,
+      "user": "oranagra",
+      "created_at": "2022-12-08T06:10:46Z",
+      "body": "actually, i just noticed that the person who opened this issue had this failure too (among others), so this is the second time we see it.\r\n@bsdelf please tell me which value you used that seemed to consistently work."
+    },
+    {
+      "id": 1342368804,
+      "user": "bsdelf",
+      "created_at": "2022-12-08T09:39:03Z",
+      "body": "-40 is good. \r\n\r\nFor anyone who wants to find out the optimal parameter\r\n\r\na.js\r\n\r\n```js\r\nconst fs = require('fs');\r\nconst { spawn } = require('child_process');\r\n\r\nasync function delay(ms) {\r\n  return new Promise((resolve) => {\r\n    setTimeout(resolve, ms);\r\n  });\r\n}\r\n\r\nfunction tune() {\r\n  const step = 5;\r\n  const testFilePath = 'tests/unit/memefficiency.tcl';\r\n  const pattern =\r\n    /r config set key-load-delay -(?<value>\\d+) ;# sleep on average/;\r\n  const origData = fs.readFileSync(testFilePath, 'utf-8');\r\n  const matched = origData.match(pattern);\r\n  const line = matched[0];\r\n  const value = Number.parseInt(matched.groups.value);\r\n  if (!matched || !line || !Number.isInteger(value)) {\r\n    throw new Error('pattern not found');\r\n  }\r\n  console.log('orignal:', { line, value });\r\n  const newValue = value - step;\r\n  const newLine = line.replace(`${value}`, `${newValue}`);\r\n  console.log('patched:', { value: newValue, line: newLine });\r\n  const newData = origData.replaceAll(line, newLine);\r\n  fs.writeFileSync(testFilePath, newData, { encoding: 'utf-8' });\r\n}\r\n\r\nasync function loop() {\r\n  let stop = true;\r\n  const cp = spawn('./runtest', ['--single', 'unit/memefficiency'], {\r\n    detached: true,\r\n  });\r\n  for (const event of ['SIGINT', 'uncaughtException', 'unhandledRejection']) {\r\n    process.on(event, () => {\r\n      process.kill(-cp.pid);\r\n    });\r\n  }\r\n  cp.stdout.on('data', (data) => {\r\n    const text = data.toString();\r\n    console.log(text);\r\n    if (/\\[.*err.*\\]:/.test(text)) {\r\n      stop = false;\r\n      process.kill(-cp.pid);\r\n    }\r\n  });\r\n  cp.stderr.on('data', (data) => {\r\n    console.log(data.toString());\r\n    stop = true;\r\n    process.kill(-cp.pid);\r\n  });\r\n  cp.on('close', async (code) => {\r\n    console.log(`child process exited with code: ${code}`);\r\n    if (!stop) {\r\n      tune();\r\n      await delay(6000);\r\n      loop();\r\n    }\r\n  });\r\n}\r\n\r\n(async () => {\r\n  try {\r\n    await loop();\r\n  } catch (err) {\r\n    console.log(err);\r\n  }\r\n})();\r\n```\r\n\r\nstart iteration and wait\r\n\r\n```sh\r\nfor run in {1..10}; do node a.js; done\r\n```\r\n\r\ncheck result\r\n\r\n```sh\r\ngit diff\r\n```"
+    },
+    {
+      "id": 1342466519,
+      "user": "oranagra",
+      "created_at": "2022-12-08T10:20:38Z",
+      "body": "ok, i'll aim for `-25` to keep a safe distance."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 11877.0,
+  "title": "[BUG]  Join some new nodes to the cluster error",
+  "body": "**Describe the bug**\r\n\r\nWhen I use \"redis-cli --cluster add-node\" to join some new nodes to the cluster, an error occurs:\r\n\"[ERR] No such master ID xxxxx\"\r\n\r\n**To reproduce**\r\n\r\nThe shell script is:\r\n```\r\n#!/bin/bash\r\nEXIST_NODE_IP=$1\r\nEXIST_NODE_PORT=$2\r\nNEW_MASTER_IP=$3\r\nNEW_MASTER_PORT=$4\r\nNEW_SLAVE_IP=$5\r\nNEW_SLAVE_PORT=$6\r\n\r\nif (( $# != 6 )); then\r\n    echo \"Usage:\"\r\n    echo \"    $0 <exist-node-ip> <exist-node-port> <new-master-ip> <new-master-port> <new-slave-ip> <new-slave-port>\"\r\nexit 1\r\nfi\r\n\r\nNEW_MASTER_ID=`../../src/redis-cli -h $NEW_MASTER_IP -p $NEW_MASTER_PORT  cluster myid`\r\n\r\n../../src/redis-cli --cluster add-node $NEW_MASTER_IP:$NEW_MASTER_PORT $EXIST_NODE_IP:$EXIST_NODE_PORT\r\n../../src/redis-cli --cluster add-node $NEW_SLAVE_IP:$NEW_SLAVE_PORT $EXIST_NODE_IP:$EXIST_NODE_PORT  --cluster-slave --cluster-master-id $NEW_MASTER_ID\r\n```\r\n\r\n**Expected behavior**\r\n\r\n[OK] New node added correctly.\r\n",
+  "state": "open",
+  "created_at": "2023-03-03T02:07:22Z",
+  "updated_at": "2023-03-06T05:53:12Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1452848320,
+      "user": "rclijia",
+      "created_at": "2023-03-03T02:14:32Z",
+      "body": "The reason should be: \r\nAfter the new master node joins, execute the \"--cluster-slave --cluster-master-id\" operation，but the gossip protocol has not been synchronized, and other nodes have not obtained the ID of the new master node."
+    },
+    {
+      "id": 1452880572,
+      "user": "rclijia",
+      "created_at": "2023-03-03T02:51:30Z",
+      "body": "To avoid the above problems, use the following command instead:\r\n```\r\nNEW_MASTER_ID=`redis-cli -h $EXIST_NODE_IP -p $EXIST_NODE_PORT cluster nodes | grep \"$NEW_MASTER_IP:$NEW_MASTER_PORT\" | awk {'print $1'}`\r\n\r\nwhile [ -z \"$NEW_MASTER_ID\" ]\r\ndo\r\n    echo \"can't get master id, try again...\"\r\n    sleep 1\r\n    NEW_MASTER_ID=`redis-cli -h $EXIST_NODE_IP -p $EXIST_NODE_PORT cluster nodes | grep \"$NEW_MASTER_IP:$NEW_MASTER_PORT\" | awk {'print $1'}`\r\ndone\r\n```\r\n\r\nHowever, this process should be implemented in the redis-cli ? "
+    }
+  ]
+}

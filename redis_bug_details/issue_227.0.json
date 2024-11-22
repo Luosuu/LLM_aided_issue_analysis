@@ -1,0 +1,26 @@
+{
+  "issue_number": 227.0,
+  "title": "SORT ... STORE does not behave like other *STORE commands",
+  "body": "Commands such as SINTERSTORE overwrite existing values for the destination, _even if the result of the operation is an empty set/list_. SORT overwrites existing values as well, with one subtle difference: if the result of sort is an empty list _the value is not overwritten_. This behavior is very confusing, and IMO should be changed or at least be clearly documented. \n\nHere's an example:\n\n``` redis\nredis 127.0.0.1:6379> lpush mylist a \n(integer) 1\nredis 127.0.0.1:6379> lpush mylist b\n(integer) 2\nredis 127.0.0.1:6379> lpush mylist c\n(integer) 3\nredis 127.0.0.1:6379> sort mylist store temp\n(integer) 3\nredis 127.0.0.1:6379> lrange temp 0 2\n1) \"c\"\n2) \"b\"\n3) \"a\"\nredis 127.0.0.1:6379> sort emptylist store mylist\n(empty list or set)\nredis 127.0.0.1:6379> lrange temp 0 2\n1) \"c\"\n2) \"b\"\n3) \"a\"\n```\n\nNote that the SORT command documentation does not even mention that the destination will be overwritten.\n",
+  "state": "closed",
+  "created_at": "2011-12-01T16:55:28Z",
+  "updated_at": "2012-01-30T09:26:05Z",
+  "closed_at": "2012-01-30T09:26:05Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2983196,
+      "user": "antirez",
+      "created_at": "2011-12-01T22:31:30Z",
+      "body": "I agree, the key should be deleted when the resulting list is zero length. Thanks!\n"
+    },
+    {
+      "id": 3716625,
+      "user": "antirez",
+      "created_at": "2012-01-30T09:26:05Z",
+      "body": "Issue closed merging @mkwiatkowski patch. Thanks.\n"
+    }
+  ]
+}

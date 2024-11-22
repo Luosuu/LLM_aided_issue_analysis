@@ -1,0 +1,24 @@
+{
+  "issue_number": 11737.0,
+  "title": "[BUG] bitfield returns empty array when required args are missing",
+  "body": "**Describe the bug**\r\n\r\n`BITFIELD` isn't in agreement with its `COMMAND DOCS` descriptor when missing a required argument.\r\n\r\n**To reproduce**\r\n\r\n```\r\nBITFIELD mykey\r\n(empty array)\r\n```\r\n\r\n**Expected behavior**\r\n\r\n```\r\nBITFIELD mykey\r\n(error) ERR wrong number of arguments for 'bitfield' command\r\n```\r\n\r\nbecause the documentation and `COMMAND DOCS` descriptor both indicate at least one GET or SET must be specified.\r\n\r\nMy app that relies on the descriptor doesn't agree with redis-cli.\r\n\r\n**Additional information**\r\n\r\n`Redis server v=7.0.8 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=8b9bd5cdb53a6549`\r\n",
+  "state": "closed",
+  "created_at": "2023-01-18T15:15:46Z",
+  "updated_at": "2023-01-19T09:31:29Z",
+  "closed_at": "2023-01-19T09:29:35Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1396294759,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-19T00:43:48Z",
+      "body": "thanks for the report, although I believe we should throw a error in that case, the argument became optional in #11445\r\nwe will release it in the next version (7.0.9). FYI @oranagra i added it in to the [Redis 7.0 Backport](https://github.com/orgs/redis/projects/7)"
+    },
+    {
+      "id": 1396678574,
+      "user": "oranagra",
+      "created_at": "2023-01-19T09:29:35Z",
+      "body": "thanks.\r\nso as stated, that's already fixed and will be included in the next release.\r\nclosing the issue."
+    }
+  ]
+}

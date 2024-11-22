@@ -1,0 +1,54 @@
+{
+  "issue_number": 7928.0,
+  "title": "[BUG] Sentinel returning master ip instead of hostname which is failing in case of TLS",
+  "body": "**Return master Hostname instead of ip**\r\n\r\nWhen we request a master address to sentinel it's returning IP instead of HOSTNAME so the backend node js client is trying to connect with IP and server returning error saying IP doesn't match the certificate\r\n\r\nMy config is below with 3 Redis processes(1master 2 slaves) on different ports on the same server. And 3 sentinels as same\r\n**Note**: I have proper SSL certs and host IP and DNS names mapped.\r\n\r\nRedis.conf\r\n```\r\nport 0\r\ntls-port 6379\r\ntls-cluster yes\r\ntls-protocols \"TLSv1.2 TLSv1.3\"\r\ntls-ciphersuites TLS_CHACHA20_POLY1305_SHA256\r\ntls-cert-file /data/certs/cert.pem\r\ntls-key-file /data/certs/key.pem\r\ntls-ca-cert-file /data/certs/ca.pem\r\ntls-replication yes\r\ntls-auth-clients yes\r\nreplicaof testredis1.test.com\r\n```\r\nSentinel.conf\r\n```\r\nport 0\r\ntls-port 26379\r\ntls-protocols \"TLSv1.2\"\r\ntls-ciphersuites TLS_CHACHA20_POLY1305_SHA256\r\ntls-cert-file \"/data/certs/cert.pem\"\r\ntls-key-file \"/data/certs/key.pem\"\r\ntls-ca-cert-file \"/data/certs/ca.pem\"\r\ntls-auth-clients yes\r\ntls-replication yes\r\n\r\nsentinel monitor RedisMaster 127.0.0.1 6379 2\r\nsentinel down-after-milliseconds RedisMaster 5000\r\n```\r\n**ERROR:**\r\nerror: Error [ERR_TLS_CERT_ALTNAME_INVALID]: Hostname/IP does not match certificate's altnames: IP: 127.0.0.1 is not in the cert's list: +5ms\r\n[ioredis] Unhandled error event: Error [ERR_TLS_CERT_ALTNAME_INVALID]: Hostname/IP does not match certificate's altnames: IP: 127.0.0.1 is not in the cert's list:\r\nat Object.checkServerIdentity (tls.js:250:17)\r\nat TLSSocket.onConnectSecure (_tls_wrap.js:1098:27)\r\nat TLSSocket.emit (events.js:198:13)\r\n\r\n**To reproduce**\r\n\r\nBasic Redis sentinel setup with TLS and connect using node js client  \r\n**Expected behavior**\r\n\r\nSentinel should return the hostname of the master so node js client can connect using the domain names\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-10-19T12:26:48Z",
+  "updated_at": "2021-01-28T10:21:28Z",
+  "closed_at": "2021-01-28T10:21:28Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 712164241,
+      "user": "oranagra",
+      "created_at": "2020-10-19T13:40:53Z",
+      "body": "@sivanagireddyb can you please add a bit more details, and maybe an example showing the problem to avoid confusion?"
+    },
+    {
+      "id": 712180462,
+      "user": "sivanagireddyb",
+      "created_at": "2020-10-19T14:05:40Z",
+      "body": "@oranagra Added detailed description"
+    },
+    {
+      "id": 714462007,
+      "user": "yossigo",
+      "created_at": "2020-10-22T12:33:23Z",
+      "body": "@sivanagireddyb Sentinel currently has other issues (such as #7758) when hostnames are used instead of IPs, so those will have to be resolved before addressing this particular issue.\r\n\r\nUntil then, the best option is to disable matching of hostname to certificate name. As long as your Certificate Authority is a private one, the security implications of this should be minor."
+    },
+    {
+      "id": 714532165,
+      "user": "mvasi90",
+      "created_at": "2020-10-22T14:26:18Z",
+      "body": "The replica instance acts as client. Where is the client certificate and key?\r\nThe conf file is changed by the sentinel instance at any time. This means that the same conf file acts as server and client.\r\n\r\nRedis uses the server key and certificate to connect to the server that uses the same key and certificate? pfff...\r\nI think the redis push is hasty. It should be only local commits until a feature is fully functional.\r\n\r\nThis way you avoid people wasting time on something that doesn't work."
+    },
+    {
+      "id": 714548887,
+      "user": "yossigo",
+      "created_at": "2020-10-22T14:51:00Z",
+      "body": "@mvasi90 I think stating this doesn't work is very inaccurate.\r\n\r\nYou are right that currently there is no way to configure a different cert/key for Redis as as client. In many (most?) cases that's not an issue, but could become a problem depending on the configuration of the certificates (e.g. if key usage attributes are specified, etc.).\r\n\r\nAdditional configuration for separate certificates could be useful, and so could many other TLS and non-TLS related enhancements. Software development is an incremental effort and holding back everything until it's 100% perfect is rarely an option. If you feel something is broken or missing you're welcome to file an issue describing your finding or ideas.\r\n\r\nBTW all of this of course has nothing to do with the problem described in this issue which involves Sentinel advertising services by their IPs and not hostnames."
+    },
+    {
+      "id": 714560115,
+      "user": "mvasi90",
+      "created_at": "2020-10-22T15:07:53Z",
+      "body": "I'm using a Public Key Infrastructure with subordinate CAs and a client certificate acts as a client certificate, while a server certificate acts as a server certificate. I don't know what concept of security you have.\r\n\r\n>If you feel something is broken or missing you're welcome to file an issue describing your finding or ideas.\r\n\r\nOf course, I wish I could do that but I'm very busy. When I appear \"in public\" saying something, it is because it is wrong.\r\n\r\n>BTW all of this of course has nothing to do with the problem described in this issue which involves Sentinel advertising services by their IPs and not hostnames.\r\n\r\nYou are right, it is another issue. But it is related with TLS."
+    },
+    {
+      "id": 768951940,
+      "user": "yossigo",
+      "created_at": "2021-01-28T10:21:28Z",
+      "body": "This issue has been addressed by #8282. Note that hostnames are not supported by default though, specific configuration is required to enable this."
+    }
+  ]
+}

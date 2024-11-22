@@ -1,0 +1,30 @@
+{
+  "issue_number": 8092.0,
+  "title": "[BUG] CLANG compiler error on armv5 and armv7",
+  "body": "Compiling redis on arm (32 bit) with clang results in the following errors (only stating two):\r\n\r\ndebug.c:963:36: error: no member named 'gregs' in 'mcontext_t'\r\n    return (void*) uc->uc_mcontext.gregs[14]; /* Linux 32 */\r\n                   ~~~~~~~~~~~~~~~ ^\r\ndebug.c:1137:41: error: no member named 'gregs' in 'mcontext_t'\r\n        (unsigned long) uc->uc_mcontext.gregs[11],\r\n                        ~~~~~~~~~~~~~~~ ^\r\ndebug.c:1138:41: error: no member named 'gregs' in 'mcontext_t'\r\n        (unsigned long) uc->uc_mcontext.gregs[8],\r\n\r\n**To reproduce**\r\n\r\nClone the repo and compile on ARM using CLANG. Can only be reproduced on ARM and *not* on Intel using the same compiler suite. Using GCC on Arm works.\r\n\r\nThis can be reproduced with CLANG v11 running on Arch and CLANG v7.0.1 running on Debian. \r\n\r\n**Expected behavior**\r\n\r\nCompile w/o errors. \r\n\r\n**Additional information**\r\n\r\nLet me know if you need more information.",
+  "state": "closed",
+  "created_at": "2020-11-25T11:22:00Z",
+  "updated_at": "2020-11-29T20:28:16Z",
+  "closed_at": "2020-11-29T12:37:49Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 735361273,
+      "user": "oranagra",
+      "created_at": "2020-11-29T08:36:30Z",
+      "body": "for some reason it tries to build the x86 code.\r\ni suppose this may be do to the `__ILP32__` ifdef.\r\n\r\n@chrisAtRedis can you try to see if re-ordering the code fixes this?\r\ni.e. move the blocks for `__arm__` to be before the ones for `__ILP32__`?"
+    },
+    {
+      "id": 735387351,
+      "user": "oranagra",
+      "created_at": "2020-11-29T12:37:48Z",
+      "body": "looks like this is already solved by #8095"
+    },
+    {
+      "id": 735449137,
+      "user": "chrisAtRedisLabs",
+      "created_at": "2020-11-29T20:28:15Z",
+      "body": "Confirmed that #8095 also fixes this for ARMv7 on native Debian and ALARM on v5. Regression with GCC also checks out on both platforms. This is good to go."
+    }
+  ]
+}

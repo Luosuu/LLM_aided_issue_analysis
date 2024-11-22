@@ -1,0 +1,20 @@
+{
+  "issue_number": 3334.0,
+  "title": "redis-benchmark.c lrange with possibly wrong range parameter ",
+  "body": "redis-benchmark.c\n\n```\nif (test_is_selected(\"lrange\") || test_is_selected(\"lrange_500\")) {\n    len = redisFormatCommand(&cmd,\"LRANGE mylist 0 449\");\n    benchmark(\"LRANGE_500 (first 450 elements)\",cmd,len);\n    free(cmd);\n}\n```\n\nHere LRANGE_500 takes `LRANGE mylist 0 449` as raw cmd string, which supposed to take `LRANGE mylist 0 499`.  Isn't it so?\n",
+  "state": "closed",
+  "created_at": "2016-06-21T15:39:13Z",
+  "updated_at": "2021-05-03T22:40:06Z",
+  "closed_at": "2021-05-03T22:40:06Z",
+  "labels": [
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 831579518,
+      "user": "filipecosta90",
+      "created_at": "2021-05-03T22:40:06Z",
+      "body": "@lulyon thank for reporting this. The issue has been fixed by https://github.com/redis/redis/pull/8872. \r\n"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "issue_number": 165.0,
+  "title": "Modify SMEMBERS behavior when the client is a Lua script",
+  "body": "Currently SMEMBERS will return members in a random order, since sets are unordered by default.\nThis is a problem in the context of scripting as this introduces a point of non determinism, for instance I can do a script getting all the elements from a Set, then pushing that elements into a List with RPUSH.\n\nBut if the order of returned elements changes, the result will also change.\n\nThe simplest solution is translating `SMEMBERS <key>` into `SORT <key> ALPHA` when the client is the Lua.\nThe commands have the same output exactly if not for that difference:\n\n```\nredis 127.0.0.1:6379> sadd foo a b c d e f g h i\n(integer) 9\n\nredis 127.0.0.1:6379> smembers foo\n1) \"c\"\n2) \"d\"\n3) \"e\"\n4) \"f\"\n5) \"g\"\n6) \"h\"\n7) \"i\"\n8) \"a\"\n9) \"b\"\n\nredis 127.0.0.1:6379> sort foo alpha\n1) \"a\"\n2) \"b\"\n3) \"c\"\n4) \"d\"\n5) \"e\"\n6) \"f\"\n7) \"g\"\n8) \"h\"\n9) \"i\"\n```\n\nSORT will always output elements in the right order making the replication of the script deterministic, and also guaranteeing that the same script executed against the same data set will always lead to the same result.\n",
+  "state": "closed",
+  "created_at": "2011-10-27T14:16:19Z",
+  "updated_at": "2012-02-02T03:35:41Z",
+  "closed_at": "2012-02-01T16:49:53Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2789678,
+      "user": "antirez",
+      "created_at": "2011-11-18T14:33:02Z",
+      "body": "Note: the same problem also affects other commands returning intersections, unions, differences between sets (and sorted sets).\n"
+    },
+    {
+      "id": 2791581,
+      "user": "philjohn",
+      "created_at": "2011-11-18T17:10:35Z",
+      "body": "How is this any different from the case wherer you'll add it to a list from your own, remote code? Surely the responsibility of ensuring items are in the correct order should be down to the code writer? In this case they could sort the set in Lua before adding (or use sorted sets).\n"
+    },
+    {
+      "id": 2793412,
+      "user": "lsbardel",
+      "created_at": "2011-11-18T19:47:47Z",
+      "body": "Agree 100% with @philjohn.\n"
+    },
+    {
+      "id": 2815791,
+      "user": "anydot",
+      "created_at": "2011-11-21T14:36:24Z",
+      "body": "@philjohn @lsbardel remote modification will be fine as those commands will be repliaceted/aofed as is, where in case of script it's script itself which is replicated not changes it will do\n"
+    },
+    {
+      "id": 3223624,
+      "user": "miaout17",
+      "created_at": "2011-12-20T19:13:38Z",
+      "body": "> Note: the same problem also affects other commands returning intersections, unions, differences between sets (and sorted sets).\n\nInvestigating this issue. I thought sorted set has no problem because `ZUNIONSTORE` and `ZINTERSTORE` doesn't read and return values. \n\nThe problematic commands are:\n- SMEMBERS\n- SINTER\n- SUNION\n- SDIFF\n\nRIght?\n"
+    },
+    {
+      "id": 3262732,
+      "user": "miaout17",
+      "created_at": "2011-12-23T17:17:31Z",
+      "body": "Trying to work on the issue. \n"
+    },
+    {
+      "id": 3263581,
+      "user": "miaout17",
+      "created_at": "2011-12-23T18:48:31Z",
+      "body": "Proposed my fix on #270\n"
+    },
+    {
+      "id": 3739223,
+      "user": "antirez",
+      "created_at": "2012-01-31T13:52:42Z",
+      "body": "@miaout17 thanks for the proposed fixes, for now I'm taking this in standby as I'm exploring the possibility of just automatically ordering command outputs in the context of Lua implicitly calling table.sort(). More news in the next days, thanks!\n"
+    },
+    {
+      "id": 3740715,
+      "user": "antirez",
+      "created_at": "2012-01-31T15:13:02Z",
+      "body": "Doing it from Lua worked great. Now we have just a problem left... SORT BY <constant>, but it is not going to be too hard as well. So not closing this issue for now.\n"
+    },
+    {
+      "id": 3741112,
+      "user": "pietern",
+      "created_at": "2012-01-31T15:33:14Z",
+      "body": "Just want to say this solution looks great! Non-invasive, elegant, concise, awesome! Maybe the SORT problem can be solved by making the command itself set some kind of flag to indicate that the output is not explicitly or inherently ordered, so needs post-processing in a script.\n"
+    },
+    {
+      "id": 3741676,
+      "user": "antirez",
+      "created_at": "2012-01-31T16:02:56Z",
+      "body": "Thank you Pieter, for SORT I just remembered that we already sets global state in the 'server' structure, we could just read that probably, after the command execution should be unaltered.\n\n```\nint sort_desc;\nint sort_alpha;\nint sort_bypattern;\n```\n\nOr if it is not set well in our context we could just add a field here as you suggested.\n"
+    },
+    {
+      "id": 3759615,
+      "user": "antirez",
+      "created_at": "2012-02-01T14:35:14Z",
+      "body": "Commit 2c861050c17237a61fdaff4da2777c5d18ce979a fixes the final issues. Actually this was a bit more involved than originally believed because SORT, even when sorting, was not reliable in the output for a few reasons:\n- Numerical sorting with invalid elements (impossible to convert into double) treated as having value of 0 and thus having random order even if different elements.\n- Numerical sorting of string elements, with BY and foreign scores, where multiple elements had the same score.\n\nSo sort was fixed to be more deterministic, then a new server.sort_dontsort flag was added to the server structure in order to propagate if the output is not sorted to the scripting engine. Finally luaSortArray() was modified so that if the first attempt at sorting with table.sort fails, we use table.sort() passing an user defined function that will thread \"false\" values as empty strings.\n\nThis should fix everything about scripting and determinism. However I found an instance of the determinism bug still left outside the context of scripting, that is:\n\n```\nSORT mylist ALPHA BY constant STORE mylist2\n```\n\nThis will produce different output lists in slaves, because the order is undefined (this is very evident now that we have a random salt in our hashing function).\n\nThe simple solution is to force sorting (with alpha, so that it will always work) when STORE is used. I'll commit this in a few.\n"
+    },
+    {
+      "id": 3762202,
+      "user": "antirez",
+      "created_at": "2012-02-01T16:49:53Z",
+      "body": "Issue closed! Everything is now tested by unit tests, and everything seems working great so far.\n"
+    },
+    {
+      "id": 3772101,
+      "user": "miaout17",
+      "created_at": "2012-02-02T03:35:41Z",
+      "body": "Good Job! Looking forward for 2.6 release :)\n"
+    }
+  ]
+}

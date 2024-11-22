@@ -1,0 +1,11 @@
+{
+  "issue_number": 9957.0,
+  "title": "[BUG] redis-cli add new node hanging forever when a node is in a connected failure state",
+  "body": "**Describe the bug**\r\n\r\nredis-cli add-node hangs when there is a node in a connected failure state\r\n\r\n**To reproduce**\r\n\r\nThe cluster is in the following state:\r\n6d4ac11762296309ceeb6632f978b07d02269e15 10.144.6.13:6379@16379 slave 6f6b775aa7a88c8a8c26e6ab1506c0aacd982529 0 1639739165247 8 connected\r\n000e71bfa6a1f3ad4a230071c5c51fc37ae0c499 10.144.3.13:6379@16379 slave 0042335d7b47fae143906e811919b0539535d288 0 1639739165247 9 connected\r\n5d33620b598abb44058fdf2a1448c237d02989dc 10.144.7.13:6379@16379 master - 0 1639739165248 3 connected 10923-16383\r\n231fb0d1e1398985709d95d97a515f844ee71805 10.144.8.6:6379@16379 myself,slave 5d33620b598abb44058fdf2a1448c237d02989dc 0 1639739165000 3 connected\r\n340667eacba01e3aff4fbd4026863cb40bfc87f4 10.144.27.14:6379@16379 slave 5d33620b598abb44058fdf2a1448c237d02989dc 0 1639739165247 3 connected\r\n0042335d7b47fae143906e811919b0539535d288 10.144.9.14:6379@16379 master - 0 1639739165247 9 connected 5461-10922\r\n20d43990c92f5fa7fcaab0676d62fdfbe00aebfe 10.144.15.3:6379@16379 master,fail - 1639557068707 1639557068607 1 connected\r\n6f6b775aa7a88c8a8c26e6ab1506c0aacd982529 10.144.39.15:6379@16379 master - 0 1639739165248 8 connected 0-5460\r\n\r\n10.144.15.3 got disconnected and is now gone. \r\n\r\nif you run redis-cli ${REDIS_TLS} ${REDIS_AUTH} --cluster add-node ${NEW_IP}:${NEW_PORT}  10.144.9.14:${REDIS_PORT} --cluster-slave\r\n>>> Adding node 10.144.5.5:6379 to cluster 10.144.9.14:6379\r\n^C\r\n\r\nThe command hungs indefinitely. \r\n\r\nIf I run a CLUSTER MEET on a connected node everything works.\r\nIf I remove node 20d43990c92f5fa7fcaab0676d62fdfbe00aebfe and retry the command, it works fine.\r\n\r\n**Expected behavior**\r\n\r\nA node should be added even if there are disconnected nodes in the list\r\n",
+  "state": "open",
+  "created_at": "2021-12-17T12:28:41Z",
+  "updated_at": "2021-12-17T12:28:41Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

@@ -1,0 +1,44 @@
+{
+  "issue_number": 13353.0,
+  "title": "[BUG] node restart result in truncated cluster.nodes.conf file.",
+  "body": "**Describe the bug**\r\n\r\nnode restart result in truncated cluster.nodes.conf file.\r\n\r\nA short description of the bug.\r\n\r\n**To reproduce**\r\n\r\n1. Redis server is running fine.\r\n2. restart the node.\r\n3. cluster.nodes.conf file get truncated.\r\n\r\n```\r\n9078b05e02e28d87583eb36d7d5a778170bdfe92 172.30.45.214:6379@16379 master - 0 1701873957174 4 connected 5461-10922\r\nva\r\n\r\n```\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\n```\r\n9078b05e02e28d87583eb36d7d5a778170bdfe92 172.30.45.214:6379@16379 master - 0 1701873957174 4 connected 5461-10922\r\nvars currentEpoch 8 lastVoteEpoch 8\r\n\r\n```\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2024-06-18T13:49:00Z",
+  "updated_at": "2024-07-06T02:41:17Z",
+  "closed_at": "2024-07-06T02:41:16Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 2176161308,
+      "user": "sundb",
+      "created_at": "2024-06-18T13:52:04Z",
+      "body": "@SarthakSahu what version are you using?"
+    },
+    {
+      "id": 2176229382,
+      "user": "SarthakSahu",
+      "created_at": "2024-06-18T14:21:21Z",
+      "body": "@sundb Its 7.0.14"
+    },
+    {
+      "id": 2177320735,
+      "user": "sundb",
+      "created_at": "2024-06-19T00:54:43Z",
+      "body": "it probably relates to #10924, can you try it or upgrade to 7.2.x?"
+    },
+    {
+      "id": 2177836629,
+      "user": "SarthakSahu",
+      "created_at": "2024-06-19T06:18:35Z",
+      "body": "Thank you. Will try and let you know the feedback."
+    },
+    {
+      "id": 2211598197,
+      "user": "sundb",
+      "created_at": "2024-07-06T02:41:17Z",
+      "body": "close it, call me if any new."
+    }
+  ]
+}

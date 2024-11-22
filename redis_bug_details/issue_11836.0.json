@@ -1,0 +1,48 @@
+{
+  "issue_number": 11836.0,
+  "title": "[BUG]Make Build Error",
+  "body": "```\r\nunzip redis-6.2.10.zip\r\ncd redis-6.2.10\r\nmake \r\n\r\n```\r\n\r\nWhen the “ make ”command is executed, it prompts,------------‘can not be used when making a PIE object; recompile with -fPIE\r\n‘\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-02-25T12:21:51Z",
+  "updated_at": "2023-04-21T13:54:46Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1449528434,
+      "user": "yossigo",
+      "created_at": "2023-03-01T08:09:50Z",
+      "body": "@liang-hiwin Can you provide more information about your platform - OS type and version, compiler, etc?"
+    },
+    {
+      "id": 1450157585,
+      "user": "liang-hiwin",
+      "created_at": "2023-03-01T13:29:59Z",
+      "body": "> @liang-hiwin Can you provide more information about your platform - OS type and version, compiler, etc?\r\n\r\n```\r\nroot@debian:~# cat /proc/version\r\nLinux version 6.1.0-x64v1-xanmod1 (root@mascote) (gcc-12 (Debian 12.2.0-9) 12.2.0, GNU ld (GNU Binutils for Debian) 2.39) #0~20221213.629e4bb9 SMP PREEMPT_DYNAMIC Tue Dec 13 11:05:44 UTC\r\n\r\nroot@debian:~# lsb_release -a\r\nNo LSB modules are available.\r\nDistributor ID: Debian\r\nDescription:    Debian GNU/Linux 11 (bullseye)\r\nRelease:        11\r\nCodename:       bullseye\r\n\r\nroot@debian:~# gcc --version\r\ngcc (GCC) 12.1.0\r\nCopyright (C) 2022 Free Software Foundation, Inc.\r\n\r\n\r\n```\r\n"
+    },
+    {
+      "id": 1465139964,
+      "user": "slavak",
+      "created_at": "2023-03-12T09:37:19Z",
+      "body": "FWIW I tried and failed to reproduce this using the `gcc:12-bullseye` container.\r\n\r\nOf course this was with gcc 12.2.0 and kernel 5.15.0-60, so not an exact comparison."
+    },
+    {
+      "id": 1517829605,
+      "user": "liang-hiwin",
+      "created_at": "2023-04-21T13:23:08Z",
+      "body": "> FWIW I tried and failed to reproduce this using the `gcc:12-bullseye` container.\r\n> \r\n> Of course this was with gcc 12.2.0 and kernel 5.15.0-60, so not an exact comparison.\r\n\r\nredis-7.0.11 still prompts this problem"
+    },
+    {
+      "id": 1517869451,
+      "user": "liang-hiwin",
+      "created_at": "2023-04-21T13:53:38Z",
+      "body": "I modified the makefile and added -no-pie in front of -fsanitize to complete the compilation perfectly"
+    },
+    {
+      "id": 1517870969,
+      "user": "liang-hiwin",
+      "created_at": "2023-04-21T13:54:46Z",
+      "body": "[Makefile.zip](https://github.com/redis/redis/files/11296305/Makefile.zip)\r\n"
+    }
+  ]
+}

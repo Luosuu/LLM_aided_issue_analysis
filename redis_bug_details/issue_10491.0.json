@@ -1,0 +1,81 @@
+{
+  "issue_number": 10491.0,
+  "title": "[BUG] Invalid auth does not reset existing authenticated connection",
+  "body": "From Redis 6, if auth command fails on existing authenticated connection, it will continue to be authenticated on existing username. This is due to authenticated flag not being reset if there is invalid auth here: https://github.com/redis/redis/blob/6.0/src/acl.c#L2038.\r\nIf a user with higher permissions is authenticated and wants to switch to a user with lower permissions and fails to auth. It will fail but fallback to user with higher permissions which can cause side effects.\r\n\r\n**To reproduce**\r\n\r\n>Redis-cli -h Redis6-cachename\r\n>auth user1 correctpassword\r\nOK\r\n>acl whoami\r\nuser1\r\n>auth user2 incorrectpassword\r\nWRONGPASS invalid username-password pair\r\n>acl whoami\r\nuser1\r\n\r\n\r\n**Expected behavior**\r\n\r\n>Redis-cli -h Redis6-cachename\r\n>auth user1 correctpassword\r\nOK\r\n>acl whoami\r\nuser1\r\n>auth user2 incorrectpassword\r\nWRONGPASS invalid username-password pair\r\n>acl whoami\r\nNOAUTH authentication required\r\n\r\n**Additional information**\r\n\r\nFor redis 5, authenticated flag is reset here: https://github.com/redis/redis/blob/5.0/src/server.c#L2954\r\nRedis 5 repro:\r\n>Redis-cli -h Redis4-cachename\r\n>auth correctpassword\r\nOK\r\n>ping\r\npong\r\n>auth incorrectpassword\r\nInvalid password\r\n>ping\r\nNOAUTH authentication required\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-03-29T19:29:34Z",
+  "updated_at": "2022-07-06T09:57:19Z",
+  "closed_at": null,
+  "labels": [
+    "state:major-decision",
+    "breaking-change"
+  ],
+  "comments_data": [
+    {
+      "id": 1082367197,
+      "user": "hwware",
+      "created_at": "2022-03-29T20:58:59Z",
+      "body": "Hello, thanks for your report.  I think in this case both can be acceptable ways to handle this case, it depends what the community wants to decide or has decided on how to tackle this. @oranagra do you think this is a bug or is it intended to work this way?"
+    },
+    {
+      "id": 1082640333,
+      "user": "oranagra",
+      "created_at": "2022-03-30T05:34:47Z",
+      "body": "in an attempt to check if it was intentional or an innocent bug, i tried fixing that and to see if there's a test for it, and there isn't. so looks unintentional to me.\r\n\r\n@redis/core-team anyone can think of a reason not to fix it? i suppose breaking the current behavior won't cause much harm since i expect this pattern is not commonly used."
+    },
+    {
+      "id": 1082813402,
+      "user": "yossigo",
+      "created_at": "2022-03-30T09:02:06Z",
+      "body": "@oranagra Can't think of a reason not to fix that."
+    },
+    {
+      "id": 1082822347,
+      "user": "soloestoy",
+      "created_at": "2022-03-30T09:11:09Z",
+      "body": "It's a known issue for a long time, I used to think it's by designed, if we agree it's a bug, we should fix it."
+    },
+    {
+      "id": 1083333813,
+      "user": "madolson",
+      "created_at": "2022-03-30T16:07:08Z",
+      "body": "Oh, I know about this. I talked with salvatore about this at some point and we agreed on the current behavior, but this was like 3 years ago so not sure I remember the nuance of the conversation.\r\n\r\nThe problem I had seen was that most clients can't handle the state transition from \"Authenticated -> De-authenticated\" in that they fail in interesting ways like unable to do health checks (StackExchange.Redis comes to mind in that it sends health checks with info). So consider the case where you do want to switch authentication, if it fails you want to catch the error and try again, but if the underlying client falls apart the application will be unable to retry.\r\n\r\nSo my vote is to leave it, and maybe document the behavior?"
+    },
+    {
+      "id": 1083360863,
+      "user": "enjoy-binbin",
+      "created_at": "2022-03-30T16:29:06Z",
+      "body": "I personally prefer the current behavior... (like i just try a new user with a wrong password, then you kick me out)"
+    },
+    {
+      "id": 1084109403,
+      "user": "oranagra",
+      "created_at": "2022-03-31T05:59:00Z",
+      "body": "ok, good to know it was intended, or at least not overlooked, but i'm not sure i understand the problems that would be caused by flagging the connection as unauthenticated.\r\n\r\n@enjoy-binbin you said \"kick me out\", unlike a deleted user, which closes the connection, and failed connection attempt should be similar to the RESET command in that respect, i.e. bring you back to the same state as a newly established connection (requiring AUTH / HELLO in order to run any command).\r\n\r\n@madolson i don't know StackExchange.Redis, can you describe the problem in more detail? how is it different from a newly established connection that fails (or didn't attempt) an AUTH?\r\n\r\nNote that one disadvantage of the current approach is that if someone tries to perform a series of operations on behalf of different users in a pipeline, some operations could be executed with the wrong user / permissions.\r\ni.e. `AUTH user1 pw; set x y; AUTH user2 pw FLUSHDB; AUTH user3 pw; client kill;`"
+    },
+    {
+      "id": 1084787484,
+      "user": "madolson",
+      "created_at": "2022-03-31T16:02:42Z",
+      "body": "The issue I was talking about with Salvatore was a cluster client which supported multiple underlying connections per client connection (to do fanout for commands like mset). Most of these clients differentiate the transport layer from the client link. On transport establishment, there is normally a series of \"onConnect\" checks, that if they fail they throw an error. If there was an error, it would propagate it up to the client, but it was assuming it was a client side error so the connection was still healthy and it would keep using it. \r\n\r\nWith that said, if we are going to change the contract `again`, I think the most rational thing to do is to disconnect, since that forces the client to correctly establish a new connection, which is well tested. An aside is that we also made the explicit decision when implementing the authentication APIs to disconnect instead of de-authenticate. Also found this, https://github.com/redis/redis/pull/5916#issuecomment-556126180 conversation we had online, which is basically restating the same position, clients don't handle de-authenticate well.\r\n\r\n@oranagra I don't think that use case is correct anyways, since it's assuming that AUTH will fully reset the client state, which isn't necessarily true anyways. I would expect them to execute some pipeline like:\r\n\r\n```\r\nCLIENT RESET; AUTH; SET X Y\r\nCLIENT RESET; AUTH; GET A B\r\n```"
+    },
+    {
+      "id": 1084790774,
+      "user": "madolson",
+      "created_at": "2022-03-31T16:05:36Z",
+      "body": "@oranagra Honestly sort of feels like we should support something like multiple sessions in your example, since I know a lot of clients do multiplexing and there are a lot of Redis proxies floating around that have a couple of backend connections. Then you can switch between them without the re-auth penalty. QUIC might be a better solution there though."
+    },
+    {
+      "id": 1084867346,
+      "user": "oranagra",
+      "created_at": "2022-03-31T17:08:55Z",
+      "body": "too much on my mind right now, and too late on the release process.\r\nsince this was an intentional decision, and it's not a recent one, i suggest to leave it aside for redis 7.0, and maybe start discussing it again towards redis 8.0.\r\nif it was like that since 6.0, it's ok to let it stay the same for another version."
+    },
+    {
+      "id": 1094191685,
+      "user": "oranagra",
+      "created_at": "2022-04-10T06:12:43Z",
+      "body": "I suppose another aspect of this could be that when redis isn't set with a password, and the client attempts to connect **with** a password, the auth error is ignored and the connection is working. (one of them complaints in #10558).\r\nFixing this may be a little less trivial since it'll need to have a client unauthenticated, even if redis does not require authentication."
+    }
+  ]
+}

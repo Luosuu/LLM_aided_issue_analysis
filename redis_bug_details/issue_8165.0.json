@@ -1,0 +1,11 @@
+{
+  "issue_number": 8165.0,
+  "title": "[BUG]",
+  "body": "**Describe the bug**\r\n\r\nIn src/anet.c, line 503, _anetTcpServer will call  anetV6Only. If it failed in setsockopt at line 471, it will close the socket and goto label error at line 513 without change socket to -1. Suppose that we do not support IPV6 Protocol, and we create a socket, then it will be closed. And at the \"error\" label, it will be closed twice and return a errno EBADF, which will cause failure to create any tcp server.\r\n\r\n**To reproduce**\r\n\r\n1. Use lwip (https://git.savannah.nongnu.org/cgit/lwip.git, version 2.1.2 released) as the Internet support.\r\n2. Set LWIP_IPV6 macro to 0\r\n3. Compile the redis and run redis-server\r\n4. We can observe that redis cannot create any http server.\r\n\r\n**Expected behavior**\r\n\r\nThe socket should be set to -1 to avoid double close.\r\n\r\n**Additional information**\r\n\r\nIt can simply resolved by adding \"s = -1\" in the conditional branch at line 504.\r\n",
+  "state": "closed",
+  "created_at": "2020-12-09T13:49:35Z",
+  "updated_at": "2020-12-09T18:20:56Z",
+  "closed_at": "2020-12-09T18:20:56Z",
+  "labels": [],
+  "comments_data": []
+}

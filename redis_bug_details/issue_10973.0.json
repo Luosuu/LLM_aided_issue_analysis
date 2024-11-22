@@ -1,0 +1,42 @@
+{
+  "issue_number": 10973.0,
+  "title": "[CRASH] Fatal error loading the DB: Invalid argument. Exiting.",
+  "body": "Notice!\r\n- If a Redis module was involved, please open an issue in the module's repo instead!\r\n  - I'm using `ioredit` on my node app but that is bootstrapped later\r\n- If you're using docker on Apple M1, please make sure the image you're using was compiled for ARM!\r\n  - I'm using Docker image: **redis:7.0.0-alpine** (and it was working great)\r\n\r\n\r\n**Crash report**\r\n\r\nThis is the log of my Docker container in which Redis bootstraps independently from other services (first, or second in parallel) and no shared volumes.\r\n\r\n\r\n> redis-service    | 1:C 14 Ju\r\n> l 2022 07:00:17.419 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n> redis-service    | 1:C 14 Jul 2022 07:00:17.419 # Redis version=7.0.0, bits=64, commit=00000000, modified=0, pid=1, just started\r\n> redis-service    | 1:C 14 Jul 2022 07:00:17.419 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf\r\n> redis-service    | 1:M 14 Jul 2022 07:00:17.419 * monotonic clock: POSIX clock_gettime\r\n> redis-service    | 1:M 14 Jul 2022 07:00:17.420 * Running mode=standalone, port=6379.\r\n> redis-service    | 1:M 14 Jul 2022 07:00:17.420 # Server initialized\r\n> redis-service    | 1:M 14 Jul 2022 07:00:17.420 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.\r\n> redis-service    | 1:M 14 Jul 2022 07:00:17.421 * The AOF directory appendonlydir doesn't exist\r\n> redis-service    | 1:M 14 Jul 2022 07:00:17.421 # Wrong signature trying to load DB from file\r\n> redis-service    | 1:M 14 Jul 2022 07:00:17.421 # Fatal error loading the DB: Invalid argument. Exiting.\r\n> redis-service exited with code 1\r\n\r\n\r\n**Additional information**\r\n\r\n1. Ubuntu server 22\r\n2. Steps to reproduce: I can't figure out !\r\n\r\nBut prior to the crash, I suspect my node app _maybe_. My app logged:\r\n> READONLY You can't write against a read only replica.\"\r\nwhere stupidly I lost the whole log (thanks to my stupid deployment).\r\n\r\n## What I did\r\nI deleted all db files of my Redis volume on Docker, but it didn't work (same error).\r\n\r\n## My app\r\nIn my app, all I do is basic operations that didn't cause any issues before but I suspect one loop though that I run on bootstrap:\r\n\r\n```js\r\nfunction purgeKeys(redisDB) {\r\n    console.log('Redis purge is running')\r\n    var stream = redisDB.scanStream({ match: '*' })\r\n    stream.on('data', function (resultKeys) {\r\n        if (resultKeys.length) {\r\n            stream.pause()\r\n            redisDB.unlink(resultKeys).then(() => {\r\n                stream.resume()\r\n            })\r\n        }\r\n    })\r\n    stream.on('end', function () {\r\n        console.log('all keys have been visited')\r\n    })\r\n}\r\n```\r\nSo instead of doing this, I dropped removed persistence by Docker by removing volumes. But then I got the same error !!!",
+  "state": "closed",
+  "created_at": "2022-07-14T07:08:59Z",
+  "updated_at": "2023-01-11T09:16:51Z",
+  "closed_at": "2022-07-15T07:07:39Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1184089311,
+      "user": "ghost",
+      "created_at": "2022-07-14T07:22:15Z",
+      "body": "What I did but I'm not sure, is to remove host files not only on `host-db/data/*` but host-db/* too. \r\nThe strange thing is that I believe `host-db/` contained nothing ! or there were Redis files but in that case were hidden."
+    },
+    {
+      "id": 1184128449,
+      "user": "oranagra",
+      "created_at": "2022-07-14T08:03:26Z",
+      "body": "T looks like maybe the rdb file is corrupted ? "
+    },
+    {
+      "id": 1185245388,
+      "user": "ghost",
+      "created_at": "2022-07-15T07:07:39Z",
+      "body": "I really don't know. But highly probably. \r\nI found that I was mixing volumes of Mongo and Redis so I separated those now it seems to work fine.\r\nThanks !"
+    },
+    {
+      "id": 1376953849,
+      "user": "mirekphd",
+      "created_at": "2023-01-10T09:18:24Z",
+      "body": "This error occurs for instance when you try to load a zipped archive of RESP files instead of a proper RDB file (not a tip:)"
+    },
+    {
+      "id": 1378448044,
+      "user": "ghost",
+      "created_at": "2023-01-11T09:16:16Z",
+      "body": "@mirekphd thank you for the feedback. it's been a while I didn't test that again. \r\nbut yes highly probably it's about the files.\r\nthanks "
+    }
+  ]
+}

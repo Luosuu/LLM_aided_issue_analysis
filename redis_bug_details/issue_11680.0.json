@@ -1,0 +1,36 @@
+{
+  "issue_number": 11680.0,
+  "title": "[BUG]can not be used when making a PIE object; recompile with -fPIE",
+  "body": "Install redis-7.0.7 from the source. When you execute make, you will be prompted with the following suggestions\r\n\r\n```\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(jemalloc.o): relocation R_X86_64_32 against symbol `je_extents_rtree' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(arena.o): relocation R_X86_64_32S against symbol `je_h_steps' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(background_thread.o): relocation R_X86_64_32S against symbol `je_h_steps' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(base.o): relocation R_X86_64_32S against symbol `je_sz_size2index_tab' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(bin.o): relocation R_X86_64_32 against symbol `je_bin_infos' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(ctl.o): relocation R_X86_64_32 against `.rodata' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(extent.o): relocation R_X86_64_32 against symbol `je_extents_rtree' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(hook.o): relocation R_X86_64_32 against `.rodata.str1.1' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(large.o): relocation R_X86_64_32S against symbol `je_arenas' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(log.o): relocation R_X86_64_32 against symbol `je_log_var_names' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(malloc_io.o): relocation R_X86_64_32S against `.rodata' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(mutex.o): relocation R_X86_64_32 against `.rodata.str1.8' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(pages.o): relocation R_X86_64_32 against `.rodata.str1.8' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(prof.o): relocation R_X86_64_32 against `.rodata.str1.8' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(rtree.o): relocation R_X86_64_32 against `.rodata.str1.1' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(stats.o): relocation R_X86_64_32S against `.rodata.str1.1' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(sz.o): relocation R_X86_64_32S against symbol `je_sz_pind2sz_tab' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(tcache.o): relocation R_X86_64_32S against symbol `je_sz_index2size_tab' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(tsd.o): relocation R_X86_64_32 against `.bss' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(witness.o): relocation R_X86_64_32 against `.rodata.str1.8' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(ckh.o): relocation R_X86_64_32S against symbol `je_sz_size2index_tab' can not be used when making a PIE object; recompile with -fPIE\r\n/usr/bin/ld: ../deps/jemalloc/lib/libjemalloc.a(nstime.o): warning: relocation in read-only section `.rodata'\r\ncollect2: error: ld returned 1 exit status\r\nmake[1]: *** [Makefile:374: redis-server] Error 1\r\n\r\n\r\n```\r\n",
+  "state": "open",
+  "created_at": "2023-01-03T15:21:00Z",
+  "updated_at": "2024-05-21T07:12:19Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1369895815,
+      "user": "liang-hiwin",
+      "created_at": "2023-01-03T15:23:35Z",
+      "body": "```\r\nroot@debian:~/redis-7.0.7# gcc -v\r\nUsing built-in specs.\r\nCOLLECT_GCC=gcc\r\nCOLLECT_LTO_WRAPPER=/usr/local/libexec/gcc/x86_64-pc-linux-gnu/12.1.0/lto-wrapper\r\nTarget: x86_64-pc-linux-gnu\r\nConfigured with: ../configure -enable-checking=release -enable-languages=c,c++ -disable-multilib\r\nThread model: posix\r\nSupported LTO compression algorithms: zlib\r\ngcc version 12.1.0 (GCC)\r\n\r\n```\r\n"
+    },
+    {
+      "id": 1380228666,
+      "user": "bugwz",
+      "created_at": "2023-01-12T12:04:51Z",
+      "body": "@liang-hiwin \r\nPlease show your changes."
+    },
+    {
+      "id": 1383733510,
+      "user": "liang-hiwin",
+      "created_at": "2023-01-16T09:27:40Z",
+      "body": "> @liang-hiwin Please show your changes.\r\n\r\nI didn't modify anything"
+    },
+    {
+      "id": 2121914811,
+      "user": "windssind",
+      "created_at": "2024-05-21T07:12:18Z",
+      "body": "Hello.I have encountered the same problem as yours.Could you please tell me how you solve the problem?"
+    }
+  ]
+}

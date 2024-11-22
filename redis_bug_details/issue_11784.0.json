@@ -1,0 +1,102 @@
+{
+  "issue_number": 11784.0,
+  "title": "[BUG] SUSCRIBE in RESP3 gets no proper reply, only push",
+  "body": "**Describe the bug**\r\n\r\nAfter sending SUBSCRIBE and UNSUBSCRIBE (and P and S variants), the message `[\"subscribe\", \"ch1\", 1]` comes as a push message, not a proper reply. If \"SUBSCRIBE ch1 ch2\", you get two push messages, but no reply. Clients get out of sync due to this.\r\n\r\n**To reproduce**\r\n\r\n```sh\r\n$ telnet localhost 6379\r\nTrying ::1...\r\nConnected to localhost.\r\nEscape character is '^]'.\r\nhello 3\r\n%7\r\n$6\r\nserver\r\n$5\r\nredis\r\n$7\r\nversion\r\n$11\r\n255.255.255\r\n$5\r\nproto\r\n:3\r\n$2\r\nid\r\n:211\r\n$4\r\nmode\r\n$10\r\nstandalone\r\n$4\r\nrole\r\n$6\r\nmaster\r\n$7\r\nmodules\r\n*0\r\nsubscribe ch1 ch2\r\n>3\r\n$9\r\nsubscribe\r\n$3\r\nch1\r\n:1\r\n>3\r\n$9\r\nsubscribe\r\n$3\r\nch2\r\n:2\r\nping\r\n+PONG\r\n```\r\n\r\n**Expected behavior**\r\n\r\nSUBSCRIBE should get +OK or something like that, so that each command gets a reply. (Push are out-of-band.)\r\n\r\n**Additional information**\r\n\r\nThis was reported in #7026, which was assumed to be a problem in redis-cli, but it has nothing to do with redis-cli.\r\n\r\nI guess we can't fix this now, so perhaps it should instead be clearly documented? RESP3-capable clients need to compensate for this or else they will get out of sync...",
+  "state": "closed",
+  "created_at": "2023-02-06T08:02:10Z",
+  "updated_at": "2023-03-27T06:00:33Z",
+  "closed_at": "2023-03-08T17:05:09Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1427712802,
+      "user": "ranshid",
+      "created_at": "2023-02-13T10:38:54Z",
+      "body": "@zuiderkwast thank you for reporting this. So basically you suggest we should change the 'addReplyPushLen' to 'addReplyArrayLen'? I guess this will also need to handle the unsubscribe and pattern cases.\r\nI can create a PR to fix that but since this will be a breaking change will that be possible to target 7.2 or only 8.0? \r\n@oranagra "
+    },
+    {
+      "id": 1427763600,
+      "user": "oranagra",
+      "created_at": "2023-02-13T11:15:46Z",
+      "body": "i don't think we want (or can afford) to break this now.\r\nalso it seems very much intended, so maybe just document this?\r\n\r\ndisclaimer: i didn't think this through much, and it's not my area of expertise. if clients can't handle that in a proper way (creates complications distinguishing between things), then maybe we have to sort it out.\r\n\r\nCC @itamarhaber @guybe7"
+    },
+    {
+      "id": 1427778536,
+      "user": "mgravell",
+      "created_at": "2023-02-13T11:23:55Z",
+      "body": "I'm going to add another vote for \"don't change this\"; unfortunate? maybe - but: changing it now is just adding a landmine for library authors and comsumers, breaking things when they innocently connect to a different server.\r\n\r\nPerhaps the way to consider this is more conceptual - as a documentation clarification to https://redis.io/docs/manual/pubsub/\r\n\r\n> \"Commands that in RESP2 you would have issued to a pub/sub connection such as `SUBSCRIBE` respond in RESP3 via \"push\" responses, not standard request/response responses\"\r\n\r\nand perhaps with a RESP3 request/response example where relevant, rather than just RESP2\r\n\r\n(obviously after checking whether this is indeed the case for all of `[P|S][UN]SUBSCRIBE` and or `[S]PUBLISH`, such that the documentation reflects the current reality)\r\n\r\nThis *does* have the side-effect that clients need to special-case `[P|S][UN]SUBSCRIBE` and/or `[S]PUBLISH` (plus renamed) to avoid de-sync, so I can see the logic behind wanting to change it, but... it just feels too late. If anything, I'd say you'd have to rev this with RESP4 rather than the server version, because this is (mostly) a protocol detail. And honestly at that point: since folks would need to write clients/code compatible with RESP3 *too*, this is just making work and complexity for purism's sake, so again: IMO just leave it."
+    },
+    {
+      "id": 1427784346,
+      "user": "itamarhaber",
+      "created_at": "2023-02-13T11:27:57Z",
+      "body": "I agree - this isn't how proper commands should behave, so an \"+OK\" can definitely make this better.\r\nIt is a breaking change though, so >= 8.0.\r\nI assume the OP stumbled on this as the maintainer of Erlang clients, but I'd also like to hear from other client authors (thanks for jumping in @mgravell) CC @mp911de @redis/client-developers "
+    },
+    {
+      "id": 1427808399,
+      "user": "guybe7",
+      "created_at": "2023-02-13T11:49:10Z",
+      "body": "@zuiderkwast can you please explain what you mean by \"Clients get out of sync due to this\"?\r\nAFAIU, in RESP2, once a client issues a SUBSCRIBE (or the other variants) it enters a special mode where you can only handle pubsub commands and PING\r\nin RESP3 there are no limits, push notifications can arrive at any time, so what's the difference between a message that came via push from the SUBSCRIBE command itself, or from another client doing PUBLISH\r\n\r\nif anything, what's weird is that UNSUBSCRIBE also replies with push. the problem here is that the client is considered CLIENT_PUBSUB while it is subscribed to at least one channel. that means that if I execute UNSUBSCRIBE with no args (or the UNSUBSCRIBE that causes the client not to be subscribed to anything anymore) i get a push reply while not in pusub mode.\r\n\r\nso yes, it does look weird, but does it cause an actual issue with clients?"
+    },
+    {
+      "id": 1427967988,
+      "user": "mp911de",
+      "created_at": "2023-02-13T13:46:07Z",
+      "body": "There are many variants to argue for one or the other. I'm for leaving things as-is. Receiving the confirmation as Pub/Sub push seems a better design because the subscription confirmation arrives once Redis is ready with subscribing.\r\n\r\nImagine that Redis could require (somewhere in the future) more work than adding subscribers to a subscription table (i. e. doing actual I/O). Once the subscription process is done, Redis returns and confirms the channel/pattern subscription instead of immediately confirming the command.\r\n\r\nI understand the stance of \r\n\r\n> Clients get out of sync due to this\r\n\r\nas an improper client-side expectation might not be met. However, instead of changing every client available, I suggest fixing the one client that can't handle subscribe commands."
+    },
+    {
+      "id": 1427984507,
+      "user": "ranshid",
+      "created_at": "2023-02-13T13:58:42Z",
+      "body": "I do not think this is a resp3 protocol intended issue but simply a bug.\r\nFor example take the issue reported in #2967. we allow resp3 to issue different commands while in subscribed mode since clients are able to set different handler on the pushed commands, but it makes no sense that command reply will get into push handler from client implementation POV. I understand the breaking change for clients, but I support fixing this, even if late as redis 8"
+    },
+    {
+      "id": 1428086053,
+      "user": "zuiderkwast",
+      "created_at": "2023-02-13T15:00:23Z",
+      "body": "Thanks all for jumping in.\r\n\r\n> @zuiderkwast thank you for reporting this. So basically you suggest we should change the 'addReplyPushLen' to 'addReplyArrayLen'?\r\n\r\n@ranshid No, since one SUBSCRIBE ch1 ch2 produces two push replies (one for each channel), so if we change to an array, we'd send two array responses to one command which would also break the request/response model. Rather an (in-band) +OK response to the subscribe command.\r\n\r\n> @zuiderkwast can you please explain what you mean by \"Clients get out of sync due to this\"?\r\n\r\n@guybe7 A naive client would offload any push messages, for example to a callback function that handles them or putting them in a separate queue on the side, and then continue the request/response flow, expecting one response for each command sent to Redis. A push message can come any time when some other reply is expected. That's why they're called out-of-band.\r\n\r\nWhen a client sends a `[S|P][UN]SUBSCRIBE` command, it gets one push reply *per channel*, which may be more than one for the same command. Besides, there may be other push messages sent by Redis before and after the one corresponding to the `[S|P][UN]SUBSCRIBE` command just sent, such as a message on another channel, etc. So as @mgravell wrote, clients need to special-case `[P|S][UN]SUBSCRIBE`. I can think of three ways clients can handle this:\r\n\r\n1. Match on the command name. If the command is `[S|P][UN]SUBSCRIBE`, return 'null' or something without waiting for an (in-band) reply. (Doesn't work that well for renamed commands.)\r\n2. Forbid these commands in the regular command API and instead provide a separate API for them. Let's say `redis.call(\"get\", \"k1\")` vs `redis.pubsub(\"subscribe\", \"ch1\", \"ch2\")` where the latter doesn't return anything, a void function. Some callback is used for handling the push messages.\r\n3. Provide a separate function or method for each Redis command. E.g. `redis.mget(\"foo\", \"bar\")` or `redis.ssubscribe(\"ch1\", \"ch2\")`. Only fancy clients do this. :grin:\r\n\r\nI think @mgravell put this very well:\r\n\r\n> changing it now is just adding a landmine for library authors and comsumers, breaking things when they innocently connect to a different server\r\n\r\nand if we do fix it in Redis 8, bumping the resp version to RESP4 could be a sensible idea too.. or we just don't fix it, just document it well."
+    },
+    {
+      "id": 1428113525,
+      "user": "ranshid",
+      "created_at": "2023-02-13T15:14:18Z",
+      "body": ">No, since one SUBSCRIBE ch1 ch2 produces two push replies (one for each channel), so if we change to an array, we'd send two array responses to one command which would also break the request/response model. Rather an (in-band) +OK response to the subscribe command.\r\n\r\nIsn't that the case for multi bulk reply in resp2? we can place an array of arrays for each channel. I still think that having an indication of how many channels this client is subscribed to is something we would like to preserve "
+    },
+    {
+      "id": 1428213172,
+      "user": "zuiderkwast",
+      "created_at": "2023-02-13T16:09:59Z",
+      "body": "@ranshid In RESP2, for `SUBSCRIBE ch1 ch2` you get two multi-bulk replies `[\"subscribe\", \"ch1\", 1]` and `[\"subscribe\", \"ch2\", 2]`. Do you want to wrap these together in one nested multi-multi-bulk reply? Sounds weird to me."
+    },
+    {
+      "id": 1428329903,
+      "user": "ranshid",
+      "created_at": "2023-02-13T17:12:27Z",
+      "body": "> @ranshid In RESP2, for `SUBSCRIBE ch1 ch2` you get two multi-bulk replies `[\"subscribe\", \"ch1\", 1]` and `[\"subscribe\", \"ch2\", 2]`. Do you want to wrap these together in one nested multi-multi-bulk reply? Sounds weird to me.\r\n\r\nNot really I only suggested that returning array replies is somewhat the same as in resp2. I think that it if fine to keep things as they are and make sure to document it, but having a separate indication for each channel can be helpful someday (lets say we would like to indicate only the channels the user was able to subscribe to and on which he had errors) "
+    },
+    {
+      "id": 1432842692,
+      "user": "zuiderkwast",
+      "created_at": "2023-02-16T10:13:11Z",
+      "body": "I think we can conclude: Don't fix it. We can't break existing clients.\r\n\r\nI just wish the RESP3 behavior for various commands were documented. This is not for just one client, but for clients in general, to make it as clear as possible how they should work. The only command that actually mentions RESP3 is HELLO afaik.\r\n\r\nAnother example is MONITOR. It replies with +OK and then it doesn't use push but every monitored command comes as a simple string. This too requires special handling in clients. Example:\r\n\r\n```\r\n$ telnet localhost 6379\r\nTrying ::1...\r\nConnected to localhost.\r\nEscape character is '^]'.\r\nhello 3\r\n%7\r\n(...snip...)\r\nmonitor\r\n+OK\r\nping\r\n+PONG\r\n+1676541668.738627 [0 [::1]:46296] \"ping\"\r\n```\r\n"
+    },
+    {
+      "id": 1460511527,
+      "user": "zuiderkwast",
+      "created_at": "2023-03-08T17:05:09Z",
+      "body": "Solved by documentation update."
+    },
+    {
+      "id": 1484422570,
+      "user": "mzimbres",
+      "created_at": "2023-03-27T03:16:32Z",
+      "body": "I consider the current behaviour a bug because it makes it impossible to implement async clients without adding some heuristics. `SUBSCRIBE` has no-response (or has push response) if not well formed. However if I happen to send an ill formed `SUBSCRIBE` e.g. without argument, Redis will send a simple error response e.g. `-error message\\r\\n`. That means, it has no response on success, but has a response on error. I use the following heuristics in Boost.Redis: https://github.com/boostorg/redis/blob/e7ff1cedf347c3c805f72469ce152abe2bbaba20/include/boost/redis/detail/connection_ops.hpp#L359."
+    },
+    {
+      "id": 1484541585,
+      "user": "oranagra",
+      "created_at": "2023-03-27T06:00:33Z",
+      "body": "@mzimbres we all agree. but imagine what you'll have to do if we fix it?\r\nyou'll still need to support older versions, so your code will be considerably more complicated."
+    }
+  ]
+}

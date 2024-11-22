@@ -1,0 +1,11 @@
+{
+  "issue_number": 9332.0,
+  "title": "[BUG]A potential bug of NULL pointer dereference",
+  "body": "In file hiredis.c,line 1126,the function sdsempty  is called and its return value can be null,so c->obuf can be a null pointer.Then, in \r\nfile hiredis.c,line 1132,function sdslen is called and c->obuf is the first parameter.In file sds.h,line 48,function sdslen,s is derefered without check if it is null pointer.step graph is showed bellow.\r\n![Snipaste_2021-08-07_12-05-26](https://user-images.githubusercontent.com/87304478/128587629-72e5b1a5-48bf-4ec4-a803-92a27779672c.png)\r\nWould you help to check whether this is a true bug? Thanks very much.\r\n",
+  "state": "closed",
+  "created_at": "2021-08-07T04:17:23Z",
+  "updated_at": "2021-08-07T13:28:14Z",
+  "closed_at": "2021-08-07T13:28:14Z",
+  "labels": [],
+  "comments_data": []
+}

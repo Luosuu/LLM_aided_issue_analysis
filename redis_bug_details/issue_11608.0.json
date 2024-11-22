@@ -1,0 +1,48 @@
+{
+  "issue_number": 11608.0,
+  "title": "[BUG] Wait command is not working properly on blocking commands",
+  "body": "Redis updates the replication offset on `commandProcessed` function which are called right after the `processCommand` finished, assuming that this indicate that the command was also finished. In case of module that takes the execution to a background thread and blocks the client, this assumption is not true. This cause the master to think that the command execution was finished and the `wait` command to **not** wait until the command invocation was actually done.\r\n\r\nNotice that this issue can only happened with modules, Redis will **never** block the master connection.\r\n\r\n2 possible solutions:\r\n1. State that modules should also **never** block the master connection.\r\n2. Fix the replication data to be updated when the client is unblocked (in case the command blocked the client).",
+  "state": "closed",
+  "created_at": "2022-12-11T14:25:31Z",
+  "updated_at": "2023-05-21T07:54:51Z",
+  "closed_at": "2023-05-21T07:54:50Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1345581719,
+      "user": "oranagra",
+      "created_at": "2022-12-11T15:20:50Z",
+      "body": "the problem is that the replication offset is linear, so in two consecutive commands that arrived, if the first one gets blocked, and the second one finished, we can't REPLCONF ACK the second without the first.\r\ni suppose we have no other resort than forbid blocking commands from the mater link."
+    },
+    {
+      "id": 1345582519,
+      "user": "oranagra",
+      "created_at": "2022-12-11T15:24:35Z",
+      "body": "ohh, scrap that, two commands arriving on the same connection can't finish out of order.\r\nso i suppose we can fix that if we have to..\r\nshould probably be part of #11012, or a separate PR right after that."
+    },
+    {
+      "id": 1346139353,
+      "user": "ranshid",
+      "created_at": "2022-12-12T09:15:10Z",
+      "body": "@MeirShpilraien  one thing I do not understand is why the replication offset be updated? \r\nThe commandProcessed  is first verifying if the client is blocked and only then updates the repl_offset..."
+    },
+    {
+      "id": 1346210644,
+      "user": "MeirShpilraien",
+      "created_at": "2022-12-12T10:09:09Z",
+      "body": "@ranshid good point, missed that, we will continue investigate and update what we found ..."
+    },
+    {
+      "id": 1438085878,
+      "user": "ranshid",
+      "created_at": "2023-02-21T08:54:46Z",
+      "body": "@MeirShpilraien can we close this issue, or you did you find some bug?"
+    },
+    {
+      "id": 1556111080,
+      "user": "MeirShpilraien",
+      "created_at": "2023-05-21T07:54:50Z",
+      "body": "After checking more closely I could not find any issue other then the one describe here: https://github.com/redis/redis/issues/12124\r\nClosing this issue."
+    }
+  ]
+}

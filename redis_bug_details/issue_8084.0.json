@@ -1,0 +1,68 @@
+{
+  "issue_number": 8084.0,
+  "title": "[BUG] redis-cli's tip mishandles optional command arguments",
+  "body": "**Describe the bug**\r\n\r\nWhen using the cli's hints, optional arguments (e.g. `[arg]`) are always shown, but not hidden if used.\r\n\r\n**To reproduce**\r\n\r\nFire up the cli and start typing a command with optional arguments (e.g. `SET`)\r\n\r\n**Expected behavior**\r\n\r\ncli tips should hide an optional argument once used.\r\n\r\n**Additional information**\r\n\r\nNone",
+  "state": "closed",
+  "created_at": "2020-11-23T16:52:51Z",
+  "updated_at": "2023-05-14T09:11:41Z",
+  "closed_at": "2023-05-14T09:11:40Z",
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 732337516,
+      "user": "oranagra",
+      "created_at": "2020-11-23T18:16:06Z",
+      "body": "While at it, try to handle other non-trivial command arguments, like nested blocks, and `|` options (subcommands and such) "
+    },
+    {
+      "id": 865438217,
+      "user": "huangzhw",
+      "created_at": "2021-06-22T00:42:35Z",
+      "body": "I found it's really difficult to do this.\r\n`AUTH [username] password` you never know second is `username` or `password`.\r\n`BRPOP key [key ...] timeout` you never know when `key` ends.\r\n..."
+    },
+    {
+      "id": 865550752,
+      "user": "oranagra",
+      "created_at": "2021-06-22T04:53:34Z",
+      "body": "for these cases we obviously can't tell, and we should just make some assumption.\r\ne.g. for BLPOP it can keep suggesting to add more keys (and a timeout). for it can assume you provided a user name and suggest you add a password.\r\neither way, handling these badly probably won't be worse than what we do now, so we can at least attempt to better handle the ones that are possible to solve better."
+    },
+    {
+      "id": 882435200,
+      "user": "jhelbaum",
+      "created_at": "2021-07-19T10:27:06Z",
+      "body": "It's not clear to me what the desired behavior is here. If I'm not mistaken, currently the hints engine only knows how many arguments were passed. It has no way of associating specific args with specific options. It can't even tell whether an argument is meant to be a literal or not - the help syntax doesn't distinguish between them. (And some literal args appear in uppercase but others are lowercase.)\r\n\r\n```LPOS key element [RANK rank] [COUNT num-matches] [MAXLEN len]```\r\n\r\nThe hinter would need to know that RANK, COUNT and MAXLEN are literal. (Does the order between them matter? The command implementation doesn't think so. How would the hinter know?)\r\n\r\nSolving this problem may require enhancing the help syntax, or augmenting it with metadata."
+    },
+    {
+      "id": 886258564,
+      "user": "jhelbaum",
+      "created_at": "2021-07-25T21:14:07Z",
+      "body": "Playing with the CLI, I found another bug. The hints don't work for two-word commands. It may be that the second word of the command is treated as the first word of the argument list, but in any case it doesn't work right.\r\n\r\nTry, for example:\r\n\r\nACL DELUSER username [username ...]\r\n\r\nCLIENT PAUSE timeout [WRITE|ALL]\r\n\r\nCONFIG SET parameter value\r\n\r\nAnd when the argument list starts with an optional parameter, it fails differently - the hint disappears after a space is typed:\r\n\r\nCLUSTER RESET [HARD|SOFT]\r\n\r\nCLIENT KILL [ip:port] [ID client-id] [TYPE normal|master|slave|pubsub] [USER username] [ADDR ip:port] [LADDR ip:port] [SKIPME yes/no]\r\n\r\n\r\nSummary: The current hints mechanism is very rudimentary, and is easily confused by many nontrivial situations, including optional arguments, repeated arguments and two-word commands. If we want it to be useful, it needs a significant rethinking. "
+    },
+    {
+      "id": 886307201,
+      "user": "huangzhw",
+      "created_at": "2021-07-26T01:31:51Z",
+      "body": "@jhelbaum What you said maybe fixed by https://github.com/redis/redis/pull/8914."
+    },
+    {
+      "id": 886391397,
+      "user": "jhelbaum",
+      "created_at": "2021-07-26T05:36:59Z",
+      "body": "You're right. Thanks for pointing that out.\n\nOn Mon, Jul 26, 2021, 04:32 Huang Zhw ***@***.***> wrote:\n\n> @jhelbaum <https://github.com/jhelbaum> What you said maybe fixed by #8914\n> <https://github.com/redis/redis/pull/8914>.\n>\n> —\n> You are receiving this because you were mentioned.\n> Reply to this email directly, view it on GitHub\n> <https://github.com/redis/redis/issues/8084#issuecomment-886307201>, or\n> unsubscribe\n> <https://github.com/notifications/unsubscribe-auth/AH5PZMJ6PW4L5QPP7DHFT5TTZS3JFANCNFSM4T7XWKUQ>\n> .\n>\n"
+    },
+    {
+      "id": 886589634,
+      "user": "jhelbaum",
+      "created_at": "2021-07-26T10:46:28Z",
+      "body": "I wasn't running the latest code."
+    },
+    {
+      "id": 1546851516,
+      "user": "oranagra",
+      "created_at": "2023-05-14T09:11:40Z",
+      "body": "handled by #10515"
+    }
+  ]
+}

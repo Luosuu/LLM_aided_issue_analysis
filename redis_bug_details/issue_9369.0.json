@@ -1,0 +1,120 @@
+{
+  "issue_number": 9369.0,
+  "title": "[BUG] OOM in dictExpand on s390x architecture",
+  "body": "**Describe the bug**\r\n\r\nThe `corrupt payload: fuzzer findings - OOM in dictExpand` test within the `integration/corrupt-dump` unit results in memory exhaustion on the s390x architecture. The intention of the test is to ensure that it does not OOM (as it does not on most architectures), but it still OOMs on s390x.\r\n\r\n**To reproduce**\r\n\r\n```\r\n% uname -a\r\nLinux zelenka 4.19.0-17-s390x #1 SMP Debian 4.19.194-3 (2021-07-18) s390x GNU/Linux\r\n\r\n% ./runtest --clients 1 --verbose --single integration/corrupt-dump --only \"corrupt payload: fuzzer findings - OOM in dictExpand\"\r\n[...]\r\n[skip]: corrupt payload: fuzzer findings - stream integrity check issue\r\n[skip]: corrupt payload: fuzzer findings - infinite loop\r\n[skip]: corrupt payload: fuzzer findings - hash ziplist too long entry len\r\n[skip]: corrupt payload: OOM in rdbGenericLoadStringObject\r\n\r\n[hangs here running the \"corrupt payload: fuzzer findings - OOM in dictExpand\" test]\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThat the test passes, as it does on all other architectures.\r\n\r\n**Additional information**\r\n\r\nThis test was added as part of an allocation-related overhaul in https://github.com/redis/redis/commit/7ca00d694d44be13a3ff9ff1c96b49222ac9463b. It is unknown whether the changes in this diff introduced the underlying problem (instead of merely introducing a test that exposes it).\r\n\r\nThis was originally tracked in @Debian here: https://bugs.debian.org/982122\r\n\r\n*Thanks to Julien Cristau and Adam Barratt for their help nailing down this issue.*",
+  "state": "closed",
+  "created_at": "2021-08-13T13:16:22Z",
+  "updated_at": "2021-08-18T13:00:22Z",
+  "closed_at": "2021-08-18T13:00:22Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 898453212,
+      "user": "lamby",
+      "created_at": "2021-08-13T13:20:23Z",
+      "body": "@oranagra You may be interested in glancing at this issue, as it is your commit that is the most likely suspect here."
+    },
+    {
+      "id": 898454992,
+      "user": "lamby",
+      "created_at": "2021-08-13T13:23:13Z",
+      "body": "In case it is useful, [this page on the Debian wiki](https://wiki.debian.org/ArchitectureSpecificsMemo#Summary) summarises the low-level sizeof and endian (etc.) differences between `s390x` and other architectures."
+    },
+    {
+      "id": 898463523,
+      "user": "sundb",
+      "created_at": "2021-08-13T13:37:36Z",
+      "body": "@lamby Is your test on unstable? \r\nIt looks like this issue has been fixed in #9321."
+    },
+    {
+      "id": 898464867,
+      "user": "lamby",
+      "created_at": "2021-08-13T13:39:47Z",
+      "body": "Yes, this is reproducible on the `unstable` branch (currently my `HEAD` is pointing at 0cf2df84d4b27af4bffd2bf3543838f09e10f874). Thus, I don't think this is fixed by #9321, unfortunately."
+    },
+    {
+      "id": 898487856,
+      "user": "oranagra",
+      "created_at": "2021-08-13T14:14:08Z",
+      "body": "interesting...\r\nthe test that fails is exposing a problem that always existed, and this PR (redis 6.2) aims to fix it (the trymalloc functions).\r\nthe other recent PR fixes the same problem on a different code path (not covered by the initial test).\r\nother than being bigendian, i don't see anything special in the page you linked about s390x.\r\n\r\n@lamby maybe the reason it hangs is that on your test platform there's an insane amount of memory, so the allocation that fails on other platforms, succeeds on this one and redis continues to execute code that it doesn't on other platforms?"
+    },
+    {
+      "id": 898490135,
+      "user": "oranagra",
+      "created_at": "2021-08-13T14:17:29Z",
+      "body": "i.e. that test relies on malloc to fail, returning NULL.\r\nthe size it tries to allocate is `170910011579433481`.\r\nmaybe for some reason the swap or some insane overcomit allows it?"
+    },
+    {
+      "id": 898830378,
+      "user": "tezc",
+      "created_at": "2021-08-14T05:43:46Z",
+      "body": "```c\r\n#define DICTHT_SIZE(exp) ((exp) == -1 ? 0 : (unsigned long)1<<(exp))\r\n#define DICTHT_SIZE_MASK(exp) ((exp) == -1 ? 0 : (DICTHT_SIZE(exp))-1)\r\n\r\nstruct dict {\r\n    .......\r\n    char ht_size_exp[2]; /* exponent of size. (size = 1<<exp) */\r\n};\r\n\r\nstatic void _dictReset(dict *d, int htidx)\r\n{\r\n    .....\r\n    d->ht_size_exp[htidx] = -1;\r\n}\r\n```\r\n\r\n@oranagra I don't know about v6.2 but just taking a look at unstable. `char` is unsigned on s390x (also on arm, ppc etc.). Setting it -1 will actually set it to 255. When you call DICHT_SIZE(exp), char(255) will be promoted to int(255). So, DICTHT_SIZE(exp) will be expanded to something like `((int)(255) == (int)-1 ? 0 : (unsigned long) 1 << 255)`. This looks like an undefined behavior if I'm not mistaken.\r\n\r\nAnyway, on qemu, the above test hangs on both s390x and armv8. I just changed type `int8_t ht_size_exp[2]` and that test passed.  Maybe this is the issue for unstable?\r\n"
+    },
+    {
+      "id": 898847356,
+      "user": "oranagra",
+      "created_at": "2021-08-14T06:46:50Z",
+      "body": "Ohh, thanks @tezc \r\nSo this is indeed a new issue in unstable, caused by: #9228\r\nIt's odd that it only fails that one test. \r\n@yoav-steinberg @yossigo FYI\r\nMaybe we should attempt to add a qemu test in our daily CI (bigendian and unsigned char) "
+    },
+    {
+      "id": 898872837,
+      "user": "lamby",
+      "created_at": "2021-08-14T09:51:20Z",
+      "body": "> Anyway, on qemu, the above test hangs on both s390x and armv8. I just changed type int8_t ht_size_exp[2] and that test passed. Maybe this is the issue for unstable?\r\n\r\nInterestingly, I just tried this on non-qemu s390x system and it still hangs here."
+    },
+    {
+      "id": 898878280,
+      "user": "tezc",
+      "created_at": "2021-08-14T10:47:20Z",
+      "body": "That's bad news, there might be multiple issues then. \r\n\r\nI pulled s390x docker from [here](https://github.com/multiarch/qemu-user-static) (please consider security implications if you want to try it) and I see it hangs before the fix and it passes after the fix. (also same behavior for armv8).\r\n\r\nHere is the demonstration of undefined behavior on s390x, gcc generates different results depending on the optimization level : \r\n\r\n```bash\r\nroot@500b6403cee5:/home# cat test.c \r\n\r\n#include <stdio.h>\r\n#define DICTHT_SIZE(exp) ((exp) == -1 ? 0 : (unsigned long)1<<(exp))\r\n\r\nint main()\r\n{\r\n\tchar c[1] = {-1};\r\n\tprintf(\"DICHT_SIZE(c[0]) = %lu \\n\", DICTHT_SIZE(c[0]));\r\n\treturn 0;\r\n}\r\n\r\nroot@500b6403cee5:/home# gcc test.c -o out && ./out\r\nDICHT_SIZE(c[0]) = 9223372036854775808 \r\nroot@500b6403cee5:/home# gcc -O2 test.c -o out && ./out\r\nDICHT_SIZE(c[0]) = 0 \r\n```\r\nLooks like this is not the only problem though."
+    },
+    {
+      "id": 898889850,
+      "user": "lamby",
+      "created_at": "2021-08-14T12:44:41Z",
+      "body": "> gcc generates different results depending on the optimization level :\r\n\r\nI get the same results on my bare-metal s390x machine. (And just for clarity, I also see `0` when run with `-O3` too.)\r\n\r\nThat might be relevant -- my patched `dict.h`  is being compiled with `-O3`, seemingly the default. What about yours?"
+    },
+    {
+      "id": 898903881,
+      "user": "tezc",
+      "created_at": "2021-08-14T14:51:15Z",
+      "body": "@lamby I just shared that snippet to show GCC might emit different instructions as that code involves an undefined behavior (shift greater than the width of the operand). Compiler can decide to emit 0 or 9223372036854775808 or anything else depending on the context (e.g surrounding code). It can also emit different values in the same build for different usages of that macro inside the codebase. So, it's impossible to reason about it. All we should do is fix undefined behavior and test it again. Unfortunately, it doesn't fix the issue as you said it doesn't work on bare metal machine. \r\n\r\n> That might be relevant -- my patched dict.h is being compiled with -O3, seemingly the default. What about yours?\r\n\r\nI see -O2 [here](https://github.com/redis/redis/blob/0cf2df84d4b27af4bffd2bf3543838f09e10f874/src/Makefile#L18) but just saying again, I don't think this will lead us anywhere.\r\n\r\nOn qemu, I can reproduce the hang and that small fix solves the issue on my local. After the fix, I can`t reproduce it anymore and I'm out of ideas unfortunately :( I don't have much experience with Redis, so someone else might have a better idea about how to make progress. Maybe take a look at what @oranagra suggested? \r\n\r\n> i.e. that test relies on malloc to fail, returning NULL.\r\n> the size it tries to allocate is `170910011579433481`.\r\n> maybe for some reason the swap or some insane overcomit allows it?\r\n\r\n"
+    },
+    {
+      "id": 898909429,
+      "user": "yossigo",
+      "created_at": "2021-08-14T15:39:38Z",
+      "body": "@tezc Actually, gcc generates the same output even on x86_64 when using default unsigned char:\r\n\r\n```\r\nyossi@ubuntu:/tmp$ gcc -funsigned-char t.c && ./a.out \r\nDICHT_SIZE(c[0]) = 9223372036854775808 \r\nyossi@ubuntu:/tmp$ gcc -O2 -funsigned-char t.c && ./a.out \r\nDICHT_SIZE(c[0]) = 0 \r\nyossi@ubuntu:/tmp$ gcc -O3 -funsigned-char t.c && ./a.out \r\nDICHT_SIZE(c[0]) = 0 \r\n```\r\n\r\nBuilding Redis with `-funsigned-char` also reproduces an immediate crash on `redis-server` startup, which goes away when moving to `signed char` (i.e. `int8_t`).\r\n\r\nThere could be another unrelated issue, @lamby do you see the exact same failure with and without the `int8_t` change?"
+    },
+    {
+      "id": 898914534,
+      "user": "tezc",
+      "created_at": "2021-08-14T16:22:15Z",
+      "body": "@yossigo yeah, when using unsigned char, -1 becomes 255  and leads to undefined behavior \r\n\r\n```c\r\nchar c[1] = {-1};  // c[0] is now 255.\r\nDICTHT_SIZE(c[0]); // 255 == -1 ? 0 : (unsigned long)1 << 255)\r\n```\r\nShift greater than width of the operand is undefined behavior if I'm not mistaken.\r\n\r\nAlso, `redis-server` generates segfault without the fix on qemu s390x, same behavior as `-funsigned-char` on x86. After the fix, crash goes away. \r\n"
+    },
+    {
+      "id": 898948615,
+      "user": "yossigo",
+      "created_at": "2021-08-14T19:24:16Z",
+      "body": "@oranagra Looks like your assumption was correct, but just changing the struct was not enough and I guess this overflowed in a way that got trycalloc to succeed. @lamby Can you please test this patch, as it seems like qemu may not reliably reproduce this problem. Thanks!\r\n\r\nEDIT: Problem still reproduces on qemu-system-s390x with Ubuntu 20.04. Looks like jemalloc `calloc()` is happy to return a 2^61 allocation and `zmalloc_size()` will even confirm that.\r\n \r\n```diff\r\nindex bc03b0c96..a26ba9eba 100644\r\n--- a/src/dict.c\r\n+++ b/src/dict.c\r\n@@ -61,7 +61,7 @@ static unsigned int dict_force_resize_ratio = 5;\r\n /* -------------------------- private prototypes ---------------------------- */\r\n \r\n static int _dictExpandIfNeeded(dict *d);\r\n-static char _dictNextExp(unsigned long size);\r\n+static signed char _dictNextExp(unsigned long size);\r\n static long _dictKeyIndex(dict *d, const void *key, uint64_t hash, dictEntry **existing);\r\n static int _dictInit(dict *d, dictType *type);\r\n \r\n@@ -150,7 +150,7 @@ int _dictExpand(dict *d, unsigned long size, int* malloc_failed)\r\n     /* the new hash table */\r\n     dictEntry **new_ht_table;\r\n     unsigned long new_ht_used;\r\n-    char new_ht_size_exp = _dictNextExp(size);\r\n+    signed char new_ht_size_exp = _dictNextExp(size);\r\n \r\n     /* Detect overflows */\r\n     size_t newsize = 1ul<<new_ht_size_exp;\r\n@@ -1009,7 +1009,7 @@ static int _dictExpandIfNeeded(dict *d)\r\n \r\n /* TODO: clz optimization */\r\n /* Our hash table capability is a power of two */\r\n-static char _dictNextExp(unsigned long size)\r\n+static signed char _dictNextExp(unsigned long size)\r\n {\r\n     unsigned char e = DICT_HT_INITIAL_EXP;\r\n \r\ndiff --git a/src/dict.h b/src/dict.h\r\nindex 999053923..495e48f4a 100644\r\n--- a/src/dict.h\r\n+++ b/src/dict.h\r\n@@ -80,7 +80,7 @@ struct dict {\r\n \r\n     /* Keep small vars at end for optimal (minimal) struct padding */\r\n     int16_t pauserehash; /* If >0 rehashing is paused (<0 indicates coding error) */\r\n-    char ht_size_exp[2]; /* exponent of size. (size = 1<<exp) */\r\n+    signed char ht_size_exp[2]; /* exponent of size. (size = 1<<exp) */\r\n };\r\n \r\n /* If safe is set to 1 this is a safe iterator, that means, you can call\r\n```"
+    },
+    {
+      "id": 899057974,
+      "user": "yossigo",
+      "created_at": "2021-08-15T14:19:47Z",
+      "body": "@oranagra This has nothing to do with dict refactoring, it reproduces (at least on qemu-system-s390/Ubuntu 20.04) with 1c59567a7fe207997eef6197eefa7d508d7fbf9f:\r\n\r\n```\r\n#0  0x000002aa221ca63a in _dictClear (d=d@entry=0x3ff9ce0d640, ht=ht@entry=0x3ff9ce0d650, \r\n    callback=callback@entry=0x0) at dict.c:473\r\n#1  0x000002aa221ca6fe in dictRelease (d=0x3ff9ce0d640) at dict.c:493\r\n#2  0x000002aa221ee42a in decrRefCount (o=0x3ff9ce80f50) at object.c:366\r\n#3  decrRefCount (o=0x3ff9ce80f50) at object.c:361\r\n#4  0x000002aa2220147c in rdbLoadObject (rdbtype=<optimized out>, rdb=rdb@entry=0x3ffda4fe728, \r\n    key=<optimized out>, dbid=<optimized out>) at rdb.c:1604\r\n#5  0x000002aa222364b6 in restoreCommand (c=0x3ff9cf2f900) at cluster.c:5229\r\n#6  0x000002aa221cffbe in call (c=0x3ff9cf2f900, flags=<optimized out>) at server.c:3722\r\n#7  0x000002aa221d1b54 in processCommand (c=c@entry=0x3ff9cf2f900) at server.c:4247\r\n#8  0x000002aa221e5550 in processCommandAndResetClient (c=c@entry=0x3ff9cf2f900) at networking.c:2018\r\n#9  0x000002aa221e7fc0 in processInputBuffer (c=0x3ff9cf2f900) at networking.c:2107\r\n#10 0x000002aa2228865e in callHandler (handler=<optimized out>, conn=<optimized out>) at connhelpers.h:79\r\n#11 connSocketEventHandler (el=<optimized out>, fd=<optimized out>, clientData=0x3ff9ce15180, \r\n    mask=<optimized out>) at connection.c:304\r\n#12 0x000002aa221c7d6e in aeProcessEvents (eventLoop=eventLoop@entry=0x3ff9ce230f0, flags=flags@entry=27)\r\n    at ae.c:428\r\n#13 0x000002aa221c8234 in aeMain (eventLoop=0x3ff9ce230f0) at ae.c:488\r\n#14 0x000002aa221c3eba in main (argc=<optimized out>, argv=<optimized out>) at server.c:6513\r\n(gdb) p ht->size\r\n$3 = 288230376151711744\r\n(gdb) p i\r\n$4 = 570050880\r\n(gdb) p je_malloc_usable_size(ht->table)\r\n$8 = 2305843009213693952\r\n```"
+    },
+    {
+      "id": 899327252,
+      "user": "lamby",
+      "created_at": "2021-08-16T08:33:01Z",
+      "body": "Hi @yossigo - Just to confirm what you already added in your \"EDIT\" but it does indeed still hang here, allocating memory. :) \r\n\r\nps. Just to note to me and anyone following along: the patch in that comment above is now on the `unstable` branch."
+    },
+    {
+      "id": 899338828,
+      "user": "oranagra",
+      "created_at": "2021-08-16T08:52:37Z",
+      "body": "@lamby to the best of our understanding there are two unrelated things discussed here.\r\n1. the singed char issue that leads to a crash (on all platforms where char is unsigned by default), existed in unstable for about a week and now fixed (never released).\r\n2. the hang test problem you reported at the top, still not resolved, and exists since the 6.2.0 release, let's discuss it below.\r\n\r\n6.2.0 has some new mechanism to prevent malformed RESTORE command from crashing redis, and one of the concerns is the OOM panic we have when an allocation fails, so the new code avoids the panic and instead fails RESTORE (this comes with some tests).\r\n\r\nThe problem seems to be that on some platforms / kernels, the overcommit allows these huge allocations to succeed, and even when using calloc, the pages may be zeroed only when mapped (accessed) rather than on the start. this means that this test succeeds to allocate an immense amount of memory, but the RESTORE command in the test then fails on another issue, and then redis attempts to iterate on that huge dict and release all the elements it contains (there are none), this loop takes forever and hangs the test.\r\n\r\ni'm not certain yet if we can or need to fix redis, maybe we just need to skip this test on the problematic platforms."
+    }
+  ]
+}

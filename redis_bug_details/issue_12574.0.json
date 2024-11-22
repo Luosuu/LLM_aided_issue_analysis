@@ -1,0 +1,11 @@
+{
+  "issue_number": 12574.0,
+  "title": "[BUG]sentinel cluster failover issue",
+  "body": "**Describe the bug**\r\nversion : 7.0.10\r\n![image](https://github.com/redis/redis/assets/8791900/370b7101-b7c8-47d5-acb1-40a043b3cf23)\r\n\r\na health sentienl cluster with 3 sentienls , 1 master, 1 replica.  stop replica node , and write some data to master, then stop master node  and start the replica . replica switch to master when master node down.\r\nA short description of the bug.\r\n\r\n**To reproduce**\r\n1. stop replica node\r\n2. write data to master\r\n3. stop master\r\n4. start replica\r\n5. replica will switch master in auto failover\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n\r\n**Expected behavior**\r\nwhen master down , the stopped replica  will not switch to master after replica restart\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "open",
+  "created_at": "2023-09-13T01:27:44Z",
+  "updated_at": "2023-09-13T01:27:44Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

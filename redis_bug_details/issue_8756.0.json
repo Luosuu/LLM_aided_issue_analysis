@@ -1,0 +1,36 @@
+{
+  "issue_number": 8756.0,
+  "title": "[BUG] Redis Does Not Automatically Reload Certificates When Certificate File Updates",
+  "body": "**Describe the bug**\r\n\r\nWe have short lived certificates (30 days). We also have a background process that runs and updates the cert and key files within that time period so they remain valid. It looks like redis does not notice the file has changed and does not use the new certificate.\r\n\r\n**To reproduce**\r\n\r\nStart redis-server in TLS mode with a cert/key\r\nUsing something like, `openssl s_client -connect <redishost>:<redisport> 2>/dev/null | openssl x509 -noout -dates`, note the expiry dates.\r\nNow without restarting redis-server, update the file to a cert with newer expiry dates.\r\nUsing openssl again will still show the old expiry dates.\r\n\r\n**Expected behavior**\r\n\r\nEither redis has a file watcher on the cert/key/ca files such that if they change it will reload or add a command that will force a reload of the cert/key/ca files when requested.\r\n\r\n**Additional information**\r\n\r\nIf the redis-server is restarted, the new cert/key/ca files will be read.\r\n\r\nSample Traceback\r\n```\r\n'cache.redis', {'exception_module': 'redis.exceptions', 'exception_class': 'ConnectionError', 'exception_msg': 'Error 1 connecting to <host>:<port>. [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1076).'}\r\n```",
+  "state": "closed",
+  "created_at": "2021-04-09T15:43:51Z",
+  "updated_at": "2021-04-12T18:04:50Z",
+  "closed_at": "2021-04-12T18:04:50Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 817180713,
+      "user": "yossigo",
+      "created_at": "2021-04-10T18:08:24Z",
+      "body": "@rjduffner You should be able to trigger a re-load by issuing a `CONFIG SET` and touch a TLS configuration option (e.g. `tls-cert-file`).\r\n\r\nAs for automatic reload - I think this is more of a feature request than a bug. I'm not inclined to address that for several reasons:\r\n\r\n* Redis doesn't watch and auto-reload any other configuration file.\r\n* Auto reloading may not always be the desired action. For example, if you're replacing both your key and cert files, you'd want to do that atomically."
+    },
+    {
+      "id": 817184832,
+      "user": "rjduffner",
+      "created_at": "2021-04-10T18:36:16Z",
+      "body": "@yossigo thanks for the response. I agree automatic reload is problematic but figured it was a good starting point to make the problem clear. I did try the config set as Kafka works similarly to that but it didn't reload the keys. Ill try again Monday to make sure. Thanks for getting back to me. Ill post an update Monday. "
+    },
+    {
+      "id": 817287176,
+      "user": "zuiderkwast",
+      "created_at": "2021-04-11T10:50:56Z",
+      "body": "I think we need to clearly document this on the page https://redis.io/topics/encryption (repo redis-doc). We too had to do some research to find out how this works.\r\n\r\nI'd like to add that there is a race condition when doing two consecutive CONFIG SET commands to update the cert-file and key-file (which typically need to be updated together) which would be solved by #8349. @bjosv has started working on this, but I'm not sure about the progress."
+    },
+    {
+      "id": 818015290,
+      "user": "rjduffner",
+      "created_at": "2021-04-12T18:04:50Z",
+      "body": "@yossigo, the config set command does reload the certs like you stated. The reason it didn't work the first time was some mismatching ports.\r\n\r\nThanks for the help.\r\n\r\n@zuiderkwast I will keep an eye on #8349 thanks for that.\r\n\r\n"
+    }
+  ]
+}

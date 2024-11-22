@@ -1,0 +1,62 @@
+{
+  "issue_number": 11312.0,
+  "title": "[BUG] ASK redirection from replica nodes",
+  "body": "Hello,\r\n\r\nI'm implementing a client for redis cluster in ruby.\r\nhttps://github.com/redis-rb/redis-cluster-client\r\n\r\nI'm trying to test the client under resharding and scale reading conditions. But it seems that replica nodes don't reply ask-redirection error. Clients receive nil from replica nodes while resharding. Is there a way to obtain values of keys in the middle of resharding from replica nodes correctly?\r\n\r\nI'm testing with redis `7` docker image.",
+  "state": "open",
+  "created_at": "2022-09-23T09:53:52Z",
+  "updated_at": "2024-05-11T20:18:02Z",
+  "closed_at": null,
+  "labels": [
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 1266930761,
+      "user": "zuiderkwast",
+      "created_at": "2022-10-04T12:38:16Z",
+      "body": "Let me see if I understand the problem.\r\n\r\n```\r\n +-------------+     migrating    +------------+\r\n |  master 1   | ---------------->|  master 2  |\r\n +-------------+                  +------------+\r\n       |                                |\r\n       v                                v\r\n +-------------+                  +-------------+\r\n |  replica 1  |                  |  replica 2  |\r\n +-------------+                  +-------------+\r\n```\r\n\r\nMaster 1 is migrating a slot to master 2.\r\n\r\nSome keys are already migrated and deleted from master 1. If a client requests them from master 1, master 1 will reply with an ASK redirect to master 2. So far so good.\r\n\r\nIf replica 1 (replica of master 1) receives a read command from a client about a key which has already been migrated to master 2, you expect replica 1 to reply with ASK redirect to master 2, but instead it replies with `nil`. Correct?\r\n\r\nThis is what I think happens:\r\n\r\nReplica 1 doesn't know that the master is migrating some slot to another master, because this information is not propagated to replicas. Master 1 simply replicates a DEL command to the replica 1 when the key has been migrated and the replica thinks that the key was simply deleted.\r\n\r\nIf the replica would know about migrating and importing slots, it would be possible for the replica to reply with an ASK redirect. I think it would be solved #10517, which propagates the SETSLOT command to replicas. Perhaps with some extra code and test case for this scenario.\r\n\r\n@PingXie it would be interesting to know what you are thinking about this scenario."
+    },
+    {
+      "id": 1267289508,
+      "user": "PingXie",
+      "created_at": "2022-10-04T16:53:33Z",
+      "body": "@zuiderkwast is spot-on. Replicas are unaware of the migration today. With #10517, this scenario can be supported. The simplest form of redirection could have the source replica redirecting the request to the target primary and this could be a reasonable starting point. Operation-wise though, this might not be the best idea because we will be adding more load on the target primary, when the goal of read replicas is the opposite. So ultimately I think what needs to happen is to have the source replica pick a random replica in the target shard and redirect the traffic there."
+    },
+    {
+      "id": 1267467192,
+      "user": "zuiderkwast",
+      "created_at": "2022-10-04T19:13:14Z",
+      "body": "Good point @PingXie. Picking a random replica of the destination shard is a very sensible choice for an ASK redirect by a replica."
+    },
+    {
+      "id": 1267722434,
+      "user": "supercaracal",
+      "created_at": "2022-10-04T23:36:00Z",
+      "body": "Thank you for clarifying the issue.\r\n\r\n> If replica 1 (replica of master 1) receives a read command from a client about a key which has already been migrated to master 2, you expect replica 1 to reply with ASK redirect to master 2, but instead it replies with nil. Correct?\r\n\r\nYes, I do.\r\n\r\n> So ultimately I think what needs to happen is to have the source replica pick a random replica in the target shard and redirect the traffic there.\r\n\r\nI think so too."
+    },
+    {
+      "id": 1327888747,
+      "user": "zuiderkwast",
+      "created_at": "2022-11-25T21:15:09Z",
+      "body": "@madolson Is this solved?\r\n\r\nI think it is a bug that needs to be solved."
+    },
+    {
+      "id": 1327951427,
+      "user": "madolson",
+      "created_at": "2022-11-26T01:20:40Z",
+      "body": "It was just a question that had been answered. I suppose we can switch this to the authority on the issue. There was a separate issue that ping was working on that had an associated PR. "
+    },
+    {
+      "id": 1328136869,
+      "user": "zuiderkwast",
+      "created_at": "2022-11-27T00:08:45Z",
+      "body": "Good. I haven't seen any other issue mention this problem.\r\n\r\nIt makes reading from readonly replicas unreliable during slot migration, so reading from readonly replicas is broken in this sense."
+    },
+    {
+      "id": 1628655621,
+      "user": "zuiderkwast",
+      "created_at": "2023-07-10T10:19:23Z",
+      "body": "It was discussed above that a replica should ASK-redirect to a random replica in the target shard. I think it's better that it ASK-redirects to the target master instead, for two reasons:\r\n\r\n1. MOVED-redirects are always to the master for the slot, so ASK should be aligned with that.\r\n2. A replica in the target shard may not yet have received the data during ongoing migration. The master is more likely to have the data.\r\n\r\n"
+    }
+  ]
+}

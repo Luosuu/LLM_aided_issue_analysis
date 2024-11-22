@@ -1,0 +1,48 @@
+{
+  "issue_number": 7999.0,
+  "title": "[BUG]Possible NULL pointer dereference on eventLoop->timeEventNextId++??",
+  "body": "**Describe the bug**\r\nHi, our static tool reports a null pointer dereference on this [site](https://github.com/redis/redis/blob/unstable/src/ae.c#L209). The reason is `aeCreateEventLoop` go to error state and return null to `config.el`, so `eventLoop->timeEventNextId` should be checked before dereference. It may be a false positive. Thank you for your confirmation.\r\n\r\n\r\n```\r\naeEventLoop *aeCreateEventLoop(int setsize) {\r\n    aeEventLoop *eventLoop;\r\n    int i;\r\n\r\n    monotonicInit();    /* just in case the calling app didn't initialize */\r\n\r\n    if ((eventLoop = zmalloc(sizeof(*eventLoop))) == NULL) goto err;\r\n    eventLoop->events = zmalloc(sizeof(aeFileEvent)*setsize);\r\n    eventLoop->fired = zmalloc(sizeof(aeFiredEvent)*setsize);\r\n    if (eventLoop->events == NULL || eventLoop->fired == NULL) goto err;\r\n    eventLoop->setsize = setsize;\r\n    eventLoop->timeEventHead = NULL;\r\n    eventLoop->timeEventNextId = 0;\r\n    eventLoop->stop = 0;\r\n    eventLoop->maxfd = -1;\r\n    eventLoop->beforesleep = NULL;\r\n    eventLoop->aftersleep = NULL;\r\n    eventLoop->flags = 0;\r\n    if (aeApiCreate(eventLoop) == -1) goto err;\r\n    /* Events with mask == AE_NONE are not set. So let's initialize the\r\n     * vector with it. */\r\n    for (i = 0; i < setsize; i++)\r\n        eventLoop->events[i].mask = AE_NONE;\r\n    return eventLoop;\r\n\r\nerr:\r\n    if (eventLoop) {\r\n        zfree(eventLoop->events);\r\n        zfree(eventLoop->fired);\r\n        zfree(eventLoop);\r\n    }\r\n    return NULL;\r\n}\r\n```\r\n\r\n\r\n\r\n```\r\nint main(int argc, const char **argv) {\r\n   ...;\r\n    config.el = aeCreateEventLoop(1024*10); // config.el  may be null\r\n    aeCreateTimeEvent(config.el,1,showThroughput,NULL,NULL);\r\n   ...;\r\n}\r\n```\r\n\r\n\r\n```\r\nlong long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,\r\n        aeTimeProc *proc, void *clientData,\r\n        aeEventFinalizerProc *finalizerProc)\r\n{\r\n    long long id = eventLoop->timeEventNextId++; //should check non-null before dereference\r\n    ...;\r\n    return id;\r\n}\r\n```\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2020-10-30T08:55:23Z",
+  "updated_at": "2020-11-01T11:14:27Z",
+  "closed_at": "2020-10-30T09:04:35Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 719430670,
+      "user": "ycaibb",
+      "created_at": "2020-10-30T08:59:34Z",
+      "body": "A similar reason can lead to NULL pointer dereference on the below function.\r\n\r\n```\r\nstatic benchmarkThread *createBenchmarkThread(int index) {\r\n    benchmarkThread *thread = zmalloc(sizeof(*thread));\r\n    if (thread == NULL) return NULL;\r\n    thread->index = index;\r\n    thread->el = aeCreateEventLoop(1024*10); //return null \r\n    aeCreateTimeEvent(thread->el,1,showThroughput,NULL,NULL); //dereference on this method.\r\n    return thread;\r\n}\r\n```"
+    },
+    {
+      "id": 719432958,
+      "user": "oranagra",
+      "created_at": "2020-10-30T09:04:31Z",
+      "body": "@ycaibb you're referring to a case where zmalloc returns NULL, but this will never happen in Redis. \nSee `zmalloc_oom_handler`\nSo redis doesn't need to handle failures to allocate memory. "
+    },
+    {
+      "id": 719438008,
+      "user": "ycaibb",
+      "created_at": "2020-10-30T09:15:27Z",
+      "body": "OK. Thank you for your explanation."
+    },
+    {
+      "id": 719440471,
+      "user": "ycaibb",
+      "created_at": "2020-10-30T09:20:18Z",
+      "body": "Because this method never go to the `err` state, why do the developers still write this part?\r\n\r\n\r\n```\r\nerr:\r\n    if (eventLoop) {\r\n        zfree(eventLoop->events);\r\n        zfree(eventLoop->fired);\r\n        zfree(eventLoop);\r\n    }\r\n    return NULL;\r\n```"
+    },
+    {
+      "id": 719454743,
+      "user": "oranagra",
+      "created_at": "2020-10-30T09:51:16Z",
+      "body": "Some cases it's out of habit, in other cases to write clean code. \nOr to handle other errors. \n\nIn the specific case you're referring to, the `err` label is reachable in other errors, so these still need to clean after them and not leak. \nBut the `goto` that checks the NULL return from zmalloc, is dead code.\n\nBtw, also note that redis doesn't attempt to release memory before exiting (would be a waste of time and will just delay the shutdown or restart). But some pieces of code are written as a generic unit, and they should be doing good cleanup code since they can't assume the caller will always `exit` if they return an error. "
+    },
+    {
+      "id": 720071738,
+      "user": "ycaibb",
+      "created_at": "2020-11-01T11:14:27Z",
+      "body": "OK. Thank you for your explanation."
+    }
+  ]
+}

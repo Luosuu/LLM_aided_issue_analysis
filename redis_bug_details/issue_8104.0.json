@@ -1,0 +1,24 @@
+{
+  "issue_number": 8104.0,
+  "title": "[BUG] Modules: MULTI and Lua states change because of RM_Call",
+  "body": "If a module command A does an RM_Call that issues another module command B then, when in B, RM_GetContextFlags will lie about MULTI/Lua flags in which A was executed (Because RM_Call creates a new client)\r\n\r\nbeing inside MULTI/Lua is global information and has nothing to do with the client\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-11-26T13:09:57Z",
+  "updated_at": "2022-01-12T15:49:37Z",
+  "closed_at": "2022-01-12T15:49:37Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 740522296,
+      "user": "yossigo",
+      "created_at": "2020-12-08T10:07:55Z",
+      "body": "@guybe7 Is this a duplicate of #8097?"
+    },
+    {
+      "id": 1011183956,
+      "user": "guybe7",
+      "created_at": "2022-01-12T15:49:37Z",
+      "body": "fixed by https://github.com/guybe7/redis/commit/cd0aaf73dcf5c37521c52ede7d029f89629e05f3"
+    }
+  ]
+}

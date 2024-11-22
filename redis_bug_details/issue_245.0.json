@@ -1,0 +1,50 @@
+{
+  "issue_number": 245.0,
+  "title": "Possible problems with AOF used in slaves",
+  "body": "There are a few of interactions about AOF used by Redis slave instances that should be investigated better before the release of Redis 2.6. The fixes should be backported to Redis 2.4 if possible.\n- When a slave successfully synchs with its master, and AOF is enabled, an AOF rewrite gets triggered. What happens if the AOF rewrite was already in progress? Probably the new rewrite fails to be started. The correct solution is to kill the old child and spawn a new one.\n- An instance used to be a master with its AOF, or that was a slave with its AOF, and is now performing a synchronization with a new master, or with the same master after a link down. Now the instance just finished to perform the synchronization, and triggers the rewrite, that spawns a child, and so forth. In the meantime write queries will arrive from the master: where they end being written? In the old AOF that is about a different data set entirely? That's completely broken. Once a slave successfully performs a remote sync it should remove the old AOF at all unlinking it and reopening it. Then no new data should be written to the AOF before the rewrite of the AOF is not finished.\n- Improve logging of what happens when write(2) against the AOF fails.\n",
+  "state": "closed",
+  "created_at": "2011-12-13T18:21:44Z",
+  "updated_at": "2012-01-12T19:57:28Z",
+  "closed_at": "2012-01-12T19:57:28Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 3132845,
+      "user": "Poincare",
+      "created_at": "2011-12-13T23:44:56Z",
+      "body": "Could you explain what AOF means?\n"
+    },
+    {
+      "id": 3134645,
+      "user": "janoberst",
+      "created_at": "2011-12-14T02:57:56Z",
+      "body": "I believe by AOF he means \"append only file\", an option you can choose in Redis to make it write every command it executes to disk.\n"
+    },
+    {
+      "id": 3134928,
+      "user": "Poincare",
+      "created_at": "2011-12-14T03:41:51Z",
+      "body": "Thanks (not quite familiar with the lingo here :)\n\nFor the first problem, I think that maybe we need some sort of state machine type thing going on, with WRITING and IDLE states.\n\nIf this is agreed to, I'll be glad to help for the implementation.\n"
+    },
+    {
+      "id": 3137001,
+      "user": "antirez",
+      "created_at": "2011-12-14T08:47:45Z",
+      "body": "@Poincare actually the implementation is trivial, this are not missed features but just overlooked races, I tend to take care of this subtle aspects of the semantics myself given that to review code from another developer would require the same time as implementing it myself. Thanks for the offer.\n"
+    },
+    {
+      "id": 3139979,
+      "user": "Poincare",
+      "created_at": "2011-12-14T14:16:03Z",
+      "body": "Alright.\n"
+    },
+    {
+      "id": 3469431,
+      "user": "antirez",
+      "created_at": "2012-01-12T19:57:24Z",
+      "body": "Issues fixed in the unstable branch.\n"
+    }
+  ]
+}

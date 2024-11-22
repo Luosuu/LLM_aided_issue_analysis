@@ -1,0 +1,42 @@
+{
+  "issue_number": 12405.0,
+  "title": "[BUG] build with TLS on macOS fails",
+  "body": "Building `Redis-server` on macOS with TLS (`make BUILD_TLS=yes redis-server`) gives the following error:\r\n```\r\nsentinel.c:34:10: fatal error: 'openssl/ssl.h' file not found\r\n#include \"openssl/ssl.h\"\r\n```\r\n\r\nI'm using redis 7.0.12, but it happens with previous versions of redis 7.0.\r\nThe issue happens only mac (macOS 13.4.1 (22F82), Apple M1).\r\n",
+  "state": "open",
+  "created_at": "2023-07-11T21:02:27Z",
+  "updated_at": "2023-07-13T02:05:50Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1631633663,
+      "user": "itamarhaber",
+      "created_at": "2023-07-11T23:29:08Z",
+      "body": "Hello @franciscofabian \r\n\r\nHaving openssl installed is prerequisite to building Redis with TLS. You can do that with `brew install openssl` - please verify that you have it."
+    },
+    {
+      "id": 1631970030,
+      "user": "franciscofabian",
+      "created_at": "2023-07-12T07:10:48Z",
+      "body": "Hello @itamarhaber\r\n\r\nThanks for your response. I do have openssl installed, when I do `openssl version` I get `LibreSSL 3.3.6`, the default macOS openssl version."
+    },
+    {
+      "id": 1632135511,
+      "user": "bugwz",
+      "created_at": "2023-07-12T09:08:18Z",
+      "body": "@franciscofabian  hi~\r\n\r\nI suggest you check the value of the `OPENSSL_CFLAGS` variable in the Makefile and verify if the corresponding directory has an `include` directory, and if that `include` directory contains the necessary header files.\r\n\r\nIf you installed openssl using the command `brew install openssl`, the default directory would be `/opt/homebrew/opt/openssl`."
+    },
+    {
+      "id": 1632239990,
+      "user": "franciscofabian",
+      "created_at": "2023-07-12T10:19:59Z",
+      "body": "Hi @bugwz,\r\n\r\nThanks. Installing openssl from homebrew it works.\r\nI see on the Makefile that it expects it to be installed from homebrew,\r\n```\r\nifeq ($(uname_M),arm64)\r\n\t# Homebrew arm64 uses /opt/homebrew as HOMEBREW_PREFIX\r\n\tOPENSSL_PREFIX?=/opt/homebrew/opt/openssl\r\nelse\r\n\t# Homebrew x86/ppc uses /usr/local as HOMEBREW_PREFIX\r\n\tOPENSSL_PREFIX?=/usr/local/opt/openssl\r\nendif\r\n```\r\nwhy doesn't it use the default `LibreSSL` that macOS has?"
+    },
+    {
+      "id": 1633427730,
+      "user": "bugwz",
+      "created_at": "2023-07-13T02:05:50Z",
+      "body": "@franciscofabian  Sorry, I'm not familiar with `LibreSSL` and don't know why not using `LibreSSL`."
+    }
+  ]
+}

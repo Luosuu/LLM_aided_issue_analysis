@@ -1,0 +1,93 @@
+{
+  "issue_number": 539.0,
+  "title": "Main thread stuck during replication of large files",
+  "body": "When a slave starts replicating from a new master it first downloads the .rdb from the master and then loads it to RAM. If network speed is significantly faster than disk speed, the lack of any fsync during the transfer can cause most of the file to end up in the kernel's cache. Then when the file is closed (or renamed) the entire file is flushed to the disk from RAM causing the main thread to halt for a long time. This of course only happens when the file is fairly large.\n\nA solution to this will be adding periodic fdatasync() calls during the transfer. But this can cause performance issues since each call to fdatasync will stall the download process. One solution for this is using the linux only (?) sync_file_range() to perform fsyncs in the background as much as possible.\n",
+  "state": "closed",
+  "created_at": "2012-06-05T11:20:16Z",
+  "updated_at": "2012-08-28T10:51:05Z",
+  "closed_at": "2012-08-28T10:51:05Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 6123151,
+      "user": "antirez",
+      "created_at": "2012-06-05T11:51:44Z",
+      "body": "Hello, if I understand wel:\n- The slave is setup to serve stale data, so that it _must_ work while reconnecting with the master.\n- The slave gets data from master (the RDB file).\n- The file is mostly not written on disk, but cached inside kernel.\n- On close or rename the kernel flushes the cache on disk, and it blocks for too many seconds.\n\nSounds like an issue indeed, thanks.\n"
+    },
+    {
+      "id": 6123213,
+      "user": "yoav-steinberg",
+      "created_at": "2012-06-05T11:56:17Z",
+      "body": "You understand correctly. Even if the server isn't configured to serve stale data I'd expect it to return \"-LOADING\" or something of the sort and perhaps also respond to INFO.\n"
+    },
+    {
+      "id": 6123476,
+      "user": "yoav-steinberg",
+      "created_at": "2012-06-05T12:12:40Z",
+      "body": "My patch (might be Linux only, done on 2.4 branch):\n\n``` diff\ndiff --git a/src/redis.c b/src/redis.c\nindex b13db8b..de04e92 100644\n--- a/src/redis.c\n+++ b/src/redis.c\n@@ -1425,7 +1425,7 @@ sds genRedisInfoString(void) {\n             info = sdscatprintf(info,\n                 \"master_sync_left_bytes:%ld\\r\\n\"\n                 \"master_sync_last_io_seconds_ago:%d\\r\\n\"\n-                ,(long)server.repl_transfer_left,\n+                ,(long)(server.repl_transfer_size - server.repl_transfer_read),\n                 (int)(time(NULL)-server.repl_transfer_lastio)\n             );\n         }\ndiff --git a/src/redis.h b/src/redis.h\nindex 86e78ca..cc101cc 100644\n--- a/src/redis.h\n+++ b/src/redis.h\n@@ -468,7 +468,9 @@ struct redisServer {\n     redisClient *master;    /* client that is master for this slave */\n     int repl_syncio_timeout; /* timeout for synchronous I/O calls */\n     int replstate;          /* replication status if the instance is a slave */\n-    off_t repl_transfer_left;  /* bytes left reading .rdb  */\n+    off_t repl_transfer_size; /* size of .rdb to read from master during replicaion */\n+    off_t repl_transfer_read; /* number of bytes already read from the master .rdb */\n+    off_t repl_transfer_last_fsync_off;\n     int repl_transfer_s;    /* slave -> master SYNC socket */\n     int repl_transfer_fd;   /* slave -> master SYNC temp file descriptor */\n     char *repl_transfer_tmpfile; /* slave-> master SYNC temp file name */\ndiff --git a/src/replication.c b/src/replication.c\nindex 80d2d26..e2e6d0d 100644\n--- a/src/replication.c\n+++ b/src/replication.c\n@@ -1,3 +1,4 @@\n+#define _GNU_SOURCE /* for sync_file_range */\n #include \"redis.h\"\n\n #include <sys/time.h>\n@@ -269,13 +270,14 @@ void replicationAbortSyncTransfer(void) {\n void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {\n     char buf[4096];\n     ssize_t nread, readlen;\n+    off_t left;\n     REDIS_NOTUSED(el);\n     REDIS_NOTUSED(privdata);\n     REDIS_NOTUSED(mask);\n\n-    /* If repl_transfer_left == -1 we still have to read the bulk length\n+    /* If repl_transfer_size == -1 we still have to read the bulk length\n      * from the master reply. */\n-    if (server.repl_transfer_left == -1) {\n+    if (server.repl_transfer_size == -1) {\n         if (syncReadLine(fd,buf,1024,server.repl_syncio_timeout) == -1) {\n             redisLog(REDIS_WARNING,\n                 \"I/O error reading bulk count from MASTER: %s\",\n@@ -298,16 +300,16 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {\n             redisLog(REDIS_WARNING,\"Bad protocol from MASTER, the first byte is not '$', are you sure the host and port are right?\");\n             goto error;\n         }\n-        server.repl_transfer_left = strtol(buf+1,NULL,10);\n+        server.repl_transfer_size = strtol(buf+1,NULL,10);\n         redisLog(REDIS_NOTICE,\n             \"MASTER <-> SLAVE sync: receiving %ld bytes from master\",\n-            server.repl_transfer_left);\n+            server.repl_transfer_size);\n         return;\n     }\n\n     /* Read bulk data */\n-    readlen = (server.repl_transfer_left < (signed)sizeof(buf)) ?\n-        server.repl_transfer_left : (signed)sizeof(buf);\n+    left = server.repl_transfer_size - server.repl_transfer_read;\n+    readlen = (left < (signed)sizeof(buf)) ? left : (signed)sizeof(buf);\n     nread = read(fd,buf,readlen);\n     if (nread <= 0) {\n         redisLog(REDIS_WARNING,\"I/O error trying to sync with MASTER: %s\",\n@@ -320,9 +322,19 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {\n         redisLog(REDIS_WARNING,\"Write error or short write writing to the DB dump file needed for MASTER <-> SLAVE synchrnonization: %s\", strerror(errno));\n         goto error;\n     }\n-    server.repl_transfer_left -= nread;\n+\n+    server.repl_transfer_read += nread;\n+\n+    #define REPL_MAX_WRITTEN_BEFOR_FSYNC (1024*1024*8)\n+    /* If we've buffered some data since last fsync then sync it now */\n+    if (server.repl_transfer_read >= server.repl_transfer_last_fsync_off + 2*REPL_MAX_WRITTEN_BEFOR_FSYNC) {\n+        off_t sync_size = server.repl_transfer_read - server.repl_transfer_last_fsync_off - REPL_MAX_WRITTEN_BEFOR_FSYNC;\n+        sync_file_range(server.repl_transfer_fd, server.repl_transfer_last_fsync_off, sync_size, SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE);\n+        server.repl_transfer_last_fsync_off += sync_size;\n+    }\n+\n     /* Check if the transfer is now complete */\n-    if (server.repl_transfer_left == 0) {\n+    if (server.repl_transfer_read == server.repl_transfer_size) {\n         if (rename(server.repl_transfer_tmpfile,server.dbfilename) == -1) {\n             redisLog(REDIS_WARNING,\"Failed trying to rename the temp DB into dump.rdb in MASTER <-> SLAVE synchronization: %s\", strerror(errno));\n             replicationAbortSyncTransfer();\n@@ -431,7 +443,9 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {\n     }\n\n     server.replstate = REDIS_REPL_TRANSFER;\n-    server.repl_transfer_left = -1;\n+    server.repl_transfer_size = -1;\n+    server.repl_transfer_read = 0;\n+    server.repl_transfer_last_fsync_off = 0;\n     server.repl_transfer_fd = dfd;\n     server.repl_transfer_lastio = time(NULL);\n     server.repl_transfer_tmpfile = zstrdup(tmpfile);\n```\n"
+    },
+    {
+      "id": 6125531,
+      "user": "antirez",
+      "created_at": "2012-06-05T14:00:19Z",
+      "body": "Thank you, is the patch working well? There is another alternative that is to use bio.c background thread to perform the fsync, and don't write (but accumulate) if there is still a background fsync in progress.\n\nThe AOF is using this system pretty well.\n\nCheers,\nSalvatore\n"
+    },
+    {
+      "id": 6126283,
+      "user": "yoav-steinberg",
+      "created_at": "2012-06-05T14:31:54Z",
+      "body": "The patch seemed to work well in the tests I did. Your suggestion using a background thread is basically the same concept with an additional benefit of accumulating data in the RAM while while we're blocking writing to disk.\nIn a situation where network is consistently faster than the disk accumulating to RAM may become an issue if we run out of RAM. I've actually ran into this in the past when doing AOF rewrites on a machine tight on memory.\n"
+    },
+    {
+      "id": 6171832,
+      "user": "antirez",
+      "created_at": "2012-06-07T09:26:20Z",
+      "body": "@yoav-steinberg yep I understand what you mean, but I was referring to another mechanism used by the AOF when normally writing to disk, not during rewrites, that is the following:\n- We have to write the command on the AOF after the execution of that command is executed.\n- We check if there is a pending fsync() call in another thread:\n- If YES -> Accumulate the write in a buffer.\n- If NO -> Call write.\n- If there is an fsync call in another thread that is running for more than X seconds already, call write(2) anyway. So there is a fixed limit to the memory consumed (at max 2 seconds forth of data in the case of AOF writes).\n\nWe could use the same technique so that we don't have to block on fsyncs at all most of the times when reading the RDB file. Makes sense?\n"
+    },
+    {
+      "id": 6177756,
+      "user": "yoav-steinberg",
+      "created_at": "2012-06-07T14:48:23Z",
+      "body": "As far as I can see if the network is faster than the disk you'll eventually block in any case. Accumulating stuff in the buffer during an fsync is good in order to handle spikes in network speed or rare slowdowns in disk access. But if the network is constantly faster than the disk then eventually the RAM buffer will fill up and you'll have blocking.\nPlease note that in the above patch the fsyncs never block unless the network is faster than the disk which is essentially the same solution (sync_file_range is a really versatile and useful system call).\n\nI'll think about it a bit more but my current feeling is that there's no real difference between the solutions in terms of functionality and I personally think avoiding use of background threads makes the above patch cleaner.\n"
+    },
+    {
+      "id": 7998532,
+      "user": "antirez",
+      "created_at": "2012-08-24T11:09:03Z",
+      "body": "Hey @yoav-steinberg! Are you still using the provided patch in your deployment? Thanks.\n"
+    },
+    {
+      "id": 8001589,
+      "user": "antirez",
+      "created_at": "2012-08-24T13:43:26Z",
+      "body": "p.s. another thing wroth to note is that sync_file_range is Linux-specific so we should avoid it if possible.\n"
+    },
+    {
+      "id": 8030470,
+      "user": "yoav-steinberg",
+      "created_at": "2012-08-26T05:45:43Z",
+      "body": "Yes, we're still using this in production. No problems so far.\nI agree that having a linux only solution is isn't ideal, one option is to use a period fsync on non linux systems (with obvious performance issues). \n"
+    },
+    {
+      "id": 8086927,
+      "user": "antirez",
+      "created_at": "2012-08-28T10:13:13Z",
+      "body": "Hello @yoav-steinberg, thanks for the info. If you check my patch I just falled-back to fsync() for non Linux systems.\nMy guess is that actually, from the point of view of the _range_, fsync is equivalent to sync_file_range because actually we flush all the pages that are currently to be flushed at every call. Fsync will do just the same as the only pages that needs to be flushed are the 8MB of pages currently pending, more or less.\n\nHowever I think that if you found big differences in performances between fsync and sync_file_range, this may be due to the ability to specify flags in the latter system call. Thanks to the SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE combination we can just schedule the sync while not waiting.\n\nIs my reasoning correct in your opinion? Thank you.\n"
+    },
+    {
+      "id": 8087674,
+      "user": "yoav-steinberg",
+      "created_at": "2012-08-28T10:48:03Z",
+      "body": "Your reasoning is right. Calling fsync will block while the last 8MB are synced. But with the specified flags sync_file_range will simply schedule this data to be synced in the background, blocking only if the previous sync operation didn't complete (SYNC_FILE_RANGE_WAIT_BEFORE). Falling back to fsync on non-linux will provide lower performance, but not any worse than the original code and will have the advantage of spreading the sync over many smaller syncs not blocking the main loop.\n\nHaving fsync called from a background thread might be a more ideal solution for platform that don't have sync_file_range, but I found it much simpler using sync_file_range and we needed an immediate solution for linux.\n"
+    },
+    {
+      "id": 8087725,
+      "user": "antirez",
+      "created_at": "2012-08-28T10:51:05Z",
+      "body": "Thank you! I merged the patch with some modification into the unstable and 2.6 branch. My main changes are the use of fsync() and a simpler computation of the range to sync. Please if you find any problem with my changes, ping me! Thanks. Closing the issue for now.\n"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "issue_number": 660.0,
+  "title": "zadd to key with sorted set deletes all previous members of set",
+  "body": "If I EXPIRE a key that is a sort set, the next time I zadd to it, the previous members of the sorted set get deleted.\n\nHappens on 2.4.17 and 2.6.0-rc6\n\n$redis-cli\nredis 127.0.0.1:6379> ZADD KEY 1.0 VALUE1\n(integer) 1\nredis 127.0.0.1:6379> ZADD KEY 2.0 VALUE2\n(integer) 1\nredis 127.0.0.1:6379> ZADD KEY 3.0 VALUE3\n(integer) 1\nredis 127.0.0.1:6379> ZREVRANGE KEY 0 -1 WITHSCORES\n1) \"VALUE3\"\n2) \"3\"\n3) \"VALUE2\"\n4) \"2\"\n5) \"VALUE1\"\n6) \"1\"\nredis 127.0.0.1:6379> EXPIRE KEY 200000\n(integer) 1\nredis 127.0.0.1:6379> TTL KEY\n(integer) 199995\nredis 127.0.0.1:6379> ZREVRANGE KEY 0 -1 WITHSCORES\n1) \"VALUE3\"\n2) \"3\"\n3) \"VALUE2\"\n4) \"2\"\n5) \"VALUE1\"\n6) \"1\"\nredis 127.0.0.1:6379> ZADD KEY 4.0 VALUE4\n(integer) 1\nredis 127.0.0.1:6379> ZREVRANGE KEY 0 -1 WITHSCORES\n1) \"VALUE4\"\n2) \"4\"\nredis 127.0.0.1:6379> \n",
+  "state": "closed",
+  "created_at": "2012-09-04T22:45:33Z",
+  "updated_at": "2012-09-04T23:01:15Z",
+  "closed_at": "2012-09-04T23:01:15Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 8281888,
+      "user": "antirez",
+      "created_at": "2012-09-04T22:51:14Z",
+      "body": "That's crazy but I can reproduce it... fixing ASAP, this is pretty critical.\n\nThanks,\nSalvatore\n"
+    },
+    {
+      "id": 8281906,
+      "user": "megawattz",
+      "created_at": "2012-09-04T22:52:20Z",
+      "body": "Wow! Hey thanks!\n\nWalt\n\nOn Tue, Sep 4, 2012 at 6:51 PM, Salvatore Sanfilippo <\nnotifications@github.com> wrote:\n\n> That's crazy but I can reproduce it... fixing ASAP, this is pretty\n> critical.\n> \n> Thanks,\n> Salvatore\n> \n> —\n> Reply to this email directly or view it on GitHubhttps://github.com/antirez/redis/issues/660#issuecomment-8281888.\n\n## \n\nGoogleTalk: walterhoward@gmail.com\nPhone: (518) 628-4004\nSkype: walt.howard\n"
+    },
+    {
+      "id": 8281994,
+      "user": "antirez",
+      "created_at": "2012-09-04T22:56:15Z",
+      "body": "Oops no sorry I can't reproduce it! It was an error :)\n\n99% is that you are actually running Redis 2.0 or alike, please can you check with INFO what the version is? It was normal back then to have this limitation. I verified with the following script:\n\n```\n#!/bin/bash\nredis-cli flushall\nredis-cli zadd key 1.0 value1\nredis-cli zadd key 2.0 value2\nredis-cli zadd key 3.0 value3\nredis-cli zrevrange key 0 -1 withscores\nredis-cli expire key 200000\nredis-cli ttl key\nredis-cli zrevrange key 0 -1 withscores\nredis-cli zadd key 4.0 value4\nredis-cli zrevrange key 0 -1 withscores\n```\n"
+    },
+    {
+      "id": 8282084,
+      "user": "megawattz",
+      "created_at": "2012-09-04T23:00:18Z",
+      "body": "Wow!!!\nGood job, Walt!\n\nOn Sep 4, 2012, at 18:52, \"Walt Howard\" <walterhoward@gmail.com<mailto:walterhoward@gmail.com>> wrote:\n\nWow! Hey thanks!\n\nWalt\n\nOn Tue, Sep 4, 2012 at 6:51 PM, Salvatore Sanfilippo <notifications@github.com<mailto:notifications@github.com>> wrote:\n\nThat's crazy but I can reproduce it... fixing ASAP, this is pretty critical.\n\nThanks,\nSalvatore\n\n—\nReply to this email directly or view it on GitHubhttps://github.com/antirez/redis/issues/660#issuecomment-8281888.\n\n## \n\nGoogleTalk: walterhoward@gmail.commailto:walterhoward@gmail.com\nPhone: (518) 628-4004\nSkype: walt.howard\n"
+    },
+    {
+      "id": 8282106,
+      "user": "antirez",
+      "created_at": "2012-09-04T23:01:15Z",
+      "body": "You are welcome, closing :)\n"
+    }
+  ]
+}

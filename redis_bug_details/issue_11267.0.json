@@ -1,0 +1,24 @@
+{
+  "issue_number": 11267.0,
+  "title": "[BUG] redis-cli --memkeys-samples not checking lastarg",
+  "body": "**Describe the bug**\r\n\r\n`redis-cli --memkeys-samples` does not handing no arg situation, which causes segmebtation fault.\r\n```c\r\n// redis-cli.c line 2064\r\n} else if (!strcmp(argv[i],\"--memkeys-samples\")) { // not checking  !lastarg\r\n            config.memkeys = 1;\r\n            config.memkeys_samples = atoi(argv[++i]);\r\n```\r\n\r\n**To reproduce**\r\n\r\n```\r\n$ redis-cli --memkeys-samples\r\nSegmentation fault\r\n```\r\n\r\n**Fix method**\r\n\r\nvery simple fix:\r\n```c\r\n// redis-cli.c line 2064\r\n} else if (!strcmp(argv[i],\"--memkeys-samples\") && !lastarg) { \r\n            config.memkeys = 1;\r\n            config.memkeys_samples = atoi(argv[++i]);\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-09-15T04:48:36Z",
+  "updated_at": "2022-09-28T10:38:21Z",
+  "closed_at": "2022-09-28T10:38:21Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1247629420,
+      "user": "enjoy-binbin",
+      "created_at": "2022-09-15T06:15:52Z",
+      "body": "thanks for the report, would you like to submit a PR to fix it?"
+    },
+    {
+      "id": 1247656561,
+      "user": "Phoeniwx",
+      "created_at": "2022-09-15T06:49:39Z",
+      "body": "> thanks for the report, would you like to submit a PR to fix it?\r\n\r\nSure :-)"
+    }
+  ]
+}

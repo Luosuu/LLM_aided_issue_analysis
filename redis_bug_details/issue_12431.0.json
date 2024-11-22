@@ -1,0 +1,24 @@
+{
+  "issue_number": 12431.0,
+  "title": "[BUG] redis 7.0.12 \"trim on SET with big value\" test fails on Intel and Silicon Macs running Ventura",
+  "body": "**Describe the bug**\r\n\r\nWhen doing \"make check\" all test pass on an intel Mac running Monterey but the \"trim on SET with big value\" test fails on intel and silicon Macs running Ventura\r\n\r\n**To reproduce**\r\n\r\nrun make then make test\r\n\r\n**Expected behavior**\r\n\r\nOn intel Mac running Monterey 12.6.7 all tests pass so expect all tests to pass on Macs running Ventura\r\n\r\n**Additional information**\r\n\r\nAll tests pass with Xcode 14.2 under macOS Monterey 12.6.7\r\n\r\nWith Xcode 14.3.1 under macOS Ventura 13.4.1 (c) on intel and silicon Macs\r\n\r\n$ make test\r\ncd src && /Applications/Xcode.app/Contents/Developer/usr/bin/make test\r\n    CC Makefile.dep\r\nCleanup: may take some time... OK\r\nStarting test server at port 21079\r\n...\r\n[ok]: MULTI with BGREWRITEAOF (225 ms)\r\n[ok]: GETRANGE fuzzing (743 ms)\r\n[err]: trim on SET with big value in tests/unit/type/string.tcl\r\nExpected [r memory usage key] < 42000 (context: type source line 478 file /Users/selasley/src/redis-7.0.12/tests/unit/type/string.tcl cmd {assert {[r memory usage key] < 42000}} proc ::test)\r\n[ok]: Extended SET can detect syntax errors (0 ms)\r\n...\r\n\r\n!!! WARNING The following tests failed:\r\n\r\n*** [err]: trim on SET with big value in tests/unit/type/string.tcl\r\nExpected [r memory usage key] < 42000 (context: type source line 478 file /Users/selasley/src/redis-7.0.12/tests/unit/type/string.tcl cmd {assert {[r memory usage key] < 42000}} proc ::test)\r\nCleanup: may take some time... OK\r\nmake[1]: *** [test] Error 1\r\nmake: *** [test] Error 2\r\n",
+  "state": "closed",
+  "created_at": "2023-07-21T23:34:17Z",
+  "updated_at": "2023-09-06T10:54:21Z",
+  "closed_at": "2023-09-06T10:54:21Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1646621843,
+      "user": "madolson",
+      "created_at": "2023-07-22T16:16:00Z",
+      "body": "It looks like in the 7.0 branch we are missing the jemalloc check, https://github.com/redis/redis/blob/8e73f9d34821a937165884f13a2981883f44a074/tests/unit/type/string.tcl#L472C11-L472C37 which is present from the unstable branch https://github.com/redis/redis/blob/2495b90a647f9f9987202efd29647f81f217b8ad/tests/unit/type/string.tcl#L500. \r\n\r\nLooks like it was fixed in https://github.com/redis/redis/pull/11878, but not backported."
+    },
+    {
+      "id": 1708117663,
+      "user": "oranagra",
+      "created_at": "2023-09-06T10:54:21Z",
+      "body": "closing this, as i'm currently in the process of backporting the \"fix\""
+    }
+  ]
+}

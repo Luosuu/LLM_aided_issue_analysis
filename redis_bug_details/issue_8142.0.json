@@ -1,0 +1,44 @@
+{
+  "issue_number": 8142.0,
+  "title": "[BUG] Unable to specify 'allchannels' ACL rule for default user in redis.conf",
+  "body": "**Describe the bug**\r\n\r\nUnable to define an ACL entry in the redis.conf file while running the Redis server in docker-compose. I have followed the description of how to define ACL rules in redis.conf described [here](https://redis.io/topics/acl), but when I attempt to specify the `allchannels` option I receive the following error \r\n```\r\nredis_1  | \r\nredis_1  | *** FATAL CONFIG FILE ERROR (Redis 6.0.9) ***\r\nredis_1  | Reading the configuration file, at line 763\r\nredis_1  | >>> 'user default allkeys allchannels allcommands on #4d192ef73b3ddfcf307fd159d6076fc4d94e1079fa9ad10f9cc5eb9db1612cca'\r\nredis_1  | Error in user declaration 'allchannels': Syntax error\r\n```\r\nAs soon as I remove the `allchannels` ACL rule the container starts normally.\r\n\r\n**To reproduce**\r\n\r\n1. Create a working directory and go into it\r\n1. Inside the working directory run the following command `mkdir -p container-configuration/redis`\r\n2. Add the default redis.conf file as found [here](https://raw.githubusercontent.com/redis/redis/6.0/redis.conf) to `container-configuration/redis`\r\n3. Add the following `user default allkeys allchannels allcommands on #4d192ef73b3ddfcf307fd159d6076fc4d94e1079fa9ad10f9cc5eb9db1612cca` into line 753 (so directly after the commend block describing the usage of ACL rules\r\n4. Create the following docker-compose.yml next to the directory `container-configuration`\r\n\r\n```\r\nversion: '3.8'\r\n\r\nservices:\r\n    redis:\r\n        image: redis:6.0\r\n        restart: always\r\n        ports:\r\n            - 6379:6379\r\n        volumes:\r\n            - './container-configuration/redis/redis.conf:/usr/local/etc/redis/redis.conf'\r\n        command: '/usr/local/etc/redis/redis.conf'\r\n```\r\n\r\nAt this point the directory layout inside the working directory should be as follows\r\n\r\n```\r\n.\r\n├── container-configuration\r\n│   └── redis\r\n│       └── redis.conf\r\n├── docker-compose.yml\r\n```\r\n5. Executed `docker-compose up` from the root of the working directory\r\n\r\n**Expected behavior**\r\n\r\nContainer starts as normal. And the user default is configured to have access to all keys, all channels and all commands and it is possible to login with the password of which the SHA-256 hash is `4d192ef73b3ddfcf307fd159d6076fc4d94e1079fa9ad10f9cc5eb9db1612cca`\r\n\r\n**Additional information**\r\n\r\nOS: Linux 4.9.0-8-amd64 #1 SMP Debian 4.9.130-2 (2018-10-27)\r\nRedis Version: 6.0.3\r\n\r\nWhile I believe this is not an issue with Docker I have included the details of my docker installation below\r\ndocker-compose version 1.26.0, build d4451659\r\nDocker version 19.03.11, build 42e35e61f3\r\n",
+  "state": "closed",
+  "created_at": "2020-12-06T12:02:52Z",
+  "updated_at": "2020-12-09T12:51:53Z",
+  "closed_at": "2020-12-09T12:51:53Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 739498962,
+      "user": "itamarhaber",
+      "created_at": "2020-12-06T12:55:43Z",
+      "body": "Hello @pgerhard \r\n\r\nThank you for reaching out with this. Please note that ACL support for Pub/Sub is planned to be included in the upcoming version of Redis, namely 6.2. Currently, this functionality is only available in the unstable branch of this repository, and as far as I know, Docker does not maintain a container image for it.\r\n\r\nThe good news is that 6.2 is expected to be released soon(tm), so once it is out it would take about 24 hours for the new Docker hub image to become available."
+    },
+    {
+      "id": 739566573,
+      "user": "pgerhard",
+      "created_at": "2020-12-06T21:25:31Z",
+      "body": "Hello @itamarhaber,\r\n\r\nThank you for getting back to me this soon. Is there any documentation available on how to set up permissions for Pub/Sub in version 6.0.x? If so it would be create if you could point me in that direction.\r\n"
+    },
+    {
+      "id": 739956308,
+      "user": "itamarhaber",
+      "created_at": "2020-12-07T14:34:58Z",
+      "body": "Regrettably, Redis 6.0.x offers limited permission control with regards to Pub/Sub. You can permit/block the associated commands, i.e. `PUBLISH`/`SUBSCRIBE`/..., per user. You can even do something like `ACL SETUSER ... +publish|foo` to restrict access to a channel, but that's about it.\r\n\r\nAs I wrote above, version 6.2 addresses this gap with the new functionality that it adds. This functionality, however, will not be backported to version 6.0, so I recommend that you stay tuned for 6.2's GA (should be at the beginning of next year). Does this make sense to you? Let me know if there's anything else I can help with."
+    },
+    {
+      "id": 740705779,
+      "user": "pgerhard",
+      "created_at": "2020-12-08T15:53:46Z",
+      "body": "Yeah that makes sense to me. The only thing I would suggest is mentioning this limitation in the ACL documentation"
+    },
+    {
+      "id": 741750814,
+      "user": "itamarhaber",
+      "created_at": "2020-12-09T12:51:53Z",
+      "body": "Thanks for the confirmation @pgerhard. As for the docs, it is actually there, please see:\r\n\r\n* The history section of [`ACL SETUSER`](https://redis.io/commands/acl-setuser#history)\r\n* Around the middle of the [\"Creating and editing users ACLs with the ACL SETUSER command\" section](https://redis.io/topics/acl#creating-and-editing-users-acls-with-the-acl-setuser-command) in the ACL doc, where it states: \"New users are created with restrictive permissions by default. Starting with Redis 6.2, ACL provides Pub/Sub channels access management as well. To ensure backwards compatability with version 6.0 when upgrading to Redis 6.2, new users are granted the 'allchannels' permission by default. The default can be set to resetchannels via the acl-pubsub-default configuration directive.\"\r\n\r\nThat said, we always welcome contributions to the docs repo at https://github.com/redis/redis-doc.\r\n\r\nClosing this as resolved by feel free to reopen or create a new issue if needed."
+    }
+  ]
+}

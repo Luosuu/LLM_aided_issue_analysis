@@ -1,0 +1,18 @@
+{
+  "issue_number": 12651.0,
+  "title": "[BUG] Rounding errors on macOS",
+  "body": "**Describe the bug**\r\n\r\nThe commands INCRBYFLOAT and HINCRBYFLOAT have rounding errors on macOS but they work as expected on Linux.\r\n\r\n**To reproduce**\r\n\r\n```\r\n> SET mykey 10.50\r\n\r\nOK\r\n\r\n> INCRBYFLOAT mykey 0.1\r\n\r\n10.59999999999999964\r\n\r\n``` \r\n\r\n```\r\n\r\n> HSET mykey field 10.50\r\n\r\n1\r\n\r\n> HINCRBYFLOAT mykey field 0.1\r\n\r\n10.59999999999999964\r\n\r\n``` \r\n\r\n**Expected behavior**\r\n\r\n\r\n```\r\n> SET mykey 10.50\r\n\r\nOK\r\n\r\n> INCRBYFLOAT mykey 0.1\r\n\r\n10.6\r\n\r\n``` \r\n\r\n```\r\n\r\n> HSET mykey field 10.50\r\n\r\n1\r\n\r\n> HINCRBYFLOAT mykey field 0.1\r\n\r\n10.6\r\n\r\n``` \r\n\r\n**Additional information**\r\n\r\nI am using redis 7.2.1 and macOS 14 (arm64).\r\n",
+  "state": "closed",
+  "created_at": "2023-10-14T11:37:35Z",
+  "updated_at": "2023-10-15T08:28:36Z",
+  "closed_at": "2023-10-15T08:28:35Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1763320004,
+      "user": "oranagra",
+      "created_at": "2023-10-15T08:28:35Z",
+      "body": "Floating point is not accurate and there are numbers that look very plain in decimal that it simply can't store.\r\nsome platforms use 80 bit [long double](https://en.wikipedia.org/wiki/Long_double) variables, others use less.\r\nthere's nothing to do here, that's how floats work."
+    }
+  ]
+}

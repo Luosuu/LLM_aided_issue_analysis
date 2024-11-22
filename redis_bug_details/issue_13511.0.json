@@ -1,0 +1,24 @@
+{
+  "issue_number": 13511.0,
+  "title": "[BUG]The master-slave synchronization relationship of cluster shards cannot be restored due to network failure",
+  "body": "**Describe the bug**\r\n\r\nIn the cluster mode, when the slave nodes in the sharded cluster are pinged by the master node during the execution of the `nodeUpdateAddressIfNeeded` operation, the `getpeername` system call may fail due to an error, causing the `server.masterhost` variable to be incorrectly set to `?`. The slave node reports an error every 1 second: \"Connecting to MASTER ?:6379\". Just at that time, the master node and the slave node experience a network partition, and the master status of the sharded node is marked as PFAILED. At this time, other nodes will send gossip messages to the sharded slave node to correct the IP information of the sharded master node, but the server.masterhost configuration information will not be updated, which will cause the synchronization relationship between the master and slave nodes to not recover after the `getpeername` system call restores, and the following redis kernel-level error message will be displayed:\r\n\r\n<img width=\"1135\" alt=\"image\" src=\"https://github.com/user-attachments/assets/43a7b5e3-e240-409b-81a0-0ad2e5bb18ef\">\r\n\r\n\r\n**To reproduce**\r\n\r\nremark:\r\n- Redis kernel version: 6.2.14\r\n- The redis parameter 'cluster-announce-ip' is not configured\r\n\r\n1. Create 3 primary and 3 replication redis clusters\r\n<img width=\"1124\" alt=\"image\" src=\"https://github.com/user-attachments/assets/6c276c82-ce2a-4597-83fd-324c55640b5e\">\r\n\r\n2. To simulate the 'slave0' node system call 'getpeername' error, here in order to quickly simulate the error, the parameter overheat configuration method is directly modified to obtain the ip address as: '? `\r\n<img width=\"1116\" alt=\"image\" src=\"https://github.com/user-attachments/assets/9a132192-54b5-4686-8b6d-0d21a13c5b75\">\r\n\r\n3. Simulated 'master0' and 'slave0' node network failures\r\n\r\n```shell\r\n#The slave0 node added iptables rules\r\niptables -A INPUT -s {master0-ip} -j DROP\r\niptables -A OUTPUT -d {master0-ip -j DROP\r\n```\r\n\r\n4. Wait for 'server.cluster-node-timeout' time to restore 'slave0' node system call 'getpeername'\r\n\r\n5. Recover 'master0' and 'slave0' node network failures\r\n\r\n```shell\r\niptables -D INPUT -s {master0-ip} -j DROP\r\niptables -D OUTPUT -d {master0-ip -j DROP\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe 'master' and 'slave' synchronization relationship can be restored after  'getpeername' system call  and the network is restored\r\n\r\n**Additional information**\r\n\r\n1. There is no way to simulate 'getpeername' system call exception, so by modifying the source code to simulate.\r\n\r\n<img width=\"1086\" alt=\"image\" src=\"https://github.com/user-attachments/assets/216293cf-ccca-4341-a60e-03fb32f4b449\">\r\n\r\n2. This problem has occurred in our production environment.\r\n\r\n3. Adding the code in the red box below should fix the problem\r\n\r\n<img width=\"1284\" alt=\"image\" src=\"https://github.com/user-attachments/assets/c037a9ac-cdb2-4eb9-a182-da960dcd2a1b\">\r\n",
+  "state": "open",
+  "created_at": "2024-09-03T07:40:28Z",
+  "updated_at": "2024-09-03T12:30:47Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2325988555,
+      "user": "sundb",
+      "created_at": "2024-09-03T09:06:30Z",
+      "body": "@wstar05 thanks, can you make a PR to fix it?"
+    },
+    {
+      "id": 2326403030,
+      "user": "wstar05",
+      "created_at": "2024-09-03T12:30:47Z",
+      "body": "> @wstar05 thanks, can you make a PR to fix it?\r\n\r\nPR: https://github.com/redis/redis/pull/13514"
+    }
+  ]
+}

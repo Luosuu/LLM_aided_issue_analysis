@@ -1,0 +1,69 @@
+{
+  "issue_number": 13337.0,
+  "title": "[BUG] Redis Streams XINFO Lag field",
+  "body": "**Describe the bug**\r\n\r\nXINFO Lag field is reported wrong in some cases. \r\n\r\n**To reproduce and expected behavior**\r\n\r\nTested against Redis 7.2.4 (d2c8a4b9/0) 64 bit with redis-cli 7.2.4 (git:d2c8a4b9)\r\n\r\nI will report two different cases \r\n\r\n1) CASE 1 \r\n\r\n```\r\n127.0.0.1:6379> XGROUP CREATE planets processing $ MKSTREAM\r\nOK\r\n127.0.0.1:6379> XADD planets 0-1 name Mercury\r\n\"0-1\"\r\n127.0.0.1:6379> XADD planets 0-2 name Venus\r\n\"0-2\"\r\n127.0.0.1:6379> XREADGROUP GROUP processing alice STREAMS planets >\r\n1) 1) \"planets\"\r\n   2) 1) 1) \"0-1\"\r\n         2) 1) \"name\"\r\n            2) \"Mercury\"\r\n      2) 1) \"0-2\"\r\n         2) 1) \"name\"\r\n            2) \"Venus\"\r\n127.0.0.1:6379> XADD planets 0-3 name Earth\r\n\"0-3\"\r\n127.0.0.1:6379> XADD planets 0-4 name Jupiter\r\n\"0-4\"\r\n127.0.0.1:6379> XINFO GROUPS planets\r\n1)  1) \"name\"\r\n    2) \"processing\"\r\n    3) \"consumers\"\r\n    4) (integer) 1\r\n    5) \"pending\"\r\n    6) (integer) 2\r\n    7) \"last-delivered-id\"\r\n    8) \"0-2\"\r\n    9) \"entries-read\"\r\n   10) (integer) 2\r\n   11) \"lag\"\r\n   12) (integer) 2\r\n127.0.0.1:6379> XDEL planets 0-1 (Added this after first report, after realizing that this step is necessary for bug to occur)\r\n(integer) 1\r\n127.0.0.1:6379> XDEL planets 0-2\r\n(integer) 1\r\n127.0.0.1:6379> XINFO GROUPS planets\r\n1)  1) \"name\"\r\n    2) \"processing\"\r\n    3) \"consumers\"\r\n    4) (integer) 1\r\n    5) \"pending\"\r\n    6) (integer) 2\r\n    7) \"last-delivered-id\"\r\n    8) \"0-2\"\r\n    9) \"entries-read\"\r\n   10) (integer) 2\r\n   11) \"lag\"\r\n   12) (integer) 2\r\n127.0.0.1:6379> XDEL planets 0-3\r\n(integer) 1\r\n127.0.0.1:6379> XINFO GROUPS planets\r\n1)  1) \"name\"\r\n    2) \"processing\"\r\n    3) \"consumers\"\r\n    4) (integer) 1\r\n    5) \"pending\"\r\n    6) (integer) 2\r\n    7) \"last-delivered-id\"\r\n    8) \"0-2\"\r\n    9) \"entries-read\"\r\n   10) (integer) 2\r\n   11) \"lag\"\r\n   12) (integer) 2      <=== SHOULD BE NIL \r\n ``` \r\n   \r\n According to documentation at https://redis.io/docs/latest/commands/xinfo-groups/\r\n   \r\n   ```\r\n   There are two special cases in which this mechanism is unable to report the lag:\r\n1) ......\r\n2) One or more entries between the group's last-delivered-id and the stream's last-generated-id were deleted (with [XDEL](https://redis.io/docs/latest/commands/xdel/) or a trimming operation).\r\nIn both cases, the group's read counter is considered invalid, and the returned value is set to NULL to signal that the lag isn't currently available.\r\n```\r\n\r\nWe have deleted an item between last-delivered-id and the stream's last-generated-id. It should report that lag is not available.\r\nIf we continue to read all items in the stream until the end, there seems to be another related problem.\r\n \r\n ```  \r\n127.0.0.1:6379> XREADGROUP GROUP processing alice STREAMS planets >\r\n1) 1) \"planets\"\r\n   2) 1) 1) \"0-4\"\r\n         2) 1) \"name\"\r\n            2) \"Jupiter\"\r\n127.0.0.1:6379> XINFO GROUPS planets\r\n1)  1) \"name\"\r\n    2) \"processing\"\r\n    3) \"consumers\"\r\n    4) (integer) 1\r\n    5) \"pending\"\r\n    6) (integer) 3\r\n    7) \"last-delivered-id\"\r\n    8) \"0-4\"\r\n    9) \"entries-read\"\r\n   10) (integer) 3         <=== SHOULD BE 4. entries-added is 4.\r\n   11) \"lag\"\r\n   12) (integer) 1         <=== SHOULD BE 0 \r\n```\r\n\r\nAgain according to here:\r\n```\r\nOnce the consumer group delivers the last message in the stream to its members, it will be set with the correct logical read counter, and tracking its lag can be resumed.\r\n```\r\nThe lag should be 0. We have read everything there is. There are no undelivered messages that we can read. And following the logic of `lag = entries-added - entries-read` and also doc `The counter attempts to reflect the number of entries that the group should have read to get to its current last-delivered-id`, the entries-read should be 4.\r\n\r\n2) Another case, the only difference is that we only delete 0-3 and not 0-2. This time the lag is reported as Nil correctly at first. But it wrong again if we read all the messages in the stream till the end afterwards.\r\n\r\n```\r\n127.0.0.1:6379> XGROUP CREATE planets processing $ MKSTREAM\r\nOK\r\n127.0.0.1:6379> XADD planets 0-1 name Mercury\r\n\"0-1\"\r\n127.0.0.1:6379> XADD planets 0-2 name Venus\r\n\"0-2\"\r\n127.0.0.1:6379> XREADGROUP GROUP processing alice STREAMS planets >\r\n1) 1) \"planets\"\r\n   2) 1) 1) \"0-1\"\r\n         2) 1) \"name\"\r\n            2) \"Mercury\"\r\n      2) 1) \"0-2\"\r\n         2) 1) \"name\"\r\n            2) \"Venus\"\r\n127.0.0.1:6379> XADD planets 0-3 name Earth\r\n\"0-3\"\r\n127.0.0.1:6379> XADD planets 0-4 name Jupiter\r\n\"0-4\"\r\n127.0.0.1:6379> XDEL planets 0-3\r\n(integer) 1\r\n127.0.0.1:6379> XINFO GROUPS planets\r\n1)  1) \"name\"\r\n    2) \"processing\"\r\n    3) \"consumers\"\r\n    4) (integer) 1\r\n    5) \"pending\"\r\n    6) (integer) 2\r\n    7) \"last-delivered-id\"\r\n    8) \"0-2\"\r\n    9) \"entries-read\"\r\n   10) (integer) 2\r\n   11) \"lag\"\r\n   12) (nil)\r\n127.0.0.1:6379> XREADGROUP GROUP processing alice STREAMS planets >\r\n1) 1) \"planets\"\r\n   2) 1) 1) \"0-4\"\r\n         2) 1) \"name\"\r\n            2) \"Jupiter\"\r\n127.0.0.1:6379> XINFO GROUPS planets\r\n1)  1) \"name\"\r\n    2) \"processing\"\r\n    3) \"consumers\"\r\n    4) (integer) 1\r\n    5) \"pending\"\r\n    6) (integer) 3\r\n    7) \"last-delivered-id\"\r\n    8) \"0-4\"\r\n    9) \"entries-read\"\r\n   10) (integer) 3       <=== SHOULD BE 4.  entries-added is 4.\r\n   11) \"lag\"\r\n   12) (integer) 1       <=== SHOULD BE 0 \r\n```\r\n\r\nThat is all of course, if I understand the document correctly. ",
+  "state": "closed",
+  "created_at": "2024-06-11T13:01:04Z",
+  "updated_at": "2024-07-30T14:31:32Z",
+  "closed_at": "2024-07-30T14:31:32Z",
+  "labels": [
+    "streams",
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2162310469,
+      "user": "sundb",
+      "created_at": "2024-06-12T07:32:48Z",
+      "body": "@sancar thanks, this will be fixed in #13338, do you want a try?"
+    },
+    {
+      "id": 2162387812,
+      "user": "sancar",
+      "created_at": "2024-06-12T08:15:02Z",
+      "body": "Sure @sundb , I will try. "
+    },
+    {
+      "id": 2164230575,
+      "user": "sundb",
+      "created_at": "2024-06-13T02:23:32Z",
+      "body": "@sancar sorry, i realize that the fix in https://github.com/redis/redis/pull/13338 is totally wrong.\r\nin your case, the max deleted id is before the first entry of the stream, so the lag is calculated by using `s->entries_added - s->length`.\r\nplease wait for the opinion from @itamarhaber."
+    },
+    {
+      "id": 2164541311,
+      "user": "sancar",
+      "created_at": "2024-06-13T06:12:16Z",
+      "body": "My tests seem to be all passing now. \r\nCan you also clarify when `entries-read` should be nil ? Redis seems to be returning `Nil` for it sometimes but documentation is not clear on that. "
+    },
+    {
+      "id": 2164576670,
+      "user": "sundb",
+      "created_at": "2024-06-13T06:22:34Z",
+      "body": "@sancar actually, the root cause is the last id of consume group is before the max deleted id, and the first id of stream is after the max deleted id at the same time.\r\nalthought this fix works, i'm still concerned about if it may bring some side effects."
+    },
+    {
+      "id": 2184093168,
+      "user": "artikell",
+      "created_at": "2024-06-22T16:37:37Z",
+      "body": "I think there are inherent issues with this design. entries_read depends on the value of max_deleted_entry_id, which indicates that entries read is related to the order of xread and xdel. For example, the following example:\r\n\r\n```\r\n    test {Consumer group lag with with tombstone V1} {\r\n        r DEL x\r\n        r XGROUP CREATE x processing $ MKSTREAM\r\n        r XGROUP CREATE x processing1 $ MKSTREAM\r\n        r XADD x 0-1 name Mercury\r\n        r XADD x 0-2 name Venus\r\n        r XADD x 0-3 name Earth\r\n        r XADD x 0-4 name Jupiter\r\n\r\n        r XREADGROUP GROUP processing alice COUNT 2 STREAMS x >\r\n        r XDEL x 0-3\r\n\r\n        set reply [r XINFO STREAM x FULL]\r\n        set group [lindex [dict get $reply groups] 0]\r\n        assert_equal [dict get $group entries-read] 2\r\n    }\r\n\r\n    test {Consumer group lag with with tombstone V2} {\r\n        r DEL x\r\n        r XGROUP CREATE x processing $ MKSTREAM\r\n        r XGROUP CREATE x processing1 $ MKSTREAM\r\n        r XADD x 0-1 name Mercury\r\n        r XADD x 0-2 name Venus\r\n        r XADD x 0-3 name Earth\r\n        r XADD x 0-4 name Jupiter\r\n\r\n        r XDEL x 0-3\r\n        r XREADGROUP GROUP processing alice COUNT 2 STREAMS x >\r\n\r\n        set reply [r XINFO STREAM x FULL]\r\n        set group [lindex [dict get $reply groups] 0]\r\n        assert_equal [dict get $group entries-read] 2\r\n    }\r\n```\r\n\r\nThe second case will fail. I think this is not in line with expectations. Here, we cannot generate data for lag and entries_read without relying on max_deleted_entry_id.\r\n\r\nWhat do you think? @sundb "
+    },
+    {
+      "id": 2184310888,
+      "user": "sundb",
+      "created_at": "2024-06-23T01:30:03Z",
+      "body": "@artikell please note the last line in the document:\r\n```\r\nIn both cases, the group's read counter is considered invalid, and the returned value is set to NULL to signal that the lag isn't currently available.\r\n```\r\nfor stream, he has forgotten `0-1` and `0-2` after running `r XREADGROUP GROUP processing alice COUNT 2 STREAMS x >`, so we can't calculate the `entries_read` reply on our memory.\r\nin short, the stream group can only calculate the entries-read at the current position.\r\n"
+    },
+    {
+      "id": 2185470224,
+      "user": "artikell",
+      "created_at": "2024-06-24T02:26:02Z",
+      "body": "> @artikell please note the last line in the document:\r\n> \r\n> ```\r\n> In both cases, the group's read counter is considered invalid, and the returned value is set to NULL to signal that the lag isn't currently available.\r\n> ```\r\n> \r\n> for stream, he has forgotten `0-1` and `0-2` after running `r XREADGROUP GROUP processing alice COUNT 2 STREAMS x >`, so we can't calculate the `entries_read` reply on our memory. in short, the stream group can only calculate the entries-read at the current position.\r\n\r\nI understand this issue, but should Redis ensure consistency between entries read and lag. When the lag is invalid, entries read is displayed as valid. This is very confusing.\r\nIn Xinfo, the result of entries read depends on the execution order of xread, while lag does not."
+    },
+    {
+      "id": 2185477800,
+      "user": "sundb",
+      "created_at": "2024-06-24T02:36:32Z",
+      "body": "@artikell thanks, i've been thinking about this too.\r\nthere is actually a way to ensure that `entries_read` always valid, it always reply on xreadgroup command.\r\ni'm busy elsewhere now, need some time.\r\nperhaps you'd like to fix it based on my PR: https://github.com/redis/redis/pull/13338."
+    }
+  ]
+}

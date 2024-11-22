@@ -1,0 +1,42 @@
+{
+  "issue_number": 11894.0,
+  "title": "[BUG] reprocessed block commands go through module command filter again, but used cached lookup",
+  "body": "**Describe the bug**\r\n\r\nIn working with https://github.com/redis/redis/pull/11568, I have a module that I was issuing a brpoplpush in blocking mode, but also filtering it to add an argument to the front of the command (so it was no longer a brpoplpush, but something I'd wrap and issue an underlying brpoplpush).\r\n\r\nBut, I was getting an error that it had an invalid timeout.  In inspecting it, it seemed it was trying to calculate a timeout on what would have been the argv[2] (i.e. dest key), but it was now at argv[3].\r\n\r\nwas really confused, till @MeirShpilraien figured out when I mentioned command filter.\r\n\r\nthe existing code does\r\n\r\n```\r\n    moduleCallCommandFilters(c);\r\n\r\n     /* in case we are starting to ProcessCommand and we already have a command we assume\r\n      * this is a reprocessing of this command, so we do not want to perform some of the actions again. */\r\n     int client_reprocessing_command = c->cmd ? 1 : 0;\r\n```\r\n\r\nthe problem is below, the code does\r\n\r\n```\r\n    if (!client_reprocessing_command) {\r\n        c->cmd = c->lastcmd = c->realcmd = lookupCommand(c->argv,c->argc);\r\n    ...\r\n    }\r\n```\r\n\r\ni.e. it cached the lookup.\r\n\r\nFor progress purposes I changed the code to \r\n\r\n```\r\n     /* in case we are starting to ProcessCommand and we already have a command we assume\r\n      * this is a reprocessing of this command, so we do not want to perform some of the actions again. */\r\n     int client_reprocessing_command = c->cmd ? 1 : 0;\r\n \r\n    /* only run command filter if not reprocessing command */\r\n    if (!client_reprocessing_command) {\r\n        moduleCallCommandFilters(c);\r\n    }\r\n```\r\n\r\nand caching the lookup is now fine.\r\n\r\nbut that's not necessarily the correct fix.\r\n\r\nThe Q to answer is, should the command filter be run when a command is reprocessed.  If the answer is yes, we can't cache the lookup.  If a command that is reprocessed should run exactly as it did before, then the answer is that it shouldn't be run through the command filter and caching is fine.  \r\n\r\nMy feeling is that caching is fine, and shouldn't run through command filter again, but perhaps there are use cases where it would need to (But then can't ever cache, at least if run through a filter, and then would have to modify filter callbacks to indicate if they modified the argv or not)\r\n\r\n**To reproduce**\r\n\r\na module that uses a command filter to change execution of a command that will block.\r\n\r\n**Expected behavior**\r\n\r\ndescribed above, but to repeat\r\n\r\nThe Q to answer is, should the command filter be run when a command is reprocessed.  If the answer is yes, we can't cache the lookup.  If a command that is reprocessed should run exactly as it did before, then the answer is that it shouldn't be run through the command filter and caching is fine.  \r\n",
+  "state": "closed",
+  "created_at": "2023-03-09T10:21:55Z",
+  "updated_at": "2023-03-20T06:04:15Z",
+  "closed_at": "2023-03-20T06:04:15Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1461785889,
+      "user": "oranagra",
+      "created_at": "2023-03-09T10:47:19Z",
+      "body": "i tend to agree with you that we should not re-run the command filter.\r\nbut maybe i'm not aware of all the potential use-cases for the command filter.\r\ni.e. other than modifying the command, what else did we intend for it to do?\r\n@yossigo ?"
+    },
+    {
+      "id": 1461922147,
+      "user": "MeirShpilraien",
+      "created_at": "2023-03-09T12:10:10Z",
+      "body": "I also agree we should not rerun the filter. We run it already."
+    },
+    {
+      "id": 1461929794,
+      "user": "ranshid",
+      "created_at": "2023-03-09T12:14:17Z",
+      "body": "I also agree this sounds reasonable. @sjpotter do you want to create a PR or should I? "
+    },
+    {
+      "id": 1461991345,
+      "user": "sjpotter",
+      "created_at": "2023-03-09T12:43:01Z",
+      "body": "I'll submit what I have for now.  We should probably make a TODO for after @MeirShpilraien PR lands of a test that has a module calling a blocking command with a commandfilter to ensure this doesn't break in future as well.  I'm unsure how to duplicate it without the blocking RM_Call support."
+    },
+    {
+      "id": 1462060020,
+      "user": "MeirShpilraien",
+      "created_at": "2023-03-09T13:21:06Z",
+      "body": "> I'm unsure how to duplicate it without the blocking RM_Call support.\r\n\r\nCreate a filter that will change each second  `blpop` command and will set invalid timeout. Then the first blpop will run OK and once unblocked make sure that it is not getting invalid timeout (the filter did not run). I know there is no real reason to write such module, but it will serve the purpose of making sure this will not break in the future."
+    }
+  ]
+}

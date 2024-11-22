@@ -1,0 +1,30 @@
+{
+  "issue_number": 8299.0,
+  "title": "[BUG] rdbWriteRaw retval overflow",
+  "body": "**Describe the bug**\r\n\r\nhttps://github.com/redis/redis/blob/unstable/src/rdb.c#L97\r\n`rdbWriteRaw` input parameter len is type `size_t`, but return an `int`.\r\nIf we write data over `2GB`, the `retval` of `rdbWriteRaw` will overflow. And may cause rdb format error.\r\nSuch as:\r\nhttps://github.com/redis/redis/blob/unstable/src/rdb.c#L447\r\nThe `rdbSaveLzfStringObject` will return a big negative number, but we just cover the situation of `n==-1` and  `n>0`.\r\nIf `rdbWriteRaw` overflow, the string will be written twice, the first is compressed, the other is plain. The rdb format will \r\nmismatch and cause serverpanic on loading rdb.\r\n\r\n\r\n**Additional information**\r\n\r\nEven if the redis limit size of string and bitmap less than 512M, there are some modules could exceed the limit.\r\n\r\nI found this problem by using [RedisBloom](https://github.com/RedisBloom/RedisBloom).\r\nThere is the same [issue](https://github.com/RedisBloom/RedisBloom/issues/257) caused by this bug.\r\n",
+  "state": "closed",
+  "created_at": "2021-01-08T06:37:42Z",
+  "updated_at": "2021-01-12T06:22:53Z",
+  "closed_at": "2021-01-12T06:22:53Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 756588199,
+      "user": "ShooterIT",
+      "created_at": "2021-01-08T07:01:41Z",
+      "body": "hi @liguangbo I think you can submit a PR to fix this problem"
+    },
+    {
+      "id": 756591857,
+      "user": "liguangbo",
+      "created_at": "2021-01-08T07:10:44Z",
+      "body": "> hi @liguangbo I think you can submit a PR to fix this problem\r\n\r\nBut I want to get some advice on this. \r\n\r\nChange `rdbWriteRaw ` return value from int to size_t will affect lots of function call, need more check and test.\r\nOr just adjust the  `rdbSaveLzfStringObject` if segment to cover situation of `n<0` can also fix this temporary."
+    },
+    {
+      "id": 756602826,
+      "user": "ShooterIT",
+      "created_at": "2021-01-08T07:40:29Z",
+      "body": "I think we should change the `rdbWriteRaw` return value type form **int** to **ssize_t**(instead of **size_t**)\r\nBecause we also need to handle https://github.com/redis/redis/blob/unstable/src/rdb.c#L458, and we should not hide bug we already know."
+    }
+  ]
+}

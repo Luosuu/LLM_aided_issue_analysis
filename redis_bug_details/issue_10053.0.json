@@ -1,0 +1,24 @@
+{
+  "issue_number": 10053.0,
+  "title": "[BUG] centos 7 2009, gcc 9.1 , Active defrag test failed",
+  "body": "**Describe the bug**\r\n\r\ncentos 7 2009\r\ngcc 9.1\r\nredis 6.2.6\r\n\r\n``` shell\r\n$ make test\r\n......\r\nTesting solo test\r\n[err]: Active defrag in tests/unit/memefficiency.tcl\r\nExpected 1.52 < 1.4 (context: type eval line 109 cmd {assert {$frag < 1.4}} proc ::test)\r\n......\r\n```\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n\r\n\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2022-01-04T14:18:43Z",
+  "updated_at": "2022-01-05T03:04:24Z",
+  "closed_at": "2022-01-05T03:04:24Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1004895972,
+      "user": "oranagra",
+      "created_at": "2022-01-04T15:15:01Z",
+      "body": "@sam-mix is it consistent? which hardware architecture are you using?\r\ncan you run it with `./runtest --single unit/memefficiency --verbose` and post the output?"
+    },
+    {
+      "id": 1005342116,
+      "user": "sam-mix",
+      "created_at": "2022-01-05T03:04:11Z",
+      "body": "that is ok, thank you! @oranagra \r\n\r\n```shell\r\n\r\n[root@localhost redis-6.2.6]# ./runtest --single unit/memefficiency --verbose\r\nCleanup: may take some time... OK\r\nStarting test server at port 21079\r\n[ready]: 5401\r\nTesting unit/memefficiency\r\n[ready]: 5403\r\n[ready]: 5408\r\n[ready]: 5405\r\n[ready]: 5412\r\n[ready]: 5415\r\n[ready]: 5422\r\n[ready]: 5420\r\n[ready]: 5417\r\n[ready]: 5432\r\n[ready]: 5428\r\n[ready]: 5430\r\n[ready]: 5441\r\n[ready]: 5436\r\n[ready]: 5445\r\n[ready]: 5439\r\n=== (memefficiency) Starting server 127.0.0.1:21111 ok\r\n[ok]: Memory efficiency with values in range 32\r\n[ok]: Memory efficiency with values in range 64\r\n[ok]: Memory efficiency with values in range 128\r\n[ok]: Memory efficiency with values in range 1024\r\n[ok]: Memory efficiency with values in range 16384\r\n[1/1 done]: unit/memefficiency (2 seconds)\r\nTesting solo test\r\n=== (defrag) Starting server 127.0.0.1:21112 ok\r\nfrag 1.52\r\nfrag 1.02\r\nhits: 323863\r\nmisses: 2257035\r\nmax latency 7\r\n{active-defrag-cycle 1641351646 7 7} {command 1641351641 997 997}\r\n{1641351642 7} {1641351643 7} {1641351644 7} {1641351645 7} {1641351646 7}\r\nAOF loading:\r\nfrag 1.15\r\nhits: 465129\r\nmisses: 3455125\r\nmax latency 0\r\n{while-blocked-cron 1641351652 7 7} {active-defrag-cycle 1641351652 7 7} {command 1641351652 4316 4316}\r\n\r\n[ok]: Active defrag\r\nfrag 1.87\r\nfrag 1.01\r\nhits: 519331\r\nmisses: 2573483\r\nmax latency 8\r\n{active-defrag-cycle 1641351665 8 8} {command 1641351661 803 803}\r\n{1641351661 8} {1641351662 8} {1641351663 8} {1641351664 8} {1641351665 8}\r\n[ok]: Active defrag big keys\r\nfrag 2.00\r\nfrag 1.01\r\nmisses: 99992\r\nhits: 100012\r\nmax latency 8\r\n{active-defrag-cycle 1641351678 8 8} {command 1641351677 382 382}\r\n{1641351678 8}\r\n[ok]: Active defrag big list\r\n=== (defrag) Starting server 127.0.0.1:21113 ok\r\nfrag 1.96\r\nfrag 1.00\r\nhits: 664393\r\nmisses: 2967153\r\n[ok]: Active defrag edge case\r\n[1/1 done]: defrag (72 seconds)\r\n\r\n                   The End\r\n\r\nExecution time of different units:\r\n  2 seconds - unit/memefficiency\r\n  72 seconds - defrag\r\n\r\n\\o/ All tests passed without errors!\r\n\r\nCleanup: may take some time... OK\r\n\r\n\r\n```"
+    }
+  ]
+}

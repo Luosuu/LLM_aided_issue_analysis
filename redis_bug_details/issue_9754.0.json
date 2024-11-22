@@ -1,0 +1,36 @@
+{
+  "issue_number": 9754.0,
+  "title": "[BUG] loading redis streams with maxlen from .rdb",
+  "body": "Hello,\r\n\r\nI've noticed that upon loading a stream key with a maxlen from a rdb file, that stream key no longer allows one to push new data to the stream.\r\n\r\nMeaning that after I reload that rdb file, and try to add new data to that same key, via a the client , the client crashes. However one can read from the stream.\r\n\r\nIf I delete that key from the rdb file, and try again. The client still crashes.\r\n\r\nMy only workaround has been to use rdb tools to copy the rdb file into a fresh instance.",
+  "state": "open",
+  "created_at": "2021-11-08T19:43:23Z",
+  "updated_at": "2021-11-09T06:28:49Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 963533417,
+      "user": "oranagra",
+      "created_at": "2021-11-08T20:12:49Z",
+      "body": "What do you mean by \"a stream key with a maxlen\"? \r\nIs it the client that crashes or redis? can you please post the crash log? "
+    },
+    {
+      "id": 963552001,
+      "user": "EmpireofKings",
+      "created_at": "2021-11-08T20:36:21Z",
+      "body": "The server does not crash and does not show an error. The clients crash\r\n\r\nThe command is:\r\n\r\nXADD im_0 maxlen 33 * image %b \r\n\r\nSo after that's set a few times, save the redis server via BGSAVE.\r\n\r\nExit the redis server, and restart it, loading the dump.rdb file on startup.\r\n\r\nExecute the command again:\r\n\r\nXADD im_0 maxlen 33 * image %b  \r\n\r\nThe redis-cli will exit and not show an error.\r\n\r\nIf you use hiredis instead of the command line results in a double free tcache error. "
+    },
+    {
+      "id": 963561310,
+      "user": "madolson",
+      "created_at": "2021-11-08T20:50:26Z",
+      "body": "I wasn't able to reproduce it following those steps. Any information about the versioning your running and if you can try running it against a later Redis version?"
+    },
+    {
+      "id": 963854428,
+      "user": "oranagra",
+      "created_at": "2021-11-09T06:28:49Z",
+      "body": "@EmpireofKings other than specifying the client (redis-cli / hiredis) version, and maybe your OS / HW architecture, considering that we still can't reproduce it, maybe you can run it with gdb or valgrind and show us some information on the crash."
+    }
+  ]
+}

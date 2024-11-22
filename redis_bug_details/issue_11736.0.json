@@ -1,0 +1,66 @@
+{
+  "issue_number": 11736.0,
+  "title": "[BUG] CONFIG REWRITE ignores already set ACL in included config - preventing service start",
+  "body": "**Describe the bug**\r\n\r\nSimplified config:\r\n\r\n`redis.conf`\r\n```\r\ninclude /etc/redis/redis-inc.conf\r\n```\r\n\r\n`redis-inc.conf`\r\n```\r\nuser default on nopass sanitize-payload allcommands allkeys allchannels\r\n```\r\nor (doesnt matter which format, both behave the same)\r\n```\r\nuser default on nopass sanitize-payload ~* &* +@all\r\n```\r\n\r\nwhen we call `CONFIG REWRITE` the `user` directive is again resaved into `redis.conf`\r\n\r\nThis prevent redis from starting after service restart or system reboot with error\r\n```\r\nError in user declaration 'default': Duplicate user found. A user can only be defined once in config files\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-01-18T15:14:31Z",
+  "updated_at": "2023-05-18T06:28:20Z",
+  "closed_at": "2023-02-24T10:39:36Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1396368013,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-19T02:39:23Z",
+      "body": "thanks for the report. i see the problem, @madolson Do you have any suggestions?\r\n\r\nfrom redis.conf:\r\n```\r\n# Include one or more other config files here.  This is useful if you\r\n# have a standard template that goes to all Redis servers but also need\r\n# to customize a few per-server settings.  Include files can include\r\n# other files, so use this wisely.\r\n#\r\n# Note that option \"include\" won't be rewritten by command \"CONFIG REWRITE\"\r\n# from admin or Redis Sentinel. Since Redis always uses the last processed\r\n# line as value of a configuration directive, you'd better put includes\r\n# at the beginning of this file to avoid overwriting config change at runtime.\r\n#\r\n# If instead you are interested in using includes to override configuration\r\n# options, it is better to use include as the last line.\r\n```"
+    },
+    {
+      "id": 1399480010,
+      "user": "oranagra",
+      "created_at": "2023-01-22T13:08:31Z",
+      "body": "CONFIG REWRITE doesn't really play well with include files.\r\nfor most configs, it'll just add duplicate lines, and the last one simply overrides the earlier ones (as noted by the above quote),\r\nbut for ACL we recently traded that with an error, see #9330.\r\n\r\nsince the rewrite code doesn't have any visibility of the include files (and will certainly not modify it), i think we should just argue that ACL should be managed by an `aclfile`, and if not then at least the plain config file, and mixing it in include files and config rewrite is unsupported."
+    },
+    {
+      "id": 1399536863,
+      "user": "marekhanzlik",
+      "created_at": "2023-01-22T16:30:07Z",
+      "body": "Thanks for the `aclfile` tip, i will use this as a workaround.\r\n\r\nRegarding the `REWRITE` and `include` files: Then this documentation line does not make much sense \r\n```\r\nThe CONFIG REWRITE command rewrites the redis.conf file the server was started with, \r\napplying the minimal changes needed to make it reflect the configuration currently used by the server\r\n```\r\nIt implies that rewrite will write out only changes that are not already in `redis.conf` (and in this case even included files, cause it's not clear how is include handled) "
+    },
+    {
+      "id": 1400002140,
+      "user": "oranagra",
+      "created_at": "2023-01-23T09:05:10Z",
+      "body": "i'm not sure what you mean. feel free to make a PR to suggest a better text."
+    },
+    {
+      "id": 1551454983,
+      "user": "kbcmdba",
+      "created_at": "2023-05-17T14:01:08Z",
+      "body": "I see this was closed above, but I'm looking for a version this is fixed in..."
+    },
+    {
+      "id": 1551530187,
+      "user": "oranagra",
+      "created_at": "2023-05-17T14:41:54Z",
+      "body": "@kbcmdba we didn't fix anything, config `rewrite` doesn't work well with `include`, for ACL you have a better option which is to use the `aclfile` config.\r\n\r\nif your problem wasn't with ACL, maybe add some more details..\r\n\r\nthe conclusions was that maybe the docs can be improve to warn users, feel free to make a PR where you think that can be effective.\r\n\r\n"
+    },
+    {
+      "id": 1551707302,
+      "user": "kbcmdba",
+      "created_at": "2023-05-17T16:21:48Z",
+      "body": "IMNSHO, rewrite shouldn't cause configuration problems that would prevent Redis from running in the future. To me, that's a bug. As such, I believe this should be reopened."
+    },
+    {
+      "id": 1552458151,
+      "user": "oranagra",
+      "created_at": "2023-05-18T05:53:44Z",
+      "body": "i agree that in a perfect world it shouldn't (cause configuration problems), but the fact is that it's complicated and not a priority.\r\nmaybe we should remove the `include` feature instead, then we won't have that problem anymore :smirk: \r\n\r\nthe way i see it, the `include` feature is meant to be used in certain types of use cases, and the rewrite is for others, and they should not be mixed.\r\n\r\nthat said, if someone submits a PR to solves the problem, we'll certainly consider merging it."
+    },
+    {
+      "id": 1552520798,
+      "user": "enjoy-binbin",
+      "created_at": "2023-05-18T06:28:20Z",
+      "body": "maybe we can consider this? https://github.com/redis/redis/issues/12010#issuecomment-1501308896"
+    }
+  ]
+}

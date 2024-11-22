@@ -1,0 +1,38 @@
+{
+  "issue_number": 12266.0,
+  "title": "[BUG] redis-cli does not use the \"previously used host address\" to connect when it gets a null/None response for the host during server redirects.",
+  "body": "**redis-cli is not using the previously used host address to connect while getting a null/None response for the host during server redirects.**\r\n\r\nWhen the Redis cluster is configured with  `cluster-preferred-endpoint-type unknown-endpoint`, it indicates that the server doesn't know how clients can reach it during redirects. This is made clear to the client from the null response on the host field during redirects from the server. In this case, the server is expecting the client to reach out on the same endpoint it used for making the last request, but use the new port provided in the response. \r\n\r\nThis does not happen with redis-cli. It tries to connect with a null hostname during redirects which is not the expected behavior from the server.\r\n\r\nExample:\r\nAll cluster member hosts are accessible via the same DNS/IP address but on different ports. \r\nPreferred endpoint type set to unknown-endpoint - `cluster-preferred-endpoint-type unknown-endpoint`. \r\n\r\ntest1:\r\n```\r\nredis.carrie.test:6379> set suresh-key1 1\r\n-> Redirected to slot [12977] located at :6382\r\nCould not connect to Redis at :6382: Name or service not known\r\nnot connected>\r\n```\r\nExpectation: The client should try connecting to `redis.carrie.test:6382` instead of `:6382` \r\n\r\ntest2:\r\n```\r\n18.60.156.81:6379> set b 1\r\n-> Redirected to slot [3300] located at :6380\r\nCould not connect to Redis at :6380: Name or service not known\r\nnot connected>\r\n```\r\nExpectation: The client should try connecting to `18.60.156.81:6380` instead of `:6380`\r\n\r\n\r\n**To reproduce:**\r\n\r\n- Set up a Redis cluster on a single host or behind a load balancer with TCP port mapping. Basically, each cluster member is configured on a different port but should be accessible via the same DNS/hostname/IP.\r\n- The cluster should have the preferred endpoint set to unknown-endpoint -  `cluster-preferred-endpoint-type unknown-endpoint`\r\n- Connect via redis-cli and check to see how null hostname/IP redirects from the cluster are interpreted by the client.\r\n\r\n\r\n**Expected behavior:**\r\n\r\nAs shown in the example, when a server redirects a client with  `:new port`, the client should connect using the same hostname/IP/endpoint it used previously to connect to the server but with the `new port` value indicated in the redirect. \r\n\r\n**Additional information:**\r\nIssue observed on the following redis-server and redis-cli versions:\r\n7.0.9\r\n7.0.11",
+  "state": "open",
+  "created_at": "2023-06-05T05:39:05Z",
+  "updated_at": "2023-06-06T13:34:08Z",
+  "closed_at": null,
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 1577549263,
+      "user": "zuiderkwast",
+      "created_at": "2023-06-05T22:11:35Z",
+      "body": "Thanks for the report! `unknown-endpoint` is a relatively new feature in Redis. It seems it has not been implemented in redis-cli yet.\r\n\r\nI think it's not very hard to fix it. Also easy to test. We have a test suite for redis-cli where we can write a test just like you described it."
+    },
+    {
+      "id": 1578689149,
+      "user": "MakDon",
+      "created_at": "2023-06-06T12:38:06Z",
+      "body": "> Thanks for the report! `unknown-endpoint` is a relatively new feature in Redis. It seems it has not been implemented in redis-cli yet.\r\n> \r\n> I think it's not very hard to fix it. Also easy to test. We have a test suite for redis-cli where we can write a test just like you described it.\r\n\r\nCould we check the hostip [here](https://github.com/redis/redis/blob/unstable/src/redis-cli.c#LL2295C26-L2295C32),  and do not update the `hostip` if `sdsnew(p+1)` is empty ?\r\n\r\n```\r\n    if (config.cluster_mode && reply->type == REDIS_REPLY_ERROR &&\r\n        (!strncmp(reply->str,\"MOVED \",6) || !strncmp(reply->str,\"ASK \",4)))\r\n    {\r\n        char *p = reply->str, *s;\r\n        int slot;\r\n\r\n        output = 0;\r\n        /* Comments show the position of the pointer as:\r\n         *\r\n         * [S] for pointer 's'\r\n         * [P] for pointer 'p'\r\n         */\r\n        s = strchr(p,' ');      /* MOVED[S]3999 127.0.0.1:6381 */\r\n        p = strchr(s+1,' ');    /* MOVED[S]3999[P]127.0.0.1:6381 */\r\n        *p = '\\0';\r\n        slot = atoi(s+1);\r\n        s = strrchr(p+1,':');    /* MOVED 3999[P]127.0.0.1[S]6381 */\r\n        *s = '\\0';\r\n        sdsfree(config.conn_info.hostip);\r\n\r\n        /*\r\n         * Could we fix here: \r\n         * if p + 1 is empty string, then we do not update config.conn_info.hostip?\r\n         */\r\n        char *hostip = sdsnew(p+1);\r\n        if (sdslen(hostip) != 0) {\r\n            config.conn_info.hostip = hostip;\r\n        }\r\n        config.conn_info.hostport = atoi(s+1);\r\n        if (config.interactive)\r\n            printf(\"-> Redirected to slot [%d] located at %s:%d\\n\",\r\n                slot, config.conn_info.hostip, config.conn_info.hostport);\r\n        config.cluster_reissue_command = 1;\r\n        if (!strncmp(reply->str,\"ASK \",4)) {\r\n            config.cluster_send_asking = 1;\r\n        }\r\n        cliRefreshPrompt();\r\n    }\r\n```"
+    },
+    {
+      "id": 1578768988,
+      "user": "zuiderkwast",
+      "created_at": "2023-06-06T13:27:18Z",
+      "body": "@MakDon yes it makes sense.\r\n\r\nI would check if it's empty before sdsnew to avoid creating the sds string if it is not needed. We can check if p+1 == s. It means the host is empty, right? If you open a PR we can do code review easier."
+    },
+    {
+      "id": 1578781888,
+      "user": "MakDon",
+      "created_at": "2023-06-06T13:34:07Z",
+      "body": "> @MakDon yes it makes sense.\r\n> \r\n> I would check if it's empty before sdsnew to avoid creating the sds string if it is not needed. We can check if p+1 == s. It means the host is empty, right? If you open a PR we can do code review easier.\r\n\r\nExactly `p+1 == s` is a better implement. I will open a PR just a moment later, along with the tests."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "issue_number": 7788.0,
+  "title": "[BUG] 'Nodes don't agree about configuration!' on resharding",
+  "body": "**Describe the bug**\r\n\r\nWe are resharding a Redis cluster following the instructions here: https://redis.io/commands/cluster-setslot\r\n\r\nOne issue we see is that if we don't add `sleep` after the reshard operations for a given master, often the cluster will end in a `'Nodes don't agree about configuration!'` state when we run the `cluster --check` command. From our debugging it seems that the replicas sometime don't receive the GOSSIP messages. One time we saw that the replica moved from one master to another. \r\n\r\nIf we add a 5 sec sleep after sharding a master, things seem to work. Now, our question is how do we verify that GOSSIP propagation has completed for a reshard operation using redis commands? We want to verify if the 5 sec delay is enough or we should wait longer.\r\n\r\nIs there a way to read the local SLOT maps configuration each node (master/replica) is using at a point in time? Does `cluster slots` command provide that info?\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2020-09-11T06:54:00Z",
+  "updated_at": "2022-02-11T05:46:04Z",
+  "closed_at": "2022-02-11T05:46:04Z",
+  "labels": [
+    "cluster"
+  ],
+  "comments_data": [
+    {
+      "id": 693773481,
+      "user": "madolson",
+      "created_at": "2020-09-17T02:40:29Z",
+      "body": "I think this optimization might help you: https://github.com/redis/redis/pull/7571\r\n\r\nThat change immediately broadcasts the updated epoch and slot information instead of letting it get communicated naturally via gossip. It's not in any stable branch, but if you want to try checking out and building unstable, it might resolve your issue. \r\n\r\nMore generally, you might want to implement some type of retry mechanism into the code, since you are basically catching a transient state. "
+    },
+    {
+      "id": 1035900885,
+      "user": "madolson",
+      "created_at": "2022-02-11T05:46:04Z",
+      "body": "The previously mentioned optimization is now in Redis, so going to resolve this."
+    }
+  ]
+}

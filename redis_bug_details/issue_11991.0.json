@@ -1,0 +1,32 @@
+{
+  "issue_number": 11991.0,
+  "title": "[BUG] SCAN can't find some keys ",
+  "body": "**Describe the bug**\r\n\r\nSometimes, a key cannot be retrieve by  the scan without explicit reason\r\n\r\nCase where all work : \r\n```\r\n1) \"guild:-802250104:invite:add:ec0dd734-bccb-4004-acb5-ec583286ff84\"\r\n 2) \"guild:-802250104:invite:175d0669-e8a0-48f4-8518-b917586682f6\"\r\n 3) \"guild:-802250104:invite:add:b4db5573-b3bb-4937-b118-d127d7906c23\"\r\n 4) \"guild:-802250104:invite:add:69e59558-7a5b-46f8-84ae-9db14a72b949\"\r\n 5) \"guild:-802250104:invite:4a66c77f-5a17-4890-b48f-03e48227b83a\"\r\n 6) \"guild:-1028271001:add\"\r\n 7) \"guild:-802250104:invite:0c183c48-cf88-44ca-be62-37746ed3f5c9\"\r\n 8) \"guild:-802250104:invite:51888239-ebd8-446e-aca7-2c74ef733907\"\r\n 9) \"guild:-802250104:invite:add:90ca6c4c-2f19-4519-b17d-75d050282006\"\r\n10) \"guild:-802250104:member\"\r\n11) \"guild:-802250104:invite:7cb2f29b-76ee-4ce4-ba31-5facfe15c29b\"\r\n12) \"guild:-802250104:member:add\"\r\n13) \"guild:-802250104:invite:add:baf636db-819c-4470-9840-aec7059da054\"\r\n14) \"guild:-802250104:invite:7540874e-6fcd-4e84-a780-b08f9e0ac8dd\"\r\n15) \"guild:-802250104:invite:214e4e2f-c9e0-4426-8f64-351ba7ddff00\"\r\n16) \"guild:-802250104:invite:add:3ff94806-682e-4c8e-94c8-0f89be38ff23\"\r\n17) \"guild:-802250104:invite:add:deed4a51-5b7f-43b3-a526-96daa2c3784b\"\r\n18) \"guild:-802250104:invite:add:e46da8b0-140d-4672-a050-30458dde75c0\"\r\n19) \"guild:-802250104:add\"\r\n20) \"guild:-802250104:invite:1a8766d4-0521-4371-8cc8-a33ffc0ff0db\"\r\n21) \"guild:-802250104:invite:add:e7cf849a-f586-4da0-b5d7-a06fc120bcb5\"\r\n22) \"guild:-802250104:invite:af5b50dc-857f-48b5-85f6-a50657e2a950\"\r\n23) \"guild:-802250104:invite:add:fc1211ed-95a5-427b-ae78-429bbde6d9d1\"\r\n24) \"guild:-802250104:invite:dfb208d5-329b-48f6-94a4-6f84a628d87a\"\r\n\r\n127.0.0.1:6379> scan 0 MATCH guild:-1028271001:*\r\n1) \"26\"\r\n2) 1) \"guild:-1028271001:add\"\r\n127.0.0.1:6379> keys guild:-1028271001:*\r\n1) \"guild:-1028271001:add\"\r\n```\r\n\r\nIn this case, the key related to -1028271001 is retrieve using `KEYS` and `SCAN`\r\n\r\nHowever, sometimes, with another set of data \r\n\r\n```\r\n1) \"guild:-217132932:member:add\"\r\n 2) \"guild:-217132932:invite:e0cfd0f4-6411-4f50-af81-d19a383a8735\"\r\n 3) \"guild:-217132932:invite:6d3e2bc1-c825-4a1b-9d84-860715e27b9e\"\r\n 4) \"guild:-217132932:member\"\r\n 5) \"guild:-217132932:invite:add:77069006-663b-478d-bf3f-dc88e83255f8\"\r\n 6) \"guild:-217132932:invite:c5dabd18-1726-4f32-a45e-51a205b2b646\"\r\n 7) \"guild:-217132932:invite:add:836c4fdf-dc27-4990-bc84-3b8ec0264def\"\r\n 8) \"guild:-217132932:invite:add:b1611110-3d4d-45c9-8d48-8c26be20ed9f\"\r\n 9) \"guild:-217132932:invite:8dd73bff-febc-4e1e-acb4-1eb2891edb70\"\r\n10) \"guild:-217132932:invite:278f0f43-a10d-49ed-ae7c-3abdea5d43ee\"\r\n11) \"guild:-217132932:add\"\r\n12) \"guild:-1483063375:add\"\r\n13) \"guild:-217132932:invite:add:547daaa7-15e5-45d1-aa7e-451329adf8cf\"\r\n14) \"guild:-217132932:invite:7eb0c270-0537-4c5c-9cec-fd390f52885e\"\r\n15) \"guild:-217132932:invite:c434b0f8-56fd-4553-9505-ae12fb0e3b3e\"\r\n16) \"guild:-217132932:invite:e737861e-36dc-45af-b412-28498784156e\"\r\n17) \"guild:-217132932:invite:34a187ff-af50-4ae3-81ba-cc7e003696c0\"\r\n18) \"guild:-217132932:invite:add:6664cf11-4611-4cb7-a66c-0dfbb7367cbb\"\r\n19) \"guild:-217132932:invite:add:b7661ec5-320d-4471-90a0-92076c38c01f\"\r\n20) \"guild:-217132932:invite:856b56d7-fac3-4db0-82a3-f26b0eb225a1\"\r\n21) \"guild:-217132932:invite:add:d1946da1-61cb-4d23-a4f8-46588d413c54\"\r\n22) \"guild:-217132932:invite:add:45638883-ec89-4712-83ae-f275a80dda30\"\r\n23) \"guild:-217132932:invite:add:e39fc1b8-dd39-4a72-9375-bef843e4bc97\"\r\n24) \"guild:-217132932:invite:add:bfcd5a1a-b4ec-46fa-9f81-785e15d87739\"\r\n\r\n127.0.0.1:6379> scan 0 MATCH guild:-1483063375:add\r\n1) \"10\"\r\n2) (empty array)\r\n127.0.0.1:6379> scan 0 MATCH guild:-1483063375:*\r\n1) \"10\"\r\n2) (empty array)\r\n127.0.0.1:6379> keys guild:-1483063375:add\r\n1) \"guild:-1483063375:add\"\r\n127.0.0.1:6379> keys guild:-1483063375:*\r\n1) \"guild:-1483063375:add\"\r\n```\r\n\r\nThe key related to -1483063375 is not returned \r\n\r\n**To reproduce**\r\n\r\nAdd the keys like above and try the commands\r\n\r\n**Expected behavior**\r\n\r\nSCAN should be given the keys corresponding to the MATCH pattern\r\n\r\n**Additional information**\r\n\r\nRedis : 7.0.8\r\n",
+  "state": "closed",
+  "created_at": "2023-04-01T23:32:19Z",
+  "updated_at": "2023-04-02T09:16:45Z",
+  "closed_at": "2023-04-02T09:16:45Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1493262757,
+      "user": "oranagra",
+      "created_at": "2023-04-02T08:17:11Z",
+      "body": "looks like you haven't finished the fully SCAN (you got a cursor in response and you should call SCAN again with that cursor until you get a cursor of 0)\r\n\r\nthe SCAN command gradually iterates on the keys (without keeping any state at the server and without blocking the server for long like KEYS does).\r\nthe filtering by your MATCH pattern is done on the result, so if a certain batch of keys scan iterated on doesn't contain any match, you'll get no results, other than a cursor which you should use to continue the scan.\r\n\r\nlet me know if i'm missing anything and you still think there's a bug."
+    },
+    {
+      "id": 1493270169,
+      "user": "Distractic",
+      "created_at": "2023-04-02T08:55:37Z",
+      "body": "Ok thanks, I will try to recall SCAN with `10`\n\nHowever, I don't understand why the cursor returns an empty array if the cursor is not finished.\n\nSo if I understand, the SCAN can returns a new cursor (because not finished) and an empty array, and maybe in the next cursor array can be not empty, that's it ?"
+    },
+    {
+      "id": 1493275536,
+      "user": "oranagra",
+      "created_at": "2023-04-02T09:16:45Z",
+      "body": "yes, it finish the sweep though the whole key space yet, it sampled some 1000 hash slots, possibly found some keys, but nothing that matches the pattern, so it returned an empty array, and should be called again until the cursor that returns is `0`"
+    }
+  ]
+}

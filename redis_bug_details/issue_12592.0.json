@@ -1,0 +1,30 @@
+{
+  "issue_number": 12592.0,
+  "title": "[BUG] redis-cli doesn't auto exit from subscribed mode on reaching zero subscription",
+  "body": "**Describe the bug**\r\n\r\nredis-cli continue to be in pubsub/subscribed mode even if the server has unsubscribed the client for a given channel. This applies for both classic and sharded pubsub. \r\n \r\n**To reproduce**\r\n\r\n```\r\n127.0.0.1:6379(subscribed mode)> SUBSCRIBE ch1\r\n1) \"subscribe\"\r\n2) \"ch1\"\r\n3) (integer) 1\r\n127.0.0.1:6379(subscribed mode)> unsubscribe ch1\r\n1) \"unsubscribe\"\r\n2) \"ch1\"\r\n3) (integer) 0\r\n127.0.0.1:6379(subscribed mode)>\r\n```\r\n\r\n**Expected behavior**\r\n\r\nredis-cli should exit the subscribed mode\r\n\r\n**Additional information**\r\n\r\nDiscussed in #12577 ",
+  "state": "open",
+  "created_at": "2023-09-19T18:48:51Z",
+  "updated_at": "2023-09-20T20:28:16Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1726307135,
+      "user": "hpatro",
+      "created_at": "2023-09-19T18:52:24Z",
+      "body": "@zuiderkwast I think we need to maintain list(s) of active channel subscription for classic/shard pubsub on the client side and if the count reaches zero, we exit the subscribed mode. WDYT ?"
+    },
+    {
+      "id": 1726521034,
+      "user": "zuiderkwast",
+      "created_at": "2023-09-19T21:24:44Z",
+      "body": "OK but I don't think it's a bug. The printout you get when you enter pubsub mode is \"Reading messages... (press Ctrl-C to quit or any key to type command)\". It means in redis-cli you need to press Ctrl-C to exit pubsub mode.\r\n\r\nI would say what you are suggesting is a new feature. It would be nice to auto-exit pubsub mode, but I don't think it's strictly necessary.\r\n\r\nBefore the feature which let you enter commands in pubsub mode, it was the same behaviour except it wasn't possible to enter any commands at all. Ctrl-C was the only thing you could do in this mode. It is something similar in MONITOR mode still now.\r\n\r\n----\r\n\r\nNow, if we want to implement auto-exit, I don't think we need to track the lists of all the channels. We just need three flags: one for each kind of subscription (channel, pattern, shard-channel) indicating that we have one or more subscriptions of this kind. If we receive an unsubscribe message where the last element is zero, i.e. a message like\r\n\r\n```\r\n1) \"unsubscribe\"\r\n2) \"ch1\"\r\n3) (integer) 0\r\n```\r\n\r\nit means we don't have any more subscriptions of this kind, so we clear the flag. When all three flags are cleared, we exit pubsub mode.\r\n\r\nMakes sense?"
+    },
+    {
+      "id": 1728380004,
+      "user": "hpatro",
+      "created_at": "2023-09-20T20:27:17Z",
+      "body": "\"It's not a bug, it's a feature\"\r\n\r\nWell if there is no subscription left, and it still continues in the subscription/pubsub mode, it looks like a bug to me since the start irrespective of the recent changes. \r\n\r\n@zuiderkwast Thanks for looking at it. Yeah, the solution definitely makes sense, we can piggyback on the subscription count returned in the unsubscribe response. I'll pick it up shortly. "
+    }
+  ]
+}

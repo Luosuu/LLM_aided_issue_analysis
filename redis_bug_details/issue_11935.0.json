@@ -1,0 +1,30 @@
+{
+  "issue_number": 11935.0,
+  "title": "[BUG] Child process `redis-rdb-to-slaves` is running continuously forever when parent process is restarted",
+  "body": "**Describe the bug**\r\nChild process `redis-rdb-to-slaves` is running continuously forever when parent process is restarted.\r\nAt the below code, child process is waiting for the parent process.\r\nhttps://github.com/redis/redis/blob/521e54f551386eaec3e84ddad052add391059e5e/src/rdb.c#L3540\r\n\r\nIf for some reason, redis is restarted before the child process reaches the above code, then child process `redis-rdb-to-slaves` will stay forever. Also it holds the old memory pages, which results into double memory usage.\r\n\r\n**Expected behavior**\r\nChild process `redis-rdb-to-slaves` should check for the liveness of the parent process  before issuing the read in above code.\r\nOR We can add some timeout so that process is stopped after some time even when parent process is not reachable.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-17T17:10:28Z",
+  "updated_at": "2023-03-18T12:19:50Z",
+  "closed_at": "2023-03-18T12:19:50Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1474754295,
+      "user": "oranagra",
+      "created_at": "2023-03-18T07:04:57Z",
+      "body": "I think I recently fixed it. Which version are you using?"
+    },
+    {
+      "id": 1474756426,
+      "user": "azeemmd",
+      "created_at": "2023-03-18T07:12:27Z",
+      "body": "I am using 6.2.6. in which version it was fixed, and what was the fix. Thanks."
+    },
+    {
+      "id": 1474770521,
+      "user": "enjoy-binbin",
+      "created_at": "2023-03-18T08:22:20Z",
+      "body": "look like the fix is this one #11463 ?  (released in 6.2.8 , 7.0.6)"
+    }
+  ]
+}

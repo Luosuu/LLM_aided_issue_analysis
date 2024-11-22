@@ -1,0 +1,38 @@
+{
+  "issue_number": 13360.0,
+  "title": "[BUG] Clicking URL with period ( . ) at end of the URL in WSL opens the URL with period in browser",
+  "body": "**Describe the bug**\r\n\r\nWhen clicking URL from below message in WSL2 Ubuntu:\r\n\r\n```\r\n204972:C 21 Jun 2024 21:49:20.946 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.\r\n```\r\n\r\n![CMD Screenshot](https://github.com/redis/redis/assets/31812582/104e60d9-ac41-4e9e-a683-5feda62d2c3e)\r\n\r\nIt opens the URL with period at end in browser:\r\n\r\n![Browser Screeshot](https://github.com/redis/redis/assets/31812582/485a1fd2-7e8c-4cd1-b2e3-a3d99038086a)\r\n\r\n**To reproduce**\r\n\r\nUse `redis-server --daemonize yes` in WSL2 Ubuntu\r\n\r\n**Expected behavior**\r\n\r\nIt should open `https://github.com/jemalloc/jemalloc/issues/1328` instead of `https://github.com/jemalloc/jemalloc/issues/1328.`\r\n\r\n**Additional information**\r\n\r\nIts probably has to do with how Windows Terminal detects links. One way to fix this would be to add space before period in `/src/syscheck.c` file where this message is defined. I am not sure if it goes against the style guidelines or its not to be fixed from redis side but from Windows Terminal.\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-06-21T16:35:00Z",
+  "updated_at": "2024-07-15T11:27:12Z",
+  "closed_at": "2024-07-15T11:27:12Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 2183799106,
+      "user": "sundb",
+      "created_at": "2024-06-22T05:11:49Z",
+      "body": "@thisisjaymehta thanks, but this is a issue of parsing a link in window terminal, for Redis we should ouput a correct sentence, not an extra in the mid.\r\non the other hand, we can copy the link to web browser."
+    },
+    {
+      "id": 2183814629,
+      "user": "thisisjaymehta",
+      "created_at": "2024-06-22T05:33:26Z",
+      "body": "But since a period is a valid URL character, it won't be possible for Terminal to distinguish if the period belongs to the sentence or the URL.\r\n\r\nIn that case, it's advisable to rewrite the sentence such that the URL is not at the end of the sentence, as advised [here](https://ux.stackexchange.com/questions/15226/should-a-sentence-ending-with-a-url-terminate-with-a-period).\r\n\r\nPossible rewrite could be: `Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328 for more details.`"
+    },
+    {
+      "id": 2183917081,
+      "user": "sundb",
+      "created_at": "2024-06-22T08:33:56Z",
+      "body": "@thisisjaymehta actually, it only happened in windows terminal, it works in ubuntu terminal."
+    },
+    {
+      "id": 2184012216,
+      "user": "thisisjaymehta",
+      "created_at": "2024-06-22T12:21:23Z",
+      "body": "True, only happens in Windows Terminal."
+    }
+  ]
+}

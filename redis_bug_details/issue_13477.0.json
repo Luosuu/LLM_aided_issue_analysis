@@ -1,0 +1,26 @@
+{
+  "issue_number": 13477.0,
+  "title": "[CRASH] <short description>",
+  "body": "redis7+ （redis:7.4.0 \\redis:7.2.5       ）容器镜像无法正常启动\r\n以下是版本信息\r\n[root@localhost opt]# uname -a\r\nLinux localhost.localdomain 4.19.91-24.8.el8.ks8.11.x86_64 #1 SMP Mon Oct 25 15:57:11 CST 2021 x86_64 x86_64 x86_64 GNU/Linux\r\n[root@localhost opt]# docker version\r\nClient:\r\n Version:           27.1.2\r\n API version:       1.46\r\n Go version:        go1.21.13\r\n Git commit:        d01f264\r\n Built:             Mon Aug 12 11:49:34 2024\r\n OS/Arch:           linux/amd64\r\n Context:           default\r\n\r\nServer: Docker Engine - Community\r\n Engine:\r\n  Version:          27.1.2\r\n  API version:      1.46 (minimum version 1.24)\r\n  Go version:       go1.21.13\r\n  Git commit:       f9522e5\r\n  Built:            Mon Aug 12 11:50:54 2024\r\n  OS/Arch:          linux/amd64\r\n  Experimental:     false\r\n containerd:\r\n  Version:          v1.7.20\r\n  GitCommit:        8fc6bcff51318944179630522a095cc9dbf9f353\r\n runc:\r\n  Version:          spec: 1.0.2-dev\r\n  GitCommit:\r\n docker-init:\r\n  Version:          0.19.0\r\n  GitCommit:        de40ad0\r\n[root@localhost opt]# docker-compose version\r\nDocker Compose version v2.29.1\r\n[root@localhost opt]# docker images\r\nREPOSITORY   TAG       IMAGE ID       CREATED         SIZE\r\nredis        7.4.0     dae83f665c92   2 weeks ago     117MB\r\nmysql        8.4.0     05247af91864   8 weeks ago     578MB\r\nredis        7.2.5     6da5f3c25798   2 months ago    116MB\r\nmysql        8.2.0     bc861cf238f2   8 months ago    619MB\r\nbusybox      latest    65ad0d468eb1   15 months ago   4.26MB\r\n\r\n\r\n1:M 17 Aug 2024 16:57:59.668 * Increased maximum number of open files to 10032 (it was originally set to 1024).\r\n1:M 17 Aug 2024 16:57:59.668 * monotonic clock: POSIX clock_gettime\r\n1:M 17 Aug 2024 16:57:59.669 * Running mode=standalone, port=6379.\r\n1:M 17 Aug 2024 16:57:59.669 # Fatal: Can't initialize Background Jobs. Error message: Operation not permitted\r\n1:C 17 Aug 2024 16:59:00.747 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n1:C 17 Aug 2024 16:59:00.747 * Redis version=7.4.0, bits=64, commit=00000000, modified=0, pid=1, just started\r\n1:C 17 Aug 2024 16:59:00.747 * Configuration loaded\r\n1:M 17 Aug 2024 16:59:00.748 * Increased maximum number of open files to 10032 (it was originally set to 1024).\r\n1:M 17 Aug 2024 16:59:00.748 * monotonic clock: POSIX clock_gettime\r\n1:M 17 Aug 2024 16:59:00.749 * Running mode=standalone, port=6379.\r\n1:M 17 Aug 2024 16:59:00.749 # Fatal: Can't initialize Background Jobs. Error message: Operation not permitted\r\n1:C 17 Aug 2024 17:00:01.792 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n1:C 17 Aug 2024 17:00:01.792 * Redis version=7.4.0, bits=64, commit=00000000, modified=0, pid=1, just started\r\n1:C 17 Aug 2024 17:00:01.792 * Configuration loaded\r\n1:M 17 Aug 2024 17:00:01.792 * Increased maximum number of open files to 10032 (it was originally set to 1024).\r\n1:M 17 Aug 2024 17:00:01.792 * monotonic clock: POSIX clock_gettime\r\n1:M 17 Aug 2024 17:00:01.794 * Running mode=standalone, port=6379.\r\n1:M 17 Aug 2024 17:00:01.794 # Fatal: Can't initialize Background Jobs. Error message: Operation not permitted",
+  "state": "closed",
+  "created_at": "2024-08-17T09:02:15Z",
+  "updated_at": "2024-08-19T06:19:23Z",
+  "closed_at": "2024-08-19T06:19:23Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 2294802125,
+      "user": "sundb",
+      "created_at": "2024-08-17T09:07:13Z",
+      "body": "please ref https://github.com/redis/redis/issues/12362"
+    },
+    {
+      "id": 2294805419,
+      "user": "yanxianhe",
+      "created_at": "2024-08-17T09:22:00Z",
+      "body": "@sundb 当前处理方式是添加特权\r\nprivileged: true"
+    }
+  ]
+}

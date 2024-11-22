@@ -1,0 +1,18 @@
+{
+  "issue_number": 9257.0,
+  "title": "[BUG] Segmentation fault error on importing data from old cluster",
+  "body": "I have 3 existing Redis v4.0.2 nodes sharded by application (IBM Infosphere Streams DPS Toolkit). Now I have created a new v6.2.4 cluster and trying to import data from old nodes but keep on getting error Segmentation fault.\r\n\r\n```\r\n[root@strmrd01 bin]#  ./redis-cli --cluster import 10.162.53.247:7000 --cluster-from 10.162.53.248:6380 --cluster-replace --cluster-copy\r\n>>> Importing data from 10.162.53.248:6380 to cluster 10.162.53.247:7000\r\n>>> Performing Cluster Check (using node 10.162.53.247:7000)\r\nM: 1d0561ac912a8d9f6a35a98a9eda37715a69e51a 10.162.53.247:7000\r\n   slots:[0-5460] (5461 slots) master\r\n   1 additional replica(s)\r\nS: ae9e6759aeb60e0eb4730014673a9a91f80d6b76 10.162.53.248:7001\r\n   slots: (0 slots) slave\r\n   replicates 79fb0a114ed2e2ce22a573c7bc87e5186795836c\r\nS: d4edcf68fbf4b695eec42106f7bee9d683531b91 10.162.53.248:7002\r\n   slots: (0 slots) slave\r\n   replicates 1d0561ac912a8d9f6a35a98a9eda37715a69e51a\r\nM: 6d49cb6f53c4dab4b874dd23d0005048b1052268 10.162.53.247:7002\r\n   slots:[5461-10922] (5462 slots) master\r\n   1 additional replica(s)\r\nS: 60fd992708f5cc6bbd5cd433328aa836c3d2656d 10.162.53.248:7000\r\n   slots: (0 slots) slave\r\n   replicates 6d49cb6f53c4dab4b874dd23d0005048b1052268\r\nM: 79fb0a114ed2e2ce22a573c7bc87e5186795836c 10.162.53.247:7001\r\n   slots:[10923-16383] (5461 slots) master\r\n   1 additional replica(s)\r\n[OK] All nodes agree about slots configuration.\r\n>>> Check for open slots...\r\n>>> Check slots coverage...\r\n[OK] All 16384 slots covered.\r\n*** Importing 33350 keys from DB 0\r\nSegmentation fault\r\n[root@avqa-strmrd01 bin]# pwd\r\n/app/redis6.2.4/bin\r\n[root@strmrd01 bin]#\r\n```\r\n\r\nI can't see anything in syslogs. Am I missing something?\r\nPlease also share detailed docs of Redis-cli import, I couldn't it, in fact got command options from another issue",
+  "state": "open",
+  "created_at": "2021-07-20T03:23:12Z",
+  "updated_at": "2021-07-20T17:48:58Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 883579661,
+      "user": "oranagra",
+      "created_at": "2021-07-20T17:48:58Z",
+      "body": "So redis-cli crashes.. Can you please run it under `gdb` and show a trace of the crash? "
+    }
+  ]
+}

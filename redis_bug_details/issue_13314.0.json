@@ -1,0 +1,54 @@
+{
+  "issue_number": 13314.0,
+  "title": "[BUG] Record, deleted from stream, stays in PEL",
+  "body": "**Describe the bug**\r\n\r\nIn our implementation, after reading messages from stream (with XREADGROUP), we delete it from the stream(with XDEL). In this case, messages stay in Pending Entities List, which leads to OOM at some point.\r\n\r\n**To reproduce**\r\n\r\nWe use XADD to add messages, XREAD GROUP to read them, XDEL to delete, and XINFO STREAM FULL to check PEL-count.\r\n\r\n**Expected behavior**\r\n\r\nMessages, deleted from the stream with XDEL, should probably be deleted from the PEL too, without explicit XACK. Or, if there is a reason for current behavior to be expected, it should be documented to be clear.",
+  "state": "closed",
+  "created_at": "2024-06-02T13:33:05Z",
+  "updated_at": "2024-06-04T13:48:57Z",
+  "closed_at": "2024-06-04T13:48:57Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2144140228,
+      "user": "sundb",
+      "created_at": "2024-06-03T01:51:51Z",
+      "body": "did you forget to `XACK`?"
+    },
+    {
+      "id": 2144378100,
+      "user": "trilga",
+      "created_at": "2024-06-03T06:29:59Z",
+      "body": "We assumed that there is no need to XACK if we do XDEL. I'll update description to make it clearer"
+    },
+    {
+      "id": 2144399511,
+      "user": "sundb",
+      "created_at": "2024-06-03T06:45:43Z",
+      "body": "@trilga `XDEL` is not responsible for removing entry from PEL."
+    },
+    {
+      "id": 2144436105,
+      "user": "trilga",
+      "created_at": "2024-06-03T07:08:55Z",
+      "body": "So, the question is why? Intuitively one would expect that you don't need to acknowledge receiving the message if you delete it. Could you please elaborate more on this?"
+    },
+    {
+      "id": 2144595255,
+      "user": "sundb",
+      "created_at": "2024-06-03T08:29:30Z",
+      "body": "it has to do with their duties.\r\n`XACK` is for PEL, `XDEL` is for stream.\r\nif one mesage is deleted by `XDEL`, we still need to know the message hasn't been processed."
+    },
+    {
+      "id": 2144676711,
+      "user": "trilga",
+      "created_at": "2024-06-03T09:06:22Z",
+      "body": "@sundb, thank you, I think I understood the behavior!\r\nDo you think it is possible to add this information to the documentation? The first impression is that XDEL would delete the message from all of the storages. So it might be helpful to point out that the deleted message stays in PEL waiting for acknowledgment. BTW, I found out that the XCLAIM attempt on such a message also removes it from PEL"
+    },
+    {
+      "id": 2144733393,
+      "user": "sundb",
+      "created_at": "2024-06-03T09:34:12Z",
+      "body": "@trilga in fact, the document is clear, and the document for `XDEL` doesn't say that it will clean PEL.\r\nhttps://redis.io/docs/latest/commands/xack/\r\nhttps://redis.io/docs/latest/commands/xdel/\r\n```\r\nThe XACK command removes one or multiple messages from the Pending Entries List (PEL) of a stream consumer group. A message is pending, and as such stored inside the PEL, when it was delivered to some consumer, normally as a side effect of calling [XREADGROUP](https://redis.io/docs/latest/commands/xreadgroup/), or when a consumer took ownership of a message calling [XCLAIM](https://redis.io/docs/latest/commands/xclaim/).\r\n```\r\n\r\n"
+    }
+  ]
+}

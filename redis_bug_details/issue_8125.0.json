@@ -1,0 +1,66 @@
+{
+  "issue_number": 8125.0,
+  "title": "[BUG] Redis Stream entries added by module not recognized by XREAD with special ID $",
+  "body": "**Describe the bug**\r\nIssuing commands like:\r\n`XREAD BLOCK 2000 STREAMS mystream $`\r\nor\r\n`XREAD BLOCK 2000 STREAMS mystream <id_larger_than_latest>`\r\nwill consistently time out if mystream is populated from within a module.\r\n\r\n\r\n**To reproduce**\r\nExample of a module:\r\n```c\r\nvoid insert_func(void *arg)\r\n{\r\n    RedisModuleCtx *ctx = (RedisModuleCtx *)arg;\r\n\r\n    while(1) {\r\n        RedisModuleCallReply *rep = RedisModule_Call(ctx, \"XADD\", \"ccclccc\", \"mystream\", \"MAXLEN\",  \"~\", 10, \"*\", \"data\", \"some_value\");\r\n\r\n        RedisModule_FreeCallReply(rep);\r\n        sleep(1);\r\n    }\r\n}\r\n\r\nint RedisModule_OnLoad(RedisModuleCtx *ctx, ...)\r\n{\r\n    /* Init module */\r\n    ...\r\n    pthread_t thread;\r\n    pthread_create(&thread, NULL, &insert_func, (void *)RedisModule_GetThreadSafeContext(ctx));\r\n    return REDISMODULE_OK;\r\n}\r\n```\r\n\r\nWaiting for a new entry:\r\n```\r\nXREAD BLOCK 2000 STREAMS mystream $\r\n\r\n(nil)\r\n(2.01s)\r\n```\r\n\r\n**Expected behavior**\r\nXREAD returns the new entry.\r\n\r\n**Additional information**\r\nData is inserted as expected.\r\nCommands `XRANGE and XREVRANGE` give expected results.\r\n",
+  "state": "closed",
+  "created_at": "2020-12-02T17:19:02Z",
+  "updated_at": "2020-12-03T13:24:41Z",
+  "closed_at": "2020-12-03T13:24:41Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 737768737,
+      "user": "oranagra",
+      "created_at": "2020-12-03T09:09:47Z",
+      "body": "@pelken just to be sure, the blocking XREAD isn't done by a module, just the XADD right?\r\n(running blocking commands from modules isn't currently supported https://github.com/redis/redis/pull/8025)\r\n\r\nwhich version of redis are you using?"
+    },
+    {
+      "id": 737773115,
+      "user": "pv-work",
+      "created_at": "2020-12-03T09:17:37Z",
+      "body": "@oranagra \r\nCorrect. Just XADD in the module. XREAD is tested in redis-cli or client app using hiredis lib.\r\n\r\nredis version: 6.0.8"
+    },
+    {
+      "id": 737778183,
+      "user": "oranagra",
+      "created_at": "2020-12-03T09:27:03Z",
+      "body": "@pelken FYI, the module code you posted above violates thread safety, you need to use `RM_ThreadSafeContextLock`. but that's not what's causing the issue here.\r\n\r\nis there any other traffic on redis? what's the `hz` config setting?\r\n\r\nredis processes unblocked clients from `beforeSleep` which is executed from the main thread after serving commands, or waking up to do cron timer chores.\r\nthat's where your XREAD should have been unblocked (not immediately after calling XADD).\r\n\r\n@guybe7 can you please take a look."
+    },
+    {
+      "id": 737818163,
+      "user": "pv-work",
+      "created_at": "2020-12-03T10:03:34Z",
+      "body": "> @pelken FYI, the module code you posted above violates thread safety, you need to use `RM_ThreadSafeContextLock`. but that's not what's causing the issue here.\r\n> \r\nYes, I realize this. Opted to omit from example.\r\n\r\n> is there any other traffic on redis? what's the `hz` config setting?\r\n\r\nIn my actual case there is quite a bit of traffic, data is added at a much higher rate to a number of streams. This is where I first noticed. But I have tested this small scale (1 stream, 1 insertion/second) with the same result. There are no other clients connected to redis.\r\n\r\n`hz` is the default 10. I have tried setting it higher but it doesn't seem to help."
+    },
+    {
+      "id": 737868974,
+      "user": "guybe7",
+      "created_at": "2020-12-03T11:01:01Z",
+      "body": "looking"
+    },
+    {
+      "id": 737869961,
+      "user": "guybe7",
+      "created_at": "2020-12-03T11:03:04Z",
+      "body": "fixed #7903 \r\nseems like it's not in the 6.0 branch... "
+    },
+    {
+      "id": 737870630,
+      "user": "guybe7",
+      "created_at": "2020-12-03T11:04:23Z",
+      "body": "forgot to `git fetch`... it is there, but was released in 6.0.9\r\n@pelken can you re-test with 6.0.9?"
+    },
+    {
+      "id": 737972222,
+      "user": "pv-work",
+      "created_at": "2020-12-03T13:08:41Z",
+      "body": "@guybe7 yep 6.0.9 seems to have done the trick.\r\nThanks for the help."
+    },
+    {
+      "id": 737991462,
+      "user": "guybe7",
+      "created_at": "2020-12-03T13:23:54Z",
+      "body": "@pelken sure thing, please close the issue"
+    }
+  ]
+}

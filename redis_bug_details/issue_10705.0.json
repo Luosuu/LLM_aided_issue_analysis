@@ -1,0 +1,24 @@
+{
+  "issue_number": 10705.0,
+  "title": "[BUG][FUNCTION]load exists libraries cause libraries_count increase",
+  "body": "**Describe the bug**\r\nload exists libraries will return ERR， bug the metric libraries_count & functions_count will increase\r\n\r\n**To reproduce**\r\n```\r\n27.0.0.1:6379> FUNCTION stats\r\n1) \"running_script\"\r\n2) (nil)\r\n3) \"engines\"\r\n4) 1) \"LUA\"\r\n   2) 1) \"libraries_count\"\r\n      2) (integer) 1\r\n      3) \"functions_count\"\r\n      4) (integer) 1\r\n127.0.0.1:6379> FUNCTION LOAD \"#!lua name=mylib\\nredis.register_function('knockknock', function() return 'Who\\\\'s there?' end)\"\r\n(error) ERR Library 'mylib' already exists\r\n127.0.0.1:6379> FUNCTION stats\r\n1) \"running_script\"\r\n2) (nil)\r\n3) \"engines\"\r\n4) 1) \"LUA\"\r\n   2) 1) \"libraries_count\"\r\n      2) (integer) 2\r\n      3) \"functions_count\"\r\n      4) (integer) 2\r\n127.0.0.1:6379>\r\n```\r\n\r\n**Expected behavior**\r\nhttps://github.com/redis/redis/blob/unstable/src/functions.c#L966 goto error and relink library， so in libraryLink increase stats->n_lib and stats->n_functions。\r\n",
+  "state": "closed",
+  "created_at": "2022-05-10T06:51:31Z",
+  "updated_at": "2022-05-10T08:47:45Z",
+  "closed_at": "2022-05-10T08:47:45Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1122025838,
+      "user": "enjoy-binbin",
+      "created_at": "2022-05-10T07:25:05Z",
+      "body": "verified. i take a quick look, random thoughts:\r\n1. dictAdd(lib_ctx->libraries, li->name, li);  look like we need to check the return value\r\n2. look like we need a flag like `old_li_already_exists`, when the lib already exists, set to 1, and `libraryLink(lib_ctx, old_li)` only if old_li_already_exists == 0"
+    },
+    {
+      "id": 1122051598,
+      "user": "MeirShpilraien",
+      "created_at": "2022-05-10T07:53:49Z",
+      "body": "Thanks @enjoy-binbin, please let me know what you think about this fix: https://github.com/redis/redis/pull/10706"
+    }
+  ]
+}

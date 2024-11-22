@@ -1,0 +1,24 @@
+{
+  "issue_number": 8790.0,
+  "title": "[BUG] SADD/ZADD/LPUSH members not saved in the order it was added",
+  "body": "**Describe the bug**\r\n\r\nAny values added to a SET/ZSET/LIST seem to be sorted by default in ascending order, and totally ignore the  order it was added in:\r\n\r\nFrom the simple example on the website>\r\n\r\nredis> DEL myset\r\n\r\n(integer) 1\r\n\r\nredis> SADD myset World\r\n\r\n(integer) 1\r\n\r\nredis> SADD myset Hello\r\n\r\n(integer) 1\r\n\r\nredis> smembers myset\r\n\r\n1) \"Hello\"\r\n2) \"World\"\r\n\r\nredis> sort myset by nosort\r\n\r\n1) \"Hello\"\r\n2) \"World\"\r\n\r\nExpected behavior is to see \r\n1) World \r\n2) Hello - \r\n\r\nAs this was how it was added\r\n\r\nIt should be in the order it was added and this is the same for ZADD, LPUSH, etc. it seems once the keys are stored it is sorted in its own ascending order.\r\n\r\n------------\r\n\r\n127.0.0.1:6379> SADD testsort a 2 b 3 c 1\r\n(integer) 6\r\n127.0.0.1:6379> smembers testsort\r\n1) \"2\"\r\n2) \"a\"\r\n3) \"c\"\r\n4) \"1\"\r\n5) \"b\"\r\n6) \"3\"\r\n\r\n127.0.0.1:6379> LPUSH testpush a 2 b 3 c 1\r\n(integer) 6\r\n\r\n127.0.0.1:6379> lrange testpush 0 5\r\n1) \"1\"\r\n2) \"c\"\r\n3) \"3\"\r\n4) \"b\"\r\n5) \"2\"\r\n6) \"a\"\r\n\r\n127.0.0.1:6379> sort testpush by nosort\r\n1) \"1\"\r\n2) \"c\"\r\n3) \"3\"\r\n4) \"b\"\r\n5) \"2\"\r\n6) \"a\"\r\n\r\nThis seems to keep the order, but in reverse.\r\n\r\nUsing latest redis 6.2.1 (from Docker if relevant)",
+  "state": "closed",
+  "created_at": "2021-04-15T13:39:51Z",
+  "updated_at": "2021-04-15T14:21:27Z",
+  "closed_at": "2021-04-15T14:10:08Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 820451946,
+      "user": "oranagra",
+      "created_at": "2021-04-15T14:10:08Z",
+      "body": "Hash, and Set types don't intend to keep any order, they're stored in a hash table using a random hash seed, so on each run of Redis they may be presented out in a different order which is not lexicographic, nor the order in which they where added.\r\n\r\nList keeps order, but since you used LPUSH (left push), the LRANGE command returns them in reverse to the order you pushed them. \r\n\r\nZset, is saved similarly to Set, but it also has a ziplist for order. So it depends on how you query it, a simple ZRANGE will give them sorted by the rank (not the order you added them). If you use score of 0 for all items, then they are sorted lexicographically. "
+    },
+    {
+      "id": 820460285,
+      "user": "gittyup2018",
+      "created_at": "2021-04-15T14:21:27Z",
+      "body": "I didn't know sets were stored as hashes and yes, RPUSH seems to keep the correct order. I guess I'm a little rusty using/thinking in Redis terms, sorry for any inconvenience."
+    }
+  ]
+}

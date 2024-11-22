@@ -1,0 +1,32 @@
+{
+  "issue_number": 13307.0,
+  "title": "[CRASH] Redis 7.2.x crashes in activeDefragCycle when activedefrag disabled while running and re-enabled",
+  "body": "Discovered during investigation of issue 13205\r\n\r\n**Crash report**\r\n\r\nPaste the complete crash log between the quotes below. Please include a few lines from the log preceding the crash report to provide some context.\r\n\r\n```\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n19766:M 29 May 2024 14:29:44.134 # Redis 7.2.3 crashed by signal: 11, si_code: 1\r\n19766:M 29 May 2024 14:29:44.134 # Accessing address: 0x48\r\n19766:M 29 May 2024 14:29:44.134 # Crashed running the instruction at: 0x48a9bc\r\n\r\n------ STACK TRACE ------\r\nEIP:\r\nredis-server *:63791 [cluster](defragLaterStep+0x4c)[0x48a9bc]\r\n\r\nBacktrace:\r\n/lib64/libpthread.so.0(+0x12cf0)[0x7f11c991fcf0]\r\nredis-server *:63791 [cluster](defragLaterStep+0x4c)[0x48a9bc]\r\nredis-server *:63791 [cluster](activeDefragCycle+0x3b4)[0x48b0f4]\r\nredis-server *:63791 [cluster](databasesCron+0x6c)[0x5668ec]\r\nredis-server *:63791 [cluster](serverCron+0x64a)[0x5691da]\r\nredis-server *:63791 [cluster][0x56248d]\r\nredis-server *:63791 [cluster](aeMain+0x1d8)[0x563c58]\r\nredis-server *:63791 [cluster](main+0x39a)[0x450d4a]\r\n/lib64/libc.so.6(__libc_start_main+0xe5)[0x7f11c9582d85]\r\nredis-server *:63791 [cluster](_start+0x2e)[0x45147e]\r\n\r\n------ REGISTERS ------\r\n19766:M 29 May 2024 14:29:44.135 #\r\nRAX:0000000000000000 RBX:0000000000000000\r\nRCX:0000000000000000 RDX:0000000000000000\r\nRDI:0000000000000000 RSI:0000000000000000\r\nRBP:0000000000000000 RSP:00007ffe5c2adab0\r\nR8 :000000000036c9c2 R9 :00007ffe5c34a080\r\nR10:00007ffe5c2adb30 R11:0000000000000002\r\nR12:00000000000002c0 R13:0006199bef354748\r\nR14:0000000000000000 R15:0000000000000000\r\nRIP:000000000048a9bc EFL:0000000000010246\r\nCSGSFS:002b000000000033\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adabf) -> 0000000000000000\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adabe) -> 0006199bef354748\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adabd) -> 0000000000000000\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adabc) -> 0000000000000014\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adabb) -> 0000000000020d20\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adaba) -> 0000000066577418\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab9) -> 0000000000481daf\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab8) -> 00000000000002c0\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab7) -> 0000000000000000\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab6) -> 000000050a98c3d4\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab5) -> 0000000000054e20\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab4) -> 000000050a98c3d4\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab3) -> 00000000004809c0\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab2) -> 00000000004808d0\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab1) -> 0000000000000001\r\n19766:M 29 May 2024 14:29:44.135 # (00007ffe5c2adab0) -> 0000000000000000\r\n...\r\n\r\n------ DUMPING CODE AROUND EIP ------\r\nSymbol: defragLaterStep (base: 0x48a970)\r\nModule: redis-server *:63791 [cluster] (base 0x400000)\r\n$ xxd -r -p /tmp/dump.hex /tmp/dump.bin\r\n$ objdump --adjust-vma=0x48a970 -D -b binary -m i386:x86-64 /tmp/dump.bin\r\n------\r\n19766:M 29 May 2024 14:29:44.272 # dump of function (hexdump of 204 bytes):\r\n41574531ff41564989fe41554989f5415455534883ec68488b2d92734600f30f7e0d127c19004c8b25a3734600488b15844c46000f160d657b19000f294c2410488b35794c46004885d2755a498b7e48488b074885f6742f483970100f85510300004889c6e8d6870d00498b464848c7053f4c46000000000048c7053c4c460000000000488b004885c00f841c03000048c7051d4c460000000000488b70104889351a4c4600498b3ee852d00d004889c3488b05f87246004889442420e9b500000066662e0f1f8400000000\r\nFunction at 0x5631b0 is listDelNode\r\nFunction at 0x567a70 is dictFind\r\n```\r\n\r\n**Additional information**\r\n\r\n- Running in cluster mode\r\n- loaded up with simple string keys with random (short) TTLs\r\n- while defrag is running, CONFIG SET activedefrag off; CONFIG SET activedefrag on\r\n\r\nfix is to reset expires_counter during the disabled  mid-run if block in defrag.c:activeDefragCycle()\r\n",
+  "state": "closed",
+  "created_at": "2024-05-30T16:38:56Z",
+  "updated_at": "2024-06-21T12:06:10Z",
+  "closed_at": "2024-06-21T12:06:10Z",
+  "labels": [
+    "crash report"
+  ],
+  "comments_data": [
+    {
+      "id": 2140204743,
+      "user": "stevelipinski",
+      "created_at": "2024-05-30T16:39:47Z",
+      "body": "Fix:\r\nhttps://github.com/stevelipinski/redis/commit/ecb7cd826022f5177f47474509c8ca23746d889c"
+    },
+    {
+      "id": 2141038769,
+      "user": "sundb",
+      "created_at": "2024-05-31T00:22:56Z",
+      "body": "@stevelipinski thanks, you can create a PR instead of issue to fix it."
+    },
+    {
+      "id": 2182625239,
+      "user": "sundb",
+      "created_at": "2024-06-21T12:06:10Z",
+      "body": "Fixed via #13315"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "issue_number": 10226.0,
+  "title": "[BUG]can't add `replace` `desc description` at the end of `function load` command in redis 7.0",
+  "body": "**Describe the bug**\r\n\r\nA short description of the bug.\r\n![image](https://user-images.githubusercontent.com/5235764/152086945-675d404c-a589-4040-806c-c1d12f3f85fd.png)\r\n\r\n```\r\n127.0.0.1:6379> FUNCTION LOAD Lua mylib \"redis.register_function('myfunc', function(keys, args) return args[1] end)\" replace description desc\r\n(error) ERR Unknown option given: redis.register_function('myfunc', function(keys, args) return args[1] end)\r\n127.0.0.1:6379>\r\n```\r\n\r\nsee image above of command hint\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2022-02-02T03:05:44Z",
+  "updated_at": "2022-02-02T06:51:26Z",
+  "closed_at": "2022-02-02T06:51:26Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1027637791,
+      "user": "oranagra",
+      "created_at": "2022-02-02T06:51:26Z",
+      "body": "@leonchen83 the redis-cli tips are misleading, they stop being updated when there are optional argument.\r\nhttps://github.com/redis/redis/pull/9303\r\nsyntax for FUNCTION LOAD is that the code is always the last argument"
+    }
+  ]
+}

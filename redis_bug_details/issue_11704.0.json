@@ -1,0 +1,282 @@
+{
+  "issue_number": 11704.0,
+  "title": "[BUG]",
+  "body": "**Describe the bug**\r\n\r\nProblems caused by watch a key that is about to expire\r\n**To reproduce**\r\n\r\n       String loadData = \"123456\";//Simulate time-consuming loading action. Redis connection is not occupied at this time\r\n\r\n       Jedis j85 = new Jedis(\"xx.xx.xx.xx\",xxx);\r\n        j85.setex(\"testbit\", 10,  \"6543\");//Assume the last setting\r\n       \r\n        j85.watch(\"testbit\");\r\n\r\n        //TODO: Some conditions are used to determine whether to execute the transaction\r\n\r\n        Transaction trans1 = j85.multi();\r\n\r\n        Thread.sleep(11000);//Hold for 11 seconds to disable key‘testbit’\r\n\r\n        //Another thread simulates concurrent behavior\r\n        new Thread(()-> { \r\n            Jedis j85t = new Jedis(\"xx.xx.xx.xx\",xxx);\r\n            j85t.del(\"testbit\");//The purpose of deletion is to keep the transaction from executing\r\n        }).start();\r\n       \r\n        trans1.set(\"testbit\", loadData);\r\n        trans1.exec();\r\n**Expected behavior**\r\n\r\nI expect that the transaction will not succeed, although key‘testbit’ has expired\r\n**Additional information**\r\n\r\nIn fact, my goal is to lazily load new data after each deletion.",
+  "state": "open",
+  "created_at": "2023-01-11T10:04:20Z",
+  "updated_at": "2023-02-03T08:00:00Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1379935452,
+      "user": "sundb",
+      "created_at": "2023-01-12T07:53:13Z",
+      "body": "1) I'm wondering if the code you posted was copied from two places.\r\n`new Thread(()` would be blocked by `Thread.sleep(11000)`.\r\n\r\n2) Is key `testbit` exist before `j85.setex(\"testbit\", 10,  \"6543\");`?\r\n    If it doesn't exist, `DEL` command in another thread won't change anything, and it won't trigger the `WATCH`."
+    },
+    {
+      "id": 1381230668,
+      "user": "whipfeng",
+      "created_at": "2023-01-13T02:20:43Z",
+      "body": "> 1. I'm wondering if the code you posted was copied from two places.\r\n>    `new Thread(()` would be blocked by `Thread.sleep(11000)`.\r\n> 2. Is key `testbit` exist before `j85.setex(\"testbit\", 10,  \"6543\");`?\r\n>    If it doesn't exist, `DEL` command in another thread won't change anything, and it won't trigger the `WATCH`.\r\n\r\nAre you Chinese? Can we communicate in Chinese"
+    },
+    {
+      "id": 1381238619,
+      "user": "whipfeng",
+      "created_at": "2023-01-13T02:34:31Z",
+      "body": "> 1. I'm wondering if the code you posted was copied from two places.\r\n>    `new Thread(()` would be blocked by `Thread.sleep(11000)`.\r\n> 2. Is key `testbit` exist before `j85.setex(\"testbit\", 10,  \"6543\");`?\r\n>    If it doesn't exist, `DEL` command in another thread won't change anything, and it won't trigger the `WATCH`.\r\n\r\n1.‘new Thread(()’ and ‘Thread.sleep(11000)’ just to simulate concurrency.\r\n2.Does it have any influence whether the key `testbit`  exists before 'j85.setex(\"testbit\", 10,  \"6543\");'.\r\nI just tried. Even if it exists, ‘DEL’ will not trigger the WATCH.\r\nIsn't Redis official saying that it only depends on whether the command is modified rather than the comparison value？\r\n"
+    },
+    {
+      "id": 1381244993,
+      "user": "sundb",
+      "created_at": "2023-01-13T02:45:29Z",
+      "body": "It's better to use English to let more guys know what you ask.\r\n `WATCH` can't use in multi, so `WATCH` should be executed before `MULTI` command.\r\n ```java\r\nj85.watch(\"testbit\");\r\nj85.exec();\r\nj85.setex(\"testbit\", 10,  \"6543\");//Assume the last setting\r\nTransaction trans1 = j85.multi();\r\n```"
+    },
+    {
+      "id": 1381280909,
+      "user": "whipfeng",
+      "created_at": "2023-01-13T03:49:12Z",
+      "body": "> so `WATCH` should be executed before `MULTI` command.\r\n\r\nLook at my code. That's what I do.\r\n\r\n"
+    },
+    {
+      "id": 1381285476,
+      "user": "sundb",
+      "created_at": "2023-01-13T03:58:23Z",
+      "body": "@whipfeng sorry for my missing.\r\nWhich Redis version are you using?"
+    },
+    {
+      "id": 1381384198,
+      "user": "whipfeng",
+      "created_at": "2023-01-13T06:44:00Z",
+      "body": "> @whipfeng sorry for my missing. Which Redis version are you using?\r\n\r\nI tested it on ‘redis_version:3.2.6’.\r\nBut I looked at the source code as if every version of the branch was handled the same way.\r\nThe following reference is the code of the delete command on git branch 3.2（Please see my comments）:\r\n        \r\n        if (dbDelete(c->db,c->argv[j])) {  //Only if it is successfully deleted here(The basis for successful deletion only exists in the dictionary) ,\r\n            signalModifiedKey(c->db,c->argv[j]);//The status of the client will be notified of modification.\r\n            notifyKeyspaceEvent(NOTIFY_GENERIC,\r\n                \"del\",c->argv[j],c->db->id);\r\n            server.dirty++;\r\n            deleted++;\r\n        }\r\n\r\nI think it should be the same as the set command. The ‘ signalModifiedKey’ method should be called in any case（Even if the original value is the same as the value to be set）:\r\n\r\n    void setKey(redisDb *db, robj *key, robj *val) {\r\n        if (lookupKeyWrite(db,key) == NULL) {\r\n            dbAdd(db,key,val);\r\n        } else {\r\n            dbOverwrite(db,key,val);\r\n        }\r\n        incrRefCount(val);\r\n        removeExpire(db,key);\r\n        signalModifiedKey(db,key);\r\n     }"
+    },
+    {
+      "id": 1381696867,
+      "user": "jerrykcode",
+      "created_at": "2023-01-13T11:12:11Z",
+      "body": "The `dbDelete` only failed when the key doesn't exist, I think we should not trigger `signalModifiedKey` when deleting an unexisting key"
+    },
+    {
+      "id": 1381704189,
+      "user": "sundb",
+      "created_at": "2023-01-13T11:19:11Z",
+      "body": "@whipfeng The key expiration does not execute to the code you mentioned, it may have expired, but is still in memory and not deleted until it is used again or is cleaned up periodically.\r\nThis issue should be resolved at https://github.com/redis/redis/pull/9194, but it only works after 7.x"
+    },
+    {
+      "id": 1382693834,
+      "user": "whipfeng",
+      "created_at": "2023-01-14T08:48:09Z",
+      "body": "> The `dbDelete` only failed when the key doesn't exist, I think we should not trigger `signalModifiedKey` when deleting an unexisting key\r\n\r\nLet's jump out of the specific code implementation.\r\nI think the del command is a special form of the set command，\r\nJust like 'j85.set (\"testbit\", null)'.（Although this is not allowed to be written, it is not appropriate only for the 'String' type）\r\nJust because using the set command, the `signalModifiedKey` method will be called if the original value is the same as the value to be set.\r\n\r\n"
+    },
+    {
+      "id": 1382696589,
+      "user": "whipfeng",
+      "created_at": "2023-01-14T09:05:48Z",
+      "body": "> @whipfeng The key expiration does not execute to the code you mentioned, it may have expired, but is still in memory and not deleted until it is used again or is cleaned up periodically. This issue should be resolved at #9194, but it only works after 7.x\r\n\r\nI think whether the deletion is due to expiration or not, it should be notified."
+    },
+    {
+      "id": 1382698240,
+      "user": "sundb",
+      "created_at": "2023-01-14T09:17:11Z",
+      "body": "@whipfeng It's a waste to compare these two values if we wanna notify when the value is changed, .e.g big value."
+    },
+    {
+      "id": 1382699132,
+      "user": "whipfeng",
+      "created_at": "2023-01-14T09:22:42Z",
+      "body": "> @whipfeng It's a waste to compare these two values if we wanna notify when the value is changed, .e.g big value.\r\n\r\nSo we should only focus on the command itself, not on the value of the operation, because each command operation implies the same version number as the ABA problem.\r\nIn addition, the nonexistent key is equivalent to 'null mapped by key'."
+    },
+    {
+      "id": 1383690182,
+      "user": "jerrykcode",
+      "created_at": "2023-01-16T08:58:09Z",
+      "body": "@whipfeng I think this bug is not related to `dbDelete`, it should be resolved by [#9194](https://github.com/redis/redis/pull/9194), as @sundb mentioned.\r\n\r\nBut maybe we need to discuss this:\r\n\r\n> Just because using the set command, the signalModifiedKey method will be called if the original value is the same as the value to be set.\r\n\r\nSince the `set` command triggers signalModifiedKey even when the value is not changed (nothing in the database altered),\r\n\r\nso should we change the feature to let the `del` command also triggers signalModifiedKey even when `del` failed (nothing in the database altered) ?\r\n\r\n"
+    },
+    {
+      "id": 1383709051,
+      "user": "sundb",
+      "created_at": "2023-01-16T09:11:31Z",
+      "body": "@jerrykcode  `DEL` non-existent key and `SET` same value are not the same concept at all.\r\n1) When `DEL` a key that does not exist, we know explicitly that it does not exist, so it makes no sense at all to trigger `signalModifiedKey()`.\r\n2) When`SET` the same value, the key is explicitly present, and in any way, we overwrite the old value with the new one, even if they are the same.\r\n\r\n`signalModifiedKey()` should be based on the premise that the key has existed before or that it has been modified."
+    },
+    {
+      "id": 1383731625,
+      "user": "jerrykcode",
+      "created_at": "2023-01-16T09:27:00Z",
+      "body": "@sundb Ok, I see. Thanks for your explanation :)"
+    },
+    {
+      "id": 1384709205,
+      "user": "whipfeng",
+      "created_at": "2023-01-17T00:59:57Z",
+      "body": "> @jerrykcode `DEL` non-existent key and `SET` same value are not the same concept at all.\r\n> \r\n> 1. When `DEL` a key that does not exist, we know explicitly that it does not exist, so it makes no sense at all to trigger `signalModifiedKey()`.\r\n> 2. When`SET` the same value, the key is explicitly present, and in any way, we overwrite the old value with the new one, even if they are the same.\r\n> \r\n> `signalModifiedKey()` should be based on the premise that the key has existed before or that it has been modified.\r\n\r\nHow do we implement operations like 'set (test, null)'? Don't we use the del command？"
+    },
+    {
+      "id": 1384730306,
+      "user": "whipfeng",
+      "created_at": "2023-01-17T01:36:14Z",
+      "body": "I wrote another complex example based on Redis cluster：\r\n\r\n```\r\nString getSetIfNull(final String key, final int seconds, final Supplier<String> supplier) {\r\n        List<String> verAndVal = hmget(key, \"version\", \"value\");\r\n        String ver = verAndVal.get(0);\r\n        String val = verAndVal.get(1);\r\n        if (null != val) {// Direct use of cache with value\r\n            return val;\r\n        }\r\n        final String nVer;\r\n        if (null == ver) {//If there is no version number, it will be generated, and concurrency will not affect\r\n            nVer = UUID.randomUUID().toString();\r\n            if (seconds > 0) {//Put transaction operation if timeout is required\r\n                new JedisClusterCommand<Void>(connectionHandler, maxAttempts) {\r\n                    @Override\r\n                    public Void execute(Jedis connection) {\r\n                        Transaction trans = connection.multi();\r\n                        trans.hset(key, \"version\", nVer);\r\n                        trans.expire(key, seconds);\r\n                        trans.exec();\r\n                        return null;\r\n                    }\r\n                }.run(key);\r\n            } else {\r\n                hset(key, \"version\", nVer);\r\n            }\r\n        } else {//Directly use the existing version, equivalent to assisting in loading\r\n            nVer = ver;\r\n        }\r\n        final String nVal = supplier.get();//External services provide a time-consuming loading method for new values, which does not occupy the Redis connection at this time\r\n        new JedisClusterCommand<Void>(connectionHandler, maxAttempts) {\r\n            @Override\r\n            public Void execute(Jedis connection) {\r\n                connection.watch(key);//It is necessary to monitor whether the key has been deleted during the operation\r\n                String oVer = connection.hget(key, \"version\");\r\n                if (nVer.equals(oVer)) {//Compare version number\r\n                    Transaction trans = connection.multi();\r\n                    trans.hset(key, \"value\", nVal);\r\n                    if (seconds > 0) {\r\n                        trans.expire(key, seconds);\r\n                    }\r\n                    trans.exec();\r\n                } else {\r\n                    connection.unwatch();\r\n                }\r\n                return null;\r\n            }\r\n        }.run(key);\r\n        return nVal;\r\n    }\r\n\r\n```\r\n\r\n\r\nAmong them, the value obtained by `supplier.get()` may change. Each time it changes in another concurrency, the Redis key will be deleted.\r\nAfter ` if (nVer.equals(oVer))`（true）, the key just expired and was deleted several times in another concurrency. At this point, an old value will be set successfully, although the probability is small.\r\nSo how can I guarantee that the value is the last change? Please help me to have a careful look！"
+    },
+    {
+      "id": 1384755446,
+      "user": "whipfeng",
+      "created_at": "2023-01-17T02:20:14Z",
+      "body": "I still think that every modification operation should imply the concept of a version number.\r\nThe concept given is accurate, otherwise the premise that the key already exists should be excluded separately.\r\nBut it[#9194] seems that doing this only for expired keys can solve my problem, and I don't have a better proof example"
+    },
+    {
+      "id": 1384787658,
+      "user": "sundb",
+      "created_at": "2023-01-17T03:26:47Z",
+      "body": "> How do we implement operations like 'set (test, null)'? Don't we use the del command？\r\n\r\nI'm not sure what you are trying to do with this code, is it to delete the `test` key?"
+    },
+    {
+      "id": 1385314432,
+      "user": "whipfeng",
+      "created_at": "2023-01-17T11:56:42Z",
+      "body": "> > How do we implement operations like 'set (test, null)'? Don't we use the del command？\r\n> \r\n> I'm not sure what you are trying to do with this code, is it to delete the `test` key?\r\n\r\n@sundb @jerrykcode I wrote another short example to support my idea:\r\n\r\n```\r\nString getSetIfNull(final String key, final Supplier<String> supplier) {\r\n        Jedis j85 = new Jedis(\"xx.xx.xx.xx\",0000);\r\n        String val = j85.get(key);\r\n        if (null != val) {// Direct use of cache with value\r\n            return val;\r\n        }\r\n\r\n        j85.watch(key);\r\n        val = j85.get(key);\r\n        if (null != val) {// During the watch process, you need to query and judge again\r\n            j85.unwatch();\r\n            return val;\r\n        }\r\n        val = supplier.get();//Load data from the business. The key will be deleted when the data is changed concurrently\r\n        /**\r\n         * At this time, other concurrent users may modify the value of 'supplier.get()' multiple times\r\n         * and delete the key（However, deletion does not affect the setting of expired data. Is that OK?It seems that only \r\n         * handling expired keys can't solve this problem）\r\n         * */\r\n        Transaction trans = j85.multi();\r\n        trans.set(key, val);\r\n        trans.exec();\r\n        j85.close();\r\n        return val;\r\n    }\r\n```\r\n\r\nThe goal is Redis cache and `supplier.get()` final consistency.\r\nPlease see the content of code comments, thank you!"
+    },
+    {
+      "id": 1385332851,
+      "user": "sundb",
+      "created_at": "2023-01-17T12:11:48Z",
+      "body": "@whipfeng Not sure i can follow you.\r\nFirst of all, the `getSetIfNull()` method itself is not thread-safe, and operations on redis are not atomic, so you cannot guarantee that the Redis cachet and `supplier.get()` are consistent.\r\n1) Make sure that supplier.get() is locked for the entire time when it's saved to Redis.\r\n2) Make sure that the key cannot be modified by other concurrently, you may need a distributed lock or use lua or something else."
+    },
+    {
+      "id": 1396405106,
+      "user": "whipfeng",
+      "created_at": "2023-01-19T03:52:28Z",
+      "body": "@sundb What is the basis of `not thread-safe`?\r\nIf you follow the current implementation of the del command, it is true.\r\nLet me change my example. Do you think we can get this conclusion?\r\n\r\n```\r\nString getSetIfNull(final String key, final Supplier<String> supplier) {\r\n        Jedis j85 = new Jedis(\"xx.xx.xx.xx\",0000);\r\n        String val = j85.get(key);\r\n        if ('null_str' != val) {// Direct use of cache with value\r\n            return val;\r\n        }\r\n\r\n        j85.watch(key);\r\n        val = j85.get(key);\r\n        if ('null_str' != val) {// During the watch process, you need to query and judge again\r\n            j85.unwatch();\r\n            return val;\r\n        }\r\n        val = supplier.get();//Load data from the business(Not allowed as 'null_str'). The key will be set to 'null_str' when the data is changed concurrently\r\n        /**\r\n         * At this time, other concurrent users may modify the value of 'supplier.get()' multiple times\r\n         * and set the key to 'null_str'\r\n         * */\r\n        Transaction trans = j85.multi();\r\n        trans.set(key, val);\r\n        trans.exec();\r\n        j85.close();\r\n        return val;\r\n    }\r\n```\r\n\r\nAmong them, 'null_str' is considered as a reserved word in business and  `supplier.get()` is not allowed to return 'null_str'."
+    },
+    {
+      "id": 1399173607,
+      "user": "sundb",
+      "created_at": "2023-01-21T04:16:01Z",
+      "body": "@whipfeng \r\n1)\r\n```java\r\n        String val = j85.get(key);\r\n        if ('null_str' != val) {    // Is it possible for the key to be modified by other concurrently at this time?\r\n            return val;\r\n        }\r\n```\r\n\r\n2) \r\n```java\r\n        val = j85.get(key);\r\n        if ('null_str' != val) {  // Same as above, key was deleted or changed by other concurrently.\r\n            j85.unwatch();\r\n            return val;\r\n        }\r\n```\r\n\r\n\r\n3) \r\n```java\r\nval = supplier.get();    // After get(), is it possible for the supplier to be modified by other concurrently?\r\n```\r\n\r\nAny one of the above 3 types of inconsistencies due to concurrency may cause Redis cache and `supplier.get()` to end up inconsistent."
+    },
+    {
+      "id": 1413246926,
+      "user": "whipfeng",
+      "created_at": "2023-02-02T07:05:30Z",
+      "body": "@sundb \r\nThis transient situation is no problem. What we want is final consistency.\r\nFor those who use this method, they can finally perceive that the data has changed.\r\nAnd my example only disproves the problem of del command in the previous example."
+    },
+    {
+      "id": 1413270778,
+      "user": "sundb",
+      "created_at": "2023-02-02T07:30:40Z",
+      "body": "@whipfeng Not sure i fully understand what you meant.\r\nYou mean there won't be two concurrent or 2 threads calling this method at the same time?\r\nIf not, then there must be a concurrency or threading problem.\r\n\r\nlike the following example(thread1 and thread2)\r\n```\r\nthread1: \r\n1) change supplier to s1, then call getSetIfNull()\r\n2) run to `val = supplier.get();` and set val to s1\r\n\r\nthread2:\r\n1) change supplier  to s2, then call getSetIfNull()\r\n2) run to `val = supplier.get();` and set val to s2\r\n3) update the key in redis with s2.\r\n\r\nthread1:\r\n3) update the key in redis with s1.\r\n```\r\n\r\nIn fact, the value of the key should be s2, not s1.\r\nIn any case, as long as there are concurrent reads and writes to the same resource, there is bound to be a race to the bottom, which is why locks are needed."
+    },
+    {
+      "id": 1413294785,
+      "user": "whipfeng",
+      "created_at": "2023-02-02T07:57:14Z",
+      "body": "@sundb The concurrency relationship is not so complex,Equivalent to asynchronous cache refresh\r\n```\r\nthread0: \r\n1) change supplier to s1\r\n2) set(key,'null_str')\r\n\r\nthread1～N: //Just take it out for use\r\n1)  call getSetIfNull()\r\n```\r\n\r\nYou can think that `supplier.get()` is loaded from the database. `thread0: change supplier to s1` is an operation to modify the database\r\n\r\n\r\n"
+    },
+    {
+      "id": 1413305132,
+      "user": "sundb",
+      "created_at": "2023-02-02T08:06:40Z",
+      "body": "So you are now running into a final inconsistency problem that the database and cache are not consistent?"
+    },
+    {
+      "id": 1413309460,
+      "user": "whipfeng",
+      "created_at": "2023-02-02T08:10:17Z",
+      "body": "The last example I provided does not have this problem. The previous one will have this problem by using the del command. This is also the reason why I give two examples to disprove."
+    },
+    {
+      "id": 1413319344,
+      "user": "sundb",
+      "created_at": "2023-02-02T08:18:40Z",
+      "body": "it semms that if you use `DEL` `j85.get(key)` would never equal `null_str`.\r\nI'm not expert with JAVA, perhaps you can change `if ('null_str' != val)` to `if (NULL != val)` when using `DEL` command."
+    },
+    {
+      "id": 1413354899,
+      "user": "whipfeng",
+      "created_at": "2023-02-02T08:50:13Z",
+      "body": "`set(key,'null_str') `and `del(key) ` are just two examples for comparison,I just want to say that if there is a problem with the way of `del(key) `\r\n\r\n\r\n"
+    },
+    {
+      "id": 1413359247,
+      "user": "sundb",
+      "created_at": "2023-02-02T08:54:04Z",
+      "body": "There will be no problem."
+    },
+    {
+      "id": 1413363391,
+      "user": "whipfeng",
+      "created_at": "2023-02-02T08:57:13Z",
+      "body": "Let's look at the original example\r\n```\r\nString getSetIfNull(final String key, final Supplier<String> supplier) {\r\n        Jedis j85 = new Jedis(\"xx.xx.xx.xx\",0000);\r\n        String val = j85.get(key);\r\n        if (null != val) {// Direct use of cache with value\r\n            return val;\r\n        }\r\n\r\n        j85.watch(key);\r\n        val = j85.get(key);\r\n        if (null != val) {// During the watch process, you need to query and judge again\r\n            j85.unwatch();\r\n            return val;\r\n        }\r\n        val = supplier.get();//Load data from the business. The key will be deleted when the data is changed concurrently\r\n        /**\r\n         * At this time, other concurrent users may modify the value of 'supplier.get()' multiple times\r\n         * and delete the key（However, deletion does not affect the setting of expired data. Is that OK?It seems that only \r\n         * handling expired keys can't solve this problem）\r\n         * */\r\n        Transaction trans = j85.multi();\r\n        trans.set(key, val);\r\n        trans.exec();\r\n        j85.close();\r\n        return val;\r\n    }\r\n```\r\nThis is the concurrency relationship\r\n```\r\nthread0: \r\n1) change supplier to s1\r\n2) del(key)\r\n\r\nthread1～N: //Just take it out for use\r\n1)  call getSetIfNull()\r\n```\r\nIn this case, final consistency cannot be guaranteed. Is that the problem?"
+    },
+    {
+      "id": 1413369964,
+      "user": "sundb",
+      "created_at": "2023-02-02T09:01:40Z",
+      "body": "It seems to me that, as in your example above, there are concurrency issues.\r\nBecause you are calling the set command in both threads.\r\n\r\n```\r\nthread0: \r\n1) change supplier to s1\r\n2) set(key,'null_str')\r\n\r\nthread1～N: //Just take it out for use\r\n1)  call getSetIfNull()\r\n```\r\n\r\nIf it were me, I would use a lock.\r\n```\r\nthread0: \r\nlock(lockname) {\r\n    1) change supplier to s1\r\n    2) set(key,'null_str')\r\n}\r\n\r\nthread1～N: //Just take it out for use\r\nlock(lockname) {\r\n    1)  call getSetIfNull()\r\n}\r\n```\r\n\r\n"
+    },
+    {
+      "id": 1413387295,
+      "user": "whipfeng",
+      "created_at": "2023-02-02T09:13:28Z",
+      "body": "We only need final consistency,And it's enough for us to take the atomic operation of `set(key,'null_str')` as the boundary point of consistency.It is too heavy to use locks. And locks in distributed environments are inherently 'consistency issues'.\r\nWe can only discuss the final consistency, because even if you use the lock, `thread1～N` will be inconsistent in a short period of time after the system scheduling delay."
+    },
+    {
+      "id": 1413403912,
+      "user": "sundb",
+      "created_at": "2023-02-02T09:23:41Z",
+      "body": "If you don't wanna use locks, then you have to protect your operations from atomicity.\r\nWhy would you want to do a del instead of updating the cache directly?\r\nLike following:\r\n```\r\nupdateCache() {\r\n    getSupplier();\r\n    multi();\r\n    updateSupplier();\r\n    exec();\r\n}\r\n\r\ngetSetIfNull() {\r\n        String val = j85.get(key);\r\n        if (null != val) {// Direct use of cache with value\r\n            return val;\r\n        }\r\n        updateCache();\r\n}\r\n```\r\nThis ensures that the operation to cache would be atomic.\r\n"
+    },
+    {
+      "id": 1413430055,
+      "user": "whipfeng",
+      "created_at": "2023-02-02T09:42:43Z",
+      "body": "`updateSupplier()` In the current thread, I don't understand.\r\n\r\nI guess that's what you want\r\n```\r\nupdateCache() {\r\n    val = getSupplier();\r\n    multi();\r\n   set(key,val);\r\n    exec();\r\n}\r\n```\r\nThere are still consistency problems.\r\nIf there is concurrent behavior before `getSupplier()`to `multi()`, and the result of `getSupplier()` is changing, the last setting to the cache is an uncertain value"
+    },
+    {
+      "id": 1413444420,
+      "user": "sundb",
+      "created_at": "2023-02-02T09:51:18Z",
+      "body": "Both supplier and cache are read and written by multiple threads at the same time, so locks are unavoidable.\r\nOr you can make sure that only one thread can do the update, and that the other threads are read-only."
+    },
+    {
+      "id": 1413764100,
+      "user": "whipfeng",
+      "created_at": "2023-02-02T13:40:31Z",
+      "body": "1）The watch command of Redis has the concept of optimistic locking,If you put another lock outside, it's meaningless\r\n2）`only one thread can do the update`,Similar to this,The update is serial, but multiple updates may be fast."
+    },
+    {
+      "id": 1413942796,
+      "user": "sundb",
+      "created_at": "2023-02-02T15:39:10Z",
+      "body": "> 1）The watch command of Redis has the concept of optimistic locking,If you put another lock outside, it's meaningless \r\n\r\nBut competing resources also include suppler, how do you ensure that supplier.get() has not been modified by other threads?\r\n"
+    },
+    {
+      "id": 1414698252,
+      "user": "whipfeng",
+      "created_at": "2023-02-03T02:28:57Z",
+      "body": "After `supplier.get()` is modified by another thread, the cache will be deleted by that thread, and subsequent calls to `getSetIfNull() ` will reload the cache, which is why we want to use the `watch` command.\r\n\r\nIn addition,short-time inconsistency in distributed scenarios is tolerable, so only final consistency is generally discussed.\r\nIf you have to add locks on the outer layer, it is unrealistic for all callers from different businesses to use unified distributed locks,and this is based on the ideal situation of distributed locks(which is an issue in itself).\r\n\r\nTake the concurrency relationship as an example:\r\n```\r\nthread0: \r\nlock(lockname) {\r\n    1) change supplier to s1 //'s1' is a variable\r\n    2) del(key)\r\n}\r\n\r\nthread1～N:  //thread1~threadN can come from different processes or distributed nodes\r\nlock(lockname) {\r\n    1)  val = call getSetIfNull()\r\n    2) Business use 'val'\r\n}\r\n3) Business use 'val'\r\n```\r\nAccording to you, only  `2) Business use 'val' `can guarantee absolute consistency. If it is used outside like `3) Business use 'val'`, there will still be the same problem.\r\n\r\nWe just need to ensure that the reading after writing is up to date in chronological order.For the caller, the completion of writing is the end of 'thread0' and the start of reading is the start of 'thread1～N'."
+    },
+    {
+      "id": 1414751068,
+      "user": "sundb",
+      "created_at": "2023-02-03T03:01:00Z",
+      "body": "A second thought, The code you mentioned in https://github.com/redis/redis/issues/11704#issuecomment-1413363391 looks like it will guarantee final consistency, but I can't finger it out yet, maybe you can provide a more detailed example.\r\nOn the other hand, you can use the monitor command to verify the process of updating the redis cache."
+    },
+    {
+      "id": 1414951233,
+      "user": "whipfeng",
+      "created_at": "2023-02-03T04:54:18Z",
+      "body": "The following is printed by me with the monitor command, and the following comments are printed by the thread I debug\r\n```\r\n1675399184.811923 [0 10.11.63.39:64804] \"DEL\" \"testbit\"   //thread0:supplier 0\r\n1675399187.042392 [0 10.11.63.39:64806] \"DEL\" \"testbit\"   //thread0:supplier 01\r\n1675399189.030541 [0 10.11.63.39:64807] \"DEL\" \"testbit\"   //thread0:supplier 012\r\n1675399207.603029 [0 10.11.63.39:64802] \"GET\" \"testbit\" //thread1:value=null\r\n1675399211.691565 [0 10.11.63.39:64802] \"WATCH\" \"testbit\"  //thread1:\r\n1675399222.534349 [0 10.11.63.39:64802] \"GET\" \"testbit\"   //thread1:\r\n1675399233.383902 [0 10.11.63.39:64810] \"DEL\" \"testbit\"  //thread0:supplier 0123\r\n1675399237.476089 [0 10.11.63.39:64811] \"DEL\" \"testbit\"   //thread0:supplier 01234\r\n                                                      //thread1:call 'supplier.get()'\r\n1675399268.017141 [0 10.11.63.39:64814] \"DEL\" \"testbit\"    //thread0:supplier 012345\r\n1675399269.577149 [0 10.11.63.39:64815] \"DEL\" \"testbit\"   //thread0:supplier 0123456\r\n1675399271.148512 [0 10.11.63.39:64816] \"DEL\" \"testbit\"    //thread0:supplier 01234567\r\n1675399281.877108 [0 10.11.63.39:64802] \"MULTI\"。          //thread1:\r\n1675399281.877210 [0 10.11.63.39:64802] \"SET\" \"testbit\" \"01234\"  //thread1:\r\n1675399281.877383 [0 10.11.63.39:64802] \"EXEC\"              //thread1:getSetIfNull 01234\r\n1675399289.646186 [0 10.11.63.39:64817] \"GET\" \"testbit\" //thread1:value=01234\r\n                                                       //thread1:getSetIfNull 01234\r\n1675399295.299110 [0 10.11.63.39:64818] \"GET\" \"testbit\" //thread1:value=01234\r\n                                                       //thread1:getSetIfNull 01234\r\n\r\n```"
+    },
+    {
+      "id": 1415029465,
+      "user": "sundb",
+      "created_at": "2023-02-03T05:38:27Z",
+      "body": "This is where the cache ends up being inconsistent due to `supplier` being read and written by multiple threads.\r\n`WATCH` command doesn't work in this case because `DEL` a non-existent key will not trigger `WATCH`.\r\nIf you don't use locks, then you may need a more complex update caching strategy, such as a cache failure queue or others.\r\n\r\n```\r\nthread1: watch key\r\nthread1: get supplier  01234\r\nthread2: update supplie to 01234567\r\nthread1: update cache with 01234\r\n```"
+    },
+    {
+      "id": 1415099309,
+      "user": "whipfeng",
+      "created_at": "2023-02-03T06:19:48Z",
+      "body": "`WATCH command doesn't work in this case because DEL a non-existent key will not trigger WATCH`\r\nThis is the problem we have been discussing!\r\nAs @jerrykcode  https://github.com/redis/redis/issues/11704#issuecomment-1383690182 said: `so should we change the feature to let the del command also triggers signalModifiedKey even when del failed (nothing in the database altered) ?`\r\nSo I gave two examples[`del(key)` and `set(key, 'null_str')`] to support my idea.\r\nAnd if we change this feature, it will also simplify the repair logic in https://github.com/redis/redis/pull/9194"
+    }
+  ]
+}

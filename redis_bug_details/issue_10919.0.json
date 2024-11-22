@@ -1,0 +1,84 @@
+{
+  "issue_number": 10919.0,
+  "title": "[BUG]  redis 恢复数据  自动给一些没有过期时间的key设置了过期时间,key的名称以login_tokens:开头",
+  "body": "**Describe the bug**\r\n\r\nA short description of the bug.\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2022-07-02T07:26:07Z",
+  "updated_at": "2022-07-02T08:19:17Z",
+  "closed_at": "2022-07-02T08:19:17Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1172852862,
+      "user": "18397407270",
+      "created_at": "2022-07-02T07:27:38Z",
+      "body": "我试了6和7的版本,RDB或者AOF都存在这种问题"
+    },
+    {
+      "id": 1172853275,
+      "user": "sundb",
+      "created_at": "2022-07-02T07:30:53Z",
+      "body": "@18397407270 Please use English to describe your issue, and can you give more info or reproduction steps?"
+    },
+    {
+      "id": 1172854150,
+      "user": "18397407270",
+      "created_at": "2022-07-02T07:37:28Z",
+      "body": "> @18397407270 Please use English to describe your issue, and can you give more info or reproduction steps?\r\n\r\nredis Recover Data automatically sets an expiration time for some keys that do not have an expiration time, and the name of the key begins with login_tokens:"
+    },
+    {
+      "id": 1172854423,
+      "user": "sundb",
+      "created_at": "2022-07-02T07:39:25Z",
+      "body": "@18397407270 How did you recover the data? Or did you use some third-party tools?"
+    },
+    {
+      "id": 1172854560,
+      "user": "18397407270",
+      "created_at": "2022-07-02T07:40:15Z",
+      "body": "> @18397407270 Please use English to describe your issue, and can you give more info or reproduction steps?\r\n\r\nFirst I saved a key with no expiration time, using the set key value, then persisted with RDB, and then restarted the redis, and found that the key was set by redis to expire,RedisinSight was used"
+    },
+    {
+      "id": 1172855612,
+      "user": "sundb",
+      "created_at": "2022-07-02T07:48:19Z",
+      "body": "Can you repeat your steps, and before restarting redis, try `redis-cli info Commandstats` to output info.\r\nNormally, redis does not actively add expiration times to keys."
+    },
+    {
+      "id": 1172855665,
+      "user": "18397407270",
+      "created_at": "2022-07-02T07:48:38Z",
+      "body": "![屏幕截图 2022-07-02 154604](https://user-images.githubusercontent.com/57580850/176991810-ed5a07cf-da20-483f-b3f1-5de7f7997348.jpg)\r\n"
+    },
+    {
+      "id": 1172855773,
+      "user": "18397407270",
+      "created_at": "2022-07-02T07:49:27Z",
+      "body": "\r\nUse this pattern to add data"
+    },
+    {
+      "id": 1172856143,
+      "user": "18397407270",
+      "created_at": "2022-07-02T07:52:12Z",
+      "body": "> Can you repeat your steps, and before restarting redis, try `redis-cli info Commandstats` to output info. Normally, redis does not actively add expiration times to keys.\r\nI'll go to cli to reproduce it and see if that's the problem"
+    },
+    {
+      "id": 1172858667,
+      "user": "18397407270",
+      "created_at": "2022-07-02T08:11:54Z",
+      "body": "> Can you repeat your steps, and before restarting redis, try `redis-cli info Commandstats` to output info. Normally, redis does not actively add expiration times to keys.\r\n\r\nI found that this is the case with the big Value"
+    },
+    {
+      "id": 1172858770,
+      "user": "18397407270",
+      "created_at": "2022-07-02T08:12:40Z",
+      "body": "Narrowing down the contents of the Value won't appear"
+    },
+    {
+      "id": 1172859587,
+      "user": "18397407270",
+      "created_at": "2022-07-02T08:19:14Z",
+      "body": "Sorry, it's not the problem, but my project has a thread that has set an expiration time for it"
+    }
+  ]
+}

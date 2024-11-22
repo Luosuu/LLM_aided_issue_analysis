@@ -1,0 +1,33 @@
+{
+  "issue_number": 95.0,
+  "title": "Lua scripting: determinism, replication, AOF",
+  "body": "## The problem\n\nRedis scripting (currently only available in the unstable branch) replicates the script itself instead of replicating the single commands, both to slaves and to the AOF file. This is needed as often scripts are one or two order of magnitudes faster than executing commands in a normal way, so for a slave to be able to cope with the master replication link speed and number of commands per second this is the only solution available.\n\nThe solution works great in general, and Redis is also able to replicate EVALSHA commands as EVAL commands taking an hash table of original scripts. However there is a problem related to determinism.\n\nAll the non pure Redis commands such as SPOP and RANDOMKEY, together with all the non pure Lua functions like pseudo random number generation, commands related to the system time, and so forth, will have the effect of creating scripts that are not just functions of the input parameters and the data set content. Thus the slave may end with a data set different than the one of the master.\n## Possible solutions\n\n**Solution 1**: The simplest solution to this problem is denying calls to Redis and Lua non pure functions, however this restricts what you can do with the scripting support. For instance calling RANDOMKEY from a script is not a problem as long as the script does not modify the Redis data set in any way.\n\n**Solution 2**: A better solution could be to permitting the use of non pure functions only as long as no write is performed against the dataset. If a write is performed after a non pure function is called, an error is raised.\n\n**Solution 3**: Another alternative would be to revert to replicating single commands every time a non pure function is called, but this requires the user to be too much aware of the internals, and may lead to the creation of applications where the master can cope with the load but the slave can't cope in any way, or where the time needed to write to the AOF file is the bottle neck.\n\nThe solution 2, that is currently my preferred, could be improved implementing a version of Lua pseudo random number generation function that has the seed reset to 0 at every new script executed, generating always the same sequence, unless you don't pass a random seed as one of the EVAL arguments. This way yo can create random functions that are replicated in a correct way. Let's call this **Solution 2b**.\n\nI'm going to implement solution 2 with the \"2b\" feature, but this bug is needed in order to make evident what the design story was, and in the hope to get better ideas for the future.\n",
+  "state": "closed",
+  "created_at": "2011-09-21T17:00:29Z",
+  "updated_at": "2011-09-27T13:56:26Z",
+  "closed_at": "2011-09-27T13:56:25Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 2158885,
+      "user": "aaronblohowiak",
+      "created_at": "2011-09-21T17:55:38Z",
+      "body": "In general, I think making non-deterministic actions deterministic is important.  However, the seed value should not be the same for every script run, or you lose some of the positive effects of calling random.  Since redis has a complete total order to its operations, seeding random with an auto incrementing integer would be sufficient to a) make it deterministic and b) allow for random to still produce different numbers on successive runs.\n"
+    },
+    {
+      "id": 2162427,
+      "user": "JakSprats",
+      "created_at": "2011-09-21T23:54:08Z",
+      "body": "I implemented something similar to 3 in AlchemyDB. It has the advantages of replicating redis data exactly but still falls short of replicating lua state. So the developer still has to be aware that if he is using lua state to populate data/commands, he should do so via functions that will run the same way on the slave. For this problem, I have a mechanism that works like a lua cron job that recreates lua state every second on the slave (and some commands for promoting master to slave, that initialise the lua state explicitly/exactly) ... it is not perfect in the general case but it works for the difficult use case I am now tackling. The problem of the slave feed having many more commands than what the master is serving is also something the developer has to be aware of. I dont think there is a solution to this problem, that does not require the developer to be aware of some of the internals, and I personally prefer caveats as opposed to prohibited functionality. OK, just some input :)\n"
+    },
+    {
+      "id": 2211043,
+      "user": "antirez",
+      "created_at": "2011-09-27T13:56:25Z",
+      "body": "@aaron as we already chatted about that I'm just writing this here for future reference. The issue here is that you can't use an incremental counter otherwise you need to propagate that counter in AOF and replication link in some way.\nWith the current solution your scripts will get a random number in one of the EVAL arguments, and what will happen will be something like that (in order to get true randomness):\n\n```\nmath.randomseed(ARGV[2])\nmy_safe_random_number = math.random(...)\nreturn redis.call('lset','mylist',my_safe_random_number,'foo')\n```\n\nAnd so forth.\n\n@JakSprats: thanks for the hints, I think that a viable path is to start replicating EVAL as we are doing now and check if this simple solution will be enough. If not we'll have to revert to a more complex scripting result replication method, possibly that the user can activate with a call like redis.replicate_all_commands().\n\nThanks for the inputs.\n\nBtw: closing the issue as solution \"2b\" was already implemented into unstable. Redis is now also raising errors once you use a write command after you used a random command like RANDOMKEY. For sure there is to tune this solution better before 2.6 release but we'll open new issues about specific problems with our new design. Thanks.\n"
+    }
+  ]
+}

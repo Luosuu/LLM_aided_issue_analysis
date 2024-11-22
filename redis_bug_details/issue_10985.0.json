@@ -1,0 +1,42 @@
+{
+  "issue_number": 10985.0,
+  "title": "[BUG] [CLUSTER] Redis 6.2 don't unpause write clients after manual failover immediately",
+  "body": "## Describe the bug\r\n\r\nRedis 6.2.6 in cluster mode.\r\nI have 6 nodes in cluster 3 masters and 3 replicas\r\nWhen i make manual failover in one replica via `CLUSTER FAILOVER` command and in time for it master have **write** command (ex. SET foo bar) this command paused is too long, about 10 seconds. And only after this time receive -MOVED answer and client do redirect to new master node. In same time all connections with any **read** command receive -MOVED answer instantly after failover process is done.\r\n\r\n## To reproduce\r\n\r\n1. Create cluster with 6 nodes: 3 master and 3 replicas. Nodes are all in `localhost` and listen ports 7000-7005\r\n1. Select one master-replica pair and some key which point to this nodes. For my setup i choose key `foo` which point to master-replica nodes :7005, :7002\r\n1. Connect to master node via redis-cli\r\n```\r\nroot@f8c52b500613:/data# redis-cli -p 7005 -c\r\n127.0.0.1:7005> set foo bar\r\nOK\r\n```\r\n4. In other console do manual failover\r\n```\r\nredis-cli -c -p 7000 cluster nodes | grep -E '(7005|7002)' | fgrep slave | head -n 1 | awk '{print $2}' | cut -d\"@\" -f1 | cut -d\":\" -f2 | xargs -n 1 -I{} redis-cli -p {} cluster failover\r\n```\r\n5. Fast switch to previous console and make again `set foo bar`\r\n```\r\n172.17.0.3:7005> set foo bar\r\n-> Redirected to slot [12182] located at 172.17.0.3:7002\r\nOK\r\n(9.36s)\r\n```\r\n\r\nThis method is not stable and hard to reproduce but for reproducibility you need swap 4 and 5 steps and use `redis-cli` with `-r` and `-i` arguments:\r\n\r\n4. Run `redis-cli` with repeats and interval\r\n```\r\ntime redis-cli -p 7005 -c -r 100 -i 0.01 set foo bar\r\n```\r\n5. Fast switch console and do manual failover\r\n```\r\nredis-cli -c -p 7000 cluster nodes | grep -E '(7005|7002)' | fgrep slave | head -n 1 | awk '{print $2}' | cut -d\"@\" -f1 | cut -d\":\" -f2 | xargs -n 1 -I{} redis-cli -p {} cluster failover\r\n```\r\n6. In console with `set` command you'll see something like that\r\n```\r\nroot@f8c52b500613:/data# time redis-cli -p 7005 -c -r 100 -i 0.01 set foo bar\r\nOK\r\n...skipped...\r\nOK\r\n\r\nreal\t0m11.901s\r\nuser\t0m0.005s\r\nsys\t0m0.038s\r\n```\r\n\r\nFor **read** commands all works as expected and failover add about 1 second penalty\r\n```\r\nroot@f8c52b500613:/data# time redis-cli -p 7005 -c -r 100 -i 0.01 get foo\r\n\"bar\"\r\n...skipped...\r\n\"bar\"\r\n\r\nreal\t0m2.021s\r\nuser\t0m0.010s\r\nsys\t0m0.046s\r\n```\r\n\r\nIn logs for master and replica nodes i am not see for any stranges.\r\n(logs for nodes is concated and sorted by time `cat /var/log/supervisor/redis-[36].log | sort -k5,5`)\r\n```\r\n43:M 15 Jul 2022 11:40:22.584 # Manual failover requested by replica a9728c13085a5f858409ab9f43e067ebe08abfa8.\r\n45:S 15 Jul 2022 11:40:22.584 # Manual failover user request accepted.\r\n45:S 15 Jul 2022 11:40:22.585 # All master replication stream processed, manual failover can start.\r\n45:S 15 Jul 2022 11:40:22.585 # Received replication offset for paused master manual failover: 3896995\r\n45:S 15 Jul 2022 11:40:22.585 # Start of election delayed for 0 milliseconds (rank #0, offset 3896995).\r\n45:S 15 Jul 2022 11:40:22.585 # Starting a failover election for epoch 62.\r\n45:M 15 Jul 2022 11:40:22.587 # Connection with master lost.\r\n45:M 15 Jul 2022 11:40:22.587 * Caching the disconnected master state.\r\n45:S 15 Jul 2022 11:40:22.587 # Failover election won: I'm the new master.\r\n45:S 15 Jul 2022 11:40:22.587 # configEpoch set to 62 after successful failover\r\n43:M 15 Jul 2022 11:40:22.588 # Connection with replica 172.17.0.3:7002 lost.\r\n45:M 15 Jul 2022 11:40:22.588 # Setting secondary replication ID to 9f178db8b945b966053aa213275a1b9607eac92a, valid up to offset: 3896996. New replication ID is e07dd5b70453e84d1dece77d5e9c098fe008f0ec\r\n45:M 15 Jul 2022 11:40:22.588 * Discarding previously cached master state.\r\n43:M 15 Jul 2022 11:40:22.626 # Configuration change detected. Reconfiguring myself as a replica of a9728c13085a5f858409ab9f43e067ebe08abfa8\r\n43:M 15 Jul 2022 11:40:22.626 # Failover auth granted to a9728c13085a5f858409ab9f43e067ebe08abfa8 for epoch 62\r\n43:S 15 Jul 2022 11:40:22.626 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.\r\n43:S 15 Jul 2022 11:40:22.626 * Connecting to MASTER 172.17.0.3:7002\r\n43:S 15 Jul 2022 11:40:22.626 * MASTER <-> REPLICA sync started\r\n43:S 15 Jul 2022 11:40:22.628 * Non blocking connect for SYNC fired the event.\r\n43:S 15 Jul 2022 11:40:22.629 * Master replied to PING, replication can continue...\r\n43:S 15 Jul 2022 11:40:22.630 * Trying a partial resynchronization (request 9f178db8b945b966053aa213275a1b9607eac92a:3896996).\r\n45:M 15 Jul 2022 11:40:22.630 * Partial resynchronization request from 172.17.0.3:7005 accepted. Sending 0 bytes of backlog starting from offset 3896996.\r\n45:M 15 Jul 2022 11:40:22.630 * Replica 172.17.0.3:7005 asks for synchronization\r\n43:S 15 Jul 2022 11:40:22.631 * Successful partial resynchronization with master.\r\n43:S 15 Jul 2022 11:40:22.632 # Master replication ID changed to e07dd5b70453e84d1dece77d5e9c098fe008f0ec\r\n43:S 15 Jul 2022 11:40:22.632 * MASTER <-> REPLICA sync: Master accepted a Partial Resynchronization.\r\n```\r\n\r\nThis behavior is probably **regression** from Redis 6.2 because Redis <6.2 works as expected and **write** command clients unpaused similarely as **read** command clients.\r\n\r\n## Expected behavior\r\n\r\nMaster node switching to replica role must respond with -MOVED to paused write clients after failover immediately and do not wait about 10 seconds before unblock its.\r\n",
+  "state": "closed",
+  "created_at": "2022-07-15T11:50:38Z",
+  "updated_at": "2022-07-17T03:07:02Z",
+  "closed_at": "2022-07-17T03:07:02Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1185657070,
+      "user": "madolson",
+      "created_at": "2022-07-15T15:30:48Z",
+      "body": "So, this has been fixed in 7.0, I'm fairly confident the fix is just https://github.com/redis/redis/pull/9676. We originally decided not to backport because it didn't look like a regression, but reading through the code and testing confirms that it was actually a regression.\r\n\r\n@DriverX If you can try on 7.0, that will likely resolve your issue."
+    },
+    {
+      "id": 1185661691,
+      "user": "DriverX",
+      "created_at": "2022-07-15T15:36:12Z",
+      "body": "@madolson thanks for quick answer.\r\nWe use Redis 6.2.6 in production and do not plan to upgrade to new major version of Redis in the near feature for company political reason. And Redis 7.0 introduce many changes in response format what can break our integrations."
+    },
+    {
+      "id": 1185733131,
+      "user": "madolson",
+      "created_at": "2022-07-15T17:03:28Z",
+      "body": "@DriverX There are very few backwards incompatible changes in 7.0 compared to 6.2, so you should be generally safe doing an upgrade. Although, I fully understand the internal requirements some companies impose on versions.\r\n\r\nI'll mark the instance as needing backport for 6.2."
+    },
+    {
+      "id": 1185740571,
+      "user": "DriverX",
+      "created_at": "2022-07-15T17:12:18Z",
+      "body": "@madolson This is great news. Thanks. We are looking forward to the release with backport.\r\n\r\nHow safe backport changes from #9676 via simple patching Redis 6.2.6 source code? We are thinking about adding this patch to rpm build stage for us."
+    },
+    {
+      "id": 1186383392,
+      "user": "madolson",
+      "created_at": "2022-07-17T03:07:02Z",
+      "body": "@DriverX It should be safe to take that patch is and apply on 6.2.6.\r\n\r\nBtw, closing since I'm not sure anything else explicitly needs to be tracked here."
+    }
+  ]
+}

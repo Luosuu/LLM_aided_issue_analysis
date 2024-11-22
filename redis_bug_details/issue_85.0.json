@@ -1,0 +1,26 @@
+{
+  "issue_number": 85.0,
+  "title": "configurable umask for unix socket",
+  "body": "The default umask (usually 022) can be overridden by the process starting Redis (e.g. to 000 to allow any user to connect to Redis over its Unix socket), but this also changes the permission mask for the log, snapshot and AOF. I think it would be good to add a configuration directive to explicitly set the mask for a unix socket, so a permissive unix socket doesn't necessarily impacts the permission settings on the other files Redis creates.\n\nFor example:\n\n```\nunixsocket /tmp/redis.sock\nunixsocketperm 755 # As safe default, user can specify 777\n```\n\nThis integer can be passed directly to `chmod(2)`.\n\nWhat do you think?\n",
+  "state": "closed",
+  "created_at": "2011-09-20T09:27:45Z",
+  "updated_at": "2014-07-28T17:36:30Z",
+  "closed_at": "2014-07-28T17:36:30Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2143758,
+      "user": "antirez",
+      "created_at": "2011-09-20T10:23:00Z",
+      "body": "Makes sense to me, I agree that a specific option is the best pick. As a sole possible alternative I would simply set it to 777 by default if there are no concerns about that.\n\nIf we go for the config directive, are you sure we don't need to convert it into an octal number before passing it to chmod? If I remember correctly you pass it as an octal value to chmod as well, like 0777, so if the user writes \"777\" in the config file we need to operate a conversion.\n"
+    },
+    {
+      "id": 50371085,
+      "user": "mattsta",
+      "created_at": "2014-07-28T17:36:30Z",
+      "body": "Added in 85238765033e2fa89b1879383421d5a8aafff17f (October 2011)\n"
+    }
+  ]
+}

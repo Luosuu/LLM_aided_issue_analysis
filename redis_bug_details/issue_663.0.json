@@ -1,0 +1,33 @@
+{
+  "issue_number": 663.0,
+  "title": "Denial of Service Attack through Forced Hash Collisions",
+  "body": "The hash collision seed we use in the hash function is completely useless as the following email I received shows how it is trivial to find seed-independent collisions. The original email follows:\n\n**From:  Martin Schönert**\n\nOn the \"Redis Security\" Topic page you write:\n\nFor instance an attacker could supply, via a web form, a set of strings that is known to hash to the same bucket into an hash table in order to turn the O(1) expected time (the average time) to the O(N) worst case, consuming more CPU than expected, and ultimately causing a Denial of Service. To prevent this specific attack, Redis uses a per-execution pseudo-random seed to the hash function. Unfortunately the structure of the hash functions and the way the seed is used still leaves it open to attacks (if the\nkeys are all of the same length). This is demonstrated by the attached file.\n\nhttps://gist.github.com/3076234\n",
+  "state": "closed",
+  "created_at": "2012-09-06T11:04:21Z",
+  "updated_at": "2012-10-11T23:38:57Z",
+  "closed_at": "2012-10-05T09:21:16Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 8387850,
+      "user": "pietern",
+      "created_at": "2012-09-08T14:02:17Z",
+      "body": "We can check if another hashing function like Murmur is any better (it supposedly is).\n\nhttp://en.wikipedia.org/wiki/MurmurHash\n"
+    },
+    {
+      "id": 9169919,
+      "user": "antirez",
+      "created_at": "2012-10-05T09:21:16Z",
+      "body": "Switched to murmurhash2, please check the latest commit that references this issue for detailed information. Closing.\n"
+    },
+    {
+      "id": 9362130,
+      "user": "PeterScott",
+      "created_at": "2012-10-11T23:38:57Z",
+      "body": "Bad news: murmurhash2 is vulnerable to the same attack. Here's a program to very quickly generate seed-independent collisions for murmurhash2:\n\nhttps://www.131002.net/siphash/murmur2collisions-20120821.tar.gz\n\nSipHash is a cryptographic MAC designed for this purpose; its speed is competitive with murmurhash and djbhash, and it's strongly resistant to collision attacks:\n\nhttps://www.131002.net/siphash/\n\nC code for SipHash is here:\n\nhttps://www.131002.net/siphash/siphash24.c\n"
+    }
+  ]
+}

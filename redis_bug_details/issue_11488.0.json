@@ -1,0 +1,96 @@
+{
+  "issue_number": 11488.0,
+  "title": "[BUG] XREAD[GROUP] with RESP3 may return a map with dup keys when user requested the same key twice",
+  "body": "```\r\n127.0.0.1:6379> XADD x 1-0 f v\r\n\"1-0\"\r\n127.0.0.1:6379> XADD x 2-0 f v\r\n\"2-0\"\r\n127.0.0.1:6379> HELLO 3\r\n1# \"server\" => \"redis\"\r\n2# \"version\" => \"255.255.255\"\r\n3# \"proto\" => (integer) 3\r\n4# \"id\" => (integer) 4\r\n5# \"mode\" => \"standalone\"\r\n6# \"role\" => \"master\"\r\n7# \"modules\" => (empty array)\r\n127.0.0.1:6379> XREAD STREAMS x x 0 0\r\n1# \"x\" => \r\n   1) 1) \"1-0\"\r\n      2) 1) \"f\"\r\n         2) \"v\"\r\n   2) 1) \"2-0\"\r\n      2) 1) \"f\"\r\n         2) \"v\"\r\n2# \"x\" => \r\n   1) 1) \"1-0\"\r\n      2) 1) \"f\"\r\n         2) \"v\"\r\n   2) 1) \"2-0\"\r\n      2) 1) \"f\"\r\n         2) \"v\"\r\n```\r\n\r\nin RESP2 it is returned as an array of tuples (keyname, entries-array)\r\n\r\nwe have four options, ordered in descending order, from the most breaking one to the least:\r\n1. change the protocol so that the reply in RESP3 is the same as the reply in RESP2\r\n2. return an error in case the user gave dup keys as input\r\n3. do nothing (may result in an error in the client library)\r\n4. change the code to unite the results (i.e. take the minimal id for all dup keys in input)\r\n",
+  "state": "open",
+  "created_at": "2022-11-09T08:28:01Z",
+  "updated_at": "2023-06-28T12:06:28Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1308386543,
+      "user": "guybe7",
+      "created_at": "2022-11-09T08:28:22Z",
+      "body": "@redis/core-team please vote"
+    },
+    {
+      "id": 1308395388,
+      "user": "oranagra",
+      "created_at": "2022-11-09T08:35:53Z",
+      "body": "these are sorted according to the breakage they cause\r\n1. major breaking change for all users (who use RESP3)\r\n2. breaking change only to whoever uses dup keys, both for RESP3 and RESP2 (will need to issue separate commands instead)\r\n3. will only break whoever uses dup keys with RESP3 and a client that has an issue with that, in which case only these users will have to adjust their code.\r\n4. considering the response is in any way not coupled with the input (you can ask for 3 keys and get 2), i think this is a valid approach.\r\n\r\ni vote for option 4"
+    },
+    {
+      "id": 1308410492,
+      "user": "guybe7",
+      "created_at": "2022-11-09T08:44:56Z",
+      "body": "i vote for option 2"
+    },
+    {
+      "id": 1308965087,
+      "user": "itamarhaber",
+      "created_at": "2022-11-09T15:49:19Z",
+      "body": "* Vote: option 2\r\n* Question: backport?\r\n* CC: @michael-grunder @chayim @leibale "
+    },
+    {
+      "id": 1308972195,
+      "user": "chayim",
+      "created_at": "2022-11-09T15:54:40Z",
+      "body": "Vote option 2"
+    },
+    {
+      "id": 1309155504,
+      "user": "michael-grunder",
+      "created_at": "2022-11-09T18:04:58Z",
+      "body": "Options 2 and 4 both seem fine.\r\n\r\nI lean toward option 2 since many clients are probably sending keys and IDs via an associative array anyway"
+    },
+    {
+      "id": 1310371174,
+      "user": "oranagra",
+      "created_at": "2022-11-10T14:29:46Z",
+      "body": "note that the returned array doesn't necessarily match the input keys anyway (you can ask for 3 keys and get output for just two)"
+    },
+    {
+      "id": 1311062114,
+      "user": "michael-grunder",
+      "created_at": "2022-11-11T00:07:54Z",
+      "body": "This is probably moot for many clients, that do something like this:\r\n\r\n```php\r\n$redis->xRead(['s1' => '0-1', 's2' => '0-2']);\r\n```\r\n\r\nThe only trepidation I'd have about option 4 is whether it will obscure what are effectively client-side logic bugs."
+    },
+    {
+      "id": 1311181756,
+      "user": "soloestoy",
+      "created_at": "2022-11-11T03:20:20Z",
+      "body": "TBH, I wanna vote for 1, I think it's a bug that we return a map in RESP3... if we can notify all client developers to fix it synchronously, I believe this is the most correct option, and seems very few users are using RESP3.\r\n\r\nSecond best, partially vote for 2, if we wanna minimize breaking change, I think we can just disallow dup keys only in RESP3, I don't think block users who are using dup keys in RESP2 is good idea, it's a valid usage I think, and up to now we didn't receive any real issues in this case from RESP3 users."
+    },
+    {
+      "id": 1312555894,
+      "user": "oranagra",
+      "created_at": "2022-11-12T19:28:04Z",
+      "body": "i now understand what i was missing and why option 4 isn't suitable.\r\nif the client uses COUNT, then merging the two requests using minimum, isn't really valid.\r\nbut then it also means that the RESP2 response isn't really valid since the caller shouldn't map the index of the requested key to the index of the response (some keys can be missing).\r\n\r\nin that case, i vote for 2.\r\nnext question would be in which version to release that breaking change (i assume not many will be affected)"
+    },
+    {
+      "id": 1378348538,
+      "user": "oranagra",
+      "created_at": "2023-01-11T07:41:27Z",
+      "body": "solution 2 approved in a core-team meeting for redis 8.0"
+    },
+    {
+      "id": 1378458280,
+      "user": "guybe7",
+      "created_at": "2023-01-11T09:24:18Z",
+      "body": "will PR soon"
+    },
+    {
+      "id": 1501644124,
+      "user": "oranagra",
+      "created_at": "2023-04-10T10:13:22Z",
+      "body": "note, i now realize that solution 2 (means some performance overhead), maybe we should re-consider solution 1.\r\nspecifically if we also handle #12014 or #11812"
+    },
+    {
+      "id": 1611274706,
+      "user": "leibale",
+      "created_at": "2023-06-28T12:00:59Z",
+      "body": "@oranagra @guybe7 ~I think `GEODIST` was overlooked as well #12361~\r\n\r\nedit: ignore... :P"
+    }
+  ]
+}

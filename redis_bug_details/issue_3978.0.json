@@ -1,0 +1,98 @@
+{
+  "issue_number": 3978.0,
+  "title": "rename-command in redis.conf seems to break redis-cli if command starts with a number",
+  "body": "Version: Redis 4.0-rc3 / Platform: Linux Ubuntu\r\n\r\nIn redis.conf you add in the line:\r\n\r\n`rename-command KEYS 21591e49a59cfd7c`\r\n\r\nThen in `redis-cli` issue the command `21591e49a59cfd7c *` the result is\r\n```\r\n(error) ERR unknown command '*'\r\n\r\n[... hundreds of lines ...]\r\n\r\n(error) ERR unknown command '*'\r\n(error) ERR unknown command '*'\r\n(error) ERR unknown command '*'\r\n(error) ERR unknown command '*'\r\n(1.12s)\r\n```\r\n\r\nHowever, if, in redis.conf you put in the line:\r\n\r\n`rename-command KEYS r21591e49a59cfd7c` \r\n(note the 'r' at the start of the second argument, the only difference)\r\n\r\nRestart redis and issue the command `r21591e49a59cfd7c *` in `redis-cli` it works as expected:\r\n\r\n```\r\n(empty list or set)\r\n```\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2017-05-02T19:13:06Z",
+  "updated_at": "2023-02-27T16:43:45Z",
+  "closed_at": "2020-10-20T17:31:04Z",
+  "labels": [
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 298996231,
+      "user": "itamarhaber",
+      "created_at": "2017-05-03T18:29:18Z",
+      "body": "Verified, and there are actually two issues here:\r\n\r\n1. Redis allows renaming to anything, whereas the cli treats a number in the first (0) position in the argv array as the repeat modifier. That means that if you rename a command to a number, you won't be able to run it via redis-cli.\r\n\r\n2. Some hash functions yieldings  begin with digits, and these may be used to generate \"random\" command names that you would use as renaming target (perhaps to increase security). Assuming that the above is an example of that, it makes sense IMO to fix the cli's behavior so it will support digit-prefixed commands (arguably, modules may also introduce commands beginning with names beginning with digits, although that may not necessarily be best practice).\r\n\r\nThere are at least two ways I can think of to fix this, and would appreciate @antirez's guidance to on hax0ring around line 1337:\r\n\r\n1. Use something with errno checking\r\n2. Scan argv[0] for isalpha && || isdigit"
+    },
+    {
+      "id": 299005397,
+      "user": "stockholmux",
+      "created_at": "2017-05-03T19:04:57Z",
+      "body": "The other aspect that troubles me about this is that it produced 1.2 seconds worth of `(error) ERR unknown command '*'` which makes me think it's coming from redis-server not redis-cli. I may be out of my depth here, but it makes me nervous that any error would be returned after spinning the server for so long (theoretical DOS attack in trigger an error over and over)."
+    },
+    {
+      "id": 299006377,
+      "user": "itamarhaber",
+      "created_at": "2017-05-03T19:08:51Z",
+      "body": "Worry not - definitely just the cli. What happened here was that `21591e49a59cfd7c` got parsed as the number 21591 silently ignoring the suffix, and then the cli sent that number of times the command '*' (to which the server politely declined as an error)."
+    },
+    {
+      "id": 299009838,
+      "user": "stockholmux",
+      "created_at": "2017-05-03T19:22:58Z",
+      "body": "@itamarhaber Makes perfect sense. Thanks for the clarification."
+    },
+    {
+      "id": 696250421,
+      "user": "madolson",
+      "created_at": "2020-09-21T17:13:34Z",
+      "body": "**Status:**\r\nThis is a straight forward bug to fix and not require a lot of effort. Itamar outlined two solutions which I think would both work just fine. Seems like we just need someone to go fix it. "
+    },
+    {
+      "id": 713000370,
+      "user": "dipAch",
+      "created_at": "2020-10-20T16:53:00Z",
+      "body": "Is this still an open bug? It seems to be working as expected from redis-cli against commit-id -> `c3f9e017`"
+    },
+    {
+      "id": 713022455,
+      "user": "oranagra",
+      "created_at": "2020-10-20T17:31:04Z",
+      "body": "i can confirm this indeed works in unstable (tested both the interactive and and argv input modes of redis-cli). i suppose someone fixed it accidentally."
+    },
+    {
+      "id": 1445298562,
+      "user": "SkyperTHC",
+      "created_at": "2023-02-26T08:36:00Z",
+      "body": "I stumbled across this issue and my problem was similar: Huge traffic between redis-client and redis-server (1,000 times higher than the web traffic).\r\n\r\nThe problem was that `redis-cli` issues a `COMMAND DOCS` for every new connection. The client pulls all commands from the redis-server (and the list is huge).\r\n\r\nI disabled this in the `redis.conf` with:\r\n```\r\nrename-command COMMAND \"\"\r\n```\r\n"
+    },
+    {
+      "id": 1445301925,
+      "user": "oranagra",
+      "created_at": "2023-02-26T08:56:01Z",
+      "body": "@SkyperTHC AFAIK redis-cli will only issue COMMAND in an interactive session, do you mean you had some script that used redis-cli in a loop or many of them in parallel, and that caused something to explode?\r\nwhich version did you use?"
+    },
+    {
+      "id": 1445408656,
+      "user": "SkyperTHC",
+      "created_at": "2023-02-26T16:58:36Z",
+      "body": "> @SkyperTHC AFAIK redis-cli will only issue COMMAND in an interactive session, do you mean you had some script that used redis-cli in a loop or many of them in parallel, and that caused something to explode?\n> \n> which version did you use?\n \nHad a script that called redis-cli --raw every 10 seconds. Version: the latest from docker hub (official)."
+    },
+    {
+      "id": 1445771989,
+      "user": "oranagra",
+      "created_at": "2023-02-27T06:16:25Z",
+      "body": "@SkyperTHC i've just tested both redis 6.0 and 7.0.\r\nwhen redis-cli is executed in the non-interactive mode, it doesn't issue the COMMAND command on startup.\r\ni've verified that with `INFO commandstats`. please check closely, and verify which version of redis-cli are you using."
+    },
+    {
+      "id": 1446032572,
+      "user": "SkyperTHC",
+      "created_at": "2023-02-27T09:58:49Z",
+      "body": "Please explain when you say 'non-interactive' mode. I'm running redis-cli without TTY attached (e.g. non-interactive, attached to a pipe (not TTY)).\r\n\r\nthat's how to reproduce it:\r\n\r\n```\r\ndocker run --name foobar redis\r\n```\r\n\r\n```\r\nnsenter -t $(pidof redis-server)  -n tcpdump -n -i lo\r\n```\r\n\r\n```\r\necho PING | docker exec -i foobar redis-cli --raw\r\n```\r\n\r\nObserver tcpdump output where `COMMAND DOCS` is issued:\r\n```\r\n09:49:55.344291 IP 127.0.0.1.47178 > 127.0.0.1.6379: Flags [P.], seq 1:28, ack 1, win 512, options [nop,nop,TS val 949621369 ecr 949621366], length 27: RESP \"COMMAND\" \"DOCS\"\r\n```\r\n... followed by megabytes of output...\r\n\r\n"
+    },
+    {
+      "id": 1446119346,
+      "user": "oranagra",
+      "created_at": "2023-02-27T11:01:18Z",
+      "body": "ohh now i see.\r\nnon-interactive mode is when redis-cli takes the commands to execute from the command line arguments.\r\n```\r\n$ src/redis-cli ping\r\nPONG\r\n```\r\ninteractive mode is when it takes it from the user input in the console:\r\n```\r\n$ src/redis-cli \r\n127.0.0.1:6379> ping\r\nPONG\r\n127.0.0.1:6379> \r\n```\r\n\r\nbut since you're using `|`, you're hitting the the interactive mode path.\r\ni guess we should use `isatty` to check if we should call `cliInitHelp`\r\nwanna make a PR to fix that?"
+    },
+    {
+      "id": 1446670071,
+      "user": "SkyperTHC",
+      "created_at": "2023-02-27T16:43:45Z",
+      "body": "done. https://github.com/redis/redis/pull/11850#issue-1601549377\r\n"
+    }
+  ]
+}

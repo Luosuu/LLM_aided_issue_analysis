@@ -1,0 +1,36 @@
+{
+  "issue_number": 8443.0,
+  "title": "[BUG] Can't initialize Redis as a systemd service (supervised systemd) on Ubuntu Server 20.04.2",
+  "body": "**Describe the bug**\r\n\r\nOn Ubuntu Server 20.04, Redis (5.0.7) doesn't start after setting `supervised systemd` on `/etc/redis/redis.conf`, but no error is printed when running it manually with `/usr/bin/redis-server /etc/redis/redis.conf`.\r\n\r\nAlso, when running manually, its possible to find it listening on port 6379 with `netstat -tulpn`.\r\n\r\n**To reproduce**\r\n\r\nAs root:\r\n- Update packages and install Redis with `apt update && apt install redis-server`\r\n- On `/etc/redis/redis.conf`, change the line with `supervised no` to `supervised systemd`\r\n- Try to restart Redis with `service redis-server restart` or `systemctl restart redis`\r\n\r\nThe output of the above command is:\r\n\r\n```\r\nJob for redis-server.service failed because the control process exited with error code.\r\nSee \"systemctl status redis-server.service\" and \"journalctl -xe\" for details.\r\n```\r\n\r\nAnd the output of `systemctl status redis-server.service` is:\r\n\r\n```\r\n● redis-server.service - Advanced key-value store\r\n     Loaded: loaded (/lib/systemd/system/redis-server.service; enabled; vendor preset: enabled)\r\n     Active: failed (Result: exit-code) since Wed 2021-02-03 12:15:56 -03; 28s ago\r\n       Docs: http://redis.io/documentation,\r\n             man:redis-server(1)\r\n    Process: 3851 ExecStart=/usr/bin/redis-server /etc/redis/redis.conf (code=exited, status=1/FAILURE)\r\n\r\nFeb 03 12:15:56 mywebsite.com systemd[1]: redis-server.service: Scheduled restart job, restart counter is at 5.\r\nFeb 03 12:15:56 mywebsite.com systemd[1]: Stopped Advanced key-value store.\r\nFeb 03 12:15:56 mywebsite.com systemd[1]: redis-server.service: Start request repeated too quickly.\r\nFeb 03 12:15:56 mywebsite.com systemd[1]: redis-server.service: Failed with result 'exit-code'.\r\nFeb 03 12:15:56 mywebsite.com systemd[1]: Failed to start Advanced key-value store.\r\n```\r\n\r\n**Expected behavior**\r\n\r\nTo be able to restart and use Redis normally, without errors. \r\n\r\n**Additional information**\r\n\r\nNo log is printed on `/var/log/redis/redis-server.log` when trying to restart Redis service, but the text below is printed when running it manually:\r\n\r\n```\r\n4231:C 03 Feb 2021 12:27:52.053 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n4231:C 03 Feb 2021 12:27:52.053 # Redis version=5.0.7, bits=64, commit=00000000, modified=0, pid=4231, just started\r\n4231:C 03 Feb 2021 12:27:52.053 # Configuration loaded\r\n4232:M 03 Feb 2021 12:27:52.063 * Increased maximum number of open files to 10032 (it was originally set to 1024).\r\n                _._\r\n           _.-``__ ''-._\r\n      _.-``    `.  `_.  ''-._           Redis 5.0.7 (00000000/0) 64 bit\r\n  .-`` .-```.  ```\\/    _.,_ ''-._\r\n (    '      ,       .-`  | `,    )     Running in standalone mode\r\n |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379\r\n |    `-._   `._    /     _.-'    |     PID: 4232\r\n  `-._    `-._  `-./  _.-'    _.-'\r\n |`-._`-._    `-.__.-'    _.-'_.-'|\r\n |    `-._`-._        _.-'_.-'    |           http://redis.io\r\n  `-._    `-._`-.__.-'_.-'    _.-'\r\n |`-._`-._    `-.__.-'    _.-'_.-'|\r\n |    `-._`-._        _.-'_.-'    |\r\n  `-._    `-._`-.__.-'_.-'    _.-'\r\n      `-._    `-.__.-'    _.-'\r\n          `-._        _.-'\r\n              `-.__.-'\r\n\r\n4232:M 03 Feb 2021 12:27:52.065 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.\r\n4232:M 03 Feb 2021 12:27:52.065 # Server initialized\r\n4232:M 03 Feb 2021 12:27:52.066 * Ready to accept connections\r\n```\r\n\r\n**Software versions:**\r\nRedis server v=5.0.7 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=636cde3b5c7a3923\r\nUbuntu 20.04.2 LTS - 64 bit\r\nsystemd 245 (245.4-4ubuntu3.4)",
+  "state": "closed",
+  "created_at": "2021-02-03T15:29:46Z",
+  "updated_at": "2023-01-09T08:11:46Z",
+  "closed_at": "2021-02-03T18:31:08Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 772725139,
+      "user": "paulocoghi",
+      "created_at": "2021-02-03T18:31:08Z",
+      "body": "Closing. For an unknown reason, the owner or permissions on `/var/lib/redis` and/or `/var/log/redis` and/or `/var/run/redis` were not ok. I changed to redis:redis and now, everything is fine."
+    },
+    {
+      "id": 1307940175,
+      "user": "anushkrishnav",
+      "created_at": "2022-11-08T22:46:27Z",
+      "body": "Hey @paulocoghi \r\nhow did you fix this issue \r\nI am facing exactly the same problem"
+    },
+    {
+      "id": 1317119745,
+      "user": "paulocoghi",
+      "created_at": "2022-11-16T14:35:28Z",
+      "body": "@anushkrishnav, it's better to not change the `supervised` setting on `/etc/redis/redis.conf`, as I said initially on this issue.\r\n\r\nIf Redis doesn't work with the original `supervised` setting, the solution is to completely remove Redis, update your repositories and install it again, with:\r\n\r\n```\r\nsudo apt purge redis-server\r\nsudo rm -rf /etc/redis\r\nsudo apt update\r\nsudo apt install redis-server\r\n```"
+    },
+    {
+      "id": 1375244004,
+      "user": "yngfoxx",
+      "created_at": "2023-01-09T08:11:45Z",
+      "body": "Just want to add this in-case it helps someone\r\nin my situation, there was another process using the same port number as the redis-server.\r\nuse this `lsof -i -P -n | grep LISTEN` to view services actively listening so you can solve your new problem 😉"
+    }
+  ]
+}

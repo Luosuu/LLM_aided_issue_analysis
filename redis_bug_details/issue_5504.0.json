@@ -1,0 +1,11 @@
+{
+  "issue_number": 5504.0,
+  "title": "[Bug] Config set maxmemory not return correct result",
+  "body": "the cmd \"config set maxmemory 111\" run the code like bebind:\r\n        \r\n![image](https://user-images.githubusercontent.com/1174006/47716801-bd04d280-dc7e-11e8-980e-0ece65069bf7.png)\r\n        freeMemoryIfNeeded may run failed , but it return OK\r\n        \r\nReappear step:\r\n* 1. fill some no ttl keys to redis , maxmemory-policy: volatile-lru\r\n![image](https://user-images.githubusercontent.com/1174006/47715899-1a4b5480-dc7c-11e8-9e47-37a064ae3893.png)\r\n* 2. set maxmemory to 200000000, it return OK\r\n* 3. we can see warning log like \" WARNING: the new maxmemory value set via CONFIG SET is smaller than the current memory usage. This will result in keys eviction and/or inability to accept new write commands depending on the maxmemory-policy\" , redis memory usage is not reduce\r\n* 4. Because we not set key ttl , so freeMemoryIfNeeded will return C_ERR, i think we need return error for this case.\r\n ",
+  "state": "open",
+  "created_at": "2018-10-30T12:04:30Z",
+  "updated_at": "2018-10-30T12:40:50Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": []
+}

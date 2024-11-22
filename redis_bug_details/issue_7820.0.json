@@ -1,0 +1,42 @@
+{
+  "issue_number": 7820.0,
+  "title": "[BUG] Lua script returning table doesn't return all members.",
+  "body": "**Describe the bug**\r\n\r\nWhen trying to return several members with table type from lua script evaluation it returns random (stable on some conditions, see examples) number of elements.\r\n\r\n**To reproduce**\r\nredis-cli:\r\n```redis\r\n127.0.0.1:6379> eval \"for i=0,100 do redis.call('set','a'..i,i) end\\nredis.call('set', 'last', 'a41')\" 0\r\n(nil)\r\n127.0.0.1:6379> eval \"local l=redis.call('get','last')\\nlocal r={}\\nlocal ks=redis.call('keys','a*')\\nlocal a=''\\nfor k,v in pairs(ks) do if v~=l then a=a..'['..k..']'..v..' '\\nr[k]=v\\nend end\\nreturn a\" 0\r\n\"[1]a92 [2]a14 [3]a13 [4]a50 [5]a87 [7]a80 [8]a73 [9]a3 [10]a12 [11]a88 [12]a5 [13]a57 [14]a59 [15]a54 [16]a9 [17]a40 [18]a63 [19]a100 [20]a96 [21]a2 [22]a16 [23]a95 [24]a29 [25]a42 [26]a48 [27]a79 [28]a77 [29]a51 [30]a68 [31]a83 [32]a38 [33]a37 [34]a60 [35]a39 [36]a66 [37]a97 [38]a99 [39]a23 [40]a18 [41]a43 [42]a62 [43]a75 [44]a36 [45]a6 [46]a20 [47]a7 [48]a74 [49]a70 [50]a45 [51]a34 [52]a91 [53]a98 [54]a49 [55]a82 [56]a72 [57]a27 [58]a35 [59]a47 [60]a31 [61]a30 [62]a93 [63]a52 [64]a56 [65]a69 [66]a24 [67]a44 [68]a61 [69]a26 [70]a19 [71]a81 [72]a0 [73]a17 [74]a84 [75]a10 [76]a64 [77]a11 [78]a15 [79]a25 [80]a86 [81]a76 [82]a8 [83]a4 [84]a71 [85]a67 [86]a22 [87]a65 [88]a32 [89]a53 [90]a55 [91]a28 [92]a85 [93]a33 [94]a89 [95]a46 [96]a78 [97]a58 [98]a1 [99]a21 [100]a94 [101]a90 \"\r\n127.0.0.1:6379> eval \"local l=redis.call('get','last')\\nlocal r={}\\nlocal ks=redis.call('keys','a*')\\nlocal a=''\\nfor k,v in pairs(ks) do if v~=l then a=a..'['..k..']'..v..' '\\nr[k]=v\\nend end\\nreturn r\" 0\r\n1) \"a92\"\r\n2) \"a14\"\r\n3) \"a13\"\r\n4) \"a50\"\r\n5) \"a87\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nLast command is returned list with 100 members.\r\n\r\n**Additional information**\r\n\r\nIf value of 'last' is changed to other key (`a82` for example) number of elements returned is changed.\r\n\r\nRedis version: docker image `redis:6.0.8`\r\n",
+  "state": "closed",
+  "created_at": "2020-09-19T09:45:39Z",
+  "updated_at": "2020-09-22T05:57:27Z",
+  "closed_at": "2020-09-20T12:49:25Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 695775832,
+      "user": "oranagra",
+      "created_at": "2020-09-20T11:23:31Z",
+      "body": "@rantrave-git can you explain what your script attempts to do?\r\nwhy do you use `pairs` on the output of `keys` (it's just a flat array of key names)"
+    },
+    {
+      "id": 695778155,
+      "user": "oranagra",
+      "created_at": "2020-09-20T11:49:56Z",
+      "body": "scrap that. (not very good in LUA).\r\nalthough it would have helped if you explained your scripts.\r\ni.e. get all the keys that start with 'a', excluding for the one with value the same as the value of the key named 'last'.\r\nand that one script does it by returning a string and the other by returning a table.\r\n\r\nanyway, it looks like it returns all the consecutive elements. as soon as you put a hole (empty index) it stops:\r\nsee this (difference between the two scripts is that one creates an array with values at indices 1,2,3, and the other with 1,2,**4**\r\n```\r\n127.0.0.1:6379> eval \"local r={}\\nr[1]='a'\\nr[2]='b'\\nr[3]='c'\\nreturn r\" 0\r\n1) \"a\"\r\n2) \"b\"\r\n3) \"c\"\r\n127.0.0.1:6379> eval \"local r={}\\nr[1]='a'\\nr[2]='b'\\nr[4]='c'\\nreturn r\" 0\r\n1) \"a\"\r\n2) \"b\"\r\n```\r\n"
+    },
+    {
+      "id": 695778846,
+      "user": "oranagra",
+      "created_at": "2020-09-20T11:57:51Z",
+      "body": "This seems consistent with asking Lua to count the elements in the array:\r\n```\r\n127.0.0.1:6379> eval \"local r={}\\nr[1]='a'\\nr[2]='b'\\nr[3]='c'\\nreturn #r\" 0\r\n(integer) 3\r\n127.0.0.1:6379> eval \"local r={}\\nr[1]='a'\\nr[2]='b'\\nr[8]='c'\\nreturn #r\" 0\r\n(integer) 2\r\n```\r\n\r\nSee the Lua documentation: https://www.lua.org/pil/19.1.html\r\n> Frequently, in Lua, we assume that an array ends just before its first nil element. This convention has one drawback: We cannot have a nil inside an array. For several applications this restriction is not a hindrance, such as when all elements in the array have a fixed type. But sometimes we must allow nils inside an array. In such cases, we need a method to keep an explicit size for an array.\r\n\r\n@itamarhaber i assume this is well known, and that trying to work around it would cause backwards compatibility issues, please confirm."
+    },
+    {
+      "id": 695828996,
+      "user": "itamarhaber",
+      "created_at": "2020-09-20T19:56:32Z",
+      "body": "Indeed, this is well-known and documented under the [_Conversion between Lua and Redis data types_ section of the `EVAL` command](https://redis.io/commands/eval#conversion-between-lua-and-redis-data-types) (emphasis mine):\r\n\r\n> Lua table (array) -> Redis multi bulk reply (**truncated to the first nil** inside the Lua array if any)"
+    },
+    {
+      "id": 696523055,
+      "user": "rantrave-git",
+      "created_at": "2020-09-22T05:57:27Z",
+      "body": "It would be much more intuitive to emphasize in docs that only conventional arrays (1 based consecutive indices) are allowed as a return type. That solves some misunderstanding.\r\n\r\n@oranagra  @itamarhaber thanks for pointing out the error."
+    }
+  ]
+}

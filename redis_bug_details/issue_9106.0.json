@@ -1,0 +1,20 @@
+{
+  "issue_number": 9106.0,
+  "title": "[BUG] the function - ZREVRANGEBYSCORE the argument name is reversed (max <->min)",
+  "body": "    zrevrangebyscore(key: string, min: number | string, max: number | string, cb?: Callback<string[]>): R;\r\n    zrevrangebyscore(key: string, min: number | string, max: number | string, withscores: string, cb?: Callback<string[]>): R;\r\n    zrevrangebyscore(key: string, min: number | string, max: number | string, limit: string, offset: number, count: number, cb?: Callback<string[]>): R;\r\n    zrevrangebyscore(key: string, min: number | string, max: number | string, withscores: string, limit: string, offset: number, count: number, cb?: Callback<string[]>): R;\r\n    ZREVRANGEBYSCORE(key: string, min: number | string, max: number | string, cb?: Callback<string[]>): R;\r\n    ZREVRANGEBYSCORE(key: string, min: number | string, max: number | string, withscores: string, cb?: Callback<string[]>): R;\r\n    ZREVRANGEBYSCORE(key: string, min: number | string, max: number | string, limit: string, offset: number, count: number, cb?: Callback<string[]>): R;\r\n    ZREVRANGEBYSCORE(key: string, min: number | string, max: number | string, withscores: string, limit: string, offset: number, count: number, cb?: Callback<string[]>): R;\r\n\r\nmin and max is reversed in the argument order\r\nIn redis natvie cli for ZREVRANGEBYSCORE the order should be [key max min WITHSCORES LIMIT OFFSET COUNT]\r\nprobably the argument naming in the function is reversed so if I follow the native command order to input the function will work as expected.",
+  "state": "closed",
+  "created_at": "2021-06-18T09:57:24Z",
+  "updated_at": "2021-08-12T05:01:52Z",
+  "closed_at": "2021-08-12T05:01:52Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 863955598,
+      "user": "enjoy-binbin",
+      "created_at": "2021-06-18T11:03:23Z",
+      "body": "You can check doc: https://redis.io/commands/zrevrangebyscore for more info. The design is like this.\r\n\r\nAt the same time, I also found some problems with the code comments... Like:\r\nhttps://github.com/redis/redis/blob/unstable/src/t_zset.c#L3250\r\nhttps://github.com/redis/redis/blob/unstable/src/t_zset.c#L3535\r\nhttps://github.com/redis/redis/blob/unstable/src/t_zset.c#L3117\r\n\r\ndiff can check: https://github.com/redis/redis/compare/unstable...enjoy-binbin:fix_comment?expand=1"
+    }
+  ]
+}

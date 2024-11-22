@@ -1,0 +1,36 @@
+{
+  "issue_number": 12900.0,
+  "title": "[BUG] Potential Error Handling Bug in connSocketBlockingConnect When aeWait Fails",
+  "body": "**Describe the bug**\r\n\r\nThere appears to be a potential issue in the `connSocketBlockingConnect` function, where a failure of the `aeWait` function (due to timeout or other reasons) does not result in the function returning `C_ERR`. The function sets the connection state to `CONN_STATE_ERROR` and the last error to `ETIMEDOUT`, but then proceeds to assign the file descriptor and state as if the connection was successful, without returning an error code.\r\n\r\n\r\n**To reproduce**\r\n\r\nThis issue is related to the internal error handling logic and may not be easily reproducible without modifying the source to simulate an `aeWait` failure. The relevant code section is:\r\n\r\n```c\r\nif ((aeWait(fd, mask: AE_WRITABLE, milliseconds: timeout) & AE_WRITABLE) == 0) {\r\n    conn->state = CONN_STATE_ERROR;\r\n    conn->last_errno = ETIMEDOUT;\r\n    // Potentially missing return C_ERR here\r\n}\r\n```\r\n\r\n**Expected behavior**\r\n\r\nWhen aeWait fails, whether due to a timeout or any other reason, the expected behavior would be for connSocketBlockingConnect to return C_ERR, indicating the connection attempt was unsuccessful. This would be in line with the handling of the initial connection attempt, where a failure to connect does return C_ERR.\r\n\r\n**Additional information**\r\n\r\n- The issue was observed in the connSocketBlockingConnect function where the second if condition checks for writability using aeWait.\r\n- The lack of a return statement following the setting of CONN_STATE_ERROR may result in the function incorrectly proceeding as if the connection was established.\r\n",
+  "state": "closed",
+  "created_at": "2023-12-29T15:47:41Z",
+  "updated_at": "2024-02-06T12:31:10Z",
+  "closed_at": "2024-02-06T12:31:10Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1874246626,
+      "user": "zuiderkwast",
+      "created_at": "2024-01-02T16:24:24Z",
+      "body": "I agree, it looks like a typo. Just below this we have the following code:\r\n\r\n    conn->fd = fd;\r\n    conn->state = CONN_STATE_CONNECTED;\r\n    return C_OK;\r\n\r\nDo you want to open a PR?\r\n\r\nI wonder if it's possible to test it in a reliable way. `connBlockingConnect` seems to be used only in the MIGRATE command (cluster.c). But if connect succeeds, I believe the socket is always writable since the OS has a buffer and can read some data even if the application doesn't read it immediately. Is this actually dead code?"
+    },
+    {
+      "id": 1878842729,
+      "user": "ganyyy",
+      "created_at": "2024-01-05T15:22:35Z",
+      "body": "> I agree, it looks like a typo. Just below this we have the following code:\r\n> \r\n> ```\r\n> conn->fd = fd;\r\n> conn->state = CONN_STATE_CONNECTED;\r\n> return C_OK;\r\n> ```\r\n> \r\n> Do you want to open a PR?\r\n> \r\n> I wonder if it's possible to test it in a reliable way. `connBlockingConnect` seems to be used only in the MIGRATE command (cluster.c). But if connect succeeds, I believe the socket is always writable since the OS has a buffer and can read some data even if the application doesn't read it immediately. Is this actually dead code?\r\n\r\nThank you for your response and for acknowledging the possibility of a typo.\r\n\r\nRegarding your point about the socket always being writable after a successful connect, my understanding and tests suggest that while this is often the case, it may not always hold true under certain conditions, such as when connecting to a non-existent external IP address. In my testing, I found that setting connect to non-blocking mode and specifying a short timeout could result in a failure due to timeout, in which case the socket would not become writable.\r\n\r\nSpecifically, in the connSocketBlockingConnect function, when the aeWait call returns 0 (indicating a timeout), the current implementation does not immediately return C_ERR, but continues execution, potentially leading to inconsistent connection states. In my local tests, I observed different error handling behaviors depending on whether the function returns C_ERR or not after aeWait reports a timeout error.\r\n\r\nBased on these observations, I believe that modifying this part to ensure the correct return of C_ERR in case of timeouts and other errors would be meaningful. This would help ensure the function behaves as expected and can properly handle timeouts and other potential connection errors.\r\n\r\nAs for reliably testing this scenario, it indeed poses a challenge as it requires simulating specific network behaviors, like connecting to a non-existent address or simulating a timeout. However, I think it should be possible to construct such test scenarios by setting up specific network conditions or using network simulation tools.\r\n\r\nIf you think it's appropriate, I can open a PR to address this issue."
+    },
+    {
+      "id": 1879882916,
+      "user": "zuiderkwast",
+      "created_at": "2024-01-06T23:57:32Z",
+      "body": "Good. Yes at least we should add the return C_ERR. You have a good explanation. Maybe we can write a test but if it is hard, maybe we can skip it."
+    },
+    {
+      "id": 1919541745,
+      "user": "zuiderkwast",
+      "created_at": "2024-01-31T17:09:27Z",
+      "body": "Let's keep it open until the PR is merged. It will be closed automatically when the PR is merged."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "issue_number": 9410.0,
+  "title": "[BUG] XTRIM MINID may delete messages whose IDs are higher than threshold",
+  "body": "**Describe the bug**\r\nIn a certain scenario, the XTRIM command will delete messages with IDs higher than the threshold provided by the MINID option. In fact, all messages in the stream get deleted in this specific scenario.\r\n\r\n**To reproduce**\r\nOne must add a message to the stream providing an ID, say \"10-1\". Then other messages must be added to the stream, but without providing an ID (using the \"*\" character).\r\nIf we call XTRIM passing one of the auto-generated IDs as the MINID, all messages in the stream will be deleted - even those with ID higher than the threshold provided.\r\n\r\nFor example:\r\n```\r\nreids:6379> scan 0\r\n1) \"0\"\r\n2) (empty array)\r\nreids:6379> xadd mystream 10-1 key value\r\n\"10-1\"\r\nreids:6379> xadd mystream * key value\r\n\"1629903486170-0\"\r\nreids:6379> xadd mystream * key value\r\n\"1629903486920-0\"\r\nreids:6379> xadd mystream * key value\r\n\"1629903487256-0\"\r\nreids:6379> xadd mystream * key value\r\n\"1629903487544-0\"\r\nreids:6379> xread STREAMS mystream 0-0\r\n1) 1) \"mystream\"\r\n   2) 1) 1) \"10-1\"\r\n         2) 1) \"key\"\r\n            2) \"value\"\r\n      2) 1) \"1629903486170-0\"\r\n         2) 1) \"key\"\r\n            2) \"value\"\r\n      3) 1) \"1629903486920-0\"\r\n         2) 1) \"key\"\r\n            2) \"value\"\r\n      4) 1) \"1629903487256-0\"\r\n         2) 1) \"key\"\r\n            2) \"value\"\r\n      5) 1) \"1629903487544-0\"\r\n         2) 1) \"key\"\r\n            2) \"value\"\r\nreids:6379> xtrim mystream MINID 1629903486920-0\r\n(integer) 5\r\nreids:6379> xread STREAMS mystream 0-0\r\n(nil)\r\n```\r\nNote that all messages got removed from the stream.\r\n\r\n**Expected behavior**\r\nOnly messages with IDs lower than `1629903486920-0` get removed. In this case, they would be `1629903486170-0` and `10-1`.\r\n\r\n**Additional Information**\r\nReproduced locally on a single redis node running as a container (imageId=ddcca4b8a6f0), redis_version=6.2.5.\r\nI was also able to reproduce the problem using a java client (lettuce), so most likely this is not related to redis-cli.",
+  "state": "closed",
+  "created_at": "2021-08-25T17:30:53Z",
+  "updated_at": "2022-01-07T13:31:06Z",
+  "closed_at": "2022-01-07T13:31:06Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1007238200,
+      "user": "guybe7",
+      "created_at": "2022-01-07T08:53:04Z",
+      "body": "@stefanodefaria sorry for the long wait, it will be fixed in Redis 7.0 (and probably be backported to 6.2 too)"
+    }
+  ]
+}

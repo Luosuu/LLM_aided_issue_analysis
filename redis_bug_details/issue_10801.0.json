@@ -1,0 +1,18 @@
+{
+  "issue_number": 10801.0,
+  "title": "[BUG] Blocking commands do not unblock in time under high volume of new connection churns",
+  "body": "**Describe the bug**\r\n\r\nBlocking commands such as `BRPOP` can be used in conjunction with a [timeout](https://redis.io/commands/brpop/) argument. They are supposed to unblock when the timeout is reached, if not earlier.\r\n\r\nSuch blocking commands do not unblock in time when the following two conditions are met:\r\n* Constant high volume of new connections. E.g. clients do not use long-lived connections, but rather use a new connection for every single request.\r\n* At any given moment, the number of concurrent established connections are very low compared to the number of new connections. E.g. the `connected_clients` has a low value while `total_connections_received` grows like crazy.\r\n\r\n**To reproduce**\r\n\r\nRun the following `redis-benchmark` command to manufacture a high volume of new connections but a low number of concurrent connections against your redis server (primary role):\r\n```\r\n./redis-benchmark -h nanya-test-brpop.hdo23d.0001.internal.use1.cache.amazonaws.com  -t set -n 1000000 -l -r 100000000 -c 100 -k 0 --threads 2 -P 3\r\n```\r\n\r\nIn a separate terminal, run the following `brpop` command observer it takes abnormal amount of time to unblock:\r\n```\r\n[ny0312@ip ~]$ time redis-cli brpop queue 2\r\n(nil)\r\n\r\nreal\t0m32.288s\r\nuser\t0m0.001s\r\nsys\t0m0.000s\r\n\r\n\r\n[ny0312@ip ~]$ time redis-cli brpop queue 2\r\n^[[O(nil)\r\n\r\nreal\t0m37.500s\r\nuser\t0m0.001s\r\nsys\t0m0.000s\r\n\r\n[ny0312@ip ~]$ time redis-cli brpop queue 2\r\n(nil)\r\n\r\nreal\t0m23.083s\r\nuser\t0m0.001s\r\nsys\t0m0.000s\r\n```\r\n\r\n**Expected behavior**\r\n\r\n```\r\n[ny0312@ip ~]$ time redis-cli brpop queue 2\r\n(nil)\r\n\r\nreal\t0m2.032s\r\nuser\t0m0.001s\r\nsys\t0m0.001s\r\n```\r\n\r\n**Additional information**\r\n\r\nUpon investigation, I believe the root cause is an unnecessary [list rotation](https://github.com/redis/redis/blob/265341b577dadcbdd40343bdf32d7dcb0a4bc1d1/src/server.c#L994) that Redis does to the `server.clients` list before checking client timeouts.\r\n\r\nSpecifically, in `clientsCron`, Redis always rotates the current tail of the list to the head, and then check the head client for timeout. The number of clients that Redis checks in each `clientsCron` run is proportional to the number of current connections. When there are constant high volume of new connections, Redis end up always checking the newly accepted connections at the tail of the `server.clients` list, and because the number of current connections is low, the older connections end up being **starved** and never looked at. As result, blocking commands take extra long time to be unblocked.\r\n",
+  "state": "closed",
+  "created_at": "2022-05-31T18:17:58Z",
+  "updated_at": "2022-05-31T18:19:22Z",
+  "closed_at": "2022-05-31T18:19:22Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1142483213,
+      "user": "ny0312",
+      "created_at": "2022-05-31T18:19:22Z",
+      "body": "This seems to have been fixed since 6.0.0 by the combination of these 2 commit:\r\n\r\n* https://github.com/redis/redis/commit/7add0f249078aa11cdeb11ec7535519315f0369e\r\n* https://github.com/redis/redis/commit/aa9d92d94a7f18f768e25bdbb94179b32e7b9e13\r\n\r\nResolving."
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "issue_number": 2126.0,
+  "title": "The following tests have failed",
+  "body": "Built 2.8.17 on centos, inside openvz.\n\n<pre>\n!!! WARNING The following tests failed:\n\n*** [err]: PEXPIRE/PSETEX/PEXPIREAT can set sub-second expires in tests/unit/expire.tcl\nExpected 'somevalue {}' to equal or match '{} {}'\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n*** [err]: Test replication partial resync: no backlog in tests/integration/replication-psync.tcl\nExpected condition '[s -1 sync_partial_err] > 0' to be true ([s -1 sync_partial_err] > 0)\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\nCleanup: may take some time... OK\nmake[1]: *** [test] Error 1\nmake[1]: Leaving directory `/usr/src/redis-2.8.17/src'\nmake: *** [test] Error 2\n[root@cache1:/usr/src/redis-2.8.17]# uname -a\nLinux cache1 2.6.32-042stab093.5 #1 SMP Wed Sep 10 17:39:49 MSK 2014 x86_64 x86_64 x86_64 GNU/Linux\n[root@cache1:/usr/src/redis-2.8.17]# ./src/redis-server -v\nRedis server v=2.8.17 sha=00000000:0 malloc=jemalloc-3.6.0 bits=64 build=ec6b2478dcf119f9\n</pre>\n",
+  "state": "closed",
+  "created_at": "2014-11-05T17:05:41Z",
+  "updated_at": "2017-05-15T14:25:37Z",
+  "closed_at": "2017-05-15T14:25:37Z",
+  "labels": [
+    "non critical bug",
+    "testing"
+  ],
+  "comments_data": [
+    {
+      "id": 61919401,
+      "user": "badboy",
+      "created_at": "2014-11-06T02:45:12Z",
+      "body": "Looks like a timing issue again. Does this pop up constantly?\n"
+    },
+    {
+      "id": 61965142,
+      "user": "jfhenriques",
+      "created_at": "2014-11-06T11:18:12Z",
+      "body": "Repeated the tests again and:\n\n<pre>\n!!! WARNING The following tests failed:\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\nCleanup: may take some time... OK\nmake[1]: *** [test] Error 1\nmake[1]: Leaving directory `/usr/src/redis-2.8.17/src'\nmake: *** [test] Error 2\n</pre>\n\nyesterday I was having exceptions with replication but I didn't log the errors, but they are not happening again, which is odd because I'm just repeating the same tests without modifying anything.\n"
+    },
+    {
+      "id": 62169435,
+      "user": "mattsta",
+      "created_at": "2014-11-07T16:21:40Z",
+      "body": "_Repeated the tests again_\n\nFor timing issues, one test isn't very representative.  Did you try running them 5-10 times?  Is there anything unusual about your machine (very small memory, very slow, shared, overloaded, etc)?  Some of the tests are based on timing, so if the machine can't deliver results in time then tests can't complete properly.  (you can manually edit some of the tests to increase the timeout waiting)\n\nThere's a similar issue at https://github.com/antirez/redis/issues/944 too.\n"
+    },
+    {
+      "id": 66924388,
+      "user": "vinhvo81",
+      "created_at": "2014-12-14T18:50:21Z",
+      "body": "I have also met this problem. I increased the RAM up and then this error does not happen again.\n"
+    },
+    {
+      "id": 67162351,
+      "user": "antirez",
+      "created_at": "2014-12-16T13:56:15Z",
+      "body": "All timing issues. Should be fixed, is a time consuming task. From time to time I try to fix a couple that show up in the continuous integration...\n"
+    },
+    {
+      "id": 68871870,
+      "user": "ovanes",
+      "created_at": "2015-01-06T14:32:37Z",
+      "body": "Tried to build redis cluster in a docker container (twice). These tests seem to repeatedly fail:\n\n```\nExecution time of different units:\n  0 seconds - unit/printver\n  1 seconds - unit/quit\n  1 seconds - unit/auth\n  4 seconds - unit/multi\n  7 seconds - unit/scan\n  12 seconds - unit/expire\n  15 seconds - unit/protocol\n  38 seconds - integration/replication\n  6 seconds - integration/aof\n  2 seconds - integration/rdb\n  3 seconds - integration/convert-zipmap-hash-on-load\n  2 seconds - unit/pubsub\n  2 seconds - unit/slowlog\n  52 seconds - integration/replication-4\n  70 seconds - integration/replication-psync\n  1 seconds - unit/introspection\n  1 seconds - unit/limits\n  98 seconds - unit/type/list\n  101 seconds - unit/dump\n  101 seconds - unit/aofrw\n  45 seconds - unit/bitops\n  138 seconds - unit/scripting\n  225 seconds - unit/type/hash\n  235 seconds - unit/maxmemory\n  311 seconds - unit/other\n  340 seconds - unit/type/list-2\n  382 seconds - integration/replication-2\n  443 seconds - unit/type/set\n  461 seconds - unit/basic\n  498 seconds - unit/sort\n  401 seconds - unit/hyperloglog\n  538 seconds - unit/type/zset\n  634 seconds - unit/type/list-3\n  733 seconds - integration/replication-3\n  652 seconds - unit/memefficiency\n  780 seconds - unit/obuf-limits\n\n!!! WARNING The following tests failed:\n\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n*** [err]: Test replication partial resync: no backlog in tests/integration/replication-psync.tcl\nExpected condition '[s -1 sync_partial_err] > 0' to be true ([s -1 sync_partial_err] > 0)\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n*** [err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n```\n\nHere is the source of Dockerfile which fails. Please note you should created an authorized_keys file in the same directory as the Dockerfile. The ONBUILD directive from server-template:0.0.6 willy try to copy it into /root/.ssh/authorized_keys.\n\n```\nFROM optobee/server-template:0.0.6\nMAINTAINER Ovanes Markaryan \"docker@optobee.com\"\nENV OPTOBEE_VM_REFRESHED 2015-01-06\n\nRUN dpkg-divert --local --rename --add /sbin/initctl\nRUN ln -sf /bin/true /sbin/initctl\n\nRUN [ \"apt-get\", \"update\" ]\nRUN [ \"apt-get\", \"upgrade\", \"-y\" ]\nRUN [ \"apt-get\", \"install\", \"-y\", \"wget\", \"tcl\"]\nRUN [ \"pip\", \"install\", \"virtualenv\" ]\n\nRUN cp /sbin/initctl.distrib /sbin/initctl\nRUN dpkg-divert --local --remove /sbin/initctl\n\n# download redis cluster 3.0.0-rc1 (currently latest)\nRUN mkdir -p /root/redis-source\nWORKDIR /root/redis-source\nRUN wget https://github.com/antirez/redis/archive/3.0.0-rc1.tar.gz\nRUN tar xfz 3.0.0-rc1.tar.gz\nWORKDIR /root/redis-source/redis-3.0.0-rc1\n\n# the next directive creates an /opt/redis directory and exports it as a separate volume\nVOLUME /opt/redis\nENV PREFIX /opt/redis\nRUN make\nRUN make test\nRUN make install\nRUN cp src/redis-trib.rb /opt/redis/bin\n\n# Clean up APT when done.\nRUN apt-get clean && rm -rf /tmp/* /var/tmp/*\n```\n\nJust run `docker build .` in the directory containing `Dockerfile` and `authorized_keys`.\n"
+    },
+    {
+      "id": 71959369,
+      "user": "mdevs5531",
+      "created_at": "2015-01-29T02:40:44Z",
+      "body": "Using 2.8.19 built for armel on Debian, also seeing test failures, generally get one of the two outputs below.  Machine is a single-core ARM with 256MB RAM.  Thanks for being responsive to even minor issues!\n\n```\n./runtest --single integration/replication-psync\n** SLOW COMPUTER ** Using a single client to avoid false positives.\nCleanup: may take some time... OK\nStarting test server at port 11111\n[ready]: 5924\nTesting integration/replication-psync\n[ok]: Slave should be able to synchronize with the master\n[err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n[ok]: Test replication partial resync: ok psync\n[ok]: Slave should be able to synchronize with the master\n[err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n[ok]: Test replication partial resync: no backlog\n[ok]: Slave should be able to synchronize with the master\n[err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n[ok]: Test replication partial resync: ok after delay\n[ok]: Slave should be able to synchronize with the master\n[err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n[ok]: Test replication partial resync: backlog expired\n[1/1 done]: integration/replication-psync (63 seconds)\n\n                   The End\n```\n\n```\n./runtest --single integration/replication-psync\n** SLOW COMPUTER ** Using a single client to avoid false positives.\nCleanup: may take some time... OK\nStarting test server at port 11111\n[ready]: 7153\nTesting integration/replication-psync\n[ok]: Slave should be able to synchronize with the master\n[err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n[ok]: Test replication partial resync: ok psync\n[ok]: Slave should be able to synchronize with the master\n[err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n[err]: Test replication partial resync: no backlog in tests/integration/replication-psync.tcl\nExpected condition '[s -1 sync_partial_err] > 0' to be true ([s -1 sync_partial_err] > 0)\n[ok]: Slave should be able to synchronize with the master\n[err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n[ok]: Test replication partial resync: ok after delay\n[ok]: Slave should be able to synchronize with the master\n[err]: Detect write load to master in tests/integration/replication-psync.tcl\nCan't detect write load from background clients.\n[ok]: Test replication partial resync: backlog expired\n[1/1 done]: integration/replication-psync (63 seconds)\n\n                   The End\n```\n"
+    },
+    {
+      "id": 72094373,
+      "user": "mattsta",
+      "created_at": "2015-01-29T20:05:32Z",
+      "body": "> single-core ARM with 256MB RAM.\n\nI'm going to go ahead and call that an \"unsupported configuration.\"  :sunflower: \n\nIt's good you found the `--single` option, but the Redis test suite still relies on _reasonable_ timing and memory limits to be available for the tests.  The Redis tests are very thorough and heavy duty.  But—just because the Redis test suite fails, it doesn't mean Redis isn't working on your platform.\n\nYou can also review any logs left over in the `tests/tmp/*` directories.  You may have to edit the test code to _not_ clean up after tests though (see: `tests/instances.tcl:cleanup()`; if the test suite completes, it'll delete all logs, but you can delete the `rm -rf` to keep logs around).\n"
+    },
+    {
+      "id": 72258969,
+      "user": "mdevs5531",
+      "created_at": "2015-01-30T19:46:05Z",
+      "body": "Think that's fair, although besides those test failures Redis has been a champ on the platform so far.\n\nThanks.  Is there value to you guys in updating this thread with any further debugging on the issue or is it too much of an edge case?\n"
+    },
+    {
+      "id": 195914055,
+      "user": "kok2016",
+      "created_at": "2016-03-13T08:29:40Z",
+      "body": "I also met this problem, I have try again for several times, the computer configuration is not low。Redis version  is 3.0.7,ubuntu is 15.10 \n"
+    },
+    {
+      "id": 235796732,
+      "user": "lamby",
+      "created_at": "2016-07-28T04:16:03Z",
+      "body": "I can reproduce this even with taskset -c 1\n"
+    },
+    {
+      "id": 250904169,
+      "user": "efkan",
+      "created_at": "2016-10-01T10:03:13Z",
+      "body": "I've encountered with some error. One of these the message below:\n`*** [err]: Detect write load to master in tests/integration/replication-psync.tcl`\n\nMy virtual server is Ubuntu x64. Its configuration had been as follows:\n    vCPU  : 2 cores with 50% CPU running high limit.\n    RAM   : 384 MB\n    HDD   :  3.5 GB\n\nThen I increased the server configuration as follows:\n    vCPU  : 2 cores with no CPU running high limit.\n    RAM   : 512 MB\n    HDD   :  3.5 GB\n\nAnd now I can see the following message:\n\n**`\\o/ All tests passed without errors!`**\n"
+    },
+    {
+      "id": 250904283,
+      "user": "lamby",
+      "created_at": "2016-10-01T10:06:03Z",
+      "body": "> Then I increased the server configuration\n\nHm? Surely this could just be coincidence given this is clearly non-deterministic...\n"
+    },
+    {
+      "id": 250905384,
+      "user": "efkan",
+      "created_at": "2016-10-01T10:35:03Z",
+      "body": "just want to say that; You're right @lamby .\nI tried again and I got error again.\n"
+    },
+    {
+      "id": 289127955,
+      "user": "jonathanleang",
+      "created_at": "2017-03-24T19:56:27Z",
+      "body": "I can reproduce this bug with Linode $5 instance with 1G Ram."
+    },
+    {
+      "id": 301488067,
+      "user": "vedro-compota",
+      "created_at": "2017-05-15T14:14:46Z",
+      "body": "I have the same bug in ubuntu 16."
+    },
+    {
+      "id": 301489135,
+      "user": "antirez",
+      "created_at": "2017-05-15T14:18:27Z",
+      "body": "Hello, if you test it with the latest Redis `3.2` branch commit, it should be ok. Thanks."
+    },
+    {
+      "id": 301490699,
+      "user": "vedro-compota",
+      "created_at": "2017-05-15T14:23:42Z",
+      "body": "@mattsta thank you for  your advice: \r\n\r\n> Repeated the tests again\r\n\r\n-- it **helped me**.\r\n\r\n@antirez thanks for answer! Second attempt of `make test` was finished successfully.\r\n\r\n>  if you test it with the latest Redis 3.2 branch, it should be ok.\r\n\r\nI've loaded it by: \r\n`curl -O http://download.redis.io/redis-stable.tar.gz`"
+    },
+    {
+      "id": 301491294,
+      "user": "antirez",
+      "created_at": "2017-05-15T14:25:37Z",
+      "body": "The failure is just a false positive happening randomly, the latest 3.2 stable release still has this problem (which is not a problem when you use Redis, it's just the test). Next 3.2 release, due in very short time, will have the test fixed. Thanks."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "issue_number": 12094.0,
+  "title": "[BUG] HRANDFIELD with <count> - hashtable in tests/unit/type/hash.tcl",
+  "body": "!!! WARNING The following tests failed:\r\n\r\n*** [err]: HRANDFIELD with <count> - hashtable in tests/unit/type/hash.tcl\r\nExpected '40.560000000000002' to be less than '40' (context: type eval line 30 cmd {assert_lessthan [chi_square_value $res] 40} proc ::test)\r\nCleanup: may take some time... OK\r\nmake[1]: *** [Makefile:427: test] Error 1\r\nmake[1]: Leaving directory '/opt/downloads/redis-7.0.11/src'\r\nmake: *** [Makefile:6: test] Error 2\r\n\r\nAlibaba Cloud Linux 3",
+  "state": "open",
+  "created_at": "2023-04-23T05:41:23Z",
+  "updated_at": "2023-04-26T07:30:49Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1518964596,
+      "user": "oranagra",
+      "created_at": "2023-04-23T06:39:32Z",
+      "body": "@liqz2009 i assume it happened only once and you won't be able to reproduce it, am i right?\r\nwhen i test it i usually get values lower than 10, but i did get a value of 30.12 once.\r\n@sundb should we consider increasing the threshold? or maybe the count?"
+    },
+    {
+      "id": 1518966035,
+      "user": "sundb",
+      "created_at": "2023-04-23T06:48:00Z",
+      "body": "@oranagra I think 40 should be safe, I haven't seen it fail in a while, maybe we can wait to see more reports, and I'll double check to see if recent modifications affect it."
+    },
+    {
+      "id": 1522921416,
+      "user": "sundb",
+      "created_at": "2023-04-26T07:29:58Z",
+      "body": "@oranagra 40 (probability is 1 in 100,000) seems ok to me.\r\nIn my test results, the fastest failure is 40,000+ times, the largest is 270,000+.\r\n@liqz2009 Have you failed again?"
+    }
+  ]
+}

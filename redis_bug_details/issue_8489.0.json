@@ -1,0 +1,18 @@
+{
+  "issue_number": 8489.0,
+  "title": "[BUG] INFO commandstats and INFO errorstats can contain badly formatted info fields",
+  "body": "AFAIK info fields should have a key-value pair separated by `:`.\r\nbut in some cases the command stats and error stats can cause the \"key\" part to have `:` or `@`.\r\nthe `@user_script:` error looks like a bug too (exists sine v2.8), not sure what was the meaning.\r\n```\r\n127.0.0.1:6379> eval \"return redis.call('brpop', 'k', 1)\" 0\r\n(error) ERR Error running script (call to f_f1b73d176746312d9527af8dcde709fc091ef561): @user_script:1: @user_script: 1: This Redis command is not allowed from scripts\r\n127.0.0.1:6379> info errorstats\r\n# Errorstats\r\nerrorstat_ERR:count=3\r\n127.0.0.1:6379> eval \"return redis.pcall('brpop', 'k', 1)\" 0\r\n(error) @user_script: 1: This Redis command is not allowed from scripts\r\n127.0.0.1:6379> host:\r\nError: Server closed the connection\r\n```\r\n```\r\n127.0.0.1:6379> info commandstats\r\n# Commandstats\r\ncmdstat_eval:calls=2,usec=6491605,usec_per_call=1622901.25,rejected_calls=0,failed_calls=4\r\ncmdstat_host::calls=1,usec=45,usec_per_call=22.50,rejected_calls=0,failed_calls=0\r\n127.0.0.1:6379> info errorstats\r\n# Errorstats\r\nerrorstat_@user_script::count=1\r\nerrorstat_ERR:count=1\r\n```\r\n\r\nI'm not yet sure what's the right solution, we can explicitly fix the command stat by trimming a `:` at the end of have a special handling for `c->proc == securityWarningCommand`, or simple have some utility function that translates anything not in the range of `A-Z, a-z, 0.9` with `_`.",
+  "state": "closed",
+  "created_at": "2021-02-14T10:42:10Z",
+  "updated_at": "2021-02-15T15:08:53Z",
+  "closed_at": "2021-02-15T15:08:53Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 779271558,
+      "user": "yossigo",
+      "created_at": "2021-02-15T14:52:33Z",
+      "body": "@oranagra Regarding the `@user_script:` error, it's basically just misuse of the overly liberal API. As `redis.pcall()` returns a raw error message, returning it as-is without an `ERR` or other error code is a possible violation of the protocol just like `return redis.error_reply()`."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "issue_number": 11641.0,
+  "title": "[BUG] Sentinels can't decide on a master and are stuck in loop",
+  "body": "**Describe the bug**\r\n\r\nWhen a master get's deleted sentinels should choose a new one ,but in my situation they get stuck in a loop unable to choose a new master.\r\nit's a rare occurance that can  happen after deleting the master a lot of times \r\neven after 1h no master was selected\r\n**To reproduce**\r\n\r\nhave a configuration of :\r\n1 redis-master\r\n2 redis-slave\r\n3 sentinel containers runing on each of the pods\r\nI am using helmchart version 5.0.7 by bitnami \r\nredis image: bitnami/redis:5.0.7-debian-10-r32\r\nsentinel image: bitnami/redis-sentinel:5.0.7-debian-10-r27\r\n\r\nchanges to values.yaml :\r\n` cluster:\r\n    enabled: true\r\n    slaveCount: 2\r\n  sentinel:\r\n    enabled: true\r\n    downAfterMilliseconds: 4000\r\n    failoverTimeout: 3000`\r\n    \r\n  \r\ndelete master untill an infinete loop apears to be happening between the sentinels\r\n\r\nduring testing I run  script that deleted the new master every couple of minutes \r\nThis behavior doesn't always happen \r\n**Expected behavior**\r\n\r\nFor a new master to be selected in a short period of time \r\n\r\n**Additional information**\r\nlast log lines from sentinel container\r\nfrom redis-master-0 pod\r\n\r\n1:X 18 Dec 2022 14:49:06.203 # 025a2750a85d0b9e7275c2ffbcfb4c1586be86ff voted for b836e7b84512125456d22fdd66462121203258b9 223\r\n1:X 18 Dec 2022 14:49:09.353 # -failover-abort-not-elected master mymaster 10.40.171.228 6379\r\n1:X 18 Dec 2022 14:49:09.416 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:12 2022\r\n1:X 18 Dec 2022 14:49:10.686 # +new-epoch 224\r\n1:X 18 Dec 2022 14:49:12.356 # +new-epoch 225\r\n1:X 18 Dec 2022 14:49:12.356 # +try-failover master mymaster 10.40.171.228 6379\r\n1:X 18 Dec 2022 14:49:12.360 # +vote-for-leader b836e7b84512125456d22fdd66462121203258b9 225\r\n1:X 18 Dec 2022 14:49:12.368 # 025a2750a85d0b9e7275c2ffbcfb4c1586be86ff voted for b836e7b84512125456d22fdd66462121203258b9 225\r\n1:X 18 Dec 2022 14:49:15.727 # -failover-abort-not-elected master mymaster 10.40.171.228 6379\r\n1:X 18 Dec 2022 14:49:15.779 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:18 2022\r\n1:X 18 Dec 2022 14:49:16.802 # +new-epoch 226\r\n1:X 18 Dec 2022 14:49:18.694 # +new-epoch 227\r\n1:X 18 Dec 2022 14:49:18.694 # +try-failover master mymaster 10.40.171.228 6379\r\n1:X 18 Dec 2022 14:49:18.696 # +vote-for-leader b836e7b84512125456d22fdd66462121203258b9 227\r\n1:X 18 Dec 2022 14:49:18.702 # 025a2750a85d0b9e7275c2ffbcfb4c1586be86ff voted for b836e7b84512125456d22fdd66462121203258b9 227\r\n\r\nlast log lines from sentinel container\r\nfrom redis-slave-0 pod\r\n\r\n1:X 18 Dec 2022 14:49:06.200 # +new-epoch 223\r\n1:X 18 Dec 2022 14:49:06.203 # +vote-for-leader b836e7b84512125456d22fdd66462121203258b9 223\r\n1:X 18 Dec 2022 14:49:06.222 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:12 2022\r\n1:X 18 Dec 2022 14:49:09.658 # +new-epoch 224\r\n1:X 18 Dec 2022 14:49:09.662 # +vote-for-leader 4d9fa1c092ff634f0678188b14e3b5b5629b9d2c 224\r\n1:X 18 Dec 2022 14:49:09.714 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:15 2022\r\n1:X 18 Dec 2022 14:49:12.365 # +new-epoch 225\r\n1:X 18 Dec 2022 14:49:12.367 # +vote-for-leader b836e7b84512125456d22fdd66462121203258b9 225\r\n1:X 18 Dec 2022 14:49:12.392 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:18 2022\r\n1:X 18 Dec 2022 14:49:16.442 # +new-epoch 226\r\n1:X 18 Dec 2022 14:49:16.445 # +vote-for-leader 4d9fa1c092ff634f0678188b14e3b5b5629b9d2c 226\r\n1:X 18 Dec 2022 14:49:16.496 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:22 2022\r\n1:X 18 Dec 2022 14:49:18.700 # +new-epoch 227\r\n1:X 18 Dec 2022 14:49:18.702 # +vote-for-leader b836e7b84512125456d22fdd66462121203258b9 227\r\n1:X 18 Dec 2022 14:49:18.733 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:25 2022\r\n\r\nlast log lines from sentinel container\r\nfrom redis-slave-1 pod\r\n\r\n1:X 18 Dec 2022 14:49:12.796 # 025a2750a85d0b9e7275c2ffbcfb4c1586be86ff voted for b836e7b84512125456d22fdd66462121203258b9 225\r\n1:X 18 Dec 2022 14:49:13.419 # -failover-abort-not-elected master mymaster 10.40.171.228 6379\r\n1:X 18 Dec 2022 14:49:13.490 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:16 2022\r\n1:X 18 Dec 2022 14:49:16.433 # +new-epoch 226\r\n1:X 18 Dec 2022 14:49:16.433 # +try-failover master mymaster 10.40.171.228 6379\r\n1:X 18 Dec 2022 14:49:16.435 # +vote-for-leader 4d9fa1c092ff634f0678188b14e3b5b5629b9d2c 226\r\n1:X 18 Dec 2022 14:49:16.444 # 025a2750a85d0b9e7275c2ffbcfb4c1586be86ff voted for 4d9fa1c092ff634f0678188b14e3b5b5629b9d2c 226\r\n1:X 18 Dec 2022 14:49:19.041 # +new-epoch 227\r\n1:X 18 Dec 2022 14:49:19.533 # 025a2750a85d0b9e7275c2ffbcfb4c1586be86ff voted for b836e7b84512125456d22fdd66462121203258b9 227\r\n1:X 18 Dec 2022 14:49:20.391 # -failover-abort-not-elected master mymaster 10.40.171.228 6379\r\n1:X 18 Dec 2022 14:49:20.481 # Next failover delay: I will not start a failover before Sun Dec 18 14:49:23 2022\r\n1:X 18 Dec 2022 14:49:23.385 # +new-epoch 228\r\n1:X 18 Dec 2022 14:49:23.385 # +try-failover master mymaster 10.40.171.228 6379\r\n1:X 18 Dec 2022 14:49:23.388 # +vote-for-leader 4d9fa1c092ff634f0678188b14e3b5b5629b9d2c 228\r\n1:X 18 Dec 2022 14:49:23.394 # 025a2750a85d0b9e7275c2ffbcfb4c1586be86ff voted for 4d9fa1c092ff634f0678188b14e3b5b5629b9d2c 228\r\n\r\nips of running pods :\r\n\r\n`\r\nredis-master-0           10.40.161.215   \r\n\r\nredis-slave-0             10.40.32.52    \r\n\r\nredis-slave-1             10.40.77.32 \r\n\r\n`\r\nfrom the logs the ip 10.40.171.228 seems to be one of the previuosly deleted redis masters",
+  "state": "closed",
+  "created_at": "2022-12-19T16:25:32Z",
+  "updated_at": "2023-02-23T14:31:26Z",
+  "closed_at": "2023-02-23T14:31:26Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1365652360,
+      "user": "moticless",
+      "created_at": "2022-12-27T06:41:46Z",
+      "body": "Hi @victorgitmain,\r\nIf I am not wrong Bitnami 5.0.7 is aligned with Redis version. Redis 5.0.7 was released on November 2019.\r\nPlease make the effort to test it with unstable and verify if it got resolved."
+    },
+    {
+      "id": 1372184227,
+      "user": "victorgitmain",
+      "created_at": "2023-01-05T12:58:19Z",
+      "body": "Hello @moticless , Thank you for the response, can you please clarify what do you mean by unstable ?\r\n"
+    },
+    {
+      "id": 1372229681,
+      "user": "moticless",
+      "created_at": "2023-01-05T13:41:47Z",
+      "body": "You can try [latest release 7.0.7](https://github.com/redis/redis/releases). Thanks.\r\n"
+    },
+    {
+      "id": 1441895095,
+      "user": "victorgitmain",
+      "created_at": "2023-02-23T14:31:26Z",
+      "body": "looks like this issue was fixed in more recent version \r\ntried testing with bitnami/redis \r\nchart version: 17.7.3\r\napp version: 7.0.8\r\ndidn't encounter this issue or issue was minimalized during testing \r\nThanks for the sugestion  "
+    }
+  ]
+}

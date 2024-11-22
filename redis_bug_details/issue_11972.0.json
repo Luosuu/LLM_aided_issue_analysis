@@ -1,0 +1,32 @@
+{
+  "issue_number": 11972.0,
+  "title": "[BUG] if a test that sets maxmemory fails, it doesn't unset maxmemory limits",
+  "body": "**Describe the bug**\r\n\r\nif a test that sets maxmemory (say to 1), and then unsets to 0 at the end, fails, it doesn't seem to reset the value itself.\r\n\r\nthis is hidden when the suite brings up and down redis instances, but when run against an external instance is visible.\r\n\r\ni'm seeing it due to a problem I'm having running \"Consistent eval error reporting\" in scripting.tcl (not a redis bug)\r\n\r\n**To reproduce**\r\n\r\nrun against an external instance and force a test that sets maxmemory to 1 to fail and then run another test that doesn't expect any real memory limits that should pass\r\n\r\n**Expected behavior**\r\n\r\nsaid second test will now fail\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "open",
+  "created_at": "2023-03-26T10:49:30Z",
+  "updated_at": "2023-03-27T07:56:34Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1484098177,
+      "user": "oranagra",
+      "created_at": "2023-03-26T13:34:00Z",
+      "body": "sadly, many of our tests depend on each other, so when one of them fails (or is skipped), the others that follow can't be trusted.\r\nthis is specifically problematic with external servers, that not only shared between different test units, but also in repeated test suite runs.\r\nthat said, i'm not sure we wanna make the effort in fixing it.\r\nwe can not even write a mechanism to detect config changes and revert them when a test fails.\r\nwe can maybe do something that resets the server between units in external mode (we actually have some of it there already), but it might be problematic to make it air tight considering external servers don't always support all configs and tests."
+    },
+    {
+      "id": 1484150782,
+      "user": "sjpotter",
+      "created_at": "2023-03-26T16:30:31Z",
+      "body": "one thing that would be interesting re this is\r\n\r\na) making the ability to setup and tear down \"external\" servers something that can be plugged into the suite.\r\n\r\ni.e. whenever start_server is called, it does whatever the \"plugin\" it requires of it (and perhaps even provides the port the to connect on).\r\n\r\nb) at least for maxmemory, it could be interesting if the framework was able to understand the tag of \"needs:config-maxmemory\" to mean that maxmemory should be set to 0 at the end of the test (which would remove doing that in every single test and also help find places where one should be using that tag).\r\n\r\nwith that said, perhaps the gain isn't worth it (/ perhaps a pain to do in tcl)."
+    },
+    {
+      "id": 1484673866,
+      "user": "oranagra",
+      "created_at": "2023-03-27T07:56:33Z",
+      "body": "it would probably be easy to reset maxmemory and others in `start_server` on external mode.\r\nbut it won't solve your problem with a failing test messing up other tests that follow.\r\nand adding an implicit reset of maxmemory between tests would break some tests.\r\ni don't think any of that worth it."
+    }
+  ]
+}

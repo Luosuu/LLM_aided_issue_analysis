@@ -1,0 +1,20 @@
+{
+  "issue_number": 330.0,
+  "title": "INCRBY / HINCRBY different overflow behavior",
+  "body": "Quoting a message from the mailing list\n\n```\nset n -9223372036854775484\n+OK\nincrby n -100000\n-ERR increment or decrement would overflow\nincrby n -1000\n-ERR increment or decrement would overflow\nhput f n -9223372036854775484\n-ERR unknown command 'hput'\nhset f n -9223372036854775484\n:1\nhget f n\n$20\n-9223372036854775484\nhincrby f n -10000\n:9223372036854766132\nhincrby f n 10000\n:-9223372036854775484\n\n\nSo is this by design? or a bug?\n\nHow do i get the same/similar behavior as INCRBY -- basically if it's\ngoing to overflow, either returning error or returning MAX_LONG.\n```\n",
+  "state": "closed",
+  "created_at": "2012-02-05T10:12:29Z",
+  "updated_at": "2012-02-16T15:09:46Z",
+  "closed_at": "2012-02-16T15:09:46Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 4002334,
+      "user": "antirez",
+      "created_at": "2012-02-16T15:09:42Z",
+      "body": "Fixed in unstable and 2.4. Adding tests. Thank you.\n"
+    }
+  ]
+}

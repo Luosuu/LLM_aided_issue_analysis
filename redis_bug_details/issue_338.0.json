@@ -1,0 +1,69 @@
+{
+  "issue_number": 338.0,
+  "title": "Compilation error on OS X, caused by bundled hiredis",
+  "body": "I'm getting a problem when trying to install redis with homebrew. I'm using OS X 10.7.3 and XCode 4.3 (gcc 4.2.1). The error occurs when compiling hiredis (bundled in deps). The output is here: https://gist.github.com/1852852\n\nThis is the same problem described here: https://github.com/antirez/hiredis/issues/53\n\nI've fix referenced in the above hiredis issue (https://github.com/antirez/hiredis/compare/5def8643...2da784ce) does fix the issue, but is not included in the hiredis that's bundled in deps. Updating the bundled hiredis version should resolve this.\n",
+  "state": "closed",
+  "created_at": "2012-02-17T11:47:24Z",
+  "updated_at": "2012-02-21T10:08:47Z",
+  "closed_at": "2012-02-19T19:40:18Z",
+  "labels": [
+    "non critical bug",
+    "WAITING-OP-REPLY"
+  ],
+  "comments_data": [
+    {
+      "id": 4019608,
+      "user": "hmarr",
+      "created_at": "2012-02-17T12:49:28Z",
+      "body": "Managed to install by passing `--use-llvm` to homebrew. Seems like it's just clang that doesn't work. Not sure what the stance is on supporting clang, so closing for now.\n"
+    },
+    {
+      "id": 4022938,
+      "user": "jacknagel",
+      "created_at": "2012-02-17T16:30:55Z",
+      "body": "Anecdotally, I believe this is currently the only thing blocking all of redis from compiling with clang 3.x.\n"
+    },
+    {
+      "id": 4035270,
+      "user": "Sharpie",
+      "created_at": "2012-02-18T16:38:46Z",
+      "body": "This should get re-opened until the fixes are pulled into the main repo. The Homebrew issue tracker has already received two reports since Xcode 4.3 came out: mxcl/homebrew#10299 and mxcl/homebrew#10305. The issue has also been mentioned in a few other reports.\n"
+    },
+    {
+      "id": 4044487,
+      "user": "antirez",
+      "created_at": "2012-02-19T19:37:41Z",
+      "body": "Hello, I updated Redis unstable with the latest hiredis, please could you verify that now it builds without problems? I'm trying to verify but there is a 2GB download between me and the ability to try this... ;) Thanks.\n"
+    },
+    {
+      "id": 4044510,
+      "user": "hmarr",
+      "created_at": "2012-02-19T19:40:18Z",
+      "body": "Works great for me - thanks Salvatore!\n"
+    },
+    {
+      "id": 4044706,
+      "user": "Sharpie",
+      "created_at": "2012-02-19T20:06:34Z",
+      "body": ">  I'm trying to verify but there is a 2GB download between me and the ability to try this... ;)\n\n@antirez\n\nFor Xcode 4.3, the command line tools, compilers and custom headers are available as a separate download that clocks in at ~163 MB available from http://connect.apple.com as \"Command Line Tools for Xcode\"\n\nMad props to Kenneth Reitz for making this happen:\n\n  http://www.kennethreitz.com/xcode-gcc-and-homebrew.html \n"
+    },
+    {
+      "id": 4071758,
+      "user": "mxcl",
+      "created_at": "2012-02-21T09:45:26Z",
+      "body": "See 1e62ec70326af16be5feacc257f176f6beaf5a5e. I felt Redis was important enough to commit a workaround for now.\n"
+    },
+    {
+      "id": 4071780,
+      "user": "antirez",
+      "created_at": "2012-02-21T09:46:52Z",
+      "body": "I think this should be fixed now, both on 2.4 and unstable branch. Could you confirm please? Thank you.\n"
+    },
+    {
+      "id": 4072097,
+      "user": "antirez",
+      "created_at": "2012-02-21T10:08:47Z",
+      "body": "p.s. there is a failing test in 2.4 when compiling with clang, I'll fix it today.\n"
+    }
+  ]
+}

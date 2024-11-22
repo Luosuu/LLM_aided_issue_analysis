@@ -1,0 +1,18 @@
+{
+  "issue_number": 9242.0,
+  "title": "[BUG] smovecommand may signal its dstkey modified while the dstkey is not.",
+  "body": "**Describe the bug**\r\n\r\nBy reading the code of smovecommand in src/t_set.c(line 395), I find the func will signal its dstkey modified before change it in setTypeAdd() (line 399). \r\n\r\n**To reproduce**\r\n\r\nJust run a redis server and use two clients to do the commands as follow:\r\n\r\nA> sadd a 1\r\n(integer) 1\r\nA> sadd b 1\r\n(integer) 1\r\nA> WATCH a\r\nOK\r\nA> MULTI\r\nOK\r\nA> sadd a 2\r\n QUEUE\r\nB> smove b a 1 (it singal a is modified while a is not!)\r\n (integer) 1\r\nA> EXEC\r\n (nil)\r\nA> smembers a\r\n \"1\"\r\n  \r\nAs a constract, if the client B use \"sadd a 1\" command, which does not change a, the transaction of A will not abort.\r\n\r\n**Expected behavior**\r\n\r\nIf the a is not modified, it should not be signaled modified. Just like this.\r\n\r\nA> sadd a 1\r\n (integer) 1\r\nA> sadd b 1\r\n (integer) 1\r\nA> WATCH a\r\nOK\r\nA> MULTI\r\nOK\r\nA> sadd a 2\r\nQUEUE\r\nB> smove b a 1 (it should not singal a is modified while a is not)\r\n(integer) 1\r\nA> EXEC\r\n(integer) 1\r\nA> smembers a\r\n \"1\"\r\n \"2\"\r\n\r\n**Additional information**\r\n\r\nnothing.\r\nIt's just a little and esay bug.\r\n\r\nGOOD LUCK!\r\n",
+  "state": "closed",
+  "created_at": "2021-07-16T06:09:20Z",
+  "updated_at": "2021-07-17T06:54:06Z",
+  "closed_at": "2021-07-17T06:54:06Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 881211728,
+      "user": "enjoy-binbin",
+      "created_at": "2021-07-16T06:30:49Z",
+      "body": "Good catch. Seem you are right. Although I haven't read it carefully"
+    }
+  ]
+}

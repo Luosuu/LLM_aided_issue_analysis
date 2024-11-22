@@ -1,0 +1,42 @@
+{
+  "issue_number": 9268.0,
+  "title": "[BUG] how to forget ghost nodes",
+  "body": "**Describe the bug**\r\n\r\nGhost nodes occur in the cluster and DNS reverse lookup is performed at the same time, causing performance problems\r\n\r\nversion 6.0.9\r\n\r\n 6b026fbd:0@0 fail? - 1626879202865 0 0 disconnected\r\n 7bbc2cd5:0@0 fail? - 1626879204870 0 0 disconnected\r\n\r\ncluster forget 7bbc2cd5\r\n(error) ERR Unknown node 7bbc2cd5\r\n\r\ntcpdump \r\n[bad udp cksum 0x7ea6 -> 0x5ac4!] 23007+ AAAA? 6b026fbd. (26)\r\n\r\n~]$ time /apps/svr/redis-6.0.14/bin/redis-cli -h x.x.x.x  -p 8049 slowlog get 1\r\n^[[A1) 1) (integer) 16\r\n   2) (integer) 1626934246\r\n   3) (integer) 23548\r\n   4) 1) \"cluster\"\r\n      2) \"nodes\"\r\n   5) \"x.x.x.x:49508\"\r\n   6) \"\"\r\n\r\nreal    0m1.581s  《------- too slow\r\nuser    0m0.000s\r\nsys     0m0.003s\r\n\r\n\r\nHow do I delete a ghost node？\r\n",
+  "state": "open",
+  "created_at": "2021-07-22T06:18:14Z",
+  "updated_at": "2021-09-10T10:03:25Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 884718207,
+      "user": "wonderful1984",
+      "created_at": "2021-07-22T07:46:22Z",
+      "body": "Ipv6 is not enabled"
+    },
+    {
+      "id": 884780180,
+      "user": "wonderful1984",
+      "created_at": "2021-07-22T09:36:25Z",
+      "body": "redis-cli -p 8049 cluster nodes|grep -v fail|wc -l\r\n512\r\n\r\n128 source 384 replica\r\n\r\n# Server\r\nredis_version:6.0.9\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:6616f483785125d\r\nredis_mode:cluster\r\nos:Linux 4.18.0-240.el8.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:8.4.0"
+    },
+    {
+      "id": 886161630,
+      "user": "imzye",
+      "created_at": "2021-07-25T07:46:03Z",
+      "body": "may I ask the nodeId `6b026fbd` changed? try to forget it from all the instance simultaneously?"
+    },
+    {
+      "id": 886450768,
+      "user": "wonderful1984",
+      "created_at": "2021-07-26T07:29:34Z",
+      "body": "I can't forget these two nodes.\r\n\r\n(error) ERR Unknown node \r\n\r\nIn the K8s environment, the container will be destroyed and the nodes.conf file will be lost.  I will add Nodes and forget the fault container.\r\n\r\nThere's a chance that a ghost node will appear.\r\n"
+    },
+    {
+      "id": 916785154,
+      "user": "825644691",
+      "created_at": "2021-09-10T10:01:11Z",
+      "body": " I also meet this problem, when I forget abnormal nodeid (Less than 40 ) ，the error 'Unknown node' occur\r\n\r\n`/* CLUSTER FORGET <NODE ID> */\r\nclusterNode *n = clusterLookupNode(c->argv[2]->ptr);\r\n\r\nif (!n) {\r\n\taddReplyErrorFormat(c,\"Unknown node %s\", (char*)c->argv[2]->ptr);\r\n\treturn;\r\n}`\r\n\r\n `typedef struct dictEntry {\r\n    void *key;\r\n    union {\r\n        void *val;\r\n        uint64_t u64;\r\n        int64_t s64;\r\n        double d;\r\n    } v;\r\n    struct dictEntry *next;\r\n} dictEntry;`\r\n\r\n`clusterNode *clusterLookupNode(const char *name) {\r\n    sds s = sdsnewlen(name, CLUSTER_NAMELEN);\r\n    dictEntry *de;\r\n\r\n    de = dictFind(server.cluster->nodes,s);\r\n    sdsfree(s);\r\n    if (de == NULL) return NULL;\r\n    return dictGetVal(de);\r\n\t\r\n}`\r\n\r\n`dictEntry *dictFind(dict *d, const void *key)\r\n{\r\n    ......\r\n        while(he) {\r\n\r\n            if (key==he->key || dictCompareKeys(d, key, he->key))\r\n                return he;\r\n            he = he->next;\r\n        }\r\n        if (!dictIsRehashing(d)) return NULL;\r\n    }\r\n    return NULL;\r\n}`\r\n\r\nit is possible \"forget $node_id\"  $node_id and all the nodeid in redis fail to match or the  dictGetVal() is ''?\r\n\r\nbut I use cluster nodes command,the abnormal nodes id display normally\r\n\r\ncluster nodes command\r\n`sds clusterGenNodesDescription(int filter, int use_pport) {\r\n    sds ci = sdsempty(), ni;\r\n    dictIterator *di;\r\n    dictEntry *de;\r\n\r\n    /* Generate all nodes slots info firstly. */\r\n    clusterGenNodesSlotsInfo(filter);\r\n\r\n    di = dictGetSafeIterator(server.cluster->nodes);\r\n    while((de = dictNext(di)) != NULL) {\r\n        clusterNode *node = dictGetVal(de);\r\n\r\n\r\n}`\r\nI discover redis loop by itself can get the abnormal nodes,\r\n\r\nHow did this mistake happen？\r\n\r\n"
+    }
+  ]
+}

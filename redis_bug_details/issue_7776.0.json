@@ -1,0 +1,26 @@
+{
+  "issue_number": 7776.0,
+  "title": "HKEYS returns empty hash in RESP3 [BUG]",
+  "body": "**Describe the bug**\r\n\r\nWhen using RESP 3, the HKEYS command returns an empty `hash` when a key doesn't exist, but an `array` when it does exist.\r\n\r\n**To reproduce**\r\n\r\nUsing redis-cli:\r\n```\r\n127.0.0.1:6379> HELLO 3\r\n1# \"server\" => \"redis\"\r\n2# \"version\" => \"6.0.5\"\r\n3# \"proto\" => (integer) 3\r\n4# \"id\" => (integer) 4\r\n5# \"mode\" => \"standalone\"\r\n6# \"role\" => \"master\"\r\n7# \"modules\" => (empty array)\r\n127.0.0.1:6379> HKEYS test_nonexistent_key\r\n(empty hash)\r\n```\r\n\r\n**Expected behavior**\r\n\r\nI expected the return type to be consistent with the type received when the key does exist (`array`). Although, I also think that a `set` might be more appropriate as a return type here.\r\n",
+  "state": "closed",
+  "created_at": "2020-09-09T22:17:35Z",
+  "updated_at": "2020-09-10T07:09:14Z",
+  "closed_at": "2020-09-10T07:09:14Z",
+  "labels": [
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 689868376,
+      "user": "itamarhaber",
+      "created_at": "2020-09-09T23:03:56Z",
+      "body": "Hello @Harrison88 \r\n\r\nThanks for reporting this - I can verify this happens, and I concur that this (empty hash) may not be the ideal response type in this case. `HVALS` appears to be misbehaving in the same respect as well.\r\n\r\n@eliblight please feel free to take a look at this if you want."
+    },
+    {
+      "id": 689917914,
+      "user": "madolson",
+      "created_at": "2020-09-10T01:34:42Z",
+      "body": "If anyone else wants to look into it, I think the problematic line is here:\r\nhttps://github.com/redis/redis/blob/unstable/src/t_hash.c#L769\r\n\r\nWhere we always return the empty hash even though we would expect an array if (flags & OBJ_HASH_KEY && flags & OBJ_HASH_VALUE) evaluates to false.\r\n\r\nedit: I also did a quick audit to check for any other obvious misuses of this, and I didn't find any."
+    }
+  ]
+}

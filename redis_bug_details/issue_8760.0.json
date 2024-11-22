@@ -1,0 +1,18 @@
+{
+  "issue_number": 8760.0,
+  "title": "[BUG] The keys_freed variable in the freeMemoryIfNeeded(void) function of evict.c in redis5.0 does not work, it is always less than or equal to 1",
+  "body": "**Describe the bug**\r\n\r\nI read the redis5.0 source code and found that the keys_freed variable in the freeMemoryIfNeeded(void) function of evict.c does not work, it is always less than or equal to 1.\r\n\r\n**To reproduce**\r\n\r\n![image](https://user-images.githubusercontent.com/30514761/114404618-6e421d80-9bd8-11eb-9709-12ea74ec88a3.png)\r\n![image](https://user-images.githubusercontent.com/30514761/114404892-b5c8a980-9bd8-11eb-9788-c731a29d00fc.png)\r\n\r\n**Expected behavior**\r\n         \r\n![image](https://user-images.githubusercontent.com/30514761/114405608-6fc01580-9bd9-11eb-8d71-beb0e7f834aa.png)\r\n\r\n\r\n**Additional information**\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-04-12T13:54:03Z",
+  "updated_at": "2021-04-12T15:13:06Z",
+  "closed_at": "2021-04-12T15:13:06Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 817894766,
+      "user": "oranagra",
+      "created_at": "2021-04-12T15:13:06Z",
+      "body": "Yes. This is fixed in unstable and 6.2. We're not back porting non critical fixes to 5.0 at this stage. "
+    }
+  ]
+}

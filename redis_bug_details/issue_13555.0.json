@@ -1,0 +1,74 @@
+{
+  "issue_number": 13555.0,
+  "title": "[BUG] eval/evalSha fails to execute lua byte code",
+  "body": "**Describe the bug**\r\n\r\nEVAL and EVALSHA do not support running lua byte code (.ljbc)\r\nand will result in error like\r\n>(error) ERR Error compiling script (new function): user_script:1: unexpected symbol near 'char(27)'\r\n\r\n**To reproduce**\r\n\r\ncreate byte code:\r\n\r\n```\r\necho 'return redis.call(\"GET\", KEYS[1])' > script.lua\r\nluajit -b script.lua script.ljbc\r\n\r\nredis-cli SET mykey \"Hello\"\r\nredis-cli EVAL \"$(<script.lua)\" 1 mykey\r\nredis-cli EVAL \"$(<script.ljbc)\" 1 mykey\r\n```\r\n\r\n**Expected behavior**\r\n\r\noutput \"Hello\" for both .lua and .ljbc\r\n\r\n**Additional information**\r\n\r\nThis issue most likely also applies to the FUNCTION commands\r\n(as well as to EVAL_RO,... of course)\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-09-17T09:28:05Z",
+  "updated_at": "2024-09-20T07:06:53Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 2355629094,
+      "user": "sundb",
+      "created_at": "2024-09-17T12:37:20Z",
+      "body": "@kkmuffme sorry, we don't support luajit yet, maybe you can try third party luajit for Redis."
+    },
+    {
+      "id": 2356134161,
+      "user": "kkmuffme",
+      "created_at": "2024-09-17T14:57:59Z",
+      "body": "It doesn't work with bytecode compiled with luac created bytecode either https://linux.die.net/man/1/luac which has been part of lua since ages.\r\n\r\n```\r\necho 'return redis.call(\"GET\", KEYS[1])' > script.lua\r\nluac -o script.out script.lua\r\n\r\nredis-cli SET mykey \"Hello\"\r\nredis-cli EVAL \"$(<script.lua)\" 1 mykey\r\nredis-cli --eval script.lua mykey\r\nredis-cli --eval script.out mykey\r\n```\r\n\r\nResults in:\r\n\r\n>(error) ERR Error compiling script (new function): user_script:1: unexpected symbol near 'char(27)'"
+    },
+    {
+      "id": 2357354738,
+      "user": "sundb",
+      "created_at": "2024-09-18T02:16:01Z",
+      "body": "@kkmuffme it's dangerous for Redis to load bytecode directly, which means we will lose control of all permissions."
+    },
+    {
+      "id": 2360396429,
+      "user": "kkmuffme",
+      "created_at": "2024-09-19T08:48:39Z",
+      "body": "Are you saying Redis parses the .lua to check for permissions before actually passing it to the lua interpreter/executing it?"
+    },
+    {
+      "id": 2360477815,
+      "user": "sundb",
+      "created_at": "2024-09-19T09:25:19Z",
+      "body": "> Are you saying Redis parses the .lua to check for permissions before actually passing it to the lua interpreter/executing it?\r\n\r\nyes, I'm not sure if bytecode can bypass the prosecution to do something we're not allowed to do."
+    },
+    {
+      "id": 2361181528,
+      "user": "kkmuffme",
+      "created_at": "2024-09-19T14:36:01Z",
+      "body": "Are you talking about ACL related permission checks? (or validation the lua to ensure it's not breaking out of the sandbox?)\r\n\r\nOnce a script is loaded (and Redis has the sha1), is the lua stored as is or as bytecode? (= to avoid recompiling everytime)\r\n\r\nIf it's about ensuring it's not breaking out of the sandbox, I guess there should be an option to disable these checks to allow for additional performance when only handling static/trusted input."
+    },
+    {
+      "id": 2361224072,
+      "user": "sundb",
+      "created_at": "2024-09-19T14:48:54Z",
+      "body": "> Are you talking about ACL related permission checks? (or validation the lua to ensure it's not breaking out of the sandbox?)\r\n> \r\n\r\nno, i'm talking about the lua sanbox.\r\n\r\n> Once a script is loaded (and Redis has the sha1), is the lua stored as is or as bytecode? (= to avoid recompiling everytime)\r\n\r\nonce the script is loaded, it will be stored as bytecode.\r\nbut Function is different, now it's stored as bytes and a copy of the script is stored because it's datatype.\r\n\r\n> \r\n> If it's about ensuring it's not breaking out of the sandbox, I guess there should be an option to disable these checks to allow for additional performance when only handling static/trusted input.\r\n\r\nnot sure if it's worth it, isn't it enough to just use `load` + `evalsha`?"
+    },
+    {
+      "id": 2362530477,
+      "user": "kkmuffme",
+      "created_at": "2024-09-20T01:29:20Z",
+      "body": ">not sure if it's worth it, isn't it enough to just use load + evalsha?\r\n\r\nIn most cases it is I guess. Since other parts of the environment we use Redis in uses lua bytecode (openresty/luajit), it's more about getting some minimal performance gains where they're easily achievable.\r\nSince Redis doesn't support that and it's a big effort to change that, I think it's not worth the time."
+    },
+    {
+      "id": 2362542388,
+      "user": "sundb",
+      "created_at": "2024-09-20T01:42:35Z",
+      "body": "> > not sure if it's worth it, isn't it enough to just use load + evalsha?\r\n> \r\n> In most cases it is I guess. Since other parts of the environment we use Redis in uses lua bytecode (openresty/luajit), it's more about getting some minimal performance gains where they're easily achievable. Since Redis doesn't support that and it's a big effort to change that, I think it's not worth the time.\r\n\r\nmy main concern is security, openresty's lua script is provided by the developer, but redis's script is from users, and the lack of sandbox restrictions is dangerous."
+    },
+    {
+      "id": 2362983906,
+      "user": "kkmuffme",
+      "created_at": "2024-09-20T07:06:51Z",
+      "body": ">openresty's lua script is provided by the developer\r\n>redis's script is from users\r\n\r\nWho allows/uses end-user input in redis scripts? (except the Redis demo page for the commands).\r\n\r\nUsually the same developer who writes openresty lua code also writes the redis script lua."
+    }
+  ]
+}

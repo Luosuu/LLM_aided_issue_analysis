@@ -1,0 +1,132 @@
+{
+  "issue_number": 8871.0,
+  "title": "[BUG] Fails to install on Debian 10",
+  "body": "I use Debian 10 server at Hetzner dedicated. When i try install redis, and use command `make test` i received error:\r\n\r\n    [err]: CONFIG SET bind address in tests/unit/networking.tcl\r\n    Expected 'OK' to match '*Failed to bind to specified addresses*' (context: type eval line 4 cmd {assert_match {*Failed to bind to specified addresses*} $e} proc ::start_server)\r\n    [err]: Client output buffer soft limit is enforced if time is overreached in tests/unit/obuf-limits.tcl\r\n    Expected 102520 >= 100000 && 15 < 6 (context: type eval line 27 cmd {assert {$omem >= 100000 && $time_elapsed < 6}} proc ::test)\r\n    \r\n    *** [err]: CONFIG SET bind address in tests/unit/networking.tcl\r\n    Expected 'OK' to match '*Failed to bind to specified addresses*' (context: type eval line 4 cmd {assert_match {*Failed to bind to specified addresses*} $e} proc ::start_server)\r\n    *** [err]: Client output buffer soft limit is enforced if time is overreached in tests/unit/obuf-limits.tcl\r\n    Expected 102520 >= 100000 && 15 < 6 (context: type eval line 27 cmd {assert {$omem >= 100000 && $time_elapsed < 6}} proc ::test)\r\n\r\nAt my hosts server file i have:\r\n\r\n    ### Hetzner Online GmbH installimage\r\n    # nameserver config\r\n    # IPv4\r\n    127.0.0.1       localhost.localdomain localhost\r\n    #138.2587.126.193        intelligent-yonath.138-628-126-844.plesk.page intelligent-yonath        \r\n    #\r\n    # IPv6\r\n    #::1    localhost.localdomain localhost ip6-localhost ip6-loopback      \r\n    fe00::0 ip6-localnet\r\n    ff00::0 ip6-mcastprefix\r\n    ff02::1 ip6-allnodes\r\n    ff02::2 ip6-allrouters\r\n    ff02::3 ip6-allhosts\r\n    2a01:4f8:172:29d2::2    intelligent-yonath.138-147-532-928.plesk.page intelligent-yonath\r\n\r\nIn my /etc/resolv.conf i has:\r\n\r\n    ### Hetzner Online GmbH installimage\r\n    # nameserver config\r\n    nameserver 213.133.99.99\r\n    nameserver 213.133.100.100\r\n    nameserver 213.133.98.98\r\n    nameserver 2a01:4f8:0:1::add:9999\r\n    nameserver 2a01:4f8:0:1::add:9898\r\n    nameserver 2a01:4f8:0:1::add:1010\r\n\r\nHow i understand problem with hosts or resolv conf. How i can fix problem and install Redis?",
+  "state": "closed",
+  "created_at": "2021-04-26T21:43:45Z",
+  "updated_at": "2021-05-04T10:45:08Z",
+  "closed_at": "2021-05-04T10:45:08Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 827213411,
+      "user": "huangzhw",
+      "created_at": "2021-04-26T23:55:43Z",
+      "body": "The first error is the same as https://github.com/redis/redis/issues/8828."
+    },
+    {
+      "id": 827213993,
+      "user": "ahab4ik",
+      "created_at": "2021-04-26T23:57:47Z",
+      "body": "@huangzhw i already see it, but don't see solution to fix it :( i try comment all hosts and resolv.conf file, but it doesn't help"
+    },
+    {
+      "id": 827214885,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T00:00:47Z",
+      "body": "What's output of `ping some.wrong.bind.address`?"
+    },
+    {
+      "id": 827217374,
+      "user": "ahab4ik",
+      "created_at": "2021-04-27T00:07:54Z",
+      "body": "Received\"\r\n\r\n```\r\nroot@intelligent-yonath ~ # ping some.wrong.bind.address\r\nPING some.wrong.bind.address.138-201-126-182.plesk.page (138.201.126.182) 56(84) bytes of data.\r\n64 bytes from static.182.126.201.138.clients.your-server.de (138.201.126.182): icmp_seq=1 ttl=64 time=0.028 ms\r\n64 bytes from static.182.126.201.138.clients.your-server.de (138.201.126.182): icmp_seq=2 ttl=64 time=0.018 ms\r\n64 bytes from static.182.126.201.138.clients.your-server.de (138.201.126.182): icmp_seq=3 ttl=64 time=0.017 ms\r\n64 bytes from static.182.126.201.138.clients.your-server.de (138.201.126.182): icmp_seq=4 ttl=64 time=0.017 ms\r\n64 bytes from static.182.126.201.138.clients.your-server.de (138.201.126.182): icmp_seq=5 ttl=64 time=0.023 ms\r\n64 bytes from static.182.126.201.138.clients.your-server.de (138.201.126.182): icmp_seq=6 ttl=64 time=0.026 ms\r\n^C\r\n--- some.wrong.bind.address.138-201-126-182.plesk.page ping statistics ---\r\n6 packets transmitted, 6 received, 0% packet loss, time 95ms\r\nrtt min/avg/max/mdev = 0.017/0.021/0.028/0.006 ms\r\n```"
+    },
+    {
+      "id": 827257244,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T02:05:45Z",
+      "body": "What's content of `/etc/network/interfaces` ?"
+    },
+    {
+      "id": 827488556,
+      "user": "ahab4ik",
+      "created_at": "2021-04-27T10:11:34Z",
+      "body": "Content of `/etc/network/interfaces`\r\n```\r\n### Hetzner Online GmbH installimage\r\n\r\nsource /etc/network/interfaces.d/*\r\n\r\nauto lo\r\niface lo inet loopback\r\niface lo inet6 loopback\r\n\r\nauto enp41s0\r\niface enp41s0 inet static\r\n  address 138.201.126.192\r\n  netmask 255.255.255.192\r\n  gateway 138.201.126.192\r\n  # route 138.201.126.128/26 via 138.201.126.192\r\n  up route add -net 138.201.126.159 netmask 255.255.255.192 gw 138.201.126.159 dev enp41s0\r\n\r\niface enp41s0 inet6 static\r\n  address 2a01:4f8:172:29d2::2\r\n  netmask 64\r\n  gateway fe80::1\r\n\r\n```\r\n"
+    },
+    {
+      "id": 827494561,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T10:21:46Z",
+      "body": "I think it's something like [https://askubuntu.com/questions/584054/how-do-i-configure-the-search-domain-correctly](https://askubuntu.com/questions/584054/how-do-i-configure-the-search-domain-correctly).\r\nBut I don't how your server config this."
+    },
+    {
+      "id": 827500561,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T10:32:40Z",
+      "body": "@ahab4ik Please execute `ping some.wrong.bind.address.`, add a `.`."
+    },
+    {
+      "id": 827501347,
+      "user": "ahab4ik",
+      "created_at": "2021-04-27T10:34:07Z",
+      "body": "@huangzhw here is response:\r\n\r\n`ping: some.wrong.bind.address.: Name or service not known`\r\n\r\np.s thank you, you try to help me, i appreciate the help"
+    },
+    {
+      "id": 827501630,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T10:34:40Z",
+      "body": "I think I can improve the test."
+    },
+    {
+      "id": 827510505,
+      "user": "ahab4ik",
+      "created_at": "2021-04-27T10:50:49Z",
+      "body": "Okay, i will wait"
+    },
+    {
+      "id": 827512655,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T10:54:54Z",
+      "body": "The failure of this test will not affect you use. It just tests `CONFIG SET bind` runtime."
+    },
+    {
+      "id": 827523141,
+      "user": "ahab4ik",
+      "created_at": "2021-04-27T11:06:52Z",
+      "body": "@huangzhw i can make install, how i understand, right?"
+    },
+    {
+      "id": 827530135,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T11:20:10Z",
+      "body": "The first test failure is OK.\r\nI will take a look at the second failure.\r\nIMHO you can make install."
+    },
+    {
+      "id": 827531582,
+      "user": "ahab4ik",
+      "created_at": "2021-04-27T11:22:59Z",
+      "body": "@huangzhw okay, it's a good response? \r\n\r\n```\r\nroot@intelligent-yonath ~/redis-stable # make install\r\ncd src && make install\r\nmake[1]: Entering directory '/root/redis-stable/src'\r\n\r\nHint: It's a good idea to run 'make test' ;)\r\n\r\n    INSTALL redis-server\r\n    INSTALL redis-benchmark\r\n    INSTALL redis-cli\r\nmake[1]: Leaving directory '/root/redis-stable/src'\r\nroot@intelligent-yonath ~/redis-stable # \r\n```"
+    },
+    {
+      "id": 827532332,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T11:24:37Z",
+      "body": "It's fine."
+    },
+    {
+      "id": 827635724,
+      "user": "huangzhw",
+      "created_at": "2021-04-27T14:08:17Z",
+      "body": "https://github.com/redis/redis/pull/8833 will solve second failure."
+    },
+    {
+      "id": 828200211,
+      "user": "oranagra",
+      "created_at": "2021-04-28T07:00:58Z",
+      "body": "@ahab4ik which version of redis were you testing? did it include the fix in #8803"
+    },
+    {
+      "id": 828209770,
+      "user": "huangzhw",
+      "created_at": "2021-04-28T07:16:17Z",
+      "body": "@oranagra I think the problem is when `$omem > 100000`, it may be <= 100000 again."
+    },
+    {
+      "id": 828211936,
+      "user": "oranagra",
+      "created_at": "2021-04-28T07:19:42Z",
+      "body": "ok. so this happens after the last fix was applied, and it's likely because the OS swallowed the buffers after they initially grew.\r\n#8833 indeed is going to stabilize this test in that respect, let's hope that's the last of it."
+    }
+  ]
+}

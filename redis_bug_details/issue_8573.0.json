@@ -1,0 +1,18 @@
+{
+  "issue_number": 8573.0,
+  "title": "[BUG] Redis 6.2.0 does not build without jemalloc on musl",
+  "body": "**Describe the bug**\r\n\r\nRedis 6.2.0 does not build without jemalloc on musl\r\n\r\n**To reproduce**\r\n\r\nOn a musl based system (such as Alpine Linux), compile a fresh copy of the Redis 6.2.0 source code without jemalloc: `make USE_JEMALLOC=no`\r\n\r\nThe following Dockerfile can be used to reproduce the issue:\r\n\r\n```Dockerfile\r\nFROM alpine:latest\r\n\r\nRUN apk update && apk add make gcc linux-headers libc-dev\r\nRUN wget https://download.redis.io/releases/redis-6.2.0.tar.gz && tar xf redis-6.2.0.tar.gz\r\nRUN cd redis-6.2.0 && make USE_JEMALLOC=no\r\n```\r\n\r\nThis results in the following failure:\r\n```\r\n[...]\r\nmake[2]: Leaving directory '/redis-6.2.0/deps'\r\n    CC adlist.o\r\n    CC quicklist.o\r\n    CC ae.o\r\n    CC anet.o\r\n    CC dict.o\r\n    CC server.o\r\n    CC sds.o\r\n    CC zmalloc.o\r\nzmalloc.c:56:28: error: missing binary operator before token \"(\"\r\n   56 | #define PREFIX_SIZE (sizeof(size_t))\r\n      |                            ^\r\nzmalloc.c:60:5: note: in expansion of macro 'PREFIX_SIZE'\r\n   60 | #if PREFIX_SIZE > 0\r\n      |     ^~~~~~~~~~~\r\nmake[1]: Leaving directory '/redis-6.2.0/src'\r\nmake[1]: *** [Makefile:359: zmalloc.o] Error 1\r\nmake: *** [Makefile:6: all] Error 2\r\n```\r\n\r\n**Expected behavior**\r\n\r\nRedis 6.2.0 should compile succesfully without jemalloc on musl based systems.\r\n\r\n**Additional information**\r\n\r\nThe conditional check in https://github.com/redis/redis/blob/6.2/src/zmalloc.c#L60-L64 appears to be wrong. In this file, we attempt to compare `sizeof(something)` with a literal constant **in the preprocessor** (ie in `cpp`). However, `sizeof(something)` is only known **at compile time** (ie in `cc`); as only the compiler knows about types and their sizes. Hence the error above.\r\n",
+  "state": "closed",
+  "created_at": "2021-03-01T13:16:26Z",
+  "updated_at": "2021-03-01T14:14:36Z",
+  "closed_at": "2021-03-01T14:14:36Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 787980401,
+      "user": "oranagra",
+      "created_at": "2021-03-01T14:14:36Z",
+      "body": "thanks for the report..\r\nthis is already resolved in unstable and soon to be included in 6.2.1\r\nsee #8533"
+    }
+  ]
+}

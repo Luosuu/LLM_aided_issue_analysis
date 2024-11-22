@@ -1,0 +1,56 @@
+{
+  "issue_number": 350.0,
+  "title": "test failure in 2.4.8",
+  "body": "I don't know if this is an issue or not, but redis 2.4.8 fails one test:\n**\\* [err]: Protocol desync regression test #2 in tests/unit/protocol.tcl\nuname -a                                                                                                                                                            1:26 12-02-23\nLinux  3.0.0-12-server #20-Ubuntu SMP Fri Oct 7 16:36:30 UTC 2011 x86_64 x86_64 x86_64 GNU/Linux\n",
+  "state": "closed",
+  "created_at": "2012-02-22T21:28:31Z",
+  "updated_at": "2014-05-30T23:07:44Z",
+  "closed_at": "2014-05-30T23:07:44Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 4124810,
+      "user": "tombouctou",
+      "created_at": "2012-02-22T21:32:05Z",
+      "body": "otoh, unstable tests are fine on the same machine\n"
+    },
+    {
+      "id": 4180251,
+      "user": "antirez",
+      "created_at": "2012-02-26T10:51:58Z",
+      "body": "@vissi Hi, this is almost surely not a real issue, but better to investigate better: it fails every time you run the script? What is the full error given (if there is a failing assert or alike)? Thanks.\n"
+    },
+    {
+      "id": 4180664,
+      "user": "tombouctou",
+      "created_at": "2012-02-26T12:12:02Z",
+      "body": "Yes, the second run was ok.\n"
+    },
+    {
+      "id": 4180853,
+      "user": "antirez",
+      "created_at": "2012-02-26T12:47:32Z",
+      "body": "Thank you, I put in my TODO list that I should make this test more resistent to false positives.\nClosing.\n"
+    },
+    {
+      "id": 4505483,
+      "user": "RajivKurian",
+      "created_at": "2012-03-14T19:06:00Z",
+      "body": "Any reason this is happening ? The tests run successfully sometimes and fail some other times.\n"
+    },
+    {
+      "id": 4505518,
+      "user": "antirez",
+      "created_at": "2012-03-14T19:07:51Z",
+      "body": "It's just a timing issue basically. It's the test that does not work well, not Redis :) But it's worth fixing indeed. Only happens in slow systems probably. Reopening so that I'll fix it in the next days.\n"
+    },
+    {
+      "id": 4505613,
+      "user": "RajivKurian",
+      "created_at": "2012-03-14T19:13:29Z",
+      "body": "thanks @antirez \n"
+    }
+  ]
+}

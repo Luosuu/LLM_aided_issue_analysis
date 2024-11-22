@@ -1,0 +1,18 @@
+{
+  "issue_number": 10174.0,
+  "title": "[CRASH] Executing test client: tail: àÕS\"+31\" ûÖpn: ¡",
+  "body": "When compiling and installing redis, execute 'make test' an error occurred and exited.\r\nWhat dependencies should I install? or how to fix?\r\n\r\n[ok]: Master stream is correctly processed while the replica has a script in -BUSY state\r\n[ok]: slave fails full sync and diskless load swapdb recovers it\r\n\r\nLogged warnings (pid 91208):\r\n(none)\r\n\r\n\r\nLogged warnings (pid 91208):\r\n(none)\r\n\r\n[exception]: Executing test client: tail: àÕS\"+31\" ûÖpn: ¡\r\nKilling still running Redis server 87489\r\nKilling still running Redis server 87498\r\nKilling still running Redis server 87513\r\nKilling still running Redis server 88530\r\nKilling still running Redis server 91088\r\nKilling still running Redis server 91100\r\nI/O error reading reply\r\n    while executing\r\n\"{*}$r type $k\"\r\n    (procedure \"createComplexDataset\" line 27)\r\n    invoked from within\r\n\"createComplexDataset $r $ops\"\r\n    (procedure \"bg_complex_data\" line 4)\r\n    invoked from within\r\n\"bg_complex_data [lindex $argv 0] [lindex $argv 1] [lindex $argv 2] [lindex $argv 3] [lindex $argv 4]\"\r\n    (file \"tests/helpers/bg_complex_data.tcl\" line 12)I/O error reading reply\r\n    while executing\r\n\"{*}$r del $k\"\r\n    (\"uplevel\" body line 2)\r\n    invoked from within\r\n\"uplevel 1 [lindex $args $path]\"\r\n    (procedure \"randpath\" line 3)\r\n    invoked from within\r\n\"randpath {\r\n                {*}$r set $k $v\r\n            } {\r\n                {*}$r lpush $k $v\r\n            } {\r\n                {*}$r sadd $k $v\r\n        ...\"\r\n    (procedure \"createComplexDataset\" line 30)\r\n    invoked from within\r\n\"createComplexDataset $r $ops\"\r\n    (procedure \"bg_complex_data\" line 4)\r\n    invoked from within\r\n\"bg_complex_data [lindex $argv 0] [lindex $argv 1] [lindex $argv 2] [lindex $argv 3] [lindex $argv 4]\"\r\n    (file \"tests/helpers/bg_complex_data.tcl\" line 12)\r\nI/O error reading reply\r\n    while executing\r\n\"{*}$r type $k\"\r\n    (procedure \"createComplexDataset\" line 27)\r\n    invoked from within\r\n\"createComplexDataset $r $ops\"\r\n    (procedure \"bg_complex_data\" line 4)\r\n    invoked from within\r\n\"bg_complex_data [lindex $argv 0] [lindex $argv 1] [lindex $argv 2] [lindex $argv 3] [lindex $argv 4]\"\r\n    (file \"tests/helpers/bg_complex_data.tcl\" line 12)\r\n\r\nKilling still running Redis server 91196\r\nmake[1]: *** [Makefile:330：test] 错误 1\r\nmake[1]: 离开目录“/usr/local/redis/src”\r\nmake: *** [test] 错误 2\r\n\r\n1. CentOS Linux 7 (Core), redis-6.0.6.tar.gz\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-01-25T08:11:00Z",
+  "updated_at": "2022-01-25T08:51:14Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1020944037,
+      "user": "oranagra",
+      "created_at": "2022-01-25T08:51:14Z",
+      "body": "i'm not familiar with this failure. is it consistent?\r\nmaybe try to run the tests from the unstable branch or 6.2.6 to see if it's a systematic issue, or maybe a bug in the test that was resolved."
+    }
+  ]
+}

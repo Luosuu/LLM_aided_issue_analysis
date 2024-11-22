@@ -1,0 +1,32 @@
+{
+  "issue_number": 9973.0,
+  "title": "[BUG] Redis will clear /proc/PID/environ in setproctitle",
+  "body": "**Describe the bug**\r\nRedis will clear `/proc/PID/environ` in `setproctitle`. The content for redis server process's `/proc/PID/environ` is empty by default.\r\n\r\n**To reproduce**\r\n1. clone the repo\r\n2. `make`\r\n3. `./src/redi-server`\r\n4. `ps -ef | grep server` to get the PID\r\n5.  `cat /proc/PID/environ`\r\n6. \r\n**Expected behavior**\r\n`/proc/PID/environ` should not be emptyed or we should add a macro to control whether we want to enable `setproctitle` feature.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2021-12-21T05:18:50Z",
+  "updated_at": "2021-12-22T05:40:37Z",
+  "closed_at": "2021-12-22T05:40:37Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 998825418,
+      "user": "oranagra",
+      "created_at": "2021-12-21T14:30:24Z",
+      "body": "redis 6.2 has a config that let's you disable this (`set-proc-title`).\r\n\r\ncan you please also describe what problems does that cause for you?\r\ni.e. not the fact that it's missing, but why is that problematic.."
+    },
+    {
+      "id": 999297488,
+      "user": "andyxning",
+      "created_at": "2021-12-22T05:26:22Z",
+      "body": "We have a core dump handler that needs to read process environ from `/proc/PID/environ`."
+    },
+    {
+      "id": 999302068,
+      "user": "andyxning",
+      "created_at": "2021-12-22T05:40:37Z",
+      "body": "Close this in favor of https://github.com/redis/redis/pull/3623. Actually we add a macro to control whether we need to enable `setproctitle` behavior."
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "issue_number": 2679.0,
+  "title": "No limit on query buffer",
+  "body": "There is currently no mechanism that limits query buffers (like the equivalent client output buffer limit).  While not very common, it can still cause Redis to bloat even in seemingly innocent use cases.  For example, the following NodeJS script simply tries to BLPOP an entry and then do some SETs to the same key but because NodeJS is async and BLPOP hangs, the qbuf gets huge.\n\n``` javascript\nvar redis_lib = require(\"redis\");\nvar host = '127.0.0.1';\nvar port = 6379;\nvar pass = null;\nvar str1M = Array(1024*1024).join('x');\nvar redis = redis_lib.createClient(port, host, {auth_pass: pass});\n\nredis.on(\"ready\", function() {\n        console.log(\"Connection established\");\n        redis.blpop(\"list\", 0, redis.print);\n        for(var i = 0; i <= 1000; i++) {\n                redis.set(\"my-key\", str1M, redis.print);\n        }\n});\n```\n",
+  "state": "closed",
+  "created_at": "2015-07-17T11:03:47Z",
+  "updated_at": "2023-01-31T06:30:59Z",
+  "closed_at": "2023-01-31T06:30:59Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 122255699,
+      "user": "antirez",
+      "created_at": "2015-07-17T11:57:51Z",
+      "body": "Hello @yossigo, yep that's a problem. I remember we _used_ to have some arbitrary limit, but that was removed because of some reason. All this may be just in my dreams... I'll check. In the case of blocking operations indeed this is especially troublesome since even small payloads accumulating can lead to very big query buffers.\n\nI would like to understand why/if there was a limit and it was removed to start. Then there are different fixes. One involves what happens during blocking operations, and if we should try to read or not client data while we are blocking, but I've the feeling this would be a too much big semantical change: it makes client writes blocking when there are blocking ops pending, which may not be idea in pipelining scenarios or other edge cases maybe? Not sure.\n\nAnother fix would be to have limits, like, configurable limits. In such a case the limit may be enforced only when there is a pending blocking operation. However there would be still the strange case of huge single arguments of an incredible long command composed of many arguments of this huge size. \n"
+    },
+    {
+      "id": 122257597,
+      "user": "yossigo",
+      "created_at": "2015-07-17T12:09:19Z",
+      "body": "Not reading from client sockets is always a problem, because then there's no way to tell a connection was dropped as it happens.\n\nI think a limit that works a lot like the client output buffer is a reasonable solution.  It's true that in extreme cases it can get in the way, but so is the current client output buffer mechanism, and it's always possible to configure it for these special cases.\n"
+    },
+    {
+      "id": 123669898,
+      "user": "antirez",
+      "created_at": "2015-07-22T11:12:42Z",
+      "body": "Hey @yossigo, just found that we actually have a fixed limit here. Check `networking.c`:\n\n```\n    if (sdslen(c->querybuf) > server.client_max_querybuf_len) {\n```\n\nThis is good, we can just make it configurable. However isn't it strange you did not triggered it in your tests?\n"
+    },
+    {
+      "id": 123682593,
+      "user": "yossigo",
+      "created_at": "2015-07-22T11:36:00Z",
+      "body": "The default is 1GB, that's why my test did not trigger it.  I think it's good to have it configurable, but what do you consider a reasonable default value?  I think 1GB might really be too big.\n"
+    },
+    {
+      "id": 123683534,
+      "user": "antirez",
+      "created_at": "2015-07-22T11:38:13Z",
+      "body": "Yep.. 1GB is pretty huge limit. It was put there mainly to avoid to segfault for the SDS string overflow at 2GB (now 4GB but used to be half than that in the past). 256MB looks more appropriate as a default value perhaps?\n"
+    },
+    {
+      "id": 123728444,
+      "user": "yossigo",
+      "created_at": "2015-07-22T13:50:23Z",
+      "body": "256MB sounds like a good limit for queries queuing up while the connection is blocked.  It might be a bit low for very rare requests (e.g. very long strings) though.  Ideally I think this calls for either a time-sensitive limit (like output buffer) or different limits depending on state (i.e. reading chunks of a big request vs. plain buffering because the client is blocked).\n"
+    },
+    {
+      "id": 1397695082,
+      "user": "toddnestor",
+      "created_at": "2023-01-19T22:27:34Z",
+      "body": "This is a very old issue, but in case someone ever follows up on it, it seems this issue was resolved here: https://github.com/redis/redis/commit/b509a14c3e8a76aadd6bd48296cafb4616be25e2\r\n\r\nIt appears the `max-querybuf-len` configuration option was introduced there.  The default is still 1GB, but I assume that is intentional."
+    },
+    {
+      "id": 1409839115,
+      "user": "yossigo",
+      "created_at": "2023-01-31T06:30:59Z",
+      "body": "Thanks for noticing, @toddnestor!\r\n"
+    }
+  ]
+}

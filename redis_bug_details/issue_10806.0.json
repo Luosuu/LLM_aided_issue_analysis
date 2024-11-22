@@ -1,0 +1,24 @@
+{
+  "issue_number": 10806.0,
+  "title": "[BUG] AOF Compaction stopped",
+  "body": "**Describe the bug**\r\nAOF compaction stopped suddenly, crashing our server because we've run out of disk space.\r\n\r\nI have not steps to reproduce this, unfortunately. It just happened for the second time\r\n\r\nI expect that this doesn't suddenly happen, because it crashses the database\r\n\r\n**Additional information**\r\n\r\nWe are using v6.2.6\r\n\r\nNormal behaviour, you can see the disk usage growing a bit, but is compacted in every spike\r\n![image (10)](https://user-images.githubusercontent.com/6980777/171374252-3972064c-ded7-4c47-ac28-203c5d0b3811.png)\r\n6\r\n\r\nBehavior after AOF compaction stopped working:\r\n![image (12)](https://user-images.githubusercontent.com/6980777/171377371-046ffb6d-8aba-467e-94a8-dab4a8962e70.png)\r\n\r\nIs this a known issue? If so, do you know why it happens or if it's solved in another version\r\n",
+  "state": "open",
+  "created_at": "2022-06-01T09:54:03Z",
+  "updated_at": "2022-06-02T06:03:19Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1144366945,
+      "user": "uvletter",
+      "created_at": "2022-06-02T02:57:35Z",
+      "body": "Did you reserve the server state with `INFO` command? A possible reason is that the background rdb save or aof rewrite process would block the aof rewrite(i.e. aof compaction) as https://github.com/redis/redis/issues/10742"
+    },
+    {
+      "id": 1144470702,
+      "user": "oranagra",
+      "created_at": "2022-06-02T06:03:19Z",
+      "body": "The only bug in that area that i'm aware of was this one: #10550\r\nwe need INFO output, and / or also the log file to know more."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "issue_number": 873.0,
+  "title": "PUBLISH is not replicated from EVAL unless other commands in script increment server.dirty",
+  "body": "PUBLISH is usually replicated using a command flag that forces replication. This way we avoid incrementing server.dirty because there is no need at all to add PUBLISH commands into the AOF.\n\nHowever when called from a Lua script the flag has no effect, and the command will be replicated only if there is another command in the script incrementing server.dirty.\n\nThe quick & dirty fix would be trivial, but maybe it's better to fix this for 2.8 with a proper solution that improves the concept of server.dirty quite a bit. A faster fix will be created for 2.6 as a temporary solution.\n\nFor 2.8 what I think is that server.dirty should be not touched by commands implementations directly, instead we should have APIs to call like that:\n- propagate(flags,changes);\n\nThat allows to specify where to propagate the command (AOF, replication channel, and so forth) and the amount of changes this command represent, that is useful to trigger RDB saving.\n\nHowever our call() function is called recursively by EVAL, MULTI/EXEC, and in other contexts, so this should be implemented with counters in the client structure or something like that in order to work properly.\n\nIn short: more design needed.\n",
+  "state": "closed",
+  "created_at": "2013-01-10T10:46:13Z",
+  "updated_at": "2013-06-21T10:13:11Z",
+  "closed_at": "2013-06-21T10:13:11Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 19808002,
+      "user": "antirez",
+      "created_at": "2013-06-21T10:13:11Z",
+      "body": "Fixed\n"
+    }
+  ]
+}

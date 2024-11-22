@@ -1,0 +1,30 @@
+{
+  "issue_number": 10967.0,
+  "title": "[BUG] delete keys operation not replicate to slave when 'remove all the keys from the slots we lost'",
+  "body": "**Describe the bug**\r\n\r\nwe received an update message which removed ownership for certain slots we still have keys about, we need to remove all the keys from the slots we lost, **but these delete keys operation not replicate to replica**\r\n\r\n**To reproduce**\r\nhttps://github.com/redis/redis/blob/unstable/src/cluster.c#L1953\r\nhttps://github.com/redis/redis/blob/unstable/src/cluster.c#L6981\r\n```\r\n/* Remove all the keys in the specified hash slot.\r\n * The number of removed items is returned. */\r\nunsigned int delKeysInSlot(unsigned int hashslot) {\r\n    unsigned int j = 0;\r\n    dictEntry *de = (*server.db->slots_to_keys).by_slot[hashslot].head;\r\n    while (de != NULL) {\r\n        sds sdskey = dictGetKey(de);\r\n        de = dictEntryNextInSlot(de);\r\n        robj *key = createStringObject(sdskey, sdslen(sdskey));\r\n        dbDelete(&server.db[0], key);\r\n        decrRefCount(key);\r\n        j++;\r\n    }\r\n    return j;\r\n}\r\n\r\n```\r\nafter exec 'dbDelete(&server.db[0], key)', I think we should replicate 'del key' to replica,  am i right? @oranagra @judeng \r\n\r\n**Expected behavior**\r\n\r\n\r\n```\r\n/* Remove all the keys in the specified hash slot.\r\n * The number of removed items is returned. */\r\nunsigned int delKeysInSlot(unsigned int hashslot) {\r\n    unsigned int j = 0;\r\n    dictEntry *de = (*server.db->slots_to_keys).by_slot[hashslot].head;\r\n    while (de != NULL) {\r\n        sds sdskey = dictGetKey(de);\r\n        de = dictEntryNextInSlot(de);\r\n        robj *key = createStringObject(sdskey, sdslen(sdskey));\r\n        dbDelete(&server.db[0], key);\r\n\r\n        /******\r\n        propagateDeletion(&server.db[0], key, server.lazyfree_lazy_server_del);\r\n        ******/\r\n\r\n        decrRefCount(key);\r\n        j++;\r\n    }\r\n    return j;\r\n}\r\n```\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-13T03:53:03Z",
+  "updated_at": "2022-08-28T08:37:27Z",
+  "closed_at": "2022-08-28T08:37:27Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1182811974,
+      "user": "oranagra",
+      "created_at": "2022-07-13T06:18:57Z",
+      "body": "@weim0000 have you really reproduced this? can you share the reproduction scenario? or is it just a theoretical issue from reviewing the code.\r\n@madolson please take a look."
+    },
+    {
+      "id": 1185140682,
+      "user": "weim0000",
+      "created_at": "2022-07-15T03:37:40Z",
+      "body": "@oranagra thanks ,  I reproduced this:\r\n\r\nI create a test cluster:\r\n127.0.0.1:6001(master)<-127.0.0.1:6004(replica)\r\n127.0.0.1:6002(master)<-127.0.0.1:6005(replica)\r\n127.0.0.1:6003(master)<-127.0.0.1:6006(replica)\r\n\r\nslot 3498 assinged to 127.0.0.1:6001:\r\n127.0.0.1:6001> cluster countkeysinslot 3498\r\n(integer) 7\r\n\r\nthen I force assinged 3498 to 127.0.0.1:6002:\r\n127.0.0.1:6002> cluster setslot 3498 node 579ae52c8ca288cdd8545bb57c7ace0e97e8f4f5\r\nOK\r\n127.0.0.1:6002> cluster countkeysinslot 3498\r\n(integer) 0\r\n\r\nthen 127.0.0.1:6001 loss slot 3498, and delete all keys in slot(3498):\r\n127.0.0.1:6001> cluster countkeysinslot 3498\r\n(integer) 0\r\n\r\nthen I access 127.0.0.1:6004,  It's a replica of 127.0.0.1:6001,   but  127.0.0.1:6004 always have some keys in slot 3498:\r\n**127.0.0.1:6004> cluster countkeysinslot 3498\r\n(integer) 7**\r\n\r\nso I think 127.0.0.1:6001 not replicate some delete keys operation to replica(127.0.0.1:6004)"
+    },
+    {
+      "id": 1186382805,
+      "user": "madolson",
+      "created_at": "2022-07-17T03:02:57Z",
+      "body": "I'm not sure that the correct behavior is to replicate the deletes, but the replicas should be purging the keys from slots that are no longer owned from their masters. We should probably address some of this here: https://github.com/redis/redis/pull/10517."
+    }
+  ]
+}

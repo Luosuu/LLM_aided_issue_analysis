@@ -1,0 +1,38 @@
+{
+  "issue_number": 7985.0,
+  "title": "[BUG] Race conditions on getMonotonicUs?",
+  "body": "**Describe the bug**\r\n\r\nRace conditions on `getMonotonicUs` between [here](https://github.com/redis/redis/blob/unstable/src/monotonic.c#L153) and [here](https://github.com/redis/redis/blob/unstable/src/ae.c#L261). It may a false positive since it is reported by my static analysis tool. Thank you for your confirmation.\r\n\r\nHere is the partial call stack leads to the method `msUntilEarliestTimer ` executing [here](https://github.com/redis/redis/blob/unstable/src/ae.c#L261).\r\n\r\n```\r\nstatic void startBenchmarkThreads() {\r\n    int i;\r\n    for (i = 0; i < config.num_threads; i++) {\r\n        benchmarkThread *t = config.threads[i];\r\n        if (pthread_create(&(t->thread), NULL, execBenchmarkThread, t)){ // run aeMain\r\n            fprintf(stderr, \"FATAL: Failed to start thread %d.\\n\", i);\r\n            exit(1);\r\n        }\r\n    }\r\n   ...;\r\n}\r\n\r\n```\r\n\r\n```\r\nvoid aeMain(aeEventLoop *eventLoop) {\r\n    eventLoop->stop = 0;\r\n    while (!eventLoop->stop) {\r\n        aeProcessEvents(eventLoop, AE_ALL_EVENTS|\r\n                                   AE_CALL_BEFORE_SLEEP|\r\n                                   AE_CALL_AFTER_SLEEP);      //run aeProcessEvents which calls msUntilEarliestTimer\r\n    }\r\n}\r\n```\r\nHere is the partial call stack leads to the method `monotonicInit_posix ` executing [here](https://github.com/redis/redis/blob/unstable/src/monotonic.c#L153).\r\n\r\n```\r\nstatic void initBenchmarkThreads() {\r\n    int i;\r\n    if (config.threads) freeBenchmarkThreads();\r\n    config.threads = zmalloc(config.num_threads * sizeof(benchmarkThread*));\r\n    for (i = 0; i < config.num_threads; i++) {\r\n        benchmarkThread *thread = createBenchmarkThread(i); //thread is created here and call aeCreateEventLoop\r\n        config.threads[i] = thread;\r\n    }\r\n}\r\n```\r\n\r\n\r\n```\r\naeEventLoop *aeCreateEventLoop(int setsize) {\r\n    aeEventLoop *eventLoop;\r\n    int i;\r\n\r\n    monotonicInit();    // call monotonicInit_posix which call monotonicInit_posix.\r\n\r\n   ....;\r\n}\r\n```\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2020-10-29T06:35:07Z",
+  "updated_at": "2020-11-01T11:15:14Z",
+  "closed_at": "2020-11-01T11:14:56Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 718748927,
+      "user": "oranagra",
+      "created_at": "2020-10-29T13:22:56Z",
+      "body": "@ycaibb thanks for reaching out.\r\ni see that one of the very first things that the `main` function in redis-benchmark.c does is call `aeCreateEventLoop`.\r\nso this will be the first call to `monotonicInit` (before there are any additional threads).\r\nthis will set the global `getMonotonicUs` variable.\r\nand as far as i can tell, from that moment on, no one tries to set it if it's already set.\r\ni.e. only the `monotonicInit_xxxx` functions are setting it, and these are all called from `monotonicInit` and only in case it's still NULL.\r\n\r\nplease let me know if there's something that i'm missing."
+    },
+    {
+      "id": 719405870,
+      "user": "ycaibb",
+      "created_at": "2020-10-30T08:25:24Z",
+      "body": "Hi, thank you for your help. Our tool reports below call traces.\r\n\r\n[main](https://github.com/redis/redis/blob/unstable/src/redis-benchmark.c#L1654) =>[startBenchmarkThreads](https://github.com/redis/redis/blob/unstable/src/redis-benchmark.c#L1777) =>[execBenchmarkThread](https://github.com/redis/redis/blob/unstable/src/redis-benchmark.c#L1043)=>[aeMain](https://github.com/redis/redis/blob/unstable/src/ae.c#L484)=>[aeProcessEvents](https://github.com/redis/redis/blob/unstable/src/ae.c#L348)=>[msUntilEarliestTimer](https://github.com/redis/redis/blob/unstable/src/ae.c#L250)=>[getMonotonicUs](https://github.com/redis/redis/blob/unstable/src/ae.c#L261)\r\n[main](https://github.com/redis/redis/blob/unstable/src/redis-benchmark.c#L1654)=>[benchmark](https://github.com/redis/redis/blob/unstable/src/redis-benchmark.c#L1845)=>[initBenchmarkThreads](https://github.com/redis/redis/blob/unstable/src/redis-benchmark.c#L956)=>[createBenchmarkThread](https://github.com/redis/redis/blob/unstable/src/redis-benchmark.c#L1019)=>[aeCreateEventLoop](https://github.com/redis/redis/blob/unstable/src/ae.c#L65)=>[monotonicInit](https://github.com/redis/redis/blob/unstable/src/monotonic.c#L143)=>[monotonicInit_posix](https://github.com/redis/redis/blob/unstable/src/monotonic.c#L153)"
+    },
+    {
+      "id": 719468426,
+      "user": "oranagra",
+      "created_at": "2020-10-30T10:20:18Z",
+      "body": "@ycaibb but do you agree that startBenchmarkThreads is only called after the initial init of monotonicInit that called from `main` is done, and in that case the global variable is set, and the call to monotonicInit_pisix in the stack trace you mentioned will never happen? "
+    },
+    {
+      "id": 720071847,
+      "user": "ycaibb",
+      "created_at": "2020-11-01T11:15:14Z",
+      "body": "OK, Thank you for your checking."
+    }
+  ]
+}

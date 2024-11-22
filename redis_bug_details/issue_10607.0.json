@@ -1,0 +1,18 @@
+{
+  "issue_number": 10607.0,
+  "title": "[BUG] redis-benchmark `SADD` not using data for member elements",
+  "body": "**Describe the bug**\r\nThe redis-benchmark `SADD` test does not use the random data as members. It instead uses the key values. This actually seems to provide a wrong data size output for the parameters `-d and -n` of the redis-benchmark.\r\nA short description of the bug.\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n`redis-benchmark -t sadd -c 50 -n 160000 -d 10000 -q -a redis -r 1000000000`\r\n\r\n**Expected behavior**\r\nThis should produce about 160 000 * 10 000 Bytes of data, based on the random key space that is appended to the member of the `SET` right? Instead, it only generates `12779520 Bytes` which is aprox. 160 000 * 12, where 12 is the key space number.\r\n\r\nExample of how the `SET` looks right now:\r\n```\r\n172.17.0.2:6379> SMEMBERS myset\r\n[...] \r\n159987) \"element:000011482691\"\r\n159988) \"element:000744988253\"\r\n159989) \"element:000317027797\"\r\n159990) \"element:000834365496\"\r\n```\r\n\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n\r\nThis is the current implementation\r\n```\r\nif (test_is_selected(\"sadd\")) {\r\n            len = redisFormatCommand(&cmd,\r\n                \"SADD myset%s element:__rand_int__\",tag);\r\n            benchmark(\"SADD\",cmd,len);\r\n            free(cmd);\r\n}\r\n```",
+  "state": "open",
+  "created_at": "2022-04-19T13:59:04Z",
+  "updated_at": "2022-04-19T14:35:55Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1102734020,
+      "user": "sundb",
+      "created_at": "2022-04-19T14:35:55Z",
+      "body": "The default samples of `memory usage` is 5, so you can use `memory usage myset samples 160000` to try again."
+    }
+  ]
+}

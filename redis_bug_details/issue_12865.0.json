@@ -1,0 +1,30 @@
+{
+  "issue_number": 12865.0,
+  "title": "[BUG] sentinel report -failover-abort-not-elected with enough votes received",
+  "body": "**Describe the bug**\r\n\r\nI've deployed 100 Redis groups with version 6.0.9 in 2 servers(1 master + 1 slave) and 5 sentinels configuration. \r\nWhen all masters in redis group suddenly disconnected from the network (they deployed in the same DC), this sentinel group began to try failover.\r\nI configured the following parameters for sentinels:\r\n```\r\nfailover-timeout: 30000\r\ndown-after-milliseconds: 30000\r\nquorum: 3\r\n```\r\nWhen I noticed that the recovery time was longer than expected, I checked the Sentinel logs. I found that some sentinels got a majority of votes, but still reported \"-failover-abort-not-elected\". Here is one sample.\r\n\r\n```\r\nlog for 7c99908273ed894d926d86bf4fe998378e1a288d\r\n29026:X 04 Dec 2023 13:21:25.883 # +odown master cluster_282 10.15.145.1 20564 #quorum 4/3\r\n29026:X 04 Dec 2023 13:21:25.883 # +new-epoch 45\r\n29026:X 04 Dec 2023 13:21:25.883 # +try-failover master cluster_282 10.15.145.1 20564\r\n29026:X 04 Dec 2023 13:21:25.891 # +vote-for-leader 7c99908273ed894d926d86bf4fe998378e1a288d 45\r\n29026:X 04 Dec 2023 13:21:25.990 # e83af7e16cb690c95d62ede6abe6515ecb5113de voted for 7c99908273ed894d926d86bf4fe998378e1a288d 45\r\n29026:X 04 Dec 2023 13:21:26.265 # fdf9c299ac37b84d15c7be55d4d983c839905002 voted for 7c99908273ed894d926d86bf4fe998378e1a288d 45\r\n29026:X 04 Dec 2023 13:21:37.594 # -failover-abort-not-elected master cluster_282 10.15.145.1 20564\r\n29026:X 04 Dec 2023 13:21:37.594 # Next failover delay: I will not start a failover before Mon Dec 4 13:27:27 2023\r\n```\r\n\r\n**To reproduce**\r\n\r\nI tried to actively disconnect the master DC network several times and found that this problem still exists.\r\n\r\n**Expected behavior**\r\n\r\nI can accept 2-3 failovers before successfully recovering, but getting enough votes to declare the election failed confuses me.The failover process should start when one sentinel got majority.\r\n\r\n**Additional information**\r\n\r\nI suspect this is due to rapidly growing epochs over a short period of time and I'm looking for evidence in the code.\r\n",
+  "state": "open",
+  "created_at": "2023-12-15T05:03:53Z",
+  "updated_at": "2023-12-28T14:29:46Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1868451658,
+      "user": "moticless",
+      "created_at": "2023-12-24T07:25:07Z",
+      "body": "Are you using containers? If so, maybe [this](https://github.com/redis/redis/commit/52b2fbe9705739fd5f03099011f652775ab3285f) fix will resolve your issue."
+    },
+    {
+      "id": 1869238590,
+      "user": "Funkydream",
+      "created_at": "2023-12-26T04:08:43Z",
+      "body": "> Are you using containers? If so, maybe [this](https://github.com/redis/redis/commit/52b2fbe9705739fd5f03099011f652775ab3285f) fix will resolve your issue.\r\n\r\nNo, all redis and sentinels run on virtual machines. I reproduced this problem using redis-sentinel version 6.2.14."
+    },
+    {
+      "id": 1871226067,
+      "user": "Funkydream",
+      "created_at": "2023-12-28T14:28:16Z",
+      "body": "> Are you using containers? If so, maybe [this](https://github.com/redis/redis/commit/52b2fbe9705739fd5f03099011f652775ab3285f) fix will resolve your issue.\r\n\r\nI have a few ideas, please help me confirm them：\r\n\r\n1.  only once vote for one epoch\r\nAccording to `sentinelVoteLeader()`, if the following voting results are obtained in the same epoch. Do all sentinels have to wait for an newer epoch, or wait for the next round of voting after the election-timeout (then 2*failover-timout) in the following situations ?\r\n\r\n\r\nA voted for B 45\r\nB voted for C 45\r\nC voted for D 45\r\nD voted for E 45\r\nE voted for A 45\r\n\r\nor\r\nA voted for A 45\r\nB voted for B 45\r\nC voted for C 45\r\nD voted for D 45\r\nE voted for E 45\r\n\r\n```\r\nchar *sentinelVoteLeader(sentinelRedisInstance *master, uint64_t req_epoch, char *req_runid, uint64_t *leader_epoch) {\r\n    if (req_epoch > sentinel.current_epoch) {\r\n        sentinel.current_epoch = req_epoch;\r\n        sentinelFlushConfig();\r\n        sentinelEvent(LL_WARNING,\"+new-epoch\",master,\"%llu\",\r\n            (unsigned long long) sentinel.current_epoch);\r\n    }\r\n\r\n    if (master->leader_epoch < req_epoch && sentinel.current_epoch <= req_epoch)\r\n    {\r\n        sdsfree(master->leader);\r\n        master->leader = sdsnew(req_runid);\r\n        master->leader_epoch = sentinel.current_epoch;\r\n        sentinelFlushConfig();\r\n        sentinelEvent(LL_WARNING,\"+vote-for-leader\",master,\"%s %llu\",\r\n            master->leader, (unsigned long long) master->leader_epoch);\r\n        /* If we did not voted for ourselves, set the master failover start\r\n         * time to now, in order to force a delay before we can start a\r\n         * failover for the same master. */\r\n        if (strcasecmp(master->leader,sentinel.myid))\r\n            master->failover_start_time = mstime()+rand()%SENTINEL_MAX_DESYNC;\r\n    }\r\n\r\n    *leader_epoch = master->leader_epoch;\r\n    return master->leader ? sdsnew(master->leader) : NULL;\r\n}\r\n```\r\n\r\n2. After current_epoch increases, the old epoch votes have become invalid.\r\nAfter current_epoch increases, even if other sentinel has voted for me in the epoch I initiated, I will not recognize its voting results.\r\nIs it possible that in the following situation. E still won’t be elected even enough votes got?\r\n\r\nE:\r\n  master failover epoch = 45\r\n  current epoch =100\r\nA voted for E 45\r\nB voted for E 45\r\nC voted for E 45\r\nD voted for E 45\r\n\r\n\r\n\r\n```\r\n    /* Count other sentinels votes */\r\n    di = dictGetIterator(master->sentinels);\r\n    while((de = dictNext(di)) != NULL) {\r\n        sentinelRedisInstance *ri = dictGetVal(de);\r\n        if (ri->leader != NULL && ri->leader_epoch == sentinel.current_epoch)\r\n            sentinelLeaderIncr(counters,ri->leader);\r\n    }\r\n```"
+    }
+  ]
+}

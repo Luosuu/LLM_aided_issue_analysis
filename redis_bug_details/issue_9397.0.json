@@ -1,0 +1,18 @@
+{
+  "issue_number": 9397.0,
+  "title": "[BUG] ACL permission \"+@all\" does not grant all permissions",
+  "body": "**Describe the bug**\r\n\r\nA user with the ACL permission `+@all` is not allowed to execute most non-admin related commands.\r\n\r\n**To reproduce**\r\n\r\n```\r\nroot@redis-0:/data# redis-cli -h localhost\r\nlocalhost:6379> auth RedisAdmin <password>\r\nOK\r\nlocalhost:6379> acl list\r\n1) \"user default off nopass sanitize-payload ~* &* +@all\"\r\n2) \"user RedisAdmin on <password> &* +@all\"\r\nlocalhost:6379> acl whoami\r\n\"RedisAdmin\"\r\nlocalhost:6379> set testKey someValue\r\n(error) NOPERM this user has no permissions to access one of the keys used as arguments\r\nlocalhost:6379> lpush arrKey value1 value2\r\n(error) NOPERM this user has no permissions to access one of the keys used as arguments\r\nlocalhost:6379> acl whoami\r\n\"RedisAdmin\"\r\nlocalhost:6379> acl setuser RedisAdmin +get +@set\r\nOK\r\nlocalhost:6379> acl list\r\n1) \"user default off nopass sanitize-payload ~* &* +@all\"\r\n2) \"user RedisAdmin on <password> &* +@all\"\r\n```\r\n\r\n**Expected behavior**\r\nA user with the `+@all` permission should be able to execute all commands.\r\n\r\n**Additional information**\r\n\r\nServer running in docker container with image `redis:6.2.5-buster`\r\n\r\n Since `+@all` is supposed to already contain all permissions, individual permissions cannot be added to the user.  \r\nThis also affects any user that uses `+@all` as a base. i.e. `+@all -@admin`\r\n",
+  "state": "closed",
+  "created_at": "2021-08-19T18:01:41Z",
+  "updated_at": "2021-08-19T18:52:32Z",
+  "closed_at": "2021-08-19T18:52:31Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 902158632,
+      "user": "oranagra",
+      "created_at": "2021-08-19T18:52:31Z",
+      "body": "@xevantus look carefully at the error you get. it says you don't have permissions to access the keys (e.g. `testKey`).\r\nnotice that the default user has `~*` but the other user doesn't.\r\np.s. i've just tested it in unstable and it works nicely."
+    }
+  ]
+}

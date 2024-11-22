@@ -1,0 +1,56 @@
+{
+  "issue_number": 283.0,
+  "title": "redis crashed",
+  "body": "[4230] 01 Jan 20:45:15 # === REDIS BUG REPORT START: Cut & paste starting from here ===\n[4230] 01 Jan 20:45:15 # === ASSERTION FAILED ===\n[4230] 01 Jan 20:45:15 # ==> replication.c:268 'server.replstate == REDIS_REPL_TRANSFER' is not true\n[4230] 01 Jan 20:45:15 # (forcing SIGSEGV to print the bug report.)\n[4230] 01 Jan 20:45:15 # Redis 2.4.4 crashed by signal: 11\n[4230] 01 Jan 20:45:15 # Failed assertion: server.replstate == REDIS_REPL_TRANSFER (replication.c:268)\n[4230] 01 Jan 20:45:15 # --- STACK TRACE\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(_redisAssert+0x6f) [0x4310ef]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(_redisAssert+0x6f) [0x4310ef]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(replicationAbortSyncTransfer+0x75) [0x41d2a5]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(readSyncBulkPayload+0x87) [0x41d337]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(aeProcessEvents+0x135) [0x40d8a5]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(aeMain+0x2e) [0x40dbfe]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(main+0x106) [0x40cad6]\n[4230] 01 Jan 20:45:15 # /lib/libc.so.6(__libc_start_main+0xed) [0x7f32733d617d]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server() [0x40cbfd]\n[4230] 01 Jan 20:45:15 # --- INFO OUTPUT\n[4230] 01 Jan 20:45:15 # redis_version:2.4.4\nredis_git_sha1:00000000\nredis_git_dirty:0\narch_bits:64\nmultiplexing_api:epoll\nprocess_id:4230\nuptime_in_seconds:357\nuptime_in_days:0\nlru_clock:424135\nused_cpu_sys:2.16\nused_cpu_user:1.74\nused_cpu_sys_children:3.45\nused_cpu_user_children:8.39\nconnected_clients:1\nconnected_slaves:0\nclient_longest_output_list:0\nclient_biggest_input_buf:0\nblocked_clients:0\nused_memory:82684904\nused_memory_human:78.85M\nused_memory_rss:91340800\nused_memory_peak:82861336\nused_memory_peak_human:79.02M\nmem_fragmentation_ratio:1.10\nmem_allocator:jemalloc-2.2.5\nloading:0\naof_enabled:0\nchanges_since_last_save:0\nbgsave_in_progress:0\nlast_save_time:1325447068\nbgrewriteaof_in_progress:0\ntotal_connections_received:214\ntotal_commands_processed:23176\nexpired_keys:0\nevicted_keys:0\nkeyspace_hits:11828\nkeyspace_misses:1586\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:6695\nvm_enabled:0\nrole:slave\nmaster_host:10.31.0.101\nmaster_port:6379\nmaster_link_status:down\nmaster_last_io_seconds_ago:-1\nmaster_sync_in_progress:0\nmaster_link_down_since_seconds:49\ndb0:keys=4053,expires=4053\ndb1:keys=2152,expires=2152\ndb2:keys=30945,expires=30945\n\n[4230] 01 Jan 20:45:15 # --- CLIENT LIST OUTPUT\n[4230] 01 Jan 20:45:15 # addr=127.0.0.2:60197 fd=6 idle=1 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=slaveof\n\n[4230] 01 Jan 20:45:15 # === REDIS BUG REPORT END. Make sure to include from START to END. ===\n\nHow to replicate:\n1. I connect redis to non existent master:\n   redis 127.0.0.1:6379> SLAVEOF 10.31.0.103 6379\n   OK\n2. Then I connect to existent master:\n   redis 127.0.0.1:6379> SLAVEOF 10.31.0.101 6379\n   OK\n3. redis-server exited by catch 11 signal with above info in log\n",
+  "state": "closed",
+  "created_at": "2012-01-01T19:50:30Z",
+  "updated_at": "2012-04-04T16:28:39Z",
+  "closed_at": "2012-04-04T16:28:39Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 3325709,
+      "user": "r0bj",
+      "created_at": "2012-01-01T19:59:49Z",
+      "body": "tested on redis 2.4.4\n"
+    },
+    {
+      "id": 3325808,
+      "user": "pietern",
+      "created_at": "2012-01-01T20:22:35Z",
+      "body": "Can you post the full bug report from the START mark up to and including the END mark? Thanks.\n"
+    },
+    {
+      "id": 3325829,
+      "user": "r0bj",
+      "created_at": "2012-01-01T20:28:23Z",
+      "body": "[4230] 01 Jan 20:45:15 # === REDIS BUG REPORT START: Cut & paste starting from here ===\n[4230] 01 Jan 20:45:15 # === ASSERTION FAILED ===\n[4230] 01 Jan 20:45:15 # ==> replication.c:268 'server.replstate == REDIS_REPL_TRANSFER' is not true\n[4230] 01 Jan 20:45:15 # (forcing SIGSEGV to print the bug report.)\n[4230] 01 Jan 20:45:15 #     Redis 2.4.4 crashed by signal: 11\n[4230] 01 Jan 20:45:15 #     Failed assertion: server.replstate == REDIS_REPL_TRANSFER (replication.c:268)\n[4230] 01 Jan 20:45:15 # --- STACK TRACE\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(_redisAssert+0x6f) [0x4310ef]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(_redisAssert+0x6f) [0x4310ef]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(replicationAbortSyncTransfer+0x75) [0x41d2a5]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(readSyncBulkPayload+0x87) [0x41d337]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(aeProcessEvents+0x135) [0x40d8a5]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(aeMain+0x2e) [0x40dbfe]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server(main+0x106) [0x40cad6]\n[4230] 01 Jan 20:45:15 # /lib/libc.so.6(__libc_start_main+0xed) [0x7f32733d617d]\n[4230] 01 Jan 20:45:15 # /usr/local/bin/redis-server() [0x40cbfd]\n[4230] 01 Jan 20:45:15 # --- INFO OUTPUT\n[4230] 01 Jan 20:45:15 # redis_version:2.4.4\nredis_git_sha1:00000000\nredis_git_dirty:0\narch_bits:64\nmultiplexing_api:epoll\nprocess_id:4230\nuptime_in_seconds:357\nuptime_in_days:0\nlru_clock:424135\nused_cpu_sys:2.16\nused_cpu_user:1.74\nused_cpu_sys_children:3.45\nused_cpu_user_children:8.39\nconnected_clients:1\nconnected_slaves:0\nclient_longest_output_list:0\nclient_biggest_input_buf:0\nblocked_clients:0\nused_memory:82684904\nused_memory_human:78.85M\nused_memory_rss:91340800\nused_memory_peak:82861336\nused_memory_peak_human:79.02M\nmem_fragmentation_ratio:1.10\nmem_allocator:jemalloc-2.2.5\nloading:0\naof_enabled:0\nchanges_since_last_save:0\nbgsave_in_progress:0\nlast_save_time:1325447068\nbgrewriteaof_in_progress:0\ntotal_connections_received:214\ntotal_commands_processed:23176\nexpired_keys:0\nevicted_keys:0\nkeyspace_hits:11828\nkeyspace_misses:1586\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:6695\nvm_enabled:0\nrole:slave\nmaster_host:10.31.0.101\nmaster_port:6379\nmaster_link_status:down\nmaster_last_io_seconds_ago:-1\nmaster_sync_in_progress:0\nmaster_link_down_since_seconds:49\ndb0:keys=4053,expires=4053\ndb1:keys=2152,expires=2152\ndb2:keys=30945,expires=30945\n\n[4230] 01 Jan 20:45:15 # --- CLIENT LIST OUTPUT\n[4230] 01 Jan 20:45:15 # addr=127.0.0.2:60197 fd=6 idle=1 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=slaveof\n\n[4230] 01 Jan 20:45:15 # === REDIS BUG REPORT END. Make sure to include from START to END. ===\n"
+    },
+    {
+      "id": 3325850,
+      "user": "r0bj",
+      "created_at": "2012-01-01T20:33:28Z",
+      "body": "And a few line before:\n\n[4230] 01 Jan 20:45:15 # Bad protocol from MASTER, the first byte is not '$', are you sure the host and port are right?\n[4230] 01 Jan 20:45:15 # Bad protocol from MASTER, the first byte is not '$', are you sure the host and port are right?\n[4230] 01 Jan 20:45:15 # === REDIS BUG REPORT START: Cut & paste starting from here ===\n"
+    },
+    {
+      "id": 4071451,
+      "user": "antirez",
+      "created_at": "2012-02-21T09:20:54Z",
+      "body": "Trying to reproduce the issue. I already tried a few days ago without success, but did not tried hard enough for sure. News soon.\n"
+    },
+    {
+      "id": 4071455,
+      "user": "antirez",
+      "created_at": "2012-02-21T09:21:27Z",
+      "body": "p.s. it is possible that now the issue is actually fixed as a side effect of another fix, so this time I'll try with 2.4.4 itself.\n"
+    },
+    {
+      "id": 4957355,
+      "user": "antirez",
+      "created_at": "2012-04-04T16:28:36Z",
+      "body": "This is fixed in latest Redis 2.4.x versions. Thanks.\n"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "issue_number": 12132.0,
+  "title": "[BUG] Use the command 'CONFIG SET client-output-buffer-limit \"slave 1024mb 512mb 180\" ', the effective data is \"slave 1024 512 180\"",
+  "body": "version: redis 4.0.14\r\n\r\n127.0.0.1:6379> CONFIG SET client-output-buffer-limit \"slave 1024mb 512mb 180\"\r\nOK\r\n127.0.0.1:6379> CONFIG GET client-output-buffer-limit\r\n1) \"client-output-buffer-limit\"\r\n2) \"normal 0 0 0 slave 1024 512 180 pubsub 33554432 8388608 60\"\r\n\r\nBut Use the same command to execute on redis 5.0.13, mb will be converted to bytes\r\n\r\n127.0.0.1:6379> CONFIG GET client-output-buffer-limit\r\n1) \"client-output-buffer-limit\"\r\n2) \"normal 0 0 0 slave 1073741824 536870912 180 pubsub 33554432 8388608 60\"\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-05-06T02:46:24Z",
+  "updated_at": "2023-05-06T06:00:20Z",
+  "closed_at": "2023-05-06T06:00:20Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1537035978,
+      "user": "sundb",
+      "created_at": "2023-05-06T03:47:28Z",
+      "body": "This is a bug fixed by https://github.com/redis/redis/commit/516f1c7722e7c84acdfee7dcdb810501039da055."
+    },
+    {
+      "id": 1537061270,
+      "user": "dhlic",
+      "created_at": "2023-05-06T06:00:03Z",
+      "body": "thx !"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "issue_number": 4323.0,
+  "title": "Redis 4.x lazyfree: memory leak may happen when free slowlog entry",
+  "body": "Hi,\r\n\r\nLazyfree is an amazing feature, redis can delete keys in background without blocking, but I just find a problem which can lead to memory leak.\r\n\r\nWe just use `sds` instead of `robj` to store fields for `OBJ_HASH`, `OBJ_SET`, `OBJ_ZSET`, `OBJ_LIST`. But for `OBJ_STRING` the value is still `robj`, it may be shared with others, e.t. slowlog entry:\r\n```\r\nslowlog.c\r\nslowlogEntry *slowlogCreateEntry(client *c, robj **argv, int argc, long long duration) {\r\n    ...\r\n            /* Trim too long strings as well... */\r\n            if (argv[j]->type == OBJ_STRING &&\r\n                sdsEncodedObject(argv[j]) &&\r\n                sdslen(argv[j]->ptr) > SLOWLOG_ENTRY_MAX_STRING)\r\n            {\r\n                sds s = sdsnewlen(argv[j]->ptr, SLOWLOG_ENTRY_MAX_STRING);\r\n\r\n                s = sdscatprintf(s,\"... (%lu more bytes)\",\r\n                    (unsigned long)\r\n                    sdslen(argv[j]->ptr) - SLOWLOG_ENTRY_MAX_STRING);\r\n                se->argv[j] = createObject(OBJ_STRING,s);\r\n            } else {\r\n                se->argv[j] = argv[j];\r\n                incrRefCount(argv[j]);\r\n            }\r\n    ...\r\n}\r\n```\r\nOops, if `sdslen` is smaller than SLOWLOG_ENTRY_MAX_STRING, an `slowlogEntry` just point to the same object and incr the refcount.\r\n\r\nI just did an experiment:\r\n```\r\n127.0.0.1:6379> config set slowlog-log-slower-than 1\r\nOK\r\n127.0.0.1:6379> set foo bar\r\nOK\r\n127.0.0.1:6379> object refcount foo\r\n(integer) 2\r\n```\r\nThe refcount is 2 now, that is dangerous! Memory leak may happen, let me explain step by step:\r\n\r\n1. Do `FLUSHALL ASYNC` or `UNLINK` \r\n\r\n    > tips: `UNLINK` only works when value's length is larger than LAZYFREE_THRESHOLD, `OBJ_STRING` is always considered as 1, so we use `FLUSHALL ASYNC`.\r\n\r\n    Now, the bio `lazyfree` thread holds the value `bar`, but we don't know when it really call `decrRefCount()`.\r\n\r\n2. Do `SLOWLOG reset`\r\n\r\n    Now the `slowlogEntry` which point to the value `bar` will be freed by `decrRefCount()`, if `lazyfree` thread call `decrRefCount()` at the same time, memory leak appears:\r\n\r\n    ```\r\n    void decrRefCount(robj *o) {\r\n        if (o->refcount == 1) {\r\n            switch(o->type) {\r\n            case OBJ_STRING: freeStringObject(o); break;\r\n            case OBJ_LIST: freeListObject(o); break;\r\n            case OBJ_SET: freeSetObject(o); break;\r\n            case OBJ_ZSET: freeZsetObject(o); break;\r\n            case OBJ_HASH: freeHashObject(o); break;\r\n            case OBJ_MODULE: freeModuleObject(o); break;\r\n            default: serverPanic(\"Unknown object type\"); break;\r\n            }\r\n            zfree(o);\r\n        } else {\r\n            if (o->refcount <= 0) serverPanic(\"decrRefCount against refcount <= 0\");\r\n            if (o->refcount != OBJ_SHARED_REFCOUNT) o->refcount--;\r\n        }\r\n    }\r\n    ```\r\n\r\n    > tips: if we reach the `server.slowlog_max_len` that will also free `slowlogEntry`\r\n\r\nI just do a little change to fix it, see #4324, do you think it is ok? Or make a big change for all STRING commands is necessary?\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2017-09-21T07:21:40Z",
+  "updated_at": "2020-08-11T11:14:48Z",
+  "closed_at": "2020-08-11T11:14:48Z",
+  "labels": [
+    "critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 331097199,
+      "user": "antirez",
+      "created_at": "2017-09-21T09:03:39Z",
+      "body": "That's a very interesting finding @soloestoy! I never thought that string objects could be reclaimed in the background, because normally UNLINK will never do that since for non-aggregate objects, the deletion actually happens synchronously (because of the deallcation effort being 1). However as you noted FLUSHALL ASYNC changes the game here... Your fix seems sensible to me, but now what I'm worried about, is if there are other places where the object can end being shared. The client `argv` vector should be safe since, as soon as the command is executed and the object shared, the client argument vectors gets reset before any other client could call FLUSHALL. Did you tried to analyze other scenarios where this could happen? Thanks."
+    },
+    {
+      "id": 331100330,
+      "user": "soloestoy",
+      "created_at": "2017-09-21T09:16:44Z",
+      "body": "I have checked scenarios about `multi.c` and `script.c`, I think they are safe and will do my best to analyze other scenarios."
+    },
+    {
+      "id": 331118051,
+      "user": "antirez",
+      "created_at": "2017-09-21T10:31:20Z",
+      "body": "Thanks @soloestoy, maybe we can later identify some place where an assert() could be added to verify that refcount == 1."
+    },
+    {
+      "id": 331118895,
+      "user": "antirez",
+      "created_at": "2017-09-21T10:35:34Z",
+      "body": "Fix merged, comment clarified. Good work 👍 "
+    },
+    {
+      "id": 671816427,
+      "user": "soloestoy",
+      "created_at": "2020-08-11T08:45:21Z",
+      "body": "solved & merged"
+    }
+  ]
+}

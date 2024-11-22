@@ -1,0 +1,68 @@
+{
+  "issue_number": 11807.0,
+  "title": "[BUG] In PubSub, UNSUBSCRIBE and PUNSUBSCRIBE commands do not work correctly.",
+  "body": "--------------------------------------------------------------------------\r\n**Describe the bug**\r\nA short description of the bug.\r\nRedis 6.2.6\r\nIn Redis Pub/Sub, the client subscribes with [SUBSCRIBE ch-food ch-sports] command, If it publish the PUBLISH ch-food \"chicken\" message, subscribers correctly receive the \"chicken\" message.\r\nSo, if UNSUBSCRIBE ch-food command is used to cancel the ch-food subscription, the output is as follows.\r\n3) (integer) 0 <-- The returned value should be 1 instead of 0, which is considered a bug or error.\r\nUNSUBSCRIBE ch-food output:\r\n1) \"unsubscribe\"\r\n2) \"ch-food\"\r\n3) (integer) 0\r\n\r\n\r\nYou can see that the [ 3) (integer) 0 ] line cannot unsubscribe.\r\nStill, publish ch-food \"chicken\", subscribers receive it.\r\n\r\n**To reproduce**\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n[client-1]\r\n127.0.0.1:9379> PUBLISH ch-food \"chicken\"\r\n(integer) 3\r\n127.0.0.1:9379> UNSUBSCRIBE ch-food\r\n1) \"unsubscribe\"\r\n2) \"ch-food\"\r\n3) (integer) 0\r\n127.0.0.1:9379> PUNSUBSCRIBE ch-fo*\r\n1) \"punsubscribe\"\r\n2) \"ch-fo*\"\r\n3) (integer) 0\r\n127.0.0.1:9379> PUBLISH ch-food \"chicken\"\r\n(integer) 3\r\n\r\n[client-2]\r\n127.0.0.1:9379> SUBSCRIBE ch-food ch-sports\r\nReading messages... (press Ctrl-C to quit)\r\n1) \"subscribe\"\r\n2) \"ch-food\"\r\n3) (integer) 1\r\n1) \"subscribe\"\r\n2) \"ch-sports\"\r\n3) (integer) 2\r\n1) \"message\"\r\n2) \"ch-food\"\r\n3) \"chicken\"\r\n1) \"message\"\r\n2) \"ch-food\"\r\n3) \"chicken\"\r\n\r\n[client-3]\r\n127.0.0.1:9379> PSUBSCRIBE ch-fo*\r\nReading messages... (press Ctrl-C to quit)\r\n1) \"psubscribe\"\r\n2) \"ch-fo*\"\r\n3) (integer) 1\r\n1) \"pmessage\"\r\n2) \"ch-fo*\"\r\n3) \"ch-food\"\r\n4) \"chicken\"\r\n1) \"pmessage\"\r\n2) \"ch-fo*\"\r\n3) \"ch-food\"\r\n4) \"chicken\"\r\n\r\n\r\n**Expected behavior**\r\nA description of what you expected to happen.\r\nAfter the UNSUBSCRIBE ch-food and PUNSUBSCRIBE ch-fo* commands, client are still received and listening on that channel.\r\n\r\n**Additional information**\r\nAny additional information that is relevant to the problem.\r\nIncluded in the above mentioned.\r\n\r\n--------------------------------------------------------------------------",
+  "state": "closed",
+  "created_at": "2023-02-15T05:39:45Z",
+  "updated_at": "2023-02-24T09:35:21Z",
+  "closed_at": "2023-02-17T00:48:58Z",
+  "labels": [
+    "class:question"
+  ],
+  "comments_data": [
+    {
+      "id": 1431313125,
+      "user": "ranshid",
+      "created_at": "2023-02-15T12:45:45Z",
+      "body": "@Virusuki\r\nI would like to help, but I am not sure I understand the problem.\r\nin the example you provided:\r\nclient 1: is not registered to any channel or pattern so the return value (integer) is 0\r\nclient 2+3: I did not see where/if they unsubscribed from any channel, so they will keep on getting publish massages.\r\n\r\nwhat am I missing?"
+    },
+    {
+      "id": 1431317967,
+      "user": "ranshid",
+      "created_at": "2023-02-15T12:49:44Z",
+      "body": "Oh - just noticed to the publish response (3) can you provide a client list output of this scenario that we can make sure no other client is registered ?"
+    },
+    {
+      "id": 1432281638,
+      "user": "Virusuki",
+      "created_at": "2023-02-16T00:26:08Z",
+      "body": "As you can see in the picture,\r\n127.0.0.1:9379> unsubscribe ch*\r\n127.0.0.1:9379> punsubscribe ch*\r\n\r\nto the next step,\r\nIf client send the message 127.0.0.1:9379> PUBLISH ch-food \"apple\",\r\nMessages are being received from SUBSCRIBE ch-food ch-sports and PSUBSCRIBE ch-fo* on the client.\r\n\r\nI think it's normal if the subscriber doesn't receive the message, is it a pubsub bug? Or am I using it wrong?...\r\n\r\nAnd, in the output below, if the unsubscribe and punsubscribe ch* commands were normally executed, shouldn't it be [3) (integer) 1]?\r\n\r\n127.0.0.1:9379> unsubscribe ch*\r\n1) \"unsubscribe\"\r\n2) \"ch*\"\r\n3) (integer) 0\r\n127.0.0.1:9379> punsubscribe ch*\r\n1) \"punsubscribe\"\r\n2) \"ch*\"\r\n3) (integer) 0\r\n\r\nFinally,\r\nI used UNSUBSCRIBE & punsubscribe ch* commands.\r\nWhy does PUBSUB numsub and PUBSUB numpat output 1?\r\nI think my expectation is 0, should I judge it as an error?\r\n\r\n![image](https://user-images.githubusercontent.com/70243256/219226522-390e1442-4d0d-45bf-969d-ab558bb06656.png)\r\n"
+    },
+    {
+      "id": 1432580550,
+      "user": "ranshid",
+      "created_at": "2023-02-16T06:12:28Z",
+      "body": "@Virusuki So:\r\nclient 6: is not subscribed to any channel or pattern and publishing msgs\r\nclient 5: is subscribed on 2 channels (ch_food and ch_sports) - so it will receive any msg published on channel ch_food or ch_sports\r\nclient 4: is subscribed on a pattern ch_fo* so it will receive all msgs published on channel ch_food (in your case)\r\nSo I do not see any bug here\r\n\r\nthe unsubscribe/punsubscribe return the number of channels/pattern THIS client is currently registered on, and since it is not registered on any channel/pattern you get 0. The PUBSUB command provides introspection about the current global state of the channels and pattern and not the state in the context of the current client like stated [here](https://redis.io/commands/pubsub-numsub/) \r\n> Returns the number of subscribers (exclusive of clients subscribed to patterns) for the specified channels.\r\n\r\nSo again I do not see any bug in your case.\r\n "
+    },
+    {
+      "id": 1432628640,
+      "user": "Virusuki",
+      "created_at": "2023-02-16T07:15:06Z",
+      "body": "Thank @ranshid for your feedback. :)\r\nHow do I do client 5 and client 4 to do unsubscribe and punsubscrib?\r\nYou can no longer type CLI command at Terminal 5 of the Client. (state press Ctrl-C to quit)\r\nThe same is true for client 4. (state press Ctrl-C to quit)"
+    },
+    {
+      "id": 1432644932,
+      "user": "ranshid",
+      "created_at": "2023-02-16T07:33:49Z",
+      "body": "Well it is possible to run some subset of command while in subscription mode. specifically when using resp2 you can run a limited set of commands like stated [here](https://redis.io/docs/manual/pubsub/):\r\n> A client subscribed to one or more channels should not issue commands, although it can subscribe and unsubscribe to and from other channels. The replies to subscription and unsubscribing operations are sent in the form of messages, so that the client can just read a coherent stream of messages where the first element indicates the type of message. The commands that are allowed in the context of a subscribed client are [SUBSCRIBE](https://redis.io/commands/subscribe), [SSUBSCRIBE](https://redis.io/commands/ssubscribe), [SUNSUBSCRIBE](https://redis.io/commands/sunsubscribe), [PSUBSCRIBE](https://redis.io/commands/psubscribe), [UNSUBSCRIBE](https://redis.io/commands/unsubscribe), [PUNSUBSCRIBE](https://redis.io/commands/punsubscribe), [PING](https://redis.io/commands/ping), [RESET](https://redis.io/commands/reset), and [QUIT](https://redis.io/commands/quit).\r\n\r\nplease also note that redis-cli has some limited support as also stated in the documentation:\r\n> Please note that redis-cli will not accept any commands once in subscribed mode and can only quit the mode with Ctrl-C.\r\n\r\nbut you can use telnet to test it "
+    },
+    {
+      "id": 1432676610,
+      "user": "Virusuki",
+      "created_at": "2023-02-16T08:05:34Z",
+      "body": "Okay, thnks you.!\r\nShould I understand that UNSUBSCRIBE & PUNSUBSCRIBE cannot be tested and verified in redis-cli mode?"
+    },
+    {
+      "id": 1432691549,
+      "user": "ranshid",
+      "created_at": "2023-02-16T08:19:30Z",
+      "body": "right"
+    },
+    {
+      "id": 1432692387,
+      "user": "ranshid",
+      "created_at": "2023-02-16T08:20:17Z",
+      "body": "But you can inject ctrl-C in order to unsubscribe the client from the channels"
+    }
+  ]
+}

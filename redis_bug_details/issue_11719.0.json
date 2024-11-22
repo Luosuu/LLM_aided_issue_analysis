@@ -1,0 +1,18 @@
+{
+  "issue_number": 11719.0,
+  "title": "[BUG] docker 启动 7.0.5 版本的3个哨兵 当2个哨兵容器的ip 地址一样时，在第3个哨兵里执行 sentinel sentinels mymaster 返回的其他哨兵信息只有1个",
+  "body": "1、sentinel 启动命令\r\ndocker run --name redis-sentinel -v /data/redis-sentinel/conf/:/bitnami/redis-sentinel/conf/ -d bitnami/redis-sentinel:7.0.5\r\n\r\n2、查看3个哨兵的ip\r\ndocker inspect redis-sentinel\r\n\r\n192.168.62.129\r\n![image](https://user-images.githubusercontent.com/37797599/212636168-e7c2c245-0703-4eaf-9675-412a0d5344c8.png)\r\n\r\n\r\n192.168.62.130\r\n![image](https://user-images.githubusercontent.com/37797599/212636291-6e85fc5b-a6eb-4178-b141-e5df2d959b44.png)\r\n\r\n192.168.62.136\r\n![image](https://user-images.githubusercontent.com/37797599/212636389-ac2e475c-727e-4c7a-93b4-d5dd49ae7b10.png)\r\n\r\n3、在129节点的哨兵里查看其他哨兵\r\n![image](https://user-images.githubusercontent.com/37797599/212636645-54dcda08-b296-4314-8679-a1da289db769.png)\r\n\r\n4、在另外2个节点的哨兵里查看其他哨兵\r\n![image](https://user-images.githubusercontent.com/37797599/212637211-d5533d62-9280-40d9-a53e-1307580ac9a6.png)\r\n\r\n```\r\n127.0.0.1:26379> sentinel sentinels mymaster\r\n1)  1) \"name\"\r\n    2) \"0dc5ea185da218d2da8754bc5a299696d4a5e006\"\r\n    3) \"ip\"\r\n    4) \"172.17.0.3\"\r\n    5) \"port\"\r\n    6) \"26379\"\r\n    7) \"runid\"\r\n    8) \"0dc5ea185da218d2da8754bc5a299696d4a5e006\"\r\n    9) \"flags\"\r\n   10) \"sentinel\"\r\n   11) \"link-pending-commands\"\r\n   12) \"0\"\r\n   13) \"link-refcount\"\r\n   14) \"1\"\r\n   15) \"last-ping-sent\"\r\n   16) \"0\"\r\n   17) \"last-ok-ping-reply\"\r\n   18) \"504\"\r\n   19) \"last-ping-reply\"\r\n   20) \"504\"\r\n   21) \"down-after-milliseconds\"\r\n   22) \"30000\"\r\n   23) \"last-hello-message\"\r\n   24) \"552\"\r\n   25) \"voted-leader\"\r\n   26) \"?\"\r\n   27) \"voted-leader-epoch\"\r\n   28) \"0\"\r\n2)  1) \"name\"\r\n    2) \"da884625a617f3c74683f73e249780edecd35e4f\"\r\n    3) \"ip\"\r\n    4) \"172.17.0.6\"\r\n    5) \"port\"\r\n    6) \"26379\"\r\n    7) \"runid\"\r\n    8) \"da884625a617f3c74683f73e249780edecd35e4f\"\r\n    9) \"flags\"\r\n   10) \"s_down,sentinel\"\r\n   11) \"link-pending-commands\"\r\n   12) \"19\"\r\n   13) \"link-refcount\"\r\n   14) \"1\"\r\n   15) \"last-ping-sent\"\r\n   16) \"3322768\"\r\n   17) \"last-ok-ping-reply\"\r\n   18) \"3322768\"\r\n   19) \"last-ping-reply\"\r\n   20) \"3322768\"\r\n   21) \"s-down-time\"\r\n   22) \"3292720\"\r\n   23) \"down-after-milliseconds\"\r\n   24) \"30000\"\r\n   25) \"last-hello-message\"\r\n   26) \"120\"\r\n   27) \"voted-leader\"\r\n   28) \"?\"\r\n   29) \"voted-leader-epoch\"\r\n   30) \"0\"\r\n127.0.0.1:26379> \r\n\r\n```",
+  "state": "closed",
+  "created_at": "2023-01-16T08:55:28Z",
+  "updated_at": "2023-01-23T14:29:55Z",
+  "closed_at": "2023-01-23T14:29:55Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1400160736,
+      "user": "moticless",
+      "created_at": "2023-01-23T11:02:52Z",
+      "body": "Hi @shinstein, \r\nThis repo is being documented only in english. Please do the effort write in english."
+    }
+  ]
+}

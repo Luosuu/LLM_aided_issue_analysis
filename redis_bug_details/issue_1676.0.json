@@ -1,0 +1,78 @@
+{
+  "issue_number": 1676.0,
+  "title": "[BUG] Slave may mis-overwriten synced server.repl_transfer_tmpfile file with BGSAVE file",
+  "body": "hi , when slave just finish read the full rdb file from master, rename it, ant then emptyDb, rdbLoad(server.rdb_filename) .\n but if there just happened a BGSAVE operation, the server.repl_transfer_tmpfile file my be overwriten by rename(tmpfile,filename) in rdbSave .\nas a result , the data is corrupted ! \n\nYou can find this bug by gdb the bgsave process and slave main process to perform the rename() call .\nthis bug occured in both 2.4-2.8.8 ，may be in the newest branch. \n\nsuggestion :　BGSAVE and SYNC cann't perform Simultaneously 。 \n",
+  "state": "closed",
+  "created_at": "2014-04-10T19:22:42Z",
+  "updated_at": "2020-09-01T02:10:27Z",
+  "closed_at": "2020-08-31T20:30:04Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 40137801,
+      "user": "mattsta",
+      "created_at": "2014-04-10T20:46:24Z",
+      "body": "This is related to #1560, but it's a different overall issue.  Looks like each save should use a unique temporary file.\n\nRight now Redis has 7 places where it creates custom temporary file names.  We can replace them all with a real `mkstemp` temporary file interface:\n\n``` haskell\nmatt@ununoctium:~/repos/redis/src% grep -n temp- *.c\naof.c:901:    snprintf(tmpfile,256,\"temp-rewriteaof-%d.aof\", (int) getpid());\naof.c:1018:        snprintf(tmpfile,256,\"temp-rewriteaof-bg-%d.aof\", (int) getpid());\naof.c:1073:    snprintf(tmpfile,256,\"temp-rewriteaof-bg-%d.aof\", (int) childpid);\naof.c:1105:        snprintf(tmpfile,256,\"temp-rewriteaof-bg-%d.aof\",\nrdb.c:641:    snprintf(tmpfile,256,\"temp-%d.rdb\", (int) getpid());\nrdb.c:766:    snprintf(tmpfile,256,\"temp-%d.rdb\", (int) childpid);\nreplication.c:1161:            \"temp-%d.%ld.rdb\",(int)server.unixtime,(long int)getpid());\n```\n"
+    },
+    {
+      "id": 40164053,
+      "user": "kulv2012",
+      "created_at": "2014-04-11T01:58:53Z",
+      "body": "@mattsta , use mkstemp cann't fix this server.rdb_filename overwriten bug.  no consider any attacks from #1563 , \n when redis slave doing sync, it relays the :　1. write rdb file, 2. read the above file. \n\nbug when BGSAVE happen， the writed file was overwriten by bgsave process .. \nchange tempfile cann't fix this race condition.\nso maybe the possible solution is that : [ we donn't allow any server.rdb_filename change durring slave sync . ]\n"
+    },
+    {
+      "id": 41168035,
+      "user": "antirez",
+      "created_at": "2014-04-23T14:34:54Z",
+      "body": "Hello @kulv2012, let's check if I'm understanding correctly the bug you described:\n- Instance is a slave.\n- It is resynchronizing with its master, so sent SYNC, and is receiving data from its master.\n- At the same time, a BGSAVE is triggered (in the slave).\n\nNow we can see that the bulk transfer from the master is saved in the temp file obtained with:\n\n```\n\"temp-%d.%ld.rdb\",(int)server.unixtime,(long int)getpid()\n```\n\nWhile the other BGSAVE file is saved in a temp file obtained with:\n\n```\n\"temp-%d.rdb\", (int) getpid()\n```\n\nSo far so good, two different files.\n- At some point, the data transfer from the master is completed.\n- Similarly, at some point, the child writing the database on disk completed its task.\n\nSo we have the last two steps that will both try to replace their temp file name with the final destination of the RDB file (`dump.rdb` by default).\n\nIf I understand correctly, the bug you described happens when the the BGSAVE temp file replaces the dump.rdb file in the worst moment, which is:\n- 1) rename(temp_file, dump_file);\n- 2) load(dump_file)\n\nIf between 1 and 2, the BGSAVE replaces the dump_file with the content of the BGSAVE operation (which is old data), we continue the replication process but we actually loaded **the wrong old data**.\n\nAm I correct?\n\nSalvatore\n"
+    },
+    {
+      "id": 90836132,
+      "user": "hgqislub",
+      "created_at": "2015-04-08T08:03:16Z",
+      "body": "Has this bug been fixed in 3.0?\n"
+    },
+    {
+      "id": 120647015,
+      "user": "kulv2012",
+      "created_at": "2015-07-11T17:36:36Z",
+      "body": "\"If between 1 and 2, the BGSAVE replaces the dump_file with the content of the BGSAVE operation (which is old data), we continue the replication process but we actually loaded the wrong old data.\"\n\n@antirez  you are right, I mean it and tested it by gdb hang on the related lines. sorry for reply so late....\n"
+    },
+    {
+      "id": 120651522,
+      "user": "kulv2012",
+      "created_at": "2015-07-11T18:30:16Z",
+      "body": "@antirez  @hgqislub  it's not fixed in 3.0 and current unstable branch yet。 just now I have test it in the unstable branch by the following step. \n1. run two instance: \ncd /home/wuhaiwen/redis && ./bin/redis-server conf/redis.conf  --port 8379\ncd /home/wuhaiwen/slave_redis && ./bin/redis-server-slave  conf/redis.conf  --port   8380\n1. fill 1GB data to slave_redis, so as to have time to gdb hang on the forked bgsave process. \n2. gdb the redis-server-slave process, break on readSyncBulkPayload rename line below (name A),  and continue it . \n   1017            if (rename(server.repl_transfer_tmpfile,server.rdb_filename) == -1) { \n3. redis-cli -p 8380 connect to slave, send bgsave commend to it . and ps aux | grep redis , find the forked bgsave process, gdb hang on it quickly , break in rdbSave function rename line  as below (name B) . \n   if (rename(tmpfile,filename) == -1) { \n4. use gdb step to let A run rename frist, and then B run rename to change the filename to slave bgsaved file... \n5. thus cause slave  data error。 \n"
+    },
+    {
+      "id": 620384036,
+      "user": "yjh18717167823",
+      "created_at": "2020-04-28T05:08:25Z",
+      "body": "@antirez  @kulv2012  Has this bug been fixed in 4.0?"
+    },
+    {
+      "id": 652903699,
+      "user": "yz1509",
+      "created_at": "2020-07-02T09:40:53Z",
+      "body": "A similar phenomenon appeared in redis 3.2.11, has this bug been fixed in 5.0?\r\n\r\n```py\r\n85382:M 25 Jun 07:22:51.189 * Slave 0.0.0.47:16410 asks for synchronization\r\n85382:M 25 Jun 07:22:51.191 * Full resync requested by slave 0.0.0.0:16410\r\n85382:M 25 Jun 07:22:51.191 * Starting BGSAVE for SYNC with target: disk\r\n85382:M 25 Jun 07:22:51.291 * Background saving started by pid 29152\r\n85382:M 25 Jun 07:23:12.001 # Connection with slave client id #5 lost.\r\n85382:M 25 Jun 07:23:30.024 # Connection with slave 0.0.0.0:16410 lost.\r\n85382:M 25 Jun 07:23:30.249 # Connection with slave client id #4 lost.\r\n85382:S 25 Jun 07:23:42.331 * SLAVE OF 0.0.0.0:16410 enabled (user request from 'id=2920745 addr=0.0.0.47:38311 fd=110 name=sentinel-75d89339-cmd age=14 idle=0 flags=x db=0 sub=0 psub=0 multi=3 qbuf=0 qbuf-free=32768 obl=36 oll=0 omem=0 events=r cmd=exec')\r\n85382:S 25 Jun 07:23:42.336 # CONFIG REWRITE executed with success.\r\n85382:S 25 Jun 07:23:42.466 * Connecting to MASTER 0.0.0.0:16410\r\n85382:S 25 Jun 07:23:42.467 * MASTER <-> SLAVE sync started\r\n85382:S 25 Jun 07:23:42.467 * Non blocking connect for SYNC fired the event.\r\n85382:S 25 Jun 07:23:42.469 * Master replied to PING, replication can continue...\r\n85382:S 25 Jun 07:23:42.471 * Partial resynchronization not possible (no cached master)\r\n85382:S 25 Jun 07:23:42.472 * Full resync from master: c7cbc541fa293da79e3a1a761be9478666e5a899:4755317435008\r\n85382:S 25 Jun 07:24:54.532 * MASTER <-> SLAVE sync: receiving 4186414038 bytes from master\r\n85382:S 25 Jun 07:25:57.541 * MASTER <-> SLAVE sync: Flushing old data\r\n29152:C 25 Jun 07:27:44.038 * DB saved on disk \r\n29152:C 25 Jun 07:27:44.061 * RDB: 13874 MB of memory used by copy-on-write\r\n85382:S 25 Jun 07:28:57.441 * MASTER <-> SLAVE sync: Loading DB in memory\r\n85382:S 25 Jun 07:31:31.013 * MASTER <-> SLAVE sync: Finished with success\r\n85382:S 25 Jun 07:31:31.013 * Background saving terminated with success\r\n```"
+    },
+    {
+      "id": 683895786,
+      "user": "kulv2012",
+      "created_at": "2020-08-31T16:43:59Z",
+      "body": "seams not yeat "
+    },
+    {
+      "id": 684020874,
+      "user": "oranagra",
+      "created_at": "2020-08-31T20:30:04Z",
+      "body": "this is fixed since redis 4.0 see 98a64523c4 466c277b4f 4dc69497f5\r\nclosing the issue, let me know if you still see a problem."
+    },
+    {
+      "id": 684148909,
+      "user": "kulv2012",
+      "created_at": "2020-09-01T02:10:27Z",
+      "body": "> this is fixed since redis 4.0 see [98a6452](https://github.com/redis/redis/commit/98a64523c451d9f6519342b78a857a4aa729cf58) [466c277](https://github.com/redis/redis/commit/466c277b4fedefd7fda42959e3e68177a6de254b) [4dc6949](https://github.com/redis/redis/commit/4dc69497f509956d298455492fe5ab98a9738cb6)\r\n> closing the issue, let me know if you still see a problem.\r\n\r\nthanks"
+    }
+  ]
+}

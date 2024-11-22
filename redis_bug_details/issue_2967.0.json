@@ -1,0 +1,58 @@
+{
+  "issue_number": 2967.0,
+  "title": "Badly formatted result when using pubsub in a transaction",
+  "body": "Generated with:\n\n``` lua\nlocal r = require \"lredis.cqueues\".connect_tcp()\nr:call(\"multi\")\nr:call(\"subscribe\", \"test\")\nr:call(\"publish\", \"test\", \"a message\")\nr:call(\"unsubscribe\", \"test\")\nr:call(\"exec\")\n```\n\nWhat goes over the socket:\n\n```\nconnect(127.0.0.1/[127.0.0.1]:6379): ready\nwrite(127.0.0.1/[127.0.0.1]:6379): sent 15 bytes\n  000000  2a 31 0d 0a 24 35 0d 0a  6d 75 6c 74 69 0d 0a     |*1..$5..multi.. |\nread(127.0.0.1/[127.0.0.1]:6379): rcvd 5 bytes\n  000000  2b 4f 4b 0d 0a                                    |+OK..           |\nwrite(127.0.0.1/[127.0.0.1]:6379): sent 29 bytes\n  000000  2a 32 0d 0a 24 39 0d 0a  73 75 62 73 63 72 69 62  |*2..$9..subscrib|\n  000010  65 0d 0a 24 34 0d 0a 74  65 73 74 0d 0a           |e..$4..test..   |\nread(127.0.0.1/[127.0.0.1]:6379): rcvd 9 bytes\n  000000  2b 51 55 45 55 45 44 0d  0a                       |+QUEUED..       |\nwrite(127.0.0.1/[127.0.0.1]:6379): sent 42 bytes\n  000000  2a 33 0d 0a 24 37 0d 0a  70 75 62 6c 69 73 68 0d  |*3..$7..publish.|\n  000010  0a 24 34 0d 0a 74 65 73  74 0d 0a 24 39 0d 0a 61  |.$4..test..$9..a|\n  000020  20 6d 65 73 73 61 67 65  0d 0a                    |.message..      |\nread(127.0.0.1/[127.0.0.1]:6379): rcvd 9 bytes\n  000000  2b 51 55 45 55 45 44 0d  0a                       |+QUEUED..       |\nwrite(127.0.0.1/[127.0.0.1]:6379): sent 32 bytes\n  000000  2a 32 0d 0a 24 31 31 0d  0a 75 6e 73 75 62 73 63  |*2..$11..unsubsc|\n  000010  72 69 62 65 0d 0a 24 34  0d 0a 74 65 73 74 0d 0a  |ribe..$4..test..|\nread(127.0.0.1/[127.0.0.1]:6379): rcvd 9 bytes\n  000000  2b 51 55 45 55 45 44 0d  0a                       |+QUEUED..       |\nwrite(127.0.0.1/[127.0.0.1]:6379): sent 14 bytes\n  000000  2a 31 0d 0a 24 34 0d 0a  65 78 65 63 0d 0a        |*1..$4..exec..  |\nread(127.0.0.1/[127.0.0.1]:6379): rcvd 119 bytes\n  000000  2a 33 0d 0a 2a 33 0d 0a  24 39 0d 0a 73 75 62 73  |*3..*3..$9..subs|\n  000010  63 72 69 62 65 0d 0a 24  34 0d 0a 74 65 73 74 0d  |cribe..$4..test.|\n  000020  0a 3a 31 0d 0a 2a 33 0d  0a 24 37 0d 0a 6d 65 73  |.:1..*3..$7..mes|\n  000030  73 61 67 65 0d 0a 24 34  0d 0a 74 65 73 74 0d 0a  |sage..$4..test..|\n  000040  24 39 0d 0a 61 20 6d 65  73 73 61 67 65 0d 0a 3a  |$9..a.message..:|\n  000050  31 0d 0a 2a 33 0d 0a 24  31 31 0d 0a 75 6e 73 75  |1..*3..$11..unsu|\n  000060  62 73 63 72 69 62 65 0d  0a 24 34 0d 0a 74 65 73  |bscribe..$4..tes|\n  000070  74 0d 0a 3a 30 0d 0a                              |t..:0..         |\n```\n\nYou'll notice that the `exec` response returned is 3 elements long:\n- first element is `{\"subscribe\", \"test\", 1}`\n- second element is `{\"message\", \"test\", \"a message\"}`\n- third element is `1` (probably the result from the `publish`?)\n\nAfter that the server sends a 3 element array with only one element: `{\"unsubscribe\", \"test\", 0}`\n",
+  "state": "open",
+  "created_at": "2015-12-21T07:06:27Z",
+  "updated_at": "2020-08-19T14:57:23Z",
+  "closed_at": null,
+  "labels": [
+    "non critical bug",
+    "pubsub",
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 166228517,
+      "user": "badboy",
+      "created_at": "2015-12-21T08:05:41Z",
+      "body": "Sounds good to me. You're just tripping over the unusual behaviour of pubsub inside a transaction.\n\nWhat happens:\n1. You get the response to your `subscribe`: the usual message with type, channel and number of subscriptions\n2. You get the published message from your own `publish` call. Published messages are queued immediately on `publish`\n3. You get the _response_ of your `publish` call: the number of clients that received the message, which is only your own\n4. You get the message as a result of your `unsubscribe` with type, the channel and the number of subscriptions left\n\nNormally only a few selected commands are allowed in `subscribed` mode, but because this is only checked on receive of a command, which is inside a transaction for you and thus only queued, not executed, Redis will happily execute it on `EXEC` (at which point it does _not_ recheck your client's status)\n"
+    },
+    {
+      "id": 166229395,
+      "user": "daurnimator",
+      "created_at": "2015-12-21T08:12:25Z",
+      "body": "It sounds like one of the following should happen:\n- when `publish` sends the message, the 'length' of the EXEC result needs to be incremented.\n- a publish to yourself while in a transaction should be an error\n- a subscribe while in a transaction should be an error\n"
+    },
+    {
+      "id": 166231693,
+      "user": "badboy",
+      "created_at": "2015-12-21T08:29:35Z",
+      "body": "Ah, indeed the initial multi-bulk response length is of course wrong.\n1. You do not know whether or not a `publish` in the queue generates a message\n2. That might be possible, but I didn't check the code there.\n3. I bet some people are relying on it :D \n\nAll in all: we can't stop everyting bad from the user.\n"
+    },
+    {
+      "id": 169674154,
+      "user": "antirez",
+      "created_at": "2016-01-07T14:08:00Z",
+      "body": "Hello, it looks sensible to deny `*SUBSCRIBE` inside transactions starting from Redis 3.2 RC2. Do you agree?\n"
+    },
+    {
+      "id": 169827874,
+      "user": "daurnimator",
+      "created_at": "2016-01-07T22:31:35Z",
+      "body": "> Hello, it looks sensible to deny *SUBSCRIBE inside transactions starting from Redis 3.2 RC2. Do you agree?\n\nNo objections here.\nIt already is an error for e.g. lua scripts inside redis.\n"
+    },
+    {
+      "id": 208158707,
+      "user": "daurnimator",
+      "created_at": "2016-04-11T04:19:56Z",
+      "body": "Btw, what postgres does is that `LISTEN` only takes effect at time of commit: http://www.postgresql.org/docs/current/static/sql-listen.html\n\n> LISTEN takes effect at transaction commit. If LISTEN or UNLISTEN is executed within a transaction that later rolls back, the set of notification channels being listened to is unchanged\n"
+    },
+    {
+      "id": 208823841,
+      "user": "itamarhaber",
+      "created_at": "2016-04-12T09:51:13Z",
+      "body": "Erroring makes it easier to reason about compare to delaying the subscribe\nuntil exec (no offense to pgsql ;)).\n\nOn Mon, Apr 11, 2016 at 7:20 AM, daurnimator notifications@github.com\nwrote:\n\n> Btw, what postgres does is that LISTEN only takes effect at time of\n> commit: http://www.postgresql.org/docs/current/static/sql-listen.html\n> \n> LISTEN takes effect at transaction commit. If LISTEN or UNLISTEN is\n> executed within a transaction that later rolls back, the set of\n> notification channels being listened to is unchanged\n> \n> —\n> You are receiving this because you are subscribed to this thread.\n> Reply to this email directly or view it on GitHub\n> https://github.com/antirez/redis/issues/2967#issuecomment-208158707\n"
+    }
+  ]
+}

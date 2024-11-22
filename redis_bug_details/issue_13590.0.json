@@ -1,0 +1,96 @@
+{
+  "issue_number": 13590.0,
+  "title": "[BUG] \"auth default foo\" returns OK even if there is no password set for \"default\"",
+  "body": "**Describe the bug**\r\n\r\nI launched a Redis Docker instance of Redis `7.0.5`. I did not set password for the `default` user.\r\n\r\n```bash\r\nroot@a3f4913c94dd:/data# redis-cli -h localhost -p 6379\r\nlocalhost:6379> scan 0\r\n1) \"0\"\r\n2) (empty array)\r\nlocalhost:6379> set hello world ex 10\r\nOK\r\nlocalhost:6379> get hello\r\n\"world\"\r\n```\r\n\r\nHowever, the `auth default foo` command works as follows.\r\n\r\n```bash\r\nroot@a3f4913c94dd:/data# redis-cli -h localhost -p 6379\r\nlocalhost:6379> auth default foo\r\nOK\r\nlocalhost:6379> set hello world ex 10\r\nOK\r\nlocalhost:6379> get hello\r\n\"world\"\r\n```\r\n\r\n**To reproduce**\r\n\r\n1. Docker run\r\n\r\n  ```bash\r\n  ~ $ docker run --name tredis --rm -dit redis:7.0.5\r\n  9563cebae4b40b67b62c974dc7b9bdab4b639f2baf7945b7deb1d6dd34153a70\r\n  ```\r\n\r\n2. Get into the container.\r\n\r\n  ```bash\r\n  ~ $ docker exec -it tredis bash\r\n  root@9563cebae4b4:/data#\r\n  ```\r\n\r\n3. Issue the `auth` command.\r\n\r\n  ```bash\r\n  root@9563cebae4b4:/data# redis-cli\r\n  127.0.0.1:6379> auth default foo\r\n  OK\r\n  ```\r\n\r\n**Expected behavior**\r\n\r\nAs the `default` username does not require password, `auth default foo` should error.\r\n\r\n**Additional information**\r\n\r\n```\r\n127.0.0.1:6379> info server\r\n# Server\r\nredis_version:7.0.5\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:2e713f81c77ffebe\r\nredis_mode:standalone\r\nos:Linux 6.6.12-linuxkit aarch64\r\narch_bits:64\r\nmonotonic_clock:POSIX clock_gettime\r\nmultiplexing_api:epoll\r\natomicvar_api:c11-builtin\r\ngcc_version:10.2.1\r\nprocess_id:1\r\nprocess_supervised:no\r\nrun_id:767e986479167818d2cd7313a9e39fdf31772730\r\ntcp_port:6379\r\nserver_time_usec:1728541379594873\r\nuptime_in_seconds:196\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:488131\r\nexecutable:/data/redis-server\r\nconfig_file:\r\nio_threads_active:0\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2024-10-10T06:23:18Z",
+  "updated_at": "2024-10-17T13:21:24Z",
+  "closed_at": "2024-10-17T13:21:24Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2404182625,
+      "user": "sundb",
+      "created_at": "2024-10-10T06:47:08Z",
+      "body": "@outsinre it's not just an issue for default user.\r\n```\r\nACL SETUSER foo ON +@all ~* nopass\r\nAUTH foo abc\r\n```\r\n\r\nwe should return an error, but it could be break change. @oranagra "
+    },
+    {
+      "id": 2404377345,
+      "user": "oranagra",
+      "created_at": "2024-10-10T08:06:25Z",
+      "body": "right, `nopass` means that any password will work. I imagine it was discussed in the past a few times.\r\ni think that changing it now could be an unnecessary breaking change.\r\n\r\nthe only reason to fix it is that someone may be incorrectly assuming his server is password protected and safe, while it isn't.\r\n@yossigo @itamarhaber do you remember any discussion about this topic? what's your view on this?\r\ni prefer to leave it as is."
+    },
+    {
+      "id": 2404620289,
+      "user": "outsinre",
+      "created_at": "2024-10-10T09:49:20Z",
+      "body": "Seems if I issue `auth default` without arbitrary string followed, then Redis correctly returns error.\r\n\r\nSo, the behaviour is inconsistent?"
+    },
+    {
+      "id": 2404735656,
+      "user": "sundb",
+      "created_at": "2024-10-10T10:40:54Z",
+      "body": "`auth default` means that your default user's password is `default`."
+    },
+    {
+      "id": 2404969497,
+      "user": "itamarhaber",
+      "created_at": "2024-10-10T12:34:55Z",
+      "body": "I don't recall previous discussions on that specific topic, and I agree we can leave it as is."
+    },
+    {
+      "id": 2408396548,
+      "user": "outsinre",
+      "created_at": "2024-10-12T05:19:06Z",
+      "body": "I came across this issue when I try to authenticate with a Redis instance without password enabled. The application returns OK and puts me under the illusion that the connection to Redis is protected.\r\n\r\nBy the way, I am curious on the ACL part of Redis. We can create a username and password via ACL after connected to Redis without auth. But the username and password won't enforce auth for future connections. Does that mean Redis auth is enforced by listening ports at startup?"
+    },
+    {
+      "id": 2408421360,
+      "user": "sundb",
+      "created_at": "2024-10-12T06:41:44Z",
+      "body": "> But the username and password won't enforce auth for future connections. \r\n\r\ni can't follow it, do you mean that future connections will be able to connect without auth? \r\nor does it mean that you can still log in directly to the default user?\r\n"
+    },
+    {
+      "id": 2408546472,
+      "user": "outsinre",
+      "created_at": "2024-10-12T12:27:46Z",
+      "body": "> > But the username and password won't enforce auth for future connections.\r\n> \r\n> i can't follow it, do you mean that future connections will be able to connect without auth? or does it mean that you can still log in directly to the default user?\r\n\r\nI mean future connections will be able to connect without auth, though I added a username with password.\r\n\r\n"
+    },
+    {
+      "id": 2408547661,
+      "user": "sundb",
+      "created_at": "2024-10-12T12:31:10Z",
+      "body": "@outsinre if so you should change the password of `default` user.\r\n```\r\nACL SETUSER default ...\r\n```"
+    },
+    {
+      "id": 2408564347,
+      "user": "outsinre",
+      "created_at": "2024-10-12T13:22:27Z",
+      "body": "@sundb make sense.\r\n\r\nSeems the only way to enforce password connection is setting password for the `default` user?"
+    },
+    {
+      "id": 2408574864,
+      "user": "sundb",
+      "created_at": "2024-10-12T14:00:01Z",
+      "body": "> @sundb make sense.\r\n> \r\n> Seems the only way to enforce password connection is setting password for the `default` user?\r\n\r\nyes, and it's better to enable protected mode to prevent external connections without password."
+    },
+    {
+      "id": 2409959042,
+      "user": "outsinre",
+      "created_at": "2024-10-14T05:12:09Z",
+      "body": "@sundb how about this inconsistency? `auth default foo` ok but `auth foo` error.\r\n\r\n```\r\nroot@a3f4913c94dd:/data# redis-cli\r\n127.0.0.1:6379> scan 0\r\n1) \"0\"\r\n2) (empty array)\r\n127.0.0.1:6379> auth default foo\r\nOK\r\n127.0.0.1:6379> auth foo\r\n(error) ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?\r\n127.0.0.1:6379>\r\n```"
+    },
+    {
+      "id": 2413632020,
+      "user": "sundb",
+      "created_at": "2024-10-15T11:29:47Z",
+      "body": "@outsinre the behavor of `auth foo` should be the same as `auth default foo`.\r\njust for historical reasons, one is requirepass and the other is ACL.\r\n"
+    },
+    {
+      "id": 2418642628,
+      "user": "ShooterIT",
+      "created_at": "2024-10-17T06:33:34Z",
+      "body": "I think we should keep current design for `nopass` user.\r\nMaybe it already is a feature for some users. For ACL, we only store the HASH code of password instead of original, so admin can just clear password when users forget password, to make them access redis quickly."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 12558.0,
+  "title": "[BUG] redis client do not recieve sunsubscribe when slave redis node replicate another master",
+  "body": "1. setup a redis cluster with 3 master serving slots [0-5460], [5461-10922], [10923-16383], called it M1, M2, M3.\r\n2. use redis-cli to execute \"ssubscribe\" on channel CH0 with slot 0 on slave serving slot [0-5460], called it S1, so that we are subscribing CH0 on S1.\r\n3. execute CLUSTER REPLICATE on slave S1 to replicate M2, so that it becomes S2, replicating slot [5461-10922], and no longer replicate [0-5460]\r\n4. redis-cli does not receive sunsubscribe or any signals on CH0 and continues to block.\r\n\r\nIs this a bug?",
+  "state": "closed",
+  "created_at": "2023-09-07T09:11:45Z",
+  "updated_at": "2023-10-13T03:48:28Z",
+  "closed_at": "2023-10-13T03:48:28Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1711145144,
+      "user": "adamsau",
+      "created_at": "2023-09-08T06:28:31Z",
+      "body": "@filipecosta90 "
+    },
+    {
+      "id": 1718424400,
+      "user": "hpatro",
+      "created_at": "2023-09-13T23:07:18Z",
+      "body": "@adamsau Thanks for reporting this issue. \r\n\r\nI was able to reproduce the issue. I see this case is not handled when a replica is being moved from one primary to another,  the sharded pubsub state isn't cleaned up. Will get a fix out soon. "
+    }
+  ]
+}

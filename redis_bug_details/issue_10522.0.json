@@ -1,0 +1,18 @@
+{
+  "issue_number": 10522.0,
+  "title": "[BUG] XADD automatic sequence (1-*) doesn't work",
+  "body": "**Describe the bug**\r\n\r\nIt's entirely possible I'm just doing something stupid here, but I believe this may also be a bug. \r\n\r\nI was looking to use specific, pre-determined IDs in a stream, and was interested in using the Redis feature to automatically generate the sequence part, as documented here: https://redis.io/commands/xadd/\r\n\r\nHowever, I've been unable to make it work on my own - and even following the example as written in the documentation, it doesn't seem to work, instead giving you an error:  \"ERR Invalid stream ID specified as stream command argument\r\n\r\n**To reproduce**\r\n\r\nTry and run the example in the documentation:\r\n\r\n```\r\nXADD mystream 1526919030474-55 message \"Hello,\"\r\n\"1526919030474-55\"\r\nXADD mystream 1526919030474-* message \" World!\"\r\nERR Invalid stream ID specified as stream command argument\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe example to work\r\n\r\n**Additional information**\r\n\r\nRedis 6.2.6.\r\n",
+  "state": "closed",
+  "created_at": "2022-04-04T13:43:25Z",
+  "updated_at": "2022-04-04T14:16:02Z",
+  "closed_at": "2022-04-04T14:16:02Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1087605748,
+      "user": "oranagra",
+      "created_at": "2022-04-04T14:08:37Z",
+      "body": "@v-flashpoint look at the history section at the bottom of the docs. this feature was added in redis 7.0"
+    }
+  ]
+}

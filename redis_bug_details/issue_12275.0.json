@@ -1,0 +1,24 @@
+{
+  "issue_number": 12275.0,
+  "title": "[BUG] Redis fails to perform basic arithmetic operation in Lua script",
+  "body": "**Describe the bug**\r\n\r\nLua Script returns value for a key but cant perform basic arithmetic operation\r\n\r\n**To reproduce**\r\nValue is set in redis with following code:\r\n`client.getBucket(keyX).set(2000);`\r\nI could fetch the same value with\r\n`client.getBucket(keyX).get();`\r\n\r\nBu fails on basic arithmetic operation (adding 5 to the number). Throws error - unable to perform arithmetic operation on string.\r\n`String script=\"local limit=redis.call('GET','keyX'); return limit+5;\";`\r\n`String script=\"local limit=redis.call('GET','keyX'); return tonumber(limit)+5;\";`\r\n\r\nBut if for the same key, I just return value limit without any operation it returns value.\r\n`String script=\"local limit=redis.call('GET','keyX'); return limit;\";`\r\n\r\nSimilarly, If I just try to return value converting it with **tonumber**, fails. Throws error - unable to perform arithmetic operation on nil value.\r\n`String script=\"local limit=redis.call('GET','keyX'); return tonumber(limit);\";`\r\n\r\nFor all above scenarios, I have tried it using redis-cli & redis java client redisson. Both are giving same error.\r\nWith redis-cli, running command as follows:\r\n`eval \"script\" 0`\r\n\r\nWith redisson java client, code is as follows:\r\n`RScript rScript = client.getScript(); `\r\n`String scriptSHA = rScript.scriptLoad(script);`\r\n`Object quotaObj = rScript.evalSha(RScript.Mode.READ_WRITE, scriptSHA, RScript.ReturnType.VALUE);`\r\n\r\n**Expected behavior**\r\n\r\nIt should return a value with arithmetic operation, at least after using **tonumber** function\r\n\r\n**Additional information**\r\n\r\nClient is with redis cluster mode config.\r\nRedis-cli version 7.0.0\r\nRedisson 3.21.0\r\nRedis is deployed in master-slave mode with 3 masters & 3 slaves.\r\n",
+  "state": "closed",
+  "created_at": "2023-06-07T02:24:25Z",
+  "updated_at": "2023-06-12T16:15:00Z",
+  "closed_at": "2023-06-12T16:14:33Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1580780054,
+      "user": "itamarhaber",
+      "created_at": "2023-06-07T13:07:12Z",
+      "body": "Hello @Abhijeet104,\r\n\r\nI cannot reproduce this, works as expected:\r\n\r\n```\r\n127.0.0.1:6379> SET keyX 2000\r\nOK\r\n127.0.0.1:6379> GET keyX\r\n\"2000\"\r\n(integer) 2005\r\n127.0.0.1:6379> EVAL \"local limit=redis.call('GET','keyX'); return limit;\" 0\r\n\"2000\"\r\n127.0.0.1:6379> EVAL \"local limit=redis.call('GET','keyX'); return limit+5;\" 0\r\n(integer) 2005\r\n127.0.0.1:6379> EVAL \"local limit=redis.call('GET','keyX'); return tonumber(limit)+5;\" 0\r\n(integer) 2005\r\n```\r\n\r\nNote that the \"unable to perform arithmetic operation on string\" error is probably due to having a non-number value stored at *keyX*.\r\nSimilarly, the \"unable to perform arithmetic operation on nil value\" error is because *keyX* doesn't exist.\r\nYour experience is most likely due to not setting up *keyX* with a number value in some of your tests."
+    },
+    {
+      "id": 1587650050,
+      "user": "Abhijeet104",
+      "created_at": "2023-06-12T16:14:33Z",
+      "body": "As I told in the question, value was being set using redisson client & for some calculation Lua script was used.\r\n\r\nFound the problem.\r\nRedisson encodes while setting value by default, that was causing issue. Since value for keyX was encoded, so even if value was some number & after encoding it became some random string, which could not be converted into number at Redis during Lua script execution. Hence the error.\r\nProblem got solved after changing the value set code as follows(using some codec)\r\n`client.getBucket(keyX,StringCodec.INSTANCE).set(2000);`\r\nand get the value in same fashion.\r\n"
+    }
+  ]
+}

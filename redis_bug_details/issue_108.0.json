@@ -1,0 +1,57 @@
+{
+  "issue_number": 108.0,
+  "title": "Sorted sets can contain elements with a NaN score under unknown conditions (was: Redis crash)",
+  "body": "After a period of sustained load my redis-server (running on 32 bit Ubuntu 11.04) is crashing.  I can't pin down the exact command that is causing it but it's probably a combination of sadd, zadd and hset.  It's whilst running a batch job and doesn't seem to occur at the same point in the job each time.\n\nThe best information I can provide is probably the log at the point of the crash:\n\n```[12859] 29 Sep 14:31:15 # === ASSERTION FAILED ===\n[12859] 29 Sep 14:31:15 # ==> t_zset.c:474 'deleted != 0' is not true\n[12859] 29 Sep 14:31:15 # (forcing SIGSEGV in order to print the stack trace)\n[12859] 29 Sep 14:31:15 # ======= Ooops! Redis 2.2.11 got signal: -11- =======\n[12859] 29 Sep 14:31:15 # redis_version:2.2.11\nredis_git_sha1:00000000\nredis_git_dirty:0\narch_bits:32\nmultiplexing_api:epoll\nprocess_id:12859\nuptime_in_seconds:45\nuptime_in_days:0\nlru_clock:1706883\nused_cpu_sys:11.44\nused_cpu_user:8.41\nused_cpu_sys_childrens:0.00\nused_cpu_user_childrens:0.00\nconnected_clients:11\nconnected_slaves:0\nclient_longest_output_list:0\nclient_biggest_input_buf:82\nblocked_clients:1\nused_memory:878230144\nused_memory_human:837.55M\nused_memory_rss:998580224\nmem_fragmentation_ratio:1.14\nuse_tcmalloc:0\nloading:0\naof_enabled:0\nchanges_since_last_save:270430\nbgsave_in_progress:0\nlast_save_time:1317303030\nbgrewriteaof_in_progress:0\ntotal_connections_received:185\ntotal_commands_processed:774739\nexpired_keys:0\nevicted_keys:0\nkeyspace_hits:463811\nkeyspace_misses:49547\nhash_max_zipmap_entries:64\nhash_max_zipmap_value:512\npubsub_channels:0\npubsub_patterns:0\nvm_enabled:0\nrole:master\nallocation_stats:2=262652,4=296824,6=6,7=12432,8=464204,9=52822,10=612662,11=472858,12=17406017,13=1867\n\n```\n```\n",
+  "state": "closed",
+  "created_at": "2011-09-29T14:59:52Z",
+  "updated_at": "2012-04-25T05:02:13Z",
+  "closed_at": "2012-04-25T05:02:13Z",
+  "labels": [
+    "critical bug",
+    "WAITING-OP-REPLY"
+  ],
+  "comments_data": [
+    {
+      "id": 2241138,
+      "user": "antirez",
+      "created_at": "2011-09-29T18:02:11Z",
+      "body": "Tom thank you for submitting this crash report!\n\nWe are already investigating on it, in the meantime it would help if you could try it against the latest 2.2 release.\nMy theory is that the bug is present even in never Redis versions, but it is definitely worth a try.\nAnother thing that is very important to know is how easy is for you to trigger the bug. If we'll have no luck simulating the conditions leading to the crash, or statically analyzing the code to understand what is wrong, the last resort can be to ask for help to you and check if you can perform some investigation (for instance running Redis over the gdb debugger, or running modified versions of Redis that are able to give use more information when the crash happens).\n\nThanks,\nSalvatore\n"
+    },
+    {
+      "id": 2241149,
+      "user": "antirez",
+      "created_at": "2011-09-29T18:03:15Z",
+      "body": "Oh, I forgot about a very important thing. In your Redis log you should ass a backtrace of the functions called when the bug happened. This would be very helpful to have as well. Thanks in advance.\n"
+    },
+    {
+      "id": 2288390,
+      "user": "pietern",
+      "created_at": "2011-10-04T16:28:39Z",
+      "body": "We've traced this to a ZADD that overwrites an existing member/score pair where the score == NaN. This pair cannot be deleted from the sorted set (supposedly NaN != NaN). Next up: figuring out how the NaN score ends up in the sorted set in the first place...\n"
+    },
+    {
+      "id": 2296215,
+      "user": "antirez",
+      "created_at": "2011-10-05T09:45:05Z",
+      "body": "Used the morning to investigate the issue. I can't find how it is possible that a NaN was set as score of the sorted set, as both our function to convert an object into a double, and the other functions performing aggregates on sorted set scores, test for the NaN condition. Only dubious thing I was able to spot is that the function to get a double from an object if the object is integer encoded does a simple cast between the long and the double type, but it is unlikely that this results into a NaN AFAIK. So no luck for now. On the other hand the issue is really unlikely to happen, but it could be very cool to figure this out soon or later. I'll investigate it more in the next days.\n"
+    },
+    {
+      "id": 2296228,
+      "user": "pietern",
+      "created_at": "2011-10-05T09:47:10Z",
+      "body": "Maybe we can throw in an assertion in `zslInsert` for `!isnan(score)`? That could give us a stacktrace for the responsible code.\n"
+    },
+    {
+      "id": 2296255,
+      "user": "antirez",
+      "created_at": "2011-10-05T09:51:55Z",
+      "body": "Unfortunately I think that a stack trace is not going to help us there, unless we spot the exact sequence of commands and arguments actually leading to the computation of the NaN. Well actually at least we'll know if it is ZADD or ZINCR causing the issue...\n"
+    },
+    {
+      "id": 5324430,
+      "user": "pietern",
+      "created_at": "2012-04-25T05:02:13Z",
+      "body": "This was fixed in 2.4.5. See this commit for more information: 0692d060b3d374bb3bb4e2b48b55c2ad98276660.\n"
+    }
+  ]
+}

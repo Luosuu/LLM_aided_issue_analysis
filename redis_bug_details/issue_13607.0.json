@@ -1,0 +1,18 @@
+{
+  "issue_number": 13607.0,
+  "title": "[BUG]7.4 sort in cluster mode should ignore: get # while doing slot comparison ",
+  "body": "**Describe the bug**\r\n\r\nin 7.4 redis cluster ， the get patterns in sort command will  mapped to slots, but the special pattern: # should be ignored。 \r\n\r\n**To reproduce**\r\n\r\n7.4.1 cluster\r\n```\r\n127.0.0.1:6379> sort mylist by {mylist}price_* get {mylist}price_* get #\r\n(error) ERR GET option of SORT denied in Cluster mode when keys formed by the pattern may be in different slots.\r\n```\r\n\r\n**code change**\r\nin file# sort.c: 245\r\n```\r\n            if (server.cluster_enabled && patternHashSlot(c->argv[j+1]->ptr, sdslen(c->argv[j+1]->ptr)) != getKeySlot(c->argv[1]->ptr)) {\r\n```\r\nchange to\r\n```\r\n           if (server.cluster_enabled && patternHashSlot(c->argv[j+1]->ptr, sdslen(c->argv[j+1]->ptr)) != getKeySlot(c->argv[1]->ptr) && strcasecmp(c->argv[j+1]->ptr,\"#\")) {\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2024-10-16T08:28:52Z",
+  "updated_at": "2024-10-22T01:55:01Z",
+  "closed_at": "2024-10-22T01:55:01Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2416307376,
+      "user": "sundb",
+      "created_at": "2024-10-16T09:52:41Z",
+      "body": "@opt-m welcome to make a PR to fix it. thanks."
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 13107.0,
+  "title": "[BUG] Faied to test for arm64 COW bug",
+  "body": "**Describe the bug**\r\n\r\nI get \r\n\r\n```\r\nWARNING: Your kernel does not support swap limit capabilities or the cgroup is not mounted. Memory limited without swap.\r\n1:C 04 Mar 2024 01:06:13.769 # Failed to test the kernel for a bug that could lead to data corruption during background save. Your system could be affected, please report this error.\r\n1:C 04 Mar 2024 01:06:13.770 # Redis will now exit to prevent data corruption. Note that it is possible to suppress this warning by setting the following config: ignore-warnings ARM64-COW-BUG\r\n```\r\n\r\n**To reproduce**\r\n\r\n\r\nWhen I run \r\n\r\n```\r\ndocker run -p 6379:6379 --memory=100m --memory-reservation=100m --rm arm64v8/redis\r\n```\r\n\r\n**Expected behavior**\r\n\r\nBe able to tell me if my kernel is affected or not\r\n\r\n**Additional information**\r\n\r\n```\r\n$ uname -a \r\nLinux OpenWrt 6.1.78 #0 SMP Mon Feb 19 19:52:06 2024 aarch64 GNU/Linux\r\n```\r\n\r\nThis is on a Banana Pi R4 router\r\n\r\nLet me know if there is any other info I can gather. I worked around it with the config key ARM64-COW-BUG",
+  "state": "open",
+  "created_at": "2024-03-04T02:54:52Z",
+  "updated_at": "2024-03-06T06:07:58Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1975736406,
+      "user": "sundb",
+      "created_at": "2024-03-04T05:00:51Z",
+      "body": "the short answer is yes.\r\nplease refer to https://github.com/redis/redis/issues/8351 and  https://github.com/redis/redis/issues/8406"
+    },
+    {
+      "id": 1980152312,
+      "user": "russelltg",
+      "created_at": "2024-03-06T06:07:57Z",
+      "body": "I dug into this more--I compiled it directly for the target device (no docker anymore) and get the same issue. `strace -f` shows `[pid 26537] openat(AT_FDCWD, \"/proc/self/smaps\", O_RDONLY|O_LARGEFILE) = -1 ENOENT (No such file or directory)` being the root of the issue. It seems my kernel is not compiled with `CONFIG_PROC_PAGE_MONITOR`, which provides /proc/self/smaps.\r\n\r\nI would be content with an added warning something like \"your kernel is not compiled with CONFIG_PROC_PAGE_MONITOR, so unable to check for this kernel bug. Check if your kernel contains ff1712f953e27f0b0718762ec17d0adb15c9fd0b, then set ignore-warnings: ARM64-COW-BUG in your config\"\r\n\r\nObviously ideally there is a way to do this without CONFIG_PROC_PAGE_MONITOR, but I understand that my usecase of running redis on a router is a bit unique :)"
+    }
+  ]
+}

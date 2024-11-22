@@ -1,0 +1,18 @@
+{
+  "issue_number": 10680.0,
+  "title": "[BUG] cluster shards returns slots as strings, not integers",
+  "body": "**Describe the bug**\r\n\r\nWhen I run cluster shards on a build from the 7.0.0 tag, I get strings from slot values, not integers.\r\n\r\ndocumentation is pretty clear that they should be integers https://redis.io/commands/cluster-shards/ (that also seems like it should be the right thing in general)\r\n\r\n**To reproduce**\r\n\r\n```\r\n127.0.0.1:5001> cluster shards\r\n1) 1) \"slots\"\r\n   2) 1) \"0\"\r\n      2) \"16383\"\r\n   3) \"nodes\"\r\n   4) 1)  1) \"id\"\r\n          2) \"4efebd0607d716c3f95e25598400a6f1fbd06d5b\"\r\n          3) \"port\"\r\n          4) (integer) 5001\r\n          5) \"ip\"\r\n          6) \"\"\r\n          7) \"endpoint\"\r\n          8) \"\"\r\n          9) \"hostname\"\r\n         10) \"\"\r\n         11) \"role\"\r\n         12) \"master\"\r\n         13) \"replication-offset\"\r\n         14) (integer) 0\r\n         15) \"health\"\r\n         16) \"online\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\n0/16383 in slots array should be integers.\r\n\r\n**Additional information**\r\n\r\nbuild info Redis 7.0.0 (d375595d/0) 64 bit\r\n",
+  "state": "closed",
+  "created_at": "2022-05-05T10:02:52Z",
+  "updated_at": "2022-05-10T11:22:01Z",
+  "closed_at": "2022-05-10T11:22:01Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1118641256,
+      "user": "enjoy-binbin",
+      "created_at": "2022-05-05T14:43:25Z",
+      "body": "https://github.com/redis/redis/blob/ff3a3577f29a07e965b3b38d07894410d28da499/src/cluster.c#L5067-L5078\r\n\r\nyes.. look like we should use `addReplyLongLong`, introduced in https://github.com/redis/redis/pull/10293#pullrequestreview-963484288\r\nthis will be a breaking change, but i think we should fix it if not intentional, otherwise we fix the doc\r\n"
+    }
+  ]
+}

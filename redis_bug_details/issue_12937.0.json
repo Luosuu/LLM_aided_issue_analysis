@@ -1,0 +1,30 @@
+{
+  "issue_number": 12937.0,
+  "title": "[BUG] Redis partial sync not working when doing manual failover",
+  "body": "**Describe the bug**\r\n\r\nWhen doing manual failover `cluster failover`, the partial sync is not working, and replica is doing full sync, even when only RDB is enabled.\r\n\r\nBelow are the logs from replica:\r\n\r\n1459881:1459887:S 11 Jan 2024 16:57:22.875 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.\r\n1459881:1459887:S 11 Jan 2024 16:57:22.875 * Connecting to MASTER 172.20.0.9:6380\r\n1459881:1459887:S 11 Jan 2024 16:57:22.875 * MASTER <-> REPLICA sync started\r\n1459881:1459887:S 11 Jan 2024 16:57:22.875 # Cluster state changed: ok\r\n1459881:1459887:S 11 Jan 2024 16:57:22.885 * Non blocking connect for SYNC fired the event.\r\n1459881:1459887:S 11 Jan 2024 16:57:22.885 * Master replied to PING, replication can continue...\r\n1459881:1459887:S 11 Jan 2024 16:57:22.885 * Trying a partial resynchronization (request 96323751e90c0c3643983fa464fbf4801e2fc303:1).\r\n1459881:1459887:S 11 Jan 2024 16:57:22.924 * Full resync from master: df18ec4f5fdf0a9b1ce11a0766ebe7c2c38e74b7:139283664859\r\n1459881:1459887:S 11 Jan 2024 16:57:22.924 * Discarding previously cached master state.\r\n\r\nFollowing are imp settings in redis.conf:\r\n\r\nappendonly no\r\nsave 3600 1\r\nrepl-backlog-size 35000000\r\n\r\nRedis version 6.\r\n\r\nTo perform the failover I am using Redis python package - https://pypi.org/project/redis/\r\nredis_connection.cluster_failover(clusternode)",
+  "state": "open",
+  "created_at": "2024-01-12T00:05:01Z",
+  "updated_at": "2024-01-18T10:44:24Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1893991638,
+      "user": "javedsha",
+      "created_at": "2024-01-16T15:35:25Z",
+      "body": "Can someone please help to troubleshoot this?"
+    },
+    {
+      "id": 1897351594,
+      "user": "javedsha",
+      "created_at": "2024-01-17T23:09:32Z",
+      "body": "@oranagra not sure whom to tag for help. Can you pls help on this issue."
+    },
+    {
+      "id": 1898232547,
+      "user": "oranagra",
+      "created_at": "2024-01-18T10:44:23Z",
+      "body": "i'm assuming there's not much traffic at at that time and that it's not a backlog issue.\r\ni see it requests a repl offset of `1`, and gets `139283664859`, so it looks like a bug (or a feature that wasn't yet supported).\r\nthis version is a little bit old, and i don't recall if this was already fixed in a newer one. maybe @madolson remembers / knows more?"
+    }
+  ]
+}

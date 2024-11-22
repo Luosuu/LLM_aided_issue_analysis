@@ -1,0 +1,24 @@
+{
+  "issue_number": 9782.0,
+  "title": "[BUG] Redis Ubuntu Focal APT repository keeps giving error ",
+  "body": "**Describe the bug**\r\n\r\nRunning `apt-get update` on Ubuntu Focal with redis apt repository configures returns an error:\r\n```\r\nE: Failed to fetch https://packages.redis.io/deb/dists/focal/main/binary-amd64/Packages.gz  File has unexpected size (4442 != 3535). Mirror sync in progress? [IP: 18.67.76.25 443]\r\n   Hashes of expected file:\r\n    - Filesize:3535 [weak]\r\n    - SHA256:a26996b5a6f1d2ea80061df43f48a7e82d12a05121167d946dbc9043d9f160f7\r\n    - SHA1:7a65af673c15391296a5f5736e21973196591f4d [weak]\r\n    - MD5Sum:b4ec325e905591d8b2e74a6a7186b489 [weak]\r\n   Release file created at: Mon, 04 Oct 2021 11:56:17 +0000\r\nE: Failed to fetch https://packages.redis.io/deb/dists/focal/main/binary-all/Packages.gz\r\nE: Some index files failed to download. They have been ignored, or old ones used instead.\r\n```\r\n\r\n**To reproduce**\r\n\r\n1. Install Ubuntu Focal (likely reproducible on other Debian-based systems as well when using Focal's apt repository)\r\n2.\r\n```\r\n$ curl https://packages.redis.io/gpg | sudo apt-key add -\r\n$ echo \"deb https://packages.redis.io/deb focal main\" | sudo tee /etc/apt/sources.list.d/redis.list\r\n$ sudo apt-get update\r\n```\r\n\r\n**Expected behavior**\r\n\r\nNo error from running `apt-get update`",
+  "state": "closed",
+  "created_at": "2021-11-15T20:45:21Z",
+  "updated_at": "2023-04-15T16:58:22Z",
+  "closed_at": "2021-11-16T08:07:01Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 969987967,
+      "user": "yossigo",
+      "created_at": "2021-11-16T08:07:01Z",
+      "body": "Seems like some caching issue on the repo, fixed now."
+    },
+    {
+      "id": 1509892806,
+      "user": "nadzhou",
+      "created_at": "2023-04-15T16:58:22Z",
+      "body": "thanks, also solved my problem. "
+    }
+  ]
+}

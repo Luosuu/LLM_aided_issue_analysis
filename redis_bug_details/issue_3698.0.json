@@ -1,0 +1,33 @@
+{
+  "issue_number": 3698.0,
+  "title": "GEO edge case radius query does not report certain near-edge points",
+  "body": "After recent fixes to Geo algorithms I added big-radius queries in the fuzz tester. Eventually, by running continuously in the CI, it found an edge case for which certain points are not reported as expected (compared to the Tcl brute-force implementation checkin all the points for distance).\r\n\r\nThis is the edge case and the seeds in order to reproduce the problem:\r\n\r\n```\r\nsrand_seed is 1482225976969\r\nSearch area: 81.634948934258375,30.561509253718668 7083 km\r\n```\r\n\r\nOnly points which are at the extreme of the area are not correctly reported. A few examples:\r\n\r\n```\r\nplace:10008 -> {-7.337169349193573 63.86499528549782667} 6940.6271375413435 (only in Tcl)\r\nplace:10152 -> {-8.6000552773475647 69.57130910795007139} 6854.2383971127529 (only in Tcl)\r\nplace:10814 -> {-10.33513337373733521 68.99680188358010469} 6934.9467768028053 (only in Tcl)\r\nplace:10856 -> {-1.27579540014266968 61.33421815228281559} 6694.7483570262984 (only in Tcl)\r\nplace:11072 -> {-7.27244764566421509 66.87101996248310343} 6862.9834162352963 (only in Tcl)\r\nplace:11329 -> {-1.42766743898391724 48.6846567205055436} 7031.7334931251607 (only in Tcl)\r\nplace:11475 -> {-2.83894926309585571 64.45400111489921358} 6713.8731207379215 (only in Tcl)\r\nplace:11503 -> {-7.67988055944442749 63.88548597134992235} 6956.3777703553933 (only in Tcl)\r\n```\r\n\r\nOther points are correctly reported.",
+  "state": "closed",
+  "created_at": "2016-12-20T11:29:05Z",
+  "updated_at": "2017-07-03T17:43:44Z",
+  "closed_at": "2017-07-03T17:43:44Z",
+  "labels": [
+    "non critical bug",
+    "geo"
+  ],
+  "comments_data": [
+    {
+      "id": 268222320,
+      "user": "antirez",
+      "created_at": "2016-12-20T11:38:43Z",
+      "body": "Note to self, full bug report is at `redis/misc/issue-3698/bug.txt`."
+    },
+    {
+      "id": 268579085,
+      "user": "antirez",
+      "created_at": "2016-12-21T17:12:19Z",
+      "body": "Another one:\r\n\r\n```\r\nsrand_seed is 1482340074151\r\nSearch area: -70.863281847379767,-46.347003465679947 5416 km\r\n```\r\n\r\nEDIT: Initially this seemed like 32-bit only. Actually reproduced in 64-bit, so it's an algorithm error."
+    },
+    {
+      "id": 312623583,
+      "user": "antirez",
+      "created_at": "2017-07-03T11:39:45Z",
+      "body": "```\r\nsrand_seed is 1499014685896\r\nSearch area: -89.818768962202014,-40.463868561416803 6064 km\r\n```"
+    }
+  ]
+}

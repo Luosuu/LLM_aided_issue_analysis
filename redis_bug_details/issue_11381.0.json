@@ -1,0 +1,74 @@
+{
+  "issue_number": 11381.0,
+  "title": "[BUG] lua-5.1.1 has some unaddressed security vulnerabilties in redis",
+  "body": "**Describe the bug**\r\nredis is affected by CVE-2020-15888\r\n\r\nA short description of the bug.\r\n** Security issue **\r\nredis uses lua-5.1.1. OSSPI scan results (https://ussm.gsa.gov/about/)  show that redis is affected by CVE-2020-15888.\r\n\r\n**To reproduce**\r\nPlease check https://www.cvedetails.com/cve/CVE-2020-15888/ and follow the POC examples from lua mailing list.\r\n\r\n**Additional information**\r\n\r\nAny plans on upgrading lua to latest or at least to a recent version in redis? Please assist.",
+  "state": "closed",
+  "created_at": "2022-10-12T11:39:34Z",
+  "updated_at": "2022-10-13T09:23:44Z",
+  "closed_at": "2022-10-12T12:47:17Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1276040218,
+      "user": "sshedi",
+      "created_at": "2022-10-12T11:56:42Z",
+      "body": "@antirez @oranagra @pietern can you guys please take a look at this issue?\r\nUbuntu security advisory says it's no problem https://ubuntu.com/security/CVE-2020-15888\r\n\r\nBut the federal security scan tool says otherwise."
+    },
+    {
+      "id": 1276064844,
+      "user": "oranagra",
+      "created_at": "2022-10-12T12:15:06Z",
+      "body": "@sshedi it was recently discussed here: https://github.com/redis/redis/issues/11287#issuecomment-1253892662\r\ni think the text in the CVE is misleading, and it only applies to 5.4."
+    },
+    {
+      "id": 1276070279,
+      "user": "oranagra",
+      "created_at": "2022-10-12T12:19:14Z",
+      "body": "> To reproduce\r\n> Please check https://www.cvedetails.com/cve/CVE-2020-15888/ and follow the POC examples from lua mailing list.\r\n\r\ndid you actually try that? AFAIK @MeirShpilraien did and failed to reproduce it.\r\n\r\n> Additional information\r\n> Any plans on upgrading lua to latest or at least to a recent version in redis? Please assist.\r\n\r\nLua 5.4 is not backwards compatible with Lua 5.1, so we do not have any plans to upgrade it.\r\nmore info here: https://github.com/redis/redis/issues/7382#issuecomment-1211567217"
+    },
+    {
+      "id": 1276118331,
+      "user": "sshedi",
+      "created_at": "2022-10-12T12:47:17Z",
+      "body": "Thanks a lot for your quick responses  @oranagra\r\nI think I tried the POC with lua-5.1 but I should have tried with lua-5.1.5.\r\n\r\nBut it will be a good thing to move on to latest version of lua.\r\nlua-5.1.5 was released 10 years back. Thanks again."
+    },
+    {
+      "id": 1276142354,
+      "user": "oranagra",
+      "created_at": "2022-10-12T13:03:35Z",
+      "body": "> I think I tried the POC with lua-5.1 but I should have tried with lua-5.1.5.\r\n\r\nso did you succeed in reproducing any problem with 5.1?"
+    },
+    {
+      "id": 1276220955,
+      "user": "oranagra",
+      "created_at": "2022-10-12T13:57:22Z",
+      "body": "btw, looking at Ubuntu and Debian, looks like they reached the same conclusions\r\n\r\nhttps://ubuntu.com/security/CVE-2020-15888:\r\n> couldn't reproduce on lua earlier than 5.4. No indication that\r\nearlier versions are vulnerable. Marking not-affected.\r\n\r\nhttps://tracker.debian.org/media/packages/l/lua5.1/changelog-5.1.5-9\r\nthe only backport is for CVE-2014-5461\r\n"
+    },
+    {
+      "id": 1276235295,
+      "user": "sshedi",
+      "created_at": "2022-10-12T14:02:32Z",
+      "body": "With the poc in this link:\r\n\r\nhttp://lua-users.org/lists/lua-l/2020-07/msg00054.html\r\n\r\nAnd lua-5.1, I got a seg fault from lua.\r\n\r\n```\r\nwget https://www.lua.org/ftp/lua-5.1.tar.gz\r\ntar xf lua-5.1.tar.gz && cd lua-5.1 && make linux -j8\r\ncd src && ./lua poc.lua\r\n```\r\n\r\nI'm getting following output:\r\n```\r\n$ ./lua poc.lua\r\nrealloc(): invalid next size\r\nAborted (core dumped)\r\n```\r\nI'm using `gcc-7.3.0`"
+    },
+    {
+      "id": 1277206897,
+      "user": "MeirShpilraien",
+      "created_at": "2022-10-13T08:09:35Z",
+      "body": "We checked it already and its not crashing on 5.1.5, also run it with valgrind no warnings."
+    },
+    {
+      "id": 1277300072,
+      "user": "yossigo",
+      "created_at": "2022-10-13T09:20:48Z",
+      "body": "I agree this is a false positive.\r\n@sshedi Do you happen to know if there's  way to report it as such to the OSSPI developers?\r\nRegarding Lua 5.4, we do not upgrade because Lua versions are not backwards compatible so many existing scripts will break if we do."
+    },
+    {
+      "id": 1277303433,
+      "user": "sshedi",
+      "created_at": "2022-10-13T09:23:44Z",
+      "body": "We got this issue reported from one of our internal team; they will take it forward and report it as a false positive to OSSPI.\r\nThanks @yossigo "
+    }
+  ]
+}

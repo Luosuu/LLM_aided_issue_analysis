@@ -1,0 +1,24 @@
+{
+  "issue_number": 13259.0,
+  "title": "[BUG]There is a memory leak defect at line 3615 in the file /redis/src/redis-cli.c.",
+  "body": "**Describe the bug**\r\n\r\nAt line 3540 in the file /redis/src/redis-cli.c, a pointer variable named argv2 is defined. This pointer variable is assigned a dynamically allocated memory block using the zmalloc function at line 3580. The program uses this pointer in the issueCommand function at line 3595. When the program returns at line 3615, the dynamically allocated memory pointed to by argv2 is not freed, leading to a memory leak defect, as illustrated in the diagram below:\r\nhttps://github.com/LuMingYinDetect/redis_defects/blob/main/redis_2.png\r\n\r\n**To reproduce**\r\n\r\nThe detection tool I'm using is the Clang Static Analyzer, which employs static analysis techniques. The tool's defect reports provide the path that triggers the defect. Based on the aforementioned path, the defect can be reproduced.\r\n\r\n**Expected behavior**\r\n\r\nIf the defect is confirmed, it is advisable to address it by making necessary fixes.",
+  "state": "open",
+  "created_at": "2024-05-11T02:28:05Z",
+  "updated_at": "2024-05-11T03:29:45Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2105504762,
+      "user": "sundb",
+      "created_at": "2024-05-11T03:12:40Z",
+      "body": "@LuMingYinDetect thanks, let's fix it in #13258 together."
+    },
+    {
+      "id": 2105511451,
+      "user": "LuMingYinDetect",
+      "created_at": "2024-05-11T03:29:44Z",
+      "body": "> @LuMingYinDetect thanks, let's fix it in #13258 together.\r\n\r\nThank you for your prompt response! I have fixed the issue and synced it to the pull request."
+    }
+  ]
+}

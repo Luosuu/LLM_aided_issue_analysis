@@ -1,0 +1,62 @@
+{
+  "issue_number": 11662.0,
+  "title": "[BUG] Snapshot not disabled when configuration parameter save is \"\"",
+  "body": "**Describe the bug**\r\nUsing Redis 6.2.2,  dump.rdb is still produced when save is a empty string \"\"\r\n```\r\nredis-cli --no-auth-warning -u redis://admin:<password>@10.25.97.216:6379 config get save\r\n1) \"save\"\r\n2) \"\"\r\n```\r\n\r\n`ssh 10.25.97.216 \"du -h redisCluster6379/dump.rdb\"\r\n32K\tredisCluster6379/dump.rdb`\r\n\r\n**To reproduce**\r\n\r\n- start redis server with configuration `save \"\"`\r\n- write data to the redis server\r\n- see there is a dump.rdb in the working directory of redis server\r\n\r\n**Expected behavior**\r\ndump.rdb should not be there in the working directory.\r\n\r\n**Additional information**\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-12-29T00:00:39Z",
+  "updated_at": "2023-01-03T19:19:12Z",
+  "closed_at": "2023-01-03T19:19:12Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1367081886,
+      "user": "sundb",
+      "created_at": "2022-12-29T05:29:49Z",
+      "body": "Did you execute `SAVE` command? You can use `INFO Commandstat` command to check it."
+    },
+    {
+      "id": 1367493011,
+      "user": "jgaoIXL",
+      "created_at": "2022-12-29T17:54:31Z",
+      "body": "> INFO Commandstat\r\n\r\nI checked and there wasn't a save executed, so dump.rdb is not supposed to be there if in redis.conf, save is configured to be \"\" in 6.2.2, is that correct?"
+    },
+    {
+      "id": 1367501634,
+      "user": "jgaoIXL",
+      "created_at": "2022-12-29T18:10:49Z",
+      "body": "@sundb I see this issue being resolved but this was never released, correct?\r\n"
+    },
+    {
+      "id": 1367680225,
+      "user": "sundb",
+      "created_at": "2022-12-30T01:52:53Z",
+      "body": "@jgaoIXL Not really, AFAIK, I haven't seen any similar issues before this.\r\n`save \"\"` just means that redis will not automatically save, when you manually execute the \"SAVE\" command, the dump file will still be generated."
+    },
+    {
+      "id": 1369437988,
+      "user": "oranagra",
+      "created_at": "2023-01-03T06:43:44Z",
+      "body": "another way an rdb file can be generated is during replication (both master and replica).\r\nunless the `rdb-del-sync-files` config is set.\r\ncould that be the reason in your case?"
+    },
+    {
+      "id": 1370043399,
+      "user": "jgaoIXL",
+      "created_at": "2023-01-03T17:33:00Z",
+      "body": "> another way an rdb file can be generated is during replication (both master and replica). unless the `rdb-del-sync-files` config is set. could that be the reason in your case?\r\n\r\nYes, that is exaclty what happened, thanks for the reply and if we enable `rdb-del-sync-files` how soon will the dump.rdb be removed? "
+    },
+    {
+      "id": 1370112437,
+      "user": "oranagra",
+      "created_at": "2023-01-03T18:50:24Z",
+      "body": "it will not remove old ones, just avoid creating new ones (or actually delete them as soon as it's done using them).\r\nthe other alternative to completely avoid having these files is use diskless replication (`repl-diskless-sync` and `repl-diskless-load`)"
+    },
+    {
+      "id": 1370114435,
+      "user": "jgaoIXL",
+      "created_at": "2023-01-03T18:52:45Z",
+      "body": "> it will not remove old ones, just avoid creating new ones (or actually delete them as soon as it's done using them). the other alternative to completely avoid having these files is use diskless replication (`repl-diskless-sync` and `repl-diskless-load`)\r\n\r\nGot it, I think rdb-del-sync-files  is good enough, thank you!"
+    }
+  ]
+}

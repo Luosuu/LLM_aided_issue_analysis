@@ -1,0 +1,82 @@
+{
+  "issue_number": 5301.0,
+  "title": "Lua set question when using min-slaves-to-write configure.",
+  "body": "I use Redis 4.0.10 and find something wrong when using Lua script.\r\nusing the following steps:\r\n\r\n1. set the configure with \"min-slaves-to-write=1\".\r\n2. start redis as master with no slave.\r\n3. I use redis-cli to execute \"SET test testval\", return \"(error) NOREPLICAS Not enough good slaves to write.\" as I hoped.\r\n4.  I use lua to call \"./redis-cli --eval write.lua test , testval\", but write success without error. The script:\r\nredis.cal(\"SET\", KEYS[1], ARGV[1])\r\n5. I can get the key write in lua script.\r\n\r\nI think I should get an error when using lua script. Is it a bug in Redis?",
+  "state": "open",
+  "created_at": "2018-08-31T02:40:55Z",
+  "updated_at": "2020-02-04T14:38:04Z",
+  "closed_at": null,
+  "labels": [
+    "critical bug",
+    "replication",
+    "scripting"
+  ],
+  "comments_data": [
+    {
+      "id": 417534226,
+      "user": "itamarhaber",
+      "created_at": "2018-08-31T02:47:58Z",
+      "body": "Hello @evedark1 \r\n\r\nHaven't tried reproducing, but if that's the case this is definitely an issue /cc @antirez @soloestoy @oranagra @yossigo "
+    },
+    {
+      "id": 417538892,
+      "user": "soloestoy",
+      "created_at": "2018-08-31T03:16:21Z",
+      "body": "That's because the check about `min-slaves-to-write` is in `processCommand`:\r\n\r\n```c\r\nint processCommand(client *c) {\r\n...\r\n    /* Don't accept write commands if there are not enough good slaves and\r\n     * user configured the min-slaves-to-write option. */\r\n    if (server.masterhost == NULL &&\r\n        server.repl_min_slaves_to_write &&\r\n        server.repl_min_slaves_max_lag &&\r\n        c->cmd->flags & CMD_WRITE &&\r\n        server.repl_good_slaves_count < server.repl_min_slaves_to_write)\r\n    {\r\n        flagTransaction(c);\r\n        addReply(c, shared.noreplicaserr);\r\n        return C_OK;\r\n    }\r\n```\r\n\r\nBut eval is not a write command, and in Lua script, redis.call()->`luaRedisGenericCommand`, we directly use function `call()` and round the check..."
+    },
+    {
+      "id": 417539712,
+      "user": "soloestoy",
+      "created_at": "2018-08-31T03:22:04Z",
+      "body": "At first I think we can fix it just copy the check and put the codes in `luaRedisGenericCommand`, but there are many other checks in `processCommand `, and `EXEC` also has the problem.\r\n\r\n@antirez maybe we need a new way to check the write commands?"
+    },
+    {
+      "id": 417906802,
+      "user": "oranagra",
+      "created_at": "2018-09-02T05:47:19Z",
+      "body": "Introducing more checks before executing commands inside lua scripts we may be facing more problems like #5250 and #1875.\r\ni.e. we can't fail a redis command in a script due to a local condition inside that server (which may be different on the master and slave), we can only do that based on the contents of the dataset."
+    },
+    {
+      "id": 418029489,
+      "user": "soloestoy",
+      "created_at": "2018-09-03T07:44:44Z",
+      "body": ">Introducing more checks before executing commands inside lua scripts we may be facing more problems like #5250 and #1875.\r\n\r\n@oranagra I agree with you, so just let it go."
+    },
+    {
+      "id": 418042699,
+      "user": "antirez",
+      "created_at": "2018-09-03T08:35:59Z",
+      "body": "Hello @evedark1, yes, that's a bug. Thanks for reporting, I'll work on it ASAP to resolve it and backport the fix to Redis 4. Moreover the bug is quite critical, because Lua scripting completely bypasses a very important write condition that you can setup in your master. However I need to check with more care about what could be a good way to fix it indeed... Not sure if it's a good idea to just add more checks inside Lua itself or abstract away some code as @soloestoy hints, or what could be the side effects as @oranagra said. I don't think that actually we are going to have problems, since the place where the script is aborted, is exactly where scripts calling random commands will abort once a write is triggered, so we can already fail there which is a good thing."
+    },
+    {
+      "id": 418045452,
+      "user": "oranagra",
+      "created_at": "2018-09-03T08:46:34Z",
+      "body": "@antirez we fail a write after a random command in the same way, but in the case of random commands the same failure will happen on the master and on the slave (same dataset, and same command sequence), but checking for slaves / sub-slaves status (or anything about the server's current state) will yield different result in the master and the slave, so the same script will execute (or fail) differently on the master and slave."
+    },
+    {
+      "id": 418050482,
+      "user": "antirez",
+      "created_at": "2018-09-03T09:04:49Z",
+      "body": "@oranagra yes, but what should happen is that:\r\n\r\n1. Failing scripts should not be replicated at all by the master.\r\n2. Slaves should not process such directive."
+    },
+    {
+      "id": 418052773,
+      "user": "antirez",
+      "created_at": "2018-09-03T09:13:30Z",
+      "body": "A problem that we have btw is that AFAIK the failing script not replicating is not *enforced* by the code. It is just a side effect of write commands being the only one, in theory, to increment the dirty counter... This should kinda work most of the times but it's a design fragility. For instance I don't remember without checking the code what happens if a Lua script calls a command that forces the command propagation without incrementing server.dirty or other possible combinations of things. But that is the old problem again of just enabling effects replication and avoid all this complexity anyway. So my POV is that we need the check, and we should also try to make sure that normally everything happens as expected (see 1 and 2 points in my previous comment), but then make it more robust once we disable scripts body replication."
+    },
+    {
+      "id": 461082133,
+      "user": "felixplajer",
+      "created_at": "2019-02-06T16:12:20Z",
+      "body": "@antirez I just came across this bug as well - any updates on a fix?"
+    },
+    {
+      "id": 581939673,
+      "user": "StefanKarlsson321",
+      "created_at": "2020-02-04T14:38:04Z",
+      "body": "@antirez  Any updates on this?"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "issue_number": 7746.0,
+  "title": "[BUG]non-resp bytes make the connection unusable forever",
+  "body": "send to the redis server a batch of commands, among which there is an invalid resp message:\r\n\r\n*3\\r\\n$3\\r\\nset\\r\\n$4\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n\r\n*3\\r\\n$3\\r\\nset\\r\\n$4\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n\r\n*3\\r\\n$3\\r\\nset\\r\\n$5\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n    // a \"$5\" followed by a four-bytes string \"key1\"\r\n*3\\r\\n$3\\r\\nset\\r\\n$4\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n\r\n*3\\r\\n$3\\r\\nset\\r\\n$4\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n\r\n\r\nand the server responds this:\r\n\r\n+OK\r\n+OK\r\n-ERR Protocol\r\nerror: expected '$', got '3'\r\n\r\nafter that, when I again send valid command to the server, it won't respond correctly. Because the invalid messages remain in the server's input buffer. \r\n\r\nSo my question is, why didn't the server close the connection when an non-resp message is detected? Or is there a suggested way to deal with such cases? \r\n\r\nThanks!",
+  "state": "closed",
+  "created_at": "2020-09-03T02:55:19Z",
+  "updated_at": "2020-09-07T06:30:45Z",
+  "closed_at": "2020-09-07T06:30:45Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 686481092,
+      "user": "oranagra",
+      "created_at": "2020-09-03T13:13:25Z",
+      "body": "@tancehao which version of redis are you using? and how did you interact with it?\r\n\r\nthis is what i see on the latest:\r\n```\r\n$ telnet localhost 6379\r\nTrying 127.0.0.1...\r\nConnected to localhost.\r\nEscape character is '^]'.\r\n*1\r\n$4\r\nping\r\n+PONG\r\n*3\r\n$3\r\nset\r\n$5\r\nkey1\r\n$3\r\n-ERR Protocol error: expected '$', got '3'\r\nConnection closed by foreign host.\r\n```"
+    },
+    {
+      "id": 687600486,
+      "user": "tancehao",
+      "created_at": "2020-09-05T12:02:56Z",
+      "body": "@oranagra I'm using 4.0.12. I'm implementing a redis proxy, and I need to choose a proper way to handle such cases. I think I have an idea now.\r\nThank you very much!"
+    },
+    {
+      "id": 687616534,
+      "user": "oranagra",
+      "created_at": "2020-09-05T14:09:52Z",
+      "body": "@tancehao so is there a bug in Redis 4.0.12 (not closing connection) or not?"
+    },
+    {
+      "id": 687692321,
+      "user": "tancehao",
+      "created_at": "2020-09-06T03:08:57Z",
+      "body": "@oranagra \r\nyes. \r\nI've read the source code, and I noticed that if the function \"processMultibulkBuffer\" returns a C_ERR, the caller function \"processInputBuffer\" simply breaks the loop and when it was called next time it starts from the point where it leaves last time and that point is not a correct border between commands because the former command is not a valid one, making all the following commands can't be processed.\r\nSince you called it a 'bug', I'll choose the strategy the newest version of redis uses in my proxy."
+    },
+    {
+      "id": 687704405,
+      "user": "oranagra",
+      "created_at": "2020-09-06T05:34:25Z",
+      "body": "@tancehao so can you conform that more recent versions are behaving correctly?"
+    },
+    {
+      "id": 687998407,
+      "user": "tancehao",
+      "created_at": "2020-09-07T03:05:37Z",
+      "body": "@oranagra I've tested the version 5.0.9 and 6.0.7, both behave not correctly, that is to say, they didn't closed the connection.\r\n\r\nI found the difference between my cases and yours. I send raw bytes to the redis server using scripts, \r\n`c, _ := net.Dial(\"tcp\", \"127.0.0.1:6379\")\r\n    cmd := []byte{}\r\n    cmd = append(cmd, []byte(\"*3\\r\\n$3\\r\\nset\\r\\n$4\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n\")...)\r\n    cmd = append(cmd, []byte(\"*3\\r\\n$3\\r\\nset\\r\\n$4\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n\")...)\r\n    cmd = append(cmd, []byte(\"*3\\r\\n$3\\r\\nset\\r\\n$5\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n\")...)\r\n    cmd = append(cmd, []byte(\"*3\\r\\n$3\\r\\nset\\r\\n$4\\r\\nkey1\\r\\n$3\\r\\nval\\r\\n\")...)\r\n    c.Write(cmd)\r\n    buf := make([]byte, 64)\r\n    c.Read(buf)\r\n    fmt.Println(string(buf))\r\n    c.Write([]byte(\"*3\\r\\n$3\\r\\nset\\r\\n$4\\r\\nkey1\\r\\n$3\\r\\nvam\\r\\n\"))\r\n    buf = make([]byte, 64)\r\n    c.Read(buf)\r\n    fmt.Println(string(buf))`\r\n\r\n\r\nwhich was thought as `multi-bulk`, and you use telnet instead which was thought as `inline command`. I read the source code and found that if the inline command is invalid, the function `setProtocolError` was called and the client was closed asynchronously, while when the command is `multi-bulk`, it don't."
+    },
+    {
+      "id": 688053749,
+      "user": "oranagra",
+      "created_at": "2020-09-07T05:57:37Z",
+      "body": "@tancehao both of us were using multi-bulk (RESP) protocol. (i used `*3` etc, and when i pressed Enter in telnet it sent \\r\\n).\r\nas a proof please note that both of us got the response `-ERR Protocol error: expected '$', got '3'`\r\nthe only place in the code that has such a response is `processMultibulkBuffer` which immediately calls setProtocolError which sets CLIENT_CLOSE_AFTER_REPLY.\r\nhttps://github.com/redis/redis/blob/573246f73c0d9de6155a7bf5f0cbce98da129afb/src/networking.c#L1707"
+    },
+    {
+      "id": 688061903,
+      "user": "tancehao",
+      "created_at": "2020-09-07T06:16:35Z",
+      "body": "@oranagra I rechecked the test and found that I made a mistake. when the server responds with error, I send a command again to the socket and the bytes were wrote successfully, at this point I thought the connection has not been closed yet.But I didn't check the results if I read from that socket, which was an EOF error indeed, so I missed the truth before.\r\nThank you very much! I'll close the connection directly when non-resp data are met."
+    },
+    {
+      "id": 688067726,
+      "user": "oranagra",
+      "created_at": "2020-09-07T06:30:45Z",
+      "body": "ok. closing the issue, feel free to reopen or post if you have further questions."
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "issue_number": 13392.0,
+  "title": "[BUG] scheduled to be closed ASAP for overcoming of output buffer limits when using HSCAN command",
+  "body": "**Describe the bug**\r\n\r\nWe're using GCP redis (14GB single instance, v6.2.13, basic Tier), and have 1k HASHes in db, some with over 1mln of keys. \r\nWe're doing a lot of `HSCAN` to download all keys of single HASH, with 10k or 100k of keys in a row. We noticed that sometimes Redis client (python client`redis = \"^5.0.7\"`) gets `Connection lost` or `[Errno 104] Connection reset by peer`. \r\nIn Redis server logs we see:\r\n```\r\n1264:M 04 Jul 2024 00:14:30.597 # Client id=3346328 addr=10.196.25.81:57062 laddr=10.150.67.219:6379 fd=6581 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=93 qbuf-free=40861 argv-mem=58 obl=16383 oll=2 omem=41008 tot-mem=102546 events=r cmd=hscan user=default redir=-1 scheduled to be closed ASAP for overcoming of output buffer limits.\r\n```\r\nwith repeating `omem=41008` value, and it's always connected with HSCAN command. \r\n\r\nIf I understand this section https://redis.io/docs/latest/develop/reference/clients/#output-buffer-limits correctly having some bytes in Output Buffer is unexpected for normal clients but I'm not sure if it's a problem with server or client (however client sends plain `HSCAN` command without any extra effort). I wanted to adjust that limit (to test if it will help) but it's not supported in GCP instance. \r\n\r\n**To reproduce**\r\n\r\nNot sure, maybe having big HASHes and doing HSCAN on them often? In last 30 days we had 1644 logs with this issue (for over 1mln of scans), sometimes retires helps but not always. \r\n\r\n**Expected behavior**\r\n\r\nOutput buffer is empty when doing HSCAN and we're not failing this command by client.\r\n\r\n**Additional information**\r\nI can correlate those errors with failed snapshot with \r\n```\r\n1264:M 02 Jul 2024 22:31:15.840 # Background saving terminated by signal 9\r\n```\r\nlogs\r\n",
+  "state": "closed",
+  "created_at": "2024-07-04T10:33:20Z",
+  "updated_at": "2024-07-06T01:56:45Z",
+  "closed_at": "2024-07-06T01:56:45Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2208672659,
+      "user": "sundb",
+      "created_at": "2024-07-04T10:47:21Z",
+      "body": "@kamilglod what's your `client-output-buffer-limit normal` config?\r\ncan you provide the arguments of `HSCAN` comand?"
+    },
+    {
+      "id": 2208682331,
+      "user": "kamilglod",
+      "created_at": "2024-07-04T10:53:23Z",
+      "body": "I cannot confirm 100% the `client-output-buffer-limit` config as GCP instance is limited in management options (I cannot use `CONFIG` command) but I assume it's default meaning `client-output-buffer-limit normal 0 0 0`. \r\nHSCAN command is as follow:\r\n```\r\nHSCAN test_key1 0 COUNT 100000\r\n```\r\nI'm doing it in a loop until return cursor = 0"
+    },
+    {
+      "id": 2208704783,
+      "user": "sundb",
+      "created_at": "2024-07-04T11:07:14Z",
+      "body": "100000 is too large, which will take up more cpu and bandwidth, and may cause write failure, it is recommended that you lower it to 10000 or lower and try again."
+    },
+    {
+      "id": 2208779218,
+      "user": "kamilglod",
+      "created_at": "2024-07-04T11:54:27Z",
+      "body": "That what we did yesterday, we switched to 10k and we're observing the same logs today."
+    },
+    {
+      "id": 2208877619,
+      "user": "sundb",
+      "created_at": "2024-07-04T12:39:02Z",
+      "body": "if it still occurs you should lower the configuration again, the default value of count is 10, we should not use count too high.\r\ni guess that GCP redis doesn't use the default `client-output-buffer-limit`, maybe you can test it in a local dev environment?"
+    },
+    {
+      "id": 2210563750,
+      "user": "kamilglod",
+      "created_at": "2024-07-05T09:48:22Z",
+      "body": "Ok, I will try it. But can you confirm that having bytes in Output Buffer when running HSCAN command is an expected behaviour? What circumstances needs to be met to make it happen? I was under the impression when reading Redis docs that it should never be a case for single operation if there is no other running by the same client in the same time."
+    },
+    {
+      "id": 2210575561,
+      "user": "sundb",
+      "created_at": "2024-07-05T09:55:34Z",
+      "body": "yes, `HSCAN' command will feed the output buffer the connection at the end, if reach the output buffer limit, the connection   will be dissconected in the mid of feeding."
+    },
+    {
+      "id": 2210714245,
+      "user": "kamilglod",
+      "created_at": "2024-07-05T11:32:59Z",
+      "body": "Ok, if this is expected than I think we can close this issue, I'll try to reach out to GCP guys to get the output buffer default limits and verify if this is the case.  "
+    },
+    {
+      "id": 2211581466,
+      "user": "sundb",
+      "created_at": "2024-07-06T01:56:45Z",
+      "body": "@kamilglod feel free to call if any news."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "issue_number": 12556.0,
+  "title": "[BUG] redis.call(\"TIME\") behavior in v7.2.0 is incompatible with v7.0.12 when called from Lua script",
+  "body": "**Describe the bug**\r\n\r\nExecuting `redis.call(\"TIME\")` from within the context of a Lua script returns the same value on repeated calls.\r\n\r\n**To reproduce**\r\n\r\nConsider the following minimal script:\r\n\r\n``` lua\r\nlocal function many_pings(_, args)\r\n    local n = args[1]\r\n    local start_time = redis.call(\"TIME\")\r\n    for i = 1, n, 1 do\r\n        redis.call(\"PING\")\r\n    end\r\n    local end_time = redis.call(\"TIME\")\r\n    return { start_time, end_time }\r\nend\r\n\r\nredis.register_function {\r\n    function_name = \"MANY_PINGS\",\r\n    callback = many_pings,\r\n}\r\n```\r\n\r\nLoad function:\r\n`cat sketch.lua | redis-cli -x FUNCTION LOAD REPLACE`\r\n\r\nSend 1 million pings from command line on version `7.2.0` - note start and end time are the same:\r\n```\r\n127.0.0.1:6379> FCALL MANY_PINGS 0 1000000\r\n1) 1) \"1694017605\"\r\n    2) \"773607\"\r\n2) 1) \"1694017605\"\r\n    2) \"773607\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nRunning the above script in Redis version `7.0.12` returns the expected result - note microsecond diff:\r\n\r\n```\r\n127.0.0.1:6379> FCALL MANY_PINGS 0 1000000\r\n1) 1) \"1694017077\"\r\n    2) \"623871\"\r\n2) 1) \"1694017077\"\r\n    2) \"956297\"\r\n```\r\n\r\n**Additional information**\r\n\r\nConfirmed running Redis natively on Mac M1 installed through homebrew.\r\nConfirmed running Redis via Docker on same machine.\r\n\r\nINFO details for both versions running through Docker:\r\n```\r\n127.0.0.1:6379> INFO\r\n# Server\r\nredis_version:7.0.12\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:1ad557430acc5658\r\nredis_mode:standalone\r\nos:Linux 5.15.49-linuxkit-pr aarch64\r\narch_bits:64\r\nmonotonic_clock:POSIX clock_gettime\r\n```\r\n\r\n```\r\n127.0.0.1:6379> INFO\r\n# Server\r\nredis_version:7.2.0\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:e29d9ec6b7c4d794\r\nredis_mode:standalone\r\nos:Linux 5.15.49-linuxkit-pr aarch64\r\narch_bits:64\r\nmonotonic_clock:POSIX clock_gettime\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-09-06T16:58:09Z",
+  "updated_at": "2023-09-19T06:49:50Z",
+  "closed_at": "2023-09-19T06:49:50Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1709401183,
+      "user": "enjoy-binbin",
+      "created_at": "2023-09-07T02:52:26Z",
+      "body": "yean, this is a breaking change we made in 7.2, see #10300"
+    }
+  ]
+}

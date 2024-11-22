@@ -1,0 +1,11 @@
+{
+  "issue_number": 8718.0,
+  "title": "[BUG] ZADD LT with INCR will reply with the INCR number but actual score doesn't change",
+  "body": "**Describe the bug**\r\n\r\nIf you have an entry in a sorted set, using LT with INCR to a positive number should not INCR the number (same with GT and negative).\r\nHowever, the 'reply' does indeed show the increased number (unexpected). Though, the actual score does not change (which is expected)\r\n\r\n**To reproduce**\r\n\r\n```\r\n127.0.0.1:6379> zadd x 1 a\r\n(integer) 1\r\n127.0.0.1:6379> zadd x LT 2 a\r\n(integer) 0\r\n127.0.0.1:6379> zrange x 0 -1 withscores\r\n1) \"a\"\r\n2) \"1\"\r\n127.0.0.1:6379> zadd x LT incr 1 a\r\n\"2\"\r\n127.0.0.1:6379> zrange x 0 -1 withscores\r\n1) \"a\"\r\n2) \"1\"\r\n```\r\n\r\n**Expected behavior**\r\n \r\n`zadd x LT incr 1 a\r\n`\r\nshould result:\r\n\r\n`\"1\"`\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2021-03-29T14:28:01Z",
+  "updated_at": "2021-04-01T06:33:54Z",
+  "closed_at": "2021-04-01T06:33:54Z",
+  "labels": [],
+  "comments_data": []
+}

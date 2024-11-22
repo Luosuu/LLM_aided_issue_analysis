@@ -1,0 +1,11 @@
+{
+  "issue_number": 13245.0,
+  "title": "[BUG] Wrong error logged when `reclaimFilePageCache` fails",
+  "body": "**Describe the bug**\r\n\r\n`reclaimFilePageCache` doesn't set `errno`. As a consequence the logged error will be whatever `errno` was set to prior to the call.\r\n\r\n**To reproduce**\r\n\r\n1. Set `errno = EAGAIN`.\r\n2. Make sure `rdbSaveInternal` is called with arguments that makes `reclaimFilePageCache` fail.\r\n3. Watch the log. It will say: `Unable to reclaim cache after saving RDB: Resource temporarily unavailable` which is not the reason why the internal `posix_fadvise` failed.\r\n\r\n**Expected behavior**\r\n\r\nI'm expecting the `serverLog(LL_NOTICE,\"Unable to reclaim cache after saving RDB: %s\", strerror(errno));` line to print the real cause for the failure.\r\n\r\n**Additional information**\r\n\r\n`posix_*` functions don't set `errno` but return the error instead. If memory serves me right, it's because these functions came into existence before C11 (where `errno` was made `_Thread_local`) so setting and checking `errno` from different threads wasn't thread safe.\r\n",
+  "state": "closed",
+  "created_at": "2024-05-03T09:56:14Z",
+  "updated_at": "2024-05-21T02:33:15Z",
+  "closed_at": "2024-05-21T02:33:15Z",
+  "labels": [],
+  "comments_data": []
+}

@@ -1,0 +1,48 @@
+{
+  "issue_number": 12746.0,
+  "title": "[BUG] redis-cli no longer supports implicit default username in connection URL",
+  "body": "**Describe the bug**\r\n\r\nIt used to be possible to connect to Redis using redis-cli and a connection URL with an empty username, like this:\r\n\r\n```\r\nredis-cli -u 'redis://:PASSWORD@localhost:6379/0'\r\n```\r\n\r\nHowever, this no longer seems to work with the `redis-cli 7.0.12` I'm using right now and it responds with:\r\n\r\n```\r\nAUTH failed: WRONGPASS invalid username-password pair or user is disabled.\r\n```\r\n\r\nI found that this can be fixed by explicitly providing `default` as username as follows (by luck, since that doesn't appear to be documented anywhere):\r\n\r\n```\r\nredis-cli -u 'redis://default:PASSWORD@localhost:6379/0'\r\n```\r\n\r\nHowever, that seems to somewhat violate the backwards compatibility promise as described [here](https://redis.io/docs/management/security/acl/).\r\n\r\n**To reproduce**\r\n\r\nSee description.\r\n\r\n**Expected behavior**\r\n\r\nSee description.\r\n\r\n**Additional information**\r\n\r\nN/A\r\n",
+  "state": "closed",
+  "created_at": "2023-11-09T09:40:29Z",
+  "updated_at": "2023-11-19T13:09:15Z",
+  "closed_at": "2023-11-19T13:09:15Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1803737336,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-09T12:26:30Z",
+      "body": "ok, it see it was broken in 6.2 (#8048), and there was a discussion about it #9186\r\n\r\na quick comment: parseRedisUri parsed out an empty sdsempty as username, so the auth command become `auth \"\" password`, and since we treat \"\" as a valid username, so it return `WRONGPASS invalid username-password pair or user is disabled.`\r\n\r\nneed other member's opinions"
+    },
+    {
+      "id": 1803793657,
+      "user": "OvervCW",
+      "created_at": "2023-11-09T13:04:42Z",
+      "body": "@enjoy-binbin Ah, I searched related issues via GitHub and Google but didn't find those, apologies for that."
+    },
+    {
+      "id": 1803831235,
+      "user": "zuiderkwast",
+      "created_at": "2023-11-09T13:26:47Z",
+      "body": "We should improve the documentation about redis URIs, both in the output of `redis-cli --help` and on the redis.io website (the redis-docs repo). Documentation PRs are welcome."
+    },
+    {
+      "id": 1805958754,
+      "user": "lowgiant",
+      "created_at": "2023-11-10T15:39:05Z",
+      "body": "@enjoy-binbin Added an explanation for redis-cli --help. \r\nI'm not sure if I did my first PR correctly. Can you please check? #12751 "
+    },
+    {
+      "id": 1807657398,
+      "user": "zuiderkwast",
+      "created_at": "2023-11-13T08:20:57Z",
+      "body": "As long as the password doesn't contain `:` this works I think:\r\n\r\n    redis-cli -u 'redis://PASSWORD@localhost:6379/0'"
+    },
+    {
+      "id": 1807664267,
+      "user": "OvervCW",
+      "created_at": "2023-11-13T08:25:26Z",
+      "body": "@zuiderkwast True, but as also mentioned in [this comment](https://github.com/redis/redis/issues/9186#issuecomment-873346915), I don't like that syntax very much because it deviates from the normal URI conventions."
+    }
+  ]
+}

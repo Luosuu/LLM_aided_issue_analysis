@@ -1,0 +1,18 @@
+{
+  "issue_number": 11731.0,
+  "title": "[BUG] Bitcount doesn't return error for missing end parameter if key is missing",
+  "body": "**Describe the bug**\r\n\r\nBITCOUNT is documented as\r\n\r\n```\r\nBITCOUNT key [start end [BYTE | BIT]]\r\n```\r\n\r\nWhen `start` is specified but `end` is missing (a syntax error), the command returns `ERR syntax error` when the key exists, but returns `0` if the key is missing.\r\n\r\n**To reproduce**\r\n\r\n```\r\n$ redis-server --version\r\nRedis server v=7.0.7 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=2260280010e18db8\r\n```\r\n\r\n`BITCOUNT missing 0`\r\n\r\n**Expected behavior**\r\n\r\n`ERR syntax error` when `end` is missing, irrespective of whether the key exists or not.\r\n",
+  "state": "closed",
+  "created_at": "2023-01-17T21:25:54Z",
+  "updated_at": "2023-08-21T16:48:32Z",
+  "closed_at": "2023-08-21T16:48:32Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1386440147,
+      "user": "enjoy-binbin",
+      "created_at": "2023-01-18T03:41:06Z",
+      "body": "thanks for the report, bitpos also has this problem"
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "issue_number": 3343.0,
+  "title": "3.2.1 crash when as slave node sync with master",
+  "body": "log as below:\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\n27648:S 24 Jun 12:16:32.265 # Redis 3.2.1 crashed by signal: 11\n27648:S 24 Jun 12:16:32.265 # Crashed running the instuction at: 0x431599\n27648:S 24 Jun 12:16:32.265 # Accessing address: 0x7fd7dc299d1e\n27648:S 24 Jun 12:16:32.265 # Failed assertion: <no assertion failed> (<no file>:0)\n\n------ STACK TRACE ------\nEIP:\n./redis-server *:6400 [cluster][0x431599]\n\nBacktrace:\n./redis-server *:6400 [cluster](logStackTrace+0x29)[0x45caa9]\n./redis-server *:6400 [cluster](sigsegvHandler+0xaa)[0x45cf9a]\n/lib64/libpthread.so.0(+0xf130)[0x7fd79b0c0130]\n./redis-server *:6400 [cluster][0x431599]\n./redis-server *:6400 [cluster](quicklistReplaceAtIndex+0x51)[0x420381]\n./redis-server *:6400 [cluster](lsetCommand+0xb4)[0x4453e4]\n./redis-server *:6400 [cluster](call+0x85)[0x426935]\n./redis-server *:6400 [cluster](processCommand+0x367)[0x429947]\n./redis-server *:6400 [cluster](processInputBuffer+0x105)[0x4362b5]\n./redis-server *:6400 [cluster](aeProcessEvents+0x218)[0x4210b8]\n./redis-server *:6400 [cluster](aeMain+0x2b)[0x42136b]\n./redis-server *:6400 [cluster](main+0x40f)[0x41e35f]\n/lib64/libc.so.6(__libc_start_main+0xf5)[0x7fd79ad11af5]\n./redis-server *:6400 [cluster][0x41e5e5]\n\n------ INFO OUTPUT ------\n# Server\n\nredis_version:3.2.1\nredis_git_sha1:00000000\nredis_git_dirty:0\nredis_build_id:42468865c010fa71\nredis_mode:cluster\nos:Linux 3.10.0-123.el7.x86_64 x86_64\narch_bits:64\nmultiplexing_api:epoll\ngcc_version:4.8.3\nprocess_id:27648\nrun_id:61d307b257465f360b038ca9e7227729c8f7fc55\ntcp_port:6400\nuptime_in_seconds:329\nuptime_in_days:0\nhz:10\nlru_clock:7124000\nexecutable:/home/redis/redis-3.2.1/src/./redis-server\nconfig_file:/home/redis/redis-3.2.1/redis.conf\n# Clients\n\nconnected_clients:2\nclient_longest_output_list:0\nclient_biggest_input_buf:14962\nblocked_clients:0\n# Memory\n\nused_memory:2989199160\nused_memory_human:2.78G\nused_memory_rss:3073859584\nused_memory_rss_human:2.86G\nused_memory_peak:2989199160\nused_memory_peak_human:2.78G\ntotal_system_memory:16609554432\ntotal_system_memory_human:15.47G\nused_memory_lua:37888\nused_memory_lua_human:37.00K\nmaxmemory:0\nmaxmemory_human:0B\nmaxmemory_policy:noeviction\nmem_fragmentation_ratio:1.03\nmem_allocator:jemalloc-4.0.3\n# Persistence\n\nloading:0\nrdb_changes_since_last_save:14\nrdb_bgsave_in_progress:0\nrdb_last_save_time:1466741463\nrdb_last_bgsave_status:ok\nrdb_last_bgsave_time_sec:-1\nrdb_current_bgsave_time_sec:-1\naof_enabled:0\naof_rewrite_in_progress:0\naof_rewrite_scheduled:0\naof_last_rewrite_time_sec:-1\naof_current_rewrite_time_sec:-1\naof_last_bgrewrite_status:ok\naof_last_write_status:ok\n# Stats\n\ntotal_connections_received:1\ntotal_commands_processed:18\ninstantaneous_ops_per_sec:0\ntotal_net_input_bytes:1151760372\ntotal_net_output_bytes:1040\ninstantaneous_input_kbps:49380.11\ninstantaneous_output_kbps:0.00\nrejected_connections:0\nsync_full:0\nsync_partial_ok:0\nsync_partial_err:0\nexpired_keys:0\nevicted_keys:0\nkeyspace_hits:0\nkeyspace_misses:0\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:0\nmigrate_cached_sockets:0\n# Replication\n\nrole:slave\nmaster_host:10.15.144.103\nmaster_port:6400\nmaster_link_status:up\nmaster_last_io_seconds_ago:0\nmaster_sync_in_progress:0\nslave_repl_offset:9950243389\nslave_priority:100\nslave_read_only:1\nconnected_slaves:0\nmaster_repl_offset:0\nrepl_backlog_active:0\nrepl_backlog_size:1048576\nrepl_backlog_first_byte_offset:0\nrepl_backlog_histlen:0\n# CPU\n\nused_cpu_sys:9.85\nused_cpu_user:13.29\nused_cpu_sys_children:0.00\nused_cpu_user_children:0.00\n# Commandstats\n\ncmdstat_rpush:calls=2,usec=13,usec_per_call=6.50\ncmdstat_lset:calls=12,usec=24,usec_per_call=2.00\ncmdstat_select:calls=1,usec=2,usec_per_call=2.00\ncmdstat_cluster:calls=3,usec=805,usec_per_call=268.33\n# Cluster\n\ncluster_enabled:1\n# Keyspace\n\ndb0:keys=410635,expires=0,avg_ttl=0\nhash_init_value: 1466527529\n\n------ CLIENT LIST OUTPUT ------\nid=2 addr=10.15.107.143:56641 fd=9 name= age=146 idle=64 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=cluster\nid=3 addr=10.15.144.103:6400 fd=24 name= age=0 idle=0 flags=M db=0 sub=0 psub=0 multi=-1 qbuf=14962 qbuf-free=17806 obl=0 oll=0 omem=0 events=r cmd=lset\n\n------ CURRENT CLIENT INFO ------\nid=3 addr=10.15.144.103:6400 fd=24 name= age=0 idle=0 flags=M db=0 sub=0 psub=0 multi=-1 qbuf=14962 qbuf-free=17806 obl=0 oll=0 omem=0 events=r cmd=lset\nargv[0]: 'LSET'\nargv[1]: '660FXU'\nargv[2]: '-1'\nargv[3]: S N0'\n27648:S 24 Jun 12:16:32.266 # key '660FXU' found in DB containing the following object:\n27648:S 24 Jun 12:16:32.266 # Object type: 1\n27648:S 24 Jun 12:16:32.266 # Object encoding: 9\n27648:S 24 Jun 12:16:32.266 # Object refcount: 1\n27648:S 24 Jun 12:16:32.266 # List length: 1\n\n------ REGISTERS ------\n27648:S 24 Jun 12:16:32.266 # \nRAX:00000000000000ff RBX:000000000000001a\nRCX:000000000000001a RDX:00007fd6dd090f93\nRDI:00007fd7dc299d1e RSI:00007fd6dc299d3a\nRBP:00007fd761292640 RSP:00007fffbe24d110\nR8 :00007fd6dc299d30 R9 :00007fd79aa00180\nR10:0000000000000022 R11:00007fd79420eea0\nR12:0000000000000000 R13:000000000000001a\nR14:00007fd6dc299d3a R15:000000000000000b\nRIP:0000000000431599 EFL:0000000000010206\nCSGSFS:cd00000000000033\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d11f) -> 00007fd761292660\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d11e) -> 000000000000001a\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d11d) -> 000000000000000a\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d11c) -> 00007fd7612934d8\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d11b) -> 00007fffbe24d1d0\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d11a) -> 0000000000000001\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d119) -> 00000000075bcd15\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d118) -> 00007f0000000002\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d117) -> 0000000000000001\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d116) -> 0000000000000001\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d115) -> 00007fd6dd090f93\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d114) -> 00007f0000000002\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d113) -> 0000001a00000001\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d112) -> 0000000000000001\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d111) -> 0000001c00000028\n27648:S 24 Jun 12:16:32.266 # (00007fffbe24d110) -> 00007fd79aa00080\n\n------ FAST MEMORY TEST ------\n27648:S 24 Jun 12:16:32.267 # Bio thread for job type #0 terminated\n27648:S 24 Jun 12:16:32.267 # Bio thread for job type #1 terminated\n**\\* Preparing to test memory region 722000 (114688 bytes)\n**\\* Preparing to test memory region 1c75000 (135168 bytes)\n**\\* Preparing to test memory region 7fd6dbe00000 (3072327680 bytes)\n**\\* Preparing to test memory region 7fd7931ff000 (8388608 bytes)\n**\\* Preparing to test memory region 7fd793a00000 (8388608 bytes)\n**\\* Preparing to test memory region 7fd794200000 (2097152 bytes)\n**\\* Preparing to test memory region 7fd79aa00000 (2097152 bytes)\n**\\* Preparing to test memory region 7fd79b0ac000 (20480 bytes)\n**\\* Preparing to test memory region 7fd79b2c9000 (16384 bytes)\n**\\* Preparing to test memory region 7fd79b9c7000 (16384 bytes)\n**\\* Preparing to test memory region 7fd79b9f1000 (4096 bytes)\n**\\* Preparing to test memory region 7fd79b9f2000 (4096 bytes)\n**\\* Preparing to test memory region 7fd79b9f5000 (4096 bytes)\n.O.O.O.O.O.O.O.O.O.O.O.O.O\nFast memory test PASSED, however your memory can still be broken. Please run a memory test for several hours if possible.\n=== REDIS BUG REPORT END. Make sure to include from START to END. ===\n\n```\n   Please report the crash by opening an issue on github:\n\n       http://github.com/antirez/redis/issues\n```\n\n  Suspect RAM error? Use redis-server --test-memory to verify it.\n\nthanks!\n",
+  "state": "closed",
+  "created_at": "2016-06-24T04:25:25Z",
+  "updated_at": "2017-01-26T13:51:49Z",
+  "closed_at": "2017-01-26T13:51:49Z",
+  "labels": [
+    "critical bug",
+    "crash report"
+  ],
+  "comments_data": [
+    {
+      "id": 228271451,
+      "user": "antirez",
+      "created_at": "2016-06-24T06:53:56Z",
+      "body": "Hello, unfortunately the binary is stripped so there are no symbols to understand exactly where this happened. Please could you send the Redis binary you are using? Thanks.\n\nThis bug could actually be in different places:\n1. Cluster\n2. Replication\n3. List data type implementation, that with quicklists, changed recently (in 3.2)\n\nThe binary can give us some clue.\n"
+    },
+    {
+      "id": 228282171,
+      "user": "luweijie007",
+      "created_at": "2016-06-24T08:02:02Z",
+      "body": "![redis-server](https://cloud.githubusercontent.com/assets/7186190/16331719/a8d985de-3a24-11e6-96c9-619753025781.png)\n@antirez ,give this binary file and I have to modify file name to *.jpg for upload to git.\n"
+    },
+    {
+      "id": 228285157,
+      "user": "antirez",
+      "created_at": "2016-06-24T08:16:56Z",
+      "body": "@luweijie007 good trick ;-) Thanks apparently I was able to download it correctly.\n"
+    },
+    {
+      "id": 228293647,
+      "user": "antirez",
+      "created_at": "2016-06-24T08:57:45Z",
+      "body": "Apparently the crash happened inside the `ziplist` implementation, so lacking more data we could assume either a memory corruption problem due to a bug, or broken memory. I'm trying to write a stress tester to run with valgrind in order to check if there are potential bugs that can be found via fuzzing better than the Redis test suite is doing.\n"
+    },
+    {
+      "id": 228294871,
+      "user": "antirez",
+      "created_at": "2016-06-24T09:03:31Z",
+      "body": "@luweijie007 I've a stress tester running. Would be great if you could run a serious memory testing suite in your slave. Or is it a VM instance?\n"
+    },
+    {
+      "id": 228304323,
+      "user": "luweijie007",
+      "created_at": "2016-06-24T09:46:45Z",
+      "body": "@antirez  it not VM instance, it a entity machine.\nyou mean I do redis-server --test-memory in slave nodes? \nthis crash happend on  two different machine, and I can to redis-server --test-memory and tell you result\n"
+    },
+    {
+      "id": 228306930,
+      "user": "antirez",
+      "created_at": "2016-06-24T10:00:54Z",
+      "body": "You noticed the same crash on two machines? At the same time and with a similar stack trace (while the server was doing an operation on lists)?\n"
+    },
+    {
+      "id": 228331341,
+      "user": "srhitesh",
+      "created_at": "2016-06-24T12:19:14Z",
+      "body": "@luweijie007 Can you share us coredump file while it crashed \n"
+    },
+    {
+      "id": 228343799,
+      "user": "antirez",
+      "created_at": "2016-06-24T13:22:18Z",
+      "body": "Core dump could also help, as to run `--test-memory` for some time, or even better, memtest86, could help. The two more probably causes could be a bug in ziplist or an hardware error due to non ECC memory, but can also be another more complex bug that corrupts Redis memory. The core dump may give some clue. Also to have a second crash report could help. Thanks.\n"
+    },
+    {
+      "id": 228559961,
+      "user": "oranagra",
+      "created_at": "2016-06-25T17:20:38Z",
+      "body": "@antirez looking at the assembly code, the difference between r8 and rdi is the value stored in ZIPLIST_TAIL_OFFESET, and this delta is exactly: 2^32-17.\nthis looks more like a wrap around bug than a memory corruption.\nfurther careful reading of the code is needed to find the bug.\n"
+    },
+    {
+      "id": 228563527,
+      "user": "antirez",
+      "created_at": "2016-06-25T18:25:14Z",
+      "body": "Thanks @oranagra, this is a very interesting hint... Also the OP informed that he saw this two times in two different machines.\n"
+    },
+    {
+      "id": 228563754,
+      "user": "antirez",
+      "created_at": "2016-06-25T18:30:25Z",
+      "body": "I put my money on `ziplistMerge()`. Will check carefully monday.\n"
+    },
+    {
+      "id": 228685134,
+      "user": "antirez",
+      "created_at": "2016-06-27T08:35:39Z",
+      "body": "@luweijie007 please could you tell me all the list commands you use in the master in order to populate the list? Thanks.\n"
+    },
+    {
+      "id": 228686845,
+      "user": "antirez",
+      "created_at": "2016-06-27T08:44:17Z",
+      "body": "@luweijie007 UPDATE: I can crash the quicklist implementation, so I can confirm there are bugs. I need another information, do you have compression enabled in quicklist? I'm referring to `list-compress-depth` settings in Redis.conf. Thanks.\n"
+    },
+    {
+      "id": 228731764,
+      "user": "antirez",
+      "created_at": "2016-06-27T12:29:32Z",
+      "body": "Yet another UPDATE:\n1. Problem is >= 3.2 specific. 3.0 is not affected.\n2. The issue in in quicklist.c.\n3. The faulty code is in `_quicklistSplitNode()` apparently.\n4. I can reproduce it again and again with 7 commands (after writing a program to find crashes, then find smaller crashed, and finally minimizing the original set of commands needed from ~ 2000 to 7).\n\nI'm working to a fix. It is possible that I'll discover more issues since certain edge cases are hard to trigger and quicklist code is not as tested and safe as other parts of Redis data structures implementation.\n"
+    },
+    {
+      "id": 228794520,
+      "user": "antirez",
+      "created_at": "2016-06-27T16:14:07Z",
+      "body": "Dear @luweijie007 I hope I fixed the bug in commit 7041967. Please if possible could you apply it to your instances and report if this fixes the issue? Thanks.\n"
+    },
+    {
+      "id": 230099727,
+      "user": "luweijie007",
+      "created_at": "2016-07-02T12:36:16Z",
+      "body": "@antirez ,I am sorry , I take a  holiday this  days , so I has no time see your reply.\nI can try to  reprodction this isssue and get  dump file and give you more information .\nthanks every one's work again!\n"
+    },
+    {
+      "id": 230261766,
+      "user": "antirez",
+      "created_at": "2016-07-04T10:43:29Z",
+      "body": "Thank you @luweijie007, we believe the problem is fixed now, no need for the dump, mostly in need of checking if our fix solves the problem for you. Within 24/48 hours I'm releasing Redis 3.2.2 that includes this fix. Thanks.\n"
+    },
+    {
+      "id": 231269171,
+      "user": "qunchenmy",
+      "created_at": "2016-07-08T03:53:22Z",
+      "body": "I‘m sorry to hear this message , I have to degrade my redis instances from v3.2.0 to v3.0.7 , and about 30 instances.\n"
+    },
+    {
+      "id": 231272792,
+      "user": "oranagra",
+      "created_at": "2016-07-08T04:34:21Z",
+      "body": "Why downgrade to 3.0, and not upgrade to a version with the fix? \nBtw downgrading from 3.2 might be hard since its RDB format have changed and is not compatible with 3.0 (sync won't work either) \n"
+    },
+    {
+      "id": 231278292,
+      "user": "qunchenmy",
+      "created_at": "2016-07-08T05:29:14Z",
+      "body": "@oranagra  We need redis in mass production, v3.0.7(3.0.3) is a more stable  release.\n"
+    }
+  ]
+}

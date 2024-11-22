@@ -1,0 +1,24 @@
+{
+  "issue_number": 9355.0,
+  "title": "[BUG] redis-shutdown doesn't use tls-port",
+  "body": "**Describe the bug**\r\n\r\nWhen configured with TLS, the `redis-shutdown` script ignores the TLS port number\r\n\r\n**To reproduce**\r\n\r\nStart Redis with `port=0` and `tls-port=6379`. `redis-shutdown` attempts to connect to server on port 0 and fails.\r\n\r\n**Expected behavior**\r\n\r\nThe TLS configuration should be recognized, and `redis-cli` should be passed the `--tls` option as well as the correct port number.\r\n\r\n**Additional information**\r\n\r\n(This script seems pretty dated, also doesn't work with ACL users.)\r\n\r\nI got it working with TLS by changing one line and adding two others:\r\n\r\n```\r\nPORT=`awk '/^[[:blank:]]*(tls-)?port/ { print $2 }' $CONFIG_FILE | tail -n1`\r\nTLS=`awk '/^[[:blank:]]*tls-port/ { print $2 }' $CONFIG_FILE | tail -n1`\r\n...\r\n[ -z \"$TLS\" ] || ADDITIONAL_PARAMS=\"$ADDITIONAL_PARAMS --tls\"\r\n```",
+  "state": "closed",
+  "created_at": "2021-08-10T17:30:43Z",
+  "updated_at": "2021-08-19T18:29:41Z",
+  "closed_at": "2021-08-19T18:29:41Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 902026924,
+      "user": "zuiderkwast",
+      "created_at": "2021-08-19T15:50:06Z",
+      "body": "I can't find this script in the repo. Where did you find it?"
+    },
+    {
+      "id": 902144456,
+      "user": "miken32",
+      "created_at": "2021-08-19T18:29:41Z",
+      "body": "Oh I installed via RPM, looks like it's added by RHEL. https://src.fedoraproject.org/rpms/redis/blob/main/f/redis-shutdown\r\n\r\nI should have checked first before assuming it was part of the codebase!"
+    }
+  ]
+}

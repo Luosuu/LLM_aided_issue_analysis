@@ -1,0 +1,30 @@
+{
+  "issue_number": 8116.0,
+  "title": "[BUG] SET with GET option: WRONGTYPE Error",
+  "body": "**Describe the bug**\r\n\r\nSetting with the `GET` option returns an error, but still sets the value. Is this intentional?\r\n\r\n`getGenericCommand` can [return an error](https://github.com/redis/redis/blob/c85bf2352d2a3dd04872124d33066403b114a7e7/src/t_string.c#L204-L206) if the value is not a string. However, `setGenericCommand` [does not check](https://github.com/redis/redis/blob/c85bf2352d2a3dd04872124d33066403b114a7e7/src/t_string.c#L93) this return value. It seems to me that the operation should be aborted at that point.\r\n\r\n**To reproduce**\r\n\r\n```\r\n127.0.0.1:6378> hset x 1 2\r\n(integer) 1\r\n127.0.0.1:6378> set x 2 get\r\n(error) WRONGTYPE Operation against a key holding the wrong kind of value\r\n127.0.0.1:6378> get x\r\n\"2\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe operation is aborted and the key is not set.",
+  "state": "closed",
+  "created_at": "2020-12-01T01:44:23Z",
+  "updated_at": "2020-12-04T21:09:33Z",
+  "closed_at": "2020-12-01T19:46:46Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 736164319,
+      "user": "madolson",
+      "created_at": "2020-12-01T01:52:04Z",
+      "body": "No, probably not, lemme take a look. "
+    },
+    {
+      "id": 736167597,
+      "user": "madolson",
+      "created_at": "2020-12-01T02:03:03Z",
+      "body": "Yeah, we're missing the error check there, we should be able to fix this quickly."
+    },
+    {
+      "id": 739021968,
+      "user": "braddunbar",
+      "created_at": "2020-12-04T21:09:33Z",
+      "body": "Thank you @madolson!"
+    }
+  ]
+}

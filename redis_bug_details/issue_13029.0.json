@@ -1,0 +1,54 @@
+{
+  "issue_number": 13029.0,
+  "title": "[BUG]Expiry value not working in client.SET() i.e EX attribute",
+  "body": "**Describe the bug**\r\n\r\nExpiry value not working in  client.SET() i.e EX attribute\r\n\r\n**To reproduce**\r\n\r\nuse client.SET function anywhere with EX\r\n\r\nfor example client.SET('key', 'value', 'EX', 10);\r\n\r\n**Expected behavior**\r\n\r\nThe program gets stuck\r\n\r\n**Additional information**\r\n\r\nOlder version like 3.1.2 is working fine ",
+  "state": "closed",
+  "created_at": "2024-02-05T09:50:25Z",
+  "updated_at": "2024-03-20T15:00:40Z",
+  "closed_at": "2024-03-20T15:00:40Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1928754865,
+      "user": "sundb",
+      "created_at": "2024-02-06T04:14:30Z",
+      "body": "Do you mean the client or Redis get stuck?"
+    },
+    {
+      "id": 1938031565,
+      "user": "Harish27012002",
+      "created_at": "2024-02-12T03:50:37Z",
+      "body": "Hi @cyrilckurian which version of redis your using"
+    },
+    {
+      "id": 1938075263,
+      "user": "cyrilckurian",
+      "created_at": "2024-02-12T05:13:52Z",
+      "body": "> Do you mean the client or Redis get stuck?\r\n\r\nRedis got stuck because of that I didn't get any response from client  "
+    },
+    {
+      "id": 1938075471,
+      "user": "cyrilckurian",
+      "created_at": "2024-02-12T05:14:14Z",
+      "body": "> Hi @cyrilckurian which version of redis your using\r\n\r\nRedis version 4.6.12\r\n"
+    },
+    {
+      "id": 1938119746,
+      "user": "oranagra",
+      "created_at": "2024-02-12T06:24:49Z",
+      "body": "Redis didn't have a version 4.6, nor 3.1.\r\nmaybe you're using some other project or got the version number from the wrong component?\r\np.s. which client are you using?"
+    },
+    {
+      "id": 1959115475,
+      "user": "cyrilckurian",
+      "created_at": "2024-02-22T10:11:38Z",
+      "body": "> Redis didn't have a version 4.6, nor 3.1. maybe you're using some other project or got the version number from the wrong component? p.s. which client are you using?\r\n\r\nOh, I'm using node-redis\r\n\r\n"
+    },
+    {
+      "id": 1968157281,
+      "user": "sundb",
+      "created_at": "2024-02-28T03:39:05Z",
+      "body": "@cyrilckurian i think you can get help from https://github.com/redis/node-redis."
+    }
+  ]
+}

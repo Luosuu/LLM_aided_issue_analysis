@@ -1,0 +1,26 @@
+{
+  "issue_number": 7673.0,
+  "title": "[BUG]",
+  "body": "**Describe the bug**\r\nI can't compile redis  when system is centos7 gcc is 4.8.5\r\n\r\n\r\nserver.c:5186:44: 错误：‘struct redisServer’没有名为‘tlsfd_count’的成员\r\n         if (server.ipfd_count > 0 || server.tlsfd_count > 0)\r\n                                            ^\r\nserver.c:5188:19: 错误：‘struct redisServer’没有名为‘sofd’的成员\r\n         if (server.sofd > 0)\r\n                   ^\r\nserver.c:5189:94: 错误：‘struct redisServer’没有名为‘unixsocket’的成员\r\n             serverLog(LL_NOTICE,\"The server is now ready to accept connections at %s\", server.unixsocket);\r\n                                                                                              ^\r\nserver.c:5190:19: 错误：‘struct redisServer’没有名为‘supervised_mode’的成员\r\n         if (server.supervised_mode == SUPERVISED_SYSTEMD) {\r\n                   ^\r\nserver.c:5191:24: 错误：‘struct redisServer’没有名为‘masterhost’的成员\r\n             if (!server.masterhost) {\r\n                        ^\r\nserver.c:5201:19: 错误：‘struct redisServer’没有名为‘supervised_mode’的成员\r\n         if (server.supervised_mode == SUPERVISED_SYSTEMD) {\r\n                   ^\r\nserver.c:5208:15: 错误：‘struct redisServer’没有名为‘maxmemory’的成员\r\n     if (server.maxmemory > 0 && server.maxmemory < 1024*1024) {\r\n               ^\r\nserver.c:5208:39: 错误：‘struct redisServer’没有名为‘maxmemory’的成员\r\n     if (server.maxmemory > 0 && server.maxmemory < 1024*1024) {\r\n                                       ^\r\nserver.c:5209:176: 错误：‘struct redisServer’没有名为‘maxmemory’的成员\r\n         serverLog(LL_WARNING,\"WARNING: You specified a maxmemory value that is less than 1MB (current value is %llu bytes). Are you sure this is what you really want?\", server.maxmemory);\r\n                                                                                                                                                                                ^\r\nserver.c:5212:31: 错误：‘struct redisServer’没有名为‘server_cpulist’的成员\r\n     redisSetCpuAffinity(server.server_cpulist);\r\n",
+  "state": "closed",
+  "created_at": "2020-08-18T09:38:21Z",
+  "updated_at": "2020-08-23T09:35:27Z",
+  "closed_at": "2020-08-18T10:35:43Z",
+  "labels": [
+    "status:duplicate"
+  ],
+  "comments_data": [
+    {
+      "id": 675401401,
+      "user": "yossigo",
+      "created_at": "2020-08-18T10:35:15Z",
+      "body": "@RuvikVan This is a known issue resulting from the use of C11, which is not supported by the default compiler on CentOS 7.x. Please see issue #7509 for more information and a workaround for your system."
+    },
+    {
+      "id": 678751919,
+      "user": "oranagra",
+      "created_at": "2020-08-23T09:35:27Z",
+      "body": "Update: The core team have decided to step back from the C11 requirement. We see it causes pain to many, and we feel that the value (in code clarity) is not worth the pain, and that it was too early for Redis to depend on it. We'll reconsider it again in the future.\r\nThe task will be tracked in #7509."
+    }
+  ]
+}

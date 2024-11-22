@@ -1,0 +1,18 @@
+{
+  "issue_number": 8738.0,
+  "title": "[BUG] Documentation issue",
+  "body": "**Describe the bug**\r\n\r\nThere is a documentation typo in chapter `Adding auxiliary information in the index` of https://redis.io/topics/indexes. In particular the search syntax uses an offset of `1` where it should use `0`.\r\n\r\n**To reproduce**\r\nThe following is suggested in the current doc to retrieve `mykey:...`\r\n```\r\n127.0.0.1:6379> ZADD myindex 0 mykey:myvalue\r\n(integer) 1\r\n127.0.0.1:6379> ZADD myindex 0 myotherkey:myothervalue\r\n(integer) 1\r\n127.0.0.1:6379> ZRANGEBYLEX myindex [mykey: + LIMIT 1 1\r\n1) \"myotherkey:myothervalue\"\r\n```\r\nwhich yields `myotherkey:...`\r\n\r\n\r\n**Expected behavior**\r\n\r\n```\r\n127.0.0.1:6379> ZADD myindex 0 mykey:myvalue\r\n(integer) 1\r\n127.0.0.1:6379> ZADD myindex 0 myotherkey:myothervalue\r\n(integer) 1\r\n127.0.0.1:6379> ZRANGEBYLEX myindex [mykey: + LIMIT 0 1\r\n1) \"mykey:myvalue\"\r\n```\r\n\r\nBest,\r\nChristoph\r\n",
+  "state": "closed",
+  "created_at": "2021-04-01T17:43:29Z",
+  "updated_at": "2021-04-02T17:17:53Z",
+  "closed_at": "2021-04-02T17:17:53Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 812317527,
+      "user": "huangzhw",
+      "created_at": "2021-04-02T04:57:27Z",
+      "body": "@cheind Thanks. A PR issued."
+    }
+  ]
+}

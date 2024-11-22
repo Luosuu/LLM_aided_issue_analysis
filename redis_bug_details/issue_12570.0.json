@@ -1,0 +1,18 @@
+{
+  "issue_number": 12570.0,
+  "title": "[BUG] sentinel cluster auto failover caused data loss",
+  "body": "**Describe the bug**\r\nredis version:6.0.8\r\nA cluster with 3 sentinels, 1 master, 1replica. When master down , cluster failover, the replica change to be the new master.  after 5 mins later, stop the new master  and restart the old master after new master odown. The old master change to a new master again.\r\nA short description of the bug.\r\nFailover caused data loss.\r\n**To reproduce**\r\nredis version:6.0.8\r\n![image](https://github.com/redis/redis/assets/8791900/a25dc321-50cf-4841-af23-ea3a5484b919)\r\n1. stop the master node A redis service\r\n2. wait for failover , the node B redis will change to a new master.\r\n3. set key to the master\r\n4. stop the node B  redis (new master), wait for odown\r\n5. start node A redis, the node A  redis will change to a new master again, but node A  redis will loss data that writed to B redis\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\nnode A redis start agian after node B redis stop and odown, the node A redis cannot change to a new master\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\nsentinel key params:\r\ndown-after-milliseconds 30000\r\nfailover-timeout 180000\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "open",
+  "created_at": "2023-09-12T07:23:40Z",
+  "updated_at": "2024-09-20T12:54:19Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2363672501,
+      "user": "watchpoints",
+      "created_at": "2024-09-20T12:54:18Z",
+      "body": "wait for failover , the node B redis will change to a new master. start a"
+    }
+  ]
+}

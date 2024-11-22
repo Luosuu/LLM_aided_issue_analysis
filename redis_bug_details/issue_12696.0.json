@@ -1,0 +1,18 @@
+{
+  "issue_number": 12696.0,
+  "title": "[BUG]Issue with the TLS version on Redis 7.2.0",
+  "body": "Not able to start redis 7.2.0 using the TLS1.2\r\n\r\nbuild the redis-7.2.0 using docker and created a .deb file to run in ubuntu 22.0\r\n\r\n**To reproduce**\r\n\r\nonce the redis is installed in linux,\r\ntry to start the redis server with TLS version as TLS 1.2V\r\nServer will be core dumped with Segmentation Fault error.\r\n\r\nRedis server should start with TLS V1.2\r\n\r\nAs the redis is working with TLS 1.2 we are expected to work for TLS 1.3\r\n\r\nfollowing data contains the error:\r\n redis.service: Service hold-off time over, scheduling restart.\r\n redis.service: Scheduled restart job, restart counter is at 5.\r\n Stopped Redis In-Memory Data Store.\r\n redis.service: Start request repeated too quickly.\r\n redis.service: Failed with result 'core-dump'.\r\nFailed to start Redis In-Memory Data Store.\r\n",
+  "state": "open",
+  "created_at": "2023-10-25T23:10:17Z",
+  "updated_at": "2023-10-26T16:30:23Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1781458466,
+      "user": "yossigo",
+      "created_at": "2023-10-26T16:30:22Z",
+      "body": "@Raswitha Do you have a stack trace in the log file?\r\nIt's hard to tell without it, but you may run into issues of compatibility with different OpenSSL libraries. You should also consider installing [an official binary package](https://redis.io/docs/install/install-redis/install-redis-on-linux/), at least as a way to rule out a local build issue."
+    }
+  ]
+}

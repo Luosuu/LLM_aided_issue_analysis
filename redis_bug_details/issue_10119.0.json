@@ -1,0 +1,24 @@
+{
+  "issue_number": 10119.0,
+  "title": "[BUG] Config option \"save\" input strings treated differently between redis.conf and CONFIG SET",
+  "body": "**Describe the bug**\r\n\r\nIn Redis 6.2.6, there's a range difference between configuring \"save\" through redis.conf and configuring the config option through the \"CONFIG SET save\" command (which we do at runtime).\r\n\r\nhttps://github.com/redis/redis/blob/4930d19e70c391750479951022e207e19111eb55/src/config.c#L477\r\nIn loadServerConfigFromString(), redis uses **atoi()** to transform argv into an **integer**.\r\nhttps://github.com/redis/redis/blob/4930d19e70c391750479951022e207e19111eb55/src/config.c#L773\r\nIn configSetCommand(), it uses api **strtoll()** to transform argv into a **longlong** integer.  This makes redis treat differently for the range of option \"save\" between redis.conf and CONFIG SET.\r\n\r\n\r\n**To reproduce**\r\n\r\nIf we set \"save\" in redis.conf as:\r\nsave 214748364700 1\r\nStarting up an instance with these in redis.conf:\r\n>redis-server /etc/redis/redis.conf &\r\n\r\nWe get:\r\n>*** FATAL CONFIG FILE ERROR (Redis 6.2.6) ***\r\nReading the configuration file, at line 380\r\n\\>>> 'save 214748364700 1'\r\nInvalid save parameters\r\n\r\nIf we use default value of \"save\" and start up redis successfully, we can dynamically update option \"save\" with  CONFIG SET:\r\n>redis-cli config set save \"214748364700 1\"\r\n\r\nIt returns \"OK\"\r\n>redis-cli config get save\r\n\r\nWe get:\r\n>1) \"save\"\r\n>2) \"214748364700 1\"\r\n\r\n\r\n\r\n**Suggested fix**\r\nRedis should treat equally for the range of option \"save\" between redis.conf and CONFIG SET.\r\n\r\nsrc/config.c\r\nvoid configSetCommand(client *c){\r\n\r\n\r\n```\r\n        for (j = 0; j < vlen; j++) {\r\n            char *eptr;\r\n            long val;\r\n-           val = strtoll(v[j], &eptr, 10);\r\n+           val = atoi(v[j], &eptr, 10);\r\n            if (eptr[0] != '\\0' ||\r\n                ((j & 1) == 0 && val < 1) ||\r\n                ((j & 1) == 1 && val < 0)) {\r\n                sdsfreesplitres(v,vlen);\r\n                goto badfmt;\r\n            }\r\n        }\r\n```\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-01-16T05:29:28Z",
+  "updated_at": "2022-01-16T07:01:30Z",
+  "closed_at": "2022-01-16T07:01:30Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1013820447,
+      "user": "enjoy-binbin",
+      "created_at": "2022-01-16T06:38:21Z",
+      "body": "Note now in unstable branch, we made big changes to it (config part), \r\nand actually now it `'save 214748364700 1' in redis.conf` work in unstable branch\r\n\r\n```\r\n*** FATAL CONFIG FILE ERROR (Redis 6.2.6) ***\r\nReading the configuration file, at line 380\r\n>>> 'save 214748364700 1'\r\nInvalid save parameters\r\n```\r\n\r\nthis will be part of 7.0, and i suppose we can live with it (6.2)  :)\r\n"
+    },
+    {
+      "id": 1013822680,
+      "user": "oranagra",
+      "created_at": "2022-01-16T07:01:30Z",
+      "body": "yes, it was like that for years, and now (redis 7.0) it's fixed.\r\nthanks for reporting."
+    }
+  ]
+}

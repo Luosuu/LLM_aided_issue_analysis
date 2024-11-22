@@ -1,0 +1,51 @@
+{
+  "issue_number": 1137.0,
+  "title": "Redis Cluster Pub/Sub sends messages multiple times to slave nodes.",
+  "body": "The master will forward the message to the node, as usually, but also the Cluster Bus will forward the message to every node.\n\nStill not sure about the best solution to fix this, that is, to just rely on Cluster Bus or the replication link. Probably the former is better as it works even when the replication is in trouble for some reason that's more reliable.\n",
+  "state": "open",
+  "created_at": "2013-05-31T09:34:06Z",
+  "updated_at": "2017-05-15T08:21:06Z",
+  "closed_at": null,
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 48500190,
+      "user": "sadasant",
+      "created_at": "2014-07-09T16:39:14Z",
+      "body": "^ My team just decided to replace Redis because this issue, can somebody tell me what's the status of it?\n"
+    },
+    {
+      "id": 48502930,
+      "user": "mattsta",
+      "created_at": "2014-07-09T16:59:18Z",
+      "body": "Can you clarify \"this issue?\"  What problems did you have?\n\nWere you running a multi-node Redis Cluster and then decided to stop using it?  Redis Cluster isn't currently GA released or recommended for production deployments, so having to \"replace it\" with something else seems slightly odd.\n\nCurrently, for PUBLISH commands in the cluster, the PUBLISH is sent to every node in the cluster (using the cluster bus, not regular replication). \n\nIf the receiving cluster node has zero SUBSCRIBE'd clients, then the messages are just dropped and no further processing happens.  If the receiving cluster node has some clients subscribed to channels, then the messages are sent out as if you were using a regular Redis instance.\n\nNote: _all_ cluster nodes receive every PUBLISH, not just the masters.  The optimization of \"if zero pubsub clients, then drop message\" makes processing faster if you have a large cluster with only a few subscriptions on specific nodes.  This allows you to not worry about where any clients run PUBLISH or SUBSCRIBE — you will get the message across the entire cluster.\n"
+    },
+    {
+      "id": 48505606,
+      "user": "sadasant",
+      "created_at": "2014-07-09T17:20:13Z",
+      "body": "Ok perfect, thank you very much @mattsta, we were actually concerned about this, but your answer made a clarification for us. I'll write here if we encounter any trouble after discussing it.\n"
+    },
+    {
+      "id": 48506810,
+      "user": "mattsta",
+      "created_at": "2014-07-09T17:29:14Z",
+      "body": "(Historical note: the orignal issue was opened May 2013 and the issue was fixed Feb 2014)\n\n``` haskell\ncommit 344a065d51aa79a96c58c490cf202d5950cb60da\nAuthor: antirez <antirez@gmail.com>\nDate:   Mon Feb 10 16:00:27 2014 +0100\n\n    Cluster: don't propagate PUBLISH two times.\n\n    PUBLISH both published messages via Cluster bus and replication when\n    cluster was enabled, resulting in duplicated message in the slave.\n```\n\nDouble note: If you need to use the PUBSUB utility command, it only returns results pertaining to the server you're directly connected to.  Currently the cluster does not maintain a map of channels and clients across the entire cluster (but it could and maybe it will one day):\n\n``` haskell\n    PUBSUB CHANNELS [<pattern>]    List channels with non-zero subscribers.\n    Currently it implements three subcommands:\n\n    PUBSUB CHANNELS [<pattern>]    List channels with non-zero subscribers.\n    PUBSUB NUMSUB [channel_1 ...]  List number of subscribers for channels.\n    PUBSUB NUMPAT                  Return number of subscribed patterns.\n```\n"
+    },
+    {
+      "id": 48532385,
+      "user": "sadasant",
+      "created_at": "2014-07-09T20:52:27Z",
+      "body": "Thank you a lot @mattsta \n"
+    },
+    {
+      "id": 108068384,
+      "user": "ORESoftware",
+      "created_at": "2015-06-02T19:32:44Z",
+      "body": "Hi all - I still have this question: http://stackoverflow.com/questions/30604627/using-the-cluster-module-with-redis-pub-sub, does Redis solve the problem or does NPM cluster solve it? I guess one good solution would be for Redis to publish the message to only one listener. But where do I find that setting to publish to only one listener, and is there a way to vary (round-robin etc) which listener gets published to with Redis alone?\n"
+    }
+  ]
+}

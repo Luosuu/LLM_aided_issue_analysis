@@ -1,0 +1,26 @@
+{
+  "issue_number": 11229.0,
+  "title": "[BUG] Potential memory leak.",
+  "body": "**Describe the bug**\r\nPotential memory leak in [cli_common.c](https://github.com/redis/redis/blob/44859a41ee63b52632f0726d7bf1e6ca1ce47f83/src/cli_common.c) line 59. **The return value of SSL_CTX_NEW is not freed when returned will cause a memory leak.**\r\n\r\n**Additional information**\r\n[Doc](https://www.openssl.org/docs/man3.0/man3/SSL_new.html) says \"An SSLstructure is reference counted. Creating an SSL structure for the first time increments the reference count. Freeing it (using SSL_free) decrements it. When the reference count drops to zero, any memory or resources allocated to theSSLstructure are freed.\"\r\n\r\n![1662197505418](https://user-images.githubusercontent.com/57169201/188264800-5bff1221-3943-4b67-ae70-78dbaee6124e.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-09-03T09:37:04Z",
+  "updated_at": "2022-09-08T10:45:32Z",
+  "closed_at": "2022-09-08T10:45:32Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1236269096,
+      "user": "oranagra",
+      "created_at": "2022-09-04T06:20:47Z",
+      "body": "but that's a static variable, initialized only once, so AFAICT it doesn't leak, and that memory will be dismissed when the process exists.\r\n@yossigo anything i'm missing?"
+    },
+    {
+      "id": 1240545765,
+      "user": "enjoy-binbin",
+      "created_at": "2022-09-08T10:45:32Z",
+      "body": "yes, that is a static variable and i see yossigo reacted with a thumbs up emoji\r\nso i am closing it"
+    }
+  ]
+}

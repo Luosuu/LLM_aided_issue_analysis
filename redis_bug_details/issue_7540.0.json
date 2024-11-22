@@ -1,0 +1,24 @@
+{
+  "issue_number": 7540.0,
+  "title": "[BUG] 6.0.6 client test failure",
+  "body": "**Describe the bug**\r\n\r\n'make test' fails for redis 6.0.6\r\n\r\n[exception]: Executing test client: wrong # args: should be \"close channelId\".\r\nwrong # args: should be \"close channelId\"\r\n    while executing\r\n\"close $fd write\"\r\n    (\"uplevel\" body line 20)\r\n    invoked from within\r\n\"uplevel 1 $code\"\r\n    (procedure \"test\" line 47)\r\n    invoked from within\r\n\"test \"Non-interactive non-TTY CLI: $name\" $code\"\r\n    (procedure \"test_nontty_cli\" line 2)\r\n    invoked from within\r\n\"test_nontty_cli \"Piping raw protocol\" {\r\n        set fd [open_cli \"--pipe\"]\r\n        fconfigure $fd -blocking true\r\n\r\n        # Create a new deferring cli...\"\r\n    (\"uplevel\" body line 259)\r\n    invoked from within\r\n\"uplevel 1 $code \"\r\n    (procedure \"start_server\" line 3)\r\n    invoked from within\r\n\"start_server {tags {\"cli\"}} {\r\n    proc open_cli {{opts \"-n 9\"}} {\r\n        set ::env(TERM) dumb\r\n        set cmdline [rediscli [srv port] $opts]\r\n       ...\"\r\n    (file \"tests/integration/redis-cli.tcl\" line 3)\r\n    invoked from within\r\n\"source $path\"\r\n    (procedure \"execute_test_file\" line 4)\r\n    invoked from within\r\n\"execute_test_file $data\"\r\n    (procedure \"test_client_main\" line 10)\r\n    invoked from within\r\n\"test_client_main $::test_server_port \"\r\n\r\n**To reproduce**\r\n\r\nwget tarball\r\nmake test\r\n\r\n**Expected behavior**\r\n\r\nTest passes\r\n\r\n**Additional information**\r\n\r\nGCC9.3.1, Centos 7.8",
+  "state": "closed",
+  "created_at": "2020-07-20T20:12:31Z",
+  "updated_at": "2020-07-22T08:31:30Z",
+  "closed_at": "2020-07-22T08:31:30Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 661325786,
+      "user": "yossigo",
+      "created_at": "2020-07-20T20:49:52Z",
+      "body": "@lukepalmer thanks for reporting this! Looks like CentOS 7.x ships with TCL 8.5 and this new test introduced a dependency on TCL 8.6."
+    },
+    {
+      "id": 662318532,
+      "user": "brlin-tw",
+      "created_at": "2020-07-22T08:26:57Z",
+      "body": "Seems to be fixed by #7548, should this be closed?"
+    }
+  ]
+}

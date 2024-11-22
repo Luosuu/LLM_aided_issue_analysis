@@ -1,0 +1,32 @@
+{
+  "issue_number": 10047.0,
+  "title": "[CRASH]",
+  "body": "**Crash report**\r\nwhile compiling redis with standalone clang I got this\r\n\r\n```\r\nEnd of search list.\r\n    LINK redis-server\r\n/usr/bin/ld: -f may not be used without -shared\r\nclang-10: error: linker command failed with exit code 1 (use -v to see invocation)\r\nmake[1]: *** [Makefile:345: redis-server] Error 1\r\nmake[1]: Leaving directory '/tmp/redis-stable/src'\r\nmake: *** [Makefile:6: all] Error 2\r\n\r\n```\r\n\r\n**Additional information**\r\n\r\n1. OS distribution and version\r\nubuntu 20.04, \r\n2. Steps to reproduce (if any)\r\n- I first compiled llvm and clang 10,\r\n- then I clone redis, and I type the following command to compile redis using this clang\r\n`CC=\"path/to/llvm/bin/clang\" CFLAGS=\"-v\" make`",
+  "state": "closed",
+  "created_at": "2022-01-03T14:12:45Z",
+  "updated_at": "2022-01-05T16:03:05Z",
+  "closed_at": "2022-01-05T15:59:45Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1005150953,
+      "user": "yossigo",
+      "created_at": "2022-01-04T20:34:38Z",
+      "body": "I can confirm that clang-10 on Ubuntu 20.04 does compile Redis properly. @Nivekiba If you've built your own LLVM, something might be wrong/unusual with your environment."
+    },
+    {
+      "id": 1005853015,
+      "user": "Nivekiba",
+      "created_at": "2022-01-05T15:59:45Z",
+      "body": "Ok."
+    },
+    {
+      "id": 1005855941,
+      "user": "Nivekiba",
+      "created_at": "2022-01-05T16:03:04Z",
+      "body": "Thanks for the answer.. i'm going to look in the side of my llvm environment"
+    }
+  ]
+}

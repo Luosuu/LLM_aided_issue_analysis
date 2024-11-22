@@ -1,0 +1,18 @@
+{
+  "issue_number": 8253.0,
+  "title": "[BUG] RESP3 map reply in scripts have key and value inverted",
+  "body": "**Describe the bug**\r\n\r\n...\r\n\r\n**To reproduce**\r\n\r\n```\r\n$ redis-cli -3 -h host\r\nhost:6379> eval 'redis.setresp(3); return { map={hello=\"world\"} }' 0\r\n1# \"world\" => \"hello\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nI think we should return \"hello\" => \"world\".\r\n\r\n**Additional information**\r\n\r\nRelevant code starts [here](https://github.com/redis/redis/blob/unstable/src/scripting.c#L410), returning value first seems an unusual choice.  It may break uniqueness assumptions on keys anyway.",
+  "state": "closed",
+  "created_at": "2020-12-28T02:06:14Z",
+  "updated_at": "2021-01-05T06:29:21Z",
+  "closed_at": "2021-01-05T06:29:21Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 751667605,
+      "user": "oranagra",
+      "created_at": "2020-12-28T10:36:46Z",
+      "body": "@XeCycle thanks for reporting.\r\nfor the record, even if the real client (redis-cli) is in RESP2 mode, this is messed up, and even if Lua didn't pick RESP3:\r\n```\r\n127.0.0.1:6379> eval 'redis.setresp(3); return { map={hello=\"world\"} }' 0\r\n1) \"world\"\r\n2) \"hello\"\r\n127.0.0.1:6379> eval 'redis.setresp(2); return { map={hello=\"world\"} }' 0\r\n1) \"world\"\r\n2) \"hello\"\r\n```\r\n\r\nand maybe even more obvious with HGETALL on RESP2 client\r\n```\r\n127.0.0.1:6379> hset h hello world\r\n(integer) 1\r\n127.0.0.1:6379> eval 'redis.setresp(3); return redis.call(\"hgetall\", \"h\")' 0\r\n1) \"world\"\r\n2) \"hello\"\r\n127.0.0.1:6379> eval 'redis.setresp(2); return redis.call(\"hgetall\", \"h\")' 0\r\n1) \"hello\"\r\n2) \"world\"\r\n```\r\n\r\ni hope no one wrote any code yet that relies on the bug, it'll break as soon as we fix it."
+    }
+  ]
+}

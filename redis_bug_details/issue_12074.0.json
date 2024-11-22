@@ -1,0 +1,50 @@
+{
+  "issue_number": 12074.0,
+  "title": "[BUG] \"LOLWUT\" ASCII art unimplemented in Redis7",
+  "body": "**Describe the bug**\r\n\r\nAccording to the documentation, `LOLWUT` command should create a piece of generative computer art. This is unimplemented in version 7.\r\n\r\n**To reproduce**\r\n\r\nIssue `LOLWUT` command with Redis ver 7.x\r\n\r\n\r\n**Expected behavior**\r\n\r\nBeauty.\r\n\r\n**Additional information**\r\n\r\nThere are functions `lolwut5Command()` and `lolwut6Command()` for previous versions. Yet for version 7 code fallbacks to `lolwutUnstableCommand()` which outputs textual version representation only. No ASCII Art. ",
+  "state": "open",
+  "created_at": "2023-04-19T13:02:26Z",
+  "updated_at": "2023-05-08T12:50:14Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1514708647,
+      "user": "jakub-m",
+      "created_at": "2023-04-19T13:09:52Z",
+      "body": "I am affected. Please have a look ASAP. "
+    },
+    {
+      "id": 1515179477,
+      "user": "oranagra",
+      "created_at": "2023-04-19T18:25:03Z",
+      "body": "OMG what a horrible bug... I guess redis 7.0 is completely useless until that bug is fixed.\n\nSeriously though... we rather invest our time in useful features and improvements.\n"
+    },
+    {
+      "id": 1516854863,
+      "user": "zuiderkwast",
+      "created_at": "2023-04-20T19:41:10Z",
+      "body": "I think LOLWUT is a fun thing that gives Redis character, though it's understandable that the maintainers can't invest time in it. @zdzichu if you (or someone else) would be willing to contribute a LOLWUT to Redis 8, then I hope there's a change it can be accepted. (Maybe even fix the bug for Redis 7.)"
+    },
+    {
+      "id": 1518679819,
+      "user": "madolson",
+      "created_at": "2023-04-22T14:58:27Z",
+      "body": "I made one that does Julia fractals with ascii art but never published it. If there is no objection I would finish and publish it. (Maybe I'll do it anyways)"
+    },
+    {
+      "id": 1518955779,
+      "user": "oranagra",
+      "created_at": "2023-04-23T06:01:36Z",
+      "body": "I don't have any conceptual objection other than that i think it's not good use of your time.\r\nthe other concern is the other overheads (core review, making sure there's no security concerns, and any issues that could surface in the future, like build / sanitizer warnings)."
+    },
+    {
+      "id": 1538305403,
+      "user": "MakDon",
+      "created_at": "2023-05-08T12:50:14Z",
+      "body": "It is also unavailable in [https://try.redis.io/](https://try.redis.io/)\r\n![image](https://user-images.githubusercontent.com/19908547/236828516-8195902f-7e80-4a15-bb4d-ad5b7aa238ea.png)\r\n"
+    }
+  ]
+}

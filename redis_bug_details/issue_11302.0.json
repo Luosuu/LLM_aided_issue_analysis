@@ -1,0 +1,216 @@
+{
+  "issue_number": 11302.0,
+  "title": "[CRASH] <crash at listRotateTailToHead+0x12 >",
+  "body": "We've had 10+ redis(version:5.0.12) crashes recently, all with the same stack.\r\n\r\nOnce the redis process died, we debugged and found that the value of list->tail was NULL at adlist.c:336. But unfortunately, the redis process on other machines crashed and exited directly, and we couldn't debug it.\r\n\r\n**Crash report**\r\n\r\n```\r\n74483:S 17 Sep 2022 12:48:14.529 * FAIL message received from runidXX about runidXX\r\n74483:S 18 Sep 2022 20:35:01.056 * FAIL message received from a8c88876fb4c5e5b1ecc9a0bc806709b5573339fbd about 060b2a9ef3ee75c409859d85983849b84dfd11ea\r\n\r\n=== REDIS BUG REPORT START: Cut & paste starting from here === \r\n74483:S 19 Sep 2022 12:21:25.391 # Redis 5.0.12 crashed by signal: 11 \r\n74483:S 19 Sep 2022 12:21:25.391 # Crashed running the instruction at: 0x427dc2 \r\n74483:S 19 Sep 2022 12:21:25.391 # Accessing address: 0x8 \r\n74483:S 19 Sep 2022 12:21:25.391 # Failed assertion: <no assertion failed> (<no file>:0) \r\n\r\n------ STACK TRACE ------ \r\nEIP: \r\n/tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](listRotateTailToHead+0x12)[0x427dc2] \r\n\r\nBacktrace: \r\n/tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](logStackTrace+0x41)[0x471691] \r\n/tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](sigsegvHandler+0x96)[0x471d16] \r\n/lib64/libpthread.so.0(+0x13930)[0x7f7122d22930]\r\n /tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](listRotateTailToHead+0x12)[0x427dc2] \r\n/tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](clientsCron+0x71)[0x42e511]\r\n /tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](serverCron+0x245)[0x431025] \r\n/tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](aeProcessEvents+0x276)[0x42a4c6] \r\n/tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](aeMain+0x2b)[0x42a72b]\r\n /tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](main+0x4b5)[0x427595] \r\n/lib64/libc.so.6(__libc_start_main+0xe7)[0x7f7122b73b67] \r\n/tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster](_start+0x2a)[0x4277ca\r\n\r\n----- INFO OUTPUT ------ \r\n# Server \r\nredis_version:5.0.12 \r\nredis_git_sha1:00000000 redis_git_dirty:0 \r\nredis_build_id:7c0135df285128a0 \r\nredis_mode:cluster \r\nos:Linux 4.19.90-23.6.v2101.ky10.x86_64 x86_64 \r\narch_bits:64 multiplexing_api:epoll \r\natomicvar_api:atomic-builtin \r\ngcc_version:7.3.0 \r\nprocess_id:74483 \r\nrun_id:7134593b8cae01f5f3b95d339b6903db9ff19dde \r\ntcp_port:6379 \r\nuptime_in_seconds:2226474 \r\nuptime_in_days:25 \r\nhz:70 \r\nconfigured_hz:70 \r\nlru_clock:2616901 \r\nexecutable:/tools/redis-5.0.12/bin/redis-server \r\nconfig_file:/data/redis/redis.conf \r\n\r\n# Clients \r\nconnected_clients:869 \r\nclient_recent_max_input_buffer:4 \r\nclient_recent_max_output_buffer:0 \r\nblocked_clients:0 \r\n\r\n# Memory \r\nused_memory:24572000 \r\nused_memory_human:23.43M \r\nused_memory_rss:104591360 \r\nused_memory_rss_human:99.75M \r\nused_memory_peak:63126440 \r\nused_memory_peak_human:60.20M \r\nused_memory_peak_perc:38.93% \r\nused_memory_overhead:17697198 \r\nused_memory_startup:1891984 \r\nused_memory_dataset:6874802 \r\nused_memory_dataset_perc:30.31% \r\nallocator_allocated:24798560 \r\nallocator_active:32555008 \r\nallocator_resident:37257216 \r\ntotal_system_memory:24714575872 \r\ntotal_system_memory_human:23.02G \r\nused_memory_lua:37888 \r\nused_memory_lua_human:37.00K \r\nused_memory_scripts:0 \r\nused_memory_scripts_human:0B \r\nnumber_of_cached_scripts:0 \r\nmaxmemory:12000000000 \r\nmaxmemory_human:11.18G \r\nmaxmemory_policy:volatile-ttl \r\nallocator_frag_ratio:1.31 \r\nallocator_frag_bytes:7756448 \r\nallocator_rss_ratio:1.14 \r\nallocator_rss_bytes:4702208 \r\nrss_overhead_ratio:2.81 \r\nrss_overhead_bytes:67334144 \r\nmem_fragmentation_ratio:4.26 \r\nmem_fragmentation_bytes:80020640 \r\nmem_not_counted_for_evict:2040 \r\nmem_replication_backlog:1048576 \r\nmem_clients_slaves:0 \r\nmem_clients_normal:14754494 \r\nmem_aof_buffer:2040 \r\nmem_allocator:jemalloc-5.1.0 \r\nactive_defrag_running:0 \r\nlazyfree_pending_objects:0 \r\n\r\n# Persistence \r\nloading:0 \r\nrdb_changes_since_last_save:104952019 \r\nrdb_bgsave_in_progress:0 \r\nrdb_last_save_time:1661334811 \r\nrdb_last_bgsave_status:ok \r\nrdb_last_bgsave_time_sec:-1 \r\nrdb_current_bgsave_time_sec:-1 \r\nrdb_last_cow_size:0 aof_enabled:1 \r\naof_rewrite_in_progress:0 \r\naof_rewrite_scheduled:0 \r\naof_last_rewrite_time_sec:1 \r\naof_current_rewrite_time_sec:-1 \r\naof_last_bgrewrite_status:ok \r\naof_last_write_status:ok \r\naof_last_cow_size:59727872 \r\naof_current_size:14072882 \r\naof_base_size:2894033 \r\naof_pending_rewrite:0 \r\naof_buffer_length:0 \r\naof_rewrite_buffer_length:0 \r\naof_pending_bio_fsync:0 \r\naof_delayed_fsync:0\r\n\r\n# Stats \r\ntotal_connections_received:17865608 \r\ntotal_commands_processed:143520116\r\ninstantaneous_ops_per_sec:13\r\ntotal_net_input_bytes:9659248291\r\ntotal_net_output_bytes:1382677478\r\ninstantaneous_input_kbps:0.20\r\ninstantaneous_output_kbps:0.12\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_keys:0\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nevicted_keys:0\r\nkeyspace_hits:0\r\nkeyspace_misses:0\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:2421\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\n\r\n#Replication\r\nrole:slave\r\nmaster_host:ip\r\nmaster_port:6379\r\nmaster_link_status:up\r\nmaster_last_io_seconds_ago:3\r\nmaster_sync_in_progress:0\r\nslave_repl_offset:8871541619\r\nslave_priority:100\r\nslave_read_only:1\r\nconnected_slaves:0\r\nmaster_replid:5ad534c4b8ed27282a113257b60988d54e43ea77\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:8871541619\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:1\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:8870493044\r\nrepl_backlog_histlen:1048576\r\n\r\n#CPU\r\nused_cpu_sys:37696.320464\r\nused_cpu_user:15254.539483\r\nused_cpu_sys_children:2.535811\r\nused_cpu_user_children:15.147198\r\n\r\n#Commandstats\r\ncmdstat_auth:calls=686785,usec=1131329,usec_per_call=1.65\r\ncmdstat_select:calls=1,usec=1,usec_per_call=1.00\r\ncmdstat_cluster:calls=72425,usec=5358095,usec_per_call=73.98\r\ncmdstat_config:calls=36151,usec=1485166,usec_per_call=41.08\r\ncmdstat_set:calls=52476010,usec=657378730,usec_per_call=12.53\r\ncmdstat_ping:calls=37447365,usec=27338096,usec_per_call=0.73\r\ncmdstat_slowlog:calls=108441,usec=266164,usec_per_call=2.45\r\ncmdstat_del:calls=52476009,usec=658288124,usec_per_call=12.54\r\ncmdstat_info:calls=216929,usec=68784391,usec_per_call=317.08\r\n\r\n#Cluster\r\ncluster_enabled:1\r\n\r\n#Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0\r\n\r\n------ CLIENT LIST OUTPUT ------\r\nid=17864884 addr=ip:port fd=1035 name= age=73 idle=13 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=ping \r\nid=17865280 addr=ip:port fd=350 name= age=28 idle=28 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=NULL\r\n id=17865281 addr=ip:port fd=355 name= age=28 idle=28 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=NULL\r\n id=17865282 addr=ip:port fd=379 name= age=28 idle=28 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=NULL\r\n id=17865283 addr=ip:port fd=390 name= age=28 idle=28 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=ping\r\n : \r\nid=17865284 addr=ip:port fd=471 name= age=28 idle=28 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=NULL\r\n<Note that there are more than 800 lines in the above Client List Output, which are omitted in order to save space.> \r\n\r\n\r\n ------ REGISTERS ------ \r\n74483:S 19 Sep 2022 12:21:25.395 # \r\nRAX:00007f712262af10 RBX:0000000000000001 \r\nRCX:000000000000006 RDX:0000000000000000 \r\nRDI:00007f712260f000 RSI:0000000000000000 \r\nRBP:00007f7111fa6a40 RSP:00007ffcd98c1258 \r\nR8 :00007ffcd9951000 R9 :0008f27c66eb5d60 \r\nR10:00007ffcd98c1260 R11:000000004340ceec \r\nR12:0000018353fabf0f R13:00007f71226b45c0 \r\nR14:00007f7122615080 R15:0000000000000001 \r\nRIP:0000000000427dc2 EFL:0000000000010202 \r\nCSGSFS:002b000000000033 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1267) -> 00007f71226b45c0 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1266) -> 00007f712266c050 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1265) -> 00007ffcd98c1300 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1264) -> 0000000000000000 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1263) -> 00007f7122615090 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1262) -> 0000000222615080 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1261) -> 0000000000000000 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1260) -> 00007ffcd9953ead \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c125f) -> 00007ffcd98c12e0 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c125e) -> 0000000000431025 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c125d) -> 00007f712266c050 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c125c) -> 0000000000000000 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c125b) -> 000000000000004b \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c125a) -> 000000000005f76e \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1259) -> 000000006327ee45 \r\n74483:S 19 Sep 2022 12:21:25.395 # (00007ffcd98c1258) -> 000000000042e511\r\n\r\n------ FAST MEMORY TEST ------ \r\n74483:S 19 Sep 2022 12:21:25.396 # Bio thread for job type #0 terminated \r\n74483:S 19 Sep 2022 12:21:25.397 # Bio thread for job type #1 terminated \r\n74483:S 19 Sep 2022 12:21:25.397 # Bio thread for job type #2 terminated \r\n*** Preparing to test memory region 5a2000 (2248704 bytes) \r\n*** Preparing to test memory region c50000 (135168 bytes) \r\n*** Preparing to test memory region 7f710cc00000 (111149056 bytes) \r\n*** Preparing to test memory region 7f711364c000 (3670016 bytes) \r\n*** Preparing to test memory region 7f71139cd000 (8388608 bytes) \r\n*** Preparing to test memory region 7f71141ce000 (8388608 bytes) \r\n*** Preparing to test memory region 7f71149cf000 (8388608 bytes) \r\n*** Preparing to test memory region 7f71151cf000 (3145728 bytes) \r\n*** Preparing to test memory region 7f7122200000 (8388608 bytes) \r\n*** Preparing to test memory region 7f7122b48000 (24576 bytes) \r\n*** Preparing to test memory region 7f7122d0b000 (16384 bytes) \r\n*** Preparing to test memory region 7f7122d2c000 (16384 bytes) \r\n*** Preparing to test memory region 7f7122ec3000 (8192 bytes) \r\n*** Preparing to test memory region 7f7122efc000 (4096 bytes) .O.O.O.O.O.O.O.O.O.O.O.O.O.O Fast memory test PASSED, however your memory can still be broken. Please run a memory test for several hours if possible. \r\n\r\n------ DUMPING CODE AROUND EIP ------ \r\nSymbol: listRotateTailToHead (base: 0x427db0) \r\nModule: /tools/redis-5.0.12/bin/redis-server 0.0.0.0:6379 [cluster] (base 0x400000) \r\n$ xxd -r -p /tmp/dump.hex /tmp/dump.bin \r\n$ objdump --adjust-vma=0x427db0 -D -b binary -m i386:x86-64 /tmp/dump.bin \r\n------ \r\n74483:S 19 Sep 2022 12:21:26.273 # dump of function (hexdump of 146 bytes): 48837f28017627488b4708488b104889570848c7420800000000488b1748890248c7000000000048895008488907f3c348837f28017628488b07488b500848891748c70200000000488b57084889420848c740080000000048891048894708f3c366662e0f1f8400000000000f1f4000488b06488b57084885c074034889104885d2743448894208488b46084885c0740448 === REDIS BUG REPORT END. Make sure to include from START to END. ===\r\n Please report the crash by opening an issue on github: \r\nhttp://github.com/antirez/redis/issues \r\nSuspect RAM error? Use redis-server --test-memory to verify it.\r\n\r\n```\r\n\r\n**Additional information**\r\n\r\n1. OS distribution and version:Linux 4.19.90-23.6.v2101.ky10.x86_64 x86_64 \r\n2. Steps to reproduce (if any)\r\n",
+  "state": "open",
+  "created_at": "2022-09-22T06:49:04Z",
+  "updated_at": "2023-06-27T03:42:56Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1254643466,
+      "user": "zhipingu",
+      "created_at": "2022-09-22T07:36:46Z",
+      "body": "@antirez @oranagra Looking forward to your help"
+    },
+    {
+      "id": 1254644955,
+      "user": "oranagra",
+      "created_at": "2022-09-22T07:38:20Z",
+      "body": "@zhipingu any chance you can check if it also happens with a more recent version (preferably 7.0)?"
+    },
+    {
+      "id": 1278650083,
+      "user": "zhipingu",
+      "created_at": "2022-10-14T08:13:23Z",
+      "body": "> @zhipingu any chance you can check if it also happens with a more recent version (preferably 7.0)?\r\n@oranagra \r\nWe also encountered crashes on version 6.2.7, and it seems to be related to the cluster size, the larger the cluster size the easier it is to crash"
+    },
+    {
+      "id": 1278651125,
+      "user": "zhipingu",
+      "created_at": "2022-10-14T08:14:09Z",
+      "body": "@antirez We also encountered crashes on version 6.2.7, and it seems to be related to the cluster size, the larger the cluster size the easier it is to crash"
+    },
+    {
+      "id": 1278652105,
+      "user": "zhipingu",
+      "created_at": "2022-10-14T08:14:59Z",
+      "body": "We deployed a cluster of 30 nodes, one master and two slaves"
+    },
+    {
+      "id": 1279723750,
+      "user": "oranagra",
+      "created_at": "2022-10-15T11:17:32Z",
+      "body": "@zhipingu when you reproduced this on 6.2.7 you had the same stack trace? can you post the crash log?"
+    },
+    {
+      "id": 1279725849,
+      "user": "oranagra",
+      "created_at": "2022-10-15T11:29:43Z",
+      "body": "i'll note that this crash seems to happen when adlist.c thinks the list is non-empty (`len != 0`), but the `tail` is NULL, can only happen due to one of these:\r\n1. internal counting bug in adlist.c\r\n2. memory corruption by some other mechanism in redis that overrides something in the list.\r\n\r\nnumber 1 is very unlikely since adlist.c is so simple and didn't really change in years (the diff from the latest version are negligible)\r\n\r\nnumber 2 would be very hard to find, considering the list nodes themselves are isolated allocations, and the list header is part of the server struct and has no dangerous array right before it.\r\n\r\nassuming memory corruption, if we knew how to reproduce it, then valgrind can be used to find the offender"
+    },
+    {
+      "id": 1280172830,
+      "user": "zhipingu",
+      "created_at": "2022-10-17T02:07:38Z",
+      "body": "> @zhipingu when you reproduced this on 6.2.7 you had the same stack trace? can you post the crash log?\r\n\r\n@oranagra  Thanks for your reply，We have encountered different crash stack, except that list->tail is more frequent there, and we have used Address Sanitize to monitor memory, but the stack information we get is the same as the memory illegal stack printed by redis itself, and we can't get where it was written badly\r\n"
+    },
+    {
+      "id": 1290026716,
+      "user": "zhipingu",
+      "created_at": "2022-10-25T05:57:47Z",
+      "body": "> i'll note that this crash seems to happen when adlist.c thinks the list is non-empty (`len != 0`), but the `tail` is NULL, can only happen due to one of these:\r\n> \r\n> 1. internal counting bug in adlist.c\r\n> 2. memory corruption by some other mechanism in redis that overrides something in the list.\r\n> \r\n> number 1 is very unlikely since adlist.c is so simple and didn't really change in years (the diff from the latest version are negligible)\r\n> \r\n> number 2 would be very hard to find, considering the list nodes themselves are isolated allocations, and the list header is part of the server struct and has no dangerous array right before it.\r\n> \r\n> assuming memory corruption, if we knew how to reproduce it, then valgrind can be used to find the offender\r\n\r\n@oranagra We recently found another redis crash at sds.h:181 and sds.h:88(both are unsigned char flags = s[-1];), I'm sure several crash codes were added after version 5.0 and not found in 3.2.7, and we've been testing with 3.2.7 for a while and no crashes have been found so far"
+    },
+    {
+      "id": 1290027137,
+      "user": "zhipingu",
+      "created_at": "2022-10-25T05:58:33Z",
+      "body": "> i'll note that this crash seems to happen when adlist.c thinks the list is non-empty (`len != 0`), but the `tail` is NULL, can only happen due to one of these:\r\n> \r\n> 1. internal counting bug in adlist.c\r\n> 2. memory corruption by some other mechanism in redis that overrides something in the list.\r\n> \r\n> number 1 is very unlikely since adlist.c is so simple and didn't really change in years (the diff from the latest version are negligible)\r\n> \r\n> number 2 would be very hard to find, considering the list nodes themselves are isolated allocations, and the list header is part of the server struct and has no dangerous array right before it.\r\n> \r\n> assuming memory corruption, if we knew how to reproduce it, then valgrind can be used to find the offender\r\n\r\n@oranagra We recently found another redis crash at sds.h:181 and sds.h:88(both are unsigned char flags = s[-1];), I'm sure several crash codes were added after version 5.0 and not found in 3.2.7, and we've been testing with 3.2.7 for a while and no crashes have been found so far\r\n\r\n> > @zhipingu when you reproduced this on 6.2.7 you had the same stack trace? can you post the crash log?\r\n> > @oranagra  Thanks for your reply，We have encountered different crash stack, except that list->tail is more frequent there, and we have used Address Sanitize to monitor memory, but the stack information we get is the same as the memory illegal stack printed by redis itself, and we can't get where it was written badly\r\n\r\n@oranagra We recently found another redis crash at sds.h:181 and sds.h:88(both are unsigned char flags = s[-1];), I'm sure several crash codes were added after version 5.0 and not found in 3.2.7, and we've been testing with 3.2.7 for a while and no crashes have been found so far"
+    },
+    {
+      "id": 1290044703,
+      "user": "oranagra",
+      "created_at": "2022-10-25T06:24:50Z",
+      "body": "@zhipingu when you wrote `3.2.7` you meant `6.2.7`?\r\nis that other crash you mention in sds.h with 6.2 or 5.0? can maybe post the crash log?"
+    },
+    {
+      "id": 1290103894,
+      "user": "zhipingu",
+      "created_at": "2022-10-25T07:20:03Z",
+      "body": "@oranagra  I mean version 3.2.7, before that I encountered multiple crashes on both 5.0.12 and 6.2.7, so I chose version 3.2.7 to test. The crash on sds.h:88 and sds.h:181 I mentioned were found in 5.0.12, and these lines of code were added in 5.0.\r\nAbout the crash log, I'm sorry I can't provide all of them, I can only mention a part of them, as follows：\r\n\r\n"
+    },
+    {
+      "id": 1290123790,
+      "user": "zhipingu",
+      "created_at": "2022-10-25T07:39:04Z",
+      "body": "@oranagra crash log\r\n```\r\n935120:C 25 Oct 2022 01:28:10.126 *SYNC append only file rewrite performed\r\n427948:M 25 Oct 2022 01:28:10.138 *AOF rewrite:96 MB of memory used by copy-on-write\r\n427948:M 25 Oct 2022 01:28:10.154 * Background AOF rewrite terminated with success\r\n427948:M 25 Oct 2022 01:28:10.154* Residual parent diff successfully flushed to the rewritten AOF\r\n427948:M 25 Oct .2022 01:28:10.154 * Background AOF rewrite finished successfully \r\nASAN:DEADLYSIGNAL\r\n==============================================================\r\n427948--ERROR: AddressSanitizer: SEGV on unknown address x000000000000 (pc 0x0000004536cb bp 0x7ffed2e5c650 sp 0x7ffed2e5c630 T0)\r\n427948--The signal is caused by a READ memory access.\r\n427948--Hint: address points to the zero page.\r\n#0 0x4536ca in sdsalloc /tools/redis-5.0.12/src/sds.h:181\r\n#1 0x45486e in sdsAllocSize /tools/redis-5.0.12/src/sds.c:303\r\n#2 0x442b14 in clientsCronResizeQueryBuffer /tools/redis-5.0.12/src/server.c:861\r\n#3 0x4431aa in clientsCron /tools/redis-5.0.12/src/server.c:1001\r\n#4 0x443d72 in serverCron /tools/redis-5.e.12/src/server.c:1228\r\n#5 0x435a24 in processTimeEvents /tools/redis-5.0.12/src/ae.c:331\r\n#6 0x4365d4 in aeProcessEvents /tools/redis-5.0.12/src/ae.c:469\r\n#7 0x436a5e in aeMain /tools/redis-5.0.12/src/ae.c:501\r\n#8 0x452898 in main /tools/redis-5.0.12/src/server.c:4432\r\n#9 0x7f1094690b66 in _libc_start_main(/lib64/libc.so.6+0x25b66)\r\n#10 0x4290e9 in _start (/tools/redis-5.0.12/bin/redis-server+0x4290e9})\r\nAddressSanitizer can not provide additional info.\r\nSUNHARY: AddressSanitizer: SEGV /tools/redis-5.0.12/src/sds.h:181 in sdsalloc\r\n--427948--ABORTING\r\n```"
+    },
+    {
+      "id": 1290145534,
+      "user": "zhipingu",
+      "created_at": "2022-10-25T07:58:57Z",
+      "body": "@oranagra  another crash\r\n```\r\n—-428319--ERROR: Addresssanitizer: global-buffer-overflow on address 0x00000d9f49f at pc 0x0000005ad4d3 bp 0x7ff3c0b0020 sp x7fff3c0b0000\r\nREAD of size 1 at 0x000000d9f49f thread T0\r\n#0 0x5ad4d2 in sdslen /tools/redis-5.0.12/src/sds.h:88\r\n#1 0x5ad757 in activeExpireCycleTryExpire /tools/redis-5.0.12/src/expire.c:58\r\n#2 0x5add11 in activeExpireCycle /tools/redis-5.0.12/src/expire.c:195\r\n#3 0x44322e in databasesCron /topls/redis-5.0.12/src/server.c:1014\r\n#4 0x443d77 in serverCron /tools/redis-5.0.12/src/server.c:1231\r\n#5 0x435a24 in processTimeEvents /tools/redis-5.0.12/src/ae.c:331\r\n#6 0x4365d4 in aeProcessEvents /tools/redis-5.0.12/src/ae.c:469\r\n#7 0x436a5e in aeMain /tools/redis-5.0.12/src/ae.c:501\r\n#8 0x452898 in main /tools/redis-5.0.12/srg/server,c:4432\r\n#9 0x7f515eae0b66 in_libc_start_main (/ljb64/libc.so.6+0x25b66)\r\n#10 0x4290e9 in _start (/tools/redis-5.0.12/bin/redis-server+0x4290e9)\r\n\r\n0x000000d9f49f is located 47 bytes to the right of global variable 'hashDictType' defined in 'server.c:656:10'(0xd9f440) of size 48\r\n0x000000d9f49f is located 1 bytes to the left of global variable 'keylistDictType' defined in 'server.c:668:10\"(0xd9f4a0) of size 48\r\nSUMMARY:AddressSanitizer: global-buffer-overflow /tools/redis-5.0,12/src/sds.h;88 in sdslen\r\nShadow bytes around the buggy address:\r\n```"
+    },
+    {
+      "id": 1290313107,
+      "user": "oranagra",
+      "created_at": "2022-10-25T10:14:49Z",
+      "body": "first one seems to happen when a client has a NULL query buffer, it doesn't seem like a possible result of a memory corruption, but rather a bug (also, if it were a memory corruption, i would hope ASAN would have reported that earlier).\r\nthat portion of code in clientsCronResizeQueryBuffer didn't change recently, but maybe there are other bugs that lead to that scenario of NULL query buffer, that have already been resolved, i can't think of them but it's too long ago, so it would help if you can try to reproduce that on 7.0.\r\n\r\nthe second one seems to be a key name pointer (from the server dictionary) that's bad address.\r\nthis could have been a result of some memory corruption, or a bug forgetting to update a pointer.\r\nagain, if it was a memory corruption, i would hope that ASAN would have reported that earlier, which makes it likely to be a bug. and again, it's hard to keep track of everything that was fixed since so long ago, so it would help if you can try to reproduce it on 7.0."
+    },
+    {
+      "id": 1291463094,
+      "user": "garth6666",
+      "created_at": "2022-10-26T03:56:49Z",
+      "body": "> i'll note that this crash seems to happen when adlist.c thinks the list is non-empty (`len != 0`), but the `tail` is NULL, can only happen due to one of these:\n> \n> 1. internal counting bug in adlist.c\n> 2. memory corruption by some other mechanism in redis that overrides something in the list.\n> \n> number 1 is very unlikely since adlist.c is so simple and didn't really change in years (the diff from the latest version are negligible)\n> \n> number 2 would be very hard to find, considering the list nodes themselves are isolated allocations, and the list header is part of the server struct and has no dangerous array right before it.\n> \n> assuming memory corruption, if we knew how to reproduce it, then valgrind can be used to find the offender\n\nHi, I'm paying attention to this problem. In the listRotateTailToHead function, if the list ->tail may be NULL, I wonder whether the clientNode（new tail） may be released before the list ->tail ->next=NULL. Maybe my guess is wrong. Maybe there is an atom or mutual exclusion mechanism in the code, so I want to ask whether this situation exists."
+    },
+    {
+      "id": 1291532141,
+      "user": "oranagra",
+      "created_at": "2022-10-26T05:41:51Z",
+      "body": "@garth6666 i'm not sure i follow you, maybe you need to be more explicit.\r\nplease note that redis is for the most part single-threaded, and clients are only released from the main thread (the same one that runs this serverCron code."
+    },
+    {
+      "id": 1291552370,
+      "user": "zhipingu",
+      "created_at": "2022-10-26T06:14:20Z",
+      "body": "> > i'll note that this crash seems to happen when adlist.c thinks the list is non-empty (`len != 0`), but the `tail` is NULL, can only happen due to one of these:\r\n> > \r\n> > 1. internal counting bug in adlist.c\r\n> > 2. memory corruption by some other mechanism in redis that overrides something in the list.\r\n> > \r\n> > number 1 is very unlikely since adlist.c is so simple and didn't really change in years (the diff from the latest version are negligible)\r\n> > number 2 would be very hard to find, considering the list nodes themselves are isolated allocations, and the list header is part of the server struct and has no dangerous array right before it.\r\n> > assuming memory corruption, if we knew how to reproduce it, then valgrind can be used to find the offender\r\n> \r\n> Hi, I'm paying attention to this problem. In the listRotateTailToHead function, if the list ->tail may be NULL, I wonder whether the clientNode（new tail） may be released before the list ->tail ->next=NULL. Maybe my guess is wrong. Maybe there is an atom or mutual exclusion mechanism in the code, so I want to ask whether this situation exists.\r\n\r\n\r\n\r\n> > i'll note that this crash seems to happen when adlist.c thinks the list is non-empty (`len != 0`), but the `tail` is NULL, can only happen due to one of these:\r\n> > \r\n> > 1. internal counting bug in adlist.c\r\n> > 2. memory corruption by some other mechanism in redis that overrides something in the list.\r\n> > \r\n> > number 1 is very unlikely since adlist.c is so simple and didn't really change in years (the diff from the latest version are negligible)\r\n> > number 2 would be very hard to find, considering the list nodes themselves are isolated allocations, and the list header is part of the server struct and has no dangerous array right before it.\r\n> > assuming memory corruption, if we knew how to reproduce it, then valgrind can be used to find the offender\r\n> \r\n> Hi, I'm paying attention to this problem. In the listRotateTailToHead function, if the list ->tail may be NULL, I wonder whether the clientNode（new tail） may be released before the list ->tail ->next=NULL. Maybe my guess is wrong. Maybe there is an atom or mutual exclusion mechanism in the code, so I want to ask whether this situation exists.\r\n\r\n@garth6666 \r\n\r\n> > i'll note that this crash seems to happen when adlist.c thinks the list is non-empty (`len != 0`), but the `tail` is NULL, can only happen due to one of these:\r\n> > \r\n> > 1. internal counting bug in adlist.c\r\n> > 2. memory corruption by some other mechanism in redis that overrides something in the list.\r\n> > \r\n> > number 1 is very unlikely since adlist.c is so simple and didn't really change in years (the diff from the latest version are negligible)\r\n> > number 2 would be very hard to find, considering the list nodes themselves are isolated allocations, and the list header is part of the server struct and has no dangerous array right before it.\r\n> > assuming memory corruption, if we knew how to reproduce it, then valgrind can be used to find the offender\r\n> \r\n> Hi, I'm paying attention to this problem. In the listRotateTailToHead function, if the list ->tail may be NULL, I wonder whether the clientNode（new tail） may be released before the list ->tail ->next=NULL. Maybe my guess is wrong. Maybe there is an atom or mutual exclusion mechanism in the code, so I want to ask whether this situation exists.\r\n\r\n@garth6666 By gdb coredump, we found the value of tail->pre is equal to NULL, so after the \"list->tail = tail->pre\" is executed, the list->tail become NULL. And more strange, the value of tail->next and list->head->next is  equal\r\n\r\n"
+    },
+    {
+      "id": 1291559276,
+      "user": "zhipingu",
+      "created_at": "2022-10-26T06:24:20Z",
+      "body": "> first one seems to happen when a client has a NULL query buffer, it doesn't seem like a possible result of a memory corruption, but rather a bug (also, if it were a memory corruption, i would hope ASAN would have reported that earlier). that portion of code in clientsCronResizeQueryBuffer didn't change recently, but maybe there are other bugs that lead to that scenario of NULL query buffer, that have already been resolved, i can't think of them but it's too long ago, so it would help if you can try to reproduce that on 7.0.\r\n> \r\n> the second one seems to be a key name pointer (from the server dictionary) that's bad address. this could have been a result of some memory corruption, or a bug forgetting to update a pointer. again, if it was a memory corruption, i would hope that ASAN would have reported that earlier, which makes it likely to be a bug. and again, it's hard to keep track of everything that was fixed since so long ago, so it would help if you can try to reproduce it on 7.0.\r\n\r\n@oranagra thands for your reply. we only reproduce it on 6.2.7. And we have not try it on 7.0,because it is not a stable version "
+    },
+    {
+      "id": 1291559401,
+      "user": "zhipingu",
+      "created_at": "2022-10-26T06:24:30Z",
+      "body": "> first one seems to happen when a client has a NULL query buffer, it doesn't seem like a possible result of a memory corruption, but rather a bug (also, if it were a memory corruption, i would hope ASAN would have reported that earlier). that portion of code in clientsCronResizeQueryBuffer didn't change recently, but maybe there are other bugs that lead to that scenario of NULL query buffer, that have already been resolved, i can't think of them but it's too long ago, so it would help if you can try to reproduce that on 7.0.\r\n> \r\n> the second one seems to be a key name pointer (from the server dictionary) that's bad address. this could have been a result of some memory corruption, or a bug forgetting to update a pointer. again, if it was a memory corruption, i would hope that ASAN would have reported that earlier, which makes it likely to be a bug. and again, it's hard to keep track of everything that was fixed since so long ago, so it would help if you can try to reproduce it on 7.0.\r\n\r\n@oranagra thands for your reply. we only reproduce it on 6.2.7. And we have not try it on 7.0,because it is not a stable version.\r\nBy gdb coredump, we found the value of tail->pre is equal to NULL, so after the \"list->tail = tail->pre\" is executed, the list->tail become NULL. And more strange, the value of tail->next and list->head->next is equal "
+    },
+    {
+      "id": 1291808797,
+      "user": "oranagra",
+      "created_at": "2022-10-26T10:14:16Z",
+      "body": "7.0 **is** a stable version, but 6.2 is maintained as well.\r\ni'd like to think that i do have a mental map of the changes in 7.0 that have a potential to fix such a problem, but on the other hand maybe there are changes that fix it by chance (code was replaced) without realizing it.\r\nanyway, i think my comment was about the \"sds\" related crashes, have you experienced these on 6.2?\r\n\r\nfrom your text, it seems that, what you mention is a case of a list that has only one node.\r\ni.e. in that case tail->pre is null, and head->next and tail->next are equal (because head==tail).\r\nbut i suppose you mean that head->next and tail->next are equal but are **not** null, and that head is not equal to tail (just their next pointers are equal)?\r\nanyway, that would still seem like either we have a serious bug in the (very short) linked list implementation that only you can reproduce, or you have a memory corruption.\r\n\r\nso assuming the second option (memory corruption), we heed to find out what makes you different than all the others who use redis and don't experience that... are you using any modules? commands that might be rarely used? an OS / or architecture that's not common?"
+    },
+    {
+      "id": 1293224420,
+      "user": "zhipingu",
+      "created_at": "2022-10-27T09:10:46Z",
+      "body": "> 7.0 **is** a stable version, but 6.2 is maintained as well. i'd like to think that i do have a mental map of the changes in 7.0 that have a potential to fix such a problem, but on the other hand maybe there are changes that fix it by chance (code was replaced) without realizing it. anyway, i think my comment was about the \"sds\" related crashes, have you experienced these on 6.2?\r\n> \r\n> from your text, it seems that, what you mention is a case of a list that has only one node. i.e. in that case tail->pre is null, and head->next and tail->next are equal (because head==tail). but i suppose you mean that head->next and tail->next are equal but are **not** null, and that head is not equal to tail (just their next pointers are equal)? anyway, that would still seem like either we have a serious bug in the (very short) linked list implementation that only you can reproduce, or you have a memory corruption.\r\n> \r\n> so assuming the second option (memory corruption), we heed to find out what makes you different than all the others who use redis and don't experience that... are you using any modules? commands that might be rarely used? an OS / or architecture that's not common?\r\n\r\n@oranagra 1. we have encountered several crashes on 6.2.7.  2.what I mention is a case of a list that has 869 nodes. And I mean that head->next and tail->next are equal but are not null, and that head is not equal to tail (just their next pointers are equal, but not always). 3.I use kylin OS"
+    },
+    {
+      "id": 1293264893,
+      "user": "zhipingu",
+      "created_at": "2022-10-27T09:43:15Z",
+      "body": "Could it be related to the version of gcc? We use gcc 7.3.0?\r\n@oranagra "
+    },
+    {
+      "id": 1293349072,
+      "user": "oranagra",
+      "created_at": "2022-10-27T10:55:51Z",
+      "body": "i don't know.. it could also be some incompatibility between something jemalloc does and your kernel.\r\ni'd advise to try disabling the optimization, and or switching to libc malloc.\r\n`make noopt` and `make MALLOC=libc`"
+    },
+    {
+      "id": 1293359142,
+      "user": "zhipingu",
+      "created_at": "2022-10-27T11:04:47Z",
+      "body": "> i don't know.. it could also be some incompatibility between something jemalloc does and your kernel. i'd advise to try disabling the optimization, and or switching to libc malloc. `make noopt` and `make MALLOC=libc`\r\n\r\nOk,thanks very much. I'll try it ASAP."
+    },
+    {
+      "id": 1294338588,
+      "user": "zhipingu",
+      "created_at": "2022-10-28T02:02:08Z",
+      "body": "> i don't know.. it could also be some incompatibility between something jemalloc does and your kernel. i'd advise to try disabling the optimization, and or switching to libc malloc. `make noopt` and `make MALLOC=libc`\r\n\r\n@oranagra We have tried it yesterday. Unfortunately, we still encountered crash.Is it possible that other parameters are not compatible？"
+    },
+    {
+      "id": 1294571407,
+      "user": "garth6666",
+      "created_at": "2022-10-28T07:22:38Z",
+      "body": "> > i don't know.. it could also be some incompatibility between something jemalloc does and your kernel. i'd advise to try disabling the optimization, and or switching to libc malloc. `make noopt` and `make MALLOC=libc`\n> \n> Ok,thanks very much. I'll try it ASAP.\n\nYou can try to use Redis compiled on Centos to run tests directly in Kylinos"
+    },
+    {
+      "id": 1296244546,
+      "user": "oranagra",
+      "created_at": "2022-10-30T12:24:51Z",
+      "body": "> @oranagra We have tried it yesterday. Unfortunately, we still encountered crash.Is it possible that other parameters are not compatible？\r\n\r\ni can't think of anything else that can be in some way incompatible with your kernel.\r\njust to make sure, please check INFO MEMORY to see that indeed you managed to use `libc` malloc.\r\nredis's make file remembers your previous settings, and you have to do `make distclean` in order to change these."
+    },
+    {
+      "id": 1296440047,
+      "user": "zhipingu",
+      "created_at": "2022-10-31T01:56:58Z",
+      "body": "> Reference in new is\r\n\r\n@garth6666 We have tried it. However, we encountered crash"
+    },
+    {
+      "id": 1296441330,
+      "user": "zhipingu",
+      "created_at": "2022-10-31T02:00:07Z",
+      "body": "> \r\n\r\n@oranagra Yes,we were sure that we have managed to use libc malloc."
+    },
+    {
+      "id": 1303272776,
+      "user": "zhipingu",
+      "created_at": "2022-11-04T11:05:10Z",
+      "body": "> Reference in\r\n\r\n@oranagra We found something new. We encountered a global buffer overflow in the jemlloc library code, asan report as below:\r\n-2194680--- ERROR: AddressSanitizer: global-buffer-overflow on address 0x000000d5da18 at pc 0x000000abbaba bp 0x7fffdb05f7d0 sp 8x7fffdb05f7b0\r\nREAD of size 8  at 0x00000d5da18 thread T0\r\n#0 0xabbab9 in sz_index2size_lookup include/jemalloc/internal/sz.h:201\r\n#1. 0xabbab9 in sz_index2size include/jenalloc/internal/sz.h:209\r\n#2 0xabbab9 in arena salloc include/jemalloc/internal/arena_inlines_b.h:124\r\n#3 0xabbab9 in isalloc include/jemaLoc/internal/jemaLloc_internal_inlines_c.h:37\r\n#4 0xabbab9 in je malloc_usable size src/jemalloc.c:3149\r\n#5 0x458fa3 in zfree /tools/redis-5.0.12/src/zmalloc.c:202\r\n#6 0x4547d7 in sdsRemoveFreeSpace /tools/redis-5.0.12/src/sds.C:286\r\n#7 0x442c29 in clientsCronResizeQueryBuffer /tools/redis-5.0.12/src/server.c:874\r\n#8 0x4431aa in clientsCron /tools/redis-5.0.12/src/server.c:1001\r\n#9 0x443d72 in serverCron /tools/redis-5.0.12/src/server.c:1228\r\n#10 0x435a24 in processTimeEvents /tools/redis-5.0.12/src/ae.c:331\r\n#11 0x4365d4 in aeProcessEvents /tools/redis-5.0.12/src/ae.C:469\r\n#12 0x436a5e in aeMain /tools/redis-5.0.12/src/ae.C:501\r\n#13 0x452898 in main /tools/redis-5.0.12/src/server.C:4432\r\n#14 0x7fcc7c205b66 in_libc_start main (/lib64/Libc.S0.6+0x25b66)\r\n#15 0x4290e9 in _start {/too[s/redis-5.0.12/bin/redis-server+0x4290e9)\r\n0x00000d5da18 is located 0 bytes to the right of global variable \"je_sz_index2size tab' defined in src/sz.c:19:14. (0xd5d2c0) of size 1880\r\n0x00000d5da18 is located 40 bytes to the left of global variable \"je_sz_size2index _tab'\" defined in src/sz.C:27:15  (0xd5da40) of size 512\r\nSUMARY: Addresssanitizer: global-buffer-overflow include/jemalloc/internal/sz.h:201 in sZ_index2size_Lookup"
+    },
+    {
+      "id": 1303274236,
+      "user": "zhipingu",
+      "created_at": "2022-11-04T11:06:34Z",
+      "body": "> > @oranagra We have tried it yesterday. Unfortunately, we still encountered crash.Is it possible that other parameters are not compatible？\r\n> \r\n> i can't think of anything else that can be in some way incompatible with your kernel. just to make sure, please check INFO MEMORY to see that indeed you managed to use `libc` malloc. redis's make file remembers your previous settings, and you have to do `make distclean` in order to change these.\r\n\r\n@oranagra Can we just replace jemalloc-5.1.0 in redis with jemalloc-4.4.0 because we didn't crash with redis-3.2.7"
+    },
+    {
+      "id": 1303356705,
+      "user": "oranagra",
+      "created_at": "2022-11-04T12:07:28Z",
+      "body": "That crash in jemalloc is probably not because of jemalloc. It's either because we call zfree on an invalid pointer, or because something corrupted the heap and messed up jemalloc data structures. \n\nI think you should not have any problem to switch to an old jemalloc. But you already tried switching to libc allocator and it didn't help, so I really don't think that's gonna help. "
+    },
+    {
+      "id": 1608642263,
+      "user": "guojje",
+      "created_at": "2023-06-27T02:41:39Z",
+      "body": "我们也遇到了同样的的问题，[zhipingu](https://github.com/zhipingu) 你解决了吗？方便留个联系方式沟通下吗？\r\nUnfortunately，I haven't found a way to reproduce the problem"
+    }
+  ]
+}

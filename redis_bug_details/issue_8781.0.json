@@ -1,0 +1,18 @@
+{
+  "issue_number": 8781.0,
+  "title": "[CRASH] Redis 4.0.11 crashed by signal: 11 ",
+  "body": "**Crash report**\r\n\r\nPaste the complete crash log between the quotes below. Please include a few lines from the log preceding the crash report to provide some context.\r\n\r\n```\r\n2431045:M 14 Apr 15:51:35.831 * Ready to accept connections\r\n\r\n\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n2431045:M 14 Apr 15:52:14.396 # Redis 4.0.11 crashed by signal: 11\r\n2431045:M 14 Apr 15:52:14.396 # Accessing address: 0xffffffffffffffff\r\n2431045:M 14 Apr 15:52:14.396 # Failed assertion: <no assertion failed> (<no file>:0)\r\n\r\n------ STACK TRACE ------\r\n/usr/bin/redis-server *:6379(logStackTrace+0x48)[0xaaab792573e0]\r\n/usr/bin/redis-server *:6379(sigsegvHandler+0x9c)[0xaaab79257afc]\r\nlinux-vdso.so.1(__kernel_rt_sigreturn+0x0)[0xfffe385707b4]\r\n/usr/bin/redis-server *:6379(sdsAllocSize+0x0)[0xaaab7921afe0]\r\n/usr/bin/redis-server *:6379(clientsCronResizeQueryBuffer+0x18)[0xaaab79214af0]\r\n/usr/bin/redis-server *:6379(clientsCron+0x88)[0xaaab79214c68]\r\n/usr/bin/redis-server *:6379(serverCron+0x1c4)[0xaaab79217564]\r\n/usr/bin/redis-server *:6379(aeProcessEvents+0x3e0)[0xaaab792107a8]\r\n/usr/bin/redis-server *:6379(aeMain+0x34)[0xaaab79210974]\r\n/usr/bin/redis-server *:6379(main+0x3c0)[0xaaab7920d338]\r\n/lib64/libc.so.6(__libc_start_main+0xe8)[0xfffe382c4090]\r\n/usr/bin/redis-server *:6379(+0x2d7b0)[0xaaab7920d7b0]\r\n\r\n------ INFO OUTPUT ------\r\n```\r\n\r\n**Aditional information**\r\n\r\n1. OS distribution and version\r\n2. Steps to reproduce (if any)\r\n",
+  "state": "open",
+  "created_at": "2021-04-14T08:01:26Z",
+  "updated_at": "2021-04-14T08:01:42Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 819317180,
+      "user": "cwt9562",
+      "created_at": "2021-04-14T08:01:41Z",
+      "body": "no  INFO OUTPUT"
+    }
+  ]
+}

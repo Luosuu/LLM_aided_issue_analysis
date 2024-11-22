@@ -1,0 +1,48 @@
+{
+  "issue_number": 12484.0,
+  "title": "[BUG] Complete data loss when enabling AOF through config",
+  "body": "**Describe the bug**\r\n\r\nGiven a Redis 7 server that was started with defualt parameters, when stopping it and starting it with `--appendonly yes`, all data is gone.\r\n\r\n**To reproduce**\r\n\r\nStart Server:\r\n\r\n    docker run --rm -ti -v /tmp/redis:/data -p 6379:6379 docker.io/redis:7.0.12-alpine\r\n\r\nConnect to server and write data:\r\n\r\n```\r\n$ redis-cli\r\n127.0.0.1:6379> keys *\r\n(empty array)\r\n127.0.0.1:6379> set hello \"world\"\r\nOK\r\n```\r\n\r\nStop server, and restart it with `--appendonly yes`:\r\n\r\n```\r\ndocker run --rm -ti -v /tmp/redis:/data -p 6379:6379 docker.io/redis:7.0.12-alpine --appendonly yes --appendfsync everysec\r\n```\r\n\r\nReconnect to server, look at existing keys:\r\n\r\n```\r\n$ redis-cli\r\n127.0.0.1:6379> keys *\r\n(empty array)\r\n```\r\n\r\nThe data is now gone. It remains gone when restarting the server again without `--appendonly yes`.\r\n\r\n**Expected behavior**\r\n\r\nFrom reading through https://redis.io/docs/management/persistence/, my understanding of AOF+RDB is that the AOF is like a \"journal\" that contains writes since the last RDB snapshot. So when enabling AOF, the old RDB file should still be read, and no data should be lost (or that the data is being automatically converted). That understanding is probably wrong. However, the documentation does not seem clear enough about this.\r\n\r\nIn the documentation section \"How I can switch to AOF, if I'm currently using dump.rdb snapshots?\", there are instructions on how to switch a live instance to AOF. However, I understood this as a way to upgrade the database without any downtime. I did not see an indication that stopping the server and changing the config would lose the data.\r\n\r\nIn the same section, there is this phrase:\r\n\r\n> IMPORTANT: remember to edit your redis.conf to turn on the AOF, otherwise when you restart the server the configuration changes will be lost and the server will start again with the old configuration.\r\n\r\nThe warning is that the *configuration changes* will be lost. There is no word about data loss.\r\n\r\nI would expect that either Redis can handle configuration changes from RDB to RDB+AOF without data loss, or that there is a clear warning in the documentation that hints at this behavior.\r\n\r\n(Potentially related: #972)",
+  "state": "closed",
+  "created_at": "2023-08-14T09:18:05Z",
+  "updated_at": "2023-08-22T15:15:49Z",
+  "closed_at": "2023-08-22T15:15:49Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1678343373,
+      "user": "AmosTsay",
+      "created_at": "2023-08-15T02:29:49Z",
+      "body": "Wish you can get a response from the official"
+    },
+    {
+      "id": 1678358697,
+      "user": "sundb",
+      "created_at": "2023-08-15T02:58:30Z",
+      "body": "@threema-danilo Please see the comments in the redis.conf\r\n```\r\n# If the AOF is enabled on startup Redis will load the AOF, that is the file\r\n# with the better durability guarantees.\r\n```\r\n\r\nIf you want to change from RDB to RDB+AOF, you should first use `config set appendaof true` when Redis is running, not restarting."
+    },
+    {
+      "id": 1685804561,
+      "user": "threema-danilo",
+      "created_at": "2023-08-21T07:34:38Z",
+      "body": "That comment tells me that the AOF file will be loaded. Since the name of the mode to be used is \"RDB+AOF\", my expectation was that the AOF file will be loaded _in addition_ to the RDB file.\r\n\r\nFurthermore, the comment says that the AOF file will be loaded, not that the RDB file will be truncated (leading in data loss even when switching back to AOF=off).\r\n\r\nIn case this is the expected and desired behavior: Would a documentation PR be welcome, which adds some warning notes about it?"
+    },
+    {
+      "id": 1685848209,
+      "user": "sundb",
+      "created_at": "2023-08-21T08:05:29Z",
+      "body": "@threema-danilo Converting from rdb to rdb+aof already exists in the link [How I can switch to AOF, if I'm currently using dump.rdb snapshots?](https://redis.io/docs/management/persistence/), not sure if we need to repeat it in the conf."
+    },
+    {
+      "id": 1685902311,
+      "user": "oranagra",
+      "created_at": "2023-08-21T08:40:27Z",
+      "body": "@threema-danilo any documentation PR (considering it's short, clear and improves the current state) is welcome."
+    },
+    {
+      "id": 1686230402,
+      "user": "threema-danilo",
+      "created_at": "2023-08-21T12:24:12Z",
+      "body": "The two documentation PRs are here:\r\n\r\n- Docs: https://github.com/redis/redis-doc/pull/2521\r\n- Config: https://github.com/redis/redis/pull/12506\r\n\r\nI think these notes would already help a lot. Having some kind of support for detecting the previous persistence type after a restart and automatically converting the data would be better of course (from a user point of view), but now at least it's clearly documented."
+    }
+  ]
+}

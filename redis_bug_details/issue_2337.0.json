@@ -1,0 +1,20 @@
+{
+  "issue_number": 2337.0,
+  "title": "redis-benchmark does not report error when no auth is provided ",
+  "body": "Running `redis-benchmark` does not report error when test is running without the `-a` flag for a server which requires authentication. \n\nThe results reported are effectively for time to get a `(error) NOAUTH Authentication required.` response rather than actually run the command. So, the benchmark reports incorrect results.\n\nThe fix could be to run a test `ping` to test whether authentication is required or not.\n",
+  "state": "closed",
+  "created_at": "2015-01-29T08:34:37Z",
+  "updated_at": "2021-04-28T09:08:00Z",
+  "closed_at": "2021-04-28T09:07:59Z",
+  "labels": [
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 828289703,
+      "user": "filipecosta90",
+      "created_at": "2021-04-28T09:07:59Z",
+      "body": "@zodvik fixed by #8869."
+    }
+  ]
+}

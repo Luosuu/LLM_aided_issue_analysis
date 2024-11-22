@@ -1,0 +1,54 @@
+{
+  "issue_number": 9680.0,
+  "title": "[BUG] lpop/pop with count 0 returning null",
+  "body": "**Describe the bug**\r\n\r\nThe [LPOP documentation](https://redis.io/commands/lpop) says that when a count is given the result is \"Array reply: list of popped elements, or nil when key does not exist.\" However, [this fast path](https://github.com/redis/redis/blob/c5e6a6204c4cf57f85e7c83a9b4e99f1a7204fd2/src/t_list.c#L538) writes a nil reply when count is 0, rather than an empty list.\r\n\r\nIt's also exiting before even checking the type of the key, so instead of getting a WRONGTYPE error, it can \"successfully\" do an LPOP on non-lists. This differs from `SPOP key 0` which return a WRONGTYPE error.\r\n\r\n**To reproduce**\r\n\r\nWith `redis-cli` (note, I'm using server version 6.2.6, but only have redis-cli 5.0.7 handy, so this is presumably all RESP2):\r\n```\r\n127.0.0.1:6379> rpush foo a\r\n(integer) 1\r\n127.0.0.1:6379> lpop foo 0\r\n(nil)\r\n```\r\n\r\n**Expected behavior**\r\n\r\nExpected to get `(empty list or set)`.\r\n\r\n**Additional information**\r\n\r\nIt seems a bit odd that SPOP returns an empty array if the key does not exist while LPOP/RPOP returns nil.",
+  "state": "closed",
+  "created_at": "2021-10-25T14:09:59Z",
+  "updated_at": "2021-11-04T07:43:08Z",
+  "closed_at": "2021-11-04T07:43:08Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 951528223,
+      "user": "enjoy-binbin",
+      "created_at": "2021-10-26T03:36:19Z",
+      "body": "i don't know the `nil` history, we may not be able to change it very well for compatibility.\r\nbut the `WRONGTYPE` error indeed is really weird...\r\n\r\n```\r\n127.0.0.1:6379> set foo a\r\nOK\r\n127.0.0.1:6379> lpop foo 0\r\n(nil)\r\n127.0.0.1:6379> zpopmax foo 0\r\n(empty array)\r\n127.0.0.1:6379> spop foo 0\r\n(error) WRONGTYPE Operation against a key holding the wrong kind of value\r\n```"
+    },
+    {
+      "id": 953265555,
+      "user": "itamarhaber",
+      "created_at": "2021-10-27T20:01:48Z",
+      "body": "Hello @bmerry\r\n\r\nThanks for noticing and reporting the issue. These issues were introduced with #8179 and prove (once again) that software development should be left to responsible professionals."
+    },
+    {
+      "id": 953306402,
+      "user": "zuiderkwast",
+      "created_at": "2021-10-27T20:59:18Z",
+      "body": "`zpopmax foo 0` should also give a WRONGTYPE error in @enjoy-binbin's example above. That's another bug?"
+    },
+    {
+      "id": 953355488,
+      "user": "madolson",
+      "created_at": "2021-10-27T22:24:22Z",
+      "body": "I think it's more of an inconsistency than a bug, but I would still be in favor of updating zpopmax so that it returns WRONGTYPE in the case you outlined. I did scan through the code and didn't find any other inconsistencies."
+    },
+    {
+      "id": 953367569,
+      "user": "itamarhaber",
+      "created_at": "2021-10-27T22:52:14Z",
+      "body": "What @madolson said because https://i.kym-cdn.com/photos/images/original/000/909/991/48c.jpg and also iirc @guybe7 said there's another just like that that was recently fixed/PRed."
+    },
+    {
+      "id": 953438384,
+      "user": "enjoy-binbin",
+      "created_at": "2021-10-28T01:58:59Z",
+      "body": ">zpopmax foo 0 should also give a WRONGTYPE error \r\n\r\n@zuiderkwast I think it is another bug or inconsistency. I will take a look since we will do the same in LPOP in haber's PR\r\n\r\nAbout the zpop, I might modify it like this\r\n```\r\nbefore:\r\n127.0.0.1:6379> set zset str\r\nOK\r\n127.0.0.1:6379> zpopmin zset\r\n(error) WRONGTYPE Operation against a key holding the wrong kind of value\r\n127.0.0.1:6379> zpopmin zset 1\r\n(error) WRONGTYPE Operation against a key holding the wrong kind of value\r\n127.0.0.1:6379> zpopmin zset 0\r\n(empty array)\r\n127.0.0.1:6379> zpopmin zset -1\r\n(empty array)\r\n\r\nafter:\r\n27.0.0.1:6379> set zset str\r\nOK\r\n127.0.0.1:6379> zpopmin zset\r\n(error) WRONGTYPE Operation against a key holding the wrong kind of value\r\n127.0.0.1:6379> zpopmin zset 1\r\n(error) WRONGTYPE Operation against a key holding the wrong kind of value\r\n127.0.0.1:6379> zpopmin zset 0\r\n(error) WRONGTYPE Operation against a key holding the wrong kind of value\r\n127.0.0.1:6379> zpopmin zset -1\r\n(error) ERR value is out of range, must be positive"
+    },
+    {
+      "id": 953600237,
+      "user": "guybe7",
+      "created_at": "2021-10-28T08:06:02Z",
+      "body": "@itamarhaber found it: https://github.com/redis/redis/pull/9271"
+    }
+  ]
+}

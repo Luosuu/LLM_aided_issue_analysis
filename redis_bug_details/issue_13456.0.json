@@ -1,0 +1,90 @@
+{
+  "issue_number": 13456.0,
+  "title": "[BUG] Unrecoverable error: corrupted cluster config file \"5270a2453e7db28eee53f976faca81306e649b19... ",
+  "body": "**Describe the bug**\r\n\r\nOn upgrading to redis version: **7.2.5-debian-12-r0** from version: **6.2.6-debian-10-r140** redis gets upgraded successfully. But when it is restarted, we get the following error for the pods: **Unrecoverable error: corrupted cluster config file \"5270a2453e7db28eee53f976faca81306e649b19 10.151.6.27:6379@16379,,tls-port=0,shard-id=2a12a835ae20c88b96627ed19a42f1ac18b5086c slave 54395be964fa95e84bf83da107c8231aeb4c7904 0 1719394776000 51 connected** and all of the redis nodes fall into CrashLoopBackOff state and never recover from there.\r\n\r\n**To reproduce**\r\n\r\n1. Try upgrading to version: **7.2.5-debian-12-r0** , it may get upgraded successfully. After it's upgraded, restart all the redis pods, you should see the above error and it is unrecoverable.\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nThe aforementioned error should not occur and after upgrading, after restart, all the redis nodes should come up successfully.\r\n\r\n**Additional information**\r\n\r\nThere are already a few issues reported for this bug, link to all the reported issues: \r\n1. https://github.com/redis/redis/issues/12761\r\n2. https://github.com/redis/redis/pull/13428\r\n\r\nPlease help resolve this issue, or let us know if we should put the upgrade to 7.2.5 on hold for now if any fix for it is coming in the near future.\r\n",
+  "state": "closed",
+  "created_at": "2024-07-31T07:10:21Z",
+  "updated_at": "2024-09-12T06:03:33Z",
+  "closed_at": "2024-09-12T06:03:33Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2259840691,
+      "user": "sundb",
+      "created_at": "2024-07-31T07:18:46Z",
+      "body": "> Please help resolve this issue, or let us know if we should put the upgrade to 7.2.5 on hold for now if any fix for it is coming in the near future.\r\n\r\nyes, #13428 will backport to 7.2 if it works.\r\ncan your try #13428 to see if it works? thanks.\r\n"
+    },
+    {
+      "id": 2259944599,
+      "user": "ihussainbadshah",
+      "created_at": "2024-07-31T08:23:24Z",
+      "body": "@sundb thanks for your prompt response. Could you please elaborate a little as to how to implement the solution explained in #13428 ? I mean does anything need to be changed in the configuration file and which configuration file would that be?"
+    },
+    {
+      "id": 2259959318,
+      "user": "sundb",
+      "created_at": "2024-07-31T08:31:45Z",
+      "body": "@ihussainbadshah can you apply the patch, build and run it in your develoopment environment?\r\ndon't need to change any config."
+    },
+    {
+      "id": 2259973318,
+      "user": "ihussainbadshah",
+      "created_at": "2024-07-31T08:40:00Z",
+      "body": "@sundb so the fix is not released yet officially? Please confirm."
+    },
+    {
+      "id": 2259977220,
+      "user": "sundb",
+      "created_at": "2024-07-31T08:42:21Z",
+      "body": "@ihussainbadshah yes, it's still in review, need more tests."
+    },
+    {
+      "id": 2260075458,
+      "user": "ihussainbadshah",
+      "created_at": "2024-07-31T09:28:24Z",
+      "body": "@sundb ok thanks for the confirmation."
+    },
+    {
+      "id": 2260279465,
+      "user": "ihussainbadshah",
+      "created_at": "2024-07-31T11:16:51Z",
+      "body": "@sundb 7.4.0 version of redis server also does not guarantee the fix for this issue, right?"
+    },
+    {
+      "id": 2260304003,
+      "user": "sundb",
+      "created_at": "2024-07-31T11:31:11Z",
+      "body": "@ihussainbadshah yes, it hasn't been merged yet."
+    },
+    {
+      "id": 2301195293,
+      "user": "ihussainbadshah",
+      "created_at": "2024-08-21T06:00:49Z",
+      "body": "@sundb could you please tell when the fix for this issue will be officially released? "
+    },
+    {
+      "id": 2301201160,
+      "user": "sundb",
+      "created_at": "2024-08-21T06:05:32Z",
+      "body": "@ihussainbadshah it will probably be released in next 7.4."
+    },
+    {
+      "id": 2301203574,
+      "user": "ihussainbadshah",
+      "created_at": "2024-08-21T06:07:29Z",
+      "body": "@sundb any timeline you could specify?\r\n"
+    },
+    {
+      "id": 2301205668,
+      "user": "sundb",
+      "created_at": "2024-08-21T06:09:12Z",
+      "body": "@ihussainbadshah sorry, i'm not sure the timeline, but sure that it won't be recently."
+    },
+    {
+      "id": 2345344002,
+      "user": "sundb",
+      "created_at": "2024-09-12T06:03:33Z",
+      "body": "Close via #13468"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "issue_number": 659.0,
+  "title": "segfault in readSyncBulkPayload on redis 2.4.15",
+  "body": "Hello,\n\nOne of my redis 2.4.15 read-only slave suddently disconnected from its master (2.4.15 also), and crashed during resync.\n\nNote: I don't know also why the slave disconnected.\n\nPlease find below the crash report of Redis:\n\n[19576] 03 Sep 17:44:44 \\* Connecting to MASTER...\n[19576] 03 Sep 17:44:44 \\* MASTER <-> SLAVE sync started\n[19576] 03 Sep 17:44:44 \\* Non blocking connect for SYNC fired the event.\n[19576] 03 Sep 17:44:59 \\* MASTER <-> SLAVE sync: receiving 443943674 bytes from master\n[19576] 03 Sep 17:45:18 \\* MASTER <-> SLAVE sync: Loading DB in memory\n[19576] 03 Sep 17:45:19 # === REDIS BUG REPORT START: Cut & paste starting from here ===\n[19576] 03 Sep 17:45:19 #     Redis 2.4.15 crashed by signal: 11\n[19576] 03 Sep 17:45:19 #     Failed assertion: <no assertion failed> (<no file>:0)\n[19576] 03 Sep 17:45:19 # --- STACK TRACE\n[19576] 03 Sep 17:45:19 # ./redis-server(decrRefCount+0x44) [0x41a3f4]\n[19576] 03 Sep 17:45:19 # ./redis-server(decrRefCount+0x44) [0x41a3f4]\n[19576] 03 Sep 17:45:19 # ./redis-server(_dictClear+0x5d) [0x40e3ad]\n[19576] 03 Sep 17:45:19 # ./redis-server(dictRelease+0xd) [0x40e42d]\n[19576] 03 Sep 17:45:19 # ./redis-server(freeZsetObject+0x54) [0x41a334]\n[19576] 03 Sep 17:45:19 # ./redis-server(decrRefCount+0xc5) [0x41a475]\n[19576] 03 Sep 17:45:19 # ./redis-server(_dictClear+0x74) [0x40e3c4]\n[19576] 03 Sep 17:45:19 # ./redis-server(dictEmpty+0xd) [0x40e83d]\n[19576] 03 Sep 17:45:19 # ./redis-server(emptyDb+0x34) [0x41b194]\n[19576] 03 Sep 17:45:19 # ./redis-server(readSyncBulkPayload+0x13a) [0x41ce1a]\n[19576] 03 Sep 17:45:19 # ./redis-server(aeProcessEvents+0x135) [0x40c945]\n[19576] 03 Sep 17:45:19 # ./redis-server(aeMain+0x2e) [0x40cbbe]\n[19576] 03 Sep 17:45:19 # ./redis-server(main+0x14e) [0x40bb2e]\n[19576] 03 Sep 17:45:19 # /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed) [0x7f8679a5c30d]\n[19576] 03 Sep 17:45:19 # ./redis-server() [0x40bc99]\n[19576] 03 Sep 17:45:19 # --- INFO OUTPUT\n[19576] 03 Sep 17:45:19 # redis_version:2.4.15\nredis_git_sha1:00000000\nredis_git_dirty:0\narch_bits:64\nmultiplexing_api:epoll\ngcc_version:4.6.1\nprocess_id:19576\nuptime_in_seconds:3566458\nuptime_in_days:41\nlru_clock:450983\nused_cpu_sys:323013.62\nused_cpu_user:375770.50\nused_cpu_sys_children:0.00\nused_cpu_user_children:0.00\nconnected_clients:128\nconnected_slaves:0\nclient_longest_output_list:0\nclient_biggest_input_buf:0\nblocked_clients:0\nused_memory:1851872856\nused_memory_human:1.72G\nused_memory_rss:2196688896\nused_memory_peak:2103892936\nused_memory_peak_human:1.96G\nmem_fragmentation_ratio:1.19\nmem_allocator:jemalloc-3.0.0\nloading:0\naof_enabled:0\nchanges_since_last_save:24137633701\nbgsave_in_progress:0\nlast_save_time:1343120661\nbgrewriteaof_in_progress:0\ntotal_connections_received:10875\ntotal_commands_processed:20813165875\nexpired_keys:0\nevicted_keys:0\nkeyspace_hits:13030082066\nkeyspace_misses:27780054\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:0\nvm_enabled:0\nrole:slave\nmaster_host:10.42.42.42\nmaster_port:6379\nmaster_link_status:down\nmaster_last_io_seconds_ago:-1\nmaster_sync_in_progress:1\nmaster_sync_left_bytes:0\nmaster_sync_last_io_seconds_ago:4\nmaster_link_down_since_seconds:36\ndb0:keys=753583,expires=801276\n\n[19576] 03 Sep 17:45:19 # --- CLIENT LIST OUTPUT\n[19576] 03 Sep 17:45:19 # addr=127.0.0.1:8906 fd=5 idle=6 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8907 fd=6 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8911 fd=7 idle=6 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8914 fd=8 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8916 fd=9 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8923 fd=10 idle=6 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8929 fd=11 idle=7 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8935 fd=12 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8946 fd=13 idle=7 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8950 fd=14 idle=7 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8965 fd=15 idle=5 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8966 fd=16 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8977 fd=17 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=lrange\naddr=127.0.0.1:8989 fd=18 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:8997 fd=19 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9008 fd=20 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9021 fd=21 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9028 fd=22 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9037 fd=23 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=lrange\naddr=127.0.0.1:9048 fd=24 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9053 fd=25 idle=5 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9069 fd=26 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9082 fd=27 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9085 fd=28 idle=7 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9090 fd=29 idle=5 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9101 fd=30 idle=5 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9112 fd=31 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9121 fd=32 idle=6 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9137 fd=33 idle=5 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9144 fd=34 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9156 fd=35 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=lrange\naddr=127.0.0.1:9160 fd=36 idle=5 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=lrange\naddr=127.0.0.1:9168 fd=37 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=lrange\naddr=127.0.0.1:9171 fd=38 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=lrange\naddr=127.0.0.1:9182 fd=39 idle=5 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=lrange\naddr=127.0.0.1:9189 fd=40 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=lrange\naddr=127.0.0.1:9194 fd=41 idle=6 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9202 fd=42 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9207 fd=43 idle=6 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9214 fd=44 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9225 fd=45 idle=4 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=zrange\naddr=127.0.0.1:9234 fd=46 idle=5 flags=N db=0 sub=0 psub=0 qbuf=0 obl=0 oll=0 even\n[19576] 03 Sep 17:45:19 # === REDIS BUG REPORT END. Make sure to include from START to END. ===\n\n```\n   Please report the crash opening an issue on github:\n\n       http://github.com/antirez/redis/issues\n```\n\n  Suspect RAM error? Use redis-server --test-memory to veryfy it.\n\n[3073] 03 Sep 17:54:00 \\* Server started, Redis version 2.4.15\n[3073] 03 Sep 17:54:54 \\* DB loaded from disk: 54 seconds\n[3073] 03 Sep 17:54:54 \\* The server is now ready to accept connections on port 6379\n[3073] 03 Sep 17:54:54 \\* Connecting to MASTER...\n[3073] 03 Sep 17:54:54 \\* MASTER <-> SLAVE sync started\n[3073] 03 Sep 17:54:54 \\* Non blocking connect for SYNC fired the event.\n[3073] 03 Sep 17:55:19 \\* MASTER <-> SLAVE sync: receiving 444465207 bytes from master\n[3073] 03 Sep 17:55:25 \\* MASTER <-> SLAVE sync: Loading DB in memory\n[3073] 03 Sep 17:56:36 \\* MASTER <-> SLAVE sync: Finished with success\n\nThe memtest doesn't report any error even after a few cycles.\n\n\"slave-serve-stale-data yes\" is enabled on my server.\n\nMy theory:\nIf think Redis hit some race condition:\n=> one client tried to read a key with zrange\n=> and at the same time, the sync command tried to delete that key.\n\nThank you for your help,\n",
+  "state": "closed",
+  "created_at": "2012-09-03T16:28:34Z",
+  "updated_at": "2013-02-08T09:24:09Z",
+  "closed_at": "2013-02-08T09:01:31Z",
+  "labels": [
+    "critical bug",
+    "WAITING-OP-REPLY",
+    "state-cannot-replicate",
+    "crash report"
+  ],
+  "comments_data": [
+    {
+      "id": 8242886,
+      "user": "antirez",
+      "created_at": "2012-09-03T16:48:55Z",
+      "body": "If memory is ok this looks like a bug in the sorted set implementation. A very hard to trigger apparently... unlikely that we can investigate it from this bug report without a way to reproduce it :( Taking this open for a bit in case you find some easy way to reproduce.\n\nBut what happens seems like the following:\n\nReplication starts, the slave needs to clean the old DB and load the new. When the old DB is flushed away one of the sorted sets cause the bug since it is not possible to release properly since it's corrupted in some way.\n"
+    },
+    {
+      "id": 8242893,
+      "user": "antirez",
+      "created_at": "2012-09-03T16:49:23Z",
+      "body": "One thing that could help is: how do you create your sorted sets? What elements are inside, with what score ranges, and so forth? Thanks.\n"
+    },
+    {
+      "id": 8242924,
+      "user": "antirez",
+      "created_at": "2012-09-03T16:51:06Z",
+      "body": "However while highly unlikely we actually fixed a bug about sorted sets some time ago after 2.4.15, see commit 7de2f7e. I don't think this is related but upgrading to latest version may be a good try.\n"
+    },
+    {
+      "id": 8243859,
+      "user": "serphen",
+      "created_at": "2012-09-03T17:48:56Z",
+      "body": "I'll try to play as soon as possible to try to reproduce the bug but I'm not sure I can.\nThere is 2 type of things inside this redis instance: Lists and Sorted sets.\n\nEach sorted set contains around 2500 strings of +/- 35 bytes.\n\nTo build the sorted sets I'm using a big variadic ZADD (ZADD [key] [2500 values / scores]).\nThe same to delete keys from the sorted set, except with ZREM.\n\nThe score is usually the same as the position of the entry in the sorted set (score range: 0<->2500).\nIt's never a big number (< sizeof(char)).\n\nI build the lists the following way:\nLPUSH list.temp entryA\nLPUSH list.temp entryB\nLPUSH list.temp entryC\nLPUSH list.temp entryD\nLPUSH list.temp entryE\nRENAME list.temp list\n(then later...)\nLPUSH list.temp entryA\nLPUSH list.temp entryB\nLPUSH list.temp entryC\nLPUSH list.temp entryD\nLPUSH list.temp entryE\nRENAME list.temp list\n"
+    },
+    {
+      "id": 8243892,
+      "user": "serphen",
+      "created_at": "2012-09-03T17:50:40Z",
+      "body": "Sorry, I didn't see that it was inside freeZsetObject, so lists are unlikely to be the issue here.\n"
+    },
+    {
+      "id": 8244257,
+      "user": "serphen",
+      "created_at": "2012-09-03T18:12:29Z",
+      "body": "I had a quick look at the source-code around the segfault and I wonder something:\n\nIn replication.c:\n\nShouldn't this:\n        redisLog(REDIS_NOTICE, \"MASTER <-> SLAVE sync: Loading DB in memory\");\n        emptyDb();\n\nchanged to:\n        redisLog(REDIS_NOTICE, \"MASTER <-> SLAVE sync: Loading DB in memory\");\n        signalFlushedDb(-1);\n        emptyDb();\n\n?\n\nOtherwise the clients using WATCH never gets notified that the database is flushed (via touchWatchedKeysOnFlush).\nI don't use WATCH though, but I wanted to pinpoint this possible issue.\n"
+    },
+    {
+      "id": 13281978,
+      "user": "serphen",
+      "created_at": "2013-02-08T09:01:31Z",
+      "body": "After 6 months of intensive operations I can't reproduce this issue.\n\nThis can be closed I think.\n"
+    },
+    {
+      "id": 13282630,
+      "user": "antirez",
+      "created_at": "2013-02-08T09:24:09Z",
+      "body": "archived under \"cosmic ray\" :-) Thanks. About WATCH, it makes sense indeed. Since 2.6 slaves are read only by default but it is possible to revert this and in that case it is not impossible that some client is watching on the slave side. Thanks for this an in general for handling the issue so well.\n"
+    }
+  ]
+}

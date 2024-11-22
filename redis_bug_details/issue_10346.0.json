@@ -1,0 +1,24 @@
+{
+  "issue_number": 10346.0,
+  "title": "[BUG] CLUSTER SETSLOT NODE without first IMPORTING -> inconsistency",
+  "body": "If a cluster node is set as the new owner of a slot without first setting it to IMPORTING, the new owner doesn't bump the epoch and broadcast pong to the other nodes. This leads to inconsistent view regarding the slot ownership.\r\n\r\nI discovered this while playing with the [`test \"slot migration is valid from primary to another primary\"`](https://github.com/redis/redis/pull/10277/files#diff-9ac3da3fdf940e011b989b78d3d377b999010536d1a2e663f3258b9e8eb2f790R52) in `15-cluster-slots.tcl` (test case added in #10277, but that's not the source of the this inconsistency).\r\n\r\nThe test simply moves slot x from node a to b by sending `CLUSTER SLOT x NODE b` to a and b (the old and the new owner). The rest of the nodes in the cluster never get informed, so they still think a is the owner.\r\n\r\nEven when b later sends cluster ping-pong to other nodes, b's slot ownership is ignored because b doesn't have the highest epoch in the cluster. (I added printouts to confirm that this is happening.)\r\n\r\n**Expected behavior**\r\n\r\nThe cluster should stabilize and eventually settle with a consistent view of the slot ownership.\r\n\r\n**Additional information**\r\n\r\nIdea: The new owner could bump epoch and broadcast pong, even if it wasn't set as IMPORTING the slot. However, that doesn't solve all possible inconsistencies.\r\n\r\nIt seems to be easy to create inconsistencies and redirect loops by letting the owner of a slot believe that another slot is the new owner, e.g. by sending `SETSLOT x NODE b` to node `a` and not sending anything to node `b`.",
+  "state": "closed",
+  "created_at": "2022-02-25T17:29:22Z",
+  "updated_at": "2022-02-25T19:47:42Z",
+  "closed_at": "2022-02-25T19:47:42Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1051067388,
+      "user": "madolson",
+      "created_at": "2022-02-25T17:51:36Z",
+      "body": "For what it's worth, SETSLOT is supposed to allow you to wedge the cluster into an inconsistent state. Since there is no backing consistency system, if the cluster is divergent you should be able to force it into whatever state you want. "
+    },
+    {
+      "id": 1051167459,
+      "user": "zuiderkwast",
+      "created_at": "2022-02-25T19:47:42Z",
+      "body": "OK, thx @madolson.... If it's intentional, I guess we can close this issue.\r\n\r\nI can add MIGRATING and IMPORTING commands to the test case, to make the test case more of an example of recommended use."
+    }
+  ]
+}

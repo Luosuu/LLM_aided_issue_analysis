@@ -1,0 +1,24 @@
+{
+  "issue_number": 7986.0,
+  "title": "[BUG] PUBLISH always return 0 on redis cluster",
+  "body": "**Describe the bug**\r\n\r\nexecute PUBLISH always return 0 \r\n\r\n**To reproduce**\r\n\r\n1. subscribe on node1\r\n```bash\r\n127.0.0.1:6380> SUBSCRIBE test\r\nReading messages... (press Ctrl-C to quit)\r\n1) \"subscribe\"\r\n2) \"test\"\r\n3) (integer) 1\r\n```\r\n2. publish on node2\r\n```bash\r\n127.0.0.1:6381> PUBLISH test 123\r\n(integer) 0\r\n```\r\n3. node1 received message\r\n```bash\r\n127.0.0.1:6380> SUBSCRIBE test\r\nReading messages... (press Ctrl-C to quit)\r\n1) \"subscribe\"\r\n2) \"test\"\r\n3) (integer) 1\r\n1) \"message\"\r\n2) \"test\"\r\n3) \"123\"\r\n```\r\n\r\n\r\n**Expected behavior**\r\n\r\nPUBLISH return 1.\r\n\r\n```bash\r\n127.0.0.1:6381> PUBLISH test 123\r\n(integer) 1\r\n```\r\n\r\n**Additional information**\r\ninfo\r\n\r\n```text\r\n127.0.0.1:6380> info\r\n# Server\r\nredis_version:5.0.5\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:4d0898999c5f857\r\nredis_mode:cluster\r\nos:Linux 4.4.0-142-generic x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:6.3.0\r\nprocess_id:1\r\nrun_id:ae0928686497e04a91c0dd8963418dd63329ed23\r\ntcp_port:6380\r\nuptime_in_seconds:1723\r\nuptime_in_days:0\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:10119395\r\nexecutable:/data/redis-server\r\nconfig_file:/usr/local/etc/redis/redis.conf\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2020-10-29T07:02:36Z",
+  "updated_at": "2020-11-02T03:48:02Z",
+  "closed_at": "2020-11-02T03:48:02Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 718870662,
+      "user": "itamarhaber",
+      "created_at": "2020-10-29T16:29:59Z",
+      "body": "Hello @zhou-hao \r\n\r\nI'm not sure that this is a real bug, perhaps more of a documentation issue. This is expected, even if not documented properly, given the current design and implementation of the cluster's Pub/Sub.\r\n\r\nPlease review this PR and lmk if it helps: https://github.com/redis/redis-doc/pull/1425"
+    },
+    {
+      "id": 720221012,
+      "user": "zhou-hao",
+      "created_at": "2020-11-02T03:48:02Z",
+      "body": "emmm, ok !"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "issue_number": 8572.0,
+  "title": "[BUG] CONFIG REWRITE misbehaves when `include` is used",
+  "body": "**Describe the bug**\r\n\r\nIf you have in the config file the command 'save \"\"', and issue a config rewrite command, the 'save \"\"' command won't be saved.\r\n\r\nThe use case here is that the main config file, redis.conf, would include another config file, base.conf, that has many settings and also some save commands. The user would trigger a config rewrite command and then the 'save \"\"' command would get lost.\r\n\r\n**To reproduce**\r\n\r\nbase.conf\r\n```\r\nsave 1 1\r\n```\r\n\r\nredis.conf\r\n```\r\ninclude base.conf\r\nsave \"\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe save \"\" remains saved in the configuration file after issuing a config rewrite command.\r\n\r\n**Additional information**\r\n\r\n\\-\r\n",
+  "state": "closed",
+  "created_at": "2021-03-01T09:36:23Z",
+  "updated_at": "2021-08-18T06:48:00Z",
+  "closed_at": "2021-06-14T13:59:06Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 788076543,
+      "user": "yossigo",
+      "created_at": "2021-03-01T16:18:25Z",
+      "body": "This is beyond just `save`, but basically `CONFIG REWRITE` not being compatible with `include` and some design is necessary to fix that."
+    },
+    {
+      "id": 809860330,
+      "user": "JunhuaY",
+      "created_at": "2021-03-30T02:37:28Z",
+      "body": "the bug was also discussed in #8716, and was solved in #8719, but incompletely :\r\n\r\nwhen the server is started, and the save option is default, if you issue the \" config set save \"\" \"\r\nto change the save option, and then issue the “config rewrite” command, the save option change\r\n( from the default to \" save \"\" \" ) won't be stored.\r\n\r\nthe bug maybe has no connection with \"include\" command."
+    },
+    {
+      "id": 810533494,
+      "user": "oranagra",
+      "created_at": "2021-03-30T19:50:13Z",
+      "body": "Reopening this since we see this as a bigger problem, involving config rewrite and included config files."
+    },
+    {
+      "id": 860707454,
+      "user": "oranagra",
+      "created_at": "2021-06-14T13:59:06Z",
+      "body": "We decided the conflict of include file and config rewrite cannot be cleanly solved and decided to leave it as it. see discussion at the bottom of #8735"
+    },
+    {
+      "id": 900863592,
+      "user": "dimandzhi",
+      "created_at": "2021-08-18T06:47:59Z",
+      "body": "This bug/feature is neglecting the point of using ACL features. Since credentials for replication and sentinel users are stored as plain text in the config I have tried to use an external technique (docker swarm secrets, vault, etc) to secure them and include them in config. But CONFIG REWRITE just puts all those credentials as a copy to the end of the config file raising some security concerns. Making config file read-only on the other hand will remove the ability to make persistent configuration changes, which is unacceptable.\r\nFor myself, I have decided to drop usage of ACL and isolate Redis for a certain application group."
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "issue_number": 187.0,
+  "title": "Redis slaves, while not allowed to expire keys without master input, should reply to clients consistently with the key expire information.",
+  "body": "Facts:\n- Redis slaves don't expire keys actively, since the wait for a DEL form the master.\n- Expiration was centralized in order to allow clients to write to keys with an expire set without time dependent inconsistencies in 2.2.\n- Redis master will expire keys in two ways: incrementally in background, sampling random keys. In a lazy way when the key is accessed, so that even if the key was not already expired in the Redis cron we expire it as soon as a client will try to access it.\n\nThe above points are good and make the Redis expire semantic simpler from the point of view of the append only file and replication.\n\nHowever consider this: a Redis master could have 50 million keys with an expire set, however all the keys but just one have the expire set in the future. The only key with a short expire is unlikely to be found by random sampling, but if a client will access this key, the key will be evicted by the lookupKey...() function and everything will work as expected.\n\nBut if a client will try to access this key in a slave it will found it existing: lookupKey...() can't expire keys in a slave.\n## How to fix that?\n\nThe obvious way to fix this issue is to make the slave more aware of what it is doing. It could simply compute if the key is expired so that lookupKey...() will return NULL and the client will be non existing from the point of view of the client request, even if the salve will not evict the key form the database, waiting for the DEL from the master instance in order to do so. This way we don't have time dependent behaviors when the slave receives, for example, an SUNIONSTORE command that has that key on its arguments (the key may not be already expired on the master since the two host timers may not be perfectly synchronized, or because there is a delay in the replication link, and so forth).\n\nThis fix is just one line and trivial, but there are a few problems with it:\n\n1) Lookup functions are also called by commands doing work that depends on the fact the key exists or not to create new keys or new state inside the database, like SUNIONSTORE. This would require a new lookupKey... interface where the caller can say if the key is going to be used just for a read only command or to use the key content to alter the state of the data set.\n2) From the point of view of Lua scripting the behavior should always be that keys exist if not evicted with an explicit DEL from the master.\n\nThis requires a refactoring of the internal API, so for now it is considered a post-3.0 stuff, but it is better to write it down and think about ways to resolve this issue in the future.\n",
+  "state": "closed",
+  "created_at": "2011-11-12T10:52:34Z",
+  "updated_at": "2022-02-13T17:09:32Z",
+  "closed_at": "2022-02-13T17:09:32Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 265652718,
+      "user": "shafreeck",
+      "created_at": "2016-12-08T04:53:19Z",
+      "body": "@antirez \r\nThis has been fixed by #1768 ， maybe it's time to close this issue."
+    },
+    {
+      "id": 361634264,
+      "user": "orlra",
+      "created_at": "2018-01-30T15:43:55Z",
+      "body": "@shafreeck This commit never hit master. \r\nproblem exists. We still get same problems with slaves.\r\nup to 2.8.X: \r\nGET-> old_value\r\nExists -> 1\r\nfrom 3.0.5 -> 4.0.6 \r\nGET-> null\r\nExists -> 1\r\nif you want to replicate:\r\n1. create master--slave nodes.\r\n2. insert 10k items with TTL max (intended to lower chance for garbage collection, might need a bit more than 10k depending on settings)\r\n3. insert your key with TTL ~10 sec\r\n4. ping slaves with exists and get functions.\r\n"
+    },
+    {
+      "id": 387336142,
+      "user": "wasikuss",
+      "created_at": "2018-05-08T09:05:22Z",
+      "body": "same situation can be reproduced easier by:\r\n1) create master-slave nodes\r\n2) insert one key witch expire `setex key 5 val`\r\n3) kill master and wait 5s\r\n4) slave will return\r\n   - `ttl key -> -2`\r\n   - `exists key -> 1`\r\n   - `get key -> null`"
+    },
+    {
+      "id": 457549836,
+      "user": "AD7six",
+      "created_at": "2019-01-25T11:52:28Z",
+      "body": "For info this step is not necessary IME: `kill master and wait 5s`\r\n\r\nOn a busy redis cluster, this was my experience (redis_version:4.0.8):\r\n```\r\nprimary> SET mykey \"Hello\"\r\nOK\r\nprimary> EXPIRE mykey 10\r\n(integer) 1\r\n```\r\n\r\n```\r\nreplica> get mykey\r\n\"Hello\"\r\nreplica> ttl mykey\r\n(integer) 10\r\nreplica> exists mykey\r\n(integer) 1\r\n \r\nreplica> get mykey\r\n\"Hello\"\r\nreplica> ttl mykey\r\n(integer) 0\r\nreplica> exists mykey\r\n(integer) 1\r\n \r\nreplica> get mykey\r\n(nil)\r\nreplica> ttl mkey\r\n(integer) -2\r\nreplica> exists mykey\r\n(integer) 1\r\n```"
+    },
+    {
+      "id": 1038268734,
+      "user": "oranagra",
+      "created_at": "2022-02-13T17:09:32Z",
+      "body": "indeed this was solved long ago.\r\ninitially handled in #1768, then the EXISTS command issue was handled in #5021\r\nand most recently SUNIONSTORE and others in #9572\r\n\r\nThe only problem mentioned here that's not already solved in the Lua issue, but that's in some way solved by b089ba98cc9f638d79895535c6ae6aed25651a03 and other changes in that area "
+    }
+  ]
+}

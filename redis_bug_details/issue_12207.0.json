@@ -1,0 +1,42 @@
+{
+  "issue_number": 12207.0,
+  "title": "[BUG] Should `SUBSCRIBE/UNSUBSCRIBE` be rejected in `MULTI`?",
+  "body": "Hi @MeirShpilraien, @oranagra,\r\n\r\nI noticed that `SUBSCRIBE` inside `MULTI` is allowed for maintaining backward compatibility (https://github.com/redis/redis/pull/8025). However, it seems to produce responses that a client can't handle, for example, saying that a client issues the following commands:\r\n\r\n```\r\nMULTI\r\nSUBSCRIBE c1 c2 c3\r\nSET k v\r\nGET k\r\nEXEC\r\n```\r\nThen Redis will respond with:\r\n```\r\n+ OK\r\n+ QUEUED\r\n+ QUEUED\r\n+ QUEUED\r\n*\r\n  > subscribe c1\r\n  > subscribe c2\r\n  > subscribe c3\r\n+ OK                // leaked response for SET k v\r\n$ v                 // leaked response for GET k\r\n```\r\n\r\nIs doing `SUBSCRIBE/UNSUBSCRIBE` inside `MULTI` really a valid use case? \r\n",
+  "state": "open",
+  "created_at": "2023-05-21T12:12:39Z",
+  "updated_at": "2023-05-23T15:56:59Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1556188566,
+      "user": "oranagra",
+      "created_at": "2023-05-21T14:04:28Z",
+      "body": "```\r\noran@Oran-laptop:~/work/redis$ telnet localhost 6379\r\nTrying 127.0.0.1...\r\nConnected to localhost.\r\nEscape character is '^]'.\r\nMULTI\r\n+OK\r\nSUBSCRIBE c1 c2 c3\r\n+QUEUED\r\nSET k v\r\n+QUEUED\r\nGET k\r\n+QUEUED\r\nEXEC\r\n*3\r\n*3\r\n$9\r\nsubscribe\r\n$2\r\nc1\r\n:1\r\n*3\r\n$9\r\nsubscribe\r\n$2\r\nc2\r\n:2\r\n*3\r\n$9\r\nsubscribe\r\n$2\r\nc3\r\n:3\r\n+OK\r\n$1\r\nv\r\n```\r\n\r\nso EXEC thinks the subscribe adds just one reply, and the resulting array is of size 3, but then SUBSCRIBE emits a \"reply\" per channel (3 in this case), breaking the protocol.\r\n\r\nthe SUBSCRIBE reply is really bad IMHO, but i wonder what we can do now...\r\nother than somehow just fix the EXEC response to count them correctly."
+    },
+    {
+      "id": 1556197212,
+      "user": "rueian",
+      "created_at": "2023-05-21T14:43:15Z",
+      "body": "I propose just rejecting `SUBSCRIBE/UNSUBSCRIBE/PSUBSCRIBE/PUNSUBSCRIBE/SSUBSCRIBE/SUNSUBSCRIBE` commands if `c->flags & CLIENT_MULTI`, since they break the protocol and maybe there is no backward compatibility need to be maintained?\r\n"
+    },
+    {
+      "id": 1556221810,
+      "user": "enjoy-binbin",
+      "created_at": "2023-05-21T16:41:09Z",
+      "body": "i do remember this one #9928"
+    },
+    {
+      "id": 1556349684,
+      "user": "rueian",
+      "created_at": "2023-05-22T00:30:34Z",
+      "body": "The proposal in #9928 is to postpone all push messages, which looks good to me generally.\r\n\r\nHowever, I think that the size of the EXEC array response should still be maintained. That means we may need to let SUBSCRIBE to respond with a `+OK` first in `MULTI` mode. "
+    },
+    {
+      "id": 1559725158,
+      "user": "oranagra",
+      "created_at": "2023-05-23T15:56:59Z",
+      "body": "we discussed that in a core-team meeting.\r\none option was to fix EXEC in some way to count these, and the other was to completely block SUBSCRIBE in multi.\r\nwe would like to proceed with blocking, but we'll only be able to do that in 8.0 (since it's a breaking change).\r\nin the meanwhile, since this is not a new problem, there's no reason to rush with the other fix."
+    }
+  ]
+}

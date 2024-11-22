@@ -1,0 +1,18 @@
+{
+  "issue_number": 9213.0,
+  "title": "[BUG] redis-server display incorrect version `Redis 255.255.255` ",
+  "body": "**Describe the bug**\r\n\r\nincorrect version `Redis 255.255.255`\r\n\r\nlog:\r\n\r\n```shell\r\n$ src/redis-server \r\n2131:C 09 Jul 2021 00:12:36.988 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n2131:C 09 Jul 2021 00:12:36.988 # Redis version=255.255.255, bits=64, commit=00000000, modified=0, pid=2131, just started\r\n2131:C 09 Jul 2021 00:12:36.988 # Warning: no config file specified, using the default config. In order to specify a config file use src/redis-server /path/to/redis.conf\r\n2131:M 09 Jul 2021 00:12:36.989 * Increased maximum number of open files to 10032 (it was originally set to 256).\r\n2131:M 09 Jul 2021 00:12:36.989 * monotonic clock: POSIX clock_gettime\r\n                _._                                                  \r\n           _.-``__ ''-._                                             \r\n      _.-``    `.  `_.  ''-._           Redis 255.255.255 (00000000/0) 64 bit\r\n  .-`` .-```.  ```\\/    _.,_ ''-._                                  \r\n (    '      ,       .-`  | `,    )     Running in standalone mode\r\n |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379\r\n |    `-._   `._    /     _.-'    |     PID: 2131\r\n  `-._    `-._  `-./  _.-'    _.-'                                   \r\n |`-._`-._    `-.__.-'    _.-'_.-'|                                  \r\n |    `-._`-._        _.-'_.-'    |           https://redis.io       \r\n  `-._    `-._`-.__.-'_.-'    _.-'                                   \r\n |`-._`-._    `-.__.-'    _.-'_.-'|                                  \r\n |    `-._`-._        _.-'_.-'    |                                  \r\n  `-._    `-._`-.__.-'_.-'    _.-'                                   \r\n      `-._    `-.__.-'    _.-'                                       \r\n          `-._        _.-'                                           \r\n              `-.__.-'                                               \r\n\r\n2131:M 09 Jul 2021 00:12:36.993 # Server initialized\r\n2131:M 09 Jul 2021 00:12:36.994 * Loading RDB produced by version 255.255.255\r\n2131:M 09 Jul 2021 00:12:36.994 * RDB age 41 seconds\r\n2131:M 09 Jul 2021 00:12:36.994 * RDB memory usage when created 1.00 Mb\r\n2131:M 09 Jul 2021 00:12:36.994 * DB loaded from disk: 0.001 seconds\r\n2131:M 09 Jul 2021 00:12:36.994 * Ready to accept connections\r\n```\r\n**To reproduce**\r\n\r\n1. download the latest unstable version code from the [download](https://redis.io/download) page of official website. link: [unstable.tar.gz](https://github.com/redis/redis/archive/unstable.tar.gz)\r\n2. then compile with the general instructions, see the README.md\r\n3. ./src/redis-server\r\n\r\n**Expected behavior**\r\n\r\nDisplay any right version ID, e.g., `Redis 6.2.4 (00000000/0) 64 bit`\r\n\r\n**Additional information**\r\n\r\n1. Mac version\r\n```shell\r\n$ uname -a\r\nDarwin ... ...  16.7.0 Darwin Kernel Version 16.7.0: Sun Jun  2 20:26:31 PDT 2019; root:xnu-3789.73.50~1/RELEASE_X86_64 x86_64\r\n```\r\n\r\n2. download date: Jul 6, 2021",
+  "state": "closed",
+  "created_at": "2021-07-08T16:38:29Z",
+  "updated_at": "2021-07-08T16:56:14Z",
+  "closed_at": "2021-07-08T16:56:13Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 876596005,
+      "user": "madolson",
+      "created_at": "2021-07-08T16:56:13Z",
+      "body": "Hey, the unstable version of Redis does have the version 255.255.255.255, since it's the unstable version. You should download the latest stable version to get the correct versioning scheme. "
+    }
+  ]
+}

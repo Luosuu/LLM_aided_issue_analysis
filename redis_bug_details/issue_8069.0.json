@@ -1,0 +1,18 @@
+{
+  "issue_number": 8069.0,
+  "title": "[BUG] maxmemory-policy eviction with client tracking can cause feedback loop",
+  "body": "**Describe the bug**\r\n\r\nClient output buffers count toward the memory used by Redis.\r\nA maxmemory-policy setting will cause the eviction of keys when the prescribed amount of memory is used.\r\nClient tracking will cause evicted keys to be reported to clients, growing client output buffers without bound and causing further memory pressure and further evictions.\r\nRedis can then enter into a feedback loop where client output buffers grow without bound until one of 1) the entire keyset is evicted 2) Redis is OOM killed.\r\n\r\n**To reproduce**\r\n\r\nStart 10 clients or so, and in each turn on client tracking with BCAST to make it especially bad. Set maxmemory and maxmemory-policy. Then just start calling SET a bunch and Redis will eventually blow up as described above. \r\n\r\n**Expected behavior**\r\n\r\nThe feedback loop should not occur. How to do this requires some thought. Possibly client output buffers should not be allowed to exert pressure toward maxmemory?\r\n\r\n**Additional information**\r\n\r\nNone",
+  "state": "open",
+  "created_at": "2020-11-19T15:30:35Z",
+  "updated_at": "2020-11-25T21:41:13Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 733595919,
+      "user": "oranagra",
+      "created_at": "2020-11-25T09:48:37Z",
+      "body": "@lukepalmer thanks for reporting.. this is very bad.\r\nI don't think we can afford output buffers to be excluded from eviction.\r\n\r\nI see two problems here, not exactly sure which one you run into:\r\n1) the loop in `performEvictions` keeps running till it evicts all the keys in the db, because every time it deletes a key, it increases the used memory). i.e. a single SET command is enough to cause a chain reaction that will empty the db.\r\n2) the eviction loop exists, but the rate between the speed at which SET commands are called (and fills the client output buffers), and the rate at which the clients are reading their output buffer is not good and eventually these output buffers fill faster than they are consumed.\r\n\r\nfor the first problem, maybe the solution is as simple as moving the call to `signalModifiedKey` to be after `delta -= (long long) zmalloc_used_memory();`.\r\n\r\nfor the second problem, i suppose this is similar to a problem with PUBLISH, being called faster than subscribers consume their output buffer. so the \"easy\" \"solution\" in that case the user should set `client-output-buffer-limit normal` like we do for pubsub (i.e. clients will be dropped instead of keys being evicted).\r\n\r\nThe best (and more complicated) thing to do is to consider this scenario in #7911 and #7676.\r\ni.e:\r\n1) be able to put some back pressure on the client doing SET, to slow it down so that it doesn't cause eviction nor client disconnection.\r\n2) be able to disconnect a client, even if it's output buffer limit isn't crossed, if the total sum of output buffers grows over a limit (i.e. prefer random client disconnection over eviction of keys after a certain threshold).\r\n\r\nthese two solutions are complicated and will not be implemented soon. so i'm hoping your problem was the first one mentioned at the top, which is more easily solvable. if not, then users facing this will have to set their `client-output-buffer-limit normal` for now."
+    }
+  ]
+}

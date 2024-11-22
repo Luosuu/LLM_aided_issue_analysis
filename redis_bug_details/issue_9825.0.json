@@ -1,0 +1,48 @@
+{
+  "issue_number": 9825.0,
+  "title": "[BUG] EXPIRE and SETEX have inconsistent overflow handling",
+  "body": "**Describe the bug**\r\n\r\nSETEX is documented as being equivalent to doing (atomically) SET followed by EXPIRE. However, the code for checking for overflow in EXPIRE is different and only reports an invalid expiry time if multiplying by 1000 gives a negative time.\r\n\r\n**To reproduce**\r\n\r\nSETEX rejects an expiry time that is more than 2^63 ms:\r\n```\r\n127.0.0.1:6379> setex foo 18446744073709561 blah\r\n(error) ERR invalid expire time in setex\r\n```\r\n\r\nEXPIRE accepts it, and expires the key about 10 seconds later.\r\n```\r\n127.0.0.1:6379> set foo bar\r\nOK\r\n127.0.0.1:6379> expire foo 18446744073709561\r\n(integer) 1\r\n```\r\n\r\n**Expected behavior**\r\n\r\nExpected EXPIRE to match the behaviour of SETEX, and reject expiry times that overflow when converted to absolute milliseconds. It looks like [this helper function](https://github.com/redis/redis/blob/91e77a0cfb5c7e4bc6473ae04353e48ad9e8697b/src/t_string.c#L155) might be useful for having EXPIRE apply the same logic.\r\n\r\n**Additional information**\r\n\r\nBy eyeball, #9601 looks like it might fix the bug. The PR description suggests that the author might not have realised that this fixes an actual bug rather than just a UBSan violation, and that the intent was not to backport it to stable branches (cc @tezc @oranagra).",
+  "state": "closed",
+  "created_at": "2021-11-22T10:19:42Z",
+  "updated_at": "2021-11-24T07:39:23Z",
+  "closed_at": "2021-11-24T07:39:23Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 975397965,
+      "user": "enjoy-binbin",
+      "created_at": "2021-11-22T10:54:35Z",
+      "body": "for the record, based on the latest unstable branch\r\n```\r\n127.0.0.1:6379> setex foo 18446744073709561 blah\r\n(error) ERR invalid expire time in setex\r\n127.0.0.1:6379> set foo bar\r\nOK\r\n127.0.0.1:6379> expire foo 18446744073709561\r\n(error) ERR invalid expire time in expire\r\n```"
+    },
+    {
+      "id": 976142012,
+      "user": "tygzx",
+      "created_at": "2021-11-23T03:43:03Z",
+      "body": "In the version of redis 6.2,the setex command would check the expire time \bis less than  LLONG_MAX / 1000, But the exipre command not check that.  In the version of unstable branch.  expire command check .so the bug is fixed."
+    },
+    {
+      "id": 976249320,
+      "user": "tezc",
+      "created_at": "2021-11-23T08:21:19Z",
+      "body": "I wasn't aware of the bug. I thought it covered all the overflow scenarios previously but it was relying on an UB / implementation defined behavior. So, I've changed that part a bit to follow language rules and make the sanitizer happy. \r\n \r\nCode before my PR : \r\n```c\r\n    int negative_when = when < 0;\r\n    if (unit == UNIT_SECONDS) when *= 1000;\r\n    when += basetime;\r\n    if (((when < 0) && !negative_when) || ((when-basetime > 0) && negative_when)) {\r\n        addReplyErrorFormat(c, \"invalid expire time in %s\", c->cmd->name);\r\n        return;\r\n    }\r\n```\r\n\r\nLooks like GCC generates a positive number for `when *= 1000` on overflow. So, 'if check' below wouldn't catch it."
+    },
+    {
+      "id": 976514571,
+      "user": "oranagra",
+      "created_at": "2021-11-23T13:14:02Z",
+      "body": "the original PR that added these checks is https://github.com/redis/redis/pull/8287\r\nwhere it says:\r\n> Respond with error if expire time overflows from positive to negative of vice versa\r\n\r\nso maybe in that sense it was not a bug if the overflow check failed to detect it.\r\nbut actually, if we disregard the wording, an overflow does happen (just doesn't result in negative).\r\nas is clear from the fact the key is deleted a few seconds later.\r\n\r\ni can mark this [issue](https://github.com/redis/redis/issues/9825) to be backported, to 6.2 and use that as a trigger to backport the overflow check fix.\r\nor maybe a better alternative is to add a test that verifies this behavior, and i'll mark that one for backport.\r\n@bmerry wanna make a PR with a test?\r\n\r\np.s. note that EXPIRE and SETEX are not meant to be consistent:\r\n> EXPIRE and EXPIREAT was ok taking negative values (would implicitly delete\r\nthe key), we keep that, but we do error if the user provided a value that changes\r\nsign when manipulated"
+    },
+    {
+      "id": 976520437,
+      "user": "bmerry",
+      "created_at": "2021-11-23T13:18:17Z",
+      "body": "> @bmerry wanna make a PR with a test?\r\n\r\nI'm afraid I'm not going to have the time - I'm only spending one day a week in a project of which a small part of that time is spent on a package in which I've discovered this bug."
+    },
+    {
+      "id": 977429028,
+      "user": "enjoy-binbin",
+      "created_at": "2021-11-24T02:32:31Z",
+      "body": "> Looks like GCC generates a positive number for when *= 1000 on overflow. So, 'if check' below wouldn't catch it.\r\n\r\nI have some times,  i can add a test to cover it, improve the test"
+    }
+  ]
+}

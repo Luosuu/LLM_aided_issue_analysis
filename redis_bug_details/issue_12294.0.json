@@ -1,0 +1,24 @@
+{
+  "issue_number": 12294.0,
+  "title": "[BUG] The main function has memory leak in utils\\lru\\lfu-simulation.c  ",
+  "body": "**Describe the bug**\r\nThe main function has memory leak in utils\\lru\\lfu-simulation.c  \r\n\r\n**To reproduce**\r\n\r\n![image](https://github.com/redis/redis/assets/80461268/4601ebec-2e80-416f-a1a1-0507cc33370f)\r\n\r\n\r\n**Expected behavior**\r\n\r\nit need free entries variable in the last\r\n![image](https://github.com/redis/redis/assets/80461268/6c6c071d-13ed-4294-a8c0-036c7115187b)\r\n\r\n**Additional information**\r\n\r\nutils\\lru\\lfu-simulation.c \r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-06-10T02:46:11Z",
+  "updated_at": "2023-06-10T15:51:02Z",
+  "closed_at": "2023-06-10T15:51:02Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1585522612,
+      "user": "enjoy-binbin",
+      "created_at": "2023-06-10T06:46:05Z",
+      "body": "thanks for the report, the utils is just a dev toy, and we can fix it or no need to fix it\r\n\r\nthe entire utils/lru dir look a bit outupdate, maybe we can remove it? @oranagra "
+    },
+    {
+      "id": 1585712366,
+      "user": "oranagra",
+      "created_at": "2023-06-10T15:50:43Z",
+      "body": "It's not a leak if it doesn't grow over time, or isn't kept after the process no longer needs it... \nI.e. we never bother releasing memory before terminating the process, that's just a waste of time with no benefits.\nAlso, FYI, valgring doesn't warn on memory not released at exit, only at allocations that doesn't have any references to them."
+    }
+  ]
+}

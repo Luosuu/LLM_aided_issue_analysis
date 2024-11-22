@@ -1,0 +1,18 @@
+{
+  "issue_number": 11023.0,
+  "title": "[BUG] CLUSTER INFO and CLUSTER NODES output unreliable for determining cluster usability",
+  "body": "**Describe the bug**\r\n\r\n`CLUSTER INFO` and `CLUSTER NODES` may return information indicating that a new cluster is up, `ok`, `connected`, and ready to use, even though it isn't.\r\n\r\nThis can lead to `CLUSTERDOWN` errors when trying to actually get/set keys in a cluster node, even though `CLUSTER INFO` and `CLUSTER NODES` indicate that the cluster is usable.\r\n\r\nThese errors stop occurring if you simply wait 3-5 seconds after creating the cluster, but there doesn't seem to be a reliable way to determine how long you have to wait, or a way to reliably determine if the cluster is usable.\r\n\r\n**To reproduce**\r\n\r\n1. Spin up a cluster using a script (I used several Redis nodes running in Docker)\r\n2. Immediately after running the `redis-cli --cluster create ...` command, run `CLUSTER INFO` and/or `CLUSTER NODES` in a loop until the desired output is received (`cluster_state:ok` and all nodes having the status `connected`, respectively)\r\n3. Immediately try to get/set keys in the cluster\r\n\r\nSome keys may work, other keys may return a `CLUSTERDOWN` error. This behavior persists for anywhere from 1-5 seconds until the cluster is truly ready to be used. After that, it works perfectly fine.\r\n\r\n**Expected behavior**\r\n\r\nUsing the cluster (e.g. getting/setting keys) works every time.\r\n\r\n**Additional information**\r\n\r\nI am using the go-redis client, and redis 6.2.5 via Docker.\r\n\r\nIs there a reliable way to determine if the cluster is usable that I'm missing? The behavior isn't consistent and there isn't a set number of times that getting/setting a key will fail before the CLUSTERDOWN errors stop occurring.\r\n",
+  "state": "open",
+  "created_at": "2022-07-21T16:23:24Z",
+  "updated_at": "2022-07-21T17:06:32Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1191732734,
+      "user": "ianling",
+      "created_at": "2022-07-21T17:05:49Z",
+      "body": "It appears as though you must connect to each node in the cluster and run `CLUSTER INFO` on each one, because the output can differ between them. In other words, one node might report that the cluster is OK, but another might not; they aren't synchronized.\r\n\r\nIf this behavior is expected, feel free to close."
+    }
+  ]
+}

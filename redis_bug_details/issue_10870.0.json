@@ -1,0 +1,38 @@
+{
+  "issue_number": 10870.0,
+  "title": "[BUG] user password is not saved when creating with \"redis-cli setuser\" (non-interactive mode) and \">\" is not escaped",
+  "body": "**Describe the bug**\r\n\r\nUser password is not saved when creating with `redis-cli setuser testuser on >testpassword` (non-interactive mode) and `>` is not escaped. It works fine in the following conditions:\r\n* if redis-cli is started in interactive mode\r\n* if `>` is escaped\r\n* The user is created in ACLFILE instead of using redis-cli\r\n\r\n**To reproduce**\r\n\r\nTerminal #1:\r\n```\r\ndocker run --rm --name=redis redis\r\n```\r\n\r\nTerminal #2:\r\n```\r\ndocker exec -it redis bash\r\nredis-cli ACL SETUSER testuser on >testpassword\r\nredis-cli ACL GETUSER testuser\r\n```\r\n\r\nThis yields the following result - notice that the password is not set:\r\n```\r\n 1) \"flags\"\r\n 2) 1) \"on\"\r\n    2) \"allchannels\"\r\n 3) \"passwords\"\r\n 4) (empty array)\r\n 5) \"commands\"\r\n 6) \"-@all\"\r\n 7) \"keys\"\r\n 8) (empty array)\r\n 9) \"channels\"\r\n10) 1) \"*\"\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe user should have set the password, such that `redis-cli ACL GETUSER testuser` will yield the following result:\r\n```\r\n 1) \"flags\"\r\n 2) 1) \"on\"\r\n    2) \"allchannels\"\r\n 3) \"passwords\"\r\n 4) 1) \"9f735e0df9a1ddc702bf0a1a7b83033f9f7153a00c29de82cedadc9957289b05\"\r\n 5) \"commands\"\r\n 6) \"-@all\"\r\n 7) \"keys\"\r\n 8) (empty array)\r\n 9) \"channels\"\r\n10) 1) \"*\"\r\n```\r\n\r\n**Additional information**\r\n\r\nIt works fine if the password section is put in quotes or `>` is escaped:\r\n```\r\nredis-cli ACL SETUSER testuser on \">testpassword\"\r\nredis-cli ACL SETUSER testuser on \\>testpassword\r\n```\r\n\r\nIt also works fine if redis-cli is run in interactive mode:\r\n```\r\nredis-cli\r\nACL SETUSER testuser on >testpassword\r\n```\r\n\r\nThis inconsistent behaviour is very confusing - if it cannot be fixed, then it should at least be documented for e.g. redis-cli.\r\nBtw. many thanks for this awesome software :)",
+  "state": "closed",
+  "created_at": "2022-06-16T12:24:10Z",
+  "updated_at": "2022-07-07T23:14:22Z",
+  "closed_at": "2022-07-07T23:14:22Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1157667594,
+      "user": "zuiderkwast",
+      "created_at": "2022-06-16T13:33:05Z",
+      "body": "`>` is shell syntax. The documentation for this is displayed if you type `man sh` in your shell. You will find that it means \"Redirect standard output to file\".\r\n\r\nSo if you type `redis-cli ACL SETUSER testuser on >testpassword` in a shell, it means you run the command `redis-cli ACL SETUSER testuser on` and the output of the command is saved in a file called \"testpassword\" in the current directory. There is nothing Redis or redis-cli can do about it."
+    },
+    {
+      "id": 1158142260,
+      "user": "andersaaberg",
+      "created_at": "2022-06-16T21:23:09Z",
+      "body": "@zuiderkwast : Many thanks for quick reply! Users are likely to run into this problem, specially with the introduction of ACL in Redis 6 where \">\" is used for password. It would be very helpful with a little documentation at https://redis.io/docs/manual/cli/ about how to avoid these problems - is there a bulletproof way so I do not have to remember to escape every single piece of shell syntax individually?"
+    },
+    {
+      "id": 1158154997,
+      "user": "zuiderkwast",
+      "created_at": "2022-06-16T21:31:41Z",
+      "body": "Well, we could add examples with special characters on the CLI page or on the ACL page. Maybe you can suggest something in a PR?\r\n\r\nBut IMHO if you're writing shell scripts or even commands in the shell, you're expected to know which characters need to be escaped. I think it's a fair requirement. (Theoretically, it can also depend on the shell. If you're using some completely different shell, it may be other characters that need to be escaped.)"
+    },
+    {
+      "id": 1158156324,
+      "user": "zuiderkwast",
+      "created_at": "2022-06-16T21:33:47Z",
+      "body": "Actually, there is already an example with '>' on the [CLI page](https://redis.io/docs/manual/cli/):\r\n\r\n```\r\n$ redis-cli INCR mycounter > /tmp/output.txt\r\n$ cat /tmp/output.txt\r\n8\r\n```"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "issue_number": 11337.0,
+  "title": "[BUG] when executing RDB, the server actively disconnects and the client cannot sense the disconnection",
+  "body": "**Describe the bug**\r\nredis version:5.0.5\r\ntimeout:300\r\n![pack](https://user-images.githubusercontent.com/39358648/192975759-6b0920d0-8ac4-4e34-86d8-0c8c32cbd855.png)\r\n19:05:07, this connection starts to be idle. Theoretically, the connection should be disconnected at 19:10:07 (send FIN or RST), but the connection was actually disconnected at 19:10:25. The client thought the connection still existed at 19:10:13, so it continued to send messages. Waiting for the server's response, causing the client to be in a blocking state.\r\n![sourceCode](https://user-images.githubusercontent.com/39358648/192976263-98654c35-5873-45f3-aefb-dd7a2068580f.png)\r\nI checked the log and found that RDB is in progress at this time, and a process will be forked. Combined with the source code, I found that the close method is used to close the connection. Due to the existence of the RDB sub-process, the main process calls close method and does not close the connection. But Redis is no longer processing any data on this connection. Finally, the client does not know that the connection has been closed until the RDB ends.\r\n**Expected behavior**\r\nI think the shutdown method can be used instead of the close method, so that the server can immediately send RST or FIN to the client, and the client can immediately sense that the connection is disconnected.",
+  "state": "closed",
+  "created_at": "2022-09-29T08:10:02Z",
+  "updated_at": "2022-09-29T12:33:22Z",
+  "closed_at": "2022-09-29T09:40:30Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1261941040,
+      "user": "enjoy-binbin",
+      "created_at": "2022-09-29T08:27:01Z",
+      "body": "this was also mentioned in #10077"
+    },
+    {
+      "id": 1262030143,
+      "user": "oranagra",
+      "created_at": "2022-09-29T09:40:30Z",
+      "body": "let's close this one as a dup and try to revive the discussion in the other one."
+    },
+    {
+      "id": 1262212236,
+      "user": "warriorswin",
+      "created_at": "2022-09-29T12:33:22Z",
+      "body": "OK, thanks"
+    }
+  ]
+}

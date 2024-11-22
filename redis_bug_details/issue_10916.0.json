@@ -1,0 +1,24 @@
+{
+  "issue_number": 10916.0,
+  "title": "[BUG] Redis 7.0.2 vm.overcommit log warning is incorrect",
+  "body": "**Describe the bug**\r\n\r\nHello Team Redis!\r\n\r\nRedis logs complain of vm.overcommit set as 0 but this is incorrect. However according to sysctl the variable is set as 1, as recommended.\r\n\r\n**To reproduce**\r\n\r\nStart a new Redis instance (or restart an existing instance) via:\r\n\r\n `systemctl start redis.service` \r\n\r\nand then look at the log output for when the Redis server starts or restarts e.g. \r\n\r\n`less /var/log/redis/redis.log`\r\n\r\n```\r\n01 Jul 2022 23:23:44.379 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.\r\n```\r\n\r\nThen ask sysctl to output the list of variables and values:\r\n\r\n`sysctl -a `\r\n\r\nor better still grep that long list:\r\n\r\n`sysctl -a | grep vm.overcommit`\r\n\r\nwhich confirms it is set:\r\n\r\n```\r\nsysctl: reading key \"net.ipv6.conf.all.stable_secret\"\r\nsysctl: reading key \"net.ipv6.conf.default.stable_secret\"\r\nsysctl: reading key \"net.ipv6.conf.lo.stable_secret\"\r\nsysctl: reading key \"net.ipv6.conf.venet0.stable_secret\"\r\nvm.overcommit_kbytes = 0\r\n**vm.overcommit_memory = 1**\r\nvm.overcommit_ratio = 50\r\n```\r\n\r\n\r\n**Expected behavior**\r\n\r\nIf possible, Redis log output to be correct concerning warning advice. Have spent a lot of time trying to apply the command to fix the issue which produces an error message when run.\r\n\r\n**Additional information**\r\n\r\nMy system is a cloud VPS (virtuozzo) running CentOS 7.9 and cPanel & WHM v104.0.4 (STANDARD). Apache 2.4. Redis v7.0.2.\r\nIt has 48 cores 6 GB RAM but no swap file. Always around 2-4GB available. \r\n\r\nContents of sysctl.conf:\r\n\r\n`nano /etc/sysctl.conf`\r\n\r\n````\r\n# sysctl settings are defined through files in\r\n# /usr/lib/sysctl.d/, /run/sysctl.d/, and /etc/sysctl.d/.\r\n#\r\n# Vendors settings live in /usr/lib/sysctl.d/.\r\n# To override a whole file, create a new file with the same in\r\n# /etc/sysctl.d/ and put new settings there. To override\r\n# only specific settings, add a file with a lexically later\r\n# name in /etc/sysctl.d/ and put new settings there.\r\n#\r\n# For more information, see sysctl.conf(5) and sysctl.d(5).\r\n\r\nnet.core.somaxconn=65535\r\nvm.overcommit_memory = 1\r\n````\r\n\r\nRegards.\r\n",
+  "state": "closed",
+  "created_at": "2022-07-02T00:25:37Z",
+  "updated_at": "2022-07-03T05:14:00Z",
+  "closed_at": "2022-07-03T05:14:00Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1172809390,
+      "user": "enjoy-binbin",
+      "created_at": "2022-07-02T01:36:20Z",
+      "body": "sorry for that, see #10906 and #10841\r\n\r\nit will be fix in 7.0.3, so now just ignore the warning \r\n(the vm.overcommit_memory = 1 is working, we did a wrong check, so the warning is always printed)"
+    },
+    {
+      "id": 1172927493,
+      "user": "TheOldMan2000",
+      "created_at": "2022-07-02T16:54:14Z",
+      "body": "Awesome, thank you!"
+    }
+  ]
+}

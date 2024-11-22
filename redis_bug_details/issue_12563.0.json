@@ -1,0 +1,30 @@
+{
+  "issue_number": 12563.0,
+  "title": "[BUG] quicklist compress bug",
+  "body": "This bug is about a node should be compressed witch is not.\r\nThe following code can create that node.\r\n<pre>\r\nTEST(\"limit\")\r\n{\r\n        quicklist *ql = quicklistNew(2, 1);\r\n        quicklistPushHead(ql, \"0\", 1);\r\n        quicklistPushHead(ql, \"1\", 1);\r\n        quicklistPushHead(ql, \"2\", 1);\r\n        quicklistPushHead(ql, \"3\", 1);\r\n        quicklistPushHead(ql, \"4\", 1);\r\n        quicklistPushHead(ql, \"5\", 1);\r\n\r\n        assert(ql->len == 3);\r\n        assert(ql->head->next->encoding == QUICKLIST_NODE_ENCODING_RAW);\r\n\r\n        size_t sz = (1 << 12);\r\n        unsigned char *s = zmalloc(sz);\r\n        randstring(s, sz);\r\n        quicklistEntry entry;\r\n        quicklistIter *iter = quicklistGetIteratorEntryAtIdx(ql, 2, &entry);\r\n        quicklistDelEntry(iter, &entry);\r\n        quicklistInsertAfter(iter, &entry, s, sz);\r\n        quicklistReleaseIterator(iter);\r\n        assert(ql->len == 3);\r\n        /* ql->head->next is not compressed */\r\n        assert(ql->head->next->encoding == QUICKLIST_NODE_ENCODING_RAW);\r\n\r\n        /* ql->head->next should be compressed */\r\n        __quicklistCompress(ql, ql->head->next);\r\n        assert(ql->head->next->encoding == QUICKLIST_NODE_ENCODING_LZF);\r\n\r\n        zfree(s);\r\n        quicklistRelease(ql);\r\n}\r\n</pre>\r\n\r\nThis bug is related with the member recompress in struct quicklistNode.\r\nA node will not be compressed if it's not compress small enough. And it will remain uncompressed after insert, because 'recompress' is 0 and will prevent compression。",
+  "state": "open",
+  "created_at": "2023-09-09T03:32:01Z",
+  "updated_at": "2023-09-11T03:17:54Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1712503080,
+      "user": "sundb",
+      "created_at": "2023-09-09T12:44:58Z",
+      "body": "do you forget to release iterator which will compress the node?"
+    },
+    {
+      "id": 1712672959,
+      "user": "imchuncai",
+      "created_at": "2023-09-10T00:43:32Z",
+      "body": "@sundb I have edited the code, release iterator won't work, cause quicklistInsertAfter() will reset the iterator ."
+    },
+    {
+      "id": 1713096115,
+      "user": "sundb",
+      "created_at": "2023-09-11T03:16:36Z",
+      "body": "@imchuncai Thanks for pointing it out.\r\nThis is a regression of #9849.\r\nThe following cases are where we need to reset the iterator\r\n1) node->entry was changed, whereas node->zi will be invalidated.\r\n2) node changed, e.g. merges, deletes.\r\n\r\nI was thinking that we could modify the way we reset the iterator.\r\n1) When node->entry changed, we just reset node->zi.\r\n2) When node changed, we will reset the whole iterator, and then the node compression will be handled by the business."
+    }
+  ]
+}

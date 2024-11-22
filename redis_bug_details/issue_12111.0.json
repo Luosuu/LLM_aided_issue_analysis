@@ -1,0 +1,24 @@
+{
+  "issue_number": 12111.0,
+  "title": "[CRASH] Uncaught RedisException",
+  "body": "**Crash report**\r\n\r\nWith the latest version of Redis (v2.3.0), an unhandled exception is thrown in case of database connection problems:\r\n\r\n```\r\nPHP Fatal error:  Uncaught RedisException: Connection refused in /public_html/wp-content/object-cache.php:726\r\nStack trace:\r\n#0 /public_html/wp-content/object-cache.php(726): Redis->connect()\r\n#1 /public_html/wp-content/object-cache.php(538): WP_Object_Cache->connect_using_phpredis()\r\n#2 /public_html/wp-content/object-cache.php(256): WP_Object_Cache->__construct()\r\n#3 /public_html/wp-includes/load.php(750): wp_cache_init()\r\n#4 /public_html/wp-settings.php(131): wp_start_object_cache()\r\n#5 /public_html/wp-config.php(172): require_once('/home/cuneotrek...')\r\n#6 /public_html/wp-load.php(50): require_once('/home/cuneotrek...')\r\n#7 /public_html/wp-blog-header.php(13): require_once('/home/cuneotrek...')\r\n#8 /public_html/index.php(17): require('/home/cuneotrek...')\r\n#9 {main}\r\n  thrown in /public_html/wp-content/object-cache.php on line 726\r\n```\r\n\r\nIt didn't happen with previous versions.",
+  "state": "closed",
+  "created_at": "2023-04-28T09:53:45Z",
+  "updated_at": "2023-04-28T14:09:13Z",
+  "closed_at": "2023-04-28T14:09:13Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1527318848,
+      "user": "sundb",
+      "created_at": "2023-04-28T10:07:21Z",
+      "body": "I guess that 2.3 mean the client version?\r\nDo you try `redis-cli` or telnet to connect?"
+    },
+    {
+      "id": 1527348017,
+      "user": "delitestudio",
+      "created_at": "2023-04-28T10:29:43Z",
+      "body": "Sorry, my mistake, I was referring to the WordPress Redis Object Cache plugin. I'm closing the ticket because I actually opened it in the wrong place. Ops!"
+    }
+  ]
+}

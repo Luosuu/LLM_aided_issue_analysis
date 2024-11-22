@@ -1,0 +1,18 @@
+{
+  "issue_number": 13356.0,
+  "title": "[BUG]ValueError: Redis failed to connect: Redis cannot be used as a vector database without RediSearch >=2.4Please head to https://redis.io/docs/stack/search/quick_start/to know more about installing the RediSearch module within Redis Stack.",
+  "body": "Using the below code for semantic cache\r\n```\r\nfrom langchain.globals import set_llm_cache\r\nfrom langchain_openai import OpenAI\r\nfrom langchain.cache import RedisSemanticCache\r\nfrom langchain_huggingface import HuggingFaceEmbeddings\r\nimport time, os\r\nfrom langchain_openai import AzureChatOpenAI\r\nllm = AzureChatOpenAI(<my credentials>)\r\nhuggingface_embedding = HuggingFaceEmbeddings(model_name=\"all-MiniLM-L6-v2\")\r\nset_llm_cache(\r\n    RedisSemanticCache(redis_url=\"redis://127.0.0.1:6379\", embedding=huggingface_embedding)\r\n)\r\nquestion = \"What is capital of Japan?\"\r\nres = llm.invoke(question)\r\n```\r\nboth redis db and redis python client I installed.\r\n```redis-5.0.6```\r\n```redis-cli 7.2.5```\r\nStill its getting the given error\r\n```\r\n[BUG]ValueError: Redis failed to connect: Redis cannot be used as a vector database without RediSearch >=2.4Please head to https://redis.io/docs/stack/search/quick_start/to know more about installing the RediSearch module within Redis Stack.\r\n```\r\nBut the strange thing is, there is no **2.4** version available for the python client **RediSearch** in pypi\r\n",
+  "state": "closed",
+  "created_at": "2024-06-19T11:16:29Z",
+  "updated_at": "2024-06-19T11:36:16Z",
+  "closed_at": "2024-06-19T11:36:16Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2178476969,
+      "user": "sundb",
+      "created_at": "2024-06-19T11:36:05Z",
+      "body": "please ref https://github.com/langchain-ai/langchain/issues/13611"
+    }
+  ]
+}

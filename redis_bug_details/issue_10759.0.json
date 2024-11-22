@@ -1,0 +1,18 @@
+{
+  "issue_number": 10759.0,
+  "title": "[BUG] SCAN command does not always returns the identical result",
+  "body": "**Describe the bug**\r\n\r\nSearching keys with patterns `SCAN` does not always return identical results.\r\n\r\n**To reproduce**\r\n\r\n1. Pull & create a docker container using `redis/redis-stack:latest` image.\r\n1. Create over hundreds of documents at the database.\r\n2. Randomly pick a key of any document for key search pattern. Ensure the key presents with `KEYS` command.\r\n3. Try to search the key using `SCAN` command with `MATCH` option in combination of different `COUNT` value.\r\n\r\n**Expected behavior**\r\n\r\nRedis should always return the identical results.\r\n\r\n**Additional information**\r\n\r\nHere are the output I get with consecutive `SCAN` commands.\r\n\r\nNote that nothing was changed with the document collection throughout the process.\r\n\r\n```\r\n> scan 0 match UK:19901119* COUNT 1\r\n1) \"128\"\r\n2) (empty list or set)\r\n\r\n> scan 0 match UK:19901119*\r\n1) \"144\"\r\n2) (empty list or set)\r\n\r\n> scan 0 match UK:19901119* COUNT 1000\r\n1) \"0\"\r\n2) 1) \"UK:19901119000000:fd1a6734-2faf-4677-ae23-77a8c85a3b47\"\r\n\r\n> scan 0 match UK:19901119* COUNT 100\r\n1) \"470\"\r\n2) (empty list or set)\r\n```",
+  "state": "closed",
+  "created_at": "2022-05-22T11:55:32Z",
+  "updated_at": "2022-05-22T12:50:47Z",
+  "closed_at": "2022-05-22T12:50:47Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1133889823,
+      "user": "oranagra",
+      "created_at": "2022-05-22T12:50:47Z",
+      "body": "The SCAN command does not guarantee it'll return anything in a specific call to SCAN.\r\nyou should be concerned about whether or not a full scan sweep will return that key or not\r\ni.e. a full sweep is feeding the returned cursor into the next call to SCAN again and again until the returned cursor is 0.\r\n\r\nNote that the SCAN mechanism was designed as a way for iteration on the database without maintaining any cursor in the server side (which would have required you to terminate a scan in order to prevent resource leakage).\r\nAnd it also implemented in a way that it'll not block the user (Redis's main thread) for too long.\r\n\r\nFor this reason the implementation actually scans the whole database (using the COUNT argument you provided as a recommendation of the step size, i.e. how many keys to scan before stopping), and then filters the results using the MATCH argument.\r\nIf nothing is found, scan would still return with a new cursor and no keys, so that it doesn't block the whole redis pipeline for too long, expecting you to call it again.\r\n\r\nbottom line, this is all by design."
+    }
+  ]
+}

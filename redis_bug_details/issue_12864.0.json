@@ -1,0 +1,30 @@
+{
+  "issue_number": 12864.0,
+  "title": "[CRASH] in quicklist violate size limit",
+  "body": "Here is the crash.\r\n<pre>\r\n    test {boring} {\r\n        r config set list-max-ziplist-size -5\r\n        r lpush lst {*}[split [string repeat \"1\" 65529] \"\"]\r\n        set large [string repeat a 65536]\r\n        set i 0\r\n        set k 10\r\n        set l 1\r\n        set patch 2000\r\n        while {$i < 65529} {\r\n            while {$i < $k && $i < 65529} {\r\n                r write \"*4\\r\\n\\$4\\r\\nlset\\r\\n\\$3\\r\\nlst\\r\\n\\$$l\\r\\n$i\\r\\n\\$65536\\r\\n$large\\r\\n\"\r\n                incr i\r\n\r\n                if {$i == $patch} {\r\n                    puts $patch\r\n                    set patch [expr {$patch + 2000}]\r\n                }\r\n            }\r\n            set k [expr {$k * 10}]\r\n            incr l\r\n        }\r\n\r\n        r flush\r\n        for {set j 0} {$j < 65528} {incr j} {\r\n            assert_equal [r read] {OK}\r\n        }\r\n    }\r\n</pre>\r\n\r\nsee issue #12548",
+  "state": "closed",
+  "created_at": "2023-12-15T02:40:59Z",
+  "updated_at": "2024-02-06T16:21:29Z",
+  "closed_at": "2024-02-06T16:21:29Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1857192020,
+      "user": "sundb",
+      "created_at": "2023-12-15T02:58:23Z",
+      "body": "@imchuncai Good catch, it seems it's caused by a single node exceeding 4GB, can you point out exactly why?"
+    },
+    {
+      "id": 1857641802,
+      "user": "oranagra",
+      "created_at": "2023-12-15T10:32:17Z",
+      "body": "@imchuncai can you please make a specific PR to fix it (not as part of a huge rewrite).\r\nsuch a bug fix will also need to be backported, so localized fix would be preferred."
+    },
+    {
+      "id": 1865363313,
+      "user": "imchuncai",
+      "created_at": "2023-12-21T01:48:44Z",
+      "body": "> @imchuncai Good catch, it seems it's caused by a single node exceeding 4GB, can you point out exactly why?\r\n\r\nThe title says it follows issue #12548, which is the listpack violate size limit."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "issue_number": 450.0,
+  "title": "Build failure FreeBSD 8.2 (2.6, missing HAVE_BACKTRACE)",
+  "body": "I guess there should be another #ifdef as shown below?\n\nRegards,\n/Mats\n\n[~/redis-2.6/src]$ git diff\ndiff --git a/src/debug.c b/src/debug.c\nindex 37e6a1f..10e6707 100644\n--- a/src/debug.c\n+++ b/src/debug.c\n@@ -677,7 +677,9 @@ void sigsegvHandler(int sig, siginfo_t *info, void *secret) {\n #include <sys/time.h>\n\n void watchdogSignalHandler(int sig, siginfo_t _info, void *secret) {\n+#ifdef HAVE_BACKTRACE\n     ucontext_t *uc = (ucontext_t_) secret;\n+#endif\n     REDIS_NOTUSED(info);\n     REDIS_NOTUSED(sig);\n     sds st, log;\n",
+  "state": "closed",
+  "created_at": "2012-04-11T21:29:05Z",
+  "updated_at": "2012-04-24T17:12:47Z",
+  "closed_at": "2012-04-24T17:12:47Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 5136577,
+      "user": "quiver",
+      "created_at": "2012-04-15T03:18:47Z",
+      "body": "Same as FreeBSD 9.0\n\nWithout this path, I got the following error\n\n```\n$ gmake\n...\n    CC debug.o\ndebug.c: In function 'watchdogSignalHandler':\ndebug.c:680: error: 'ucontext_t' undeclared (first use in this function)\ndebug.c:680: error: (Each undeclared identifier is reported only once\ndebug.c:680: error: for each function it appears in.)\ndebug.c:680: error: 'uc' undeclared (first use in this function)\ndebug.c:680: error: expected expression before ')' token\ngmake[1]: *** [debug.o] Error 1\ngmake[1]: Leaving directory `/usr/home/quiver/dev/redis-2.6/src'\ngmake: *** [all] Error 2\n```\n"
+    },
+    {
+      "id": 5259561,
+      "user": "antirez",
+      "created_at": "2012-04-21T10:24:15Z",
+      "body": "Thanks, I'm going to fix it before 2.6. RC1, and backport the fix on 2.4.\n"
+    },
+    {
+      "id": 5310045,
+      "user": "antirez",
+      "created_at": "2012-04-24T17:12:47Z",
+      "body": "Fixed, closing, thank you.\n"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "issue_number": 13645.0,
+  "title": "[BUG] invalidation messages received before ACK of SUBSCRIBE __redis__:invalidate",
+  "body": "Tried with 6, 7 and 8 on Docker.\r\n\r\nI use a connection pair where I do on A:\r\n\r\n`CLIENT TRACKING ON REDIRECT <B id> prefix <...> BCAST NOLOOP`\r\n\r\nAnd on B:\r\n\r\n`SUBSCRIBE __redis__:invalidate`\r\n\r\nIn answer to this I get \">3\\r\\n$9\\r\\nsubscribe\\r\\n$20\\r\\n__redis__:invalidate\\r\\n:1\\r\\n\" as expected and then the invalidation messages can follow, eg:\r\n\r\n```\r\n>3\\r\\n$9\\r\\nsubscribe\\r\\n$20\\r\\n__redis__:invalidate\\r\\n:1\\r\\n\r\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$23\\r\\nb:05aabbccddeeff:Cmd111\\r\\n\r\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$23\\r\\nb:05aabbccddeeff:Cmd112\\r\\n\r\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$23\\r\\nb:05aabbccddeeff:Cmd113\\r\\n\r\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$23\\r\\nb:05aabbccddeeff:Cmd114\\r\\n\r\n```\r\n\r\nBUT if when I issue the SUBSCRIBE while already settings keys externally at a high rate I have cases where I see:\r\n\r\n```\r\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$23\\r\\nb:05aabbccddeeff:Cmd111\\r\\n\r\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$23\\r\\nb:05aabbccddeeff:Cmd112\\r\\n\r\n>3\\r\\n$9\\r\\nsubscribe\\r\\n$20\\r\\n__redis__:invalidate\\r\\n:1\\r\\n\r\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$23\\r\\nb:05aabbccddeeff:Cmd113\\r\\n\r\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$23\\r\\nb:05aabbccddeeff:Cmd114\\r\\n\r\n```\r\n\r\nIs it allowed to receive the subscribe ACK out of order or is this a bug?",
+  "state": "open",
+  "created_at": "2024-11-08T01:41:26Z",
+  "updated_at": "2024-11-08T14:11:47Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2463724904,
+      "user": "sundb",
+      "created_at": "2024-11-08T04:20:12Z",
+      "body": "In theory `>3\\r\\n$9\\r\\nsubscribe\\r\\n$20\\r\\n__redis__:invalidate\\r\\n:1\\r\\n` will arrive faster than the invalid message.\r\nIs it possible that the client executes `SUBSCRIBE __redis__:invalidate` twice?"
+    },
+    {
+      "id": 2464045251,
+      "user": "nunojpg",
+      "created_at": "2024-11-08T08:12:07Z",
+      "body": "I only execute it once, and this only happens if I am writing at a very high rate (from another connection), while subscribing."
+    },
+    {
+      "id": 2464171525,
+      "user": "sundb",
+      "created_at": "2024-11-08T09:00:50Z",
+      "body": "can you provide your reproducible steps? it would be better if any code.\r\n"
+    },
+    {
+      "id": 2464357749,
+      "user": "nunojpg",
+      "created_at": "2024-11-08T10:32:12Z",
+      "body": "I have failed to reproduce this outside of my custom C++ client, which I can't make a small reproducible example, but I see a similar instance of this issue:\r\n\r\nSet one process to always busy write:\r\n\r\n```\r\nwhile true; do redis-cli -s /run/redis/redis.sock set $(date +\"%T.%N\") a > /dev/null; done\r\n```\r\n\r\nIn console A:\r\n\r\n```\r\n➜  ~ ncat -U /run/redis/redis.sock\r\nHELLO 3\r\n%7\r\n$6\r\nserver\r\n$5\r\nredis\r\n$7\r\nversion\r\n$5\r\n7.4.1\r\n$5\r\nproto\r\n:3\r\n$2\r\nid\r\n:222023\r\n$4\r\nmode\r\n$10\r\nstandalone\r\n$4\r\nrole\r\n$6\r\nmaster\r\n$7\r\nmodules\r\n*0\r\nCLIENT ID\r\n:222023\r\n\r\n```\r\n\r\nIn console B:\r\n\r\n```\r\n~ ncat -U /run/redis/redis.sock\r\nCLIENT TRACKING ON REDIRECT 222023 PREFIX 1 BCAST NOLOOP\r\n+OK\r\n```\r\nAt this point console A immediatly starts to get invalidate messages:\r\n\r\n```\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$18\r\n10:25:30.744447157\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$18\r\n10:25:30.756668897\r\n```\r\n\r\nWithout I ever issuing a subscribe command!\r\n\r\nMore interesting, if I ommit HELLO 3, then it doesn't start until I issue a subscribe.\r\n\r\nSo I could in this case reproduce getting invalidate messages before the subscribe, but only if HELLO 3 is used. \r\n"
+    },
+    {
+      "id": 2464865310,
+      "user": "sundb",
+      "created_at": "2024-11-08T14:11:46Z",
+      "body": "@nunojpg thanks, i'll have a try."
+    }
+  ]
+}

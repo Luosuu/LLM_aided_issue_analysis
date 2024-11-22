@@ -1,0 +1,84 @@
+{
+  "issue_number": 12647.0,
+  "title": "[CRASH] worker thread call RedisModule_ReplicateVerbatim(ctx); trigger redis crash",
+  "body": "**Crash report**\r\n\r\n=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\n25802:M 12 Oct 2023 02:19:12.590 # === ASSERTION FAILED ===\r\n25802:M 12 Oct 2023 02:19:12.590 # ==> blocked.c:624 'server.also_propagate.numops == 0' is not true\r\n\r\n\r\n**Additional information**\r\nJust add  RedisModule_ReplicateVerbatim(ctx); as bellow. cause redis crash. \r\n\r\n(svnenv)root@7007e606a60f:/trunk/redis/redis-sentinel-test/redis-7.0.11/src/modules$ diff -u helloblock.c helloblock.c.new\r\n--- helloblock.c        2023-10-12 02:23:01.167059976 +0000\r\n+++ helloblock.c.new    2023-10-12 02:23:33.148083078 +0000\r\n@@ -168,6 +168,7 @@\r\n     } while (cursor != 0);\r\n     RedisModule_ReplySetArrayLength(ctx,replylen);\r\n\r\n+    RedisModule_ReplicateVerbatim(ctx);\r\n     RedisModule_FreeThreadSafeContext(ctx);\r\n     RedisModule_UnblockClient(bc,NULL);\r\n     return NULL;\r\n\r\nIt only happens against redis 7.x. Not against redis 6.x.\r\nSo the question is if it is redis bug or RedisModule_ReplicateVerbatim is not expected to be invoked in worker thread since redis 7?",
+  "state": "closed",
+  "created_at": "2023-10-12T02:26:57Z",
+  "updated_at": "2024-06-21T09:59:50Z",
+  "closed_at": "2024-06-21T09:59:50Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1759699022,
+      "user": "guybe7",
+      "created_at": "2023-10-12T14:17:11Z",
+      "body": "@zh1029 this is the correct way to do it inside a thread:\r\n```\r\ndiff --git a/src/modules/helloblock.c b/src/modules/helloblock.c\r\nindex dc3d74975..e5f7eac9f 100644\r\n--- a/src/modules/helloblock.c\r\n+++ b/src/modules/helloblock.c\r\n@@ -168,6 +168,10 @@ void *HelloKeys_ThreadMain(void *arg) {\r\n     } while (cursor != 0);\r\n     RedisModule_ReplySetArrayLength(ctx,replylen);\r\n \r\n+    RedisModule_ThreadSafeContextLock(ctx);\r\n+    RedisModule_ReplicateVerbatim(ctx);\r\n+    RedisModule_ThreadSafeContextUnlock(ctx);\r\n+\r\n     RedisModule_FreeThreadSafeContext(ctx);\r\n     RedisModule_UnblockClient(bc,NULL);\r\n     return NULL;\r\n```\r\n\r\n@oranagra this is somewhat of a breaking change compared to 6.2 - should we document it somewhere?"
+    },
+    {
+      "id": 1760312583,
+      "user": "oranagra",
+      "created_at": "2023-10-12T20:19:56Z",
+      "body": "You mean that before 7.0 it was possible to replicate without locking, and now it's not?\nWe can clearly state it in the api docs.\nHowever, If it wasn't documented that the api is valid without locking, then maybe the fact it used to work because how the internals are laid out, is not a reason to consider that a breaking change? I.e. if it was implicitly \"documented\" that it's an invalid use."
+    },
+    {
+      "id": 1760697517,
+      "user": "zh1029",
+      "created_at": "2023-10-13T03:12:04Z",
+      "body": "Yes. It is verified that no crash against redis 6.x. \r\n\r\nComparing redis 6.x and redis 7.x code.  The difference is below two lines are added in function handleClientsBlockedOnKeys()\r\n\r\n    **serverAssert(server.also_propagate.numops == 0);\r\n    server.core_propagates = 1;**\r\n\r\nWhich triggers crash from that code.\r\n\r\nSo better to be documented for the API usage change."
+    },
+    {
+      "id": 2038967016,
+      "user": "sundb",
+      "created_at": "2024-04-05T05:24:04Z",
+      "body": "this is a side effect of #9890.\r\nbefore #9890, when we're in the thread-safe context, we'll propagate immediately, rather than waiting util the end.\r\n@oranagra @guybe7 do we consider just documenting it or avoiding this side effect?\r\n```c\r\n    if (ctx->flags & REDISMODULE_CTX_THREAD_SAFE) {\r\n        propagate(ctx->client->db->id,argv,argc,target);\r\n    } else {\r\n        moduleReplicateMultiIfNeeded(ctx);\r\n        alsoPropagate(ctx->client->db->id,argv,argc,target);\r\n    }\r\n```"
+    },
+    {
+      "id": 2041335405,
+      "user": "oranagra",
+      "created_at": "2024-04-07T06:30:01Z",
+      "body": "is there any reason to use it like that? i.e. any reason to call replicateVerbatim from a thread?\r\nmaybe before blocking the module can't decide yet if it wants to replicate?\r\nif there's no reason for that, we can document it.\r\nif there is any reason to use it like so, does the proposed fix has any downsides?"
+    },
+    {
+      "id": 2041772515,
+      "user": "sundb",
+      "created_at": "2024-04-08T02:55:03Z",
+      "body": "@oranagra `RM_Replicate*` has never been thread-safe even before #9890, it just wasn't exposed.\r\nwhether a module api is thread-safe has always been ambiguous, just like #13010,\r\nshould we add a new field to redis-doc to indicate whether an api is thread-safe or not,\r\notherwise we'll just have to add whether it's thread-safe or not to the top of each api."
+    },
+    {
+      "id": 2042096316,
+      "user": "oranagra",
+      "created_at": "2024-04-08T07:55:48Z",
+      "body": "i don't think i understand what new field you refer to.\r\ni think we should add a line to document the ones that **are** designed to be thread safe, and leave the rest undefined."
+    },
+    {
+      "id": 2042117880,
+      "user": "sundb",
+      "created_at": "2024-04-08T08:07:17Z",
+      "body": "<img width=\"735\" alt=\"image\" src=\"https://github.com/redis/redis/assets/965798/595a99bb-627c-421c-b80c-e6021694c401\">\r\nAdding a new Thread Safe filed, i think not all the module developers will come to see the implementation."
+    },
+    {
+      "id": 2042124797,
+      "user": "oranagra",
+      "created_at": "2024-04-08T08:10:57Z",
+      "body": "i didn't mean they need to see the implementation, i meant we'll mention it in the free text of the doc (not as a field), and just for the ones we know are designed to be thread safe. for the others, the module developers will need to assume they're not.\r\ni think adding that flag per command is a lot more work, and i think that in some cases it's not just a boolean thing, it'll come with a set of conditions or restrictions."
+    },
+    {
+      "id": 2043140465,
+      "user": "sundb",
+      "created_at": "2024-04-08T16:07:03Z",
+      "body": "@oranagra A side effect #9890 is that it changes the behavior of RM_Replicate in thread-safe ctx.\r\nnow it will always be wrapped in multi/exec, instead of being passed out immediately.\r\ni can't see from the history why `RM_Replicate` was designed that way, and the tests also don't explain why it was needed.\r\n\r\nas the documentation mentions:\r\n```\r\n However when calling this function from a threaded safe context\r\n * that can live an undefined amount of time, and can be locked/unlocked in\r\n * at will, the behavior is different: MULTI/EXEC wrapper is not emitted\r\n * and the command specified is inserted in the AOF and replication stream\r\n * immediately.\r\n```"
+    },
+    {
+      "id": 2147755992,
+      "user": "oranagra",
+      "created_at": "2024-06-04T14:58:34Z",
+      "body": "> now it will always be wrapped in multi/exec\r\n\r\n@sundb sorry for circulating to this just now.\r\nare you saying that besides of whether or not this function is thread safe (i.e. can be used without locking), it also had misleading (outdated) documentation? i.e. the `MULTI/EXEC wrapper is not emitted` part is wrong?"
+    },
+    {
+      "id": 2148768584,
+      "user": "sundb",
+      "created_at": "2024-06-05T03:04:49Z",
+      "body": "@oranagra yes, i create a PR to update their document on thread safe and MULTI/EXEC wrapper."
+    }
+  ]
+}

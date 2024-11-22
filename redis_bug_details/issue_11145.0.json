@@ -1,0 +1,26 @@
+{
+  "issue_number": 11145.0,
+  "title": "[BUG] Mem-leak in moduleFreeCommand",
+  "body": "currently, we call `zfree(cmd->args);` but the argument array needs to be freed recursively (there might be sub-args)\r\n\r\nvalgrind should have caught this when unloading cmdintrospection.so",
+  "state": "closed",
+  "created_at": "2022-08-18T07:46:07Z",
+  "updated_at": "2022-08-18T09:36:07Z",
+  "closed_at": "2022-08-18T09:36:07Z",
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 1219181834,
+      "user": "tezc",
+      "created_at": "2022-08-18T08:23:11Z",
+      "body": "Maybe there is no test with command args + module unload. When I add this test to `cmdinstropection.tcl`, sanitizer catches the leak: \r\n\r\n```tcl\r\ntest \"Module introspection unload\" {\r\n    r module unload cmdintrospection\r\n}\r\n```"
+    },
+    {
+      "id": 1219238413,
+      "user": "enjoy-binbin",
+      "created_at": "2022-08-18T09:17:15Z",
+      "body": "in addition to args, look like there are also tips and history needed to free\r\ntake a quick look, see the PR below"
+    }
+  ]
+}

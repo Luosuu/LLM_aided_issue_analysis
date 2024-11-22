@@ -1,0 +1,38 @@
+{
+  "issue_number": 11287.0,
+  "title": "[BUG] Security vulnerabilities coming from Lua",
+  "body": "We are using redis 7.0.4 via alpine redis docker image. While doing the security scan of the image, there are the following vulnerabilities.\r\n\r\nhttps://nvd.nist.gov/vuln/detail/CVE-2022-28805\r\nhttps://nvd.nist.gov/vuln/detail/CVE-2020-15888\r\nhttps://nvd.nist.gov/vuln/detail/CVE-2022-33099\r\n\r\nAll 3 of them seem to be coming from Lua 5.1.5 version and the file path is pointing to the redis-server binary. Could you please tell us if these can be mitigated?\r\n\r\nRegards,\r\nSubhankar",
+  "state": "closed",
+  "created_at": "2022-09-19T16:50:15Z",
+  "updated_at": "2022-10-13T08:35:51Z",
+  "closed_at": "2022-10-13T08:35:50Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1251526043,
+      "user": "itamarhaber",
+      "created_at": "2022-09-19T20:41:05Z",
+      "body": "xref: https://github.com/docker-library/redis/issues/328"
+    },
+    {
+      "id": 1251839774,
+      "user": "subhankarc",
+      "created_at": "2022-09-20T04:53:32Z",
+      "body": "Hi @itamarhaber \r\n\r\nSince the Lua version used in[ Redis is 5.1.5](https://github.com/redis/redis/blob/unstable/deps/lua/Makefile#L50-L51), in which the vulnerabilities exist, is there a plan to update Redis with the latest Lua version or any other way to mitigate this issue ?\r\n\r\nRegards,\r\nSubhankar"
+    },
+    {
+      "id": 1253892662,
+      "user": "MeirShpilraien",
+      "created_at": "2022-09-21T15:44:36Z",
+      "body": "Hey @subhankarc\r\n\r\nhttps://nvd.nist.gov/vuln/detail/CVE-2022-28805 - As describe in the CVE, effects only (including) 5.4.0 up to (excluding) 5.4.4. Redis is running Lua 5.1.5 and so not effected.\r\n\r\nhttps://nvd.nist.gov/vuln/detail/CVE-2022-33099 - As describe in the CVE, effects 5.4.2 up to 5.4.4 so again Redis is not effected.\r\n\r\nhttps://nvd.nist.gov/vuln/detail/CVE-2020-15888 - I run the [example](http://lua-users.org/lists/lua-l/2020-07/msg00053.html) mentioned on the CVE, on Lua 5.4.0 to to make sure I can reproduce the crash (as expected, it crashes). I run the same example on Lua 5.1.5 and it runs. I also tested with valgrind.\r\n"
+    },
+    {
+      "id": 1277244393,
+      "user": "oranagra",
+      "created_at": "2022-10-13T08:35:50Z",
+      "body": "discussed CVE-2020-15888 again in #11381 and reached the same conclusion.\r\nclosing."
+    }
+  ]
+}

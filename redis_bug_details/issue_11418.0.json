@@ -1,0 +1,32 @@
+{
+  "issue_number": 11418.0,
+  "title": "[BUG] Potential buffer overrun in serverLog",
+  "body": "In the file `src/server.c`, the function `serverLogRaw` has the following [code](https://github.com/redis/redis/blob/9e1b879f5bcbf105d5581c77f8c368b0ef1708f6/src/server.c#L103):\r\n```\r\nvoid serverLogRaw(int level, const char *msg) {\r\n    const int syslogLevelMap[] = { LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_WARNING };\r\n    \r\n    ....\r\n    level &= 0xff; /* clear flags */\r\n    if (level < server.verbosity) return;\r\n\r\n    ...\r\n    if (server.syslog_enabled) syslog(syslogLevelMap[level], \"%s\", msg);\r\n}\r\n```\r\nWhen `level` is given a large value, the buffer `syslogLevelMap` is overflowed. Given that `severLog` is called extensively in the codebase, I think a proper check is needed.\r\n",
+  "state": "closed",
+  "created_at": "2022-10-23T06:25:43Z",
+  "updated_at": "2022-10-23T09:22:39Z",
+  "closed_at": "2022-10-23T09:22:39Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1288045484,
+      "user": "oranagra",
+      "created_at": "2022-10-23T08:03:37Z",
+      "body": "> When `level` is given a large value...\r\n\r\nbut level is one of these:\r\n```c\r\n#define LL_DEBUG 0\r\n#define LL_VERBOSE 1\r\n#define LL_NOTICE 2\r\n#define LL_WARNING 3\r\n```\r\n\r\nit's never suppose to have a huge value, so adding a check, or an assertion is just wasteful.\r\nanything i'm missing?"
+    },
+    {
+      "id": 1288046723,
+      "user": "yiyuaner",
+      "created_at": "2022-10-23T08:09:51Z",
+      "body": "> > When `level` is given a large value...\r\n> \r\n> but level is one of these:\r\n> \r\n> ```c\r\n> #define LL_DEBUG 0\r\n> #define LL_VERBOSE 1\r\n> #define LL_NOTICE 2\r\n> #define LL_WARNING 3\r\n> ```\r\n> \r\n> it's never suppose to have a huge value, so adding a check, or an assertion is just wasteful. anything i'm missing?\r\n\r\nIf this is intended to be used internally, then it's fine. Though I would suggest adding an assertion here.  "
+    },
+    {
+      "id": 1288062284,
+      "user": "oranagra",
+      "created_at": "2022-10-23T09:22:39Z",
+      "body": "thanks. but i feel an assertion there is unnecessary, and could also cause performance overheads."
+    }
+  ]
+}

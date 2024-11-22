@@ -1,0 +1,18 @@
+{
+  "issue_number": 12779.0,
+  "title": "[CRASH] <vector search crash>",
+  "body": "Notice!\r\n- If a Redis module was involved, please open an issue in the module's repo instead!\r\n- If you're using docker on Apple M1, please make sure the image you're using was compiled for ARM!\r\n\r\n\r\n**Crash report**\r\n\r\nPaste the complete crash log between the quotes below. Please include a few lines from the log preceding the crash report to provide some context.\r\n\r\n```\r\n<search> creating vector index. Server memory limit: 838860800B, required memory: 147568B, available memory: 838203928B\r\n884185:M 18 Nov 2023 16:22:12.401 # == CRITICAL == This server is sending an error to its AOF-loading-client: '-NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC call. This command is no longer allowed for the following reason: no permission to execute the command or subcommand' after processing the command 'exec'\r\n884185:M 18 Nov 2023 16:22:12.401 # == CRITICAL == This server is sending an error to its AOF-loading-client: '-NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC call. This command is no longer allowed for the following reason: no permission to execute the command or subcommand' after processing the command 'exec'\r\n884185:M 18 Nov 2023 16:22:12.401 # == CRITICAL == This server is sending an error to its AOF-loading-client: '-NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC call. This command is no longer allowed for the following reason: no permission to execute the command or subcommand' after processing the command 'exec'\r\n884185:M 18 Nov 2023 16:22:12.401 * DB loaded from incr file test-94.aof.1.incr.aof: 0.001 seconds\r\n884185:M 18 Nov 2023 16:22:12.401 # <search> Skip background reindex scan, redis version contains loaded event.\r\n884185:M 18 Nov 2023 16:22:12.401 * <search> Loading event ends\r\n884185:M 18 Nov 2023 16:22:12.401 * DB loaded from append only file: 0.001 seconds\r\n884185:M 18 Nov 2023 16:22:12.401 * Opening AOF incr file test-94.aof.1.incr.aof on server start\r\n884185:M 18 Nov 2023 16:22:12.401 * Ready to accept connections tls.\r\nif i search the vector, the sever will crash.\r\n```\r\n\r\n**Additional information**\r\n\r\n1. OS distribution and version\r\n   linux stream 9\r\n3. Steps to reproduce (if any)\r\n",
+  "state": "closed",
+  "created_at": "2023-11-18T08:49:44Z",
+  "updated_at": "2023-11-19T16:07:00Z",
+  "closed_at": "2023-11-19T16:07:00Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1817898942,
+      "user": "oranagra",
+      "created_at": "2023-11-19T16:07:00Z",
+      "body": "you'll have to report that in the redis search repo: https://github.com/RediSearch/RediSearch\r\nbut it seems to me that your report is missing some information, on how to reproduce this.\r\ne.g. attach the AOF file and some steps you use to reproduce it.\r\np.s. by the looks of it, you have ACL rules that mess up the loading of your AOF file (see the `CRITICAL` messages in your log file)"
+    }
+  ]
+}

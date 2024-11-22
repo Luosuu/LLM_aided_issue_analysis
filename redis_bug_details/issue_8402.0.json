@@ -1,0 +1,96 @@
+{
+  "issue_number": 8402.0,
+  "title": "[BUG] We are seeing a wrong IP in nodes.conf being used to reach a cluster node",
+  "body": "**Describe the bug**\r\nThis is the same issue that Dimitry reported before and I do not see any answers to it. \r\nCluster nodes report loopback addresses #4094\r\n\r\nReference: https://github.com/redis/redis/issues/4094\r\n\r\nWe are running a Cache in Yahoo Mail, with Redis Cluster and a Web service to talk to the Redis cluster. The Linux boxes that we have are running Redis instances (part of cluster) Or Web Service Or Both. The Web service receives heavy traffic and the boxes are loaded. The Redis and Web Service are highly tuned.\r\n\r\nWe have seen the issue where Redis cluster nodes command reports the loopback address which is the IP of the VIP (load balancer). This config corruption throws the Lettuce Client off-balance and we start seeing errors. Do you think the Redis cluster config corruption might be due to some bind issue or due to the heavy load or something else?\r\nPFA a snippet of the client connection log. Please let me know if you need additional information /  logs, I can collect and send it to you.\r\n\r\nWe are running bind on the server side.\r\n\r\nA short description of the bug.\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2021-01-26T20:30:38Z",
+  "updated_at": "2021-02-11T08:49:55Z",
+  "closed_at": "2021-02-11T08:49:55Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 768541005,
+      "user": "yossigo",
+      "created_at": "2021-01-27T20:00:38Z",
+      "body": "@ashutoshvsingh Can you please include the logs you mentioned? Also, `redis.conf` could be useful."
+    },
+    {
+      "id": 768543809,
+      "user": "ashutoshvsingh",
+      "created_at": "2021-01-27T20:05:33Z",
+      "body": "We are adding more information. Let us know if it would help to go on hangout or zoom, we can do that too."
+    },
+    {
+      "id": 768607667,
+      "user": "ashutoshvsingh",
+      "created_at": "2021-01-27T22:01:23Z",
+      "body": "here is the content of nodes-6002.conf \r\ndd890ed155250be49c4ddc67afc05239cccfcfd1 10.249.249.218:6001@16001 master - 0 1611195926523 7 connected 3277-4914\r\n76d10017755938823a63c0b2e4bd04ca5775c26c 10.249.250.26:6001@16001 master - 0 1611195927000 1 connected 0-1637\r\n5ed16aeed778f991981a2c53c5471c323f5b3e13 10.250.26.80:6003@16003 slave 474eb1fbc8a6fa7d36e1c38238e4bc5203b043a6 0 1611195930000 25 connected\r\ndb5bb05bc8fded8253aaed96d7f950b5c6241075 10.249.227.133:6003@16003 slave e0c8bf525629f6921bcada858a66bdf7330ee250 0 1611195925117 19 connected\r\n6d1ce26e33d2a7c29b619cd72088d6e6436a766f 10.249.227.133:6001@16001 master - 0 1611195928129 10 connected 4915-6553\r\n329cc2f9519513f67c75303282ef899b20cdf149 10.249.250.28:6002@16002 slave 76d10017755938823a63c0b2e4bd04ca5775c26c 0 1611195927123 5 connected\r\nca135d2345477a7eb1300641349a3e1b624ee505 10.249.250.26:6002@16002 slave cf8383145f603e08a0f8e81f5d8ab193c424ea6c 0 1611195930000 4 connected\r\ne0c8bf525629f6921bcada858a66bdf7330ee250 10.250.26.80:6001@16001 master - 0 1611195929536 19 connected 9830-11468\r\nc2ed05c52f16de98a54416bd37e470a2001abc54 10.249.227.159:6002@16002 slave dd890ed155250be49c4ddc67afc05239cccfcfd1 0 1611195927000 14 connected\r\n6512938a6b1b460e34512f6906935357b211592e 10.250.26.80:6002@16002 slave 6d1ce26e33d2a7c29b619cd72088d6e6436a766f 0 1611195927000 20 connected\r\n78ba04f5310dbe05fb68fb5d5a7bc108d16e7e0d 10.250.31.144:6002@16002 slave 903454cef6821006a9ae7bcc6e2588102aa353fa 0 1611195926123 26 connected\r\n17d02472f7bdd19e0bc1fc9fccc62e66e12e3ea6 **10.194.198.183**:6002@16002 myself,slave 903454cef6821006a9ae7bcc6e2588102aa353fa 0 1611195927000 29 connected\r\n903454cef6821006a9ae7bcc6e2588102aa353fa 10.249.227.159:6001@16001 master - 0 1611195930000 13 connected 6554-8191\r\ndf36e7228c8a2a9a21320801fcd90bdc4cac3513 10.249.227.133:6002@16002 slave cf8383145f603e08a0f8e81f5d8ab193c424ea6c 0 1611195927000 11 connected\r\n95dcb7a7b6ee50c65a304fbb5e11c6410d3eb669 10.249.227.159:6003@16003 slave e844cb43011a7beb8c01cee0144a621a66979c59 0 1611195930000 22 connected\r\ncf8383145f603e08a0f8e81f5d8ab193c424ea6c 10.249.250.28:6001@16001 master - 0 1611195926123 4 connected 1638-3276\r\ne9dec275f248435ab1a7a9fa163bbb042c1c17bd 10.249.250.28:6003@16003 master - 0 1611195929000 31 connected 8192-9829\r\nc3a91feea2861b820f6040d023ab5f63b3f69236 10.249.210.197:6002@16002 slave dd890ed155250be49c4ddc67afc05239cccfcfd1 0 1611195927970 17 connected\r\n474eb1fbc8a6fa7d36e1c38238e4bc5203b043a6 10.250.31.144:6001@16001 master - 0 1611195924000 25 connected 13107-14745\r\n11e53d15fae961271e732967733173c449c2f618 10.250.31.144:6003@16003 slave 5f06060f61e56e30bb40aa1fb6c5e922e3bd9fa7 0 1611195926000 28 connected\r\nf7995fa81595fc586611c540cfe9733722c4dda9 10.250.26.81:6002@16002 slave 6d1ce26e33d2a7c29b619cd72088d6e6436a766f 0 1611195927000 23 connected\r\n48f9357da5cb5e94f945ce32402e854e49062010 10.249.210.197:6003@16003 slave e844cb43011a7beb8c01cee0144a621a66979c59 0 1611195930634 22 connected\r\n5f06060f61e56e30bb40aa1fb6c5e922e3bd9fa7 10.250.27.16:6001@16001 master - 0 1611195929132 28 connected 14746-16383\r\n89919a8a210db7cf8ab6ea737761c4030dce589e 10.249.249.218:6003@16003 slave e0c8bf525629f6921bcada858a66bdf7330ee250 0 1611195928000 19 connected\r\ne844cb43011a7beb8c01cee0144a621a66979c59 10.250.26.81:6001@16001 master - 0 1611195927000 22 connected 11469-13106\r\n037616381c463d2898a4bccf72d4eaa437a2ea5b 10.250.26.81:6003@16003 slave 474eb1fbc8a6fa7d36e1c38238e4bc5203b043a6 0 1611195930000 25 connected\r\nd05f1f4b6e0d264a6eca950182336b7ecdb2244c 10.249.210.197:6001@16001 slave e9dec275f248435ab1a7a9fa163bbb042c1c17bd 0 1611195930134 31 connected\r\n9c6c125563e5cb74ce6930569903bfaffa9c8987 10.250.27.16:6003@16003 slave 5f06060f61e56e30bb40aa1fb6c5e922e3bd9fa7 0 1611195927000 30 connected\r\n43e5f9e6b76a906c1d2c0c3c0e4b4bd83ff7d57c 10.249.249.218:6002@16002 slave 76d10017755938823a63c0b2e4bd04ca5775c26c 0 1611195927000 8 connected\r\nec8614030139c3a232c646d48eb6866ee7a3b15a 10.249.250.26:6003@16003 slave e9dec275f248435ab1a7a9fa163bbb042c1c17bd 0 1611195929000 31 connected\r\nvars currentEpoch 31 lastVoteEpoch 0\r\n\r\n10.194.198.183 is the IP of the load balancer. I am not sure how this showed up in nodes.conf."
+    },
+    {
+      "id": 768637644,
+      "user": "madolson",
+      "created_at": "2021-01-27T23:07:19Z",
+      "body": "Any update on the logs? Can you also describe what the load balancer is doing in this situation? \r\n\r\nMy hunch is that for some reason the node is either processing gossip about itself or somehow trying to MEET with itself."
+    },
+    {
+      "id": 768649158,
+      "user": "nsendev",
+      "created_at": "2021-01-27T23:34:40Z",
+      "body": "here is our redis.conf (we have multiple such clusters, all similar except max memory size)\r\n\r\n################################## NETWORK #####################################\r\nprotected-mode no\r\nport 6001\r\ntcp-backlog 64000\r\n# Close the connection after a client is idle for N seconds (0 to disable)\r\ntimeout 0\r\n# A reasonable value for this option is 60 seconds.\r\ntcp-keepalive 0\r\n\r\n################################# GENERAL #####################################\r\ndaemonize yes\r\npidfile /var/run/redis-6001.pid\r\nsupervised no\r\nloglevel notice\r\nlogfile /opt/logs/jcache/redis-6001.log\r\n\r\n################################ SNAPSHOTTING  ################################\r\n# Save the DB on disk:\r\nsave \"\"\r\nstop-writes-on-bgsave-error yes\r\nrdbcompression yes\r\nrdbchecksum yes\r\ndbfilename redis-6001.rdb\r\ndir /opt/jcache/redis/snapshot\r\n\r\n################################## SLOW LOG ###################################\r\nslowlog-log-slower-than 10000\r\nslowlog-max-len 128\r\n\r\n############################# EVENT NOTIFICATION ##############################\r\nnotify-keyspace-events \"\"\r\n\r\n################################ LATENCY MONITOR ##############################\r\nlatency-monitor-threshold 0\r\n\r\n################################ REDIS CLUSTER  ###############################\r\ncluster-enabled yes\r\ncluster-config-file nodes-6001.conf\r\ncluster-node-timeout 15000\r\n################################ LUA SCRIPTING  ###############################\r\nlua-time-limit 5000\r\n\r\n################################## SECURITY ###################################\r\nrequirepass redis_password_from_ckmsstore\r\n\r\n################################### LIMITS ####################################\r\nmaxclients 10000\r\nmaxmemory 400mb\r\nmaxmemory-policy noeviction\r\n\r\n################################# REPLICATION #################################\r\nmasterauth redis_password_from_ckmsstore\r\nslave-serve-stale-data yes\r\nslave-read-only yes\r\nrepl-diskless-sync yes\r\nrepl-diskless-sync-delay 5\r\nrepl-disable-tcp-nodelay no\r\nrepl-timeout 1200\r\nslave-priority 100\r\nmin-slaves-to-write 0\r\nmin-slaves-max-lag 10\r\n\r\n############################## APPEND ONLY MODE ###############################\r\nappendonly no\r\nappendfilename appendonly-6001.aof\r\nappendfsync no\r\nno-appendfsync-on-rewrite no\r\nauto-aof-rewrite-percentage 100\r\nauto-aof-rewrite-min-size 64mb\r\naof-load-truncated yes\r\n############################### ADVANCED CONFIG ###############################\r\nhash-max-ziplist-entries 512\r\nhash-max-ziplist-value 64\r\nlist-max-ziplist-size -2\r\nlist-compress-depth 0\r\nset-max-intset-entries 512\r\nzset-max-ziplist-entries 128\r\nzset-max-ziplist-value 64\r\nhll-sparse-max-bytes 3000\r\nactiverehashing yes\r\nclient-output-buffer-limit normal 0 0 0\r\nclient-output-buffer-limit slave 1024mb 1024mb 60\r\nclient-output-buffer-limit pubsub 32mb 8mb 60\r\nhz 10\r\naof-rewrite-incremental-fsync yes"
+    },
+    {
+      "id": 768651257,
+      "user": "nsendev",
+      "created_at": "2021-01-27T23:40:07Z",
+      "body": "Regarding load balancer, we have L3DSR load balancer, that added in the box as loop back. Somehow redis topology shows that address as its own ip (randomly in some boxes).\r\n"
+    },
+    {
+      "id": 768774040,
+      "user": "ashutoshvsingh",
+      "created_at": "2021-01-28T03:30:56Z",
+      "body": " I would like to find the code where the node figures its IP out. Here is the typical information on a host for ifconfig. If you look at the output the lo1 and lo2 loopbacks are for two loadbalancers that are used by clients to hit a web service that has lettuce client, which talks to redis either on the local box or remote as described by the redis.conf.\n\n\nens1f0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500        inet 10.218.199.9  netmask 255.255.255.192  broadcast 10.218.199.63\n        inet6 fe80::92e2:baff:feec:8f68  prefixlen 64  scopeid 0x20<link>\n        ether 90:e2:ba:ec:8f:68  txqueuelen 5000  (Ethernet)\n        RX packets 290613977710  bytes 99587520062953 (90.5 TiB)\n        RX errors 0  dropped 95551  overruns 0  frame 0\n        TX packets 215272891654  bytes 43131034856949 (39.2 TiB)\n        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0\n\nlo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\n        inet 127.0.0.1  netmask 255.0.0.0\n        inet6 ::1  prefixlen 128  scopeid 0x10<host>\n        loop  txqueuelen 1000  (Local Loopback)\n        RX packets 46135669208  bytes 5490956440728 (4.9 TiB)\n        RX errors 0  dropped 0  overruns 0  frame 0\n        TX packets 46135669208  bytes 5490956440728 (4.9 TiB)\n        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0\n\nlo:1: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\n        inet 10.218.192.54  netmask 255.255.255.255\n        loop  txqueuelen 1000  (Local Loopback)\n\nlo:2: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\n        inet 10.221.1.99  netmask 255.255.255.255\n        loop  txqueuelen 1000  (Local Loopback)\n\n    On Wednesday, January 27, 2021, 3:40:23 PM PST, Nabanita Sen <notifications@github.com> wrote:  \n \n \n\n\nRegarding load balancer, we have L3DSR load balancer, that added in the box as loop back. Somehow redis topology shows that address as its own ip (randomly in some boxes).\n\n—\nYou are receiving this because you were mentioned.\nReply to this email directly, view it on GitHub, or unsubscribe.\n  "
+    },
+    {
+      "id": 768808825,
+      "user": "madolson",
+      "created_at": "2021-01-28T05:26:57Z",
+      "body": "Here is the code where a node figures out it's own IP: https://github.com/redis/redis/blob/unstable/src/cluster.c#L1696. I don't think we're triggering that though. There are other cases with cluster announce IPs, but you aren't using that.t. If you have any server logs for this host, and others, with some relevant times you starting experience this issue, that would also help a lot to rule this case out.\r\n"
+    },
+    {
+      "id": 768819332,
+      "user": "ashutoshvsingh",
+      "created_at": "2021-01-28T05:57:09Z",
+      "body": "Would you like to come on zoom or hangout, it will be easier to debug, but I will add more logs from the system\n\nSent from Yahoo Mail on Android \n \n  On Wed, Jan 27, 2021 at 9:27 PM, Madelyn Olson<notifications@github.com> wrote:   \n\n\nHere is the code where a node figures out it's own IP: https://github.com/redis/redis/blob/unstable/src/cluster.c#L1696. I don't think we're triggering that though. There are other cases with cluster announce IPs, but you aren't using that.t. If you have any server logs for this host, and others, with some relevant times you starting experience this issue, that would also help a lot to rule this case out.\n\n—\nYou are receiving this because you were mentioned.\nReply to this email directly, view it on GitHub, or unsubscribe.\n  \n"
+    },
+    {
+      "id": 769991423,
+      "user": "ashutoshvsingh",
+      "created_at": "2021-01-29T19:05:57Z",
+      "body": "is there a way for me to core the process and dump the packet when a given IP shows in the gossip for self discovery. "
+    },
+    {
+      "id": 771133264,
+      "user": "madolson",
+      "created_at": "2021-02-01T20:23:26Z",
+      "body": "I'm not sure there is any native solution for that unfortunately. You could add some checks within Redis and build it yourself. When a node updates its own IP address, we can report it. If you want, we can add some of that instrumentation in Redis 6.2. "
+    },
+    {
+      "id": 771798140,
+      "user": "sundarms",
+      "created_at": "2021-02-02T17:08:44Z",
+      "body": "@madolson \r\nHere is some log \r\n...\r\n93295:M 05 Oct 2020 22:55:02.658 # Address updated for node 5826cccc3b02f4bbed5c9e2da3ee05d173b8b5d8, now 10.210.82.33:6034\r\n93295:M 05 Oct 2020 22:55:02.720 # Address updated for node 0a05f1dbf0e59906b9b0ba745e00ae5215744dc4, now 10.210.82.33:6035\r\n93295:M 05 Oct 2020 22:55:02.749 # Address updated for node 425f7c2a7a490caf65a7d3d090670c0abe448310, now 10.210.82.33:6036\r\n...\r\nFrom code i see it is updated(nodeUpdateAddressIfNeeded method) while handshake in progress or ping message is processed. Any idea in which case this can happen.\r\n"
+    },
+    {
+      "id": 777103283,
+      "user": "salujasarab",
+      "created_at": "2021-02-10T23:22:26Z",
+      "body": "We found the solution. The redis was not started with the bind configuration directive so it was listening for connections on all the available network interfaces on host. Since one of the interfaces was the VIP, the redis server can listen on that interface as well and over the period of time the IP of the instance would get updated to VIP IP in nodes.conf. This config once propagated to the client was throwing it off balance. The solution was to start redis with the bind directive, followed by the IP to bind to. The issue can be closed."
+    },
+    {
+      "id": 777285759,
+      "user": "yossigo",
+      "created_at": "2021-02-11T08:49:55Z",
+      "body": "@salujasarab Thanks for reporting the resolution."
+    }
+  ]
+}

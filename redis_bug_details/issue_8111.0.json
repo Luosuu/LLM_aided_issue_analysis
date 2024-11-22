@@ -1,0 +1,50 @@
+{
+  "issue_number": 8111.0,
+  "title": "[BUG] Redis doesn't check a return code of fsync thus potentially corrupting keys/values and silently returning them.",
+  "body": "According to researchers Anthony Rebello, Yuvraj Patel, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau of University of Wisconsin - Madison, Redis doesn't check a return code of fsync system call.\r\n\r\nThey state that under certain conditions it may lead to corrupted keys or values being obliviously returned.\r\n\r\nLink to the paper: https://www.usenix.org/system/files/atc20-rebello.pdf",
+  "state": "closed",
+  "created_at": "2020-11-30T13:53:24Z",
+  "updated_at": "2021-04-01T09:45:15Z",
+  "closed_at": "2021-04-01T09:45:15Z",
+  "labels": [
+    "state:help-wanted"
+  ],
+  "comments_data": [
+    {
+      "id": 736181247,
+      "user": "madolson",
+      "created_at": "2020-12-01T02:47:01Z",
+      "body": "Yeah, when fsync fails it usually means you have no idea what has happened underneath on the system. For RDBs, we should be aborting the snapshot and trying again. I'm less sure what we should do about AOFs though, that seems to be the place we are generally ignoring the fsync calls. "
+    },
+    {
+      "id": 736236026,
+      "user": "chemist777",
+      "created_at": "2020-12-01T05:44:39Z",
+      "body": "I think we should crash Redis (by default) in case of any fsync failure as it was done in Postgres."
+    },
+    {
+      "id": 736521814,
+      "user": "itamarhaber",
+      "created_at": "2020-12-01T12:29:14Z",
+      "body": "Hello @whateverpal \r\n\r\nThanks for sharing this."
+    },
+    {
+      "id": 737106646,
+      "user": "oranagra",
+      "created_at": "2020-12-02T09:28:44Z",
+      "body": "i'm not sure we want to crash, maybe better set `aof_last_write_status` and/or `lastbgsave_status` to `C_ERR`, which will cause redis to stop accepting write commands.\r\nusers may still be able to salvage their data."
+    },
+    {
+      "id": 739564901,
+      "user": "madolson",
+      "created_at": "2020-12-06T21:13:22Z",
+      "body": "I agree that we shouldn't crash. In Postgres the authoritative state is on disk, so an fsync means you don't know what happened so you should reload the log. In redis, the state is in memory, so we should be able to continue. I don't know much about aof, we could also consider starting a new file."
+    },
+    {
+      "id": 745590781,
+      "user": "yossigo",
+      "created_at": "2020-12-15T21:52:51Z",
+      "body": "I agree with @oranagra and @madolson, we should treat a failed `fsync` as a write error leaving the *currently opened* file in an undetermined state, but it may be recoverable."
+    }
+  ]
+}

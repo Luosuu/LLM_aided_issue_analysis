@@ -1,0 +1,66 @@
+{
+  "issue_number": 7856.0,
+  "title": "[BUG] redis is expiring key ahead of time",
+  "body": "**Describe the bug**\r\n\r\nwe are adding a key to redis with ttl of 20 minutes(1200 seconds), after few seconds, most cases 1-2, key is disappearing from redis\r\n\r\n**To reproduce**\r\n```\r\nredis:6379[1]> setex aaa 1200 aaa\r\nOK\r\nredis:6379[1]> ttl aaa\r\n(integer) 1197\r\nredis:6379[1]> ttl aaa\r\n(integer) 1195\r\nredis:6379[1]> ttl aaa\r\n(integer) 1190\r\nredis:6379[1]> ttl aaa\r\n(integer) 1182\r\nredis:6379[1]> ttl aaa\r\n(integer) 1175\r\nredis:6379[1]> ttl aaa\r\n(integer) 1169\r\nredis:6379[1]> ttl aaa\r\n(integer) -2\r\n`\r\n\r\n**Expected behavior**\r\n\r\nkey will expire only after 20 minutes\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-09-28T11:33:19Z",
+  "updated_at": "2020-09-29T03:20:25Z",
+  "closed_at": "2020-09-28T17:08:36Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 699961599,
+      "user": "oranagra",
+      "created_at": "2020-09-28T11:57:54Z",
+      "body": "@itzikiusa i can't reproduce this.\r\nplease tell me which redis version are you using.\r\nany chance this key is deleted by something else (e.g. eviction)?\r\nmaybe it would help if you share your `INFO ALL` output, and specify if there is any other traffic on your redis.\r\n\r\nanother alternative to look into what's deleting this key is by listening for keyspace notifications using another clients:\r\n```\r\n127.0.0.1:6379> config set notify-keyspace-events KEA\r\n127.0.0.1:6379> psubscribe '__key*__:*'\r\n```\r\n\r\nor specifically for your keys: `psubscribe '__keyspace@0__:aaa'`"
+    },
+    {
+      "id": 699965887,
+      "user": "itzikiusa",
+      "created_at": "2020-09-28T12:07:21Z",
+      "body": "@oranagra thanks for the quick reply - this is from INFO ALL\r\n```INFO ALL\r\n# Server\r\nredis_version:5.0.3\r\nredis_git_sha1:0\r\nredis_git_dirty:0\r\nredis_build_id:0\r\nredis_mode:standalone\r\nos:Amazon ElastiCache\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:0.0.0\r\nprocess_id:1\r\nrun_id:c92b6afaba04505732b0d5ec1138b31f165273ca\r\ntcp_port:6379\r\nuptime_in_seconds:11244463\r\nuptime_in_days:130\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:7459245\r\nexecutable:-\r\nconfig_file:-\r\n\r\n# Clients\r\nconnected_clients:24\r\nclient_recent_max_input_buffer:4\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:0\r\n\r\n# Memory\r\nused_memory:424273208\r\nused_memory_human:404.62M\r\nused_memory_rss:453545984\r\nused_memory_rss_human:432.54M\r\nused_memory_peak:645612032\r\nused_memory_peak_human:615.70M\r\nused_memory_peak_perc:65.72%\r\nused_memory_overhead:39928156\r\nused_memory_startup:3668728\r\nused_memory_dataset:384345052\r\nused_memory_dataset_perc:91.38%\r\nallocator_allocated:424789792\r\nallocator_active:425594880\r\nallocator_resident:462901248\r\nused_memory_lua:37888\r\nused_memory_lua_human:37.00K\r\nused_memory_scripts:0\r\nused_memory_scripts_human:0B\r\nnumber_of_cached_scripts:0\r\nmaxmemory:436469760\r\nmaxmemory_human:416.25M\r\nmaxmemory_policy:volatile-lru\r\nallocator_frag_ratio:1.00\r\nallocator_frag_bytes:805088\r\nallocator_rss_ratio:1.09\r\nallocator_rss_bytes:37306368\r\nrss_overhead_ratio:0.98\r\nrss_overhead_bytes:-9355264\r\nmem_fragmentation_ratio:1.07\r\nmem_fragmentation_bytes:29273696\r\nmem_not_counted_for_evict:0\r\nmem_replication_backlog:1048576\r\nmem_clients_slaves:66840\r\nmem_clients_normal:605452\r\nmem_aof_buffer:0\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\n\r\n# Persistence\r\nloading:0\r\nrdb_changes_since_last_save:51883599\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1590050302\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:-1\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_last_cow_size:5644288\r\naof_enabled:0\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:-1\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_last_write_status:ok\r\naof_last_cow_size:0\r\n\r\n# Stats\r\ntotal_connections_received:548240\r\ntotal_commands_processed:473753772\r\ninstantaneous_ops_per_sec:27\r\ntotal_net_input_bytes:153903853190\r\ntotal_net_output_bytes:10162335155459\r\ninstantaneous_input_kbps:1.93\r\ninstantaneous_output_kbps:13.03\r\nrejected_connections:0\r\nsync_full:3\r\nsync_partial_ok:0\r\nsync_partial_err:3\r\nexpired_keys:5138825\r\nexpired_stale_perc:0.00\r\nexpired_time_cap_reached_count:0\r\nevicted_keys:30613\r\nkeyspace_hits:322935343\r\nkeyspace_misses:45040880\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:736\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\n\r\n# Replication\r\nrole:master\r\nconnected_slaves:2\r\nslave0:ip=10.0.1.173,port=6379,state=online,offset=355966613584,lag=1\r\nslave1:ip=10.0.2.205,port=6379,state=online,offset=355966613584,lag=1\r\nmaster_replid:6f3a55fe457c244ec309300a940cd4583e18266e\r\nmaster_replid2:da5d1d72c1b04651cfd6db8afec5aecfa975dba3\r\nmaster_repl_offset:355966613681\r\nsecond_repl_offset:228077762596\r\nrepl_backlog_active:1\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:355965565106\r\nrepl_backlog_histlen:1048576\r\n\r\n# CPU\r\nused_cpu_sys:24816.190225\r\nused_cpu_user:14304.554125\r\nused_cpu_sys_children:0.027175\r\nused_cpu_user_children:0.198068\r\n\r\n# Commandstats\r\ncmdstat_ttl:calls=27389,usec=66492,usec_per_call=2.43\r\ncmdstat_exec:calls=1,usec=78,usec_per_call=78.00\r\ncmdstat_select:calls=12,usec=21,usec_per_call=1.75\r\ncmdstat_expire:calls=550982,usec=1330689,usec_per_call=2.42\r\ncmdstat_del:calls=11299277,usec=15238372,usec_per_call=1.35\r\ncmdstat_multi:calls=1,usec=1,usec_per_call=1.00\r\ncmdstat_slaveof:calls=2,usec=195,usec_per_call=97.50\r\ncmdstat_set:calls=11714,usec=59374,usec_per_call=5.07\r\ncmdstat_get:calls=6839692,usec=17040283,usec_per_call=2.49\r\ncmdstat_keys:calls=3377,usec=32436189,usec_per_call=9605.03\r\ncmdstat_client:calls=374812,usec=37944893,usec_per_call=101.24\r\ncmdstat_ping:calls=7292149,usec=9157326,usec_per_call=1.26\r\ncmdstat_memory:calls=4,usec=10245,usec_per_call=2561.25\r\ncmdstat_hmset:calls=11927386,usec=92446072,usec_per_call=7.75\r\ncmdstat_psubscribe:calls=1,usec=3,usec_per_call=3.00\r\ncmdstat_flushall:calls=29,usec=164077,usec_per_call=5657.83\r\ncmdstat_setex:calls=5183646,usec=27501974,usec_per_call=5.31\r\ncmdstat_hdel:calls=46,usec=157,usec_per_call=3.41\r\ncmdstat_psync:calls=3,usec=278,usec_per_call=92.67\r\ncmdstat_config:calls=20479,usec=2111162,usec_per_call=103.09\r\ncmdstat_hget:calls=336561582,usec=4930041786,usec_per_call=14.65\r\ncmdstat_info:calls=15789381,usec=1810427758,usec_per_call=114.66\r\ncmdstat_command:calls=13,usec=13098,usec_per_call=1007.54\r\ncmdstat_exists:calls=2085987,usec=3087317,usec_per_call=1.48\r\ncmdstat_hgetall:calls=22461573,usec=93029211,usec_per_call=4.14\r\ncmdstat_replconf:calls=22358019,usec=27311694,usec_per_call=1.22\r\ncmdstat_hset:calls=30966215,usec=110435035,usec_per_call=3.57\r\n\r\n# SSL\r\nssl_enabled:no\r\nssl_connections_to_previous_certificate:0\r\nssl_connections_to_current_certificate:0\r\nssl_current_certificate_not_before_date:(null)\r\nssl_current_certificate_not_after_date:(null)\r\nssl_current_certificate_serial:0\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=544786,expires=5,avg_ttl=896421`"
+    },
+    {
+      "id": 699967458,
+      "user": "itzikiusa",
+      "created_at": "2020-09-28T12:10:58Z",
+      "body": "getting this error when trying to set config - \r\n```config set notify-keyspace-events KEA\r\n(error) ERR unknown command `config`, with args beginning with: `set`, `notify-keyspace-events`, `KEA`"
+    },
+    {
+      "id": 699968205,
+      "user": "oranagra",
+      "created_at": "2020-09-28T12:12:42Z",
+      "body": "I suppose Amazon ElasticCache doesn't support keyspace notifications.\r\n\r\ni'm guessing your key is evicted..\r\nyou're very close to the memory limit and the eviction policy allows these keys to be evicted.\r\n```\r\nused_memory_human:404.62M\r\nmaxmemory_human:416.25M\r\nmaxmemory_policy:volatile-lru\r\n```"
+    },
+    {
+      "id": 699968927,
+      "user": "itzikiusa",
+      "created_at": "2020-09-28T12:14:15Z",
+      "body": "what can i do?"
+    },
+    {
+      "id": 699971410,
+      "user": "oranagra",
+      "created_at": "2020-09-28T12:19:42Z",
+      "body": "few random options:\r\n- increase the memory limit (add memory)\r\n- reduce memory usage by (delete something?)\r\n- change to `noeviction` policy and get `OOM` error instead of implicit deletions"
+    },
+    {
+      "id": 699972140,
+      "user": "itzikiusa",
+      "created_at": "2020-09-28T12:21:28Z",
+      "body": "my guess is that the last one isn't recommended, will try the others, thanks!"
+    },
+    {
+      "id": 700164995,
+      "user": "oranagra",
+      "created_at": "2020-09-28T17:08:36Z",
+      "body": "closing this for now, feel free to re-open or respond if you find an issue with Redis."
+    },
+    {
+      "id": 700401822,
+      "user": "itzikiusa",
+      "created_at": "2020-09-29T03:20:25Z",
+      "body": "yeah, thanks!"
+    }
+  ]
+}

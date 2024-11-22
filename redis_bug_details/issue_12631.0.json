@@ -1,0 +1,18 @@
+{
+  "issue_number": 12631.0,
+  "title": "[BUG] `redis-cli DUMP` add an extra `\\n` that breaks the DUMP",
+  "body": "**Describe the bug**\r\n\r\nCalling DUMP and RESTORE on redis-cli returns an error \r\n\r\n**To reproduce**\r\n\r\n```bash\r\n$ redis-cli set x a\r\nOK\r\n$ redis-cli DUMP MotoGP > x.rdb\r\n$ cat x.rdb | redis-cli -x RESTORE y 0\r\n(error) ERR DUMP payload version or checksum are wrong\r\n```\r\n\r\n**Expected behavior**\r\n\r\nDUMP shouldn't add an extra `\\n`\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-10-04T11:23:14Z",
+  "updated_at": "2023-10-04T11:35:45Z",
+  "closed_at": "2023-10-04T11:35:45Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1746693988,
+      "user": "gkorland",
+      "created_at": "2023-10-04T11:35:45Z",
+      "body": "@itamarhaber thanks for the solution \r\n```\r\nredis-cli -D \"\" --raw DUMP x > x.dump \r\n```"
+    }
+  ]
+}

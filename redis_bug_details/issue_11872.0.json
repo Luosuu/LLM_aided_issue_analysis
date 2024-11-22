@@ -1,0 +1,30 @@
+{
+  "issue_number": 11872.0,
+  "title": "[BUG] redis version 6.2.3 sscan count is not work for int number",
+  "body": "```\r\nsadd alphabet A B C D E F G H I J K L M N O P Q R S T U V W X Y Z\r\nsscan alphabet 0 count 3\r\n\r\n1) \"8\"\r\n2) 1) \"C\"\r\n   2) \"M\"\r\n   3) \"J\"\r\n```\r\n\r\nbut when iput int number to a set, count 3 will show all member\r\n\r\n```\r\nsadd number 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26\r\nsscan number 0 count 3\r\n\r\n1) \"0\"\r\n2)  1) \"0\"\r\n    2) \"1\"\r\n    3) \"2\"\r\n    4) \"3\"\r\n    5) \"4\"\r\n    6) \"5\"\r\n    7) \"6\"\r\n    8) \"7\"\r\n    9) \"8\"\r\n   10) \"9\"\r\n   11) \"10\"\r\n   12) \"11\"\r\n   13) \"12\"\r\n   14) \"13\"\r\n   15) \"14\"\r\n   16) \"15\"\r\n   17) \"16\"\r\n   18) \"17\"\r\n   19) \"18\"\r\n   20) \"19\"\r\n   21) \"20\"\r\n   22) \"21\"\r\n   23) \"22\"\r\n   24) \"23\"\r\n   25) \"24\"\r\n   26) \"25\"\r\n   27) \"26\"\r\n```",
+  "state": "closed",
+  "created_at": "2023-03-02T10:04:55Z",
+  "updated_at": "2023-03-03T14:29:10Z",
+  "closed_at": "2023-03-03T14:29:09Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1451810435,
+      "user": "enjoy-binbin",
+      "created_at": "2023-03-02T12:43:31Z",
+      "body": "yes, `sadd number 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26` this will create a set with the intset encoding, and you can see this doc: https://redis.io/commands/scan/\r\n\r\nths The COUNT option part:\r\n> When iterating Sets encoded as intsets (small sets composed of just integers), or Hashes and Sorted Sets encoded as ziplists (small hashes and sets composed of small individual values), usually all the elements are returned in the first SCAN call regardless of the COUNT value.\r\n\r\nand now i see the doc is a bit outupdate, in 7.0, we replaced all ziplists with listpack. In 7.2, we add listpack conding for SET. i will update the doc later"
+    },
+    {
+      "id": 1453001566,
+      "user": "enjoy-binbin",
+      "created_at": "2023-03-03T05:36:04Z",
+      "body": "i seem to remember in the old past, using scan with small count in a large ziplist (2048 entries) causing a trouble on us\r\nHave we considered changing this behavior? (breaking change) i.e. let the count option actually work? @oranagra\r\nWe can add some offsets to let the cursor traverse backwards in sequence, and break the loop when the count is meet.\r\nThis shouldn't be any worse than what we have now (since we've now iterated over the entire list)\r\n\r\nedit. i suppose we can  do it in intset, since we can just dump to the cursor. as for listpack, i think should not be changed, because the overall time complexity has increased\r\n\r\nnevermind,  leave it as it is, it just popped into my mind"
+    },
+    {
+      "id": 1453614536,
+      "user": "oranagra",
+      "created_at": "2023-03-03T14:29:09Z",
+      "body": "This is not a bug and not an unexpected behavior.\r\nthe COUNT argument for SCAN doesn't really limit the number of elements you'll get (in some cases you'll get less, and usually you'll get more than you asked for, even in dict encoded collections since it scans complete dict buckets, and stops when it passed the count).\r\nThe fact is that count is just some advise to redis to limit the execution complexity.\r\nfor packed collections (intset, ziplist, listpack), the entire collection is expected to be rather small, and there's no reason to break it to segments.\r\nin addition to that, the scan cursor mechanism cannot provide the same guarantees, which is to still work correctly when the collection is modified during the scan (between scan calls).\r\ni.e. for dict encoded collections it grantees to always return each element that existed for the entire duration of the scan (wasn't added or deleted mid-scan) exactly once (other than some small issue with resharding IIRC)."
+    }
+  ]
+}

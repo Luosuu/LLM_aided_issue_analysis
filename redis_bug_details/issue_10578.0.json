@@ -1,0 +1,18 @@
+{
+  "issue_number": 10578.0,
+  "title": "[BUG] Restart reading from start ($) of very large STREAM returns nil",
+  "body": "**Describe the bug**\r\n\r\nXREAD from large STREAM maybe return nil if we read from initial position of the STREAM.\r\n\r\n**To reproduce**\r\n- XADD TEST * key value - create a large stream (10M+ events). \r\n- While stream are populated, every minute call: XTRIM TEST MAXLEN ~ 10000000 LIMIT 1000000  (~10M events and limit 1M to delete)\r\n- A client start to read events like XREAD COUNT 100 BLOCK 3000 STREAMS TEST <lastXReadId>. We start from $ as latestId. \r\n- After we readied a lot of events - we restart reading from $ - and XREAD return nil.\r\n- Going to redis-cli and:\r\n`\r\n127.0.0.1:6379> XINFO STREAM TEST\r\n 1) \"length\"\r\n 2) (integer) 10410055\r\n 3) \"radix-tree-keys\"\r\n 4) (integer) 321336\r\n 5) \"radix-tree-nodes\"\r\n 6) (integer) 422422\r\n17) \"first-entry\"\r\n18) 1) \"1649836573921-0\"\r\n    2) 1) \"heartbeat\"\r\n       2) \"018021ec-444c-7000-8445-be8d76677589\"\r\n19) \"last-entry\"\r\n20) 1) \"1649836615697-65\"\r\n    2) 1) \"start_trading\"\r\n       2) \"018021ec-e7f0-700d-a34e-98bc7719f089\"\r\n`\r\nWe have 10.5M events stored (10410055). \r\n\r\nBut: \r\n`\r\n127.0.0.1:6379> XREAD COUNT 1 STREAMS TEST $\r\n(nil)\r\n127.0.0.1:6379> XLEN TEST\r\n(integer) 10410055\r\n`\r\nWe full stop adding new entries - and can't read messages - in our code or manual by redis-cli too.\r\n\r\n**Additional information**\r\n\r\nWe checking both 7.0-rc3 version and latest stable (6.2.6), building from source (Debian 11.3)",
+  "state": "closed",
+  "created_at": "2022-04-13T09:16:05Z",
+  "updated_at": "2022-04-13T09:28:39Z",
+  "closed_at": "2022-04-13T09:28:39Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1097795849,
+      "user": "aleksraiden",
+      "created_at": "2022-04-13T09:28:39Z",
+      "body": "Read the help first:\r\n\r\nWhen blocking sometimes we want to receive just entries that are added to the stream via [XADD](https://redis.io/commands/xadd) starting from the moment we block. In such a case we are not interested in the history of already added entries. For this use case, we would have to check the stream top element ID, and use such ID in the XREAD command line. This is not clean and requires to call other commands, so instead it is possible to use the special $ ID to signal the stream that we want only the new things."
+    }
+  ]
+}

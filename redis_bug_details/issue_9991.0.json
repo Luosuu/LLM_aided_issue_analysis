@@ -1,0 +1,18 @@
+{
+  "issue_number": 9991.0,
+  "title": "[BUG] Slave continuously issuing a full sync can starve persistence related forks on master",
+  "body": "**Describe the bug**\r\nnote1: this is a theoretical bug which I hadn't verified yet but wanted to document ASAP. \r\nnote2: This came up while handling https://github.com/redis/redis/pull/9968#discussion_r773761633\r\n\r\nIf a slave for some reason goes into a loop of requesting a full sync from the master it'll cause the master to continuously fork for RDB generation (either disk-less or or disk-based). This is normal and can happen if for instance the slave fails to load the RDB because of memory issues.\r\n\r\nThe problem is that we allow only a single fork on the master and this fork will constantly be used to generate the replication bulk RDB. All cron jobs related to persistence will be starved because the \"fork lock\" will be used for replication. So a faulty slave will effectively disable persistence on the master.\r\n\r\n**To reproduce**\r\n\r\nWe can run `redis-cli --rdb mydump.rdb` in a loop and start writing data to the server configured with `repl-diskless-sync-delay` 0 and `repl-diskless-sync` `yes` and some `save` configuration. If we never get a dump file this is the bug.\r\n\r\n**Expected behavior**\r\n\r\nI'd expect the snapshot or aof rewrite mechanisms to take precedence in such a case. One way this can be done is to flag a pending snapshot or rewrite operation and once we're done forking for replication fork for them if the flag is on (before any new `sync` command is processed).",
+  "state": "open",
+  "created_at": "2021-12-23T09:42:05Z",
+  "updated_at": "2022-10-12T15:23:06Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1025712388,
+      "user": "yoav-steinberg",
+      "created_at": "2022-01-31T12:58:54Z",
+      "body": "Update:\r\nI recreated this like this:\r\n```bash\r\nrm dump.rdb\r\nredis-cli config set repl-diskless-sync-delay 0\r\nredis-cli config set repl-diskless-sync yes\r\nredis-cli config set save \"5 1\"\r\nwhile true; do timeout 0.05 redis-cli --rdb /tmp/bla.rdb; done\r\n```\r\nthen I wrote something to the database: `redis-cli set x abc` and verified nothing was saved.\r\nOnce I stopped the `while` loop above, _dump.rdb_ was created.\r\n\r\n\r\n\r\n"
+    }
+  ]
+}

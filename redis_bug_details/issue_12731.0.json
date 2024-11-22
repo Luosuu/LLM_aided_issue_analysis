@@ -1,0 +1,102 @@
+{
+  "issue_number": 12731.0,
+  "title": "[BUG] Redis sentinel Error: waitpid() returned a pid we can't find in our scripts execution queue!",
+  "body": "**Describe the bug**\r\n\r\nI want to setup Redis sentinel in my AKS based on the Bitnami Helm Chart (https://artifacthub.io/packages/helm/bitnami/redis/18.1.2). After deploying the Sentinel Container spams the message: \r\n\r\n`waitpid() returned a pid (996) we can't find in our scripts execution queue!`\r\n\r\n**To reproduce**\r\nI am using an Image with the following Dockerfile:\r\n\r\n```\r\nFROM redis:7.0-alpine3.18\r\n\r\nRUN apk add --no-cache bash\r\nRUN apk add openssl\r\n```\r\nI am using the following YAML to deploy the Redis Sentinel with the above shown Image in the StatefulSet.\r\n\r\n[YAML.zip](https://github.com/redis/redis/files/13267038/YAML.zip)\r\n\r\n\r\n**Expected behavior**\r\n\r\nRedis and Sentinel are Running without these Logs shown in additional information.\r\n\r\n**Additional information**\r\n\r\nTo make it clear i am NOT using the officall Bitnami Image shown in the Helm Chart docker.io/bitnami/redis:7.2.1-debian-11-r0 / docker.io/bitnami/redis-sentinel:7.2.1-debian-11-r0 because those critical CVEs in the images are not allowed in my environment.\r\n\r\nSome Logs from the Pod\r\n\r\n[1.log](https://github.com/redis/redis/files/13267090/1.log)\r\n[2.log](https://github.com/redis/redis/files/13267091/2.log)\r\n[3.log](https://github.com/redis/redis/files/13267092/3.log)\r\n",
+  "state": "open",
+  "created_at": "2023-11-06T13:38:55Z",
+  "updated_at": "2023-11-09T11:02:29Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1798529675,
+      "user": "koenigfa1",
+      "created_at": "2023-11-07T13:32:21Z",
+      "body": "```\r\n│ sentinel 1:X 07 Nov 2023 14:28:18.174 # waitpid() returned a pid (144) we can't find in our scripts execution queue!                                            │\r\n│ sentinel 1:X 07 Nov 2023 14:28:22.757 * +sentinel sentinel 817333fc9cfeb5cf8d7595ba084eac43e846dd09 10.248.64.245 26379 @ mymaster xx-yy-redis-n │\r\n│ sentinel 1:X 07 Nov 2023 14:28:22.769 * Sentinel new configuration saved on disk                                                                                │\r\n│ sentinel 1:X 07 Nov 2023 14:28:23.109 # waitpid() returned a pid (152) we can't find in our scripts execution queue!                                            │\r\n│ sentinel 1:X 07 Nov 2023 14:28:28.123 # waitpid() returned a pid (169) we can't find in our scripts execution queue!\r\n```\r\n\r\nI see sentinel doing stuff correctly isnt it? Is the Log Message not an error just an information? If so what is the impact of the message? For more Logs from sentinel refer to the beginning of 1.Log File "
+    },
+    {
+      "id": 1800340841,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-07T23:03:57Z",
+      "body": "can you share the INFO SENTINEL output? \r\nMy guess is that sentinel has entered TILT mode. (Will this fsync be slow?)\r\n```\r\n│ sentinel 1:X 07 Nov 2023 14:28:22.769 * Sentinel new configuration saved on disk  \r\n```\r\n\r\nand can you check if the logs have some TITL keyword?\r\n\r\nTILT mode source code:\r\n```c\r\n/* This function checks if we need to enter the TILT mode.\r\n *\r\n * The TILT mode is entered if we detect that between two invocations of the\r\n * timer interrupt, a negative amount of time, or too much time has passed.\r\n * Note that we expect that more or less just 100 milliseconds will pass\r\n * if everything is fine. However we'll see a negative number or a\r\n * difference bigger than SENTINEL_TILT_TRIGGER milliseconds if one of the\r\n * following conditions happen:\r\n *\r\n * 1) The Sentinel process for some time is blocked, for every kind of\r\n * random reason: the load is huge, the computer was frozen for some time\r\n * in I/O or alike, the process was stopped by a signal. Everything.\r\n * 2) The system clock was altered significantly.\r\n *\r\n * Under both this conditions we'll see everything as timed out and failing\r\n * without good reasons. Instead we enter the TILT mode and wait\r\n * for SENTINEL_TILT_PERIOD to elapse before starting to act again.\r\n *\r\n * During TILT time we still collect information, we just do not act. */\r\nvoid sentinelCheckTiltCondition(void) {\r\n    mstime_t now = mstime();\r\n    mstime_t delta = now - sentinel.previous_time;\r\n\r\n\r\n    if (delta < 0 || delta > sentinel_tilt_trigger) {\r\n        sentinel.tilt = 1;\r\n        sentinel.tilt_start_time = mstime();\r\n        sentinelEvent(LL_WARNING,\"+tilt\",NULL,\"#tilt mode entered\");\r\n    }\r\n    sentinel.previous_time = mstime();\r\n}\r\n```"
+    },
+    {
+      "id": 1801155322,
+      "user": "koenigfa1",
+      "created_at": "2023-11-08T06:12:27Z",
+      "body": "@enjoy-binbin thank your for your answer. How can i get the INFO SENTINEL output? If i take a look into all my logs also into the logs linked in my post i never saw something like TILT in my logs. Thats the point why i am confused. How can we check the TILT mode do i need to configure something?"
+    },
+    {
+      "id": 1801307218,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-08T08:26:05Z",
+      "body": "INFO is a command, https://redis.io/commands/info/\r\nor you can post the full INFO command output"
+    },
+    {
+      "id": 1801334601,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-08T08:43:57Z",
+      "body": "can you issue the info command to the sentinel node?"
+    },
+    {
+      "id": 1801349309,
+      "user": "koenigfa1",
+      "created_at": "2023-11-08T08:54:24Z",
+      "body": "I kubectl exec into the sentinel container and authenticate with redis-cli. But i dont get any output:\r\n\r\n1. - k exec -it xy -c sentinel -- bash\r\n\r\n2. - redis-cli -a xyz\r\n\r\n3. - ![image](https://github.com/redis/redis/assets/149191179/7ae096ea-1c1c-4478-a52d-00f75a5041a5)\r\n"
+    },
+    {
+      "id": 1801352916,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-08T08:56:55Z",
+      "body": "you should try the sentinel port 26379, not 6379"
+    },
+    {
+      "id": 1801364327,
+      "user": "koenigfa1",
+      "created_at": "2023-11-08T09:04:33Z",
+      "body": "127.0.0.1:26379> info sentinel\r\n# Sentinel\r\nsentinel_masters:1\r\nsentinel_tilt:0\r\nsentinel_tilt_since_seconds:-1\r\nsentinel_running_scripts:0\r\nsentinel_scripts_queue_length:0\r\nsentinel_simulate_failure_flags:0\r\nmaster0:name=mymaster,status=ok,address=10.248.64.250:6379,slaves=2,sentinels=3"
+    },
+    {
+      "id": 1801704716,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-08T11:31:20Z",
+      "body": "Sorry, i don't have any clues right now.\r\n@hwware do you have some suggestions?"
+    },
+    {
+      "id": 1801733176,
+      "user": "koenigfa1",
+      "created_at": "2023-11-08T11:50:58Z",
+      "body": "So you think the redis and sentinel container are running correctly and are production ready? I dont know how to understand the log message...Is it an error or just a warning/info? Does it affect the redis/sentinel so the containers are or can't run correctly in the futher?"
+    },
+    {
+      "id": 1803480194,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-09T09:38:35Z",
+      "body": "it is just a warning.\r\nas far as I know, it won't affect redis or sentinel, but it's better to test it (like try to do a failover in your env)"
+    },
+    {
+      "id": 1803495318,
+      "user": "koenigfa1",
+      "created_at": "2023-11-09T09:48:16Z",
+      "body": "Alright. Can you give me a hint how to test in my env a failover scenario?"
+    },
+    {
+      "id": 1803501100,
+      "user": "enjoy-binbin",
+      "created_at": "2023-11-09T09:51:25Z",
+      "body": "https://redis.io/docs/management/sentinel/\r\nyou can get more info in here, and can learn how to use the sentinel or how sentinel work"
+    },
+    {
+      "id": 1803574031,
+      "user": "koenigfa1",
+      "created_at": "2023-11-09T10:33:43Z",
+      "body": "Wow nice now i understand. Everything seems fine:\r\n![image](https://github.com/redis/redis/assets/149191179/015643ef-e324-41cb-ba30-1b9ffb5589b7)\r\n![image](https://github.com/redis/redis/assets/149191179/79e7c60b-e77e-4f53-92ab-18fc3fbe1b4f)\r\n\r\nI see in the logs the health check fails and the failover from 10.248.64.250 to 10.248.65.12 is done successfully isn't it?"
+    },
+    {
+      "id": 1803617397,
+      "user": "koenigfa1",
+      "created_at": "2023-11-09T11:02:29Z",
+      "body": "More logs from the failover\r\n![image](https://github.com/redis/redis/assets/149191179/688dd964-35c6-4a00-a257-2fecd57dde0f)\r\n\r\nFrom my point of view everything works fine!"
+    }
+  ]
+}

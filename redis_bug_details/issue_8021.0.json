@@ -1,0 +1,60 @@
+{
+  "issue_number": 8021.0,
+  "title": "[CRASH] Redis Terminates the moment an app (Nextcloud) starts using it.",
+  "body": "**Crash report**\r\n\r\nRedis cache keeps on terminating on my Arch server ever since moving up from Redis 6.0.7.\r\n\r\nRedis service will launch fine, but soon after an application starts using it will terminate.\r\n1. Start redis service\r\n2. Navigate to Browser running Nextcloud UI\r\n3. Sometimes redis will terminate the moment F5 is hit, sometimes it needs 3 - 4 more menu changes until Redis will terminate and Nextcloud won't function any more\r\n\r\n```\r\nNov 05 15:03:56 homeserver redis-server[34502]: 34502:C 05 Nov 2020 15:03:56.924 # Configuration loaded\r\nNov 05 15:03:56 homeserver redis-server[34502]:                 _._\r\nNov 05 15:03:56 homeserver redis-server[34502]:            _.-``__ ''-._\r\nNov 05 15:03:56 homeserver redis-server[34502]:       _.-``    `.  `_.  ''-._           Redis 6.0.9 (00000000/0) 64 bit\r\nNov 05 15:03:56 homeserver redis-server[34502]:   .-`` .-```.  ```\\/    _.,_ ''-._\r\nNov 05 15:03:56 homeserver redis-server[34502]:  (    '      ,       .-`  | `,    )     Running in standalone mode\r\nNov 05 15:03:56 homeserver redis-server[34502]:  |`-._`-...-` __...-.``-._|'` _.-'|     Port: 0\r\nNov 05 15:03:56 homeserver redis-server[34502]:  |    `-._   `._    /     _.-'    |     PID: 34502\r\nNov 05 15:03:56 homeserver redis-server[34502]:   `-._    `-._  `-./  _.-'    _.-'\r\nNov 05 15:03:56 homeserver redis-server[34502]:  |`-._`-._    `-.__.-'    _.-'_.-'|\r\nNov 05 15:03:56 homeserver redis-server[34502]:  |    `-._`-._        _.-'_.-'    |           http://redis.io\r\nNov 05 15:03:56 homeserver redis-server[34502]:   `-._    `-._`-.__.-'_.-'    _.-'\r\nNov 05 15:03:56 homeserver redis-server[34502]:  |`-._`-._    `-.__.-'    _.-'_.-'|\r\nNov 05 15:03:56 homeserver redis-server[34502]:  |    `-._`-._        _.-'_.-'    |\r\nNov 05 15:03:56 homeserver redis-server[34502]:   `-._    `-._`-.__.-'_.-'    _.-'\r\nNov 05 15:03:56 homeserver redis-server[34502]:       `-._    `-.__.-'    _.-'\r\nNov 05 15:03:56 homeserver redis-server[34502]:           `-._        _.-'\r\nNov 05 15:03:56 homeserver redis-server[34502]:               `-.__.-'\r\nNov 05 15:03:56 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:03:56.926 # Server initialized\r\nNov 05 15:03:56 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:03:56.926 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.\r\nNov 05 15:03:56 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:03:56.927 * Loading RDB produced by version 6.0.9\r\nNov 05 15:03:56 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:03:56.927 * RDB age 367 seconds\r\nNov 05 15:03:56 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:03:56.927 * RDB memory usage when created 0.77 Mb\r\nNov 05 15:03:56 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:03:56.927 * DB loaded from disk: 0.000 seconds\r\nNov 05 15:03:56 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:03:56.927 * The server is now ready to accept connections at /var/run/redis/redis.sock\r\n--- Switch to browser and start changing Nextcloud screens\r\nNov 05 15:04:57 homeserver systemd[1]: redis.service: start operation timed out. Terminating.\r\nNov 05 15:04:57 homeserver redis-server[34502]: 34502:signal-handler (1604585097) Received SIGTERM scheduling shutdown...\r\nNov 05 15:04:57 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:04:57.162 # User requested shutdown...\r\nNov 05 15:04:57 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:04:57.162 * Saving the final RDB snapshot before exiting.\r\nNov 05 15:04:57 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:04:57.170 * DB saved on disk\r\nNov 05 15:04:57 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:04:57.170 * Removing the pid file.\r\nNov 05 15:04:57 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:04:57.170 * Removing the unix socket file.\r\nNov 05 15:04:57 homeserver redis-server[34502]: 34502:M 05 Nov 2020 15:04:57.170 # Redis is now ready to exit, bye bye...\r\nNov 05 15:04:57 homeserver systemd[1]: redis.service: Failed with result 'timeout'.\r\nNov 05 15:04:57 homeserver systemd[1]: Failed to start Advanced key-value store.\r\n```\r\n\r\n**Aditional information**\r\n\r\nOS: Arch linux, Kernel 5.4.74-1-lts\r\nIf have tried upgrading whenever new Redis versions came along but up to now always ended up with downgrading to 6.0.7 which reliably fixes the issue.\r\n\r\nThanks for looking into this and let me know if there is any additional information I can provide.",
+  "state": "closed",
+  "created_at": "2020-11-05T14:21:24Z",
+  "updated_at": "2020-11-07T19:42:40Z",
+  "closed_at": "2020-11-06T08:18:00Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 722443490,
+      "user": "oranagra",
+      "created_at": "2020-11-05T15:18:18Z",
+      "body": "Hi,\r\nIt seems like someone's killing redis (SIGTERM) after exactly 1 minute.\r\n\r\nThis could be some bug in 6.0.9 which fails to notify systemd that it's ready. but by looking at the diff between 6.0.7 and 6.0.9 i don't see any change in that area.\r\n\r\nmaybe it has something to do with the way redis was built? maybe they where built differently?"
+    },
+    {
+      "id": 722511605,
+      "user": "zell-mbc",
+      "created_at": "2020-11-05T17:08:51Z",
+      "body": "I didn't notice the exact minute yet, but you are right, my Nextcloud clicking is irrelevant, the process get's killed after exactly one minute even if I just do nothing.\r\n\r\nThe exact minute made me look at my redis.service file and I found the following two in the [Service] section:\r\n```\r\nTimeoutStartSec=60\r\nTimeoutStopSec=60\r\n```\r\nThe SIGTERM corresponds with the TimeoutStartSec setting, I changed it to different values and the process termination matched the numbers.\r\nI actually don't know why they are there and could possibly just delete them. Maybe 6.0.7 ignored this value?\r\n\r\nEdit: tried without the TimeouStartSec value which leads to the process to end after exactly 90 seconds."
+    },
+    {
+      "id": 722518741,
+      "user": "oranagra",
+      "created_at": "2020-11-05T17:20:23Z",
+      "body": "@zell-mbc where did you get redis and this redis.service file? Do you use a PPA? which one? \n@yossigo maybe you have some input? "
+    },
+    {
+      "id": 722524378,
+      "user": "zell-mbc",
+      "created_at": "2020-11-05T17:30:06Z",
+      "body": "It's Arch, so no PPAs but the official Arch community repository:\r\n```\r\n9 community/redis 6.0.9-1 (839.4 KiB 5.3 MiB) (Installed)\r\n    An in-memory database that persists on disk\r\n```\r\n\r\nAs far as the redis.service file is concerned I can't remember to be honest, I am running Pleroma, NextCloud, Synapse on this server and one of these probably provided the template:\r\n\r\n```\r\n[Unit]\r\nDescription=Advanced key-value store\r\nAfter=network.target\r\n\r\n[Service]\r\nType=notify\r\nUser=redis\r\nGroup=redis\r\nExecStart=/usr/bin/redis-server /etc/redis.conf\r\nExecStop=/usr/bin/redis-cli shutdown\r\n#TimeoutStartSec=60\r\n#TimeoutStopSec=60\r\nCapabilityBoundingSet=\r\nPrivateTmp=true\r\nPrivateDevices=true\r\nProtectSystem=full\r\nProtectHome=true\r\nNoNewPrivileges=true\r\nRuntimeDirectory=redis\r\nRuntimeDirectoryMode=755\r\nLimitNOFILE=10032\r\n\r\n[Install]\r\nWantedBy=multi-user.target\r\n```"
+    },
+    {
+      "id": 722634801,
+      "user": "yossigo",
+      "created_at": "2020-11-05T20:46:57Z",
+      "body": "@zell-mbc If you use systemd with `Type=notify` you need to make sure that:\r\n1. You build Redis with libsystemd support (that's done automatically if you have the development `libsystemd` and `pkg-config`). Otherwise, you may need to set `USE_SYSTEMD`.\r\n2. Your `redis.conf` contains `daemonize no` and `supervised auto`.\r\nOtherwise Redis does not notify systemd it's up, so it gets killed.\r\n"
+    },
+    {
+      "id": 722637889,
+      "user": "zell-mbc",
+      "created_at": "2020-11-05T20:53:15Z",
+      "body": "I didn't build myself but rather use the binary from the Arch repo. So that means that either the Arch team started to build the binary differently after 6.0.7 or something changed in Redis to not tolerate my possible wrong configuration any longer. In either case, I now have things to test. I will report back.\r\nThanks for getting back! "
+    },
+    {
+      "id": 722943731,
+      "user": "zell-mbc",
+      "created_at": "2020-11-06T08:18:00Z",
+      "body": "I kept \"daemonised=no\" and changed \"supervised no\" to \"systemd\" and bingo. \r\nKind of obvious but then again :-)\r\n\r\nRedis is up now for more than 2 hours, so I think I can safely close this case. Thanks for helping me along!"
+    },
+    {
+      "id": 723486288,
+      "user": "yossigo",
+      "created_at": "2020-11-07T19:42:39Z",
+      "body": "@zell-mbc It looks like the Arch package started building Redis with systemd support in 6.0.8, that explains the problem."
+    }
+  ]
+}

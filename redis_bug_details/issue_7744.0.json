@@ -1,0 +1,54 @@
+{
+  "issue_number": 7744.0,
+  "title": "[BUG] Redis-cli 6.0.7 fails mass-insertion with \"unknown command\" by apparently misreading stdin",
+  "body": "**Describe the bug**\r\n\r\nWhen using the latest version of redis-cli available on homebrew (6.0.7) mass insertion of ~800k ZADD commands fails by apparently misreading (or misexecuting)  commands. Likely mixing multiple commands together, resulting in random errors related to 'bad syntax' when no errors are actually present in the file. This same mass-insertion, with the same data, does not fail in redis-cli 6.0.5.\r\n\r\nCommand:\r\n```bash\r\ncat myFile.txt | redis-cli --pipe\r\n```\r\nNote the non-existent command `ZAADD` instead of the actual written command `ZADD`:\r\n\r\n```sh\r\nERR unknown command `ZAADD`, with args beginning with: `ac:ngram:wachovia `, `0`, `wachovia bank nj`\r\n```\r\n\r\n**To reproduce**\r\n\r\nCreate a huge file executing multiple ZADD statements, and the occasional HMSET (around 800k should do it.)\r\n```txt\r\n.\r\n.\r\nZADD \"ac:ngram:weyerhaeuser co wa\" 0 \"weyerhaeuser co wa\" \r\nZADD \"ac:ngram:weyerhaeuser co wa\" 0 \"weyerhaeuser co wa\" \r\nZADD \"ac:ngram:weyerhaeuser co wa\" 0 \"weyerhaeuser co wa\"\r\nHMSET \"ac:results:abmps wa\" title \"ABMPS, WA\" zip \"98667\" \r\n.\r\n.\r\n```\r\nRun the command to mass-insert this file using redis-cli (6.0.7)\r\n\r\n```bash\r\ncat my-800k-line-file.txt | redis-cli --pipe\r\n```\r\n\r\n**Expected behavior**\r\n\r\nMass insertion should execute line-by-line and not accidentally mix any commands or lines together.\r\n\r\n**Additional information**\r\n\r\nIt's worth noting that this was reproduced on two diff macbook pro's running hombrew installed redis, and executed from zshell.\r\n",
+  "state": "closed",
+  "created_at": "2020-09-02T19:30:56Z",
+  "updated_at": "2020-09-03T20:54:15Z",
+  "closed_at": "2020-09-03T15:15:49Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 685997115,
+      "user": "madolson",
+      "created_at": "2020-09-02T21:04:54Z",
+      "body": "Would you be able to provide us with the file you are using so that we can reproduce the issue?"
+    },
+    {
+      "id": 686266928,
+      "user": "oranagra",
+      "created_at": "2020-09-03T05:42:22Z",
+      "body": "@yossigo i'm guessing this is due to d9f970d8d3f0b694f1e8915cab6d4eab9cfb2ef1, can you take a look?"
+    },
+    {
+      "id": 686273740,
+      "user": "yossigo",
+      "created_at": "2020-09-03T06:02:02Z",
+      "body": "Looks like it's specific to OS X. I'll take a look."
+    },
+    {
+      "id": 686591403,
+      "user": "deanshelton913",
+      "created_at": "2020-09-03T16:01:10Z",
+      "body": "@madolson, The file i have is larger than 10MB and can not be uploaded to github.\r\nIt will be available for a short time from an S3 bucket I am planning to delete someday, [here](http://deleteme-test-pelias.s3-website-us-west-2.amazonaws.com/mass-import.txt).\r\n"
+    },
+    {
+      "id": 686608710,
+      "user": "yossigo",
+      "created_at": "2020-09-03T16:29:10Z",
+      "body": "@deanshelton913 The fix is now merged to unstable, if you fetch it and build a new redis-cli it should work (and if it doesn't please let me know! thanks)."
+    },
+    {
+      "id": 686749829,
+      "user": "deanshelton913",
+      "created_at": "2020-09-03T20:32:05Z",
+      "body": "woot! Thank you, guys. Any idea when we can expect an official release?"
+    },
+    {
+      "id": 686759703,
+      "user": "itamarhaber",
+      "created_at": "2020-09-03T20:54:15Z",
+      "body": "This will surely be in 6.2 (ETA unknown ATM but hoplefully no later then 31/12/2020) and 6.0.8 if we have justification to release it (waiting for more moderate++ issues)."
+    }
+  ]
+}

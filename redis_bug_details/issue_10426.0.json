@@ -1,0 +1,42 @@
+{
+  "issue_number": 10426.0,
+  "title": "[BUG] passing CFLAGS=\"_latomic\" does not solve the standard missing libstdc++ atomic support",
+  "body": "**Describe the bug**\r\n\r\nWe need a way to get atomic support for GCC in the make process. On ARM7 e.g. we get\r\n/usr/bin/ld: server.o: in function `resetServerStats':\r\npath/redis-6.2.6/src/server.c:3115: undefined reference to `__atomic_store_8'\r\n**To reproduce**\r\n\r\ndownload redis-6.2.6.\r\nrun \r\nmake USE_SYSTEMD=yes BUILD_TLS=yes\r\nor try \r\nmake USE_SYSTEMD=yes BUILD_TLS=yes CFLAGS=\"_latomic\" \r\n\r\n**Expected behavior**\r\n\r\nfinished & succeeded build\r\n\r\n**Additional information**\r\n\r\nIn some architectures, e.g. ARM, support for atomic in libc is missing]\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-03-14T07:19:26Z",
+  "updated_at": "2022-03-15T11:36:56Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1066555727,
+      "user": "yossigo",
+      "created_at": "2022-03-14T09:24:43Z",
+      "body": "@egbertn I guess you're referring to libc, not libstdc++ (Redis is not written in C++).\r\nI see this is already checked by the Makefile, can you please provide some more information:\r\n* What OS / compiler do you use?\r\n* What does `uname -a` produce on your system?"
+    },
+    {
+      "id": 1066884020,
+      "user": "egbertn",
+      "created_at": "2022-03-14T14:40:44Z",
+      "body": "Linux ... 5.15.27-v8+ #1531 SMP PREEMPT Wed Mar 9 11:36:50 GMT 2022 aarch64 GNU/Linux\r\ngcc (Raspbian 10.2.1-6+rpi1) 10.2.1 20210110\r\ncc (Raspbian 10.2.1-6+rpi1) 10.2.1 20210110\r\n\r\n"
+    },
+    {
+      "id": 1066892176,
+      "user": "egbertn",
+      "created_at": "2022-03-14T14:47:50Z",
+      "body": "if I execute this... I get 'yes'\r\n\r\necho \"#include <stdatomic.h>\" > foo.c;         cc -std=c11 -c foo.c -o foo.o > /dev/null 2>&1;         if [ -f foo.o ]; then echo \"yes\"; rm foo.o; fi;"
+    },
+    {
+      "id": 1067704961,
+      "user": "yossigo",
+      "created_at": "2022-03-15T08:36:04Z",
+      "body": "@egbertn So apparently we dropped `-latomic` on `aarch64` because it is not always needed or available (see #8839), but this is probably not universally correct. We'll need to come up with a more reliable method to determine that."
+    },
+    {
+      "id": 1067887991,
+      "user": "egbertn",
+      "created_at": "2022-03-15T11:36:56Z",
+      "body": "@yossigo  Great. FYI when I hard code it to '' instead of 'yes' it also fails. "
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "issue_number": 9704.0,
+  "title": "[BUG] Possible memory leak in rdb.c, rdbLoadRio()",
+  "body": "```\r\nRedisModuleIO io;\r\nmoduleInitIOContext(io,mt,rdb,NULL,-1);\r\nio.ver = 2;\r\n/* Call the rdb_load method of the module providing the 10 bit\r\n * encoding version in the lower 10 bits of the module ID. */\r\nif (mt->aux_load(&io,moduleid&1023, when) != REDISMODULE_OK || io.error) {\r\n   moduleTypeNameByID(name,moduleid);\r\n    serverLog(LL_WARNING,\"The RDB file contains module AUX data for the module type '%s', that the responsible module is not able to load. Check for modules log above for additional clues.\", name);\r\n    goto eoferr;\r\n}\r\nif (io.ctx) {\r\n    moduleFreeContext(io.ctx);\r\n    zfree(io.ctx);\r\n}\r\n```\r\nWhen `mt->aux_load(&io,moduleid&1023, when)` fails, previously-allocated `io.ctx` is lost.\r\n\r\nA short description of the bug.\r\n\r\nReproduced within RediSearch sanitizer tests.\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\nIt's mostly a diagnostic problem, will fail Sanitizer/Valgrind.\r\n",
+  "state": "closed",
+  "created_at": "2021-10-31T07:40:53Z",
+  "updated_at": "2021-10-31T13:59:49Z",
+  "closed_at": "2021-10-31T13:59:49Z",
+  "labels": [],
+  "comments_data": []
+}

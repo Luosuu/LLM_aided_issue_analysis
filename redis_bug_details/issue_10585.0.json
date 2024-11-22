@@ -1,0 +1,66 @@
+{
+  "issue_number": 10585.0,
+  "title": "[BUG] Calling expireat on existing key shows pexpireat in monitor output",
+  "body": "**Describe the bug**\r\n\r\nI have a lua script with:\r\n\r\n```\r\nredis.call(\"EXPIREAT\", KEYS[1], tonumber(ARGV[1]));\r\n```\r\n\r\nAnd somehow when running `redis-cli monitor` I see it print `1649939655.077101 [2 lua] \"pexpireat\" \"mykey\" \"1650024000\"`\r\n\r\nSo it seems to be calling pexpireat but with my non-millisecond-precision timestamp, which is completely broken.\r\n\r\n**Expected behavior**\r\n\r\nI'd expect `expireat` to be called.\r\n\r\n**Additional information**\r\n\r\nI run this on AWS Elasticache with redis compatibility version 6.2.5. I am not sure if this could be a bug of their redis port or not.\r\n\r\nAs workaround I switched to call PEXPIREAT and multiply my timestamp by 1000.",
+  "state": "closed",
+  "created_at": "2022-04-14T12:39:04Z",
+  "updated_at": "2023-08-24T16:03:12Z",
+  "closed_at": "2022-04-14T22:57:45Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1099234526,
+      "user": "Seldaek",
+      "created_at": "2022-04-14T14:17:32Z",
+      "body": "Found a minimal repro script.. it seems to have something to do with the key existence.\r\n\r\n```\r\nredis-cli eval 'redis.call(\"expireat\", \"testkey\", 1650024000); redis.call(\"set\", \"testkey\", \"1\"); redis.call(\"expireat\", \"testkey\", 1650024000); redis.call(\"del\", \"testkey\"); redis.call(\"expireat\", \"testkey\", 1650024000);' 0\r\n```\r\n\r\nMonitor output:\r\n```\r\n1649945585.540959 [5 10.10.1.10:33782] \"eval\" \"redis.call(\\\"expireat\\\", \\\"testkey\\\", 1650024000); redis.call(\\\"set\\\", \\\"testkey\\\", \\\"1\\\"); redis.call(\\\"expireat\\\", \\\"testkey\\\", 1650024000); redis.call(\\\"del\\\", \\\"testkey\\\"); redis.call(\\\"expireat\\\", \\\"testkey\\\", 1650024000);\" \"0\"\r\n1649945585.541002 [5 lua] \"expireat\" \"testkey\" \"1650024000\"\r\n1649945585.541011 [5 lua] \"set\" \"testkey\" \"1\"\r\n1649945585.541019 [5 lua] \"pexpireat\" \"testkey\" \"1650024000\"\r\n1649945585.541026 [5 lua] \"del\" \"testkey\"\r\n1649945585.541030 [5 lua] \"expireat\" \"testkey\" \"1650024000\"\r\n```\r\n\r\nAs you can see, out of the 3 calls to expireat only 2 really call expireat (when the key does not exist), but when it does exist it somehow calls pexpireat.\r\n\r\nIt does appear like the TTL of the key is set correctly though, so it may be just a bug in the `monitor` output somehow.\r\n\r\nIt also appears like the lua scripting is not in cause, as doing it without lua also has the same outcome."
+    },
+    {
+      "id": 1099239122,
+      "user": "Seldaek",
+      "created_at": "2022-04-14T14:22:20Z",
+      "body": "I also cannot reproduce this with my local redis, but that is version 6.0.6. I don't have a way of getting 6.2.5 easily so cannot confirm if it's a new regression or an AWS-specific bug sorry."
+    },
+    {
+      "id": 1099533614,
+      "user": "hwware",
+      "created_at": "2022-04-14T19:00:52Z",
+      "body": "I tried this on redis 6.2.5 but I am not able to replicate this on my end. Maybe this is a AWS specific bug like you said. Can you share the config file you are using for this?"
+    },
+    {
+      "id": 1099571002,
+      "user": "Seldaek",
+      "created_at": "2022-04-14T19:54:49Z",
+      "body": "@hwware sorry what config file are you referring to here? I'm using default parameters from AWS, so no config per se."
+    },
+    {
+      "id": 1099616165,
+      "user": "madolson",
+      "created_at": "2022-04-14T20:59:12Z",
+      "body": "@Seldaek Hello, I'm from AWS elasticache :) If you have a support ticket, can you send it to me at matolson@amazon.com. \r\n\r\nI'm taking a looking to see if I can repro it on some internal versions. I didn't think we had any custom code here, just using the OSS implementation, but I'll check."
+    },
+    {
+      "id": 1099648375,
+      "user": "Seldaek",
+      "created_at": "2022-04-14T21:34:17Z",
+      "body": "@madolson thanks for checking, I have not opened a support ticket yet as I was hoping to first confirm it's really AWS specific. "
+    },
+    {
+      "id": 1099685858,
+      "user": "madolson",
+      "created_at": "2022-04-14T22:35:34Z",
+      "body": "@Seldaek So I can confirm it's an AWS bug, and it is only a bug when the key exists because we have an early exit in the code for the case the key does not exist. When the key does exist, we \"rewrite\" the command to higher precision for replication, and we for some reason always print the 'real' name of the currently executed command instead of the rewritten variant. \r\n\r\nJust to make it clear, this is just a visual bug, we're not actually executing the listed command on any node.\r\n\r\nFun fact, this bug has existed since the launch of our service back in 2012, so kudos to you for being the first to find it :)"
+    },
+    {
+      "id": 1099701245,
+      "user": "madolson",
+      "created_at": "2022-04-14T22:57:45Z",
+      "body": "Ok, resolving this for now, if you have more questions feel free to follow up with me at the email I provided. We'll work to get this fixed in our service."
+    },
+    {
+      "id": 1099885936,
+      "user": "Seldaek",
+      "created_at": "2022-04-15T06:19:23Z",
+      "body": "Great, thanks for jumping on this so quickly (even tho it's been there for 10 years;). That matches my findings so I can definitely go back to using expireat now."
+    }
+  ]
+}

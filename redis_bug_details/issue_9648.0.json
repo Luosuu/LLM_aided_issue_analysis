@@ -1,0 +1,18 @@
+{
+  "issue_number": 9648.0,
+  "title": "[BUG] client flags type with call() function, version >= 6.0",
+  "body": "**Describe the bug**\r\n\r\nwe define CLIENT_CLOSE_AFTER_COMMAND (1ULL<<40)\r\nbut in call() function,we use int :\r\n\r\n`void call(client *c, int flags) {\r\n    long long dirty;\r\n    ustime_t start, duration;\r\n    int client_old_flags = c->flags;`\r\n\r\nmaybe we need change it as uint64_t\r\n",
+  "state": "closed",
+  "created_at": "2021-10-19T06:05:41Z",
+  "updated_at": "2021-11-16T06:21:23Z",
+  "closed_at": "2021-11-16T06:21:23Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 946473519,
+      "user": "oranagra",
+      "created_at": "2021-10-19T08:18:17Z",
+      "body": "Thanks for reporting.\r\nluckily this doesn't cause any actual bug since this variable is only used to test these flags `CLIENT_FORCE_AOF|CLIENT_FORCE_REPL|CLIENT_PREVENT_PROP` which are all below 1<<31.\r\n\r\ndo you wanna make a PR to fix it?"
+    }
+  ]
+}

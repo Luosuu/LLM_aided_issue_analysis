@@ -1,0 +1,32 @@
+{
+  "issue_number": 10330.0,
+  "title": "[BUG] Redis doesn't shut down on a SIGTERM if its directory doesn't exist",
+  "body": "**Describe the bug**\r\n\r\nRedis 6 doesn't shut down if its directory doesn't exist.\r\n\r\n**To reproduce**\r\n\r\n```\r\n~ $ cat redis.conf\r\ndir /Users/dcantrell/temp\r\nunixsocket /Users/dcantrell/redis.sock\r\nport 0\r\n~ $ mkdir temp\r\n~ $ redis-server redis.conf\r\n27790:C 22 Feb 2022 16:07:40.574 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n27790:C 22 Feb 2022 16:07:40.574 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=27790, just started\r\n...\r\n```\r\n\r\nAt this point Redis is running just fine. Now in another terminal ...\r\n\r\n```\r\n~ $ rmdir temp\r\n~ $ kill -TERM 27790         # this is the PID redis-server spat out above\r\n~ $\r\n```\r\n\r\nBut back in the original terminal redis-server says:\r\n\r\n```\r\n27790:signal-handler (1645546400) Received SIGTERM scheduling shutdown...\r\n27790:M 22 Feb 2022 16:13:20.793 # User requested shutdown...\r\n27790:M 22 Feb 2022 16:13:20.793 * Saving the final RDB snapshot before exiting.\r\n27790:M 22 Feb 2022 16:13:20.793 # Failed opening the RDB file dump.rdb (in server root dir unknown) for saving: No such file or directory\r\n27790:M 22 Feb 2022 16:13:20.793 # Error trying to save the DB, can't exit.\r\n27790:M 22 Feb 2022 16:13:20.793 # SIGTERM received but errors trying to shut down the server, check the logs for more information\r\n```\r\n\r\n**Expected behavior**\r\n\r\nredis-server should terminate while still loudly complaining.\r\n\r\n**Additional information**\r\n\r\nRedis 5 behaves as I expect - it terminates on SIGTERM even if the directory doesn't exist.",
+  "state": "closed",
+  "created_at": "2022-02-22T16:17:03Z",
+  "updated_at": "2022-02-22T17:29:30Z",
+  "closed_at": "2022-02-22T17:29:30Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1048027552,
+      "user": "oranagra",
+      "created_at": "2022-02-22T17:17:34Z",
+      "body": "that's by design, shutdown I'll cause data loss, You can use `SHUTDOWN NOSAVE`, or clear the `save` config before sending SIGTERM"
+    },
+    {
+      "id": 1048032004,
+      "user": "DrHyde",
+      "created_at": "2022-02-22T17:22:35Z",
+      "body": "Ah, that makes sense. Thanks."
+    },
+    {
+      "id": 1048038726,
+      "user": "oranagra",
+      "created_at": "2022-02-22T17:29:30Z",
+      "body": "Regarding redis 5, IIRC there was a bug and the default `save` config wasn't applied in some cases, so that's probably why it didn't refuse to shutdown. "
+    }
+  ]
+}

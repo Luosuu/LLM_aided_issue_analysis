@@ -1,0 +1,11 @@
+{
+  "issue_number": 8574.0,
+  "title": "[BUG] Some of the RDB_TYPE_MODULE(_2) RDB loading error messages are incorrect",
+  "body": "**Describe the bug**\r\n\r\nStarting from the line:\r\n\r\n```\r\n} else if (rdbtype == RDB_TYPE_MODULE || rdbtype == RDB_TYPE_MODULE_2) {\r\n```\r\n\r\nMost of the error messages are saying something like `\"module... %s\"`, where the string is `name`. However, this string is not the module name but the name of the type registered by the module as `moduleTypeNameByID(name,moduleid)` is called in most places.\r\n\r\nIn addition to that the line printing:\r\n\r\n```\r\nserverLog(LL_WARNING,\"The RDB file contains module data for the module '%s' that is not terminated by the proper module value EOF marker\", name);\r\n```\r\n\r\nprints random garbage because `moduleTypeNameByID(name,moduleid)` is not called and `name` is not initialized.\r\n\r\n**To reproduce**\r\n\r\nI don't know how I ended up having a corrupted RDB file but in theory it should be reproducible by writing a minimal module that writes something that it never reads.\r\n\r\n**Expected behavior**\r\n\r\nThe error messages should say either \"module type\" or actually use the module name or print both.\r\n\r\n**Additional information**\r\n\r\n-\r\n",
+  "state": "closed",
+  "created_at": "2021-03-01T14:30:40Z",
+  "updated_at": "2021-03-02T07:39:37Z",
+  "closed_at": "2021-03-02T07:39:37Z",
+  "labels": [],
+  "comments_data": []
+}

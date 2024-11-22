@@ -1,0 +1,24 @@
+{
+  "issue_number": 12369.0,
+  "title": "[BUG] Background threads are unable to reliably wakeup blocked clients.",
+  "body": "Background threads are unable to reliably wakeup blocked clients.\r\n\r\nA short description of the bug.\r\n\r\nThe module machinery to unblock clients was re-written in 7.0. The scheme uses a pipe to notify the mainthread that an unblock has been requested. However, when the function modulePipeReadable is invoked by the mainthread it fails to call moduleHandleBlockedClients to check the list of unblock requests. This appears to work because the beginSleep function does call that function. However, this is unreliable and can result in missed wakeups. \r\n\r\nTo repro the problem, you need a command that processes requests in the background, blocking and unblocking the associated client. Then if you flood the mainthread with those requests you will see that it occasionally goes idle because all of the applications requests remain blocked (their unblock is in the list, but the list didn't get processed).\r\n\r\nA description of what you expected to happen.\r\n\r\nI expect modulePipeReadable  to call moduleHandleBlockedClients.",
+  "state": "closed",
+  "created_at": "2023-07-01T15:58:55Z",
+  "updated_at": "2023-07-05T17:06:25Z",
+  "closed_at": "2023-07-05T17:06:25Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1616316471,
+      "user": "madolson",
+      "created_at": "2023-07-02T02:47:53Z",
+      "body": "This initially made sense to me, but I'm not sure I understand how beginSleep is unreliable. beginSleep() is always called at least once after the modulePipeReadable before the main thread goes to sleep waiting for additional events. "
+    },
+    {
+      "id": 1622159590,
+      "user": "madolson",
+      "created_at": "2023-07-05T17:06:25Z",
+      "body": "Let's just have the discussion on the PR."
+    }
+  ]
+}

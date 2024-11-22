@@ -1,0 +1,11 @@
+{
+  "issue_number": 10722.0,
+  "title": "[BUG] Redis 7.0 - Unknown subcommand `sentinel slaves`",
+  "body": "**Describe the bug**\r\n\r\nI have recently started using Redis 7.0 using sentinels and when I try to type the command `sentinel slaves` I get the error\r\n\r\n```bash\r\n(error) ERR unknown subcommand `slaves`. Try SENTINEL HELP\r\n```\r\n\r\n**To reproduce**\r\n\r\nI deployed two redis instances in kubernetes with the following configuration to test out the sentinel commands.\r\n\r\nredis.conf\r\n```\r\nbind 0.0.0.0\r\ndaemonize no\r\nprotected-mode no\r\nsupervised no\r\nport 6379\r\nlogfile \"\"\r\nuser default on nopass ~* +@all\r\n```\r\n\r\nsentinel.conf\r\n```\r\nbind 0.0.0.0\r\ndaemonize no\r\nprotected-mode no\r\nsupervised no\r\nport 26379\r\nlogfile \"\"\r\nuser default on nopass ~* +@all\r\nsentinel monitor master redis-master 6379 1\r\nsentinel resolve-hostnames yes\r\nsentinel announce-hostnames yes\r\n```\r\n\r\nredis-master container\r\n```bash\r\nredis-server /etc/redis/redis.conf\r\n```\r\n\r\nredis-sentinel container\r\n```bash\r\nredis-server /etc/redis/sentinel.conf --sentinel\r\n```\r\n\r\n\r\n**Expected behavior**\r\n\r\nI am expecting a list of redis slaves and the same output as `sentinel replicas`\r\n\r\n**Additional information**\r\n\r\nLooking at the source for parsing subcommands in sentinel.c it looks like the subcommand `slaves` and `replicas` are analogous and should have the same output because of this [code branch](https://github.com/redis/redis/blob/unstable/src/sentinel.c#L3817) in the `sentinelCommand` method.\r\n\r\n```\r\n } else if (!strcasecmp(c->argv[1]->ptr,\"slaves\") ||\r\n               !strcasecmp(c->argv[1]->ptr,\"replicas\"))\r\n    {\r\n```\r\n\r\nI also noticed that the generated file commands.c appears to be missing the subcommand `slaves` and there is no JSON file for it in https://github.com/redis/redis/tree/unstable/src/commands\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-13T13:10:54Z",
+  "updated_at": "2022-05-13T17:00:06Z",
+  "closed_at": "2022-05-13T17:00:06Z",
+  "labels": [],
+  "comments_data": []
+}

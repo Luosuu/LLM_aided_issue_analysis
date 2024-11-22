@@ -1,0 +1,30 @@
+{
+  "issue_number": 9383.0,
+  "title": "[BUG] A possible divide by zero bug in redis-cli.c",
+  "body": "In `redis-cli.c`, the function `clusterManagerNodeMasterRandom` has the following [code](https://github.com/redis/redis/blob/unstable/src/redis-cli.c#L4683):\r\n\r\n```\r\nint master_count = 0;\r\nlistIter li;\r\nlistNode *ln;\r\nlistRewind(cluster_manager.nodes, &li);\r\nwhile ((ln = listNext(&li)) != NULL) {\r\n    clusterManagerNode *n = ln->value;\r\n    if (n->flags & CLUSTER_MANAGER_FLAG_SLAVE) continue;\r\n    master_count++;\r\n}\r\n\r\nsrand(time(NULL));\r\nidx = rand() % master_count;\r\n```\r\n`master_count` is used as a divisor and it may be zero if it is never increased in the loop, leading to a potential divide by zero bug.",
+  "state": "closed",
+  "created_at": "2021-08-18T06:11:42Z",
+  "updated_at": "2021-08-22T10:57:18Z",
+  "closed_at": "2021-08-22T10:57:18Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 900851793,
+      "user": "oranagra",
+      "created_at": "2021-08-18T06:21:55Z",
+      "body": "a cluster with no masters?\r\nsounds like a cluster with no cluster.\r\n\r\ndo you have reason to believe this is reachable? (even if that's true, seems like invalid use of the cli)."
+    },
+    {
+      "id": 900857856,
+      "user": "yiyuaner",
+      "created_at": "2021-08-18T06:34:50Z",
+      "body": "> a cluster with no masters?\r\n> sounds like a cluster with no cluster.\r\n> \r\n> do you have reason to believe this is reachable? (even if that's true, seems like invalid use of the cli).\r\n\r\nThanks for the clarification. This is an issue found by static analysis tool. I think in this case it does not harm to check the value of `master_count` and return `NULL` when it is zero."
+    },
+    {
+      "id": 901818574,
+      "user": "zuiderkwast",
+      "created_at": "2021-08-19T11:00:26Z",
+      "body": "We can add\r\n\r\n    assert(master_count > 0);\r\n\r\n[Edit] Also, I think the `/* Can not be reached */ return NULL` at the end of the function should be replaced by `assert(false);`. Where the function is called, we don't check for NULL, so I think it's better that it can never return NULL."
+    }
+  ]
+}

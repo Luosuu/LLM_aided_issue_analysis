@@ -1,0 +1,24 @@
+{
+  "issue_number": 12293.0,
+  "title": "[BUG]There is a memory leak in ACLAppendUserForLoading  function",
+  "body": "Notice!\r\n- If a Redis module was involved, please open an issue in the module's repo instead!\r\n- If you're using docker on Apple M1, please make sure the image you're using was compiled for ARM!\r\n\r\n\r\n**Crash report**\r\nThere is a memory leak in the **ACLAppendUserForLoading**  function of  the \\src\\acl.c  \r\n![image](https://github.com/redis/redis/assets/80461268/b17f4950-9b40-4489-b542-3ee72ca4c491)\r\n\r\n\r\n\r\n**Additional information**\r\nNA\r\n",
+  "state": "closed",
+  "created_at": "2023-06-10T02:28:13Z",
+  "updated_at": "2023-06-11T01:11:18Z",
+  "closed_at": "2023-06-11T01:11:18Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1585508697,
+      "user": "enjoy-binbin",
+      "created_at": "2023-06-10T06:15:57Z",
+      "body": "thanks for the report, look like you are right, i am trying to see if i can write a test to fix it"
+    },
+    {
+      "id": 1585516358,
+      "user": "enjoy-binbin",
+      "created_at": "2023-06-10T06:32:15Z",
+      "body": "This leak will only happen in loadServerConfigFromString, that is, when we load redis.conf\r\nso if there is an error in this case, redis will exit"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "issue_number": 11261.0,
+  "title": "[BUG] unexpected `\\n` after the EOF marker when extracting an rdb from redis using diskless replication",
+  "body": "When extracting an rdb from redis using diskless replication, I get an unexpected `\\n` after the EOF marker.\r\nTo reproduce the issue, start a redis and run the following:\r\n```\r\ntelnet localhost 6379\r\nTrying 127.0.0.1...\r\nConnected to localhost.\r\nEscape character is '^]'.\r\nREPLCONF capa eof\r\n+OK\r\nREPLCONF rdb-only 1\r\n+OK\r\nSYNC\r\n\r\n\r\n$EOF:4e0367cbc2c3a44ed03a8bbb470d46c381a8236b\r\n<rdb snippet>\r\n4e0367cbc2c3a44ed03a8bbb470d46c381a8236b\r\n\r\n\r\n```\r\n\r\nThe issue started after https://github.com/redis/redis/pull/10092.\r\nAfter investigation, I found a race condition between getting the `REPLCONF ACK` from the application that tries to extract the rdb and the replication cron.\r\n\r\nBefore the changes, once the redis transfers the rdb, it updates the replstate to `SLAVE_STATE_ONLINE`. But now it skips this part if the client is marked with `CLIENT_REPL_RDBONLY`.\r\nAs a result, the replication cron keeps sending `\\n`, which blocks the application from detecting the EOF correctly.\r\n\r\nMy suggestions:\r\n1. Add `SLAVE_STATE_ONLINE` to the client flags regardless of `CLIENT_REPL_RDBONLY`.\r\n2. In the replication cron, we should send `\\n` only if\r\n    * slave->replstate == SLAVE_STATE_WAIT_BGSAVE_START; or\r\n    * slave->replstate == SLAVE_STATE_WAIT_BGSAVE_END and \r\n      server.rdb_child_type != RDB_CHILD_TYPE_SOCKET and \r\n      !(slave->flags & CLIENT_REPL_RDBONLY);\r\n\r\nIMHO, we should go with the second option. \r\nI can submit a PR with the fix.\r\n",
+  "state": "closed",
+  "created_at": "2022-09-13T08:06:47Z",
+  "updated_at": "2022-09-22T08:22:06Z",
+  "closed_at": "2022-09-22T08:22:06Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1246670432,
+      "user": "moticless",
+      "created_at": "2022-09-14T12:10:13Z",
+      "body": "Looks like the stuffing of newlines is not the real issue here. It shouldn't supposed to be. Just keep-alive that being ignored by client. Indeed, the delay got changed following #10092 and newlines as side effect.\r\n\r\nThe problem is that the server never closes the connection once it is done.  I compared latest versus earlier version and got tcpdump. At earlier version the connection is FIN close after complete transmission, without any need to `replconf ack`. I also customized latest version by removing entirely newlines transmission, and still, the connection left open.   \r\n "
+    },
+    {
+      "id": 1247944019,
+      "user": "moticless",
+      "created_at": "2022-09-15T11:03:21Z",
+      "body": "I reviewed #10092. The following section of code that handles only-rdb moved from replicaPutOnline() to replicaStartCommandStream():\r\n```\r\n    if (slave->flags & CLIENT_REPL_RDBONLY) {\r\n        serverLog(LL_NOTICE,\r\n            \"Close the connection with replica %s as RDB transfer is complete\",\r\n            replicationGetSlaveName(slave));\r\n        freeClientAsync(slave);\r\n        return;\r\n    }\r\n```\r\nUntil now the server closed the connection right after transmission completion. Now it waits for `replconf ack <offset>` and only then closes the connection. I guess that your client doesn't send `replconf ack` which leaves the connection open.  Since there is no real logic that handles `replconf ack <whatever-offset>` in case of rdb-only, I think we should revert the code mentioned above. "
+    },
+    {
+      "id": 1249219522,
+      "user": "valentinogeron",
+      "created_at": "2022-09-16T10:51:21Z",
+      "body": "@moticless - the race condition still exists even if the client sends `replconf ack` once it gets the full rdb.\r\nIMHO there is a benefit in waiting for an ack from the client that confirms it got the full rdb."
+    },
+    {
+      "id": 1250233167,
+      "user": "moticless",
+      "created_at": "2022-09-18T09:53:09Z",
+      "body": "Unlike PSYNC command, in case of SYNC command we don't expect to receive `reploconf ack`. I think it will be better to revert the section code above (if you can verify that reverting the code resolves your issue, it will be great). "
+    },
+    {
+      "id": 1250266084,
+      "user": "oranagra",
+      "created_at": "2022-09-18T13:00:21Z",
+      "body": "Trying to recap:\r\n1. the problem isn't just that newlines are still being sent, it's the fact that the receiver might not find the EOF marker since it searches for it only on the end of each payload it reads from the socket.\r\n2. the problem only affects CLIENT_REPL_RDBONLY since only in this case replicaPutOnline doesn't change `replstate` to `SLAVE_STATE_ONLINE` (but does change `server.rdb_child_type`)\r\n3. this is a bug in redis 7.0\r\n\r\nregarding the 3 solutions that were proposed, i think i'd rather close the connection ASAP, if that would have for some reason imply the data can't be fully received on the other hand, then it would mean that calling refreshGoodSlavesCount is dangerous.\r\n\r\ni would say that also re-ordering the lines in replicaPutOnline in a way that we update slave->replstate before we bail out on CLIENT_REPL_RDBONLY is correct (the replica is technically online, even if not a replica), and we just need to avoid reaching refreshGoodSlavesCount. but since we're now going to close the connection, there's no point in updating `slave->replstate`\r\n\r\n@valentinogeron can you make that change and run all the tests to validate we didn't miss anything?"
+    },
+    {
+      "id": 1253287498,
+      "user": "valentinogeron",
+      "created_at": "2022-09-21T07:00:13Z",
+      "body": "@oranagra - yes, I'm on it"
+    }
+  ]
+}

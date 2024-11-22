@@ -1,0 +1,334 @@
+{
+  "issue_number": 141.0,
+  "title": "redis-server crash w/strack trace...",
+  "body": "I haven't quite updated to 2.4.0 yet but was running 2.3.10 in production and lost one earlier.\n\n[17466] 15 Oct 07:05:25 # ======= Ooops! Redis 2.3.10 got signal: -11- =======\n[17466] 15 Oct 07:05:25 # redis_version:2.3.10^M\nredis_git_sha1:00000000^M\nredis_git_dirty:0^M\narch_bits:64^M\nmultiplexing_api:epoll^M\nprocess_id:17466^M\nuptime_in_seconds:1353855^M\nuptime_in_days:15^M\nlru_clock:1845328^M\nused_cpu_sys:8926.23^M\nused_cpu_user:12859.53^M\nused_cpu_sys_children:70.14^M\nused_cpu_user_children:22.71^M\nconnected_clients:1^M\nconnected_slaves:1^M\nclient_longest_output_list:0^M\nclient_biggest_input_buf:18446744071562068051^M\nblocked_clients:0^M\nused_memory:8472278192^M\nused_memory_human:7.89G^M\nused_memory_rss:6308675584^M\nused_memory_peak:8472286720^M\nused_memory_peak_human:7.89G^M\nmem_fragmentation_ratio:0.74^M\nmem_allocator:jemalloc-2.2.1^M\nloading:0^M\naof_enabled:0^M\nchanges_since_last_save:210^M\nbgsave_in_progress:0^M\nlast_save_time:1318611938^M\nbgrewriteaof_in_progress:0^M\n\nlast_save_time:1318611938^M\nbgrewriteaof_in_progress:0^M\ntotal_connections_received:91901^M\ntotal_commands_processed:284065681^M\nexpired_keys:0^M\nevicted_keys:0^M\nkeyspace_hits:97704116^M\nkeyspace_misses:28609668^M\nhash_max_zipmap_entries:512^M\nhash_max_zipmap_value:512^M\npubsub_channels:0^M\npubsub_patterns:0^M\nlatest_fork_usec:242\n[17466] 15 Oct 07:05:25 # /lib64/libc.so.6(memcpy+0xe1) [0x7fd179c63e21]\n[17466] 15 Oct 07:05:25 # /lib64/libc.so.6(memcpy+0xe1) [0x7fd179c63e21]\n[17466] 15 Oct 07:05:25 # /usr/bin/redis-server(sdscatlen+0x54) [0x412ce4]\n[17466] 15 Oct 07:05:25 # /usr/bin/redis-server(readQueryFromClient+0x33) [0x418f93]\n[17466] 15 Oct 07:05:25 # /usr/bin/redis-server(aeProcessEvents+0x16e) [0x40d13e]\n[17466] 15 Oct 07:05:25 # /usr/bin/redis-server(aeMain+0x2e) [0x40d35e]\n[17466] 15 Oct 07:05:25 # /usr/bin/redis-server(main+0xf9) [0x412529]\n[17466] 15 Oct 07:05:25 # /lib64/libc.so.6(__libc_start_main+0xe6) [0x7fd179c02586]\n[17466] 15 Oct 07:05:25 # /usr/bin/redis-server [0x40c649]\n",
+  "state": "closed",
+  "created_at": "2011-10-15T17:24:04Z",
+  "updated_at": "2012-01-07T12:13:26Z",
+  "closed_at": "2012-01-07T12:13:26Z",
+  "labels": [
+    "critical bug",
+    "WAITING-OP-REPLY",
+    "state-cannot-replicate"
+  ],
+  "comments_data": [
+    {
+      "id": 2419777,
+      "user": "antirez",
+      "created_at": "2011-10-16T07:38:02Z",
+      "body": "Thank you Jeremy,\n\nplease if it is easy for you to obtain it could you send the exact git commit that you were using, and if possible even the redis-server executable itself? Thanks!\n"
+    },
+    {
+      "id": 2424444,
+      "user": "jzawodn",
+      "created_at": "2011-10-17T02:41:09Z",
+      "body": "Argh.  I can get the binary, yes.  But apparently there's a step in the build process I've been using (only when building from the git repo) that removes the git info along the way.  That's fixed now but I can say exactly which 2.3.10 this was.\n\nhttp://jeremy.zawodny.com/tmp/redis-server\n\nThat's the binary that was running.\n"
+    },
+    {
+      "id": 2425707,
+      "user": "antirez",
+      "created_at": "2011-10-17T07:22:55Z",
+      "body": "Thank you Jeremy, the binary will be helpful.\nThe bug is an extremely difficult one to track as it happens in a place where the stack trace generated is basically the same for every kind of command received, so there is very little state information we have.\n\nHowever at a first glance it appears to be due to a corruption in the client structure output buffer.\nI'm pretty sure I never saw something like that in 2.2, so I'll try to diff the two branches to check what we changed in the buffer handling, and how this may happen.\n\nPlease could you tell me if that instance is using blocking operations? In general a list of commands and features used would be extremely useful given that we have almost no other state.\n\nThanks!\nSalvatore\n"
+    },
+    {
+      "id": 2432684,
+      "user": "jzawodn",
+      "created_at": "2011-10-17T18:23:18Z",
+      "body": "Interestingly, I found another instance that had crashed as well.  The trace is below.\n\nOther noteworthy item: this has only happened on _slaves_ so far.  Slaves that, typically, get no read traffic.  They're effectively used as hot-sandby instances in case their master fails.\n\nI'm inclined to deploy 2.4.1 today to see what that looks like, unless you'd prefer I keep running 2.3.10 to help track this down.\n\nTrace:\n\n[2618] 15 Oct 09:03:51 # ======= Ooops! Redis 2.3.10 got signal: -11- =======\n[2618] 15 Oct 09:03:51 # redis_version:2.3.10\nredis_git_sha1:00000000\nredis_git_dirty:0\narch_bits:64\nmultiplexing_api:epoll\nprocess_id:2618\nuptime_in_seconds:749340\nuptime_in_days:8\nlru_clock:1846039\nused_cpu_sys:3233.74\nused_cpu_user:2282.14\nused_cpu_sys_children:0.00\nused_cpu_user_children:0.00\nconnected_clients:1\nconnected_slaves:0\nclient_longest_output_list:0\nclient_biggest_input_buf:18446744071562068008\nblocked_clients:0\nused_memory:7875902744\nused_memory_human:7.34G\nused_memory_rss:5669847040\nused_memory_peak:7875911272\nused_memory_peak_human:7.34G\nmem_fragmentation_ratio:0.72\nmem_allocator:jemalloc-2.2.1\nloading:0\naof_enabled:0\nchanges_since_last_save:122674687\nbgsave_in_progress:0\nlast_save_time:1317945291\nbgrewriteaof_in_progress:0\ntotal_connections_received:38705\ntotal_commands_processed:120850097\nexpired_keys:25\nevicted_keys:0\nkeyspace_hits:39590911\nkeyspace_misses:13297103\nhash_max_zipmap_entries:512  \nhash_max_zipmap_value:512\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:0\n[2618] 15 Oct 09:03:51 # /lib64/libc.so.6(memcpy+0xe1) [0x7f08a2197e21]\n[2618] 15 Oct 09:03:51 # /lib64/libc.so.6(memcpy+0xe1) [0x7f08a2197e21]\n[2618] 15 Oct 09:03:51 # /usr/bin/redis-server(sdscatlen+0x54) [0x412ce4]\n[2618] 15 Oct 09:03:51 # /usr/bin/redis-server(readQueryFromClient+0x33) [0x418f93]\n[2618] 15 Oct 09:03:51 # /usr/bin/redis-server(aeProcessEvents+0x16e) [0x40d13e]\n[2618] 15 Oct 09:03:51 # /usr/bin/redis-server(aeMain+0x2e) [0x40d35e]\n[2618] 15 Oct 09:03:51 # /usr/bin/redis-server(main+0xf9) [0x412529]\n[2618] 15 Oct 09:03:51 # /lib64/libc.so.6(__libc_start_main+0xe6) [0x7f08a2136586]\n[2618] 15 Oct 09:03:51 # /usr/bin/redis-server [0x40c649]\n"
+    },
+    {
+      "id": 2433973,
+      "user": "antirez",
+      "created_at": "2011-10-17T20:01:18Z",
+      "body": "That's interesting Jeremy! Not only slaves don't get read queries, but they have a single client for long time.\nAnd this is happening on the client structure. This is definitely more info that can help tracing the bug.\n\nThanks! Now I've enough information to start a serious investigation tomorrow.\n\nMore news soon.\n"
+    },
+    {
+      "id": 2434029,
+      "user": "antirez",
+      "created_at": "2011-10-17T20:05:16Z",
+      "body": "p.s. interesting how apparently after the bug we can't see the full INFO output.\nThis should be fixed in 2.4 if I remember correctly, so upgrading is worth it even to get full stack traces ;)\n\nAnother interesting thing:\n\n```\nclient_biggest_input_buf:18446744071562068008\n```\n\nVery similar to the previous instance, this huge number makes me feel that there is an overflow issue there, like subtracting something bigger than the previous value, leading to this huge value (it wraps from 0 to the other end, I guess).\n\nThis is definitely another big hint.\n"
+    },
+    {
+      "id": 2435021,
+      "user": "jzawodn",
+      "created_at": "2011-10-17T21:26:17Z",
+      "body": "Interestingly, there is a third instance in our environment that died in the same fashion.  So whatever happened has at least been reproduced 3 times in our environment.  We've tightened up our monitoring so that we'll see these more quickly in the future as well.\n\nTo put the 3 in perspective, we have a total of 80 nodes, 40 in each data center.  There are 20 hosts involved and each one runs 4 instances (2 masters and 2 slaves).\n\nIn the meantime, I'm staying at 2.3.10 but building a 2.4.x package that's ready to deploy in case it makes sense to upgrade some or all of the instances.\n\nAnd so far this only affects slaves, as I mentioned before.\n"
+    },
+    {
+      "id": 2435215,
+      "user": "jzawodn",
+      "created_at": "2011-10-17T21:44:40Z",
+      "body": "Your earlier question about operations we commonly use.  I can say that we use a lot of ZSETs (most of them are small and stay in the compact representation).  If you have a way I can privately send you some data, I've been re-testing AOF on one of our nodes and could give you a representative sample of a .aof file.  That might be useful (or not).  Feel free to email me directly (Jeremy@Zawodny.com) if you'd like and I can make it available.\n"
+    },
+    {
+      "id": 2439914,
+      "user": "antirez",
+      "created_at": "2011-10-18T10:02:00Z",
+      "body": "Hello Jeremy, thank you for your help.\n\nI analyzed the issue and this is my first guess:\n\n1) For some reason the slave client gets into a \"blocking\" state. like when you use BLPOP or alike. So the input is no longer processed.\n2) Because of \"1\" the input buffer reaches the 2 GB of size, that is the limit for an sds string, and segfaults.\n\nFortunately I think that thanks your big Redis installation we can verify if the above is true.\nBasically it takes some time for this to happen I guess, as there is to get 2GB of writes that's not little.\nSo my guess is that if I'm correct checking the Redis slaves with INFO you'll discover some slave that has a `client_biggest_input_buf` that is different megabytes in size (even if it is just 500k there is something wrong).\n\nIf we find such an instance we can start speculating why it is blocked, and the simplest way to check this is perhaps:\n\n```\nCLIENT LIST\n```\n\nThat will provide us with info about the state of the client.\n\nThank you,\nSalvatore\n"
+    },
+    {
+      "id": 2439942,
+      "user": "antirez",
+      "created_at": "2011-10-18T10:05:47Z",
+      "body": "p.s. all the above seems somewhat strange as you don't use blocking commands AFAIK, so perhaps I'm completely wrong but currently it's my best guess... so sorry in advance if after the check you'll not find nothing strange about input buffers... ;)\n"
+    },
+    {
+      "id": 2439985,
+      "user": "antirez",
+      "created_at": "2011-10-18T10:10:13Z",
+      "body": "Another small remark: that strange output we see in INFO about this huge buffer is not casual, it seems like it is about 2^31 smaller than 2^64. So this is why I was thinking to an overflow or alike...\n"
+    },
+    {
+      "id": 2441320,
+      "user": "jzawodn",
+      "created_at": "2011-10-18T12:58:40Z",
+      "body": "Hmm.  OK, I'll do some more poking around and see what I can find.  In fact, I can add that field as a metric to our monitoring system easily so we'll know which servers are acting up (and when).\n"
+    },
+    {
+      "id": 2442050,
+      "user": "antirez",
+      "created_at": "2011-10-18T14:05:20Z",
+      "body": "Thanks Jeremy, if no one of your slaves have currently an high value I think my hypotesis should be considered non valid and we can start again from scratch...\n\nI'm trying to understand if I can add a few asserts in Redis 2.4.2 that may help us with this issue.\n"
+    },
+    {
+      "id": 2445230,
+      "user": "jzawodn",
+      "created_at": "2011-10-18T18:04:03Z",
+      "body": "I'm deploying some new monitoring code now so we can collect and watch this value.  If they're increasing on any of our slaves, I should know soon...\n"
+    },
+    {
+      "id": 2445938,
+      "user": "antirez",
+      "created_at": "2011-10-18T19:07:15Z",
+      "body": "Great! Thanks.\n"
+    },
+    {
+      "id": 2464020,
+      "user": "jokea",
+      "created_at": "2011-10-20T02:45:58Z",
+      "body": "From the info of the first crashed instance, I think it's a master not slave:\nconnected_clients:1^M\nconnected_slaves:1^M\n"
+    },
+    {
+      "id": 2464084,
+      "user": "jzawodn",
+      "created_at": "2011-10-20T02:55:33Z",
+      "body": "Good eye!\n\nActually it's a slave of a master in a remote colo.  But it also has a replica in the local colo.  So technically it's both.\n\nDoes that make sense?\n"
+    },
+    {
+      "id": 2464169,
+      "user": "jokea",
+      "created_at": "2011-10-20T03:10:15Z",
+      "body": "If it also acts as a slave, the \"connected_clients:\" should be 2 instead of 1, unless the\nmaster <-> slave link is down when the crash happens.\n\nThis may not related to the crash though.\n"
+    },
+    {
+      "id": 2465472,
+      "user": "antirez",
+      "created_at": "2011-10-20T07:07:09Z",
+      "body": "oh that's interesting. Jeremy: the other crashing instances were slave and master at the same time too?\n\np.s. I guess so far none of your instance has a client with a big input buffer otherwise your monitoring system would alert you. So probably my first guess is wrong.\n\nThanks for the help\n"
+    },
+    {
+      "id": 2465612,
+      "user": "jzawodn",
+      "created_at": "2011-10-20T07:30:41Z",
+      "body": "I'll have a look in the morning to see if the others were masters and slaves--I'm just heading to bed.\n\nOur system has seen some non-zero buffers reported, but they're occasional and only around 8KB in size when we see them.\n"
+    },
+    {
+      "id": 2465816,
+      "user": "antirez",
+      "created_at": "2011-10-20T07:59:34Z",
+      "body": "> Our system has seen some non-zero buffers reported, but they're occasional and only around 8KB in size when we see them.\n\nThanks, it's time to look at this issue from another point of view then :) It is hardly what I suggested before.\nSo is a more provincial corruption-alike problem. I hope it is not still in 2.4 even if the version you are using is pretty new.\n\nToday I'll setup some test to try simulating the issue, maybe we are lucky and it is reproducible. Thanks!\n"
+    },
+    {
+      "id": 2789042,
+      "user": "antirez",
+      "created_at": "2011-11-18T13:30:42Z",
+      "body": "Hello Jeremy! I guess that this never happened again since you upgrade since I see no news here, asking just for ACK :) Thank you and have a nice day.\n"
+    },
+    {
+      "id": 2796370,
+      "user": "jzawodn",
+      "created_at": "2011-11-19T00:29:04Z",
+      "body": "Actually, we had some of these happen a couple days ago. :-(\n\nBut this time our monitoring system recorded the problem for us:\n\nhttp://dl.dropbox.com/u/6763272/redis-output-buff.png\n\nWe're not sure what triggered that yet, but it definitely makes me suspect some odd network condition.\n\nMeanwhile, all crashed nodes are running 2.4.2 now.\n"
+    },
+    {
+      "id": 2798640,
+      "user": "antirez",
+      "created_at": "2011-11-19T12:46:27Z",
+      "body": "Hi Jeremy! It seems like the mystery is no longer a mystery :)\n\nFacts:\n- The graph you provide is a proof that my early concepture was right: this is an overflow on sds reaching 2GB in size.\n- The overflowing sds buffer is the output buffer, so the crashing Redis instance is not able to send data, or to send data at the same speed as this data should be received by the client.\n\nWhen Redis can't send data to clients? There are multiple possibilities:\n- There is a networking problem.\n- A client simply crashed or is blocked into a dead lock of some kind, without closing the connection, but it still should receive data continuously (for instance because it is subscribed to a Pub/Sub channel). Such a client can be a Redis slave, that is a special kind of slave that continuously receives writes.\n- For a bug we removed the write handler from the client file descriptor. Never happened before, but it is a possible cause in theory.\n\nSo Redis will write to the client input buffer, however no data is removed from the buffer since there is some problem either in the client not reading the data, or in the network that silently discards our packets without replying with a TCP reset packet closing our connection. At some point the sds length overflows and the server crashes.\n\nWhy this is particularly likely to happen with slaves? Because we only have timeout detection in the slave. The master does not understand when a slave is not available. We introduced pings and alike only from the point of view of the slave since it was much more important for the slave to detect it was no longer receiving fresh data from the master, to close the old connection and reconnect.\n\nSo what to do?\n\nThe first thing to fix this bug, or at least the _effect_ of this bug, is to close the connection when the input buffer of a client reaches a given big size, like 1GB or alike. This will prevent the crash. I'll commit such a change monday at max and will release a new version of Redis stable.\n\nBut it is possible to argue that this only fixes the effect and not the cause, and that a proper fix would require timeout detection in the master -> slave link also from the point of view of the master, and not just the slave.\n\nJeremy: if we are near to a solution is thanks to your help, Thanks You!\nI really don't like when we have open bugs of this kind... and often the only way we can get enough context to understand what is happening is thanks to information that the user experiencing the bug can collect and provide.\nFor instance in this case your mention of a possible network issue was very important to move the right bells...\n"
+    },
+    {
+      "id": 2815370,
+      "user": "Annih",
+      "created_at": "2011-11-21T14:00:57Z",
+      "body": "Hi Antirez and Jeremy!\n\nToday we faced the same problem on one slave of our prod environment only few minutes after it start:\n\n<pre>\n[14532] 21 Nov 11:49:40 # ======= Ooops! Redis 2.4.2 got signal: -11- =======\n[14532] 21 Nov 11:49:40 # redis_version:2.4.2\nredis_git_sha1:00000000\nredis_git_dirty:0\narch_bits:64\nmultiplexing_api:epoll\nprocess_id:14532\nuptime_in_seconds:2385\nuptime_in_days:0\nlru_clock:67042\nused_cpu_sys:127.59\nused_cpu_user:44.75\nused_cpu_sys_children:4.84\nused_cpu_user_children:1.77\nconnected_clients:20\nconnected_slaves:0\nclient_longest_output_list:0\nclient_biggest_input_buf:18446744071562068563\nblocked_clients:0\nused_memory:31861605448\nused_memory_human:29.67G\nused_memory_rss:30233288704\nused_memory_peak:31861605448\nused_memory_peak_human:29.67G\nmem_fragmentation_ratio:0.95\nmem_allocator:jemalloc-2.2.1\nloading:0\naof_enabled:0\nchanges_since_last_save:60\nbgsave_in_progress:0\nlast_save_time:1321873795\nbgrewriteaof_in_progress:0\ntotal_connections_received:119\ntotal_commands_processed:237\nexpired_keys:0\nevicted_keys:0\nkeyspace_hits:278\nkeyspace_misses:23\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:3429217\nvm_enabled:0\nrole:slave\nmaster_host: \nmaster_port:6379\nmaster_\n[14532] 21 Nov 11:49:40 # /lib/libc.so.6(memcpy+0xe1) [0x2aaaab3e7fb1]\n[14532] 21 Nov 11:49:40 # /lib/libc.so.6(memcpy+0xe1) [0x2aaaab3e7fb1]\n[14532] 21 Nov 11:49:40 # redis-server(sdscatlen+0x54) [0x412fe4]\n[14532] 21 Nov 11:49:40 # redis-server(readQueryFromClient+0x33) [0x419293]\n[14532] 21 Nov 11:49:40 # redis-server(aeProcessEvents+0x16e) [0x40d35e]\n[14532] 21 Nov 11:49:40 # redis-server(aeMain+0x2e) [0x40d57e]\n[14532] 21 Nov 11:49:40 # redis-server(main+0xf9) [0x4127d9]\n[14532] 21 Nov 11:49:40 # /lib/libc.so.6(__libc_start_main+0xe6) [0x2aaaab3895a6]\n[14532] 21 Nov 11:49:40 # redis-server [0x40c869]\n</pre>\n\n\nAs the crash log shows:\n- We are using Redis 2.4.2.\n- This instance was only a slave (it might have recieved some \"SET\" command from some clients).\n- The input buffer seems to be huge too ^^\n\nI don't know if it can help you, but unlike Jeremy, we are not using ZSet, and we didn't have any monitoring tools on that slave.\nDo not hesitate to ask me if you have any questions about our redis setup.\n\nRegards,\n\nBaptiste.\n"
+    },
+    {
+      "id": 2815592,
+      "user": "antirez",
+      "created_at": "2011-11-21T14:19:24Z",
+      "body": "Thanks this is definitely the same bug, but the fact that it is just a slave makes things a bit different.\nAlso it does not help that Redis truncates INFO outputs in stack traces... (fixing that as well, already fixed into unstable).\n\nBtw the changes I'm doing should provide a lot more background when the input or output buffer overflows... doing the changes right now. I'll update this issue soon.\n\nBtw in my reasoning early in this thread I completely missed that even in the Jeremy case the overflow is happening in the INPUT buffer of the client and not in the output buffer, this changes a few things...\n\nMore news soon.\n"
+    },
+    {
+      "id": 2816152,
+      "user": "anydot",
+      "created_at": "2011-11-21T15:05:39Z",
+      "body": "What about using TCP keepalive on master<->slave link? If for some reason the link will be idle or network will drop packets from master, TCP keepalive will kick-in and after some time will close the link without some additional (other then enabling keepalive mode on socket) code in redis.\n"
+    },
+    {
+      "id": 2816318,
+      "user": "antirez",
+      "created_at": "2011-11-21T15:20:47Z",
+      "body": "@anydot: yes this may work, but apparently the problem here is different... but I'll keep that in mind when fixing the replication timeout issue. Thanks. Next message with updates on the current issue in a second.\n"
+    },
+    {
+      "id": 2816339,
+      "user": "antirez",
+      "created_at": "2011-11-21T15:23:09Z",
+      "body": "I just committed a number of changes in Redis unstable improving the CLIENT LIST output, and blocking clients with a query buffer going over 1GB in size. Redis detects the issue and uses the CLIENT LIST format to log the offending client in a way similar to the following:\n\n```\n[42159] 21 Nov 16:15:49 # Closing client that reached max query buffer length: addr=127.0.0.1:54530 fd=5 idle=0 flags=N db=0 sub=0 psub=0 qbuf=1064960000 obl=0 oll=0 events=r\n```\n\nThis can provide further information about what's happening with this bug, and also will prevent the Redis instance from crashing hopefully. The bug is still here bug we get both more reliability and information.\n\nI'm back porting this changes into 2.4 to release 2.4.3.\n\nThanks for your help,\nSalvatore\n"
+    },
+    {
+      "id": 2818084,
+      "user": "antirez",
+      "created_at": "2011-11-21T17:26:42Z",
+      "body": "Jeremy: quick question, I promise: what is the unit of measurement in the x-axis of the graph you provided? Thanks.\n"
+    },
+    {
+      "id": 2818488,
+      "user": "pietern",
+      "created_at": "2011-11-21T17:54:49Z",
+      "body": "Salvatore: why don't we remove the read event listener when the client becomes blocked? I think the only way that the input buffer can grow too large is by continuing to read from the socket. Since we execute all commands that exist in the input buffer on every tick, it can only contain data when (1) there is a partial -- not fully parsed -- command in the buffer, or when (2) the client is blocked by a blocking pop. In the case of (1), we know that the parser will abort and close the connection when the protocol contains a string that is larger than 512MB, which is sooner than the aborting on the 1024MB limit you set on the input buffer. This only leaves the case of (2) where the client is blocked. We already have block/unblock routines in place, so we only need to remove/add the read event listener from the event loop in those routines to let TCP take care of the rest. This will also let the client implicitly know that it is sending commands too fast, because they are simply not drained from its write buffer.\n\nLet me know if I'm missing something here.\n\nCheers,\nPieter\n"
+    },
+    {
+      "id": 2818594,
+      "user": "antirez",
+      "created_at": "2011-11-21T18:04:22Z",
+      "body": "Hi Pieter, removing the handler can be a solution but I prefer an explicit limit for a few reasons:\n- If you just write to Redis like in \"AAAAAAAAAAAAAAAAAAAAA....\" (a lot of bytes) there is no code path trapping this at all, and you'll get the query buffer as big as possible. In general putting logic inside the parser about maximum length in all the cases is not simpler or more effective than putting a limit in the read handler.\n- I want this problem to be detected and logged. This bug itself is makes it clear that it is much better to see strange stuff in the log.\n- Your assumption that the only way to get an huge buffer is by blocking operations is not so obvious: for instance Jeremy does not use blocking ops apparently still the bug is there. Whatever is the case of this bug you did not noticed when writing the above comment that there was a code path (filling with \"AAA...\") that had the effect of filling the buffer: all evidences that having the limit early in the code path is better than assuming the only way it can happen is by blocking.\n\nLast issue is that even considering your points I can't see how the solution I'm using is bad in a way that should be avoided to consider an alternative.\n\nThanks for the suggestion!\nSalvatore\n"
+    },
+    {
+      "id": 2818694,
+      "user": "pietern",
+      "created_at": "2011-11-21T18:11:26Z",
+      "body": "Yep, you're right. Doing this check once on a lower level rather than multiple times for every different parser and condition is definitely more safe. Still, the add/remove read handler is something to keep in mind. It may be helpful elsewhere, for example when clients use the right protocol but queue up countless commands after a blocking operation. Rather than closing the connection after the input buffer reaches 1GB we may want to avoid the input buffer getting this large altogether. This is different from this issue, however, so I'll just keep in mind ;-)\n\nCheers,\nPieter\n"
+    },
+    {
+      "id": 2820420,
+      "user": "jzawodn",
+      "created_at": "2011-11-21T20:11:48Z",
+      "body": "@antirez the units on my graph were just hours of the day.  So the issue started around 3:30am and instances died between 8-9am.\n"
+    },
+    {
+      "id": 2820723,
+      "user": "antirez",
+      "created_at": "2011-11-21T20:35:05Z",
+      "body": "@pietern: yes it is an option, but my fear is that you don't have an explicit trace on the log about what is happening. But on the other hand 1GB limit can be already too big for small instances or instances near to OOM, so can be useful indeed.\n\n@jzawodn: thanks for the info.\n\nI just released Redis 2.4.3 backporting the above fixes, this still does not fix this issue but both mitigates it and will give us more clues about the cause. Thanks for all your help.\n"
+    },
+    {
+      "id": 2821144,
+      "user": "jzawodn",
+      "created_at": "2011-11-21T21:06:49Z",
+      "body": "@antirez great, I'll aim to deploy 2.4.3 on Tuesday.  Thanks so much for tracking this down!\n"
+    },
+    {
+      "id": 2832234,
+      "user": "antirez",
+      "created_at": "2011-11-22T09:30:55Z",
+      "body": "@jzawodn: thank you Jeremy, unfortunately the bug root cause is still unknown, so now the effect when it happens is to have Redis still running, but a client disconnected and a line of warning logged in the Redis log file. Please if you happen to see an instance growing the buffer till 1GB in the monitoring system, could you please collect the log line that the instance will generate when the 1GB figure is reached? This contains very valuable informations in order to track the source cause of the issue. In the meantime I'll experiment more with replication simulating a link issue in the hope I'll be lucky enough to reproduce it. Thanks again!\n"
+    },
+    {
+      "id": 2835556,
+      "user": "jzawodn",
+      "created_at": "2011-11-22T15:23:29Z",
+      "body": "@antirez I understand.  I'm going to set an alert in our monitoring system that will notify us when this happens and I will include the log(s) on this issue.  Thanks!\n"
+    },
+    {
+      "id": 2835563,
+      "user": "antirez",
+      "created_at": "2011-11-22T15:24:03Z",
+      "body": "Thank you :)\n"
+    },
+    {
+      "id": 3288805,
+      "user": "jokea",
+      "created_at": "2011-12-28T07:40:45Z",
+      "body": "We've encountered this bug today with redis-2.4.4. It happened when we attached 8 slaves to a master at the same time and two of them stopped processing commands from master, the query buffer kept growing and is now over 500MB:\n...\naddr=XXXX:pppp fd=5 idle=0 flags=M db=0 sub=0 psub=0 qbuf=533951418 obl=0 oll=0 events=r cmd=NULL\n...\n"
+    },
+    {
+      "id": 3289488,
+      "user": "jokea",
+      "created_at": "2011-12-28T09:55:13Z",
+      "body": "I managed to attach gdb to the slave process and below is the contents of server.master:\n(gdb) p *server.master\n$6 = {fd = 5, db = 0x2ab0443ef300, dictid = 0, querybuf = 0x2aabbac00008 \"¬렬 argc = 0, \n  argv = 0x0, cmd = 0x0, lastcmd = 0x0, reqtype = 1, multibulklen = 0, bulklen = -1, \n  reply = 0x2ab043809220, sentlen = 0, lastinteraction = 1325063811, flags = 2, \n  slaveseldb = 0, authenticated = 1, replstate = 0, repldbfd = 0, repldboff = 0, \n  repldbsize = 0, mstate = {commands = 0x0, count = 0}, bpop = {keys = 0x0, count = 0, \n    timeout = 0, target = 0x0}, io_keys = 0x2ab043809250, watched_keys = 0x2ab043809280, \n  pubsub_channels = 0x2ab04380b940, pubsub_patterns = 0x2ab0438092b0, bufpos = 0, \n  buf = '\\0' <repeats 7499 times>}\n\n(gdb) x /50sb server.master->querybuf\n0x2aabbac00008:  \"¬\n0x2aabbac0000b:  \"\\005sr\"\n0x2aabbac0000f:  \"\\036xxxxxxx.sysxxxxxx.model.Notice￺[f�¿\\003\"\n0x2aabbac00038:  \"\\006J\"\n0x2aabbac0003b:  \"\\ncreateTimeJ\"\n0x2aabbac00048:  \"\\002idL\"\n0x2aabbac0004d:  \"\\006ddddeyt\"\n0x2aabbac00056:  \"\\022Lxxxx/lang/String;L\"\n0x2aabbac0006b:  \"\\bauthorIdq\"\n0x2aabbac00076:  \"~\"\n0x2aabbac00078:  \"\\001L\"\n0x2aabbac0007b:  \"\\acondddtq\"\n0x2aabbac00085:  \"~\"\n0x2aabbac00087:  \"\\001L\"\n0x2aabbac0008a:  \"\\005tabcdq\"\n0x2aabbac00092:  \"~\"\n0x2aabbac00094:  \"\\001xp\"\n0x2aabbac00098:  \"\"\n0x2aabbac00099:  \"\\0014~㼜n\\001t^⦜t\\003t\"\n0x2aabbac000a9:  \"\\n1111111111t\"\n0x2aabbac000b6:  \"\\n1111111111t\\002(彜210蚲01\\227嚲06¾ﻜ214你䚲34¨微群 \\\"蚲25¿汜231罜216颜23733¢\\\"( http://xxxx111111111 ) 蚲07\\214䚲17\\221表暲32\\204微䚲15\\232 @蚲25 @蚲25¿汜231罜216颜23733¢ 䚲10 蚲31¤乜206⚲00\\202  䚲10 蚲31¤微䚲15\\232䚲06\\205容ﻜ232大䚲17\\221麻寜206ﻜ214主嚲11\\223嚲10\\217ᚲ00\\234大仜227鸢...\n0x2aabbac0017e:  \"»寜206ᚲ00\\235嚲30¯䚲34¨䚲33½柜207麻寜206暲32\\204䚲37º砜200䷜212滜224䚲14\\226皲00\\214嚲35¥ﻜ214䚲17ª嚲34\\211䚲20\\203⚲00\\201碰⚲00\\201嚲35 ⚲00\\201䚲20¬⚲00\\201皲03¡⚲00\\201䚲15´嚲34\\211䚲07 东216涵暲33\\226乜206嚲11\\200嚲34\\211主洜201麻寜206暲25ª䚲36\\213⚲00\\202筜200䚲15\\225暲32\\204暲16©沜225ﻜ214䚲17\\230䚲14\\226暲32\\204暲25ª䚲36\\213ﻜ214䚲17ª䚲34¨大䚲17\\221游嚲10\\217ᚲ00\\234大仜227砮..\n---Type <return> to continue, or q <return> to quit---\n0x2aabbac00246:  \"º»寜206ᚲ00\\235⚲00\\202䚲05¨3D游嚲10\\217嚲25\\210嚲36\\234ﻜ214孜214罜216暲32\\204游嚲10\\217暲24»蚲35¢ﻜ214纜235佳暲32\\204游嚲10\\217享䚲17\\227ﻜ214辜230嚲34\\211嚲04\\217嚲03³䷜21510°暲32\\204嚲03\\212䚲26\\234大夜226ﻜ214䷜200䚲10\\207䚲17ª䚲34¨ᚲ00\\234大䚲17\\221游嚲10\\217ᚲ00\\235⚲00\\202http://xxxxdddddsadf\"\n0x2aabbac002ee:  \"=你䚲34¨蚲25 \\\"蚲25¿汜231罜216颜237䚲33¢\\\" 䚲06\\205䚲17\\221表暲32\\20432\\20䚲15\\232被䚲10 蚲31¤乜206x\\r\\n_3\\r\\n$3\\r\\nSET\\r\\n$20\\r\\nn_111111111111111111\\r\\n$551\\r\\n¬\n0x2aabbac00360:  \"\\005sr\"\n0x2aabbac00364:  \"\\036xxxxxxx.sysxxxxxx.xxxxx.xxtice￺[f�¿\\003\"\n0x2aabbac0038d:  \"\\006J\"\n0x2aabbac00390:  \"\\nabcadexxmeJ\"\n0x2aabbac0039d:  \"\\002idL\"\n0x2aabbac003a2:  \"\\006aasdfyt\"\n0x2aabbac003ab:  \"\\022Lasdfffadtring;L\"\n0x2aabbac003c0:  \"\\bxxxdhorIdq\"\n0x2aabbac003cb:  \"~\"\n0x2aabbac003cd:  \"\\001L\"\n0x2aabbac003d0:  \"\\axdfddntq\"\n0x2aabbac003da:  \"~\"\n0x2aabbac003dc:  \"\\001L\"\n0x2aabbac003df:  \"\\005asdffq\"\n0x2aabbac003e7:  \"~\"\n0x2aabbac003e9:  \"\\001xp\"\n0x2aabbac003ed:  \"\"\n0x2aabbac003ee:  \"\\0014~㵹\\001t^갰6¦H\\002t\"\n0x2aabbac003fe:  \"\\n3027345222t\"\n0x2aabbac0040b:  \"\\n1900639991t\\001\\033彜210蚲01\\227嚲06¾ﻜ214你䚲34¨微群 \\\"䚲05¨暲20\\203ᚲ35¤嚲21\\204影模暲11¹婜222伜223䚲34\\210\\\"( http://abcdefgad ) 蚲07\\214䚲17\\221表暲32\\204讜204论2\\204讜暲20\\206䚲21\\230 @大山暲13¬家嚲33\\235嚲26\\231 䚲10 蚲31¤中--Type <return> to continue, or q <return> to quit---\n\\206⚲00\\202  䚲10 蚲31¤讜204论䚲06\\205容ﻜ232@模暲11¹䚲20\\215嚲30\\237蚲33\\206堮..\n0x2aabbac004d3:  \"»\\223䚲17· 暲32\\204微群 \\\"模暲11¹嚲30\\216嚲30\\237蚲33\\206纜223䚲17·\\\" 嚲14䷜215蚲24\\231暲32\\204 http://xxxx/SGD4Pt 嚲16¨皲15\\220大家东237嚲35¥暲34\\213暲34\\213~t\"\n0x2aabbac00536:  \"L你䚲34¨微群 \\\"䚲05¨暲20\\203ᚲ35¤嚲21\\204影模暲11¹婜222伜223䚲34\\210\\\" 䚲06\\205䚲17\\221表暲32\\204讜204论被䚲10 蚲31¤乜206x\\r\\n_3\\r\\n$3\\r\\nSET\\r\\n$20\\r\\nn_111111111111111112\\r\\n$357\\r\\n¬\n0x2aabbac005b7:  \"\\005sr\"\n0x2aabbac005bb:  \"\\036xxxxxxx.sysxxxxxx.mxxxl.xxxice￺[f�¿\\003\"\n0x2aabbac005e4:  \"\\006J\"\n0x2aabbac005e7:  \"\\nabcdefgadJ\"\n\nThe querybuf starts with exactly a \"value\" field of a SET command and the \"*3\\r\\n$3\\r\\nSET\\r\\n$xx\\r\\nKEY\\r\\n$xx\\r\\n\" header is lost.\n\nAnother interesting thing to notice is that the log shows that the length of bgrewritebuf after bgrewrite process terminated is 432 bytes:\n...\n[6588] 27 Dec 17:41:44 \\* Background AOF rewrite terminated with success\n[6588] 27 Dec 17:41:44 \\* Parent diff successfully flushed to the rewritten AOF (432 bytes)\n[6588] 27 Dec 17:41:44 \\* Background AOF rewrite successful\n...\nHowever, the last 432 bytes in the AOF is not a valid command, it's just a part of a value. And since we only use db 13, the next command to be appended to the new AOF should be a SELECT command, which is true in the AOF of a good slave.\n\nThe above situations are exactly the same on both two slaves.\n\nWe have also seen another problem, that if we attach 8 slaves to a master at the same time, some of them have different numbers of keys than the master. However, if we do it one by one(master dumps for every slave), they all get synced with the master.\n"
+    },
+    {
+      "id": 3290911,
+      "user": "antirez",
+      "created_at": "2011-12-28T13:49:48Z",
+      "body": "Thank you a ton, my guess is that when you see different keys in the slave is the same bug but just with a less radical effect, where the protocol desync just causes a few commands to be missed instead of creating a condition where no further commands are processed. Investigating right now... we have more info now.\n"
+    },
+    {
+      "id": 3290996,
+      "user": "antirez",
+      "created_at": "2011-12-28T14:00:37Z",
+      "body": "I think I found the bug:\n\n```\n        if (ln) {\n            /* Perfect, the server is already registering differences for\n             * another slave. Set the right state, and copy the buffer. */\n            listRelease(c->reply);\n            c->reply = listDup(slave->reply);\n            c->reply_bytes = slave->reply_bytes;\n            c->replstate = REDIS_REPL_WAIT_BGSAVE_END;\n            redisLog(REDIS_NOTICE,\"Waiting for end of BGSAVE for SYNC\");\n```\n\nHere when the second slave attaches and there is already a \"good\" BGSAVE in progress to feed the slave, we duplicate the output buffer, but we don't duplicate the static buffer introduced at some point in Redis.\nThis means that the second (and any successive) slave attached while a BGSAVE for the first slave is already in progress can easily get an output buffer that is truncated: there is everything minus the part in the static buffer.\n\nThe fix is trivial but before fixing it I'm writing a test that is able to reproduce this issue.\n\nJeremy and Jokea: since we delayed so much in creating a Redis t-shirt I'm switching to \"Redis Moka awards\". You just won two Italian Bialetti moka coffee machines, together with other four Redis users that as you helped significantly making Redis better, more details in my blog in the next hours.\n\nThank you!\n\nSalvatore\n"
+    },
+    {
+      "id": 3291075,
+      "user": "anydot",
+      "created_at": "2011-12-28T14:12:57Z",
+      "body": "Btw, if you are right, then there is second bug on client/slave side,\nbecause such desynced protocol shouldn't be accepted (as it's essentialy\ngarbage most of time)\n"
+    },
+    {
+      "id": 3291120,
+      "user": "antirez",
+      "created_at": "2011-12-28T14:18:38Z",
+      "body": "@anydot yes, this is interesting... it is not clear why the client parsing code could end in this state, but probably it will be possible to understand it since we have a dump of what was in the querybuf... in theory it is jus ta matter of feeding it with the same data.\n\nThere are already known patterns causing this kind of issues as described in this issue, like the even ending steam of \"A\", but apparently this is happening also when there are newlines in the stream. Something to investigate as well. +1.\n\np.s. of course you are one of the six winners of the Moka award ;)\n"
+    },
+    {
+      "id": 3291291,
+      "user": "anydot",
+      "created_at": "2011-12-28T14:35:47Z",
+      "body": "I have idea, maybe it's handling of old protocol, @jokea if it's still\npossible, can you please verify it by scanning querybuff for \\r\\n sequence?\n@antirez, it would bez nice to disallow old proto on slave line. Maybe even\nfor each client decide proto version from first request and for following\nrequest to force that proto. This is still backward compatible change,\nalso no sane client Will mix both protocols (and will make\nnewproto-only-on-slave-line into piece of cake)\n"
+    },
+    {
+      "id": 3297272,
+      "user": "jokea",
+      "created_at": "2011-12-29T01:42:18Z",
+      "body": "@anydot There is a “\\r\\n\" in the querybuf before the next valid SET command as you can see in my previous post.\n\n@anydot @antirez The first 1MB dump of querybuf has been sent to you.\n"
+    },
+    {
+      "id": 3297621,
+      "user": "jokea",
+      "created_at": "2011-12-29T02:49:45Z",
+      "body": "I think it's the problem of strstr(3) which caused the slave stop processing the querybuf:\n\n<pre>\nint processInlineBuffer(redisClient *c) {\n     char *newline = strstr(c->querybuf,\"\\r\\n\");\n\n    /* Nothing to do without a \\r\\n */\n    if (newline == NULL)\n        return REDIS_ERR;\n    ...\n</pre>\n\n\nThe querybuf contains a '\\0' before \"\\r\\n\".(you can examine it with the dump file I've sent to you, strlen(qbuf) returns 2). \n"
+    },
+    {
+      "id": 3299520,
+      "user": "anydot",
+      "created_at": "2011-12-29T10:16:13Z",
+      "body": "Yep, you are right. I hadn't have code around me yesterday, anyway, still it same error -- redis wait for oldproto on slave line due to protocol desync. So, we have there third error, where redis in processInlineBuffer should check if there's \\0 before end of sds buffer and return err in that case, or use mem- family function for handling of oldproto. But because oldproto is deprecated anyway (and possibly only used for admin/maintenance via direct telnet) disallowing \\0 is by far easier solution.\n"
+    },
+    {
+      "id": 3300646,
+      "user": "antirez",
+      "created_at": "2011-12-29T13:37:29Z",
+      "body": "Indeed, but this again only fixes part of the problem since the infinite stream of \"A\" will still have the same effect. Probably a simpler solution is to set an hard size limit to the inline protocol and/or the size of the (*|$)<length> stage of the normal protocol.\n\nBtw I agree that we should fix those problems as well, so I'll fix all this (with tests) before closing the issue.\n\nI think that after the release of 2.6 RC1, and later 2.6, Redis should enter a \"stop the world\" stage where all the source code is covered with tests before moving forward.\n"
+    },
+    {
+      "id": 3302404,
+      "user": "antirez",
+      "created_at": "2011-12-29T16:47:30Z",
+      "body": "I confirm I can reproduce the broken replication easily using the following procedure:\n- Start a Redis master at port 6379\n- Target it with load using the command `./redis-benchmark -t set -n 100000000 -r 100000`\n- Use the following script (see end of the message) to start N slaves while there is load in the master.\n- Enjoy the difference in DBSIZE figures.\n\n```\n#!/bin/bash\nSBIN=/Users/antirez/hack/redis/src/redis-server\nCBIN=/Users/antirez/hack/redis/src/redis-cli\n\n$CBIN flushall\nsleep 2\n\nfor PORT in 6380 6381 6382 6383 6384\ndo\n    mkdir /tmp/$PORT 2> /dev/null\n    rm -f /tmp/$PORT/dump.rdb\n    $SBIN --dir /tmp/$PORT --port $PORT --slaveof 127.0.0.1 6379 &\ndone\n\nread foo\n\nfor PORT in 6380 6381 6382 6383 6384\ndo\n    $CBIN -p $PORT dbsize\ndone\n\nread foo\n\nfor PORT in 6380 6381 6382 6383 6384\ndo\n    $CBIN -p $PORT shutdown\ndone\n```\n\nNow I'll turn this into a real (failing) test, and then I'll implement the fix (that's like two lines of code).\nWhen implementing the fix I'll take care if there is some other state to set in the client structure when a different output buffer / list is set.\n"
+    },
+    {
+      "id": 3305257,
+      "user": "antirez",
+      "created_at": "2011-12-29T21:17:06Z",
+      "body": "Since the fix will get some day to reach a stable release here is the diff to get this fixed manually:\n\n```\ndiff --git a/src/replication.c b/src/replication.c\nindex e08517e..df9320c 100644\n--- a/src/replication.c\n+++ b/src/replication.c\n@@ -124,6 +124,8 @@ void syncCommand(redisClient *c) {\n              * another slave. Set the right state, and copy the buffer. */\n             listRelease(c->reply);\n             c->reply = listDup(slave->reply);\n+            memcpy(c->buf,slave->buf,slave->bufpos);\n+            c->bufpos = slave->bufpos;\n             c->replstate = REDIS_REPL_WAIT_BGSAVE_END;\n             redisLog(REDIS_NOTICE,\"Waiting for end of BGSAVE for SYNC\");\n         } else {\n```\n\nI verified that this appears to work correctly, synchronizing all the slaves correctly.\n"
+    },
+    {
+      "id": 3395421,
+      "user": "antirez",
+      "created_at": "2012-01-07T12:13:26Z",
+      "body": "Issue 141 is now completely fixed (and even more important, completely understood!) in both 2.4 and unstable branches.\n\nI'm writing a blog post about this issue, but here is a short description of what happened and why.\n\nIssue 141 was experienced by users in two ways:\n- Slave instances crashing because of a query-buffer length overflow receiving data from the client representing the master instance to which the slave is attached.\n- Slaves with a few different keys, or missing keys, after the synchronization with the master.\n\nNow we are aware that this issues only happen when there are _multiple_ slaves attached to a master, that in case of network issues can just be the same slave attached multiple times from the point of view of the master.\n\nIssue 141 was caused by two completely unrelated bugs (apparently at least, since combined they lead to the crash experienced in this issue, fortunately, since the problem under the hoods was even worse):\n\n## First bug\n\nA protocol desync was possible in three different cases: if the query started with \"\\x00\" there is an \"inline protocol\" desync. Note that the inline protocol in Redis >= 2.4 is not the old inline protocol, it is just a simplified one that is used to make Redis able to accept hand-written queries by telnet.\n\nThe second protocol desync was caused by queries starting with \"*\\x00\" and the third with \"$\\x00\" in the context respectively of a multi bulk and bulk count. All the three bugs are related to the fact that Redis was expecting to find a newline with strstr() or strchr() functions, that never arrived, so a client writing this bad sequences was able to overflow the query buffer in the client structure. Now there is an explicit limit in all the three conditions.\n\n## Second bug\n\nIn the replication process, when the first slave arrives Redis starts generating an RDB file. If a second slave arrives (or a third, and so forth) if there is already an RDB save in progress for an already synchronizing slave, Redis avoids generating another RDB file, but it simply duplicates the output buffer of the first slave (containing the difference between the RDB we are saving, and the new writes that we received) into the output buffer of this new slave.\n\nThis copy between output buffers was broken, since when we introduced the static buffer in the client structure to improve performances, this place was not modified (for reasons that I'll explain in the blog post). So the copy was performed only in the list of objects. So when multiple slaves attached at the same time, only the first was handled correctly. All the successive slaves getting a copy of the output buffer were at risk of receiving a corrupted output buffer, with part of the \"chat\" missing.\n\n## Conclusion\n\nWhen there were no \\00 bytes in the data transmitted from the client to the server only the second bug was in effect, causing bad synchronizations with missed keys or corrupted data in successive slaves. When there were also \\00 bytes, a protocol desync was very likely to happen (the inline one, that is, <garbabe without newlines>+\"\\x00\") causing the output buffer overflow, and also, completely blocking the replication process for days like it was happening to Jeremy.\n\nOk more details in the blog post as I think we can learn a few things from this bug.\n\nThanks again, and finally CLOSING THIS BUG! :)\n"
+    }
+  ]
+}

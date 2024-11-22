@@ -1,0 +1,32 @@
+{
+  "issue_number": 7808.0,
+  "title": "[BUG] redis-check-rdb is broken for module .rdb files with auxiliary ",
+  "body": "**Describe the bug**\r\n\r\nRunning `redis-check-rdb` on an rdb from a module that includes an auxiliary, returns an error `Invalid object type: 247` where 247 is a flag for `RDB_OPCODE_MODULE_AUX`. \r\n\r\n**Additional information**\r\n\r\nRelevant to RediSearch/RediSearch#1549",
+  "state": "closed",
+  "created_at": "2020-09-17T12:01:01Z",
+  "updated_at": "2020-09-22T07:18:07Z",
+  "closed_at": "2020-09-22T07:18:07Z",
+  "labels": [
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 694856931,
+      "user": "ShooterIT",
+      "created_at": "2020-09-18T13:07:54Z",
+      "body": "Oh, I just have a look, it seems we don't handle `RDB_OPCODE_MODULE_AUX ` type."
+    },
+    {
+      "id": 694876985,
+      "user": "oranagra",
+      "created_at": "2020-09-18T13:45:16Z",
+      "body": "Should be relatively easy fix.. something like calling the existing rdbLoadCheckModuleValue possibly with minor adjustments. \n\n@ashtul do you wanna handle it, or shall someone else take it? "
+    },
+    {
+      "id": 695354550,
+      "user": "ashtul",
+      "created_at": "2020-09-19T20:47:16Z",
+      "body": "@ShooterIT @oranagra \r\nI'll take it. "
+    }
+  ]
+}

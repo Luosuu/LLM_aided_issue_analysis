@@ -1,0 +1,42 @@
+{
+  "issue_number": 11412.0,
+  "title": "[BUG] RPOPLPUSH, LMOVE keyspace events produced in wrong order",
+  "body": "**Describe the bug**\r\n\r\nRPOPLPUSH, LMOVE keyspace events are produced in incorrect order. The Redis documentation states: \"the lpush event will always be delivered after the rpop event\" but at least since Redis 6.2.1 they have been delivered in the opposite order - that is, the push event is delivered first, and then the pop event is delivered. The same behavior is observed in Redis 7.x.\r\n\r\n**To reproduce**\r\n\r\n1. Start a Redis server.\r\n2. In a redis-cli instance, enable keyspace events (`config set notify-keyspace-events KEA`).\r\n3. In another redis-cli, subscribe to keyspace events (`redis-cli --csv psubscribe '__key*__:*'`).\r\n4. Create a list with at least one member. (`lpush key a b c d`)\r\n5. Execute the LMOVE command (`lmove key koy left right`)\r\n\r\nIn the redis-cli monitoring keyspace events, the events will be displayed in the wrong order:\r\n\r\n`\"pmessage\",\"__key*__:*\",\"__keyspace@0__:koy\",\"rpush\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:rpush\",\"koy\"\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:key\",\"lpop\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:lpop\",\"key\"`\r\n\r\n**Expected behavior**\r\n\r\nThe events should be delivered in the order described in the documentation.\r\n\r\n**Additional information**\r\n\r\nIt appears that the keyspace call that handles the pop event (with the comment `/* Delete the source list when it is empty */`) in t_list.c should be moved up, before the call to `lmoveHandlePush()`.\r\n",
+  "state": "open",
+  "created_at": "2022-10-20T15:07:39Z",
+  "updated_at": "2024-02-08T14:38:41Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1286392959,
+      "user": "enjoy-binbin",
+      "created_at": "2022-10-21T02:56:53Z",
+      "body": "thanks for the report.\r\n\r\nfor the record:\r\n`the lpush event will always be delivered after the rpop event`, the doc link is in here: https://redis.io/docs/manual/keyspace-notifications/\r\n\r\n6.2.0:\r\n```\r\n[root@binblog redis]# src/redis-cli --csv psubscribe '__key*__:*'\r\nReading messages... (press Ctrl-C to quit)\r\n\"psubscribe\",\"__key*__:*\",1\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:key\",\"lpush\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:lpush\",\"key\"\r\n\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:koy\",\"rpush\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:rpush\",\"koy\"\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:key\",\"lpop\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:lpop\",\"key\"\r\n```\r\n\r\nunstable (7.0.x):\r\n```\r\n[root@binblog redis]# src/redis-cli --csv psubscribe '__key*__:*'                                           \r\nReading messages... (press Ctrl-C to quit)\r\n\"psubscribe\",\"__key*__:*\",1\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:key\",\"lpush\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:lpush\",\"key\"\r\n\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:koy\",\"rpush\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:rpush\",\"koy\"\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:key\",\"lpop\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:lpop\",\"key\"\r\n```\r\n\r\nunstable (after the [fix-commit](https://github.com/redis/redis/commit/dc9f00591aaf60d2b916b8670b31030c049672e6), swap the positions of `lmoveHandlePush` and `listElementsRemoved`, i.e. first `listElementsRemoved` and then `lmoveHandlePush`, waiting for the consensus of another member. fix the doc or the code...):\r\n```\r\n[root@binblog redis]# src/redis-cli  --csv psubscribe '__key*__:*'                                           \r\nReading messages... (press Ctrl-C to quit)\r\n\"psubscribe\",\"__key*__:*\",1\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:key\",\"lpush\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:lpush\",\"key\"\r\n\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:key\",\"lpop\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:lpop\",\"key\"\r\n\"pmessage\",\"__key*__:*\",\"__keyspace@0__:koy\",\"rpush\"\r\n\"pmessage\",\"__key*__:*\",\"__keyevent@0__:rpush\",\"koy\"\r\n```"
+    },
+    {
+      "id": 1288129750,
+      "user": "oranagra",
+      "created_at": "2022-10-23T14:48:03Z",
+      "body": "i run a quick test to see if it was recently broken or not (tested BRPOPLPUSH being blocked).\r\n2.8, 3.0, 3.2, 4.0 are all completely missing the pop notification.\r\n5.0, 6.0, 6.2, 7.0 the pop notification is last (after push).\r\n\r\ni then wen't to the documentation blame log to see if maybe it was a careless change in the docs, but that statement appears to be there since the day the keyspace notification doc was added.\r\n\r\n[edit] also tested the non-blocking path, in 3.2 and 6.0, the pop notification was last.\r\n"
+    },
+    {
+      "id": 1288139805,
+      "user": "enjoy-binbin",
+      "created_at": "2022-10-23T15:38:26Z",
+      "body": "so looks like just fixing the doc is a safe bet, (and maybe adds some explicit comments / tests to persist this)"
+    },
+    {
+      "id": 1933693904,
+      "user": "enjoy-binbin",
+      "created_at": "2024-02-08T09:40:37Z",
+      "body": "@oranagra any ideas on how we can move this forward? looks like we just need to fix the doc. (since in the code, the pop notification was always last (after push))"
+    },
+    {
+      "id": 1934258928,
+      "user": "oranagra",
+      "created_at": "2024-02-08T14:38:40Z",
+      "body": "i think it makes sense to fix the behavior.\r\n\r\nthe doc is very explicit about what should happen, and it's also consistent with other events (Like MOVE), where we first remove the value from the old place, and only then add it to the new place.\r\ni.e. otherwise you have a moment with a state that the value logically in both places.\r\n\r\ni suppose that if there's any application that uses these notifications, it's likely that it'll not even be affected by this change.\r\ni.e. logically the two actions are still performed, and the application that uses this notification will still handle them correctly (same as it would correctly handle an EVAL script that does POP and then PUSH).\r\nin that sense, it might not even be a breaking change, since it produces a scenario that was already possible.\r\n@yossigo please share your view on that.\r\n\r\n@enjoy-binbin i think you can draft a quick PR, and we can continue the discussion there."
+    }
+  ]
+}

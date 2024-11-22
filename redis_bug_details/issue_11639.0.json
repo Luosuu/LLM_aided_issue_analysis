@@ -1,0 +1,74 @@
+{
+  "issue_number": 11639.0,
+  "title": "[BUG] Sentinel adds replicaof to newly selected master!",
+  "body": "**Describe the bug**\r\nWe have 1 master (redis-master), 4 slaves (redis-slave-1, ..., redis-slave-4) and 5 sentinels (redis-sentinel-1, ..., redis-sentinel-5) in our redis cluster (docker swarm). The sentinels and redis instances all work with hostnames instead of IP addresses. In normal situation everything works fine. \r\nWhen the master gets down, one of the slaves becomes master but the new master tries to connect to itself. We think the problem is \"replicaof\" parameter in redis.conf file. It seems the sentinels add \"replicaof <the newly selected master>\" to the newly selected master. This problem makes the whole cluster faulty and the cluster doesn't work at all.\r\n\r\nFor example, when redis-master goes down, redis-slave-2 gets selected as the new master. In this case, redis.conf of redis-slave-2 has a line \"replicaof redis-slave-2 6383\" (its own hostname and port).  \r\n\r\nAfter shutting redis-master down\r\nSentinel-1 logs:\r\n```\r\n19:X 19 Dec 2022 09:52:03.221 # Failed to resolve hostname 'redis-master'\r\n19:X 19 Dec 2022 09:52:03.224 * Sentinel new configuration saved on disk\r\n19:X 19 Dec 2022 09:52:03.224 # +new-epoch 1\r\n19:X 19 Dec 2022 09:52:03.227 * Sentinel new configuration saved on disk\r\n19:X 19 Dec 2022 09:52:03.227 # +vote-for-leader e4b00ae12885c1107f1121db77c5b795ebd83f5b 1\r\n19:X 19 Dec 2022 09:52:03.227 # +odown master mymaster redis-master 6381 #quorum 3/2\r\n19:X 19 Dec 2022 09:52:03.227 # Next failover delay: I will not start a failover before Mon Dec 19 09:52:33 2022\r\n19:X 19 Dec 2022 09:52:04.183 # Failed to resolve hostname 'redis-master'\r\n19:X 19 Dec 2022 09:52:04.416 # +config-update-from sentinel e4b00ae12885c1107f1121db77c5b795ebd83f5b redis-sentinel-4 26384 @ mymaster redis-master 6381\r\n19:X 19 Dec 2022 09:52:04.416 # +switch-master mymaster redis-master 6381 redis-slave-2 6383\r\n19:X 19 Dec 2022 09:52:04.418 * +slave slave redis-slave-1:6382 redis-slave-1 6382 @ mymaster redis-slave-2 6383\r\n19:X 19 Dec 2022 09:52:04.418 * +slave slave redis-slave-3:6384 redis-slave-3 6384 @ mymaster redis-slave-2 6383\r\n19:X 19 Dec 2022 09:52:04.419 * +slave slave redis-slave-2:6383 redis-slave-2 6383 @ mymaster redis-slave-2 6383\r\n19:X 19 Dec 2022 09:52:04.419 * +slave slave redis-slave-4:6385 redis-slave-4 6385 @ mymaster redis-slave-2 6383\r\n19:X 19 Dec 2022 09:52:04.426 # Failed to resolve hostname 'redis-master'\r\n```\r\n\r\nredis-slave-2 (the new master) logs:\r\n```\r\n10:S 19 Dec 2022 09:52:01.813 # CONFIG REWRITE executed with success.\r\n10:S 19 Dec 2022 09:52:01.816 * Non blocking connect for SYNC fired the event.\r\n10:S 19 Dec 2022 09:52:01.816 * Master replied to PING, replication can continue...\r\n10:S 19 Dec 2022 09:52:01.817 * Trying a partial resynchronization (request 4b8d917fe71aaa0b00116b2d2cdae19f65aea894:66726131).\r\n10:S 19 Dec 2022 09:52:01.817 * Master is currently unable to PSYNC but should be in the future: -NOMASTERLINK Can't SYNC while not connected with my master\r\n10:S 19 Dec 2022 09:52:01.970 * Connecting to MASTER redis-slave-2:6383\r\n10:S 19 Dec 2022 09:52:01.971 * MASTER <-> REPLICA sync started\r\n10:S 19 Dec 2022 09:52:01.971 * Non blocking connect for SYNC fired the event.\r\n10:S 19 Dec 2022 09:52:01.972 * Master replied to PING, replication can continue...\r\n10:S 19 Dec 2022 09:52:01.972 * Trying a partial resynchronization (request 4b8d917fe71aaa0b00116b2d2cdae19f65aea894:66726131).\r\n10:S 19 Dec 2022 09:52:01.973 * Master is currently unable to PSYNC but should be in the future: -NOMASTERLINK Can't SYNC while not connected with my master\r\n10:S 19 Dec 2022 09:52:02.994 * Connecting to MASTER redis-slave-2:6383\r\n10:S 19 Dec 2022 09:52:02.995 * MASTER <-> REPLICA sync started\r\n10:S 19 Dec 2022 09:52:02.996 * Non blocking connect for SYNC fired the event.\r\n10:S 19 Dec 2022 09:52:02.997 * Master replied to PING, replication can continue...\r\n10:S 19 Dec 2022 09:52:02.998 * Trying a partial resynchronization (request 4b8d917fe71aaa0b00116b2d2cdae19f65aea894:66726131).\r\n10:S 19 Dec 2022 09:52:02.999 * Master is currently unable to PSYNC but should be in the future: -NOMASTERLINK Can't SYNC while not connected with my master\r\n10:S 19 Dec 2022 09:52:04.020 * Connecting to MASTER redis-slave-2:6383\r\n10:S 19 Dec 2022 09:52:04.021 * MASTER <-> REPLICA sync started\r\n```\r\n\r\n**Additional information**\r\nredis version: 7.0.7\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-12-19T10:09:36Z",
+  "updated_at": "2023-03-12T10:36:59Z",
+  "closed_at": "2023-03-12T10:36:58Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1361475134,
+      "user": "moticless",
+      "created_at": "2022-12-21T15:21:54Z",
+      "body": "Hi @a-m-farahani ,\r\nAlready fixed on unstable. Please read [this ](https://github.com/redis/redis/issues/9998#issuecomment-1338225687)issue."
+    },
+    {
+      "id": 1364485151,
+      "user": "a-m-farahani",
+      "created_at": "2022-12-24T08:12:02Z",
+      "body": "> Hi @a-m-farahani , Already fixed on unstable. Please read [this ](https://github.com/redis/redis/issues/9998#issuecomment-1338225687)issue.\r\n\r\nThank you. Any chance for merging this fix to the master branch in the next days?"
+    },
+    {
+      "id": 1364669797,
+      "user": "moticless",
+      "created_at": "2022-12-25T12:00:23Z",
+      "body": "What do you mean \"master branch\"?"
+    },
+    {
+      "id": 1365105204,
+      "user": "a-m-farahani",
+      "created_at": "2022-12-26T11:21:59Z",
+      "body": "> What do you mean \"master branch\"?\r\n\r\nI mean a stable version. a new minor version or patch or something..."
+    },
+    {
+      "id": 1365108926,
+      "user": "moticless",
+      "created_at": "2022-12-26T11:30:10Z",
+      "body": "\r\n\r\n\r\n\r\n> > What do you mean \"master branch\"?\r\n> \r\n> I mean a stable version. a new minor version or patch or something...\r\n\r\n@oranagra can you give estimation please?"
+    },
+    {
+      "id": 1365357666,
+      "user": "koohestani",
+      "created_at": "2022-12-26T18:57:16Z",
+      "body": "> > > What do you mean \"master branch\"?\r\n> > \r\n> > \r\n> > I mean a stable version. a new minor version or patch or something...\r\n> \r\n> @oranagra can you give estimation please?\r\n\r\nI think he means when will this change come in a release version?"
+    },
+    {
+      "id": 1365768263,
+      "user": "enjoy-binbin",
+      "created_at": "2022-12-27T09:53:25Z",
+      "body": "#11590\r\nit look like we did not pick it into the last release (7.0.6 or 7.0.7, or 6.2), but it was marked with `backport DONE`\r\nseems to be an overlook, need @oranagra  take a look with that"
+    },
+    {
+      "id": 1365893353,
+      "user": "oranagra",
+      "created_at": "2022-12-27T13:14:13Z",
+      "body": "that's very odd. the ticket is marked for backport as done, and i don't know how it got to this state (sadly there's no auditing trail on these changes).\r\nit's a fairly new fix, so it should have made it to 7.0.7 and 6.2.8.\r\ni see it's missing from both commit log, release notes, and also the spreadsheet i used to orchestrate that campaign.\r\nthe only explanation i can think of is that someone moved it to either \"done\" or \"in progress\" without me being aware of it."
+    },
+    {
+      "id": 1365894719,
+      "user": "oranagra",
+      "created_at": "2022-12-27T13:16:02Z",
+      "body": "anyway, unless this issue is severe enough to justify a release of it's own, it'll have to wait till the next batch, which can take a few months (depending on what else we'll find that justifies a release)"
+    },
+    {
+      "id": 1465154727,
+      "user": "enjoy-binbin",
+      "created_at": "2023-03-12T10:36:58Z",
+      "body": "Released in 7.0.8"
+    }
+  ]
+}

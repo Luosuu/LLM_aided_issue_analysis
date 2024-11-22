@@ -1,0 +1,32 @@
+{
+  "issue_number": 142.0,
+  "title": "AOF ignores FLUSHALL",
+  "body": "I fill up my Redis instance, issue a FLUSHALL and shortly after that restart the machine (through upstart with SIGTERM). After the reboot, Redis will start and load the AOF. But it will not replay the FLUSHALL command, and therefore report to duty with all the data loaded again.\n\nThe docs say \"When you restart Redis it will re-play the AOF to rebuild the state.\" Therefore I thought it would honor the FLUSHALL command, too, and end up with an empty DB. I have limited memory and just throw away my whole database regularly via FLUSHALL. If it crashes after a while, I'm unable to recover the append-only file because it just contains way too much data. Note, that AOF rewrites don't compact anything here, either.\n\nI am using 2.4.0. All save points are deactivated, I only use appendfsync on everysec. If I deactivate AOF, everything is fine, and the dump.rdb files are empty after I call FLUSHALL, then SAVE, and then restart.\n\nHere's the logfile. Notice how memory usage goes from 87896904 to 717616 because of the FLUSHALL, but then goes back to 87896824:\n\n```\n[977] 16 Oct 23:12:32 - 0 clients connected (0 slaves), 87896904 bytes in use\n[977] 16 Oct 23:12:32 - Accepted 127.0.0.1:36209\n[977] 16 Oct 23:12:32 * DB saved on disk\n[977] 16 Oct 23:12:33 - Client closed connection\n[977] 16 Oct 23:12:37 - 0 clients connected (0 slaves), 717616 bytes in use\n[977] 16 Oct 23:12:40 # Received SIGTERM, scheduling shutdown...\n[977] 16 Oct 23:12:40 # User requested shutdown...\n[977] 16 Oct 23:12:40 * Calling fsync() on the AOF file.\n[977] 16 Oct 23:12:40 # Redis is now ready to exit, bye bye...\n\n( system reboot )\n\n[985] 16 Oct 23:13:05 * Server started, Redis version 2.4.0\n[985] 16 Oct 23:13:05 * DB saved on disk\n[985] 16 Oct 23:13:36 * DB loaded from append only file: 31 seconds\n[985] 16 Oct 23:13:36 * The server is now ready to accept connections on port 10001\n[985] 16 Oct 23:13:37 - DB 0: 820 keys (0 volatile) in 1024 slots HT.\n[985] 16 Oct 23:13:37 - 0 clients connected (0 slaves), 87896824 bytes in use\n```\n",
+  "state": "closed",
+  "created_at": "2011-10-17T02:12:48Z",
+  "updated_at": "2011-10-17T15:07:07Z",
+  "closed_at": "2011-10-17T08:32:31Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2426069,
+      "user": "antirez",
+      "created_at": "2011-10-17T08:11:27Z",
+      "body": "Confirmed. Very bad... fixing ASAP.\n"
+    },
+    {
+      "id": 2426237,
+      "user": "antirez",
+      "created_at": "2011-10-17T08:32:31Z",
+      "body": "Fixed now on git (2.4 and unstable branches). I'll release Redis 2.4.1 ASAP. Thanks for reporting.\n"
+    },
+    {
+      "id": 2429793,
+      "user": "janoberst",
+      "created_at": "2011-10-17T15:07:07Z",
+      "body": "Thanks for fixing this so fast. Amazing!\n"
+    }
+  ]
+}

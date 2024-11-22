@@ -1,0 +1,56 @@
+{
+  "issue_number": 12595.0,
+  "title": "[BUG]No memory purge with time back to 1990",
+  "body": "**Describe the bug**\r\n\r\nMy redis server is running and then date -s change the time back to 1990. Then the mem_fragmentation_ratio is up to 1.85 and continue rising.\r\n\r\n**To reproduce**\r\n\r\nRun redis and then date -s back to 1990.\r\n\r\n**Expected behavior**\r\n\r\nMemory purge as normal.\r\n\r\n**Additional information**\r\n\r\nredis_version:6.2.11\r\n\r\nSam, I detected a few issues in this Redis instance memory implants:\r\n\r\n * High total RSS: This instance has a memory fragmentation and RSS overhead greater than 1.4 (this means that the Resident Set Size of the Redis process is much larger than the sum of the logical allocations Redis performed). This problem is usually due either to a large peak memory (check if there is a peak memory entry above in the report) or may result from a workload that causes the allocator to fragment memory a lot. If the problem is a large peak memory, then there is no issue. Otherwise, make sure you are using the Jemalloc allocator and not the default libc malloc. Note: The currently used allocator is \"jemalloc-5.1.0\".\r\n\r\n * High allocator RSS overhead: This instance has an RSS memory overhead is greater than 1.1 (this means that the Resident Set Size of the allocator is much larger than the sum what the allocator actually holds). This problem is usually due to a large peak memory (check if there is a peak memory entry above in the report), you can try the MEMORY PURGE command to reclaim it.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-09-21T03:10:28Z",
+  "updated_at": "2023-09-22T08:40:01Z",
+  "closed_at": "2023-09-22T08:40:01Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1728877831,
+      "user": "sundb",
+      "created_at": "2023-09-21T05:28:52Z",
+      "body": "You've taken a 2023 redis instance back to 1990, and it thinks it's still in 2023, so it's crazy.\r\nNot only redis, but any other tasks that rely on computer clock (not monotonic clock) will be affected."
+    },
+    {
+      "id": 1729633209,
+      "user": "copyandrun",
+      "created_at": "2023-09-21T13:53:17Z",
+      "body": "But the redis server is using the monotonic clock."
+    },
+    {
+      "id": 1730610597,
+      "user": "copyandrun",
+      "created_at": "2023-09-22T01:21:57Z",
+      "body": "> You've taken a 2023 redis instance back to 1990, and it thinks it's still in 2023, so it's crazy. Not only redis, but any other tasks that rely on computer clock (not monotonic clock) will be affected.\r\n\r\nBut the redis server is using the monotonic clock."
+    },
+    {
+      "id": 1730703446,
+      "user": "sundb",
+      "created_at": "2023-09-22T02:04:16Z",
+      "body": "@copyandrun Not all, the reason why the defrag didn't work is that the corn in Redis using `ustime()`."
+    },
+    {
+      "id": 1730866188,
+      "user": "copyandrun",
+      "created_at": "2023-09-22T06:21:05Z",
+      "body": "> @copyandrun Not all, the reason why the defrag didn't work is that the corn in Redis using `ustime()`.\r\n\r\nThanks. I got it.\r\nBut why not change to monotonic clock?"
+    },
+    {
+      "id": 1730896267,
+      "user": "sundb",
+      "created_at": "2023-09-22T06:52:25Z",
+      "body": "@copyandrun Now some `ustime()` may be able to use monotonic clocks, but some can't, such as expire command which needs precise timestamps."
+    },
+    {
+      "id": 1731040077,
+      "user": "copyandrun",
+      "created_at": "2023-09-22T08:40:01Z",
+      "body": "> @copyandrun Now some `ustime()` may be able to use monotonic clocks, but some can't, such as expire command which needs precise timestamps.\r\n\r\nThank you. i will just close this."
+    }
+  ]
+}

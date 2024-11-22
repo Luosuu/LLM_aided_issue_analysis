@@ -1,0 +1,11 @@
+{
+  "issue_number": 8704.0,
+  "title": "[BUG] redis-cli does not handle rediss:// in URL properly",
+  "body": "**Describe the bug**\r\n\r\nredis-cli does not properly parse rediss:// (TLS) URL\r\n\r\n**To reproduce**\r\n\r\nInstall Redis with TLS enabled\r\nRun redis-cli with rediss:// scheme, e.g.:\r\n `/usr/bin/redis-cli --tls --cacert /test/ca.crt --cert /test/tls.crt --key /test/tls.key \\`\r\n`-u rediss://myredis.local:6379 --user testuser --pass testpass ping`\r\n\r\n(command hangs)\r\n\r\n**Expected behavior**\r\n\r\nPONG\r\n\r\n**Additional information**\r\n\r\napprox line 417 in redis-cli.c does not account for longer-length of tlsscheme:\r\n `curr += strlen(scheme);`\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-03-26T17:44:35Z",
+  "updated_at": "2021-03-28T21:25:30Z",
+  "closed_at": "2021-03-28T21:25:30Z",
+  "labels": [],
+  "comments_data": []
+}

@@ -1,0 +1,32 @@
+{
+  "issue_number": 8832.0,
+  "title": "[BUG] log warning: Cannot assign requested address",
+  "body": "**Describe the bug**\r\n\r\nFirst, I don't know if this is a bug or simply a configuration pronblem.\r\n\r\nMy redis.log file has numerous occurrences of the same warning:\r\n\r\n`Warning: Could not create server TCP listening socket ::1:6379: bind: Cannot assign requested address`\r\n\r\n**To reproduce**\r\n\r\n- Start or re-start redis.service.\r\n- Note the warning in your redis logfile.\r\n\r\n**Expected behavior**\r\n\r\nI do not expect this warning to occur.\r\n\r\n**Additional information**\r\n\r\n**OS:** Arch Linux 5.11.15.arch1-2\r\n**Redis:** 6.2.2-1\r\n**PHP-Redis** 5.3.4-1\r\n\r\n**User: Command: Port**\r\npihole   pihole-FT   53\r\nhttp   nginx   80\r\nroot   nginx   80\r\nroot   smbd   139\r\nhttp   nginx   443\r\nroot   nginx   443\r\nroot   smbd   445\r\nroot   cupsd   631\r\nhttp   nginx   808\r\nroot   nginx   808\r\nmysql   mariadbd   3306\r\nroot   sshd   22\r\npihole   pihole-FT   4711\r\n**redis   redis-ser   6379**\r\nhttp   nginx   8080\r\nroot   nginx   8080\r\n104   loolwsd   9980\r\n\r\nPlease let me know if I can provide any other information helpful to troubleshoot this problem.\r\n\r\nThank you,\r\n\r\nsb",
+  "state": "closed",
+  "created_at": "2021-04-20T14:39:00Z",
+  "updated_at": "2023-09-08T15:47:31Z",
+  "closed_at": "2021-04-20T23:38:35Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 823490753,
+      "user": "oranagra",
+      "created_at": "2021-04-20T18:07:07Z",
+      "body": "Your `bind` config option specifies that redis should bind to both ipv4 and ipv6, but ipv6 failed to bind, and redis continues (binding only to ipv4). \r\nIf you want to remove the warning, edit your bind config"
+    },
+    {
+      "id": 823669042,
+      "user": "steadybright",
+      "created_at": "2021-04-20T23:38:35Z",
+      "body": "Yes, consider this resolved. Thank you, @oranagra for your response!"
+    },
+    {
+      "id": 1711873514,
+      "user": "f-ivasic",
+      "created_at": "2023-09-08T15:47:30Z",
+      "body": "Just a note, on redis-server 7, this initial warning lead to redis not to start at all.  \r\nMaybe more verbose or detailed message (like above) in the log would be useful.\r\nThanks."
+    }
+  ]
+}

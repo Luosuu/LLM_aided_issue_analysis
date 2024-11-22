@@ -1,0 +1,51 @@
+{
+  "issue_number": 872.0,
+  "title": "Slow EVAL command cause the link unusable",
+  "body": "If a client sends a long running EVAL command and exceeds lua_time_limit, after return ,redis will no longer read any commands from that link.\n\nserver log:\n\n<pre>\n[28748] 10 Jan 16:54:30.285 # Server started, Redis version 2.9.7\n[28748] 10 Jan 16:54:30.285 * DB loaded from disk: 0.000 seconds\n[28748] 10 Jan 16:54:30.285 * The server is now ready to accept connections on port 6379\n[28748] 10 Jan 16:55:01.852 # Lua slow script detected: still in execution after 5016 milliseconds. You can try killing the script using the SCRIPT KILL command.\n</pre>\n\n\nclient:\n\n<pre>\nredis 127.0.0.1:6379> eval \"for i=1,10000000 do redis.call('ping') end return 'ok'\" 0\n\"ok\"\n(12.13s)\nredis 127.0.0.1:6379> info      // nothing returns\n</pre>\n\n\nclient list output in another connection:\n\n<pre>\nredis 127.0.0.1:6379> client list\naddr=127.0.0.1:53468 fd=7 age=34 idle=4 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events= cmd=eval\naddr=127.0.0.1:53469 fd=8 age=3 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client\n</pre>\n\n\nThe readable event for the eval client has been removed and not restored.\n",
+  "state": "closed",
+  "created_at": "2013-01-10T09:01:03Z",
+  "updated_at": "2013-01-19T11:38:52Z",
+  "closed_at": "2013-01-19T11:38:52Z",
+  "labels": [
+    "non critical bug",
+    "state-op-waiting-for-reply"
+  ],
+  "comments_data": [
+    {
+      "id": 12085653,
+      "user": "antirez",
+      "created_at": "2013-01-10T09:03:04Z",
+      "body": "Thanks! This is worth a regression test... I'll fix it today and release a new 2.6 patch release.\n"
+    },
+    {
+      "id": 12086065,
+      "user": "antirez",
+      "created_at": "2013-01-10T09:17:14Z",
+      "body": "p.s. the weird thing was that we restored the event handler on error... also a lot of useless code repetition. Fixing it and refactoring a bit.\n"
+    },
+    {
+      "id": 12087196,
+      "user": "antirez",
+      "created_at": "2013-01-10T09:48:01Z",
+      "body": "@jokea there was another big error in the same fragment of code: on error we replicated EVALSHA if EVALSHA was give by the user, instead of converting the code into EVAL as we do for successful replies. I don't know what I was thinking about when I wrote that stuff...\n\nPlease could you check commit baee565 to see if it makes sense for you as well? Thank you.\n"
+    },
+    {
+      "id": 12088069,
+      "user": "antirez",
+      "created_at": "2013-01-10T10:10:43Z",
+      "body": "Regression tests also added.\n"
+    },
+    {
+      "id": 12127865,
+      "user": "jokea",
+      "created_at": "2013-01-11T01:23:54Z",
+      "body": "@antirez The commit looks good to me.\n"
+    },
+    {
+      "id": 12137924,
+      "user": "antirez",
+      "created_at": "2013-01-11T09:57:24Z",
+      "body": "@jokea thanks, everything is in Redis 2.6.8. I was not able to also fix the replication issue for this release but I'll do in these days. Thank you for your support.\n"
+    }
+  ]
+}

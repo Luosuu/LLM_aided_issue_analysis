@@ -1,0 +1,26 @@
+{
+  "issue_number": 9412.0,
+  "title": "[BUG]several potential bugs of Memory Leak",
+  "body": "there are several potential bugs of Memory Leak :\r\nI had report these potential bugs in hiredis repo but no respond.\r\n===================================================================================\r\nstep 1 :\r\nIn file redis/deps/hiredis/sds.c , function sdscatvprintf line 511 :\r\nAllocate memory to buf\r\n\r\nstep 2 :\r\nIn file redis/deps/hiredis/sds.c , function sdscatvprintf line 512 :\r\nSelect the false branch at this point (buf==null is false)\r\n\r\nstep 3 :\r\nIn file redis/deps/hiredis/sds.c, function sdscatvprintf line 524 :\r\nSelect the true branch at this point (buf.[buflen-2]!=0 is true)\r\n\r\nstep 4 :\r\nIn file redis/deps/hiredis/sds.c , function sdscatvprintf line 525 :\r\nSelect the false branch at this point (buf!=staticbuf[0] is false)\r\n\r\nstep 5 :\r\nIn file redis/deps/hiredis/sds.c , function sdscatvprintf line 527 :\r\nreallocate memory to buf,memory allocated before leaked.\r\n\r\n===================================================================================\r\n\r\nstep 1 :\r\nIn file redis/deps/hiredis/sds.c , function sdsMakeRoomFor line 223 :\r\nAllocate memory to newsh\r\n\r\nstep 2 :\r\nIn file redis/deps/hiredis/sds.c , function sdsMakeRoomFor line 224 :\r\nSelect the false branch at this point (newsh==null is false)\r\n\r\nstep 3 :\r\nIn file redis/deps/hiredis/hiredis.c, function redisFormatSdsCommandArgv line 600 :\r\nFunction sdsMakeRoomFor executes and stores the return value to aux\r\n\r\nstep 4 :\r\nIn file redis/deps/hiredis/hiredis.c , function redisFormatSdsCommandArgv line 601 :\r\nSelect the false branch at this point (aux==null is false)\r\n\r\nstep 5 :\r\nIn file redis/deps/hiredis/hiredis.c , function redisFormatSdsCommandArgv line 610 :\r\nSelect the true branch at this point (j<argc is true)\r\n\r\nstep 6 :\r\nIn file redis/deps/hiredis/hiredis.c , function redisFormatSdsCommandArgv line 611 :\r\nSelect the true branch at this point (argvlen!=null is true)\r\n\r\nstep 7 :\r\nIn file redis/deps/hiredis/hiredis.c, function redisFormatSdsCommandArgv line 610 :\r\nSelect the false branch at this point (i<argc is false)\r\n\r\nstep 8 :\r\nIn file redis/deps/hiredis/hiredis.c , function redisFormatSdsCommandArgv line 617 :\r\nSelect the true branch at this point (sdslen(cmd)==totlen is true), the allocated memory is leaked\r\n\r\n===================================================================================\r\n\r\nstep 1 :\r\nIn file redis/deps/hiredis/sds.c, function sdscatvprintf line 527 :\r\nAllocate memory to buf\r\n\r\nstep 2 :\r\nIn file redis/deps/hiredis/sds.c , function sdscatvprintf line 528 :\r\nSelect the false branch at this point (buf==null is false)\r\n\r\nstep 3 :\r\nIn file redis/deps/hiredis/sds.c , function sdscatvprintf line 524 :\r\nSelect the true branch at this point (buf[buflen-2]!=0 is true)\r\n\r\nstep 4 :\r\nIn file redis/deps/hiredis/sds.c, function sdscatvprintf line 525 :\r\nSelect the false branch at this point (buf.1!=staticbuf[0] is false)\r\n\r\nstep 5 :\r\nIn file redis/deps/hiredis/sds.c, function sdscatvprintf line 527 :\r\nreallocate memory to buf,memory allocated before leaked.",
+  "state": "closed",
+  "created_at": "2021-08-26T01:53:18Z",
+  "updated_at": "2021-08-28T00:19:05Z",
+  "closed_at": "2021-08-28T00:19:05Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 906050739,
+      "user": "sundb",
+      "created_at": "2021-08-26T02:52:55Z",
+      "body": "@Hyxl1017 I tried to reproduce your first leak.\r\nIf `buf = s_malloc(buflen)` is true, then `if (buf != staticbuf)` will be true, there is no realloc.\r\n"
+    },
+    {
+      "id": 906349028,
+      "user": "yoav-steinberg",
+      "created_at": "2021-08-26T12:06:06Z",
+      "body": "In the second case I also don't see a leak, `target` is an *output* variable of `redisFormatSdsCommandArgv` so cmd is freed by the caller.\r\nThe third case is the same as the first, so @sundb's comment above also applies.\r\nMarking to be closed."
+    }
+  ]
+}

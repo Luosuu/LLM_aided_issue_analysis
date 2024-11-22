@@ -1,0 +1,36 @@
+{
+  "issue_number": 13217.0,
+  "title": "[CRASH] Redis Instance is down while master sync",
+  "body": "\r\n**Description of the Problem**\r\n- We have total of 72 redis cluster instances (36 master & 36 slave) and each instance contains approximately 68 millions (29 GB) data. \r\n- In order to check whether the redis instance is up properly from the dump file, we kill the redis process on one of the slave instances and then start it again. However, redis instance is down during the **\"MASTER <-> REPLICA sync: Flushing old data\"** step. When we remove the dump file and start the redis instance again, we do not encounter such problem. Dump file's size is 13 GB\r\n- We tried to increase the client-output-buffer-limit on this slave node and also its master (both tried the configs 1GB/256MB & 3GB/1GB) but it did not work.\r\n`CONFIG set client-output-buffer-limit \"normal 0 0 0 slave 1073741824 268435456 60 pubsub 33554432 8388608 60\"`\r\n\r\nDo you have any solutions for this problem?\r\n\r\n**Crash Report**\r\nWe hid the redis host and port information in the below log since it is a corporate information. \r\n\r\n25084:C 17 Apr 2024 01:30:24.038 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\r\n25084:C 17 Apr 2024 01:30:24.039 # Redis version=6.0.5, bits=64, commit=00000000, modified=0, pid=25084, just started\r\n25084:C 17 Apr 2024 01:30:24.040 # Configuration loaded\r\n25084:M 17 Apr 2024 01:30:24.041 * Increased maximum number of open files to 10032 (it was originally set to 1024).\r\n25084:M 17 Apr 2024 01:30:24.043 * Node configuration loaded, I'm 39170ea79f2889e3012e860fbad701fb70f80364\r\n25084:M 17 Apr 2024 01:30:24.045 * Running mode=cluster, port=XXX.\r\n25084:M 17 Apr 2024 01:30:24.046 # Server initialized\r\n25084:M 17 Apr 2024 01:30:24.047 # WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.\r\n25084:M 17 Apr 2024 01:30:24.048 * Loading RDB produced by version 6.0.5\r\n25084:M 17 Apr 2024 01:30:24.048 * RDB age 1282 seconds\r\n25084:M 17 Apr 2024 01:30:24.049 * RDB memory usage when created 30022.11 Mb\r\n25084:M 17 Apr 2024 01:38:50.610 * DB loaded from disk: 506.562 seconds\r\n25084:M 17 Apr 2024 01:38:50.611 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.\r\n25084:M 17 Apr 2024 01:38:50.611 * Ready to accept connections\r\n25084:S 17 Apr 2024 01:38:50.631 * Discarding previously cached master state.\r\n25084:S 17 Apr 2024 01:38:50.632 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.\r\n25084:S 17 Apr 2024 01:38:50.633 # Cluster state changed: ok\r\n25084:S 17 Apr 2024 01:38:51.639 * Connecting to MASTER XX.XX.XX.XX:XXXX\r\n25084:S 17 Apr 2024 01:38:51.640 * MASTER <-> REPLICA sync started\r\n25084:S 17 Apr 2024 01:38:51.641 * Non blocking connect for SYNC fired the event.\r\n25084:S 17 Apr 2024 01:38:51.642 * Master replied to PING, replication can continue...\r\n25084:S 17 Apr 2024 01:38:51.643 * Trying a partial resynchronization (request 81d2e9518bbd165853d8c2464ac2a8b2da03503f:2141620117578).\r\n25084:S 17 Apr 2024 01:38:52.683 * Full resync from master: 81d2e9518bbd165853d8c2464ac2a8b2da03503f:2141678892713\r\n25084:S 17 Apr 2024 01:38:52.684 * Discarding previously cached master state.\r\n25084:S 17 Apr 2024 01:44:32.483 * MASTER <-> REPLICA sync: receiving 13043613357 bytes from master to disk\r\n25084:S 17 Apr 2024 01:45:00.170 * MASTER <-> REPLICA sync: Flushing old data\r\n",
+  "state": "open",
+  "created_at": "2024-04-17T08:36:32Z",
+  "updated_at": "2024-07-17T05:57:56Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2060721637,
+      "user": "sundb",
+      "created_at": "2024-04-17T08:41:59Z",
+      "body": "@BuseSolmaz what's the meaning of ` redis instance is down`? the replication crashed?\r\nif so, can you provide the fully log include the crash log?"
+    },
+    {
+      "id": 2061332808,
+      "user": "BuseSolmaz",
+      "created_at": "2024-04-17T13:59:07Z",
+      "body": "Sorry for the misunderstanding. I mean during the master-replica sync process redis instance is restarting. The above redis log is all we had for this problem. How can we get the detailed crash log? @sundb "
+    },
+    {
+      "id": 2066376543,
+      "user": "sundb",
+      "created_at": "2024-04-19T11:27:45Z",
+      "body": "@BuseSolmaz do you mean the replication was closed after the last log `25084:S 17 Apr 2024 01:45:00.170 * MASTER <-> REPLICA sync: Flushing old data`?"
+    },
+    {
+      "id": 2232484343,
+      "user": "sundb",
+      "created_at": "2024-07-17T05:57:54Z",
+      "body": "@BuseSolmaz sorry for late reply, did you enable config `repl_slave_lazy_flush`?\r\nin theory, flush such a large dataset would take a lot of time.\r\n"
+    }
+  ]
+}

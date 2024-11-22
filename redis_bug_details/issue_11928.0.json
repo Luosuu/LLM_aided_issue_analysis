@@ -1,0 +1,18 @@
+{
+  "issue_number": 11928.0,
+  "title": "[BUG] wrong default setting in debian apt package",
+  "body": "**Describe the bug**\r\n\r\nEnable unix socket of redis, and redis can't start.\r\n\r\n**To reproduce**\r\nIn debian sid.\r\n```shell\r\nsudo apt install redis-server\r\n```\r\nopen default `/etc/redis/redis.conf`\r\n\r\nuncomment the unix socket.\r\n\r\nreboot or systemctl restart\r\n\r\n**Expected behavior**\r\n\r\nrun successfully\r\n\r\n**Additional information**\r\n\r\nHow Fuck is that the default position is `/run/redis.sock`, it should be `/run/redis/redis.sock`\r\n",
+  "state": "closed",
+  "created_at": "2023-03-16T17:25:28Z",
+  "updated_at": "2023-03-19T16:16:24Z",
+  "closed_at": "2023-03-19T16:16:24Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1473072195,
+      "user": "LeenHawk",
+      "created_at": "2023-03-17T03:30:53Z",
+      "body": "Should default setting run immediately, right? "
+    }
+  ]
+}

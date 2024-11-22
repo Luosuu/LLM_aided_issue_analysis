@@ -1,0 +1,30 @@
+{
+  "issue_number": 10557.0,
+  "title": "[BUG] Not all keys are returned on \"scan 0 match *\" for multi-shard DB",
+  "body": "**Describe the bug:**\r\nCommand `scan 0 match * count 10000` doesn't return all keys in the DB\r\n\r\n**Preconditions:**\r\n1. Create multi-shard redis enterprise database (Clustering=true, Replication=True, DB has 2 shard (4 with replication))\r\n![image](https://user-images.githubusercontent.com/69194424/162227045-b382b681-9e46-4b2d-ad89-3b868b3eb634.png)\r\n\r\n2. Add 6 keys in the DB (via redis-cli, redisinsight cli or redisinsight workbench):\r\nset cours:maths:1 blabla\r\nset cours:maths:2 blablabla\r\nset cours:francais:1 blabla\r\nset cours:francais:2 blablabla\r\nset cours:francais voila\r\nset cours:maths cqfd\r\n\r\n**To reproduce:**\r\nIn redis-cli or redisinsight-cli run the command\r\n`scan 0 match * count 10000`\r\n\r\n**Expected behavior:**\r\nAll 6 keys are returned\r\n\r\n**Actual result:**\r\n4 keys are returned:\r\n![image](https://user-images.githubusercontent.com/69194424/162229420-ba3c2778-8cef-4e85-b331-9017f9aa9349.png)\r\n\r\n**Additional information:**\r\nOS Windows 10,\r\nUse RedisInsight v2 2.0.5 application.\r\n",
+  "state": "closed",
+  "created_at": "2022-04-07T15:26:54Z",
+  "updated_at": "2022-04-07T16:47:20Z",
+  "closed_at": "2022-04-07T15:46:12Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1091899185,
+      "user": "oranagra",
+      "created_at": "2022-04-07T15:46:12Z",
+      "body": "@elenaNaboko generally, this repo is about the open source Redis, so if you have questions specific to Redis Enterprise you should take it with them.\r\n\r\nHowever, i can save you some time and tell you that the contract with the SCAN command is that the COUNT you provide is just a recommendation for a matter of scale, Redis doesn't attempt to respect that exact count, and can return either less or more than that count in various scenarios, this is true for both OSS redis and Redis Enterprise.\r\n\r\nSpecifically in your case, each SCAN command is served by one shard and when the keys in one shard are exhausted, it'll return and the next command will be forwarded to the next shard."
+    },
+    {
+      "id": 1091905900,
+      "user": "oranagra",
+      "created_at": "2022-04-07T15:52:38Z",
+      "body": "just in case it wasn't clear, in order to scan the database, you need to call the SCAN command repeatedly until it returns a cursor of 0.\r\n\r\nand also to be clear, even in OSS redis, without any sharding, there are cases that scan will return with just a few keys, or even 0 keys (and a non-zero cursor), requiring to call SCAN again."
+    },
+    {
+      "id": 1091974471,
+      "user": "elenaNaboko",
+      "created_at": "2022-04-07T16:47:20Z",
+      "body": "@oranagra Thanks for the response!"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 8152.0,
+  "title": "[BUG]ACLs are not working properly while setting to a specific prefix.",
+  "body": "**Describe the bug**\r\n\r\nI have set an ACL  to restrict a user to a specific prefix keys.But KEYS * are showing all the keys in the redis database.\r\n\r\n**To reproduce**\r\n\r\nStep1: set 2 keys for the example\r\n```\r\n127.0.0.1:6379[190]> set apple:red fruit\r\n127.0.0.1:6379[190]> set grape:green fruit\r\n```\r\nStep 2: set an ACL \r\n`ACL SETUSER alex on >123 ~apple:* +@all`\r\nStep 3: Login as a user and get all keys*\r\n````\r\n127.0.0.1:6379> auth alex 123\r\nOK\r\n127.0.0.1:6379> select 190\r\nOK\r\n127.0.0.1:6379[190]> KEYS *\r\n1) \"grape:green\"\r\n2) \"apple:red\"\r\n127.0.0.1:6379[190]>\r\n127.0.0.1:6379[190]> ACL WHOAMI\r\n\"alex\"\r\n```\r\n\r\n**Expected behavior**\r\nOnly keys with a prefix of apple\r\n```\r\n127.0.0.1:6379[190]> KEYS *\r\n1) \"apple:red\"\r\n```\r\n\r\n",
+  "state": "open",
+  "created_at": "2020-12-07T19:24:14Z",
+  "updated_at": "2022-02-01T21:00:16Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 740191541,
+      "user": "madolson",
+      "created_at": "2020-12-07T21:30:16Z",
+      "body": "There are 5 commands that don't declare keys and operate on the keyspace: \"SCAN, RANDOMKEY, KEYS, FLUSHALL, FLUSHDB\". Extending your expected outcome, we should perform this validation for all of these 5 commands, which I don't think is reasonable or all that feasible. So I see two options:\r\n1. These commands can only be executed if you have all keys permissions. This is a backwards breaking change, and not sure I really like this.\r\n2. We introduce an @all-keys category, which we can recommend you explicitly remove."
+    },
+    {
+      "id": 1027281321,
+      "user": "madolson",
+      "created_at": "2022-02-01T21:00:16Z",
+      "body": "SORT and SORT_RO also somewhat operate within this space, with the `BY` and `GET` arguments."
+    }
+  ]
+}

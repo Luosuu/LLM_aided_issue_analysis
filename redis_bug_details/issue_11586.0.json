@@ -1,0 +1,48 @@
+{
+  "issue_number": 11586.0,
+  "title": "[BUG] sentinel option gone",
+  "body": "**Describe the bug**\r\nstarting a sentinel using `redis-server /path/to/sentinel.conf --sentinel` fails.\r\n\r\n**To reproduce**\r\n```log\r\nroot@d675e5f73c51:/data# touch /etc/redis/sentinel.conf\r\nroot@d675e5f73c51:/data# redis-sentinel /etc/redis/sentinel.conf --sentinel --bind 127.0.0.1 --port 26379 --dir \"/data\"\r\n--sentinel announce-ip 127.0.0.1\r\n\r\n*** FATAL CONFIG FILE ERROR (Redis 7.0.5) ***\r\nReading the configuration file, at line 2\r\n>>> 'sentinel \"--bind\" \"127.0.0.1\"'\r\nUnrecognized sentinel configuration statement.\r\n```\r\n\r\n**Expected behavior**\r\n`--sentinel` should continue to work as before.\r\n\r\n**Additional information**\r\nWorked in 6.x, doesn't work in redis:7.0.5 docker image\r\n",
+  "state": "closed",
+  "created_at": "2022-12-05T15:47:46Z",
+  "updated_at": "2022-12-06T09:12:53Z",
+  "closed_at": "2022-12-06T09:12:53Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1337620379,
+      "user": "enjoy-binbin",
+      "created_at": "2022-12-05T15:59:35Z",
+      "body": "I suppose this will work, can you try?\r\nredis-sentinel /etc/redis/sentinel.conf --bind 127.0.0.1 --port 26379 --dir \"/data\""
+    },
+    {
+      "id": 1337624262,
+      "user": "max06",
+      "created_at": "2022-12-05T16:01:44Z",
+      "body": "It sure does - but it's an unannounced change. It forces us to modify our deployments to accomodate for this...\r\n\r\nNo issue with deprecating options if they're no longer required. But please with an announcement.\r\n\r\nEdit: And if this was a planned change, I'd expect an update in the [documentation](https://redis.io/docs/management/sentinel/#:~:text=not%20be%20used.-,Running%20Sentinel,-If%20you%20are) 😄 "
+    },
+    {
+      "id": 1337636150,
+      "user": "enjoy-binbin",
+      "created_at": "2022-12-05T16:09:09Z",
+      "body": "Most of the time, we do have announcement. And we always try to avoid doing the breaking change.\r\n\r\ni suppose it was an unintentional change, sorry for that. I will or others will go try trace the change. Will keep you update. And definitely will fix the doc if needed, thanks for the report"
+    },
+    {
+      "id": 1337646510,
+      "user": "max06",
+      "created_at": "2022-12-05T16:14:59Z",
+      "body": "Such things happen, no worries. We worked around the issue on our end and are not blocked.\r\n\r\n(I definitely wanted to sound less harsh than I did - sorry about that)"
+    },
+    {
+      "id": 1338913608,
+      "user": "enjoy-binbin",
+      "created_at": "2022-12-06T07:44:31Z",
+      "body": "ok... i see, i am the one who break it, starting in #10660\r\nand it also break\r\n- src/redis-server sentinel.conf --sentinel --sentinel\r\n- src/redis-sentinel sentinel.conf --sentinel --sentinel\r\n\r\ni will try to think of a way, thanks for the report again.\r\n\r\n@oranagra another unintentional change i made...\r\nan easy way to fix it, is that we ignore all `--sentinel` in the options parse"
+    },
+    {
+      "id": 1338951424,
+      "user": "oranagra",
+      "created_at": "2022-12-06T08:23:50Z",
+      "body": "i think we should handle it the same as we did for `--save` in #10866\r\ni.e. it's a pseudo config option with no value."
+    }
+  ]
+}

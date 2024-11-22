@@ -1,0 +1,102 @@
+{
+  "issue_number": 8313.0,
+  "title": "[CRASH] Sentinel crashing with sentinel known-replica and Wrong hostname or port for replica.",
+  "body": "**Crash report**\r\n\r\n```\r\n*** FATAL CONFIG FILE ERROR (Redis 6.0.8) ***\r\nReading the configuration file, at line 17\r\n>>> 'sentinel known-replica redisProd 10.0.0.1 6389'\r\nWrong hostname or port for replica.\r\n```\r\n\r\n**Aditional information**\r\n\r\n1. Official Redis docker image 6.0.8\r\n\r\n2. Steps to reproduce \r\n\r\nI have a 3 hosts setup with each of them running redis and sentinel as containers. Basically example no.2 from the official [docs](https://redis.io/topics/sentinel).\r\n\r\nThis is the config (read from the startup of the sentinel) from host1. Similar config for the other two sentinels.\r\n\r\n```\r\n=== Redis-sentinel configuration ===\r\nport 26389\r\ndir /tmp\r\nsentinel monitor redisProd host1 6389 2\r\nsentinel down-after-milliseconds redisProd 5000\r\nsentinel parallel-syncs redisProd 1\r\nsentinel failover-timeout redisProd 5000\r\nsentinel announce-ip host1\r\nsentinel announce-port 26389\r\nlogfile \"/logs/redis-sentinel.log\"\r\nloglevel debug\r\nmaxmemory 16MB\r\nmaxmemory-policy noeviction\r\n=== !Redis-sentinel configuration ===\r\n```\r\n\r\nProblem When I start the sentinels, all is well, but after working for day or two, the sentinels start crashing and throwing this error:\r\n\r\n```\r\n*** FATAL CONFIG FILE ERROR (Redis 6.0.8) ***\r\nReading the configuration file, at line 17\r\n>>> 'sentinel known-replica redisProd 10.0.0.1 6389'\r\nWrong hostname or port for replica.\r\n```\r\n\r\nI have noticed that I have the same entry twice (I am going to write down the line numbers at the beginning of the line):\r\n\r\n```\r\n[15] sentinel leader-epoch redisProd 0\r\n[16] sentinel known-replica redisProd 10.0.0.2 6389\r\n[17] sentinel known-replica redisProd 10.0.0.2 6389\r\n[18] sentinel known-replica redisProd 10.0.0.3 6389\r\n[19] sentinel known-replica redisProd 10.0.0.3 6389\r\n[20] sentinel known-sentinel redisProd 10.0.0.2 26389 6c8a91568c5468bcbb4d52b24b6\r\n[21] sentinel known-sentinel redisProd 10.0.0.3 26389 270184c487a8b2f4cc495611475\r\n```\r\n\r\nI don't have any ideas how is this happening or if it is the actual reason. Any help will be appraciated.\r\n\r\n",
+  "state": "open",
+  "created_at": "2021-01-12T09:48:25Z",
+  "updated_at": "2021-02-03T11:57:32Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 758549972,
+      "user": "patpatbear",
+      "created_at": "2021-01-12T10:08:17Z",
+      "body": "I'm guessing you are starting `redis-sentinel` with `redis-server` command. try `redis-sentinel redis.conf`"
+    },
+    {
+      "id": 758564351,
+      "user": "ivanovaleksandar",
+      "created_at": "2021-01-12T10:33:36Z",
+      "body": "I am indeed starting it with `redis-server --sentinel`. Will try this and report back. "
+    },
+    {
+      "id": 758980304,
+      "user": "hwware",
+      "created_at": "2021-01-12T20:58:24Z",
+      "body": "Hello @ivanovaleksandar , thank you for reporting this,  this is a config error, not specifically a server crash. the reason of this issue was caused since you have duplicate replica entry with the same ip and port, the sentinel will use ip and port to identify each replica. and further if it contains duplicate it cannot add into master->replicas dict(please see https://github.com/redis/redis/blob/9dcdc7e79a25968fcdfde09c7ca72a2012a1febf/src/sentinel.c#L1224), thus will return error that you shows above.. you can simplely remove the duplicate entry of `sentinel known-replica` line under same master and this issue should be resolved. Thanks"
+    },
+    {
+      "id": 758995287,
+      "user": "hwware",
+      "created_at": "2021-01-12T21:08:44Z",
+      "body": "Also may i ask you do you know how the duplicate config entries was there? is that because you put it by mistake or you did not do that by yourself? thanks!"
+    },
+    {
+      "id": 762200693,
+      "user": "ivanovaleksandar",
+      "created_at": "2021-01-18T11:52:45Z",
+      "body": "Hi, I tested @patpatbear suggestion, but after 3 days of running, the same issue happened. \r\n\r\n@hwware When I start the service, every component (server or sentinel) is set only once, but after a while, the sentinel restarts and registers the same redis instances twice, hence the `known-replica` duplicated entries. I don't know how that happens and what triggers it, because it is running for couple of days correctly. Even if I restart a random sentinel or redis instance, a new redis master is assigned and all the sentinels are working as intended.\r\n\r\nAny suggestions on how can I troubleshoot this, so I can help gather more info and report it?\r\n\r\nEDIT: I just saw the PR. I will try and build + deploy it."
+    },
+    {
+      "id": 762276631,
+      "user": "yossigo",
+      "created_at": "2021-01-18T14:14:26Z",
+      "body": "@ivanovaleksandar Do you use `replica-announce-ip` with a hostname on the Redis instances?"
+    },
+    {
+      "id": 762286425,
+      "user": "ivanovaleksandar",
+      "created_at": "2021-01-18T14:31:14Z",
+      "body": "@yossigo TL;DR I tried both approaches (hostnames and IPs only) but ended up with the same result.\r\n\r\nHere is the config. I modified the docker entrypoint so I can dump the config. (Note: the IPs/Names redacted/changed)\r\n\r\n```\r\n=== Redis-sentinel configuration ===\r\nport 26389\r\ndir /tmp\r\nsentinel monitor redisProd 10.0.0.1 6389 2\r\nsentinel down-after-milliseconds redisProd 5000\r\nsentinel parallel-syncs redisProd 1\r\nsentinel failover-timeout redisProd 5000\r\nsentinel announce-ip 10.0.0.1\r\nsentinel announce-port 26389\r\nlogfile \"/logs/redis-sentinel.log\"\r\nloglevel debug\r\nmaxmemory 16MB\r\nmaxmemory-policy noeviction\r\n=== !Redis-sentinel configuration ===\r\n```\r\n\r\nAfter the sentinels fails, the config that it dumps is the following:\r\n```\r\n=== Redis-sentinel configuration ===\r\n=== Redis-sentinel configuration ===\r\nport 26389\r\ndir \"/tmp\"\r\nsentinel myid 57366eeeccb93d0ff50f5fe5341964b0a29b91a2\r\nsentinel deny-scripts-reconfig yes\r\nsentinel monitor redisProd 10.0.0.3 6389 2\r\nsentinel down-after-milliseconds redisProd 5000\r\nsentinel failover-timeout redisProd 5000\r\nsentinel config-epoch redisProd 0\r\nlogfile \"/logs/redis-sentinel.log\"\r\nloglevel debug\r\nmaxmemory 16mb\r\nmaxmemory-policy noeviction\r\nuser default on nopass ~* +@all\r\nsentinel leader-epoch redisProd 0\r\nsentinel known-replica redisProd 10.0.0.2 6389\r\nsentinel known-replica redisProd 10.0.0.1 6389\r\nsentinel known-replica redisProd 10.0.0.1 6389\r\nsentinel known-replica redisProd 10.0.0.2 6389\r\nsentinel known-sentinel redisProd 10.0.0.2 0 2b27038be2a5f37d3c333350a7ae5f1c87d7f87a\r\nsentinel known-sentinel redisProd 10.0.0.2 26389 f5f57bfac67df38cf2b1f10eae44ec1390756258\r\nsentinel known-sentinel redisProd 10.0.0.3 26389 a5f8f65f9237afab419e91fd23175296f2a1259b\r\nsentinel current-epoch 0\r\nsentinel announce-ip \"10.0.0.1\"\r\nsentinel announce-port 26389\r\n=== !Redis-sentinel configuration ===\r\n\r\n*** FATAL CONFIG FILE ERROR (Redis 6.0.8) ***\r\nReading the configuration file, at line 18\r\n>>> 'sentinel known-replica redisProd 10.0.0.1 6389'\r\nWrong hostname or port for replica.\r\n```\r\n\r\n\r\n"
+    },
+    {
+      "id": 762353702,
+      "user": "yossigo",
+      "created_at": "2021-01-18T16:28:32Z",
+      "body": "@ivanovaleksandar Just to be sure I was clear, when referring to IPs I was referring to the Redis configuration and not the Sentinel configuration (there's a known issue with it, that's why I'm asking).\r\n\r\nAnother thing that could help identify the problem here is looking at the Sentinel logs and watch the chain of events from startup up to the point the wrong configuration file gets written."
+    },
+    {
+      "id": 762793166,
+      "user": "ivanovaleksandar",
+      "created_at": "2021-01-19T11:51:22Z",
+      "body": "@yossigo Indeed the config has hostnames instead of IPs. Initially, the sentinel config was set with hostnames only, but the result was the same.\r\n\r\nNow, I am testing again with all config set with IPs instead of hostnames for both redis and sentinel. Once I have relevant feedback, I will report back."
+    },
+    {
+      "id": 765322898,
+      "user": "ivanovaleksandar",
+      "created_at": "2021-01-22T10:58:46Z",
+      "body": "After deploying the only IPs setup, I am not able to replicate the issue. Now I am questioning if this issue occurs with docker only setup, or a general bug.\r\n\r\nAnyways, @patpatbear @hwware @yossigo thank you for the help. This can be considered as resolved. \r\n\r\nI will close this for now, but I would like to link the \"known issue\" as well.\r\n"
+    },
+    {
+      "id": 771475817,
+      "user": "ivanovaleksandar",
+      "created_at": "2021-02-02T08:54:07Z",
+      "body": "The issue re-appeared after a week again. The logs are set to `loglevel debug`, but I am not getting any substantiat info out of it. Just a dump from the config lines (which I already posted before)."
+    },
+    {
+      "id": 771557277,
+      "user": "yossigo",
+      "created_at": "2021-02-02T11:06:04Z",
+      "body": "@ivanovaleksandar Do you see any spurious `+slave` lines in the logs?"
+    },
+    {
+      "id": 771607490,
+      "user": "ivanovaleksandar",
+      "created_at": "2021-02-02T12:39:52Z",
+      "body": "No, logs containing `+slave`."
+    },
+    {
+      "id": 772422299,
+      "user": "yossigo",
+      "created_at": "2021-02-03T11:00:24Z",
+      "body": "@ivanovaleksandar Does the most recent case include a duplicate `known-replica`, `known-sentinel` or both? Do you have a corrupted config example?"
+    },
+    {
+      "id": 772454996,
+      "user": "ivanovaleksandar",
+      "created_at": "2021-02-03T11:57:32Z",
+      "body": "I have this in the `docker-entrypoint` to make it easier for troubleshooting:\r\n```\r\necho \"=== Redis-sentinel configuration ===\"\r\ncat /etc/redis/redis-sentinel.conf | grep -v \"^#\" | grep -v '^$'\r\necho \"=== !Redis-sentinel configuration ===\"\r\n```\r\n\r\nAnd the results that I am getting:\r\n```\r\n=== Redis-sentinel configuration ===\r\nport 26389\r\ndir \"/tmp\"\r\nsentinel myid f5f57bfac67df38cf2b1f10eae44ec1390756258\r\nsentinel deny-scripts-reconfig yes\r\nsentinel monitor redisProd 10.0.0.3 6389 2\r\nsentinel down-after-milliseconds redisProd 5000\r\nsentinel failover-timeout redisProd 5000\r\nsentinel config-epoch redisProd 0\r\nlogfile \"/logs/redis-sentinel.log\"\r\nloglevel debug\r\nmaxmemory 16mb\r\nmaxmemory-policy noeviction\r\nuser default on nopass ~* +@all\r\nsentinel leader-epoch redisProd 0\r\nsentinel known-replica redisProd 10.0.0.1 6389\r\nsentinel known-replica redisProd 10.0.0.2 6389\r\nsentinel known-replica redisProd 10.0.0.2 6389\r\nsentinel known-replica redisProd 10.0.0.1 6389\r\nsentinel known-sentinel redisProd 10.0.0.3 26389 6c002234ed9971639acb49f31c7bbe69ca84abdb\r\nsentinel known-sentinel redisProd 10.0.0.1 26389 94a1a19cb40f410d72d0a1ec3ddc45b395486e9b\r\nsentinel known-sentinel redisProd 10.0.0.1 0 57366eeeccb93d0ff50f5fe5341964b0a29b91a2\r\nsentinel known-sentinel redisProd 10.0.0.3 0 a5f8f65f9237afab419e91fd23175296f2a1259b\r\nsentinel current-epoch 0\r\nsentinel announce-ip \"10.0.0.2\"\r\nsentinel announce-port 26389\r\n=== !Redis-sentinel configuration ===\r\n\r\n*** FATAL CONFIG FILE ERROR (Redis 6.0.8) ***\r\nReading the configuration file, at line 18\r\n>>> 'sentinel known-replica redisProd 10.0.0.2 6389'\r\nWrong hostname or port for replica.\r\n```\r\n\r\nI have the same exact output in the log output file, except the error message."
+    }
+  ]
+}

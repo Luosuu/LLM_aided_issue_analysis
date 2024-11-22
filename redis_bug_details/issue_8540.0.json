@@ -1,0 +1,90 @@
+{
+  "issue_number": 8540.0,
+  "title": "[BUG]Sentinel  stuck with +sdown upon replica pod restart  ",
+  "body": "Hellow Team,  @yossigo , thanks for releasing the 6.2.0 with sentinel host name support and fixing all the related issues.\r\n\r\nhttps://github.com/redis/redis/issues/8507\r\nhttps://github.com/redis/redis/pull/8517\r\nhttps://github.com/redis/redis/pull/8481\r\nhttps://github.com/redis/redis/issues/8300 \r\n\r\nWe are evaluating to run sentinel based redis cluster on kubernetes, so  went ahead and verified [6.2.0](https://hub.docker.com/_/redis/) from Docker Hub , but surprisingly find out that, upon replica pod restart, `sentinel replicas mymaster` stuck with `    9) \"flags\"\r\n   10) \"s_down,slave\"` state and never recovered.\r\n\r\n```\r\n127.0.0.1:26379> sentinel replicas mymaster\r\n1)  1) \"name\"\r\n    2) \"redis-1.redis.FQDN\"\r\n    3) \"ip\"\r\n    4) \"redis-1.redis.FQDN\"\r\n    5) \"port\"\r\n    6) \"6379\"\r\n    7) \"runid\"\r\n    8) \"7b69bdd9dec849aa17bd9912b7e994cb6095b524\"\r\n    9) \"flags\"\r\n   10) \"s_down,slave\"\r\n   11) \"link-pending-commands\"\r\n   12) \"39\"\r\n   13) \"link-refcount\"\r\n   14) \"1\"\r\n   15) \"last-ping-sent\"\r\n   16) \"704052\"\r\n   17) \"last-ok-ping-reply\"\r\n   18) \"704597\"\r\n   19) \"last-ping-reply\"\r\n   20) \"704597\"\r\n   21) \"s-down-time\"\r\n   22) \"699026\"\r\n   23) \"down-after-milliseconds\"\r\n   24) \"5000\"\r\n   25) \"info-refresh\"\r\n   26) \"706516\"\r\n   27) \"role-reported\"\r\n   28) \"slave\"\r\n   29) \"role-reported-time\"\r\n   30) \"887409\"\r\n   31) \"master-link-down-time\"\r\n   32) \"0\"\r\n   33) \"master-link-status\"\r\n   34) \"ok\"\r\n   35) \"master-host\"\r\n   36) \"redis-0.redis.FQDN\"\r\n   37) \"master-port\"\r\n   38) \"6379\"\r\n   39) \"slave-priority\"\r\n   40) \"100\"\r\n   41) \"slave-repl-offset\"\r\n   42) \"66025\"\r\n```\r\n\r\nlast log on sentinel \r\n\r\n```\r\n1:X 23 Feb 2021 21:21:47.545 # +sdown slave redis-1.redis.FQDN:6379 redis-1.redis.FQDN 6379 @ mymaster redis-0.redis.FQDN 6379\r\n```\r\n\r\n\r\nhappy to provide more details if required, thanks!",
+  "state": "closed",
+  "created_at": "2021-02-23T21:53:19Z",
+  "updated_at": "2022-01-29T19:00:29Z",
+  "closed_at": "2022-01-29T19:00:29Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 785699353,
+      "user": "yossigo",
+      "created_at": "2021-02-25T07:58:50Z",
+      "body": "@satheeshaGowda It seems like sentinel still considers the connection up. This can happen if your instance changed an IP and the underlying network doesn't respond with ICMP or RST to packets of an old connection. Can you confirm this is the case?\r\n\r\nNot very familiar with the Sentinel code base - I'd expect a reconnect timeout or at least a way to configure TCP keepalive on the sockets but I see none of that. @hwware maybe you're aware of something?"
+    },
+    {
+      "id": 785987677,
+      "user": "satheeshaGowda",
+      "created_at": "2021-02-25T15:30:38Z",
+      "body": "Hi @yossigo, thanks for taking a look and would like to confirm that indeed IP got changed but not sure about underneath network behavior, if required we can take tcp dump and analyze. "
+    },
+    {
+      "id": 785990855,
+      "user": "hwware",
+      "created_at": "2021-02-25T15:35:11Z",
+      "body": "@yossigo from my observation the link was down in 704 s ago, please see the following fields:\r\n```\r\n15) \"last-ping-sent\"\r\n   16) \"704052\"\r\n   17) \"last-ok-ping-reply\"\r\n   18) \"704597\"\r\n   19) \"last-ping-reply\"\r\n   20) \"704597\"\r\n```\r\n@satheeshaGowda I think there is something wrong with your k8 network settings, can you confirm this is the case? Also it would be great if you can tell us your topology of your deployments for master, slaves and sentinels, thanks!"
+    },
+    {
+      "id": 785991482,
+      "user": "hwware",
+      "created_at": "2021-02-25T15:36:02Z",
+      "body": "@satheeshaGowda , sorry just saw your message, thanks for confirming..."
+    },
+    {
+      "id": 785996530,
+      "user": "satheeshaGowda",
+      "created_at": "2021-02-25T15:43:09Z",
+      "body": "Here is our topology and relevant config.\r\n\r\n<img width=\"692\" alt=\"Screen Shot 2021-02-25 at 7 40 34 AM\" src=\"https://user-images.githubusercontent.com/7914152/109177520-c1513580-773c-11eb-9184-9d309fb1473a.png\">\r\n\r\n\r\nRedis Kube Spec\r\n\r\n```\r\napiVersion: apps/v1\r\nkind: StatefulSet\r\nmetadata:\r\n  name: redis\r\nspec:\r\n  serviceName: redis\r\n  replicas: 3\r\n  selector:\r\n    matchLabels:\r\n      app: redis\r\n  template:\r\n    metadata:\r\n      labels:\r\n        app: redis\r\n    spec:\r\n      initContainers:\r\n      - name: config\r\n        image: redis:6.2.0\r\n        command: [ \"bash\", \"-c\" ]\r\n        args:\r\n          - |\r\n            cp /tmp/redis/redis.conf /etc/redis/redis.conf\r\n\r\n            MASTER_FQDN=redis-0.redis.REDACTED\r\n            POD_FQDN=$(hostname -f)\r\n            echo \"replica-announce-ip  $POD_FQDN\" >> /etc/redis/redis.conf\r\n            echo \"replica-announce-port 6379\" >> /etc/redis/redis.conf\r\n            if [ \"$POD_FQDN\" =  \"$MASTER_FQDN\" ]; then\r\n                echo \"this is master, not updating config...\"\r\n            else\r\n                echo \"updating replica redis.conf...\"\r\n                echo \"replicaof $MASTER_FQDN 6379\" >> /etc/redis/redis.conf\r\n            fi\r\n            cat /etc/redis/redis.conf\r\n        volumeMounts:\r\n        - name: redis-config\r\n          mountPath: /etc/redis/\r\n        - name: config\r\n          mountPath: /tmp/redis/\r\n      containers:\r\n      - name: redis\r\n        image: redis:6.2.0\r\n        command: [\"redis-server\"]\r\n        args: [\"/etc/redis/redis.conf\"]\r\n        ports:\r\n        - containerPort: 6379\r\n          name: redis\r\n        volumeMounts:\r\n        - name: data\r\n          mountPath: /data\r\n        - name: redis-config\r\n          mountPath: /etc/redis/\r\n      volumes:\r\n      - name: redis-config\r\n        emptyDir: {}\r\n      - name: config\r\n        configMap:\r\n          name: redis-config\r\n  volumeClaimTemplates:\r\n  - metadata:\r\n      name: data\r\n    spec:\r\n      accessModes: [ \"ReadWriteOnce\" ]\r\n      storageClassName: scaleio\r\n      resources:\r\n        requests:\r\n          storage: 100Mi\r\n\r\n---\r\napiVersion: v1\r\nkind: Service\r\nmetadata:\r\n  name: redis\r\nspec:\r\n  clusterIP: None\r\n  ports:\r\n  - port: 6379\r\n    targetPort: 6379\r\n    name: redis\r\n  selector:\r\n    app: redis\r\n```\r\n\r\nSentinel Kube Spec\r\n```\r\n\r\napiVersion: apps/v1\r\nkind: StatefulSet\r\nmetadata:\r\n  name: sentinel\r\nspec:\r\n  serviceName: sentinel\r\n  replicas: 3\r\n  selector:\r\n    matchLabels:\r\n      app: sentinel\r\n  template:\r\n    metadata:\r\n      labels:\r\n        app: sentinel\r\n    spec:\r\n      initContainers:\r\n      - name: config\r\n        image: redis:6.2.0\r\n        command: [ \"sh\", \"-c\" ]\r\n        args:\r\n          - |\r\n            REDIS_PASSWORD=testpassword\r\n            MASTER_FQDN=redis-0.redis.REDACTED\r\n            POD_FQDN=$(hostname -f)\r\n            echo \"port 26379\r\n            protected-mode no\r\n            sentinel resolve-hostnames yes\r\n            sentinel announce-hostnames yes\r\n            sentinel announce-ip $POD_FQDN\r\n            sentinel announce-port 26379\r\n            sentinel monitor mymaster $MASTER_FQDN 6379 2\r\n            sentinel down-after-milliseconds mymaster 5000\r\n            sentinel failover-timeout mymaster 60000\r\n            sentinel parallel-syncs mymaster 1\r\n            sentinel auth-pass mymaster $REDIS_PASSWORD\r\n            \" > /etc/redis/sentinel.conf\r\n            cat /etc/redis/sentinel.conf\r\n        volumeMounts:\r\n        - name: redis-config\r\n          mountPath: /etc/redis/\r\n      containers:\r\n      - name: sentinel\r\n        image: redis:6.2.0\r\n        command: [\"redis-server\", \"/etc/redis/sentinel.conf\", \"--sentinel\"]\r\n        ports:\r\n        - containerPort: 26379\r\n          name: sentinel\r\n        volumeMounts:\r\n        - name: redis-config\r\n          mountPath: /etc/redis/\r\n        - name: data\r\n          mountPath: /data\r\n      volumes:\r\n      - name: redis-config\r\n        emptyDir: {}\r\n  volumeClaimTemplates:\r\n  - metadata:\r\n      name: data\r\n    spec:\r\n      accessModes: [ \"ReadWriteOnce\" ]\r\n      storageClassName: scaleio\r\n      resources:\r\n        requests:\r\n          storage: 100Mi\r\n\r\n---\r\napiVersion: v1\r\nkind: Service\r\nmetadata:\r\n  name: sentinel\r\nspec:\r\n  clusterIP: None\r\n  ports:\r\n  - port: 26379\r\n    targetPort: 26379\r\n    name: sentinel\r\n  selector:\r\n    app: sentinel\r\n```\r\n"
+    },
+    {
+      "id": 786023977,
+      "user": "hwware",
+      "created_at": "2021-02-25T16:20:37Z",
+      "body": "@satheeshaGowda I did not find something specifically goes wrong in your config, maybe is there any change happens during runtime?"
+    },
+    {
+      "id": 786305281,
+      "user": "satheeshaGowda",
+      "created_at": "2021-02-25T23:38:25Z",
+      "body": "No, not really, and its always reproducible @hwware "
+    },
+    {
+      "id": 786620913,
+      "user": "yossigo",
+      "created_at": "2021-02-26T12:33:35Z",
+      "body": "@satheeshaGowda I think the best way to confirm this is to use `netstat` on the sentinel node and see if there are still TCP connections established with the Redis at the old address. Assuming that's the case, we'll have to address that in one of two ways:\r\n\r\n1) Make Sentinel explicitly reconnect after some inactivity time.\r\n2) Use TCP_KEEPALIVE to make the socket drop itself after some time.\r\n\r\n[1] will probably be a better fix in the long run, but [2] is easier.\r\n\r\nThis is a fairly fundamental issue, I guess this never came up before because any situation where the instance's IP changed could not be supported anyway."
+    },
+    {
+      "id": 816689077,
+      "user": "juris",
+      "created_at": "2021-04-09T13:39:06Z",
+      "body": "Having this issue on Kubernetes with AWS CNI plugin. Can confirm that old IP address still appears in netstat output.\r\n\r\nThe same applies to replicas. If I delete a replica pod, Sentinel does not pick up the replica with the new IP. Connection to the old one is still present with SYN_SENT status."
+    },
+    {
+      "id": 817600246,
+      "user": "kenlee1988",
+      "created_at": "2021-04-12T08:23:43Z",
+      "body": "Having this issue on Kubernetes 1.20\r\n![image](https://user-images.githubusercontent.com/35965787/114362159-9c5c3900-9ba9-11eb-8609-586a7611ffe2.png)\r\nI found that when K8s node0 is down，the hostname ‘redis-proton-redis-0.redis-proton-redis.redis.svc.cluster.local’ can not be resolve to ip address\r\nin this time, sentinel 'redis-1' will send request 'is-master-down-by-addr' to sentinel 'redis-2',\r\nsentinel 'redis-2' will call function ‘getSentinelRedisInstanceByAddrAndRunID’ want to find the correct instance，but failed。\r\n![image](https://user-images.githubusercontent.com/35965787/114363636-2ce74900-9bab-11eb-9ae6-bf730c0359c1.png)\r\n![image](https://user-images.githubusercontent.com/35965787/114363646-32dd2a00-9bab-11eb-9b3b-899be778833f.png)\r\n\r\n"
+    },
+    {
+      "id": 818829945,
+      "user": "yossigo",
+      "created_at": "2021-04-13T15:31:46Z",
+      "body": "@juris A `SYN_SENT` entry in netstat implies it's attempting to reconnect, I was actually expecting to find an `ESTABLISHED` entry which would indicate the connection did not drop and hangs in there due to lack of timeout.\r\n\r\n@kenlee1988 I'm not sure your report is related to the previous issues but there's certainly a real issue there. I've put together a quick patch, but unfortunately I don't have the bandwidth at the moment to set up an environment and test it properly or validate that all similar cases are indeed covered. I'll PR that and if anyone can pick this up and test/improve that can be a great help."
+    },
+    {
+      "id": 903091057,
+      "user": "troyanov",
+      "created_at": "2021-08-21T09:44:14Z",
+      "body": "Might be the same issue as https://github.com/redis/redis/issues/9103?"
+    },
+    {
+      "id": 1016542180,
+      "user": "moticless",
+      "created_at": "2022-01-19T14:52:17Z",
+      "body": "Hope this [PR](https://github.com/redis/redis/pull/10146) will fix it. \r\nThanks"
+    }
+  ]
+}

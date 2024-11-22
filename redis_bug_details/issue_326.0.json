@@ -1,0 +1,116 @@
+{
+  "issue_number": 326.0,
+  "title": "Redis crash - Failed assertion: <no assertion failed> (<no file>:0)",
+  "body": "[23500] 03 Feb 14:57:42 # === REDIS BUG REPORT START: Cut & paste starting from here ===\n[23500] 03 Feb 14:57:42 #     Redis 2.4.6 crashed by signal: 11\n[23500] 03 Feb 14:57:42 #     Failed assertion: <no assertion failed> (<no file>:0)\n[23500] 03 Feb 14:57:42 # --- STACK TRACE\n[23500] 03 Feb 14:57:42 # /usr/bin/redis-server() [0x807ff66]\n[23500] 03 Feb 14:57:42 # /usr/bin/redis-server(freeClient+0x16) [0x805eb46]\n[23500] 03 Feb 14:57:42 # /usr/bin/redis-server(readQueryFromClient+0x164) [0x805ffb4]\n[23500] 03 Feb 14:57:42 # /usr/bin/redis-server(aeProcessEvents+0x132) [0x8053172]\n[23500] 03 Feb 14:57:42 # /usr/bin/redis-server(aeMain+0x37) [0x8053387]\n[23500] 03 Feb 14:57:42 # /usr/bin/redis-server(main+0x112) [0x8058e82]\n[23500] 03 Feb 14:57:42 # /lib/tls/i686/cmov/libc.so.6(__libc_start_main+0xe6) [0xb7737bd6]\n[23500] 03 Feb 14:57:42 # /usr/bin/redis-server() [0x8052751]\n[23500] 03 Feb 14:57:42 # --- INFO OUTPUT\n[23500] 03 Feb 14:57:42 # redis_version:2.4.6\nredis_git_sha1:00000000\nredis_git_dirty:0\narch_bits:32\nmultiplexing_api:epoll\ngcc_version:4.4.3\nprocess_id:23500\nuptime_in_seconds:6758\nuptime_in_days:0\nlru_clock:707530\nused_cpu_sys:70.41\nused_cpu_user:22.12\nused_cpu_sys_children:64.28\nused_cpu_user_children:159.63\nconnected_clients:15\nconnected_slaves:0\nclient_longest_output_list:0\nclient_biggest_input_buf:0\nblocked_clients:0\nused_memory:3128407848\nused_memory_human:2.91G\nused_memory_rss:3170824192\nused_memory_peak:3128440576\nused_memory_peak_human:2.91G\nmem_fragmentation_ratio:1.01\nmem_allocator:jemalloc-2.2.5\nloading:0\naof_enabled:0\nchanges_since_last_save:5231\nbgsave_in_progress:0\nlast_save_time:1328280837\nbgrewriteaof_in_progress:0\ntotal_connections_received:102712\ntotal_commands_processed:793539\nexpired_keys:23443\nevicted_keys:0\nkeyspace_hits:404937\nkeyspace_misses:184112\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:643170\nvm_enabled:0\nrole:master\ndb1:keys=1237520,expires=1237519\n\n[23500] 03 Feb 14:57:42 # --- CLIENT LIST OUTPUT\n[23500] 03 Feb 14:57:42 # addr=192.168.190.219:42194 fd=23 idle=102 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.153.63:50321 fd=11 idle=81 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:54362 fd=12 idle=31 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:35472 fd=19 idle=7 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.153.63:51255 fd=9 idle=5 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:35505 fd=10 idle=2 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:35515 fd=21 idle=2 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.138.188:38820 fd=18 idle=2 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.138.188:38823 fd=7 idle=2 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:54665 fd=5 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.153.63:51298 fd=8 idle=0 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.153.63:51300 fd=13 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.153.63:51302 fd=14 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:35529 fd=15 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:54668 fd=6 idle=0 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\n\n[23500] 03 Feb 14:57:42 # === REDIS BUG REPORT END. Make sure to include from START to END. ===\n",
+  "state": "closed",
+  "created_at": "2012-02-03T21:45:25Z",
+  "updated_at": "2014-06-29T13:38:01Z",
+  "closed_at": "2012-02-21T09:07:45Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 3805211,
+      "user": "antirez",
+      "created_at": "2012-02-03T21:56:18Z",
+      "body": "Thank you for your bug report, please if you can follow the following guide before restarting Redis:\n\nhttp://redis.io/topics/debugging\n\nThis may help us a lot to track the issue after the next crash. Thanks!\n"
+    },
+    {
+      "id": 3805235,
+      "user": "antirez",
+      "created_at": "2012-02-03T21:57:29Z",
+      "body": "p.s. also if you can please attach your redis-server binary to this issue or send it to me by email. Thanks.\n"
+    },
+    {
+      "id": 3805585,
+      "user": "antirez",
+      "created_at": "2012-02-03T22:22:07Z",
+      "body": "Just received the redis-server executable from Aaron (thank you). Investigating ASAP and replying here with news.\n"
+    },
+    {
+      "id": 3816900,
+      "user": "antirez",
+      "created_at": "2012-02-05T10:56:02Z",
+      "body": "Aaron, thank you for the core as well, I've a few questions:\n- Is it a real server or a virtualized instance?\n- Are you using ECC memory in case of a real server?\n- What commands you run against the server? I see all GETs performed by currently connected clients, but it can be helpful to see a list of commands used against the instance.\n- The server started failing just now that memory limit is 3GB or in the past also caused problems (or maybe you simply started using Redis now).\n\nThanks,\nSalvatore\n"
+    },
+    {
+      "id": 3821886,
+      "user": "Aaroneous",
+      "created_at": "2012-02-05T23:42:34Z",
+      "body": "It's a VPS at linode, I believe they use Xen.\n\nNothing fancy, just combinations of set, get, incr and expire.\n\nThe server was stable for about a week straight until it approached using 3GB and now seems to crash after a day-or-so with some regularity.\n"
+    },
+    {
+      "id": 3826537,
+      "user": "antirez",
+      "created_at": "2012-02-06T10:47:12Z",
+      "body": "Thanks Aaron, I investigated the dump, and it seems like the jemalloc allocator is crashing. There are no known bugs that could corrupt the memory in Redis 2.4.6, however it is not impossible, but still with a so simple use case it's strange nobody is experiencing this issue, so I would do a few more tests instead:\n- Next time it crashes could you please do a 'make clean', and rebuild Redis with: 'make FORCE_LIBC_MALLOC=yes'?\n- How much RAM there is in this Linode system?\n\nNext steps depend on the fact of it crashing or not when using libc malloc. Thanks.\n"
+    },
+    {
+      "id": 4071285,
+      "user": "antirez",
+      "created_at": "2012-02-21T09:07:45Z",
+      "body": "Closing for lack of further info. Please reopen if you have more news. Thank you.\n"
+    },
+    {
+      "id": 4454997,
+      "user": "antirez",
+      "created_at": "2012-03-12T16:00:54Z",
+      "body": "Hello,\n\nwe saw this happening in the past when you are near to 4GB of memory\nusage in a 32 bit system, but here we are too far.\nMaybe there are news? Please could you upgrade Redis to latest\nversion? The crash report is better.\n\nCheers,\nSalvatore\n\nOn Mon, Feb 6, 2012 at 12:42 AM, Aaron Wadler\nreply@reply.github.com\nwrote:\n\n> It's a VPS at linode, I believe they use Xen.\n> \n> Nothing fancy, just combinations of set, get, incr and expire.\n> \n> The server was stable for about a week straight until it approached using 3GB and now seems to crash after a day-or-so with some regularity.\n> \n> ---\n> \n> Reply to this email directly or view it on GitHub:\n> https://github.com/antirez/redis/issues/326#issuecomment-3821886\n\n## \n\nSalvatore 'antirez' Sanfilippo\nopen source developer - VMware\n\nhttp://invece.org\n\"We are what we repeatedly do. Excellence, therefore, is not an act,\nbut a habit.\" -- Aristotele\n"
+    },
+    {
+      "id": 4455032,
+      "user": "antirez",
+      "created_at": "2012-03-12T16:02:21Z",
+      "body": "p.s. if you can you should try this to check that the memory is ok:\n\nhttp://pyropus.ca/software/memtester/\n\nOn Mon, Mar 12, 2012 at 5:00 PM, Salvatore Sanfilippo antirez@gmail.com wrote:\n\n> Hello,\n> \n> we saw this happening in the past when you are near to 4GB of memory\n> usage in a 32 bit system, but here we are too far.\n> Maybe there are news? Please could you upgrade Redis to latest\n> version? The crash report is better.\n> \n> Cheers,\n> Salvatore\n> \n> On Mon, Feb 6, 2012 at 12:42 AM, Aaron Wadler\n> reply@reply.github.com\n> wrote:\n> \n> > It's a VPS at linode, I believe they use Xen.\n> > \n> > Nothing fancy, just combinations of set, get, incr and expire.\n> > \n> > The server was stable for about a week straight until it approached using 3GB and now seems to crash after a day-or-so with some regularity.\n> > \n> > ---\n> > \n> > Reply to this email directly or view it on GitHub:\n> > https://github.com/antirez/redis/issues/326#issuecomment-3821886\n> \n> ## \n> \n> Salvatore 'antirez' Sanfilippo\n> open source developer - VMware\n> \n> http://invece.org\n> \"We are what we repeatedly do. Excellence, therefore, is not an act,\n> but a habit.\" -- Aristotele\n\n## \n\nSalvatore 'antirez' Sanfilippo\nopen source developer - VMware\n\nhttp://invece.org\n\"We are what we repeatedly do. Excellence, therefore, is not an act,\nbut a habit.\" -- Aristotele\n"
+    },
+    {
+      "id": 4632839,
+      "user": "Aaroneous",
+      "created_at": "2012-03-22T05:14:02Z",
+      "body": "Memory test came out ok. \n\nUpdated to 2.4.6 today using FORCE_LIBC_MALLOC=yes as you suggested. Will let you know how this works out.\n"
+    },
+    {
+      "id": 4634415,
+      "user": "antirez",
+      "created_at": "2012-03-22T08:37:32Z",
+      "body": "Thank you, but I'm pretty sure you meant 2.4.8. Thanks!\n"
+    },
+    {
+      "id": 4634453,
+      "user": "antirez",
+      "created_at": "2012-03-22T08:40:53Z",
+      "body": "p.s. 2.4.9 actually! ;)\n"
+    },
+    {
+      "id": 4634621,
+      "user": "antirez",
+      "created_at": "2012-03-22T08:55:58Z",
+      "body": "A few more remarks:\n- freeClient + 0x16 should either be sdsfree(c->querybuf) or the test c->flags & REDIS_BLOCKED. So if it is a real bug we know more or less the (very wide) context.\n- I read that now it crashes every day. The stack trace looks always the same (last entry is freeClient...)? If you have a collection of stack traces it will be very good to have.\n- Do you still have the original 2.4.6 binary?\n\nThanks.\n"
+    },
+    {
+      "id": 4670659,
+      "user": "Aaroneous",
+      "created_at": "2012-03-24T01:04:33Z",
+      "body": "Latest crash report from 2.4.9 below. memtester and running redis-server --test-memory both report no problems.\n\n[30331] 22 Mar 12:22:17 # === REDIS BUG REPORT START: Cut & paste starting from here ===\n[30331] 22 Mar 12:22:17 #     Redis 2.4.9 crashed by signal: 7\n[30331] 22 Mar 12:22:17 #     Failed assertion: <no assertion failed> (<no file>:0)\n[30331] 22 Mar 12:22:17 # --- STACK TRACE\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(lzf_compress+0xe4) [0x805ac64]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(rdbSaveLzfStringObject+0x53) [0x80670e3]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(rdbSaveRawString+0x3b) [0x80672ab]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(rdbSaveStringObject+0x34) [0x8067364]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(rdbSaveObject+0x271) [0x8067621]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(rdbSave+0x3e4) [0x8067b24]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(rdbSaveBackground+0x9f) [0x8067d7f]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(serverCron+0x624) [0x8058c64]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(aeProcessEvents+0x206) [0x8053546]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(aeMain+0x37) [0x8053687]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server(main+0x1ae) [0x805945e]\n[30331] 22 Mar 12:22:17 # /lib/tls/i686/cmov/libc.so.6(__libc_start_main+0xe6) [0xb773abd6]\n[30331] 22 Mar 12:22:17 # /usr/bin/redis-server() [0x8052a51]\n[30331] 22 Mar 12:22:17 # --- INFO OUTPUT\n[30331] 22 Mar 12:22:17 # redis_version:2.4.9\nredis_git_sha1:00000000\nredis_git_dirty:0\narch_bits:32\nmultiplexing_api:epoll\ngcc_version:4.4.3\nprocess_id:30331\nuptime_in_seconds:10468\nuptime_in_days:0\nlru_clock:1121317\nused_cpu_sys:0.00\nused_cpu_user:0.00\nused_cpu_sys_children:0.00\nused_cpu_user_children:0.00\nconnected_clients:18\nconnected_slaves:0\nclient_longest_output_list:0\nclient_biggest_input_buf:0\nblocked_clients:0\nused_memory:3128029920\nused_memory_human:2.91G\nused_memory_rss:3169865728\nused_memory_peak:3128067840\nused_memory_peak_human:2.91G\nmem_fragmentation_ratio:1.01\nmem_allocator:jemalloc-2.2.5\nloading:0\naof_enabled:0\nchanges_since_last_save:24548\nbgsave_in_progress:0\nlast_save_time:1332417786\nbgrewriteaof_in_progress:0\ntotal_connections_received:205097\ntotal_commands_processed:1749611\nexpired_keys:55509\nevicted_keys:0\nkeyspace_hits:943499\nkeyspace_misses:171745\npubsub_channels:0\npubsub_patterns:0\nlatest_fork_usec:655589\nvm_enabled:0\nrole:master\ndb1:keys=1144672,expires=1144670\n\n[30331] 22 Mar 12:22:17 # --- CLIENT LIST OUTPUT\n[30331] 22 Mar 12:22:17 # addr=192.168.138.188:35847 fd=5 idle=77 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:53362 fd=12 idle=76 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.138.188:36355 fd=30 idle=51 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:58455 fd=22 idle=6 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:58469 fd=13 idle=6 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:58483 fd=20 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:58495 fd=9 idle=5 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:56633 fd=7 idle=2 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:58509 fd=15 idle=4 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.153.63:39193 fd=8 idle=2 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:56673 fd=10 idle=2 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.153.63:39195 fd=11 idle=2 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:56682 fd=14 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.138.188:36931 fd=16 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.153.63:39200 fd=24 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.190.219:56684 fd=28 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.167.174:58541 fd=6 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\naddr=192.168.138.188:36944 fd=17 idle=1 flags=N db=1 sub=0 psub=0 qbuf=0 obl=0 oll=0 events=r cmd=get\n\n[30331] 22 Mar 12:22:17 # === REDIS BUG REPORT END. Make sure to include from START to END. ===\n"
+    },
+    {
+      "id": 4672730,
+      "user": "antirez",
+      "created_at": "2012-03-24T10:11:14Z",
+      "body": "Hello @Aaroneous this time the instance crashed in the child pid, in a different place. This again resembles more hardware failure than a bug, but it's not possible to be 100% sure.\n\nFrom the output it seems like this instance was not compiled with USE_LIBC_MALLOC=yes because in the info output there is: \"mem_allocator:jemalloc-2.2.5\". You may want to try this.\n\nAnother thing that's worth doing is attaching GDB to the instance, to obtain a stack trace, a core dump, and so forth. Everything is explained here:\n\nhttp://redis.io/topics/debugging\n\nThis will provide us with a lot more additional information.\n\nThanks!\n"
+    },
+    {
+      "id": 4672798,
+      "user": "antirez",
+      "created_at": "2012-03-24T10:28:27Z",
+      "body": "p.s. another question: what is the total memory available in the Linode system? Thanks.\nI guess 4096 because of the Linode instances size, but better to be sure :)\n"
+    },
+    {
+      "id": 4687023,
+      "user": "Aaroneous",
+      "created_at": "2012-03-26T02:29:13Z",
+      "body": "4096 on the instance, no clue of the host's total memory.\n\nGoing to re-compile now, will keep you posted :]\n"
+    }
+  ]
+}

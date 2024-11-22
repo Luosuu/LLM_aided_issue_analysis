@@ -1,0 +1,44 @@
+{
+  "issue_number": 2517.0,
+  "title": "SMOVE set1 set1 key1 always returns 1 when set1 exists",
+  "body": "Providing set1 exists and is not empty, this command will always return 1 even if key1 is NOT in set1 and therefore was not moved\n\n`127.0.0.1:6379> smove set1 set1 key1`\n`(integer) 1`\n",
+  "state": "closed",
+  "created_at": "2015-04-13T19:57:09Z",
+  "updated_at": "2015-05-15T15:36:28Z",
+  "closed_at": "2015-05-15T15:36:28Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 92679342,
+      "user": "badboy",
+      "created_at": "2015-04-14T07:47:22Z",
+      "body": "Indeed there is a shortcut: https://github.com/antirez/redis/blob/3.0/src/t_set.c#L322-L326\nIf src and dest are equal, it doesn't even bother to do _any_ work but just returns 1.\n"
+    },
+    {
+      "id": 92865609,
+      "user": "ghouet",
+      "created_at": "2015-04-14T14:08:33Z",
+      "body": "That contradicts the documentation : \n\n`Return value\nInteger reply, specifically:\n1 if the element is moved.\n0 if the element is not a member of source and no operation was performed.`\n\nhttp://redis.io/commands/smove\n"
+    },
+    {
+      "id": 93986555,
+      "user": "gnethercutt",
+      "created_at": "2015-04-17T13:31:34Z",
+      "body": "https://github.com/antirez/redis/pull/2529\n"
+    },
+    {
+      "id": 102434182,
+      "user": "antirez",
+      "created_at": "2015-05-15T15:35:23Z",
+      "body": "I agree, it's a bug...\n"
+    },
+    {
+      "id": 102434956,
+      "user": "antirez",
+      "created_at": "2015-05-15T15:36:28Z",
+      "body": "PR merged, thanks.\n"
+    }
+  ]
+}

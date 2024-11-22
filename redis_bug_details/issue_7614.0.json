@@ -1,0 +1,30 @@
+{
+  "issue_number": 7614.0,
+  "title": "[CRASH]",
+  "body": "**Crash report**\r\n\r\n[53/56 done]: unit/hyperloglog (93 seconds)\r\n[ok]: Test replication partial resync: ok after delay (diskless: yes, disabled, reconnect: 1)\r\n[ok]: Slave should be able to synchronize with the master\r\n[ok]: Detect write load to master\r\n[ok]: Master stream is correctly processed while the replica has a script in -BUSY state\r\n[ok]: slave fails full sync and diskless load swapdb recovers it\r\n[ok]: Test replication partial resync: backlog expired (diskless: yes, disabled, reconnect: 1)\r\n\r\nLogged warnings (pid 913899):\r\n(none)\r\n\r\n\r\nLogged warnings (pid 913899):\r\n(none)\r\n\r\n[exception]: Executing test client: tail: cannot open '+30' for reading: No such file or directory.\r\ntail: cannot open '+30' for reading: No such file or directory\r\n    while executing\r\n\"exec tail +$from_line < $stdout\"\r\n    (procedure \"wait_for_log_message\" line 5)\r\n    invoked from within\r\n\r\n\r\n**Aditional information**\r\n\r\n1. Centos 8\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-08-05T17:02:44Z",
+  "updated_at": "2020-08-06T11:47:22Z",
+  "closed_at": "2020-08-05T17:50:30Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 669336248,
+      "user": "itamarhaber",
+      "created_at": "2020-08-05T17:50:29Z",
+      "body": "Hello @xiegithub \r\n\r\nThanks for reporting - this looks like a duplicate of #7607, which was resolved in unstable via #7543. I'll close this for now but please feel free to reopen if the issue still persists for you."
+    },
+    {
+      "id": 669641365,
+      "user": "xiegithub",
+      "created_at": "2020-08-06T02:12:47Z",
+      "body": "Hello @itamarhaber\r\n\r\nI tried again，The same problem remains。\r\n\r\n[ok]: Client output buffer soft limit is enforced if time is overreached\r\n**[54/56 done]: unit/obuf-limits (134 seconds)**\r\n[ok]: Master stream is correctly processed while the replica has a script in -BUSY state\r\n[ok]: Test replication partial resync: ok psync (diskless: yes, swapdb, reconnect: 1)\r\n[ok]: slave fails full sync and diskless load swapdb recovers it\r\n[ok]: Slave should be able to synchronize with the master\r\n[ok]: Detect write load to master\r\n\r\nLogged warnings (pid 1028209):\r\n(none)\r\n\r\n\r\nLogged warnings (pid 1028209):\r\n(none)\r\n\r\n**[exception]: Executing test client: tail: cannot open '+30' for reading: No such file or directory.**\r\ntail: cannot open '+30' for reading: No such file or directory\r\n    while executing\r\n\"exec tail +$from_line < $stdout\"\r\n    (procedure \"wait_for_log_message\" line 5)\r\n    invoked from within\r\n\"wait_for_log_message -1 \"*Loading DB in memory*\" $loglines 2000 1\"\r\n"
+    },
+    {
+      "id": 669879434,
+      "user": "oranagra",
+      "created_at": "2020-08-06T11:47:22Z",
+      "body": "@xiegithub this is currently only fixed in the `unstable` branch.\r\nfrom the output you provided (`exec tail +$from_line < $stdout`) it's clear that you're using 6.0.6 which still has that test suite bug."
+    }
+  ]
+}

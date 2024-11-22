@@ -1,0 +1,48 @@
+{
+  "issue_number": 7779.0,
+  "title": "[BUG] Potential Data Race on server.master_repl_offset",
+  "body": "**Describe the bug**\r\n\r\nWe are developing a static data race detection tool and detected a potential data race in redis version 6.0.7 \r\nWe found a potential race on `server.master_repl_offset` between the main thread and an IO thread.\r\n\r\n**To reproduce**\r\n\r\n```C\r\n==== Found a race between: \r\nline 4988 in server.c AND line 164 in replication.c\r\nShared variable:\r\n at line 72 of server.c\r\n 72|struct redisServer server; /* Server global state */\r\nThread 1:\r\n 4986| {\r\n 4987|     memcpy(server.replid,rsi.repl_id,sizeof(server.replid));\r\n>4988|     server.master_repl_offset = rsi.repl_offset;\r\n 4989|     /* If we are a slave, create a cached master from this\r\n 4990|      * information, in order to allow partial resynchronizations*/\r\n>>>Stacktrace:\r\n>>>main\r\n>>>  loadDataFromDisk [server.c:5272]\r\nThread 2:\r\n 162|    unsigned char *p = ptr;\r\n 163|\r\n>164|    server.master_repl_offset += len;\r\n 165|\r\n 166|    /* This is a circular buffer, so write as much data we can at every*/\r\n>>>Stacktrace:\r\n>>>pthread_create [networking.c:3016]\r\n>>>  IOThreadMain [networking.c:3016]\r\n>>>    readQueryFromClient [networking.c:2979]\r\n>>>      processInputBuffer [networking.c:1996]\r\n>>>        processGopherRequest [networking.c:1886]\r\n>>>          lookupKeyRead [gopher.c:53]\r\n>>>            lookupKeyReadWithFlags [db.c:146]\r\n>>>              expireIfNeeded [db.c:101]\r\n>>>                propagateExpire [db.c:1311]\r\n>>>                  replicationFeedSlaves [db.c:1233]\r\n>>>                    feedReplicationBacklog [replication.c:270]\r\n```\r\n\r\n\r\nInside of `main` in server.c, the function [`InitServerLast`](https://github.com/redis/redis/blob/6.0.7/src/server.c#L5271) creates IOThreads which can eventually call [`feedReplicationBacklog`](https://github.com/redis/redis/blob/6.0.7/src/replication.c#L164)  and write to `server.master_repl_offset` through the call stack shown for thread 2: \r\n`IOThreadMain -> readQueryFromClient -> ... -> replicationFeedSlaves -> feedReplicationBacklog`\r\n\r\nMeanwhile, immediately after the main thread finishes spawning IOThreads and returns from `InitServerLast`, it calls [`loadDataFromDisk`](https://github.com/redis/redis/blob/6.0.7/src/server.c#L5272) which also writes to [`server.master_repl_offset`](https://github.com/redis/redis/blob/6.0.7/src/server.c#L4988).\r\n\r\nWe did not see any synchronization preventing these two accesses from happening in parallel, but we are not entirely sure. \r\n\r\nCould someone with more knowledge on this part of the code confirm? If there is some synchronization we missed, we would like to update our tool accordingly.\r\n",
+  "state": "closed",
+  "created_at": "2020-09-10T03:28:31Z",
+  "updated_at": "2020-09-27T09:35:16Z",
+  "closed_at": "2020-09-27T09:35:16Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 690000564,
+      "user": "oranagra",
+      "created_at": "2020-09-10T05:46:19Z",
+      "body": "@BradSwain thanks for submitting this interesting and informative issue.\r\n\r\nI suppose it's simply wrong for the IO threads to do lookupKeyRead (on behalf of processGopherRequest) directly from within the IO thread (not by the main thread).\r\n\r\n@redis/core-team how do you feel about trimming this useless feature from the code base?"
+    },
+    {
+      "id": 690064872,
+      "user": "ShooterIT",
+      "created_at": "2020-09-10T08:02:05Z",
+      "body": "I think It is truly a problem,  maybe we remove Gopher , or maybe add more check when enable Gopher, like\r\n\r\n```\r\ndiff --git a/src/networking.c b/src/networking.c\r\nindex 71e30cfa1..914c4e339 100644\r\n--- a/src/networking.c\r\n+++ b/src/networking.c\r\n@@ -1879,7 +1879,7 @@ void processInputBuffer(client *c) {\r\n             if (processInlineBuffer(c) != C_OK) break;\r\n             /* If the Gopher mode and we got zero or one argument, process\r\n              * the request in Gopher mode. */\r\n-            if (server.gopher_enabled &&\r\n+            if (server.gopher_enabled && !server.io_threads_do_reads &&\r\n                 ((c->argc == 1 && ((char*)(c->argv[0]->ptr))[0] == '/') ||\r\n                   c->argc == 0))\r\n             {\r\n```"
+    },
+    {
+      "id": 698763881,
+      "user": "ShooterIT",
+      "created_at": "2020-09-25T07:10:54Z",
+      "body": "@oranagra do you decide to remove Gopher or fix by a easy way like above?"
+    },
+    {
+      "id": 698923935,
+      "user": "oranagra",
+      "created_at": "2020-09-25T13:19:50Z",
+      "body": "I would remove it if it doesn't serve any real purpose\r\ni don't think this joke justifies making redis more complex.\r\n@redis/core-team please share your thoughts.\r\n@ShooterIT The fix you suggested is simple, so you can issue a PR to \"fix\" it while we're waiting for a decision.. (removing a feature, even a useless one is not an easy decision).\r\nBut then the next question would be if we need to document that gopher is disabled when enabling io threads?"
+    },
+    {
+      "id": 699576353,
+      "user": "ShooterIT",
+      "created_at": "2020-09-27T02:47:48Z",
+      "body": "@oranagra OK. My fix is not real bug-fix, it just avoids problems by limiting factors, I also don't want to make redis complex  in processCommand just because of Gopher.\r\n\r\nI think we  need to document that event though it is not used widely."
+    },
+    {
+      "id": 699595121,
+      "user": "oranagra",
+      "created_at": "2020-09-27T06:58:20Z",
+      "body": "@ShooterIT I guess you can make a PR, and mention it in the Gopher section in redis.conf"
+    }
+  ]
+}

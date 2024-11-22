@@ -1,0 +1,24 @@
+{
+  "issue_number": 12523.0,
+  "title": "[BUG] [REDIS STACK] SORT function does not return the same ordering of the list ",
+  "body": "**Describe the bug**\r\n\r\nWhen I try to use the SORT function, it does not return the same ordering of the list in RedisStack.\r\n\r\n**To reproduce**\r\n\r\nGet a list using the SORT function, then make an operation to update one element in the list. If the field that you are searching for has the same value for some elements, you will see that the element that you update, tops the list in the second SORT query that you will make. Use the FT.SEARCH function.\r\n\r\n**Expected behavior**\r\n\r\nI expect to receive the same list based on the field I am searching, without depending on the update I make on the element.\r\n",
+  "state": "closed",
+  "created_at": "2023-08-29T11:03:51Z",
+  "updated_at": "2023-08-30T08:49:06Z",
+  "closed_at": "2023-08-30T08:49:06Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1697549133,
+      "user": "oranagra",
+      "created_at": "2023-08-29T14:23:43Z",
+      "body": "i'm not sure what you mean, do you mean the [SORT](https://redis.io/commands/sort) command?\r\nmaybe you should add more details, or maybe you just need to move that question to the Redis Search [repo](https://github.com/RediSearch/RediSearch)"
+    },
+    {
+      "id": 1698755622,
+      "user": "lejdiprifti",
+      "created_at": "2023-08-30T08:49:06Z",
+      "body": "I am closing this issue because it is a bug for the Redis Search repo. Thank you @oranagra !!"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "issue_number": 12341.0,
+  "title": "[BUG] REPLCONF rdb-only error: ERR Unrecognized REPLCONF option: rdb-only",
+  "body": "**Describe the bug**\r\n\r\nThis command:\r\n\r\n```\r\nREDISCLI_AUTH='MYPWD' redis-cli -h MYHOST -p MYPORT --rdb /path/to/export.rdb\r\n```\r\n\r\nProduces this output:\r\n\r\n```\r\nsending REPLCONF capa eof\r\nsending REPLCONF rdb-only 1\r\nREPLCONF rdb-only error: ERR Unrecognized REPLCONF option: rdb-only\r\nSYNC sent to master, writing 102251019 bytes to '/path/to/export.rdb'\r\nTransfer finished with success.\r\n```\r\n\r\nWhat is this error? `REPLCONF rdb-only error: ERR Unrecognized REPLCONF option: rdb-only`\r\n\r\nIs something to worry about or it can be ignored and the export works in any case?\r\n\r\n**Expected behavior**: the command to export a Redis database should not raise errors or warnings.\r\n",
+  "state": "open",
+  "created_at": "2023-06-24T11:39:47Z",
+  "updated_at": "2023-06-25T10:26:25Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1605896088,
+      "user": "sundb",
+      "created_at": "2023-06-25T06:37:08Z",
+      "body": "Please specify what version of `redis-server` and `redis-cli` you are using.\r\nI guess that you are using the new redis-cli to connect old version of redis-server(<6.x)."
+    },
+    {
+      "id": 1605916493,
+      "user": "collimarco",
+      "created_at": "2023-06-25T07:44:53Z",
+      "body": "- Redis server v6.0 (the default on Ubuntu 22.04LTS)\r\n- redis-cli v7.0 (the default on Debian bookworm, which we use for the Docker images)\r\n\r\n**Is it an issue if we use a redis-cli version greater than server version to take the rdb dump? Or is it safe to ignore that warning?**\r\n\r\nThe problem is that we don't control directly the redis-cli version installed in Docker, since we need to rely on the official Ruby image:\r\n\r\n```\r\nFROM ruby:3.2.2\r\nRUN apt-get update && apt-get install -y redis-tools\r\n...\r\n```\r\n\r\nWe can't change that `FROM ruby:3.2.2`. **Is there any way to specify the `redis-tools` package version?** For example for Postgresql we can specify the version like this: `postgresql-client-14`, but this doesn't seem the case with Redis package.\r\n"
+    },
+    {
+      "id": 1605919154,
+      "user": "sundb",
+      "created_at": "2023-06-25T07:56:20Z",
+      "body": "@collimarco It's safe for you to ignore the warning.\r\n`rdb-only` is just to tell redis-server not to send incremental replication buffer to redis-cli."
+    },
+    {
+      "id": 1605987987,
+      "user": "collimarco",
+      "created_at": "2023-06-25T09:29:10Z",
+      "body": "@sundb Thanks for the clarification! So basically in my case, since the `rdb-only` option is ignored by server, redis-cli receives some extra data for replication that it just ignores in any case. Is that right?\r\n\r\nAnd for the package `redis-tools` on Debian Bookworm is there any way to get redis-cli v6?"
+    },
+    {
+      "id": 1606014600,
+      "user": "sundb",
+      "created_at": "2023-06-25T10:26:25Z",
+      "body": "> @sundb Thanks for the clarification! So basically in my case, since the `rdb-only` option is ignored by server, redis-cli receives some extra data for replication that it just ignores in any case. Is that right?\r\n\r\nYes, you also can get more detail from #8303.\r\n\r\n> \r\n> And for the package `redis-tools` on Debian Bookworm is there any way to get redis-cli v6?\r\n\r\nMaybe you can find the old version of the deb package and install it manually.\r\n"
+    }
+  ]
+}

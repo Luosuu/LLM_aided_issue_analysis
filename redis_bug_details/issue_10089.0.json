@@ -1,0 +1,36 @@
+{
+  "issue_number": 10089.0,
+  "title": "[BUG] LPOP key [count] returns Null Bulk reply instead of Null array reply.",
+  "body": "**Describe the bug**\r\n\r\nLPOP with count argument returns Null bulk reply instead of array null reply. As per [documentation](https://redis.io/commands/lpop) \r\n\r\n    When called with the count argument:\r\n\r\n    Array reply: list of popped elements, or nil when key does not exist.\r\n\r\nWhen running against Redis 6.2.6, we get\r\n\r\n    LPOP NONEXISTINGLIST 10\r\n    $-1\r\n\r\ninstead of\r\n\r\n    \"*-1\\r\\n\"\r\n\r\nwhich is a null array, as documented.\r\n\r\nDoes the LPOP key [count] always return Bulk Null reply when no list exists to pop from regardless of count is provided or not?\r\n\r\n**To reproduce**\r\n\r\nRun the command against Redis 6.2.6\r\n\r\nLPOP NONEXISTINGLIST 10\r\n\r\n**Expected behavior**\r\n\r\n>  \"*-1\\r\\n\"\r\n\r\n**Additional Information**\r\n[Issue](https://github.com/redis/redis-doc/issues/1734) was first raised in Redis doc.\r\n",
+  "state": "closed",
+  "created_at": "2022-01-10T10:35:16Z",
+  "updated_at": "2022-01-11T12:26:13Z",
+  "closed_at": "2022-01-11T12:26:13Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1008861181,
+      "user": "oranagra",
+      "created_at": "2022-01-10T13:12:33Z",
+      "body": "looks like you're right.\r\nthis is a bug in redis 6.2 when COUNT was added\r\n\r\n```diff\r\n-    robj *o = lookupKeyWriteOrReply(c, c->argv[1], shared.null[c->resp]);\r\n+    robj *o = lookupKeyWriteOrReply(c, c->argv[1], hascount? shared.nullarray[c->resp]: shared.null[c->resp]);\r\n```\r\n\r\nfixing it is a breaking change, but we may wanna do that in 7.0\r\n@itamarhaber please ack."
+    },
+    {
+      "id": 1008907173,
+      "user": "enjoy-binbin",
+      "created_at": "2022-01-10T14:08:47Z",
+      "body": "Yes. i also noticed it when we introduced LMPOP, i think we can do that in 7.0"
+    },
+    {
+      "id": 1008994699,
+      "user": "itamarhaber",
+      "created_at": "2022-01-10T15:28:46Z",
+      "body": "Another mia culpea - acked."
+    },
+    {
+      "id": 1009001586,
+      "user": "oranagra",
+      "created_at": "2022-01-10T15:36:00Z",
+      "body": "ok. @enjoy-binbin if you have time, i'd love a PR"
+    }
+  ]
+}

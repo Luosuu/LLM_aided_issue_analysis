@@ -1,0 +1,18 @@
+{
+  "issue_number": 9154.0,
+  "title": "[BUG] the function - lzf_compress Why use it without initialization",
+  "body": "**Describe the bug**\r\n\r\nDefine htab at line  107.\r\nhttps://github.com/redis/redis/blob/unstable/src/lzf_c.c#L107\r\n\r\nInitialize at line 135,But it doesn't execute, because this macro \"INIT_HTAB\"   always going to be 0.\r\nhttps://github.com/redis/redis/blob/unstable/src/lzf_c.c#L134\r\n\r\nWhy use it without initialization at line 146.\r\nhttps://github.com/redis/redis/blob/unstable/src/lzf_c.c#L146\r\n\r\nLook forward to your kind advice.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-06-28T04:22:40Z",
+  "updated_at": "2021-06-28T05:06:49Z",
+  "closed_at": "2021-06-28T05:06:49Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 869358388,
+      "user": "oranagra",
+      "created_at": "2021-06-28T05:06:49Z",
+      "body": "please look at the documentation of lzf.\r\n```c\r\n/*\r\n * You may choose to pre-set the hash table (might be faster on some\r\n * modern cpus and large (>>64k) blocks, and also makes compression\r\n * deterministic/repeatable when the configuration otherwise is the same).\r\n */\r\n#ifndef INIT_HTAB\r\n# define INIT_HTAB 0\r\n#endif\r\n```\r\n\r\nfrom my understanding, the initialization of this array is optional. it affects performance, and can cause the compression to be deterministic.\r\nwe don't care for deterministic compression, so we can leave it uninitialized."
+    }
+  ]
+}

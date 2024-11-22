@@ -1,0 +1,18 @@
+{
+  "issue_number": 13254.0,
+  "title": "[BUG] CWE: 664 ",
+  "body": "Description of the bug:\r\n---------------------------\r\nAfter I used Cppcheck to perform static analysis of the source code of Redis I discoverd the following error: \r\nCWE 664 : \"va_list ‘_cpy’ used before va_start() was called\" in deps/hiredis/hiredis.c\r\n\r\nI'm not sure yet if it's a false positive or not, but if it's really a bug, it might affect the good functionality of the project.\r\n",
+  "state": "open",
+  "created_at": "2024-05-09T12:43:02Z",
+  "updated_at": "2024-05-09T13:15:10Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2102639740,
+      "user": "sundb",
+      "created_at": "2024-05-09T13:15:10Z",
+      "body": "i think it is a false positive.\r\nthe code copies `ap` to `_cpy` via `va_copy()`, so it doesnt need a va_start().\r\n"
+    }
+  ]
+}

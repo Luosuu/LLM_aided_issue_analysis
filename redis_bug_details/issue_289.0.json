@@ -1,0 +1,27 @@
+{
+  "issue_number": 289.0,
+  "title": "src/dict.c uses predictable key hashing algorythm",
+  "body": "Hi there,\n\nI'm not a user of Redis, but looking through the hash implementation in src/dict.c from the 2.4.5 release, it appears that Redis is vulnerable to the hash key algorithmic complexity attacks documented in oCert-2011-003.\n\nhttp://www.ocert.org/advisories/ocert-2011-003.html\n\nGenerally this is fixed by generating a random hash seed at startup and beginning the key hashing loop with the random seed instead of 0.\n",
+  "state": "closed",
+  "created_at": "2012-01-08T00:30:26Z",
+  "updated_at": "2012-02-02T14:54:01Z",
+  "closed_at": "2012-02-02T14:54:01Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 3512943,
+      "user": "antirez",
+      "created_at": "2012-01-16T16:04:47Z",
+      "body": "This complexity attack against hash tables is known since... forever :) Not sure why it became famous overnight, btw it may be worth fixing, but we should carefully consider if there is some impact in the randomization of the hash function. I think it should be fine given that a given Redis instance has the same hash seed for all its live... but I'll make sure to think at it twice, and finally I'll implement it. Thanks for reporting.\n\nIt is worth to note that maybe next week a similar complexity issue may become famous for qsort, as you know qsort can be forced to become quadratic, we should check that this is not the case in our implementation.\n"
+    },
+    {
+      "id": 3779084,
+      "user": "antirez",
+      "created_at": "2012-02-02T14:54:01Z",
+      "body": "Fixed, thanks, closing.\n"
+    }
+  ]
+}

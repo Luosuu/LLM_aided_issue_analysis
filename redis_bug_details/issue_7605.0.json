@@ -1,0 +1,20 @@
+{
+  "issue_number": 7605.0,
+  "title": "[BUG] \"make test\" fails with [exception]: Executing test client: wrong # args: should be \"close channelId\".",
+  "body": "VERSION: 6.0.6\r\nDESCRIPTION: Post-build automated testing fails with error.\r\nREPRODUCTION: run `make test`\r\nEXPECTATION: Success.\r\n\r\nI've performed fresh, clean builds on three different macOS systems: two High Sierra, one Mojave. The results on each are the same. Building is successful; however, `make test` fails identically for each system.\r\n\r\n```\r\n. . .\r\n[ok]: XADD with MAXLEN > xlen can propagate correctly\r\n[ok]: Connect multiple replicas at the same time (issue #141), master diskless=yes, replica diskless=disabled\r\n[ok]: pending querybuf: check size of pending_querybuf after set a big value\r\n[ok]: Check for memory leaks (pid 12040)\r\n[ok]: XADD with ~ MAXLEN can propagate correctly\r\n[ok]: Check for memory leaks (pid 11306)\r\n\r\nLogged warnings (pid 9472):\r\n(none)\r\n\r\n[exception]: Executing test client: wrong # args: should be \"close channelId\".\r\nwrong # args: should be \"close channelId\"\r\n    while executing\r\n\"close $fd write\"\r\n    (\"uplevel\" body line 20)\r\n    invoked from within\r\n\"uplevel 1 $code\"\r\n    (procedure \"test\" line 47)\r\n    invoked from within\r\n\"test \"Non-interactive non-TTY CLI: $name\" $code\"\r\n    (procedure \"test_nontty_cli\" line 2)\r\n    invoked from within\r\n\"test_nontty_cli \"Piping raw protocol\" {\r\n        set fd [open_cli \"--pipe\"]\r\n        fconfigure $fd -blocking true\r\n\r\n        # Create a new deferring cli...\"\r\n    (\"uplevel\" body line 259)\r\n    invoked from within\r\n\"uplevel 1 $code \"\r\n    (procedure \"start_server\" line 3)\r\n    invoked from within\r\n\"start_server {tags {\"cli\"}} {\r\n    proc open_cli {{opts \"-n 9\"}} {\r\n        set ::env(TERM) dumb\r\n        set cmdline [rediscli [srv port] $opts]\r\n       ...\"\r\n    (file \"tests/integration/redis-cli.tcl\" line 3)\r\n    invoked from within\r\n\"source $path\"\r\n    (procedure \"execute_test_file\" line 4)\r\n    invoked from within\r\n\"execute_test_file $data\"\r\n    (procedure \"test_client_main\" line 10)\r\n    invoked from within\r\n\"test_client_main $::test_server_port \"\r\nKilling still running Redis server 8840\r\nKilling still running Redis server 8845\r\nKilling still running Redis server 8850\r\nKilling still running Redis server 9268\r\nKilling still running Redis server 9285\r\nKilling still running Redis server 9313\r\nKilling still running Redis server 9319\r\nKilling still running Redis server 9824\r\nKilling still running Redis server 9841\r\nKilling still running Redis server 10286\r\nKilling still running Redis server 10296\r\nKilling still running Redis server 10612\r\nKilling still running Redis server 10929\r\nKilling still running Redis server 11072\r\nKilling still running Redis server 11078\r\nKilling still running Redis server 11293\r\nKilling still running Redis server 11306\r\nKilling still running Redis server 11603\r\nKilling still running Redis server 11609\r\nKilling still running Redis server 11621\r\nKilling still running Redis server 11630\r\nKilling still running Redis server 11909\r\nKilling still running Redis server 11923\r\nKilling still running Redis server 12117\r\nmake[1]: *** [test] Error 1\r\nmake: *** [test] Error 2\r\n$ \r\n```\r\n",
+  "state": "closed",
+  "created_at": "2020-08-02T06:14:29Z",
+  "updated_at": "2020-08-02T21:41:04Z",
+  "closed_at": "2020-08-02T11:23:03Z",
+  "labels": [
+    "status:duplicate"
+  ],
+  "comments_data": [
+    {
+      "id": 667661457,
+      "user": "yossigo",
+      "created_at": "2020-08-02T11:22:07Z",
+      "body": "@LiamFry Thanks for this report! This has been fixed in #7548, and you can work around it if you use TCL 8.6."
+    }
+  ]
+}

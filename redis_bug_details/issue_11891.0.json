@@ -1,0 +1,18 @@
+{
+  "issue_number": 11891.0,
+  "title": "[BUG] RESP3 spec \"Exponential format is invalid\" but redis returns them",
+  "body": "**Describe the bug**\r\n\r\nAccording to the [RESP3 spec](https://github.com/redis/redis-specifications/blob/master/protocol/RESP3.md), under floats, it says \"Exponential format is invalid\", although Redis returns floats on exponent format.\r\n\r\n**To reproduce**\r\n\r\n```\r\n$ telnet localhost 6379\r\nTrying ::1...\r\nConnected to localhost.\r\nEscape character is '^]'.\r\nhello 3\r\n(...snip...)\r\nzadd z 1e100 highnumber\r\n:1\r\nzscore z highnumber\r\n,1e+100\r\n\r\n```\r\n\r\n**Expected behavior**\r\n\r\nExpect the RESP3 spec to match the actual Redis behaviour.\r\n\r\n**Additional information**\r\n\r\nIt'd be a breaking change to change this in Redis, so I suggest updating the RESP3 spec instead.",
+  "state": "closed",
+  "created_at": "2023-03-09T07:55:00Z",
+  "updated_at": "2023-03-12T10:26:42Z",
+  "closed_at": "2023-03-12T10:26:42Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1461543487,
+      "user": "mgravell",
+      "created_at": "2023-03-09T08:21:43Z",
+      "body": "Well that makes my ticket on the old spec repo doubly funny: https://github.com/antirez/RESP3/issues/37 :)"
+    }
+  ]
+}

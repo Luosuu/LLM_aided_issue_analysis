@@ -1,0 +1,18 @@
+{
+  "issue_number": 7616.0,
+  "title": "[BUG]",
+  "body": "VERSION: 6.0.6\r\nDESCRIPTION: Post-build automated testing fails with error.\r\nREPRODUCTION: run make test\r\nEXPECTATION: Success.\r\n\r\nMy version of centos8.2.2004 comes with tclsh 8.5.9\r\nI install 8.6.10 then re-ran make test\r\nI now have some fresh errors:\r\n\r\n[ok]: Detect write load to master\r\n[ok]: Client output buffer soft limit is enforced if time is overreached\r\n[54/56 done]: unit/obuf-limits (134 seconds)\r\n[ok]: Master stream is correctly processed while the replica has a script in -BUSY state\r\n[ok]: Test replication partial resync: ok psync (diskless: yes, swapdb, reconnect: 1)\r\n[ok]: slave fails full sync and diskless load swapdb recovers it\r\n[ok]: Slave should be able to synchronize with the master\r\n[ok]: Detect write load to master\r\n\r\n[exception]: Executing test client: tail: cannot open '+30' for reading: No such file or directory.\r\ntail: cannot open '+30' for reading: No such file or directory\r\n    while executing\r\n\"exec tail +$from_line < $stdout\"\r\n    (procedure \"wait_for_log_message\" line 5)\r\n    invoked from within\r\n\"wait_for_log_message -1 \"*Loading DB in memory*\" $loglines 2000 1\"\r\n    (\"uplevel\" body line 43)\r\n    invoked from within\r\n\"uplevel 1 $code \"\r\n    (procedure \"start_server\" line 3)\r\n    invoked from within\r\n\"start_server {} {\r\n            set master [srv 0 client]\r\n            set master_host [srv 0 host]\r\n            set master_port [srv 0 port]\r\n",
+  "state": "closed",
+  "created_at": "2020-08-06T02:02:54Z",
+  "updated_at": "2020-08-06T11:53:09Z",
+  "closed_at": "2020-08-06T11:53:09Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 669881931,
+      "user": "oranagra",
+      "created_at": "2020-08-06T11:53:09Z",
+      "body": "@xiegithub why do you keep opening more issues about the same (already resolved) problem??\r\nhttps://github.com/redis/redis/issues/7614\r\nhttps://github.com/redis/redis/issues/7607\r\n\r\np.s. here's where it was resolved:\r\nhttps://github.com/redis/redis/pull/7543"
+    }
+  ]
+}

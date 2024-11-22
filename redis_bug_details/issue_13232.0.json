@@ -1,0 +1,36 @@
+{
+  "issue_number": 13232.0,
+  "title": "[BUG] Redis key present in cache even after deleted by first thread and reading around same point of time by other thread.",
+  "body": "When one thread deleted the cached key and around same point of time another thread doing following task Redis responded incorrectly:\r\nRetrieving remaining time to live response is null.\r\nChecking whether key exist or not: key present in cache even after deleted by first thread.\r\nChecking value of key: value present in cache even after deleted by first thread.\r\n\r\n\r\n**To reproduce**\r\n\r\nDelete the key by a thread.\r\nWith other thread at same time check key exist or not after deleted by first thread.\r\nResult: Key exists\r\n\r\n**Expected behavior**\r\nKey should not exist after deleted.",
+  "state": "open",
+  "created_at": "2024-04-23T05:13:47Z",
+  "updated_at": "2024-05-06T01:42:55Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2071434606,
+      "user": "mgravell",
+      "created_at": "2024-04-23T05:25:34Z",
+      "body": "\"around same point of time\" is vague, and doesn't give enough information to know whether the server is doing anything incorrect here. Delays and overtakes are possible at pretty much every point unless you are talking about two messages on the **same connection** being processed out of order, so for close events: it becomes very hard to say which cam first - the GET or the DEL/UNLINK, i.e. what evidence do you have for the \"after\" in the sentence \"after deleted by first thread\"?"
+    },
+    {
+      "id": 2071448775,
+      "user": "ParasGH",
+      "created_at": "2024-04-23T05:37:55Z",
+      "body": "\"around the same point\" means first thread deleted the key then after few mill/microseconds second thread check key existence. The evidence for \"after\" based on retrieving remaining time to live for key as NULL after deleted by first thread even key having enough remaining time to live before deleting the key."
+    },
+    {
+      "id": 2089567957,
+      "user": "ParasGH",
+      "created_at": "2024-05-02T04:41:54Z",
+      "body": "Looking forward for fixes of issue, is any progress?"
+    },
+    {
+      "id": 2095062435,
+      "user": "sundb",
+      "created_at": "2024-05-06T01:42:54Z",
+      "body": "@ParasGH did you confirm that the messages of the two threads are delivered in the order you expect?\r\ncould you try to use `MONITOR` to verify it?"
+    }
+  ]
+}

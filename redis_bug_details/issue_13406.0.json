@@ -1,0 +1,86 @@
+{
+  "issue_number": 13406.0,
+  "title": "[BUG] TS.REVRANGE return value is table type [LUA]",
+  "body": "**Describe the bug**\r\n\r\nA short description of the bug.\r\n\r\n**To reproduce**\r\n\r\nmy code:\r\n```\r\nlocal function get_range_last(keys, args)\r\n    local key = args[1]\r\n    local start_time = args[2]\r\n    local end_time = args[3]\r\n    local result = redis.call('TS.REVRANGE', key, start_time, end_time, 'COUNT', 1, 'LATEST')\r\n    \r\n    redis.log(redis.LOG_NOTICE, string.format(\"get_range_last for key %s: type of result is %s\", key, type(result)))\r\n    redis.log(redis.LOG_NOTICE, string.format(\"get_range_last for key %s: #result is %s\", key, #result))\r\n    \r\n    if result and #result > 0 then\r\n        redis.log(redis.LOG_NOTICE, string.format(\"get_range_last for key %s: type of result[1] is %s\", key, type(result[1])))\r\n        redis.log(redis.LOG_NOTICE, string.format(\"get_range_last for key %s: #result[1] is %s\", key, #result[1]))\r\n        \r\n        if type(result[1]) == \"table\" and #result[1] == 2 then\r\n            local timestamp = result[1][1]\r\n            local value = result[1][2]\r\n            redis.log(redis.LOG_NOTICE, string.format(\"get_range_last for key %s: timestamp = %s, value = %s\", key, tostring(timestamp), tostring(value)))\r\n            return value\r\n        else\r\n            redis.log(redis.LOG_WARNING, string.format(\"get_range_last for key %s: Unexpected result structure\", key))\r\n            return nil\r\n        end\r\n    else\r\n        return nil\r\n    end\r\nend\r\n```\r\n\r\nredis log:\r\n```\r\n2024-07-10 13:57:26 8:M 10 Jul 2024 05:57:26.079 * get_range_last for key aaa:1m:open: type of result is table\r\n2024-07-10 13:57:26 8:M 10 Jul 2024 05:57:26.079 * get_range_last for key aaa:1m:open: #result is 1\r\n2024-07-10 13:57:26 8:M 10 Jul 2024 05:57:26.079 * get_range_last for key aaa:1m:open: type of result[1] is table\r\n2024-07-10 13:57:26 8:M 10 Jul 2024 05:57:26.079 * get_range_last for key aaa:1m:open: #result[1] is 2\r\n2024-07-10 13:57:26 8:M 10 Jul 2024 05:57:26.079 * get_range_last for key aaa:1m:open: timestamp = 1720574700, value = table: 0x563ee2039770\r\n```\r\n\r\nin redis-cli ,  it is 20 , not table\r\n```\r\n127.0.0.1:6379> TS.REVRANGE aaa:1m:volume - + COUNT 1 LASTEST\r\n1) 1) (integer) 1720574700\r\n   2) 20\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2024-07-10T06:06:12Z",
+  "updated_at": "2024-07-24T03:09:45Z",
+  "closed_at": "2024-07-24T03:09:45Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 2222495414,
+      "user": "sundb",
+      "created_at": "2024-07-11T09:45:21Z",
+      "body": "@eromoe did you use RESP3? if so 20 should be `{double: 20}` in lua, you can print is by `result[1][2]['double']`"
+    },
+    {
+      "id": 2222627721,
+      "user": "eromoe",
+      "created_at": "2024-07-11T10:56:35Z",
+      "body": "Now I use this to get the value\r\n```\r\nlocal function table_to_int(value)\r\n    if type(value) ~= \"table\" then\r\n        return tonumber(value)\r\n    end\r\n\r\n    local first_key, first_value = next(value)\r\n    if first_value == nil then\r\n        return nil\r\n    end\r\n\r\n    return table_to_int(first_value)\r\nend\r\n```\r\n\r\n@sundb  I don't know where to check,  I am using docker redis-stack-server:lastest .  \r\nIt's very counter-intuitive and cost me much time to figure out. "
+    },
+    {
+      "id": 2222650600,
+      "user": "sundb",
+      "created_at": "2024-07-11T11:09:04Z",
+      "body": "because the second reply of `TS.REVRANGE` is double, please ref `Array reply of (Integer reply, Simple string reply) pairs representing (timestamp, value(double))` https://redis.io/docs/latest/commands/ts.revrange/\r\n\r\nbecausedouble is represented as string in RESP2, but it is a number in RESP3, but in LUA all number type are double, so in order to distinguish between integer and double, we use table to represent double.\r\n\r\n\r\n```\r\nlocal function table_to_int(value)\r\n    if type(value) ~= \"table\" then\r\n        return tonumber(value)\r\n    end\r\n\r\n    local first_key, first_value = next(value)\r\n    if first_value == nil then\r\n        return nil\r\n    end\r\n\r\n    return table_to_int(first_value)\r\nend\r\n```\r\nyou don't need to validate it, instead, you can use value['double'] directly."
+    },
+    {
+      "id": 2241904157,
+      "user": "eromoe",
+      "created_at": "2024-07-22T01:59:46Z",
+      "body": "@sundb \r\n\r\n`result[1][2]['double']` is nil\r\n\r\nI have tried \r\n```\r\nlocal function get_range_last(keys, args)\r\n    local key = args[1]\r\n    local start_time = args[2]\r\n    local end_time = args[3]\r\n\r\n    -- TS.REVRANGE qmt:000001.SZ:1m:open 0 1721612760000 1721612760000 COUNT 1 LATEST\r\n    local result = redis.call('TS.REVRANGE', key, start_time, end_time, 'COUNT', 1, 'LATEST')\r\n    \r\n    if result and #result > 0 then\r\n        return result[1][2]['double']\r\n    else\r\n        return nil\r\n    end\r\nend\r\n```\r\n\r\n```\r\n127.0.0.1:6379> TS.REVRANGE qmt:000001.SZ:1m:open 0 1721612760000 1721612760000 COUNT 1 LATEST\r\n1) 1) (integer) 1721612760000\r\n   2) 10.27\r\n127.0.0.1:6379> FCALL get_range_last 0 qmt:000001.SZ:1m:open 1721612760000 1721612760000\r\n(nil)\r\n```"
+    },
+    {
+      "id": 2241923760,
+      "user": "eromoe",
+      "created_at": "2024-07-22T02:24:44Z",
+      "body": "I found the result is {'ok' : value} ,  this is unconsistent with redis-cli api ! \r\n\r\n```\r\nlocal function print_table(t)\r\n    redis.log(redis.LOG_NOTICE, cjson.encode(t))\r\nend\r\n\r\n            local timestamp = result[1][1]\r\n            local value = result[1][2]\r\n            print_table(value)\r\n```\r\n\r\n![image](https://github.com/user-attachments/assets/56d19fb3-0ca3-4c62-a9c2-5da30b3e923d)\r\n"
+    },
+    {
+      "id": 2241938693,
+      "user": "sundb",
+      "created_at": "2024-07-22T02:44:10Z",
+      "body": "> @sundb\r\n> \r\n> `result[1][2]['double']` is nil\r\n> \r\n> I have tried\r\n> \r\n> ```\r\n> local function get_range_last(keys, args)\r\n>     local key = args[1]\r\n>     local start_time = args[2]\r\n>     local end_time = args[3]\r\n> \r\n>     -- TS.REVRANGE qmt:000001.SZ:1m:open 0 1721612760000 1721612760000 COUNT 1 LATEST\r\n>     local result = redis.call('TS.REVRANGE', key, start_time, end_time, 'COUNT', 1, 'LATEST')\r\n>     \r\n>     if result and #result > 0 then\r\n>         return result[1][2]['double']\r\n>     else\r\n>         return nil\r\n>     end\r\n> end\r\n> ```\r\n> \r\n> ```\r\n> 127.0.0.1:6379> TS.REVRANGE qmt:000001.SZ:1m:open 0 1721612760000 1721612760000 COUNT 1 LATEST\r\n> 1) 1) (integer) 1721612760000\r\n>    2) 10.27\r\n> 127.0.0.1:6379> FCALL get_range_last 0 qmt:000001.SZ:1m:open 1721612760000 1721612760000\r\n> (nil)\r\n> ```\r\n\r\nyou confuse the difference between reading it in Lua script and replying it to the client.\r\nread it in lua\r\n```\r\nlocal d = result[1][2]['double']\r\n```\r\n\r\nreply the double to client\r\n```\r\nreturn result[1][2]\r\n```\r\n\r\nNote that the format Lua gives you and the format you give back to Lua is the same, are all RESP3 double."
+    },
+    {
+      "id": 2241952284,
+      "user": "sundb",
+      "created_at": "2024-07-22T03:01:39Z",
+      "body": "> I found the result is {'ok' : value} , this is unconsistent with redis-cli api !\r\n\r\nbecause you are using RESP2, the simple string format is `{ok: <string>}`"
+    },
+    {
+      "id": 2241984574,
+      "user": "eromoe",
+      "created_at": "2024-07-22T03:44:10Z",
+      "body": "@sundb I get it, check by `hello` find it is proto 2 on redis 7.25 , so resp3 is not enabled by default in latest docker image .\r\n\r\nAnd the display problem in below is also by resp2 ? \r\n- here `ts.get` display value as double, but `fcall` return displays as integer (double in actually )\r\n- `ts.add ` the  `fcall` return value to a new key, `ts.get` that new key would display as double too .\r\nThis behaviour is really strange ..\r\n```\r\n127.0.0.1:6379> ts.get qmtagg:000010.SZ:1m:open\r\n1) (integer) 1721619180000\r\n2) 1.7\r\n127.0.0.1:6379> FCALL get_range_last 0 qmtagg:000010.SZ:1m:open 1721619180000 1721619180000\r\n(integer) 1\r\n```"
+    },
+    {
+      "id": 2241993955,
+      "user": "sundb",
+      "created_at": "2024-07-22T03:57:39Z",
+      "body": "> @sundb I get it, check by `hello` find it is proto 2 on redis 7.25 , so resp3 is not enabled by default in latest docker image .\r\n> \r\n> And the display problem in below is also by resp2 ?\r\n> \r\n> * here `ts.get` display value as double, but `fcall` return displays as integer (double in actually )\r\n> * `ts.add ` the  `fcall` return value to a new key, `ts.get` that new key would display as double too .\r\n>   This behaviour is really strange ..\r\n> \r\n> ```\r\n> 127.0.0.1:6379> ts.get qmtagg:000010.SZ:1m:open\r\n> 1) (integer) 1721619180000\r\n> 2) 1.7\r\n> 127.0.0.1:6379> FCALL get_range_last 0 qmtagg:000010.SZ:1m:open 1721619180000 1721619180000\r\n> (integer) 1\r\n> ```\r\n\r\nif you want to return double to client , you should return `{double : 1.7}', otherwise, it will be treated as an integer."
+    },
+    {
+      "id": 2242003204,
+      "user": "sundb",
+      "created_at": "2024-07-22T04:07:14Z",
+      "body": "@eromoe please also ref https://redis.io/docs/latest/develop/interact/programmability/lua-api/#lua-to-resp3-type-conversion\r\nyou need to know the lua and redis communication format."
+    },
+    {
+      "id": 2242086491,
+      "user": "eromoe",
+      "created_at": "2024-07-22T04:54:39Z",
+      "body": "Thank you very much for explanation, that inconsistent in redis luaenv is really hurt for newbie to lua .\r\nI think everyone use lua in redis would enconter this and the display problem, it would be much better to have a trouble shooting chapter in lua section, https://redis.io/docs/latest/develop/interact/programmability/lua-api/ .Because not easy to reach the convertion detail, Google and Stackoverflow don't contain similar questions and the LLMs also reply wrong answers."
+    },
+    {
+      "id": 2242102378,
+      "user": "sundb",
+      "created_at": "2024-07-22T05:11:26Z",
+      "body": "@eromoe i'm had been there before, feel free to call me here."
+    }
+  ]
+}

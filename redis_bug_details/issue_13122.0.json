@@ -1,0 +1,72 @@
+{
+  "issue_number": 13122.0,
+  "title": "[BUG] Migrate hashes with million of keys timeout, and causes failover",
+  "body": "**Describe the bug**\r\n\r\nWhile re-shard operation, if the key to migrate is an hashset, depending on the size and number of fields in hashset, the migrate operation time out and causes Redis to failover.\r\n\r\nIn our case, we have a hashset of size 300 MB and 3 Million fields.\r\n\r\nThe main problem is as migrate is blocking command, it blocks the primary, due to which Redis thinks the primary is down and causes a failover.\r\n\r\nStackExchange Error Logs:\r\n\r\n```\r\nTimeStamp: 2024-03-08T16:53:32.534223Z\r\nTimeout awaiting response (outbound=0KiB, inbound=0KiB, 4100ms elapsed, timeout is 4000ms), command=MIGRATE, next: some_random_key, inst: 0, qu: 0, qs: 0, aw: False, bw: SpinningDown, rs: ReadAsync, ws: Idle, in: 0, last-in: 2, cur-in: 0, sync-ops: 0, async-ops: 2193844, serverEndpoint: 172.20.0.6:6380, conn-sec: 670.01, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: mtcache000002(SE.Redis-v2.6.116.40240), PerfCounterHelperkeyHashSlot: 9271, IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=1,Free=32766,Min=8,Max=32767), POOL: (Threads=6,QueuedItems=0,CompletedItems=6635139), v: 2.6.116.40240 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts),\r\n```\r\n\r\nWe get two of such errors before Redis failover, in redis, the node_timeout is set to 5 seconds.\r\n\r\nRedis Logs:\r\n\r\n```\r\n16:53:35.041 * FAIL message received from 1a52537ed371931ec4436e02afdaae61fd061c17 about 42b37d2039622543514545a6cba3807e4db0b776\r\n16:53:35.133 # Start of election delayed for 805 milliseconds (rank #0, offset 1269560724769).\r\n16:53:36.736 # Configuration change detected. Reconfiguring myself as a replica of 42ac8718f2670e442fe598923f6069a66148e717\r\n16:53:36.739 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.\r\n```\r\n\r\n`SLOWLOG output, showing that migrate took 9.3 seconds`\r\n\r\n<img width=\"185\" alt=\"image\" src=\"https://github.com/redis/redis/assets/11423719/cb2c25e6-a781-423d-bef5-5e49f5f175a3\">\r\n\r\n\r\n\r\nWe are looking for:\r\n\r\n- How to migrate large hashes/hashset\r\n- How to avoid migrate time out to cause Redis Primary failover?\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-03-08T23:58:43Z",
+  "updated_at": "2024-03-13T16:03:14Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1988224376,
+      "user": "javedsha",
+      "created_at": "2024-03-11T11:28:01Z",
+      "body": "@antirez @oranagra - any advice on above issue."
+    },
+    {
+      "id": 1988317855,
+      "user": "oranagra",
+      "created_at": "2024-03-11T12:22:25Z",
+      "body": "i think this is a known limitation that doesn't yet have a solution.\r\nthere are some ideas planned but for the time being, i think you have to divide the key.\r\n@madolson correct me if i'm wrong."
+    },
+    {
+      "id": 1988345724,
+      "user": "javedsha",
+      "created_at": "2024-03-11T12:37:55Z",
+      "body": "@oranagra - we don't mind loosing the key during migration, but we want to avoid Primary going down (and hence a failover) because Migrate is blocking it, will this work?\r\n\r\nmigrate ip port big_hash 0 1000 -> `Migrate time out` set to 1 sec, and `cluster-node-timeout` set to 5 secs\r\n\r\n_Note: We cannot divide the key from client end, we don't own the client._"
+    },
+    {
+      "id": 1988381811,
+      "user": "oranagra",
+      "created_at": "2024-03-11T12:57:29Z",
+      "body": "related to #3396 and #11395"
+    },
+    {
+      "id": 1988548066,
+      "user": "javedsha",
+      "created_at": "2024-03-11T14:16:07Z",
+      "body": "Thanks @oranagra for the related links.\r\nSo after reading those, just to be sure - setting lower timeout on migrate won't work, correct? The only way to stop the failover is to increase the 'cluster-node-timeout'"
+    },
+    {
+      "id": 1988769554,
+      "user": "oranagra",
+      "created_at": "2024-03-11T15:51:14Z",
+      "body": "or break keys to smaller pieces, which i understand isn't an option in your case."
+    },
+    {
+      "id": 1989830441,
+      "user": "madolson",
+      "created_at": "2024-03-12T02:17:44Z",
+      "body": "Yeah, oranagra is right about the current limitations. We've talked about various approaches to make the impact on the source and target less impactful, but haven't made a lot of progress towards fixing it. The cluster node timeout solution makes sense. You could also make some minor changes to the redis-cli to check if it's a large hash, and if it is move it piece by piece using HSCAN instead DUMP + RESTORE.\r\n\r\n@PingXie FYI, this is related to what we were discussing about slot migration causing target nodes to timeout if we stick with the restore based approach. "
+    },
+    {
+      "id": 1993702842,
+      "user": "PingXie",
+      "created_at": "2024-03-13T07:09:52Z",
+      "body": "> we have a hashset of size 300 MB and 3 Million fields.\r\n\r\nIn this particular case, I think it is the \"3 million fields\" that played a major role in \"that migrate took 9.3 seconds\".\r\n\r\n>we don't mind loosing the key during migration\r\n\r\nLooks like you prioritize availability over durability. In addition to what @madolson suggested above, another short-term mitigation could be checking the [number of fields in the hash key](https://redis.io/commands/hlen/) before migrating it or just dropping it if it contains too many fields. \r\n\r\n>The only way to stop the failover is to increase the 'cluster-node-timeout'\r\n\r\nThis would increase the failover time in case of a true failure. If you have a stable networking environment where you don't expect failures most of the time, I wouldn't suggest increasing it.\r\n\r\n\r\n>@PingXie FYI, this is related to what we were discussing about slot migration causing target nodes to timeout if we stick with the restore based approach.\r\n\r\nAgreed. @oranagra FYI, @madolson and I discussed another option (in the context of atomic slot migration) which essentially implements slot-level replication. Here is the high level flow\r\n\r\n1. source (parent) forks a child with a set of slots to migrate\r\n2. child streams slots to be migrated in the RDB format (same as replication)\r\n3. target needs to support no-blocking load of the RDB stream (think of co-routines)\r\n4. source (parent) starts capturing updates in the migrating slots right after forks \r\n5. child completes streaming\r\n6. source (parent) pauses clients writing to these slots\r\n7. source replicates captured updates to target\r\n8. source starts the slot ownership transfer process (depending on cluster v1 vs v2, we could take different paths)\r\n9. source unblocks paused clients with `-MOVED <target>`\r\n\r\nany failure on the target before completing step 8 would abort the migrating process on the source.\r\n"
+    },
+    {
+      "id": 1993714096,
+      "user": "enjoy-binbin",
+      "created_at": "2024-03-13T07:20:23Z",
+      "body": "> source (parent) forks a child with a set of slots to migrate\r\nchild streams slots to be migrated in the RDB format (same as replication)\r\ntarget needs to support no-blocking load of the RDB stream (think of co-routines)\r\nsource (parent) starts capturing updates in the migrating slots right after forks\r\nchild completes streaming\r\nsource (parent) pauses clients writing to these slots\r\nsource replicates captured updates to target\r\nsource starts the slot ownership transfer process (depending on cluster v1 vs v2, we could take different paths)\r\nsource unblocks paused clients with -MOVED <target>\r\n\r\nIn our fork (Tencent Cloud), our cluster expansion use the similar way, we will generate a slot RDB for the corresponding slot range for transmission, the cluster nodes are not online until the RDB is loaded."
+    },
+    {
+      "id": 1994795514,
+      "user": "PingXie",
+      "created_at": "2024-03-13T16:03:12Z",
+      "body": "> the cluster nodes are not online until the RDB is loaded\n\nDid you mean \"slots\"? Nodes will need to remain online as other slots still need to be served. This is also why the target needs to do *nonblocking* load in this case."
+    }
+  ]
+}

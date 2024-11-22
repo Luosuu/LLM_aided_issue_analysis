@@ -1,0 +1,96 @@
+{
+  "issue_number": 7717.0,
+  "title": "[BUG] Disk Based Replication Causing OOM in Master (v6.0.5)",
+  "body": "The Redis master starting the BGSAVE on disk, Within a few mins, the default \"client-output-buffer-limit\" is reached and slave client connection (psync) getting closed. But the master didn't kill the RDB saving (child) process. So, the Copy-On-Write buffer kept accumulating. Which led to the OOM in master. Attaching the logs below.\r\n\r\n**Master Log**\r\n\r\n> 11292:M 26 Aug 2020 22:07:58.489 * Starting BGSAVE for SYNC with target: disk\r\n> 11292:M 26 Aug 2020 22:07:58.543 * Background saving started by pid 15513\r\n> **11292:M 26 Aug 2020 22:09:07.780 # Client id=107 addr=x.x.x.x:55004 fd=28 name= age=69 idle=69 flags=S db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=16304 oll=13092 omem=268438368 events=r cmd=psync user=default scheduled to be closed ASAP for overcoming of output buffer limits.**\r\n> 11292:M 26 Aug 2020 22:09:07.787 # Connection with replica x.x.x.x:6379 lost.\r\n> 11292:M 26 Aug 2020 22:14:08.749 * Replica x.x.x.x:6379 asks for synchronization\r\n> 11292:M 26 Aug 2020 22:14:08.757 * Full resync requested by replica x.x.x.x:6379\r\n> **11292:M 26 Aug 2020 22:14:08.757 * Can't attach the replica to the current BGSAVE. Waiting for next BGSAVE for SYNC**\r\n\r\n**Whereas the diskless replication working as expected in 6.0.5.**  https://github.com/redis/redis/issues/6866 \r\n\r\n> 19538:M 26 Aug 2020 22:27:58.351 * Starting BGSAVE for SYNC with target: replicas sockets\r\n> 19538:M 26 Aug 2020 22:27:58.407 * Background RDB transfer started by pid 21474\r\n> **19538:M 26 Aug 2020 22:29:28.268 # Client id=53 addr=x.x.x.x:55408 fd=28 name= age=96 idle=96 flags=S db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=16362 oll=8389 omem=172008056 events=r cmd=psync user=default scheduled to be closed ASAP for overcoming of output buffer limits.**\r\n> 19538:M 26 Aug 2020 22:29:28.281 # Connection with replica x.x.x.x:6379 lost.\r\n> 19538:M 26 Aug 2020 22:29:29.076 # Diskless rdb transfer, last replica dropped, killing fork child.\r\n> 21474:signal-handler (1598461169) Received SIGUSR1 in child, exiting now.\r\n> **19538:M 26 Aug 2020 22:29:29.481 # Background transfer terminated by signal 10**\r\n\r\n \r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-08-27T08:26:12Z",
+  "updated_at": "2020-09-22T06:47:58Z",
+  "closed_at": "2020-09-22T06:47:58Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 681852321,
+      "user": "oranagra",
+      "created_at": "2020-08-27T10:02:22Z",
+      "body": "@ganeshkumarganesan i assume that by OOM you mean that the kernel killed the process.\r\nThe disconnection of replicas when their output buffer is high is a feature that is only meant to release these output buffers, it's a completely separate than the background save and COW concerns.\r\n\r\nWhat happens in diskless replication mode is a side effect. unlike disk-based where the produced RDB can still be used for persistence purposes, in diskless mode the fork child has no further purpose, so we kill it.\r\nBut if in your setup you can't afford any background saving during traffic (be it BGSAVE or an AOFRW), you must find another solution (add more physical RAM to your machines, or possibly make sure of [oom-score-adj](https://github.com/redis/redis/pull/1690) to tell the kernel which process to kill)."
+    },
+    {
+      "id": 682066932,
+      "user": "ganeshkumarganesan",
+      "created_at": "2020-08-27T16:49:48Z",
+      "body": "@oranagra The RDB save process in Master was initiated for the slave replication. As already the output buffer is breached, so the current RDB (in progress) cannot be used for a slave. Anyways again the RDB will be saved in Master and it will be transferred to the slave (full resync will happen).\r\n\r\n> i assume that by OOM you mean that the kernel killed the process.\r\n\r\nIn my case, the VM got rebooted a few times due to the OOM. When the redis server load remain at peak.\r\n"
+    },
+    {
+      "id": 682369003,
+      "user": "oranagra",
+      "created_at": "2020-08-28T07:14:36Z",
+      "body": "@ganeshkumarganesan the point is that the rdb that the fork produces can still be used for persistence snapshot (unlike the one produced by diskless replication).\r\nSo for redis it doesn't matter that the background process was triggered by replication, it still serves a purpose (although new replications will trigger another background process).\r\n\r\nArguably, if your `save` configuration is empty, i.e redis isn't configured to produce RDB files, then we can kill the fork child when the replicas disconnect. this can be considered a complementary change to the new `rdb-del-sync-files` config.\r\nIf you like to make a PR for that i think we can merge it.\r\n\r\nBut anyway, I thnk that in your case there's no escape from adding more RAM, without that you are unable to complete any form of background saving: diskless replication, disk-based replication, BGWAVE, AOFRW.\r\nSo this makes this setup completely unusable (unless you don't need persistence and replication).\r\n\r\nI do agree that in a case of failure you prefer to have the child terminated rather than lose the parent process or VM. Future versions of redis will support the above mentioned `oom-score-adj`, but i'm not sure if it can help your case, since the VM dies and not the process."
+    },
+    {
+      "id": 682387125,
+      "user": "ShooterIT",
+      "created_at": "2020-08-28T07:59:59Z",
+      "body": "I'm interested the issue, I agree with you @oranagra \r\n\r\n> So for redis it doesn't matter that the background process was triggered by replication, it still serves a purpose (although new replications will trigger another background process).\r\n\r\nOur operation engineers also use this feature, we can not remove this directly @ganeshkumarganesan For your scenario, I also think the valid way is adding more RAM. But your suggestion also is meaningful, replicas need wait more time to  start `full synchronization` if last sync is failed and forked-child still is dumping RDB. I occured this case many times, it is a big risk that replicas can't  sync with master with long time.\r\n\r\nActually, I'm trying to solve this problem just now, I also think a config is a good idea. but why we use config name 'rdb-del-sync-files' ? @oranagra is  'rdb-del-sync-fails'? but what about 'stop-rdb-sync-fail'? like as follow, just a draft.\r\n\r\n```\r\ndiff --git a/src/networking.c b/src/networking.c\r\nindex 4780319f9..53b04bd08 100644\r\n--- a/src/networking.c\r\n+++ b/src/networking.c\r\n@@ -1065,6 +1065,23 @@ void disconnectSlaves(void) {\r\nB000000126562L:redis wangyuan21$ git diff src/networking.c \r\ndiff --git a/src/networking.c b/src/networking.c\r\nindex 4780319f9..18640bd32 100644\r\n--- a/src/networking.c\r\n+++ b/src/networking.c\r\n@@ -1065,6 +1065,23 @@ void disconnectSlaves(void) {\r\n     }\r\n }\r\n \r\n+int anyOtherSlaveWaitRdb(client *me_excluded) {\r\n+    int wait_rdb = 0;\r\n+    listIter li;\r\n+    listNode *ln;\r\n+    listRewind(server.slaves, &li);\r\n+    while((ln = listNext(&li))) {\r\n+        client *slave = ln->value;\r\n+        if (slave != me_excluded &&\r\n+            slave->replstate == SLAVE_STATE_WAIT_BGSAVE_END)\r\n+        {\r\n+            wait_rdb = 1;\r\n+            break;\r\n+        }\r\n+    }\r\n+    return wait_rdb;\r\n+}\r\n+\r\n /* Remove the specified client from global lists where the client could\r\n  * be referenced, not including the Pub/Sub channels.\r\n  * This is used by freeClient() and replicationCacheMaster(). */\r\n@@ -1215,6 +1232,14 @@ void freeClient(client *c) {\r\n     /* Master/slave cleanup Case 1:\r\n      * we lost the connection with a slave. */\r\n     if (c->flags & CLIENT_SLAVE) {\r\n+        if (server.stop_rdb_sync_fail &&\r\n+            c->replstate == SLAVE_STATE_WAIT_BGSAVE_END &&\r\n+            server.rdb_child_pid != -1 &&\r\n+            server.rdb_child_type == RDB_CHILD_TYPE_DISK &&\r\n+            anyOtherSlaveWaitRdb(c) == 0)\r\n+        {\r\n+            killRDBChild();\r\n+        }\r\n         if (c->replstate == SLAVE_STATE_SEND_BULK) {\r\n             if (c->repldbfd != -1) close(c->repldbfd);\r\n             if (c->replpreamble) sdsfree(c->replpreamble);\r\n```"
+    },
+    {
+      "id": 682395730,
+      "user": "oranagra",
+      "created_at": "2020-08-28T08:20:22Z",
+      "body": "@ShooterIT are you trying to solve the problem of not being able to try another replication attempt until this fork is done? i.e. not a problem of insufficient memory that kills the server or VM?\r\n\r\nIn both cases i don't see why another attempt will just run into the same problem and fail again.\r\nThe problem will be only resolved by either adding more RAM, or stopping the stream of write commands (which will reduce the COW and replica-buffers).\r\n\r\nI think we want to make redis behave good by default and avoid adding too many configs for corner cases, this will make it harder for users to understand the configuration (if there are too many), and more complicated to maintain the code base.\r\n\r\nIn this case i think the problem isn't solvable, there's simply not enough RAM to replicate (or persist) under traffic. And the only reason i see that we should kill the fork, is if it doesn't serve any purpose at all (i.e. redis isn't configured to persist to RDB)"
+    },
+    {
+      "id": 682548215,
+      "user": "ShooterIT",
+      "created_at": "2020-08-28T13:10:19Z",
+      "body": "@oranagra  Yes, there is no difference between these two cases for my changes.\r\n\r\nThe write traffic will not always be heavy, it may be just a relatively short period of time. After the traffic peak has passed, so much memory is not needed, and the next replication attempts will succeed. It makes sense for this scenario.\r\n\r\nI also don't like there are many configuration items. Maybe for these two cases, we can change into diskless replication easily."
+    },
+    {
+      "id": 683380935,
+      "user": "oranagra",
+      "created_at": "2020-08-30T06:08:17Z",
+      "body": "@ShooterIT you mean that simply changing to use diskless would solve your problems without any changes to redis?\r\nGenerally speaking, diskless (specifically diskless on both ends) can be a lot faster (since the network is usually faster than the disk these days), so it may also solve the problem entirely, letting the replication succeed (i.e. faster replication produces less COW and replica buffers).\r\n\r\nanyway, back to the topic at the top, i don't wanna introduce any new configs, and i don't feel we should kill the fork when the replicas drop, unless either `rdb-del-sync-files` is set, or maybe also if `save` is empty."
+    },
+    {
+      "id": 683402659,
+      "user": "ShooterIT",
+      "created_at": "2020-08-30T10:22:08Z",
+      "body": "@oranagra Yes, i think. Internet speed is getting faster and faster now, diskless replication is really a good choice.\r\n\r\nI'm sorry i don't notice we already have a config `rdb-del-sync-files`, i think it is clear enough to decide whether we can kill the forked child process when replicas drop. I can commit a PR if you feel OK, maybe you think it is not necessary. For me, I think both are ok"
+    },
+    {
+      "id": 683405549,
+      "user": "oranagra",
+      "created_at": "2020-08-30T10:54:07Z",
+      "body": "@ShooterIT if it doesn't mess up the code a lot, i don't see any reason not to add that kill. feel free to PR."
+    },
+    {
+      "id": 686971052,
+      "user": "ShooterIT",
+      "created_at": "2020-09-04T07:34:29Z",
+      "body": "Hi @oranagra another related topic i want to say. Redis will use too much memory when full sync, that has many effects, such as OOM, fail to full sync, even the bug you fixed https://github.com/redis/redis/pull/5126. \r\n\r\nAFAIK, some company engineers persist the output buffer into a file without using memory when wait child rdb finished, that may be not elegant, but exactly solve some problems.\r\nMaybe we can try to come up an idea to optimize the problem, I have some two ideas. do they make sense?\r\n1. Use a common client output buffer for all slaves instead of separated when all saves wait child rdb finished\r\n2. Compress the `clientReplyBlock` of output buffer using LZF\r\n\r\nBTW, for your PR https://github.com/redis/redis/pull/5126, it is very serious problem for wrong eviction i occurred many times, is there a easy way to fix before 5.0?"
+    },
+    {
+      "id": 687715792,
+      "user": "oranagra",
+      "created_at": "2020-09-06T07:27:03Z",
+      "body": "@ShooterIT we have a long term plan to solve that problem properly by multiplexing these replication buffers together with the RDB so that they are cached in the replica side, rather than the master.\r\nI.e the data flowing from the master and replica will contain several data streams: [RDB, command-stream, PINGs].\r\n\r\nThis will move the burden of keeping this buffer from the master to the replica, and will also properly solve the problems the \"meaningful offset\" feature aimed to solve (feature that was introduced in 6.0 and was later reverted).\r\n\r\nI don't think that compressing them or unifying them is gonna solve it (it'll just reduce the overhead a little bit).\r\n\r\nI'ts probably not that complicated to cherry pick the fix for https://github.com/redis/redis/pull/5126 into 4.0, but we no longer maintain this version (maybe with the exception of critical issues like newly discovered common crashes, data corruptions or severe security issues). The right thing for people to do is upgrade!"
+    },
+    {
+      "id": 687726026,
+      "user": "ShooterIT",
+      "created_at": "2020-09-06T08:35:59Z",
+      "body": "@oranagra Copy that, thanks\r\n\r\n\r\n> we have a long term plan to solve that problem properly by multiplexing these replication buffers together with the RDB so that they are cached in the replica side, rather than the master.\r\n> I.e the data flowing from the master and replica will contain several data streams: [RDB, command-stream, PINGs].\r\n\r\nThat's truly a good idea.\r\n\r\nOne thing i want to share with you, i try to use a separate thread to send RDB yesterday just because i recalled you said https://github.com/redis/redis/pull/7096. Maybe i succeeded, it passed all tests"
+    },
+    {
+      "id": 689291903,
+      "user": "ShooterIT",
+      "created_at": "2020-09-09T04:21:56Z",
+      "body": "@oranagra  I have another idea, we can write replication buffers to rdb child process just like rewriting AOF. RDB child process can persist it into a RDB(Aux filed or AOF with RDB preamble or tmp aof). And It will be efficient if we send it by a separate thread. what's more, maybe replica also can receive replication buffer when it loads RDB."
+    },
+    {
+      "id": 689319025,
+      "user": "oranagra",
+      "created_at": "2020-09-09T05:43:32Z",
+      "body": "@ShooterIT if we want to store these replica buffers at the end of the RDB (like in preamble AOF), we need to store them in memory till the RDB writing is done (this is what happens for AOFRW too), so it doesn't solve the memory stress on the machine holding the master.\r\nThe only good way to overcome that problem is to stream them to the replica right away (e.g. using multiplexing) and not hold them in the master.\r\nThe alternative of putting them to a separate file on disk would be slow. the network today is usually much faster than the disk, having both write and read of that entire buffer is a huge overhead."
+    }
+  ]
+}

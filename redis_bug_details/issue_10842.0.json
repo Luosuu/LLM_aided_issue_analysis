@@ -1,0 +1,150 @@
+{
+  "issue_number": 10842.0,
+  "title": "the rss_overhead_bytes and rss_overhead_ratio is too large[BUG]",
+  "body": "**Describe the bug**\r\n\r\nrss_overhead_ratio and rss_overhead_bytes is too large\r\n\r\n**To reproduce**\r\n\r\nnothing\r\n\r\n**Expected behavior**\r\n\r\nafter running Redis Server for a long time the rss_overhead_ratio is up to 2.5. I didn't use Redis Modules and used Lua scripts, but used_memory_lua was very small and trying to purge manually had no effect\r\n\r\n**Additional information**\r\n\r\nthe redis-server version is 5.0.3\r\nallocator is jemalloc-5.1.0\r\nmodule list is empty\r\nthe op system is Centos 8.5.2111(run in docker)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-06-10T01:23:06Z",
+  "updated_at": "2022-07-06T07:02:19Z",
+  "closed_at": "2022-06-13T08:25:51Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1151973863,
+      "user": "sundb",
+      "created_at": "2022-06-10T05:51:16Z",
+      "body": "@GXhua Can you give the output of `INFO ALL`?"
+    },
+    {
+      "id": 1152286271,
+      "user": "GXhua",
+      "created_at": "2022-06-10T12:02:43Z",
+      "body": "yep @sundb \r\n# Server\r\nredis_version:5.0.3\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:9529b692c0384fb7\r\nredis_mode:standalone\r\nos:Linux 4.18.0-348.7.1.el8_5.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:8.4.1\r\nprocess_id:176\r\nrun_id:e71e37102da5536baeb0f4e3223fd1ff20a6a1e0\r\ntcp_port:6379\r\nuptime_in_seconds:675381\r\nuptime_in_days:7\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:10695354\r\nexecutable:/www/redis-server\r\nconfig_file:/etc/redis.conf\r\n\r\n# Clients\r\nconnected_clients:939\r\nclient_recent_max_input_buffer:2\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:37\r\n\r\n# Memory\r\nused_memory:811458960\r\nused_memory_human:773.87M\r\nused_memory_rss:2884251648\r\nused_memory_rss_human:2.69G\r\nused_memory_peak:1852270704\r\nused_memory_peak_human:1.73G\r\nused_memory_peak_perc:43.81%\r\nused_memory_overhead:347462540\r\nused_memory_startup:790944\r\nused_memory_dataset:463996420\r\nused_memory_dataset_perc:57.24%\r\nallocator_allocated:811600184\r\nallocator_active:1679548416\r\nallocator_resident:1722388480\r\ntotal_system_memory:15996276736\r\ntotal_system_memory_human:14.90G\r\nused_memory_lua:46080\r\nused_memory_lua_human:45.00K\r\nused_memory_scripts:3640\r\nused_memory_scripts_human:3.55K\r\nnumber_of_cached_scripts:3\r\nmaxmemory:0\r\nmaxmemory_human:0B\r\nmaxmemory_policy:noeviction\r\nallocator_frag_ratio:2.07\r\nallocator_frag_bytes:867948232\r\nallocator_rss_ratio:1.03\r\nallocator_rss_bytes:42840064\r\nrss_overhead_ratio:1.67\r\nrss_overhead_bytes:1161863168\r\nmem_fragmentation_ratio:3.55\r\nmem_fragmentation_bytes:2072833544\r\nmem_not_counted_for_evict:3058\r\nmem_replication_backlog:0\r\nmem_clients_slaves:0\r\nmem_clients_normal:16774602\r\nmem_aof_buffer:3058\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\n\r\n# Persistence\r\nloading:0\r\nrdb_changes_since_last_save:543086721\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1654187141\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:-1\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_last_cow_size:0\r\naof_enabled:1\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:15\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_last_write_status:ok\r\naof_last_cow_size:207405056\r\naof_current_size:2178250808\r\naof_base_size:553110495\r\naof_pending_rewrite:0\r\naof_buffer_length:0\r\naof_rewrite_buffer_length:0\r\naof_pending_bio_fsync:0\r\naof_delayed_fsync:4\r\n\r\n# Stats\r\ntotal_connections_received:2054\r\ntotal_commands_processed:616121255\r\ninstantaneous_ops_per_sec:57\r\ntotal_net_input_bytes:118779044540\r\ntotal_net_output_bytes:92062458527\r\ninstantaneous_input_kbps:4.12\r\ninstantaneous_output_kbps:1.65\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_keys:19493331\r\nexpired_stale_perc:12.86\r\nexpired_time_cap_reached_count:0\r\nevicted_keys:0\r\nkeyspace_hits:210278315\r\nkeyspace_misses:96202156\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:39939\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\n\r\n# Replication\r\nrole:master\r\nconnected_slaves:0\r\nmaster_replid:8d77aa658d80eac45342fb971da678336e6fcaa4\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:0\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:0\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n\r\n# CPU\r\nused_cpu_sys:5399.507151\r\nused_cpu_user:5100.244009\r\nused_cpu_sys_children:16.460214\r\nused_cpu_user_children:263.096006\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=3057421,expires=3057322,avg_ttl=166974030"
+    },
+    {
+      "id": 1152318330,
+      "user": "sundb",
+      "created_at": "2022-06-10T12:41:30Z",
+      "body": "Look like it's fine through the info you give.\r\nWhether redis is in RDB saving when rss_overhead_ratio is 2.5(`rdb_bgsave_in_progress` is 1)?"
+    },
+    {
+      "id": 1152818052,
+      "user": "GXhua",
+      "created_at": "2022-06-11T00:40:50Z",
+      "body": "No，i am not use RDB，I use AOF only，and the rss_overhead_ratio is growing always：\r\n\r\ninfo memory\r\n# Memory\r\nused_memory:649064240\r\nused_memory_human:619.00M\r\nused_memory_rss:3669032960\r\nused_memory_rss_human:3.42G\r\nused_memory_peak:1852270704\r\nused_memory_peak_human:1.73G\r\nused_memory_peak_perc:35.04%\r\nused_memory_overhead:300430690\r\nused_memory_startup:790944\r\nused_memory_dataset:348633550\r\nused_memory_dataset_perc:53.78%\r\nallocator_allocated:649175312\r\nallocator_active:1451159552\r\nallocator_resident:1493581824\r\ntotal_system_memory:15996276736\r\ntotal_system_memory_human:14.90G\r\nused_memory_lua:60416\r\nused_memory_lua_human:59.00K\r\nused_memory_scripts:3640\r\nused_memory_scripts_human:3.55K\r\nnumber_of_cached_scripts:3\r\nmaxmemory:0\r\nmaxmemory_human:0B\r\nmaxmemory_policy:noeviction\r\nallocator_frag_ratio:2.24\r\nallocator_frag_bytes:801984240\r\nallocator_rss_ratio:1.03\r\nallocator_rss_bytes:42422272\r\nrss_overhead_ratio:2.46\r\nrss_overhead_bytes:2175451136\r\nmem_fragmentation_ratio:5.65\r\nmem_fragmentation_bytes:3020091600\r\nmem_not_counted_for_evict:1196\r\nmem_replication_backlog:0\r\nmem_clients_slaves:0\r\nmem_clients_normal:17593902\r\nmem_aof_buffer:1196\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0"
+    },
+    {
+      "id": 1152818174,
+      "user": "GXhua",
+      "created_at": "2022-06-11T00:41:19Z",
+      "body": "i must restart redis server every day"
+    },
+    {
+      "id": 1152830600,
+      "user": "sundb",
+      "created_at": "2022-06-11T01:35:51Z",
+      "body": "@GXhua Please give the fully info when the issue occur."
+    },
+    {
+      "id": 1152861148,
+      "user": "GXhua",
+      "created_at": "2022-06-11T05:36:43Z",
+      "body": "okey @sundb \r\n\r\n127.0.0.1:6379> info\r\n# Server\r\nredis_version:5.0.3\r\nredis_git_sha1:00000000\r\nredis_git_dirty:0\r\nredis_build_id:9529b692c0384fb7\r\nredis_mode:standalone\r\nos:Linux 4.18.0-348.7.1.el8_5.x86_64 x86_64\r\narch_bits:64\r\nmultiplexing_api:epoll\r\natomicvar_api:atomic-builtin\r\ngcc_version:8.4.1\r\nprocess_id:176\r\nrun_id:e71e37102da5536baeb0f4e3223fd1ff20a6a1e0\r\ntcp_port:6379\r\nuptime_in_seconds:738623\r\nuptime_in_days:8\r\nhz:10\r\nconfigured_hz:10\r\nlru_clock:10758596\r\nexecutable:/www/redis-server\r\nconfig_file:/etc/redis.conf\r\n\r\n# Clients\r\nconnected_clients:941\r\nclient_recent_max_input_buffer:53431\r\nclient_recent_max_output_buffer:0\r\nblocked_clients:38\r\n\r\n# Memory\r\nused_memory:806553144\r\nused_memory_human:769.19M\r\nused_memory_rss:3446640640\r\nused_memory_rss_human:3.21G\r\nused_memory_peak:1852270704\r\nused_memory_peak_human:1.73G\r\nused_memory_peak_perc:43.54%\r\nused_memory_overhead:346023529\r\nused_memory_startup:790944\r\nused_memory_dataset:460529615\r\nused_memory_dataset_perc:57.15%\r\nallocator_allocated:808668232\r\nallocator_active:1524396032\r\nallocator_resident:1573720064\r\ntotal_system_memory:15996276736\r\ntotal_system_memory_human:14.90G\r\nused_memory_lua:55296\r\nused_memory_lua_human:54.00K\r\nused_memory_scripts:3640\r\nused_memory_scripts_human:3.55K\r\nnumber_of_cached_scripts:3\r\nmaxmemory:0\r\nmaxmemory_human:0B\r\nmaxmemory_policy:noeviction\r\nallocator_frag_ratio:1.89\r\nallocator_frag_bytes:715727800\r\nallocator_rss_ratio:1.03\r\nallocator_rss_bytes:49324032\r\nrss_overhead_ratio:2.19\r\nrss_overhead_bytes:1872920576\r\nmem_fragmentation_ratio:4.27\r\nmem_fragmentation_bytes:2638609872\r\nmem_not_counted_for_evict:1152\r\nmem_replication_backlog:0\r\nmem_clients_slaves:0\r\nmem_clients_normal:25193273\r\nmem_aof_buffer:1152\r\nmem_allocator:jemalloc-5.1.0\r\nactive_defrag_running:0\r\nlazyfree_pending_objects:0\r\n\r\n# Persistence\r\nloading:0\r\nrdb_changes_since_last_save:590381275\r\nrdb_bgsave_in_progress:0\r\nrdb_last_save_time:1654187141\r\nrdb_last_bgsave_status:ok\r\nrdb_last_bgsave_time_sec:-1\r\nrdb_current_bgsave_time_sec:-1\r\nrdb_last_cow_size:0\r\naof_enabled:1\r\naof_rewrite_in_progress:0\r\naof_rewrite_scheduled:0\r\naof_last_rewrite_time_sec:16\r\naof_current_rewrite_time_sec:-1\r\naof_last_bgrewrite_status:ok\r\naof_last_write_status:ok\r\naof_last_cow_size:233431040\r\naof_current_size:2760664518\r\naof_base_size:637881572\r\naof_pending_rewrite:0\r\naof_buffer_length:0\r\naof_rewrite_buffer_length:0\r\naof_pending_bio_fsync:0\r\naof_delayed_fsync:4\r\n\r\n# Stats\r\ntotal_connections_received:2090\r\ntotal_commands_processed:668659920\r\ninstantaneous_ops_per_sec:2605\r\ntotal_net_input_bytes:129157120948\r\ntotal_net_output_bytes:100134149391\r\ninstantaneous_input_kbps:564.46\r\ninstantaneous_output_kbps:506.61\r\nrejected_connections:0\r\nsync_full:0\r\nsync_partial_ok:0\r\nsync_partial_err:0\r\nexpired_keys:21501976\r\nexpired_stale_perc:22.27\r\nexpired_time_cap_reached_count:0\r\nevicted_keys:0\r\nkeyspace_hits:228764424\r\nkeyspace_misses:103548191\r\npubsub_channels:0\r\npubsub_patterns:0\r\nlatest_fork_usec:37762\r\nmigrate_cached_sockets:0\r\nslave_expires_tracked_keys:0\r\nactive_defrag_hits:0\r\nactive_defrag_misses:0\r\nactive_defrag_key_hits:0\r\nactive_defrag_key_misses:0\r\n\r\n# Replication\r\nrole:master\r\nconnected_slaves:0\r\nmaster_replid:8d77aa658d80eac45342fb971da678336e6fcaa4\r\nmaster_replid2:0000000000000000000000000000000000000000\r\nmaster_repl_offset:0\r\nsecond_repl_offset:-1\r\nrepl_backlog_active:0\r\nrepl_backlog_size:1048576\r\nrepl_backlog_first_byte_offset:0\r\nrepl_backlog_histlen:0\r\n\r\n# CPU\r\nused_cpu_sys:5896.909812\r\nused_cpu_user:5561.648567\r\nused_cpu_sys_children:18.171040\r\nused_cpu_user_children:289.305433\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n\r\n# Keyspace\r\ndb0:keys=2903426,expires=2903323,avg_ttl=165625007"
+    },
+    {
+      "id": 1152868155,
+      "user": "sundb",
+      "created_at": "2022-06-11T06:40:07Z",
+      "body": "@GXhua Can you give me which docker image you are using, I tried to reproduce this issue on my local.\r\n"
+    },
+    {
+      "id": 1152931666,
+      "user": "GXhua",
+      "created_at": "2022-06-11T13:52:11Z",
+      "body": "docker pull 15811413647/messagebase:20220223     @sundb "
+    },
+    {
+      "id": 1152950957,
+      "user": "sundb",
+      "created_at": "2022-06-11T15:26:26Z",
+      "body": "@GXhua I may have reproduced your problem, do you have THP turned off? You can confirm if redis starts with the following warning.\r\nYou can check throught `cat /sys/kernel/mm/transparent_hugepage/enabled`.\r\n\r\n```\r\n# WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.\r\n```"
+    },
+    {
+      "id": 1153045633,
+      "user": "GXhua",
+      "created_at": "2022-06-12T02:04:18Z",
+      "body": "yes!   i checked the redis.log  and find this:\r\n\r\n176:M 03 Jun 2022 00:25:41.191 # WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled."
+    },
+    {
+      "id": 1153047404,
+      "user": "GXhua",
+      "created_at": "2022-06-12T02:12:23Z",
+      "body": "I `echo never` to  /sys/kernel/mm/transparent_hugepage/enabled   ,and watching the `rss_overhead_ratio` raising ,thanks very much! @sundb "
+    },
+    {
+      "id": 1153078701,
+      "user": "sundb",
+      "created_at": "2022-06-12T05:47:58Z",
+      "body": "@GXhua Why does rss_overhead_ratio increase even after using never, it should avoid it.\r\nBecause when THP is turned on, write operations may cause memory bursts in the fork processes."
+    },
+    {
+      "id": 1153080977,
+      "user": "oranagra",
+      "created_at": "2022-06-12T06:07:16Z",
+      "body": "Few things to note:\r\n1. The THP check in version 5.0 was wrong, it used to warn when the setting was anything other than `never`, but in fact, the default of `madvise` is completely safe. so please just make sure it's not set to `always` on your system.\r\n2. Fork and CoW doesn't increase the RSS or the parent process. what it causes is that the shared memory between two processes becomes private, so that the RSS of each of them remains the same, and the total system memory decreases.\r\n3. looking at your metrics, it seems that the majority of the waste is due to fragmentation.\r\n\r\n```\r\ntotal:\r\n used_memory:          811,458,960\r\n used_memory_rss:    2,884,251,648\r\nbreakdown:\r\n  allocator_allocated:  811,600,184\r\n  allocator_active:   1,679,548,416\r\n  allocator_resident: 1,722,388,480\r\n\r\ntotal:\r\n  mem_fragmentation_ratio: 3.55\r\nbreakdown:\r\n  allocator_frag_ratio:    2.07  (defraggable via active-defrag)\r\n  allocator_rss_ratio:     1.03  (could maybe be released with MEMORY PURGE)\r\n  rss_overhead_ratio:      1.67  (other overhead in the process not directly tied to jemalloc)\r\n```\r\n\r\nnote the last line above, i don't know where that comes from.\r\nmaybe we can get further info by looking at `/proc/<pid>/smaps`\r\n\r\nregarding fragmentation, it could easily be accumulated due to your workload pattern, switching between small allocations and large ones.\r\nwe can check if enabling active-defrag help, and also, maybe we can get some info on where the fragmentation occurs by looking at `MEMORY MALLOC-STATS`\r\n\r\njust one last note, the defrager code in 5.0 can cause latency spikes and freezes if you have huge list type keys."
+    },
+    {
+      "id": 1153082655,
+      "user": "sundb",
+      "created_at": "2022-06-12T06:20:38Z",
+      "body": "@oranagra But `allocator_resident` is the maximum amount of physical memory mapped by jemalloc, and I can't think of any case where `used_memory_rss` is 2.5 times more than `allocator_resident`.\r\nDuring my reproduction, after turning THP off, `allocator_resident` was basically stable at 1, but after I turned it on, allocator_resident appeared 2.x"
+    },
+    {
+      "id": 1153083316,
+      "user": "oranagra",
+      "created_at": "2022-06-12T06:25:54Z",
+      "body": "i can think of some ways (which are unlikely, but still possible):\r\n* Lua (allocated from libc malloc, not from jemalloc) - in this case we can see that's not the issue/\r\n* modules - not the issue in this case.\r\n* some other unexpected issues due to LD_PRELOAD\r\n\r\nin any case, COW doesn't increase RSS, so that's not it.\r\nit could still be related to THP, but AFAIK only if it's set to `always`, so the warning redis prints at startup is not an indication."
+    },
+    {
+      "id": 1153084634,
+      "user": "sundb",
+      "created_at": "2022-06-12T06:37:59Z",
+      "body": "@oranagra Yes, I am having this issue after setting it to `always`."
+    },
+    {
+      "id": 1153626004,
+      "user": "GXhua",
+      "created_at": "2022-06-13T08:25:51Z",
+      "body": " The rss_overhead_ratio is stop raising   ,   it works  thank you very much  @sundb @oranagra "
+    },
+    {
+      "id": 1153636151,
+      "user": "oranagra",
+      "created_at": "2022-06-13T08:35:15Z",
+      "body": "ok, so the problem was fragmentation due to THP (not COW). right?\r\nwas `/sys/kernel/mm/transparent_hugepage/enabled` set to `always` before?"
+    },
+    {
+      "id": 1153642627,
+      "user": "sundb",
+      "created_at": "2022-06-13T08:41:47Z",
+      "body": "@oranagra Not due to COW.\r\nHere are a few scenarios from my local:\r\n1. when I turn on THP redis process cost 24M of memory, but when I turn it off, it drops to 12M, this is reasonable, because the pages requested by jemalloc will be larger.\r\n2. When I run `redis-benchmark` after THP is turned on, `allocator_resident` will drop from almost 24M to 16M, causing `allocator_rss_ratio` to become 2.x, but when `redis-benchmark` is finished, `allocator_resident` will go back to 24M, which is what I can't understand.\r\n\r\nBTW, This may also be a docker issue, as I don't use docker to test against 5.0.3, and everything works fine."
+    },
+    {
+      "id": 1153646630,
+      "user": "oranagra",
+      "created_at": "2022-06-13T08:45:52Z",
+      "body": "i don't know exactly how THP affects things, but it doesn't concern me (at the moment).\r\nwhat bothers me if to know if it was with THP set to `always` or `madvise` and whether it was the default.\r\ni.e. if `madvise` (which i think is the default) causes that issue, we need to modify redis."
+    },
+    {
+      "id": 1153819933,
+      "user": "sundb",
+      "created_at": "2022-06-13T11:51:36Z",
+      "body": "@oranagra centos stream 8 uses `always` by default."
+    },
+    {
+      "id": 1175855749,
+      "user": "oranagra",
+      "created_at": "2022-07-06T07:02:18Z",
+      "body": "for the record, starting from redis 6.2, redis will attempt to automatically disable THP only for the current process, without depending or warning about the system global configs. see #7381"
+    }
+  ]
+}

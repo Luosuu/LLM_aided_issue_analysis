@@ -1,0 +1,11 @@
+{
+  "issue_number": 10251.0,
+  "title": "[BUG] redis-benchmark --cluster doesn't support ipv6",
+  "body": "**Describe the bug**\r\nHi, I'm trying to run redis-benchmark with cluster option and getting this error:\r\n```\r\nredis-benchmark -h SHARD_URI -a PASSWORD  --cluster\r\nCluster has 6 master nodes:\r\n\r\nMaster 0: 0ba80fdb77300de637600ef6497da252dd1274e8 2a02:6\r\nCould not connect to Redis at 2a02:6: Name or service not known\r\nWARN: could not fetch node CONFIG 2a02:6\r\nMaster 1: c1a83816a940c8401fef4eb618b2f60e92831316 2a02:6\r\nCould not connect to Redis at 2a02:6: Name or service not known\r\nWARN: could not fetch node CONFIG 2a02:6\r\nMaster 2: 4666482d50faf41fef1765b4459688bc919c4efa 2a02:6\r\nCould not connect to Redis at 2a02:6: Name or service not known\r\nWARN: could not fetch node CONFIG 2a02:6\r\nMaster 3: 3ad940e830055faab65febbe5e1e7e796be42a81 2a02:6\r\nCould not connect to Redis at 2a02:6: Name or service not known\r\nWARN: could not fetch node CONFIG 2a02:6\r\nMaster 4: d00cc077bcaab64caf7104d1567354171099ba15 2a02:6\r\nCould not connect to Redis at 2a02:6: Name or service not known\r\nWARN: could not fetch node CONFIG 2a02:6\r\nMaster 5: 2e8968388b944dbdb6dc399920ed836b94c0ded4 2a02:6\r\nCould not connect to Redis at 2a02:6: Name or service not known\r\nWARN: could not fetch node CONFIG 2a02:6\r\n```\r\n**To reproduce**\r\n\r\nRun `redis-benchmark -h SHARD_URI -a PASSWORD  --cluster` with a cluster where Redis hosts have ipv6-addresses only.\r\n\r\n**Expected behavior**\r\n\r\nredis-benchmark runs against all cluster shardes.\r\n\r\n**Additional information**\r\n```\r\n$ redis-benchmark -v\r\nredis-benchmark 6.2.6\r\n```\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-02-07T12:08:27Z",
+  "updated_at": "2022-03-08T11:10:24Z",
+  "closed_at": "2022-03-08T11:10:24Z",
+  "labels": [],
+  "comments_data": []
+}

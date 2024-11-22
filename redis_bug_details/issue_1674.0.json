@@ -1,0 +1,60 @@
+{
+  "issue_number": 1674.0,
+  "title": "[BUG] Eviction policy with multiple databases.",
+  "body": "Hello!\n\nWe have a redis server with two related services using it for caching, API and a Website.\nThey are using different database numbers, since even though they are related, we regards then as different services.\n\nThe Website has thousands and thousands of keys with ~6hr TTLs of pages cached.\nThe API has only about 5 keys with lower ~2hr TTLs.\n\nWe noticed that our API is not actually making use of the cache.\nAfter a lenghty investigation it turned out the API keys are evicted during key eviction.\n\nOne can clearly see that during an eviction iteration a key from EACH DATABASE is chosen and evicted:\nhttps://github.com/antirez/redis/blob/unstable/src/redis.c#L3019\n\nThis introduces unexpected behaviour in this case since keys in the API database have a very high chance of being evicted comparing to keys in the SITE database.\nThe result is that our API database is always emptied out after 5 eviction iterations.\n\nThe algorithm should choose the candidates uniformely from the whole key space across all databases, and should not favour any of the keys because a database is very small compared to the others. (actually maybe it should favour larger databases over smaller ones).\n\nAnother solution would be to document this, and introduce a new eviction policy that would choose keys ONLY from the same database.\nOr the possibility to exclude databases from eviction.\n",
+  "state": "closed",
+  "created_at": "2014-04-09T12:49:36Z",
+  "updated_at": "2018-06-18T10:45:31Z",
+  "closed_at": "2014-04-23T13:25:55Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 39972778,
+      "user": "mattsta",
+      "created_at": "2014-04-09T14:48:53Z",
+      "body": "Is it possible for you to run one `redis-server` for each database instead of putting multiple databases inside of one Redis?  It's a much cleaner way to separate performance, you get to use your system resources better, and it removes strange edge cases like this.\n\nRedis is a very tiny DB process, so it's a good idea to run one process for each \"database\" you have.  No need to think of it like a single slow mysql system with 20 databases inside of it.\n"
+    },
+    {
+      "id": 40006791,
+      "user": "axos88",
+      "created_at": "2014-04-09T19:34:12Z",
+      "body": "This might be a good _temporary workaround_ for the problem/bug, but unfortunately that is not possible, we are using amazon's elasticache, and we have no control over how the process itself is started up.\n"
+    },
+    {
+      "id": 40013610,
+      "user": "mattsta",
+      "created_at": "2014-04-09T20:40:48Z",
+      "body": "Losing the flexibility to control your environment is a big drawback of using fully hosted services.  Even if we alter the behavior in a new Redis version, there's no known timeline for when Amazon would make the new version available.\n\nWould you mind sharing the top two reasons you prefer auto-deployed elasticache over spinning up your own (slightly cheaper) instances?  Is it just pre-built integration with existing services/one-click launch on the console?  I'm always curious about why people prefer one option over another (and more information about uses cases can always better inform our design decisions going forward).\n"
+    },
+    {
+      "id": 40108189,
+      "user": "axos88",
+      "created_at": "2014-04-10T16:38:33Z",
+      "body": "I'd be happy to chat with you in private about our reasons for the decision to use amazon, however I don't find that relevant to the bug report I have made.\n\nI still have strong feelings that favouring one set of keys over an other (in any, easily reproducable situation moreover one that has a high chance to occur in a real life situation) is is faulty behaviour, and should be fixed in the next release. \n\nI'd be happy to make a pull request with the fix, but I'd love the developer community's opinion on which way they'd want this to be fixed.\n"
+    },
+    {
+      "id": 41159954,
+      "user": "antirez",
+      "created_at": "2014-04-23T13:25:55Z",
+      "body": "Hello, as explained multiple times Redis multiple databases are _just_ a namespace-alike feature, so there is and there never will be per-database configuration related to eviction, persistence, and so forth, because the feature is designed for a totally different goal.\n\nMoreover Redis footprint per new instance is 1MB, making it trivial (and more efficient since you use multiple CPUs in a share-nothing way) to use multiple instances in the same box. I believe that \"cloud\" vendors should understand that and instead of selling Redis _instances_ they should sell Redis _units_ where you can run multiple instances as long as the sum of the memory used / disk consumed is a given value.\n"
+    },
+    {
+      "id": 41193095,
+      "user": "axos88",
+      "created_at": "2014-04-23T17:53:29Z",
+      "body": "The fix for this issue would be around 10-15 lines of change. Would you be willing to merge the pull request, if submitted?\n"
+    },
+    {
+      "id": 268096416,
+      "user": "skoppelmanCC",
+      "created_at": "2016-12-19T22:25:06Z",
+      "body": "Gotta say, \"just running another instance\" is a nice bit of hand-waving. The issue isn't system resources, it's configuration. It's the proliferation of config files binding to another port or interface, the customization to logging configuration to differentiate between these  port-bound instances, the configuration of initscripts for each of them, or the container/cloud/whatever equivalents to this exercise in templating. And then on the client side the complementary matter of configuring applications to make separate connections  for each database, of ensuring sensible tagging for logging, event and monitoring systems to pick up.\r\n\r\nNone of this is a huge burden, obviously, but it is a handful of those annoying little drags that add operational complexity that could be avoided with a change to one specific aspect of Redis configuration. For all the focus on Redis's embrace of the Unix philosophy of small, simple tools, I'm not sure I can think of any other widely-used _network daemons_ that take the simplicity this far, because while you can run `grep` or `ps` many times in parallel without risk of interference, configuration of the simplest server starts getting tedious the moment you have two instances."
+    },
+    {
+      "id": 398014671,
+      "user": "brendon",
+      "created_at": "2018-06-18T10:45:31Z",
+      "body": "I just ran into this in the following scenario:\r\n\r\nTwo seperate Rails applications using `redis` for their session storage. One of the applications is very heavily used, and the other has less users and a lot less traffic. I guess the database finally reached its memory limit after running for a week or two and started to drop keys. I had the rails applications using db: 0 and db: 1 respectively. db:1 was completely empty and users were getting 422 errors due to the CSRF tokens not validating.\r\n\r\nI know the proper solution is to run two redis servers (as mentioned above), though in this case, since these are sessions, I just want the really old ones to be evicted when the memory limit is reached.\r\n\r\nIn the end I put both applications on the same database and had each one use a different `namespace` in the key to prevent collisions.\r\n\r\nIs this going to prevent the situation happening again? I think it will, but I just wanted to check."
+    }
+  ]
+}

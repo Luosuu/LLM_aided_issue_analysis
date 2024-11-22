@@ -1,0 +1,108 @@
+{
+  "issue_number": 9996.0,
+  "title": "[BUG] `XREADGROUP` with no results does not reset `XINFO CONSUMERS` idle timer",
+  "body": "**Describe the bug**\r\n\r\nThe `idle` field of the [`XINFO CONSUMERS`](https://redis.io/commands/xinfo-consumers) return value is documented as:\r\n\r\n> **idle**: the number of milliseconds that have passed since the consumer last interacted with the server\r\n\r\nThis number does not reset when the `XREADGROUP` command for that consumer returns an empty result.\r\n\r\n**To reproduce**\r\n\r\n```redis\r\nXGROUP CREATE my-stream my-group 0 MKSTREAM\r\nXGROUP CREATECONSUMER my-stream my-group my-consumer\r\n```\r\n\r\n… some time passes …\r\n\r\n```\r\nXREADGROUP GROUP my-group my-consumer COUNT 10 BLOCK 2000 STREAMS my-stream >\r\nXINFO CONSUMERS my-stream my-group\r\n```\r\n\r\n**Expected behavior**\r\n\r\nThe `idle` field in the `XINFO CONSUMERS` return value, based on the phrase \"since the consumer last interacted with the server\" in the documentation, seems like it should return the time since that `XREADGROUP` command finished, since `XREADGROUP` is an interaction from the consumer.\r\n\r\n**Additional information**\r\n\r\nWhen `XREADGROUP` returns a non-empty array, it does seem to reset the `idle` timer, but not when it returns an empty array.\r\n\r\nI'm trying to add functionality to a streaming library to remove stale consumers (for example, stream processors that have crashed due to OOM or SEGV) but it does not appear to be possible to automate for a low-volume consumer since the last message and the last interaction appear to be set to the same time.",
+  "state": "closed",
+  "created_at": "2021-12-24T05:56:23Z",
+  "updated_at": "2024-03-05T21:16:05Z",
+  "closed_at": "2022-11-30T12:21:32Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1000688291,
+      "user": "sundb",
+      "created_at": "2021-12-24T07:01:23Z",
+      "body": "@jgaskins Because length of `my-stream`' is 0, `XREADGROUP` command will block until times out, during this time the consumer is not actually read, because there is no need to read it."
+    },
+    {
+      "id": 1000695277,
+      "user": "jgaskins",
+      "created_at": "2021-12-24T07:21:57Z",
+      "body": "> during this time the consumer is not actually read\r\n\r\n@sundb The documentation says \"since the consumer last interacted with the server\"."
+    },
+    {
+      "id": 1000699009,
+      "user": "jgaskins",
+      "created_at": "2021-12-24T07:30:29Z",
+      "body": "To clarify that, it implies that any time I send a command to Redis on behalf of a consumer in a group in a stream, this timer will be reset."
+    },
+    {
+      "id": 1000704855,
+      "user": "sundb",
+      "created_at": "2021-12-24T07:43:59Z",
+      "body": "@jgaskins It does seem to be ambiguous.\r\nJust like when `XREADGROUP` returns an error, the consumer's idle is not updated.\r\nping @itamarhaber "
+    },
+    {
+      "id": 1000726374,
+      "user": "jgaskins",
+      "created_at": "2021-12-24T08:40:22Z",
+      "body": "@sundb There's certainly a discrepancy between the documentation and observed behavior, but the wording of the documentation isn't ambiguous.\r\n\r\nIf the intent of this timestamp is to be the last time this consumer received a message, that's very different than it marking the last interaction with the server.\r\n\r\n> Just like when `XREADGROUP` returns an error, the consumer's idle is not updated.\r\n\r\nI could see an argument for this since state mutations needs to be atomic, similarly to how an error in a `DEL` command won't change state. I don't _agree_ with it in this case (\"last interaction\" doesn't imply \"last state change\"), but I can at least see the argument for it.\r\n\r\nThe Redis docs are great, but when there's a discrepancy between the docs and observed behavior, it's important to know which one is the intended behavior. I work in open-source, too, so I know things get a bit out of sync sometimes. If the documented behavior is the intended behavior, it's a bug. If the observed behavior is intended, I'm happy to post a PR to update the docs."
+    },
+    {
+      "id": 1042352102,
+      "user": "tfn-smartthings",
+      "created_at": "2022-02-16T22:00:10Z",
+      "body": "Hi. Has there been any more thoughts around this ticket? Like @jgaskins we were looking to automate some cleanup of stale consumers by using the `XINFO CONSUMERS` command, but based on the outcome of this ticket we might need to rethink how we do this."
+    },
+    {
+      "id": 1195522047,
+      "user": "guybe7",
+      "created_at": "2022-07-26T13:58:44Z",
+      "body": "@jgaskins @tfn-smartthings indeed it seems that \"idle\" actually means \"milliseconds since data was read by this consumer\" rather than the documented definition.\r\n\r\ni do think that it's also important to expose \"milliseconds since last interaction\"\r\n\r\nwe have two options:\r\n1. re-purpose \"idle\" in 8.0 (breaking change). only if we don't think exposing  \"milliseconds since data was read by this consumer\" is valuable.\r\n2. add another field \"not-seen-since\" (or another name). this can already be done for 7.2.\r\n\r\n@itamarhaber @oranagra thoughts? i prefer (2) obviously "
+    },
+    {
+      "id": 1195550762,
+      "user": "oranagra",
+      "created_at": "2022-07-26T14:22:14Z",
+      "body": "since i suppose both can be useful, and i also suppose that the current behavior is more useful than the documented one, am i right?\r\ni'd vote to update the documentation and add the new field for the other purpose.\r\n\r\nin any case, i usually prefer to update the docs rather than introduce a breaking change (unless the implemented behavior is a plain but that's not at all useful). \r\n\r\nam i missing something? i didn't read the whole discussion..."
+    },
+    {
+      "id": 1195590143,
+      "user": "tfn-smartthings",
+      "created_at": "2022-07-26T14:54:38Z",
+      "body": "From my perspective, I see value in both data points, especially when used in tandem with each other. For example, if we notice that time-since-last-interaction is very recent, but time-since-last-data-read is very large, it could be used as an indication that the number of consumers is more than needed, and thus could be scaled down to find a better balance. \r\n\r\nProbably not a first-order use case, but some food for thought."
+    },
+    {
+      "id": 1195608223,
+      "user": "guybe7",
+      "created_at": "2022-07-26T15:08:37Z",
+      "body": "@tfn-smartthings do you want to PR redis/redis-docs/both?"
+    },
+    {
+      "id": 1195670474,
+      "user": "jGleitz",
+      "created_at": "2022-07-26T15:58:39Z",
+      "body": "To add to the discussion:\r\n\r\nMy team also ran into this issue. Like @jgaskins, we implemented code that should clean up after dead consumers. We relied on the public documentation and had a hard time figuring out why our code doesn’t work.\r\n\r\nSo for us,\r\n\r\n> add another field \"not-seen-since\" (or another name). this can already be done for 7.2.\r\n\r\nwould be great, since that would address our use case. And I think that use case is general enough to be worth addressing."
+    },
+    {
+      "id": 1195990970,
+      "user": "jgaskins",
+      "created_at": "2022-07-26T21:18:06Z",
+      "body": "> indeed it seems that \"idle\" actually means \"milliseconds since data was read by this consumer\" rather than the documented definition.\r\n\r\n@guybe7 Is there a source for this information that I'm overlooking?\r\n\r\n> * re-purpose \"idle\" in 8.0 (breaking change). only if we don't think exposing  \"milliseconds since data was read by this consumer\" is valuable.\r\n> * add another field \"not-seen-since\" (or another name). this can already be done for 7.2.\r\n\r\nIf the current undocumented functionality is useful to folks and is being used in the wild, it's likely pragmatic to keep it as-is and add a new parameter for the currently documented functionality.\r\n\r\n> i also suppose that the current behavior is more useful than the documented one, am i right?\r\n\r\n@oranagra I don't believe \"more\" vs \"less\" useful is the right framing. I'm curious about actual (non-hypothetical) use cases for the current undocumented behavior, but some folks need the _documented_ behavior of `IDLE`. There doesn't seem to be a way to automate cleanup of dead consumers without it (I spent multiple days trying to find a workaround), leading to multiple operational issues."
+    },
+    {
+      "id": 1199001477,
+      "user": "kelsaka",
+      "created_at": "2022-07-29T08:11:53Z",
+      "body": "> add another field \"not-seen-since\" (or another name). this can already be done for 7.2. \r\n> would be great, since that would address our use case. And I think that use case is general enough to be worth addressing.\r\n\r\nGreat suggestion! This would also be a very good solution in my project. :) "
+    },
+    {
+      "id": 1214391427,
+      "user": "guybe7",
+      "created_at": "2022-08-14T14:37:29Z",
+      "body": "update: i went in a slightly different direction:\r\n1. i \"fixed\" the current code so that seen-time/idle actually refers to interaction attempts (breaking change)\r\n2. i added active-time/inactive to refer to successful interaction (what seen-time/idle used to be)\r\n\r\nat first, i tried to avoid changing the behavior of seen-time/idle but then i realized that, in this case, the odds are the people read the docs and implemented their code based on the docs (which didn't match the behavior). for the most part that would work fine, except that this issue here was found.\r\n\r\ni was working under the assumption that people relied on the docs, and for the most part, it could have worked well enough. so instead of fixing the docs, as i would usually do, i fixed the code to match the docs in this particular case"
+    },
+    {
+      "id": 1979647196,
+      "user": "AliEAKarimi",
+      "created_at": "2024-03-05T21:15:03Z",
+      "body": "> update: i went in a slightly different direction:\r\n> \r\n> 1. i \"fixed\" the current code so that seen-time/idle actually refers to interaction attempts (breaking change)\r\n> 2. i added active-time/inactive to refer to successful interaction (what seen-time/idle used to be)\r\n> \r\n> at first, i tried to avoid changing the behavior of seen-time/idle but then i realized that, in this case, the odds are the people read the docs and implemented their code based on the docs (which didn't match the behavior). for the most part that would work fine, except that this issue here was found.\r\n> \r\n> i was working under the assumption that people relied on the docs, and for the most part, it could have worked well enough. so instead of fixing the docs, as i would usually do, i fixed the code to match the docs in this particular case\r\n\r\nIt seems that the problem still exists and `idle` becomes zero when the consumer succeeds in picking up the message from the stream through the `xreadgroup` command, and it does not become zero when the queue is empty. I tested with versions 7.2.1 and 7.0.10. But he was right until a few days ago and recently his behavior has changed."
+    },
+    {
+      "id": 1979648505,
+      "user": "AliEAKarimi",
+      "created_at": "2024-03-05T21:16:04Z",
+      "body": "> > update: i went in a slightly different direction:\r\n> > \r\n> > 1. i \"fixed\" the current code so that seen-time/idle actually refers to interaction attempts (breaking change)\r\n> > 2. i added active-time/inactive to refer to successful interaction (what seen-time/idle used to be)\r\n> > \r\n> > at first, i tried to avoid changing the behavior of seen-time/idle but then i realized that, in this case, the odds are the people read the docs and implemented their code based on the docs (which didn't match the behavior). for the most part that would work fine, except that this issue here was found.\r\n> > i was working under the assumption that people relied on the docs, and for the most part, it could have worked well enough. so instead of fixing the docs, as i would usually do, i fixed the code to match the docs in this particular case\r\n> \r\n> It seems that the problem still exists and `idle` becomes zero when the consumer succeeds in picking up the message from the stream through the `xreadgroup` command, and it does not become zero when the queue is empty. I tested with versions 7.2.1 and 7.0.10. But he was right until a few days ago and recently his behavior has changed.\r\n\r\n@guybe7 "
+    }
+  ]
+}

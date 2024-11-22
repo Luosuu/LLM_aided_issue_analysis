@@ -1,0 +1,26 @@
+{
+  "issue_number": 11333.0,
+  "title": "[BUG] Sentinel fails to failover",
+  "body": "**Describe the bug**\r\n\r\nWe have a redis sentinel setup with 3 redis instances and 3 sentinels.\r\nWhen the master redis node crashes and restarts, the cluster does not failover to another node. The log is flooded with the following:\r\n\r\n```\r\n2022-09-28 15:17:36.843 CEST1:S 28 Sep 2022 13:17:36.843 * Connecting to MASTER redis-sentinel-production-node-0.redis-sentinel-production-headless.redis-sentinel-production.svc.cluster.local:6379\r\nInfo\r\n2022-09-28 15:17:36.844 CEST1:S 28 Sep 2022 13:17:36.844 * MASTER <-> REPLICA sync started\r\nInfo\r\n2022-09-28 15:17:36.844 CEST1:S 28 Sep 2022 13:17:36.844 * Non blocking connect for SYNC fired the event.\r\nInfo\r\n2022-09-28 15:17:36.887 CEST1:S 28 Sep 2022 13:17:36.887 * Master replied to PING, replication can continue...\r\nInfo\r\n2022-09-28 15:17:37.163 CEST1:S 28 Sep 2022 13:17:37.163 * Trying a partial resynchronization (request 46949757047a51b19b4d5f534ba14c4fd5757abf:281092860).\r\nInfo\r\n2022-09-28 15:17:37.450 CEST1:S 28 Sep 2022 13:17:37.449 * Master is currently unable to PSYNC but should be in the future: -LOADING Redis is loading the dataset in memory\r\nInfo\r\n2022-09-28 15:17:37.852 CEST1:S 28 Sep 2022 13:17:37.852 * Connecting to MASTER redis-sentinel-production-node-0.redis-sentinel-production-headless.redis-sentinel-production.svc.cluster.local:6379\r\n```\r\n\r\nsince we have a large rdb/aof it can take serval minutes in order to start the instance, meanwhile our cluster is down for writes since a failover is not triggered.\r\n\r\n**To reproduce**\r\n\r\nN/A\r\n\r\n**Expected behavior**\r\n\r\nI would expect the failover to start.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "open",
+  "created_at": "2022-09-28T13:25:22Z",
+  "updated_at": "2022-11-06T13:10:04Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1261270144,
+      "user": "hwware",
+      "created_at": "2022-09-28T17:55:01Z",
+      "body": "Could you please provide your redis versionn number and redis instance and redis sentinel config. Thanks, Or more logs of them"
+    },
+    {
+      "id": 1269590201,
+      "user": "moticless",
+      "created_at": "2022-10-06T08:37:00Z",
+      "body": "@MikkelSnitker, can you update please? "
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "issue_number": 12586.0,
+  "title": "[BUG] Unable to start when using 16kb pages on aarch64",
+  "body": "**Describe the bug**\r\n\r\nRedis fails to start when run on an aarch64 machine with 16kb pages (Asahi Linux on Apple Silicon)\r\n\r\n**To reproduce**\r\n\r\nInstall redis, start redis, observe failure:\r\n```\r\nredis-server[503343]: <jemalloc>: Unsupported system page size \r\n```\r\n\r\n**Expected behavior**\r\n\r\nRedis does not crash\r\n\r\n**Additional information**\r\n\r\nRedis 7.0.13 installed from Fedora 38 repositories\r\n",
+  "state": "closed",
+  "created_at": "2023-09-17T13:08:12Z",
+  "updated_at": "2023-09-25T13:05:28Z",
+  "closed_at": "2023-09-25T13:05:28Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 1722894888,
+      "user": "sundb",
+      "created_at": "2023-09-18T07:40:09Z",
+      "body": "Seem that Asahi linux uses 16K page size.\r\nYou can try following patch:\r\n```diff\r\ndiff --git a/deps/Makefile b/deps/Makefile\r\nindex 3bf0363d..06d65c16 100644\r\n--- a/deps/Makefile\r\n+++ b/deps/Makefile\r\n@@ -112,7 +112,7 @@ endif\r\n \r\n jemalloc: .make-prerequisites\r\n        @printf '%b %b\\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)\r\n-       cd jemalloc && ./configure --disable-cxx --with-version=5.3.0-0-g0 --with-lg-quantum=3 --disable-cache-oblivious --with-jemalloc-prefix=je_ CFLAGS=\"$(JEMALLOC_CFLAGS)\" LDFLAGS=\"$(JEMALLOC_LDFLAGS)\" $(JEMALLOC_CONFIGURE_OPTS)\r\n+       cd jemalloc && ./configure --disable-cxx --with-version=5.3.0-0-g0 --with-lg-page=14 --with-lg-quantum=3 --disable-cache-oblivious --with-jemalloc-prefix=je_ CFLAGS=\"$(JEMALLOC_CFLAGS)\" LDFLAGS=\"$(JEMALLOC_LDFLAGS)\" $(JEMALLOC_CONFIGURE_OPTS)\r\n        cd jemalloc && $(MAKE) lib/libjemalloc.a\r\n```"
+    },
+    {
+      "id": 1723099232,
+      "user": "4e554c4c",
+      "created_at": "2023-09-18T10:01:49Z",
+      "body": "Ideally redis should link to jemalloc instead of statically linking, which would allow the system jemalloc which is compiled correctly to be used"
+    },
+    {
+      "id": 1724223714,
+      "user": "yossigo",
+      "created_at": "2023-09-18T19:14:09Z",
+      "body": "@4e554c4c To support memory defragmentation, Redis ships with a (very slightly) patched version of jemalloc. You can build against the system jemalloc if you're willing to give up on this capability."
+    },
+    {
+      "id": 1724267258,
+      "user": "4e554c4c",
+      "created_at": "2023-09-18T19:46:58Z",
+      "body": "@yossigo What would the recommendation for package managers aiming for compatibility for wide aarch64 architecture support be?"
+    },
+    {
+      "id": 1724934390,
+      "user": "yossigo",
+      "created_at": "2023-09-19T06:58:28Z",
+      "body": "@4e554c4c Use the bundled jemalloc and build it to support the largest page size you expect, as described in #11407.\r\n"
+    },
+    {
+      "id": 1733599755,
+      "user": "remicollet",
+      "created_at": "2023-09-25T12:21:29Z",
+      "body": "notice: this is fixed in Fedora side (redis-7.0.13-2.fc38  and redis-7.2.1-2.fc39)\r\n\r\n"
+    }
+  ]
+}

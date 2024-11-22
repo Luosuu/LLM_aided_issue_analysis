@@ -1,0 +1,18 @@
+{
+  "issue_number": 10222.0,
+  "title": "[BUG]create-cluster doesn't clean appendonlydir in redis 7.0",
+  "body": "**Describe the bug**\r\n\r\nA short description of the bug.\r\n\r\ncreate-cluster doesn't clean appendonlydir\r\n\r\n**To reproduce**\r\n\r\n```\r\nChens-MacBook-Pro:create-cluster leon$ ls\r\n30001.log\t\tappendonlydir\t\tdump-30006.rdb\r\n30002.log\t\tcreate-cluster\t\tnodes-30001.conf\r\n30003.log\t\tdump-30001.rdb\t\tnodes-30002.conf\r\n30004.log\t\tdump-30002.rdb\t\tnodes-30003.conf\r\n30005.log\t\tdump-30003.rdb\t\tnodes-30004.conf\r\n30006.log\t\tdump-30004.rdb\t\tnodes-30005.conf\r\nREADME\t\t\tdump-30005.rdb\t\tnodes-30006.conf\r\n```\r\n\r\n```\r\nChens-MacBook-Pro:create-cluster leon$ ./create-cluster clean\r\nChens-MacBook-Pro:create-cluster leon$ ls\r\nREADME\t\tappendonlydir\tcreate-cluster\r\nChens-MacBook-Pro:create-cluster leon$ cd appendonlydir/\r\nChens-MacBook-Pro:appendonlydir leon$ ls\r\nappendonly-30001.aof.1.base.rdb\tappendonly-30004.aof.2.base.rdb\r\nappendonly-30001.aof.1.incr.aof\tappendonly-30004.aof.2.incr.aof\r\nappendonly-30001.aof.manifest\tappendonly-30004.aof.manifest\r\nappendonly-30002.aof.1.base.rdb\tappendonly-30005.aof.2.base.rdb\r\nappendonly-30002.aof.1.incr.aof\tappendonly-30005.aof.2.incr.aof\r\nappendonly-30002.aof.manifest\tappendonly-30005.aof.manifest\r\nappendonly-30003.aof.1.base.rdb\tappendonly-30006.aof.2.base.rdb\r\nappendonly-30003.aof.1.incr.aof\tappendonly-30006.aof.2.incr.aof\r\nappendonly-30003.aof.manifest\tappendonly-30006.aof.manifest\r\n```\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\ncan clean appendonlydir\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2022-02-01T12:40:51Z",
+  "updated_at": "2022-02-07T05:58:15Z",
+  "closed_at": "2022-02-07T05:58:15Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1026810586,
+      "user": "enjoy-binbin",
+      "created_at": "2022-02-01T12:53:30Z",
+      "body": "i suppose we juse forget to call `rm -rf appendonlydir`\r\nhttps://github.com/redis/redis/blob/6ca97da0fcea4c260e656c3a05b12c34e5a4d63d/redis.conf#L1344-L1375"
+    }
+  ]
+}

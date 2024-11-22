@@ -1,0 +1,39 @@
+{
+  "issue_number": 2694.0,
+  "title": "Replication inconsistent issue",
+  "body": "Redis version 2.8 and 3.0.3\n1. Initially, there are individual A and B(Master)->C(Slave)-D(Slave)\n2. In A execute \"set a 1\", in B execute \"set a 2\". Now there is key a with value 2 in B, C and D.\n3. In D execute \"multi\", \"client kill <C host>:<C port>\", \"debug sleep 60\", \"exec\" to make D try psync after step 4.\n4. Make B slave of A with slaveof cmd.\n5. Wait D reconnect with C.\n\nExpect Result: value of a is 1 in D\nActual Result: value of a is 2 in D\n",
+  "state": "closed",
+  "created_at": "2015-07-24T09:53:27Z",
+  "updated_at": "2017-07-15T12:01:21Z",
+  "closed_at": "2017-07-15T12:01:21Z",
+  "labels": [
+    "critical bug",
+    "replication"
+  ],
+  "comments_data": [
+    {
+      "id": 124459940,
+      "user": "GeorgeBJ",
+      "created_at": "2015-07-24T09:57:00Z",
+      "body": "I think in step 2 C should reset backlog, then D can only full sync with C.\n"
+    },
+    {
+      "id": 125587608,
+      "user": "antirez",
+      "created_at": "2015-07-28T12:43:03Z",
+      "body": "Thanks for submitting, I think I found the cause for this issue. Working on a fix right now.\n"
+    },
+    {
+      "id": 125605716,
+      "user": "antirez",
+      "created_at": "2015-07-28T13:28:10Z",
+      "body": "Probably it will never be useful again, but given that I wrote it, we can use it to better document the bug for the future: here is the script to reproduce it easily:\n\n``` sh\n#!/bin/bash\nmkdir -p /tmp/a; rm -rf /tmp/a/*\nmkdir -p /tmp/b; rm -rf /tmp/b/*\nmkdir -p /tmp/c; rm -rf /tmp/c/*\nmkdir -p /tmp/d; rm -rf /tmp/d/*\nA=8888\nB=8889\nC=8810\nD=8811\nBIN=~/hack/redis/src/redis-server\n$BIN --logfile /tmp/a/redis.log --port $A &\n$BIN --logfile /tmp/b/redis.log --port $B &\n$BIN --logfile /tmp/c/redis.log --port $C &\n$BIN --logfile /tmp/d/redis.log --port $D &\n\nsleep 2\nredis-cli -p $A SLAVEOF NO ONE\nredis-cli -p $B SLAVEOF NO ONE\nredis-cli -p $C SLAVEOF NO ONE\nredis-cli -p $D SLAVEOF NO ONE\n\nredis-cli -p $A FLUSHALL\nredis-cli -p $B FLUSHALL\nredis-cli -p $C FLUSHALL\nredis-cli -p $D FLUSHALL\n\n# Setup A, B <- C <- D\nredis-cli -p $C SLAVEOF 127.0.0.1 $B\nredis-cli -p $D SLAVEOF 127.0.0.1 $C\n\n# Write the two keys\nredis-cli -p $A set a 1\nredis-cli -p $B set a 2\nsleep 2\n\n# Setup the SLEEP & RECONNECT condition for D\nredis-cli -p $D client list\n(echo -e \"multi\\nclient kill id 5\\ndebug sleep 5\\nexec\\n\" | redis-cli -p $D) &\n\n# Make B slave of A\nsleep 1\nredis-cli -p $B SLAVEOF 127.0.0.1 $A\n\nredis-cli -p $A ping\nredis-cli -p $B ping\nredis-cli -p $C ping\nredis-cli -p $D ping\n\n# Fetch the value\nsleep 6\necho \"The following value should be 1 but is 2 because of the bug:\"\nredis-cli -p $D get a\n\n# Kill servers\nredis-cli -p $A SHUTDOWN NOSAVE\nredis-cli -p $B SHUTDOWN NOSAVE\nredis-cli -p $C SHUTDOWN NOSAVE\nredis-cli -p $D SHUTDOWN NOSAVE\n```\n"
+    },
+    {
+      "id": 125627997,
+      "user": "antirez",
+      "created_at": "2015-07-28T14:31:25Z",
+      "body": "I wrote a first patch, than realized that this bug is just a manifestation of a deeper problem. Redis replication code used to do two things:\n1. When a slave lost connection with its master, disconnected the chained slaves ASAP. Which is not needed since after a successful PSYNC with the master, the slaves can continue and don't need to resync in turn.\n2. However after a failed PSYNC the replication backlog was not reset, so a slave was able to PSYNC successfully even if the instance did a full sync with its master, containing now an entirely different data set.\n\nSo I'm writing a different fix that only forces a full SYNC of the connected slaves once the slave has to full SYNC with its master.\n"
+    }
+  ]
+}

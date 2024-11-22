@@ -1,0 +1,24 @@
+{
+  "issue_number": 10255.0,
+  "title": "[BUG] requirepass just doesn't work",
+  "body": "When I set the requirepass property by adding it to the root conf (or by setting custom conf) or by adding it upon startup \r\n(`redis-server --requirepass `) it doesn't work, the cli says that there is no password set. But when setting it through the cli, it does work.\r\n\r\nI know this sounds really simple/stupid, but I've tried many things, this just doesn't seem to work for some reason.\r\n\r\nI am using a fresh install of redis-server 6.2.6 on Ubumtu 20.04 through WSL2.",
+  "state": "closed",
+  "created_at": "2022-02-07T18:59:32Z",
+  "updated_at": "2022-02-07T19:45:44Z",
+  "closed_at": "2022-02-07T19:45:44Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1031809893,
+      "user": "dandeduck",
+      "created_at": "2022-02-07T19:00:21Z",
+      "body": "When using config set requirepass in the cli, it does work. Also, it does take other configuration I set outside of the cli, like `port`"
+    },
+    {
+      "id": 1031851132,
+      "user": "dandeduck",
+      "created_at": "2022-02-07T19:45:44Z",
+      "body": "nvm, turns out there was another random redis running in the background"
+    }
+  ]
+}

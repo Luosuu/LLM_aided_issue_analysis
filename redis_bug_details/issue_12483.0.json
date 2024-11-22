@@ -1,0 +1,36 @@
+{
+  "issue_number": 12483.0,
+  "title": "[CRASH] <Error while reading from localhost:6379>",
+  "body": "Hey guys! I start using Redis recently so I dont get it right. Can you help me please?\r\n\r\nI face error Error while reading from localhost:6379: (10054, 'The remote host forcibly terminated an existing connection', None, 10054, None (translated from Russian)).\r\n\r\nWhat do I do? I have a file named redis_client in which I have this code:\r\n\r\n```\r\nimport redis\r\n\r\nconnection_pool = redis.ConnectionPool(host='localhost', port=6379, db=0)\r\n\r\ndef set_value(key, value):\r\n    with redis.Redis(connection_pool=connection_pool) as redis_client:\r\n        redis_client.set(key, value)\r\n\r\ndef get_value(key):\r\n    with redis.Redis(connection_pool=connection_pool) as redis_client:\r\n        return redis_client.get(key)\r\n```\r\nThen I have two files which do `from redis_client import set_value, get_value` and use `set` and `get` methods in their work\r\n\r\nAnd this is it. These two files work at the same time, parallel, and with a very high frequency _(one file get data from websocket, than get data from Redis, change it and set it back in Redis updated, while second file get updated data from Redis and analyse it)_. My second file work for a minute-two and then got this error: Error while reading from localhost:6379: (10054, 'The remote host forcibly terminated an existing connection', None, 10054, None\r\n\r\nSo why does it happen and how to fix it?",
+  "state": "open",
+  "created_at": "2023-08-13T09:50:41Z",
+  "updated_at": "2023-08-14T07:36:10Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1676428261,
+      "user": "alexgershberg",
+      "created_at": "2023-08-13T18:14:42Z",
+      "body": "Would you mind sharing the entire code? \r\n(maybe place code from both files together, which consumes get_value and set_value)\r\n\r\nalso, an exact screenshot of the error would be great (with a call stack, if there is one?)\r\n\r\nI’m not terribly familiar with redis, but maybe the log from the redis-server would be useful too"
+    },
+    {
+      "id": 1676778721,
+      "user": "KindSpidey",
+      "created_at": "2023-08-14T06:56:15Z",
+      "body": "> Would you mind sharing the entire code? (maybe place code from both files together, which consumes get_value and set_value)\r\n> \r\n> also, an exact screenshot of the error would be great (with a call stack, if there is one?)\r\n> \r\n> I’m not terribly familiar with redis, but maybe the log from the redis-server would be useful too\r\n\r\nSure!\r\n\r\nLets step by step:\r\n\r\n1)I have redis_client file, where I have pool and two methods, which I use when working with Redis:\r\n\r\n```\r\nimport redis\r\n\r\nconnection_pool = redis.ConnectionPool(host='localhost', port=6379, db=0)\r\n\r\ndef set_value(key, value):\r\n    with redis.Redis(connection_pool=connection_pool) as redis_client:\r\n        redis_client.set(key, value)\r\n\r\ndef get_value(key):\r\n    with redis.Redis(connection_pool=connection_pool) as redis_client:\r\n        return redis_client.get(key)\r\n```\r\n2) I have my websocket file, where I read orderbook data and set it into Redis. this is how I do it:\r\n\r\n```\r\nparsed_message = json.loads(message)\r\nid = parsed_message['arg']['instId']\r\nasks = parsed_message['data'][0]['asks']\r\nbids = parsed_message['data'][0]['bids']\r\nvalue_from_redis = get_value(str(exchange) + '_' + id)\r\nexisting_data = json.loads(value_from_redis)\r\nexisting_data['asks'] = asks\r\nexisting_data['bids'] = bids\r\nupdated_json_value = json.dumps(existing_data)\r\nset_value(str(exchange) + '_' + id, updated_json_value)\r\n```\r\nI do this for 600+ times at the same time (600 channels to listen)\r\n\r\n3) I have analyser file, where, in while True, for ~100 000 times at the same time I do this:\r\n\r\n`data = json.loads(get_value(redis_id))`\r\njust getting data, not setting anything\r\n\r\nError I got is - `(Error while reading from localhost:6379: (10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None)`\r\n\r\nlogs from redis server just saying:\r\n```\r\n[1104] 14 Aug 11:52:37.078 # Server started, Redis version 3.0.504\r\n[1104] 14 Aug 11:52:37.122 * DB loaded from disk: 0.044 seconds\r\n[1104] 14 Aug 11:52:37.122 * The server is now ready to accept connections on port 6379\r\n[1104] 14 Aug 11:53:38.041 * 10000 changes in 60 seconds. Saving...\r\n[1104] 14 Aug 11:53:38.045 * Background saving started by pid 16264\r\n[1104] 14 Aug 11:53:38.445 # fork operation complete\r\n[1104] 14 Aug 11:53:38.453 * Background saving terminated with success\r\n[1104] 14 Aug 11:54:39.024 * 10000 changes in 60 seconds. Saving...\r\n[1104] 14 Aug 11:54:39.030 * Background saving started by pid 97596\r\n[1104] 14 Aug 11:54:40.150 # fork operation complete\r\n[1104] 14 Aug 11:54:40.197 * Background saving terminated with success\r\n[1104] 14 Aug 11:55:41.007 * 10000 changes in 60 seconds. Saving...\r\n[1104] 14 Aug 11:55:41.010 * Background saving started by pid 4292\r\n[1104] 14 Aug 11:55:41.229 # fork operation complete\r\n[1104] 14 Aug 11:55:41.233 * Background saving terminated with success\r\n```"
+    },
+    {
+      "id": 1676799540,
+      "user": "alexgershberg",
+      "created_at": "2023-08-14T07:14:56Z",
+      "body": "Thank you! I’ll try to reproduce and take a closer look :)"
+    },
+    {
+      "id": 1676824917,
+      "user": "sundb",
+      "created_at": "2023-08-14T07:36:10Z",
+      "body": "@KindSpidey If the logs is complete, we can see that the connections weren't disconnected by Redis.\r\nMaybe you can use config `LOGLEVEL DEBUG` to see if there are any valuable informations."
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "issue_number": 2994.0,
+  "title": "INFO MEMORY mem_fragmentation_ratio doesn't include used_memory_lua",
+  "body": "As you can see below, when the data set of an instance shrinks, the used_memory_lua skews the fragmentation ratio due to it not including it in the used_memory. I assume used_memory is only including the memory allocated for data because the allocator is different. So perhaps a more reliable (less scary) fragmentation figure would be (RSS / (used_memory + used_memory_lua)) rather than the current (RSS / used_memory)? If this is how it is intended to be reported, feel free to close :)\n\n```\n127.0.0.1:6877> info memory\n# Memory\nused_memory:1062544\nused_memory_human:1.01M\nused_memory_rss:114487296\nused_memory_peak:1140032096\nused_memory_peak_human:1.06G\nused_memory_lua:91031552\nmem_fragmentation_ratio:107.75\nmem_allocator:jemalloc-3.6.0\n127.0.0.1:6877> script flush\nOK\n127.0.0.1:6877> info memory\n# Memory\nused_memory:1061312\nused_memory_human:1.01M\nused_memory_rss:3485696\nused_memory_peak:1140032096\nused_memory_peak_human:1.06G\nused_memory_lua:36864\nmem_fragmentation_ratio:3.28\nmem_allocator:jemalloc-3.6.0\n```\n\nAnd since we're on the topic, would it be possible to also display VIRT? I imagine there might be a good reason for its omission, though. I need to be able to monitor fragmentation, phy, virt, (and frag_max, phy_max, virt_max) etc. for my redis instances, so this would be nice to be able to just issue an INFO command for all this.\n\nMore info from the same server if it helps:\n\n```\n# Server\nredis_version:3.0.4\nredis_git_sha1:00000000\nredis_git_dirty:0\nredis_build_id:31bcb47bce320346\nredis_mode:standalone\nos:Linux 2.6.32-504.23.4.el6.x86_64 x86_64\narch_bits:64\nmultiplexing_api:epoll\ngcc_version:4.4.7\nprocess_id:7257\nrun_id:2e2c20c0262d3f541cb566b2110691de668c6acb\ntcp_port:6877\nuptime_in_seconds:165348\nuptime_in_days:1\nhz:10\nlru_clock:9426321\n...\n...\n# Commandstats\n...\ncmdstat_eval:calls=146,usec=8705779,usec_per_call=59628.62\ncmdstat_script:calls=2,usec=396809,usec_per_call=198404.50\n```\n",
+  "state": "open",
+  "created_at": "2016-01-08T15:37:54Z",
+  "updated_at": "2021-09-17T10:45:18Z",
+  "closed_at": null,
+  "labels": [
+    "non critical bug",
+    "memory efficiency",
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 919025521,
+      "user": "yoav-steinberg",
+      "created_at": "2021-09-14T10:31:25Z",
+      "body": "You are right regarding the inaccuracy of the fragmentation information. See:\r\nhttps://github.com/redis/redis/blob/f041990f2acde5ae1ef67351c6a505f3ef6fcf52/src/server.c#L4883-L4887\r\nIt seems like a good idea to exclude LUA allocation from here. @oranagra WDYT?\r\n\r\n> And since we're on the topic, would it be possible to also display VIRT? \r\n\r\nI'm curious what would you need VIRT info for?\r\n\r\n"
+    },
+    {
+      "id": 919072241,
+      "user": "oranagra",
+      "created_at": "2021-09-14T11:44:32Z",
+      "body": "since this issue was opened, we've added real fragmentation metrics:\r\n\r\n* allocator_frag_ratio\r\n* allocator_frag_bytes\r\n* allocator_rss_ratio\r\n* allocator_rss_bytes\r\n* rss_overhead_ratio\r\n* rss_overhead_bytes\r\n\r\ndocumented here: https://redis.io/commands/info\r\nso the situation is already greatly improved.\r\n\r\nthis old \"fragmentation\" metric is wrong in many aspects, and in essence it's just a ratio of `used_memory` and `used_memory_rss`.\r\ni don't wanna deduct the lua memory from rss, and at this point i also don't wanna include it in used_memory.\r\ni'm not sure about just deducting it when calculating the pseudo fragmentation metric.\r\n@yoav-steinberg WDYT?"
+    },
+    {
+      "id": 919110177,
+      "user": "yoav-steinberg",
+      "created_at": "2021-09-14T12:38:49Z",
+      "body": "Seems like we have decent metrics and we can think of phasing out the old one. Then we won't need to have any specific code handling the lua allocations when showing these ratios. So I think:\r\n1. We can close this ticket.\r\n2. Maybe think of deprecating `mem_fragmentation_ratio`."
+    },
+    {
+      "id": 919160507,
+      "user": "oranagra",
+      "created_at": "2021-09-14T13:38:58Z",
+      "body": " Don't know how to depreciate the old metric. \r\n the way I see it, it can maybe serve as a red flag to tell you that there may be some issue, and then you need to look at other metrics to know what exactly it is.\r\nBut as pointed out in the top description, there are cases where there's no issue at all. \r\n\r\nHowever, maybe the more severe problem with this metric is that people (and even monitoring software) are looking at it on its own, without the context of the mem_fragmentation_bytes, so that sometimes on a completely empty process, they see very high frag ratio and get stressed over nothing (e.g. 2mb).\r\nSee: https://github.com/redis/redis/issues/9256\r\n\r\nSo considering that, even fixing this Lua issue, won't really solve the problem with this metric. "
+    },
+    {
+      "id": 921693515,
+      "user": "yoav-steinberg",
+      "created_at": "2021-09-17T10:36:43Z",
+      "body": "> the way I see it, it can maybe serve as a red flag to tell you that there may be some issue, and then you need to look at other metrics to know what exactly it is.\r\n\r\nIt can probably server as a red flag, but in most cases `allocator_frag_ratio` is a better flag and combined with `rss_overhead_ratio` I think it covers all the cases `mem_fragmentation_ratio` handles. What am I missing?"
+    },
+    {
+      "id": 921697920,
+      "user": "oranagra",
+      "created_at": "2021-09-17T10:45:18Z",
+      "body": "there's also `allocator_rss_ratio`, i.e. there are 3 metrics that are more or less, a breakdown of `mem_fragmentation_ratio`.\r\nbut anyway, too many people are already looking at that one, i don't think we can remove it, and i'm not sure how to fix it in a way that will be better."
+    }
+  ]
+}

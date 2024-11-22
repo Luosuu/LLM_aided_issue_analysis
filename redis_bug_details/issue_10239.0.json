@@ -1,0 +1,24 @@
+{
+  "issue_number": 10239.0,
+  "title": "[BUG] currentEpoch doesn't decrease on a replica that campaigned for leadership but the election got aborted",
+  "body": "**Describe the bug**\r\n\r\nIn cluster mode enabled, when a replica attempts to campaign for leadership, it first bumps its local `currentEpoch` [here](https://github.com/redis/redis/blob/0a82fe844765e3c49d4807fcb8562342f88dffaf/src/cluster.c#L3628). But if the election gets aborted because the current leader comes back alive, the replica never \"un-bump\" its local `currentEpoch` and would leave it artificially bumped indefinitely. In this state, the `currentEpoch` on this replica would be larger than any actual `configEpoch` of any node.\r\n\r\n**To reproduce**\r\n\r\n1. Setup 2 shards. Shard 1 has a replica and owns some slots. After the cluster converged, `configEpoch` on nodes in shard 1 is `0`, `configEpoch` on nodes in shard 2 is `2`:\r\n```\r\ndev-dsk-nanya-2b-ea8f5b51 % redis-cli -p 6380 cluster nodes\r\nfbeb558fa145246e9e557aada626acc373bcb921 10.189.116.208:6379@16379 master - 0 1644016176208 0 connected 1-3\r\n85d1b8f04add3be3802b91c191ae563b889442b9 10.189.116.208:6380@16380 myself,slave fbeb558fa145246e9e557aada626acc373bcb921 0 1644016174000 0 connected\r\n7bd610388aed471c1758d20f94cc97177071bb83 10.189.116.208:6381@16381 master - 0 1644016175248 2 connected\r\n```\r\n2. Use `gdb` to pause both primaries in shard 1 and 2. So that replica in shard 1 would start campaign for leadership but it wouldn't win because it can't get enough votes. Replica in shard 1 would bumped its local `currentEpoch` from `0` to `3`:\r\n```\r\n10502:S 04 Feb 2022 23:09:34.201 * Starting a failover election for epoch 3.\r\n```\r\n3. Un-pause primary in shard 1. Replica in shard 1 would abort the leader election. But its local `currentEpoch` would stay as `3` indefinitely, while its shard's `configEpoch` correctly remains `0`:\r\n```\r\ndev-dsk-nanya-2b-ea8f5b51 % redis-cli -p 6380 cluster info\r\n...\r\ncluster_current_epoch:3\r\ncluster_my_epoch:0\r\n```\r\n\r\n**Expected behavior**\r\n\r\nIf an ongoing election is aborted, replica should \"un-bump\" its local `currentEpoch` to its previous value, or whatever is the currently max `configEpoch` in the cluster.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2022-02-04T23:23:55Z",
+  "updated_at": "2022-02-08T06:46:09Z",
+  "closed_at": "2022-02-08T06:43:47Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1030745077,
+      "user": "madolson",
+      "created_at": "2022-02-06T03:41:41Z",
+      "body": "I'm not sure we can \"un-bump\" the currentEpoch. If for any reason a failover authorization is \"delayed\", and the replica tries to nominate itself again, it would be doing it based off of a previously used Epoch and might receive messages confirming the failover even the authorization messages were intended for a different election. The only mitigation is that we could bump the epoch consistently across the cluster even for failed elections."
+    },
+    {
+      "id": 1032264462,
+      "user": "ny0312",
+      "created_at": "2022-02-08T06:43:47Z",
+      "body": "After some thought, I agree that \"un-bump\" the `currentEpoch` is not safe, for reasons you laid out.\r\n\r\nI also agree that the preferred behavior should be to \"bump the epoch consistently across the cluster even for failed elections\".  In other words, each Epoch can have **at most** one leader, and is allowed to have no leader at all. This resembles with the design of Raft protocol. \r\n\r\nAnd Redis cluster bus election **already** does so - After a candidate replica bumped its `currentEpoch` but failed to get elected, it would still propagate its bumped `currentEpoch` as [part of outgoing gossip messages](https://github.com/redis/redis/blob/bb875603fb7ff3f9d19aad906bd45d7db98d9a39/src/cluster.c#L2794), and receivers will [update their own local `currentEpoch` accordingly](https://github.com/redis/redis/blob/bb875603fb7ff3f9d19aad906bd45d7db98d9a39/src/cluster.c#L2137-L2138) as well.\r\n\r\nSo this issue is a result of me not fully understanding the design of Redis cluster bus election protocol. I'm closing it. Thanks for the answer. "
+    }
+  ]
+}

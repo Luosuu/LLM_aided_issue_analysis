@@ -1,0 +1,38 @@
+{
+  "issue_number": 8608.0,
+  "title": "[BUG] Redis Module key manipulations don't initiate RDB snapshot saves",
+  "body": "**Describe the bug**\r\n\r\nManipulating keys with Redis Module functions like `RedisModule_StringSet` don't increment `redisServer.dirty`, and therefore will never initiate an RDB snapshot like a normal Redis command would.\r\n\r\n**To reproduce**\r\n\r\nFor context, when you set a key normally in Redis:\r\n\r\n    127.0.0.1:6379> set key value\r\n    OK\r\n\r\nAnd have RDB snapshotting configured, moments later you'll see a message like this one to indicate that a snapshot has been saved to disk.\r\n\r\n    48665:M 21 Feb 2021 12:15:26.450 * 1 changes in 10 seconds. Saving...\r\n    48665:M 21 Feb 2021 12:15:26.450 * Background saving started by pid 48667\r\n    48667:C 21 Feb 2021 12:15:26.452 * DB saved on disk\r\n\r\nIf you use a command installed via Redis Module, say redis-cell (this is one I maintain):\r\n\r\n    127.0.0.1:6379> CL.THROTTLE user123 15 1 600 1\r\n\r\nYou'll notice that no RDB snapshot is taken. This appears to be because `redisServer.dirty`, which is how Redis tracks changes that need to be saved, is not incremented by the Redis Modules API.\r\n\r\nYou can reproduce with any Redis Module, but if you need one, you can try installing redis-cell, which is quite straightforward. Instructions for that here:\r\n\r\nhttps://github.com/brandur/redis-cell#install\r\n\r\nI posted this to the Redis mailing list first where it seems to have been [confirmed to be a bug](https://groups.google.com/g/redis-db/c/upB9zXOIvog/m/7Qwqrl7HBwAJ) rather than some other API misuse or something along those lines.\r\n\r\n**Expected behavior**\r\n\r\nWhen a key is modified from a Redis Module, `dirty` should be incremented somewhere along the way, and from there an RDB snapshot can potentially be initiated.\r\n\r\n**Additional information**\r\n\r\nOriginal bug reported on redis-cell here:\r\n\r\nhttps://github.com/brandur/redis-cell/issues/52\r\n",
+  "state": "closed",
+  "created_at": "2021-03-05T19:19:26Z",
+  "updated_at": "2021-03-13T20:28:50Z",
+  "closed_at": "2021-03-13T20:28:50Z",
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 791633657,
+      "user": "oranagra",
+      "created_at": "2021-03-05T19:31:43Z",
+      "body": "This is by design.\r\nBy default, module commands are also not being propagated to replicas and AOF.\r\nNot even if the module uses `RedisModule_Calll()` (unless using the `!` modifier).\r\nInstead the module needs to explicitly call `RedisModule_Replicate()` or `RedisModule_ReplicateVerbatim()`.\r\nWhen doing so, it does both insert a command into the replication stream / AOF, and also increments the dirty counter."
+    },
+    {
+      "id": 791987003,
+      "user": "brandur",
+      "created_at": "2021-03-06T16:44:56Z",
+      "body": "@oranagra Thanks for the quick response! I've patched my module to use `RedisModule_ReplicateVerbatim`, and confirmed it fixes the problem.\r\n\r\nBut hmm, are you sure that this shouldn't be considered somewhat of a bug as well? I understand that calling one of the replication functions is necessary to trigger replication to replicas/AOF, but it's not obvious (from the standpoint of an external developer like myself) that that should _also_ be required to cause RDB snapshots to work properly. These concepts are all related, but still orthogonal."
+    },
+    {
+      "id": 792053388,
+      "user": "oranagra",
+      "created_at": "2021-03-06T20:57:46Z",
+      "body": "I'm quite sure this is by design. Modules are getting full control on how they use redis, and that come with a price (which is that many things don't happen automatically). \r\nI suppose we may need to  improve the documentation though. \r\nIn invite you to review the current docs and propose changes. \r\nThis can either be the API reference generated from module.c, or maybe the intro in https://redis.io/topics/modules-intro"
+    },
+    {
+      "id": 798780718,
+      "user": "brandur",
+      "created_at": "2021-03-13T20:28:50Z",
+      "body": "Alright, will take a look at those docs to see if there might be improvements to be made. Thanks!"
+    }
+  ]
+}

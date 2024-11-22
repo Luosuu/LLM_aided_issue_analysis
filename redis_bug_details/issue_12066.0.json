@@ -1,0 +1,30 @@
+{
+  "issue_number": 12066.0,
+  "title": "[BUG] [err]: replica buffer don't induce eviction in tests/unit/maxmemory.tcl",
+  "body": "Issue encountered during Make test command in centos 7",
+  "state": "open",
+  "created_at": "2023-04-18T12:52:15Z",
+  "updated_at": "2023-04-19T07:52:58Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1513225577,
+      "user": "oranagra",
+      "created_at": "2023-04-18T14:07:12Z",
+      "body": "can you provide the exact error message?\r\nis the failure consistent?"
+    },
+    {
+      "id": 1514164903,
+      "user": "itsAnudeepDhoptey",
+      "created_at": "2023-04-19T05:47:07Z",
+      "body": "*** [err]: replica buffer don't induce eviction in tests/unit/maxmemory.tcl\r\nExpected 24624 > 2*1024*1024 (context: type eval line 78 cmd {assert {$slave_buf > 2*1024*1024} } proc ::test)\r\n\r\nError consistent in make test of both 7.0.10 and .11"
+    },
+    {
+      "id": 1514294403,
+      "user": "oranagra",
+      "created_at": "2023-04-19T07:52:58Z",
+      "body": "can you please test our `unstable` branch? (it does have some improvement in that test)"
+    }
+  ]
+}

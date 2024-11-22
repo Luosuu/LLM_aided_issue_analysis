@@ -1,0 +1,30 @@
+{
+  "issue_number": 8043.0,
+  "title": "[BUG] method  zslInsert in t_zset.c update and rank array length need not maxlevel and unsigned int may overflow",
+  "body": "**Describe the bug**\r\n`\r\nzskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) {\r\n\r\n`zskiplistNode` *update[ZSKIPLIST_MAXLEVEL], *x;\r\n\r\n   `unsigned` int rank[ZSKIPLIST_MAXLEVEL];\r\n`\r\nA short description of the bug.\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\n**Expected behavior**\r\n`\r\nzskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) {\r\n\r\n//---------------------------impovement-------------------------------------------\r\n\r\n  int  level = zslRandomLevel(); // 1st obtains new level value\r\n\r\n  int max = max(level, zsl->level);\r\n\r\n    zskiplistNode *update[max]; // low probability to reach ZSKIPLIST_MAXLEVEL\r\n\r\n//------------------------------------bug fix--------------------------------------------------------------\r\n// from server.h  \r\n// unsigned long length;  unsigned long span;\r\n// #define ZSKIPLIST_MAXLEVEL 32 /* Should be enough for 2^64 elements */\r\n// #define ZSKIPLIST_P 0.25      /* Skiplist P = 1/4 */\r\n\r\n// if x will be inserted at the end of list, and length has been greater than max of unsigned int, overflow can occur.\r\n\r\n    unsigned long rank[max];// long not int\r\n\r\n-------------------------------------------\r\n\r\n`\r\nA description of what you expected to happen.\r\n\r\n**Additional information**\r\n\r\nAny additional information that is relevant to the problem.\r\n",
+  "state": "closed",
+  "created_at": "2020-11-12T03:40:35Z",
+  "updated_at": "2021-07-19T01:48:26Z",
+  "closed_at": "2021-07-19T01:48:26Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 747391029,
+      "user": "oranagra",
+      "created_at": "2020-12-17T11:46:40Z",
+      "body": "@galleChristian your text is really hard to follow.\r\nplease try to clean it up (both formatting issues, and also maybe you can add more context or make it easier to follow).\r\n\r\nif i understand correctly, you're complaining about two things:\r\n1. the these two arrays of 64 elements are too big (we won't actually reach the high indexes. what number do you suggest? p.s. few more bytes on the stack won't cause any damage..\r\n2. the type of the `rank` array needs to be `unsigned long` rather than `unsigned int`. since it would overflow if the skiplist has more than 2G elements.\r\n\r\nis that right?\r\ndo you wanna open a pull request?"
+    },
+    {
+      "id": 878874316,
+      "user": "yangbodong22011",
+      "created_at": "2021-07-13T08:10:36Z",
+      "body": "> 1. the these two arrays of 64 elements are too big (we won't actually reach the high indexes. what number do you suggest? p.s. few more bytes on the stack won't cause any damage..\r\n\r\nhello, @galleChristian about `update[ZSKIPLIST_MAXLEVEL]` to `update[max(zslRandomLevel(), zsl->level)]`, i agree with @oranagra , it just `sizeof(zskiplistNode *) * ZSKIPLIST_MAXLEVEL = 8 * 32 = 256 bytes`, it doesn't matter.\r\n\r\nAbout `unsigned int rank[ZSKIPLIST_MAXLEVEL]` to `unsigned long rank[ZSKIPLIST_MAXLEVEL]`, i agree, you can open a PR to solve it."
+    },
+    {
+      "id": 882167605,
+      "user": "yangbodong22011",
+      "created_at": "2021-07-19T01:48:22Z",
+      "body": "Closed for https://github.com/redis/redis/pull/9249"
+    }
+  ]
+}

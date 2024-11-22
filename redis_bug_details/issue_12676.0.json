@@ -1,0 +1,24 @@
+{
+  "issue_number": 12676.0,
+  "title": "[BUG] Redis reverts the storage directory from /etc/systemd/system/redis.service file when applying updates",
+  "body": "**Describe the bug**\r\n\r\nAm running redis on arm64 Ubuntu 22.04.3 LTS. Yesterday 18-Oct-2023 when the latest Ubuntu update for redis got applied it reverted the value of ReadWriteDirectories from /etc/systemd/system/redis.service.\r\n\r\nredis_version:7.2.2\r\nredis_build_id:6876a9c0c6ed6275\r\nos:Linux 6.2.0-1013-aws aarch64\r\n\r\n**To reproduce**\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\nInstead of storing the data in root directory, I had modified the storage path of redis in /etc/redis/redis.conf (property dir) and /etc/systemd/system/redis.service (proeprty ReadWriteDirectories) from /var/lib/redis to /mnt/data_disk/redis.\r\n\r\nWhen the latest patch got applied it retained the path in /etc/redis/redis.conf but it reverted the path from /etc/systemd/system/redis.service. This failed the redis service to start when machine got rebooted.\r\n\r\n**Expected behavior**\r\n\r\nA description of what you expected to happen.\r\n\r\nMaintain the storage directory in only 1 config file instead of maintaining it in 2 places /etc/redis/redis.conf and /etc/systemd/system/redis.service. This will ensure that the patching does not impact the storage path.\r\n\r\n**Additional information**\r\n\r\nKindly let me know if any additional information is required.\r\n",
+  "state": "closed",
+  "created_at": "2023-10-19T07:14:18Z",
+  "updated_at": "2023-11-29T06:11:26Z",
+  "closed_at": "2023-11-29T06:11:25Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1774163374,
+      "user": "yossigo",
+      "created_at": "2023-10-22T18:20:29Z",
+      "body": "@abs2310 Redis's configuration is only stored in a single location - `/etc/redis/redis.conf`. The systemd configuration file serves a different purpose of defining the service and, in this case, its filesystem access restrictions. If you need to modify the systemd unit file in a way that persists upgrades, consider using `systemctl edit` to generate a separate override file with your changes."
+    },
+    {
+      "id": 1831281691,
+      "user": "abs2310",
+      "created_at": "2023-11-29T06:11:26Z",
+      "body": "@yossigo thanks for sharing the resolution. We reverted the ReadWriteDirectories settings and instead created synlink to the mount point to avoid the file getting reverted."
+    }
+  ]
+}

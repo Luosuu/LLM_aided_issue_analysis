@@ -1,0 +1,20 @@
+{
+  "issue_number": 106.0,
+  "title": "Even when maxmemory is reached Redis should allow MULTI/EXEC blocks containing only commands allowed on out of memory.",
+  "body": "Currently we have this strange behavior:\n\n```redis 127.0.0.1:6379> set foo bar\nOK\nredis 127.0.0.1:6379> config set maxmemory 10\nOK\nredis 127.0.0.1:6379> set foo2 bar2\n(error) ERR command not allowed when used memory > 'maxmemory'\nredis 127.0.0.1:6379> multi\nOK\nredis 127.0.0.1:6379> get foo\nQUEUED\nredis 127.0.0.1:6379> exec\n(error) ERR command not allowed when used memory > 'maxmemory'\nredis 127.0.0.1:6379> \n\n```\n\nAs you can see Redis is preventing us from running MULTI/EXEC even if the block only contains read-only commands.\nThis bug should be fixed preventing the MULTI/EXEC block execution only if the memory limit is reached AND there is at least a command flagged as REDIS_CMD_DENYOOM.\n\nI'm fixing this issue in the **unstable-ctable** branch.\n```\n",
+  "state": "closed",
+  "created_at": "2011-09-26T13:49:19Z",
+  "updated_at": "2012-03-21T15:52:41Z",
+  "closed_at": "2012-03-21T15:52:41Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 4620231,
+      "user": "antirez",
+      "created_at": "2012-03-21T15:52:41Z",
+      "body": "This was fixed by recent commit about read only slave in the unstable branch. WIll be ported soon to 2.6. Closing.\n"
+    }
+  ]
+}

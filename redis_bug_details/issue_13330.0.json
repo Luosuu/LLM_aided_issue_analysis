@@ -1,0 +1,20 @@
+{
+  "issue_number": 13330.0,
+  "title": "[BUG] A client blocked on authentication through a module can't log into a cluster when it is down",
+  "body": "**Describe the bug**\r\n\r\nI'm developing an authentication module that takes advantage of the authentication module features to block the client during authentication.\r\n\r\nWhen the server is configured for cluster mode and the cluster is down, such as when it is first being created, any client that attempts to login gets the message \"AUTH failed: CLUSTERDOWN The cluster is down\".  My code is authenticating the user with RedisModule_AuthenticateClientWithACLUser and returning REDISMODULE_AUTH_HANDLED in the same way that the test code under test/modules/auth.c is doing.\r\n\r\n**To reproduce**\r\n\r\nThe blocking auth example in tests/modules/auth.c blocking_auth_cb should be enough to reproduce on a single node that is configured with \"cluster-enabled yes\"\r\n\r\n**Expected behavior**\r\n\r\nA client blocked for auth module authentication should be able to login even if the cluster is down.\r\n\r\n**Additional information**\r\n\r\nIn the 7.2 code, I believe the fix is to exclude clients that are blocked from module authentication in cluster.c -> clusterRedirectBlockedClientIfNeeded\r\n\r\nint clusterRedirectBlockedClientIfNeeded(client *c) {\r\n    if (c->flags & CLIENT_BLOCKED &&\r\n        (c->bstate.btype == BLOCKED_LIST ||\r\n         c->bstate.btype == BLOCKED_ZSET ||\r\n         c->bstate.btype == BLOCKED_STREAM ||\r\n         c->bstate.btype == BLOCKED_MODULE) **&&\r\n         !clientHasModuleAuthInProgress(c)**)\r\n    {",
+  "state": "open",
+  "created_at": "2024-06-07T18:14:15Z",
+  "updated_at": "2024-06-11T13:23:37Z",
+  "closed_at": null,
+  "labels": [
+    "cluster"
+  ],
+  "comments_data": [
+    {
+      "id": 2158129820,
+      "user": "jdork0",
+      "created_at": "2024-06-10T11:47:25Z",
+      "body": "Attached is the minimal code from tests/modules/auth.c to create a module to expose the problem.\r\n[auth.c.gz](https://github.com/user-attachments/files/15765043/auth.c.gz)\r\n\r\nredis.conf file:\r\n```\r\nloadmodule auth.so\r\ncluster-enabled yes\r\ncluster-config-file cluster.nodes.conf\r\nuser foo on ~* +@all\r\nuser default off\r\n```\r\n\r\nSteps to re-create:\r\n\r\n- Compile the module with `gcc -shared auth.c -o auth.so`\r\n- Start redis the attached config file\r\n- login with the user `foo`, password `blocking`.\r\n\r\n```\r\n$ redis-cli --user foo --pass blocking\r\nWarning: Using a password with '-a' or '-u' option on the command line interface may not be safe.\r\nAUTH failed: CLUSTERDOWN The cluster is down\r\n```"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 7346.0,
+  "title": "[BUG] redis-cli --csv BGSAVE/LASTSAVE do not return ERROR Message ( out of disk )",
+  "body": "I was trying to take database dump using:\r\n```\r\nredis-cli --csv BGSAVE\r\nCURR_DATE=$(date +%s)\r\nwhile true; do\r\n\t# LASTSAVE returns epoch of last successfull background dump process\r\n\tLAST_SAVE=$(redis-cli  --csv LASTSAVE)\r\n\t[ \"$LAST_SAVE\" -ge \"$CURR_DATE\" ] && break || sleep 30\r\ndone\r\n```\r\nIt did not exit from `While loop`, because LAST_SAVE did not change and it tried to save data into disk,but it failed\r\n\r\n**Reason:**\r\n Their was not an available Storage space, and Redis was trying to put new dump data.\r\n\r\n**Suggestion:**\r\nTheir should be a `time out` with error message `Server out of disk`, and program should exit with error code",
+  "state": "open",
+  "created_at": "2020-05-30T07:13:25Z",
+  "updated_at": "2020-06-02T23:13:00Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 636351712,
+      "user": "itamarhaber",
+      "created_at": "2020-05-30T16:09:17Z",
+      "body": "Hello @AhmedMItman \r\n\r\nI don't agree this is a bug with the cli. Your script could be improved to detect a faulty save by calling `INFO persistence` and looking at the 'rdb_last_bgsave_status' field.\r\n\r\n> Their should be a time out\r\n\r\nWhat time out? Both `BGSAVE` and `LASTSAVE` return immediately.\r\n\r\n>  with error message Server out of disk\r\n\r\nThe error is output to the log.\r\n\r\n> and program should exit with error code\r\n\r\nWhich program?"
+    },
+    {
+      "id": 637855083,
+      "user": "AhmedMItman",
+      "created_at": "2020-06-02T23:13:00Z",
+      "body": "Hi @itamarhaber \r\nSorry for the late response,\r\nProgram : Jenkins Linux Shell \r\nI will try `INFO persistence` with my script and i will back to you \r\nThanks a million  "
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "issue_number": 132.0,
+  "title": "AUTH should error when requirepass is not set.",
+  "body": "Currently, if you issue an AUTH <string> command to a redis server when requirepass is not set, it does not raise an error.  I think that this should raise an error, as it means the client and the server have mis-matched expectations about what the passphrase should be.\n",
+  "state": "closed",
+  "created_at": "2011-10-10T20:04:53Z",
+  "updated_at": "2011-10-10T20:23:39Z",
+  "closed_at": "2011-10-10T20:23:39Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2351586,
+      "user": "antirez",
+      "created_at": "2011-10-10T20:07:35Z",
+      "body": "Can't agree more. Fixing soon.\n"
+    },
+    {
+      "id": 2351735,
+      "user": "antirez",
+      "created_at": "2011-10-10T20:23:39Z",
+      "body": "Fixed on unstable and 2.4. Thanks! Closing the issue.\n"
+    }
+  ]
+}

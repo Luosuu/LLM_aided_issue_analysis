@@ -1,0 +1,18 @@
+{
+  "issue_number": 13604.0,
+  "title": "[BUG]Can't start with systemd with tls enabled",
+  "body": "Description:\r\nIt is not possible to use tls together with a systemd upstart  job because it needs elevated permissions with is too much of a security hole for us\r\n\r\n**To reproduce**\r\nInstall redis-server on any Linux system, all goes well, then configure with tls \r\n\r\n**Expected behavior**\r\nsudo systemctl restart redis-server should restart it with tls support\r\n \r\n**Additional information**\r\nThe only error messages I see are these\r\nOct 15 13:20:15 RedisSentinel1 systemd[1]: redis-server.service: Start request repeated too quickly.\r\nOct 15 13:20:15 RedisSentinel1 systemd[1]: redis-server.service: Failed with result 'protocol'.\r\n\r\nI have tested this on Ubuntu Server 24.04, Debian Bookworm and Fedora Server 40 - the issue is identical on each set up\r\nIf instead I use the following command \r\n\r\nsudo /usr/bin/redis-server /etc/redis.conf then it works perfectly, the problem seems to be with the user redis is running as and running it as root would be suicide on a production system",
+  "state": "open",
+  "created_at": "2024-10-15T13:02:10Z",
+  "updated_at": "2024-10-15T15:14:15Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2414243389,
+      "user": "scothost",
+      "created_at": "2024-10-15T15:14:13Z",
+      "body": "I fixed it myself - feel free to close this\r\n\r\nmy cert files were in my home folder, I moved them to /etc/redis/"
+    }
+  ]
+}

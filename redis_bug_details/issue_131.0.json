@@ -1,0 +1,20 @@
+{
+  "issue_number": 131.0,
+  "title": "System/user CPU accounting in INFO is wrong",
+  "body": "I think there is a minor issue in the statistics returned by the INFO command:\nthe system and user CPU values are reversed (i.e. system CPU is put instead of user CPU\nand vice versa).\n\nIn redis.c:\n\n```\n    \"used_cpu_sys:%.2f\\r\\n\"\n    \"used_cpu_user:%.2f\\r\\n\"\n    \"used_cpu_sys_children:%.2f\\r\\n\"\n    \"used_cpu_user_children:%.2f\\r\\n\"\n```\n\n...\n        (float)self_ru.ru_utime.tv_sec+(float)self_ru.ru_utime.tv_usec/1000000,\n        (float)self_ru.ru_stime.tv_sec+(float)self_ru.ru_stime.tv_usec/1000000,\n        (float)c_ru.ru_utime.tv_sec+(float)c_ru.ru_utime.tv_usec/1000000,\n        (float)c_ru.ru_stime.tv_sec+(float)c_ru.ru_stime.tv_usec/1000000,\n\nSuggested fix:\njust reorder the rusage values, so that the order of the returned fields is kept as it is today\n(but with their correct values).\n\nRegards,\nDidier.\n",
+  "state": "closed",
+  "created_at": "2011-10-10T12:11:53Z",
+  "updated_at": "2011-10-10T13:33:04Z",
+  "closed_at": "2011-10-10T13:33:04Z",
+  "labels": [
+    "non critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2347371,
+      "user": "antirez",
+      "created_at": "2011-10-10T13:33:04Z",
+      "body": "Thanks Didier! now I'm understanding a couple of things... like why may times this values seemed odd. Fixed in 2.4 and unstable. Closing the issue.\n"
+    }
+  ]
+}

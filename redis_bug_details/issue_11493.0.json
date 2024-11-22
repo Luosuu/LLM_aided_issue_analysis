@@ -1,0 +1,30 @@
+{
+  "issue_number": 11493.0,
+  "title": "[BUG] HSET Integer Reply",
+  "body": "**Describe the bug**\r\n\r\nThe integer reply for HSET is not correct.\r\n\r\nFor example:\r\n\r\n`HSET hash field1 value1 field2 value2` \r\n`(integer) 3`\r\n\r\nThe returned integer should be 2, since 2 fields were added. Instead of counting the number of fields, it prints 2n-1 for n fields.\r\n\r\n**To reproduce**\r\n\r\nHSET with more than one field/value pair.\r\n\r\n**Expected behavior**\r\n\r\nHSET should print `(integer) n` for n fields added.\r\n",
+  "state": "closed",
+  "created_at": "2022-11-10T04:53:23Z",
+  "updated_at": "2022-11-14T09:41:32Z",
+  "closed_at": "2022-11-10T07:16:10Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1309858050,
+      "user": "enjoy-binbin",
+      "created_at": "2022-11-10T07:05:08Z",
+      "body": "what version are you using? my return result is 2  (unstable branch)"
+    },
+    {
+      "id": 1309867363,
+      "user": "turnerburchard",
+      "created_at": "2022-11-10T07:16:10Z",
+      "body": "> what version are you using? my return result is 2 (unstable branch)\r\n\r\nlooks like this was fixed somewhere since the last release"
+    },
+    {
+      "id": 1313381740,
+      "user": "oranagra",
+      "created_at": "2022-11-14T09:41:31Z",
+      "body": "@turnerburchard i'm not aware of any such fix or bug in a recent release or after it.\r\nplease double check your facts and if you find a problem please report with more details."
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "issue_number": 13496.0,
+  "title": "[BUG] Redis clients add 1GB/s memory usage through a CLOSE_WAIT server connection",
+  "body": "**Describe the bug**\r\n\r\nI have **1 GB of memory usage extra per second** (!) when trying to connect with redis client to a redis-server which was started in a docker which is not running anymore.\r\n\r\n**To reproduce**\r\n\r\n1. Start a `redis-server &` from a docker which has forwarded the default redis port or has access via the docker run argument `--host`\r\n2. Stop the docker\r\n3. Check if the connection is in CLOSE_WAIT state\r\n> lsof -i :6379\r\nCOMMAND    PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME\r\ncode    530802  sam   39u  IPv4 45625157      0t0  TCP localhost:redis (LISTEN)\r\ncode    530802  sam   44u  IPv4 47196288      0t0  TCP localhost:redis->localhost:56540 (**CLOSE_WAIT**)\r\n\r\n**Expected behavior**\r\n\r\nCLI clients should definitely not require an infinite amount of memory.\r\nFurthermore, I expect it to fail or timeout if it cannot connect to a server on the redis port.\r\n\r\n**Additional information**\r\n\r\nI've used the following clients:\r\n- redis-cli version 7.2.5\r\n- redis rust crate version 0.23: https://docs.rs/redis/latest/redis/\r\n",
+  "state": "open",
+  "created_at": "2024-08-27T14:23:26Z",
+  "updated_at": "2024-09-06T08:44:57Z",
+  "closed_at": null,
+  "labels": [
+    "state:to-be-closed"
+  ],
+  "comments_data": [
+    {
+      "id": 2312843512,
+      "user": "sundb",
+      "created_at": "2024-08-27T15:13:56Z",
+      "body": "do you mean the rust client consume more than 1gb even it disconnected？"
+    },
+    {
+      "id": 2313069308,
+      "user": "jaques-sam",
+      "created_at": "2024-08-27T16:52:30Z",
+      "body": "Yes! It tries to connect to the redis over the port that is still in CLOSE_WAIT state."
+    },
+    {
+      "id": 2313947904,
+      "user": "sundb",
+      "created_at": "2024-08-28T02:09:07Z",
+      "body": "the reason should be that the rs client does not realize that the Reids in docker has been shut down , causing the connection to be in CLOSE_WAIT state.\r\nyou can use `PING` in the timer to periodically check if the server has been shut down.\r\n"
+    },
+    {
+      "id": 2330454626,
+      "user": "sundb",
+      "created_at": "2024-09-05T02:01:50Z",
+      "body": "@jaques-sam any news? if no i'll mark it as close."
+    },
+    {
+      "id": 2330706098,
+      "user": "jaques-sam",
+      "created_at": "2024-09-05T06:30:11Z",
+      "body": "Uh, the remaining issue is imho a major bug and needs solving... How come an application can reserve such a tremendous amount of memory (1GB/s)?! This should be tackled. Closing this  will simply hide the issue."
+    },
+    {
+      "id": 2330715901,
+      "user": "sundb",
+      "created_at": "2024-09-05T06:36:42Z",
+      "body": "@jaques-sam regarding this, you can make a issue for help in https://github.com/redis-rs/redis-rs."
+    },
+    {
+      "id": 2330858420,
+      "user": "jaques-sam",
+      "created_at": "2024-09-05T07:57:29Z",
+      "body": "Mmm, it's also happening with redis-cli, and probably with other redis clients as well."
+    },
+    {
+      "id": 2330867439,
+      "user": "sundb",
+      "created_at": "2024-09-05T08:02:09Z",
+      "body": "@jaques-sam can you give the reproduce steps by using redis-cli?"
+    },
+    {
+      "id": 2330878528,
+      "user": "jaques-sam",
+      "created_at": "2024-09-05T08:07:29Z",
+      "body": "The production steps are as said in the first message:\r\n\r\n  1.  Add the forward port 6379 from a dev container in VSCode \r\n  2.  Check if the connection is in CLOSE_WAIT state\r\n\r\n    lsof -i :6379\r\n    COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME\r\n    code 530802 sam 39u IPv4 45625157 0t0 TCP localhost:redis (LISTEN)\r\n    code 530802 sam 44u IPv4 47196288 0t0 TCP localhost:redis->localhost:56540 (CLOSE_WAIT)\r\n\r\n  4. Just enter the command `redis-cli`\r\n  5. Check total memory consumption being increased with (h)top by ~1GB/s"
+    },
+    {
+      "id": 2330902263,
+      "user": "sundb",
+      "created_at": "2024-09-05T08:19:28Z",
+      "body": "@jaques-sam where do you see memory growing at 1gb per second? from 'ps'? please give the info."
+    },
+    {
+      "id": 2330965970,
+      "user": "jaques-sam",
+      "created_at": "2024-09-05T08:51:20Z",
+      "body": "I couldn't reproduce it myself anymore, so start trying it out again....\r\nI remember I had to remove the port forwarding address from VSCode in a dev container to fix it:\r\n\r\n![image](https://github.com/user-attachments/assets/1fc9f17c-f970-4916-b84c-a9319009adc2)\r\n\r\nThis is the reason why the port is in CLOSE_WAIT state. This is even the case when the docker is still running. Sorry for the confusion.\r\n\r\nIt's strange I don't see MEM% being high, only my main memory is getting full:\r\n\r\n![image](https://github.com/user-attachments/assets/e8649471-262b-48b6-93a5-a37c6a9ec8f5)\r\n\r\nAfter couple of seconds:\r\n\r\n![image](https://github.com/user-attachments/assets/38180d57-20ae-4c99-9d20-8cbfd3d63e77)\r\n\r\nAs you can see, `redis-cli` gives no output and seems blocked, memory increases but it's not sure where...\r\nIt's for sure redis-cli as that's the command that is running, and actually it proves this is the case when shutting it down, all those GBs in memory are released.\r\n"
+    },
+    {
+      "id": 2331019800,
+      "user": "sundb",
+      "created_at": "2024-09-05T09:17:06Z",
+      "body": "@jaques-sam please try `gdb -batch -ex \"bt\" -p pid` to see what redis is doing now.\r\nand try `ps aux|grep redis-cli` to see the memory usage of `redis-cli`."
+    },
+    {
+      "id": 2331096731,
+      "user": "jaques-sam",
+      "created_at": "2024-09-05T09:52:48Z",
+      "body": "```sh\r\nps aux | rg redis\r\nsam       804823  0.0  0.0  20616  4148 pts/2    S+   11:47   0:00 redis-cli\r\n\r\ngdb -batch -ex \"bt\" -p 804823\r\n\r\nThis GDB supports auto-downloading debuginfo from the following URLs:\r\n  <https://debuginfod.fedoraproject.org/>\r\nEnable debuginfod for this session? (y or [n]) [answered N; input not from terminal]\r\nDebuginfod has been disabled.\r\nTo make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.\r\n[Thread debugging using libthread_db enabled]\r\nUsing host libthread_db library \"/lib64/libthread_db.so.1\".\r\n0x00007f8dbd72c5dd in recv () from /lib64/libc.so.6\r\n#0  0x00007f8dbd72c5dd in recv () from /lib64/libc.so.6\r\n#1  0x0000556a235c4b6d in redisNetRead ()\r\n#2  0x0000556a235cbd1c in redisBufferRead ()\r\n#3  0x0000556a235ccc21 in redisGetReply ()\r\n#4  0x0000556a235ccde4 in redisCommand ()\r\n#5  0x0000556a235a8e90 in cliInitHelp.lto_priv.0 ()\r\n#6  0x0000556a235ae433 in repl.lto_priv ()\r\n#7  0x0000556a2359de79 in main ()\r\n[Inferior 1 (process 804823) detached]\r\n```\r\n\r\nMemory is not increasing here:\r\n```sh\r\nps aux | rg redis\r\nsam       804823  0.0  0.0  20616  4252 pts/2    S+   11:50   0:00 redis-cli\r\nps aux | rg redis\r\nsam       804823  0.0  0.0  20616  4252 pts/2    S+   11:50   0:00 redis-cli\r\nps aux | rg redis\r\nsam       804823  0.0  0.0  20616  4252 pts/2    S+   11:51   0:00 redis-cli\r\nps aux | rg redis\r\nsam       804823  0.0  0.0  20616  4252 pts/2    S+   11:51   0:00 redis-cli\r\nps aux | rg redis\r\nsam       804823  0.0  0.0  20616  4252 pts/2    S+   11:51   0:00 redis-cli\r\n```"
+    },
+    {
+      "id": 2333074317,
+      "user": "sundb",
+      "created_at": "2024-09-06T02:38:10Z",
+      "body": "from your ouput we can see than `redis-cli` just consume a littlt memory.\r\nit doesn't get stuck, but rather that it can't receive a reply(i don't know why it doesn't timeout, maybe a bug).\r\ndid you forget to turn off the forward port in the vscode, i suspect that it may cause the problem."
+    },
+    {
+      "id": 2333544440,
+      "user": "jaques-sam",
+      "created_at": "2024-09-06T08:39:27Z",
+      "body": "As said:\r\n- removing the forwarding port in VSCode fixes the problem, it dumps the GBs in my main memory\r\n- quiting redis-cli also dumps the GBs in my main memory\r\n\r\nBecause redis-cli is not increasing in memory in (h)top/ps, isn't that because memory is consumed in Kernel space?"
+    },
+    {
+      "id": 2333554156,
+      "user": "sundb",
+      "created_at": "2024-09-06T08:44:56Z",
+      "body": "> As said:\r\n> \r\n> * removing the forwarding port in VSCode fixes the problem, it dumps the GBs in my main memory\r\n> * quiting redis-cli also dumps the GBs in my main memory\r\n> \r\n> Because redis-cli is not increasing in memory in (h)top/ps, isn't that because memory is consumed in Kernel space?\r\n\r\n@jaques-sam no, i guess it's caused by vscode."
+    }
+  ]
+}

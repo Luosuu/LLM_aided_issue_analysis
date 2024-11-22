@@ -1,0 +1,60 @@
+{
+  "issue_number": 8669.0,
+  "title": "[BUG] Redis installed from the Redis Labs PPA fails to daemonize on WSL2",
+  "body": "**Describe the bug**\r\n\r\nPreviously, [WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-win10) users could install redis from our PPA and start the server. We (Redis Labs) created a video showing how to do this.\r\n\r\nNow, though, redis installed from our PPA doesn't start correctly. This is what users see -- the process hangs:\r\n\r\n![image](https://user-images.githubusercontent.com/97182/111716347-0edc3200-8813-11eb-8d3b-91f79b1ebbf2.png)\r\n\r\nThis stays in the foreground until you end it with control-C.\r\n\r\nThe process _has_ started:\r\n\r\n```\r\nroot      6803  0.0  0.0  63972  4068 pts/9    S+   18:05   0:00          |   \\_ sudo service redis-server start\r\nroot      6808  0.0  0.0   4632  1780 pts/9    S+   18:05   0:00          |       \\_ /bin/sh /etc/init.d/redis-server start\r\nredis     6829  0.4  0.0  82884 13392 pts/9    Sl+  18:05   0:00          |           \\_ /usr/bin/redis-server 127.0.0.1:6379\r\n```\r\n\r\nAnd you can connect from another shell... but `sudo service redis-server start` never exits.\r\n\r\n**To reproduce**\r\n\r\n- Use latest public Windows 10\r\n- Install WSL2\r\n- Install Ubuntu 18.04 (this also happens on 20)\r\n- Add our PPA: `sudo service redis-server start`\r\n- Update and install redis: `sudo apt update && sudo apt install redis`\r\n- Try to start redis: `sudo service redis-server start`\r\n\r\n**Expected behavior**\r\n\r\nRunning `sudo service redis-server start` should start redis and exit.\r\n",
+  "state": "closed",
+  "created_at": "2021-03-19T00:53:54Z",
+  "updated_at": "2021-03-23T00:11:55Z",
+  "closed_at": "2021-03-23T00:11:55Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 802425066,
+      "user": "abrookins",
+      "created_at": "2021-03-19T00:54:16Z",
+      "body": "@yossigo Do you know who we can get in touch about this? I'm not sure who manages the PPA. @lamby Maybe you can help?"
+    },
+    {
+      "id": 802693726,
+      "user": "lamby",
+      "created_at": "2021-03-19T09:42:05Z",
+      "body": "I don't know who runs that PPA, sorry."
+    },
+    {
+      "id": 802875368,
+      "user": "guyroyse",
+      "created_at": "2021-03-19T14:30:57Z",
+      "body": "On my Windows 10 machine, it doesn't even start. It hangs on the call to `start-stop-daemon` in `/etc/init.d/redis-server`."
+    },
+    {
+      "id": 802891067,
+      "user": "abrookins",
+      "created_at": "2021-03-19T14:52:49Z",
+      "body": "I think we literally turned off daemonization by default in recent commits\nto the packaging repo:\nhttps://github.com/redis/redis-debian/commit/9985435278cf0aff8fc494d80994dd593040f10e#diff-9f8d1201b6e71e2ad7916c8efabf287fb9040e6bc3626f7a7dd44433f1c8af14R12\n\nOn Fri, Mar 19, 2021 at 7:31 AM Guy Royse ***@***.***> wrote:\n\n> On my Windows 10 machine, it doesn't even start. It hangs on the call to\n> start-stop-daemon in /etc/init.d/redis-server.\n>\n> —\n> You are receiving this because you authored the thread.\n> Reply to this email directly, view it on GitHub\n> <https://github.com/redis/redis/issues/8669#issuecomment-802875368>, or\n> unsubscribe\n> <https://github.com/notifications/unsubscribe-auth/AAAXXHQ6DC3M2POBIGU5IFLTENN3JANCNFSM4ZNZH3BQ>\n> .\n>\n"
+    },
+    {
+      "id": 804357236,
+      "user": "yossigo",
+      "created_at": "2021-03-22T20:04:30Z",
+      "body": "@abrookins Seems like it may be related to the fact you're not using systemd. Redis now ignores `daemonize` when running in supervised mode, but I guess we still need `daemonize yes` in case it isn't."
+    },
+    {
+      "id": 804409927,
+      "user": "yossigo",
+      "created_at": "2021-03-22T21:32:24Z",
+      "body": "@abrookins This should be fixed now."
+    },
+    {
+      "id": 804485059,
+      "user": "abrookins",
+      "created_at": "2021-03-23T00:11:54Z",
+      "body": "Awesome! I just confirmed that it's fixed. Closing...\n\nOn Mon, Mar 22, 2021 at 2:32 PM Yossi Gottlieb ***@***.***>\nwrote:\n\n> @abrookins <https://github.com/abrookins> This should be fixed now.\n>\n> —\n> You are receiving this because you were mentioned.\n> Reply to this email directly, view it on GitHub\n> <https://github.com/redis/redis/issues/8669#issuecomment-804409927>, or\n> unsubscribe\n> <https://github.com/notifications/unsubscribe-auth/AAAXXHV54M6C2SZ7G4ATCQLTE6ZPTANCNFSM4ZNZH3BQ>\n> .\n>\n"
+    },
+    {
+      "id": 804485068,
+      "user": "abrookins",
+      "created_at": "2021-03-23T00:11:55Z",
+      "body": "Confirmed!"
+    }
+  ]
+}

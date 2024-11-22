@@ -1,0 +1,18 @@
+{
+  "issue_number": 13568.0,
+  "title": "[BUG] Report of STACK TRACE of Redis 5.0.14.1",
+  "body": "=== REDIS BUG REPORT START: Cut & paste starting from here ===\r\nRedis version: 5.0.14.1\r\n[13408] 24 Sep 07:25:39.230 # --- ABORT\r\n[13408] 24 Sep 07:25:39.230 # --- STACK TRACE\r\nredis-server.exe!StackTraceInfo((null):0)(0x00000016, 0x7FCD16C00000, 0x1400DDD60, 0x1401B5750)\r\nredis-server.exe!AbortHandler((null):0)(0x00000016, 0x1400DDD60, 0x1400DDD60, 0x0014F200)\r\nredis-server.exe!raise(minkernel\\crts\\ucrt\\src\\appcrt\\misc\\signal.cpp:547)(0x0014ED01, 0x100000000, 0x00000000, 0x000008B4)\r\nredis-server.exe!abort(minkernel\\crts\\ucrt\\src\\appcrt\\startup\\abort.cpp:71)(0x00000000, 0x1401A9160, 0x000008B4, 0x0000005A)\r\nredis-server.exe!zmalloc_default_oom(D:\\dev\\GitHub\\redis\\src\\zmalloc.c:108)(0x06400008, 0x000008B4, 0x0014F200, 0x0014F200)\r\nredis-server.exe!zmalloc(D:\\dev\\GitHub\\redis\\src\\zmalloc.c:119)(0x000008B7, 0x7FCD13400A85, 0x0014F200, 0x08C00000)\r\nredis-server.exe!rdbSaveLzfStringObject(D:\\dev\\GitHub\\redis\\src\\rdb.c:363)(0x000008B7, 0x7FCD16C00000, 0x0014F200, 0x0014F200)\r\nredis-server.exe!rdbSaveRawString(D:\\dev\\GitHub\\redis\\src\\rdb.c:437)(0x00000064, 0x00000000, 0x1401F7A01, 0x7FCD020286D0)\r\nredis-server.exe!rdbSaveObject(D:\\dev\\GitHub\\redis\\src\\rdb.c:1023)(0x00000001, 0x14004870D, 0x1DB0E42311E7183, 0x0014F200)\r\nredis-server.exe!rdbSaveKeyValuePair(D:\\dev\\GitHub\\redis\\src\\rdb.c:1073)(0x0014F200, 0x00000000, 0x08000000, 0x00000009)\r\nredis-server.exe!rdbSaveRio(D:\\dev\\GitHub\\redis\\src\\rdb.c:1219)(0x0092D020, 0x02240000, 0x00000000, 0x00003460)\r\nredis-server.exe!rdbSave(D:\\dev\\GitHub\\redis\\src\\rdb.c:1321)(0x0379BAE8, 0x02240000, 0x02240000, 0x7FCD21400000)\r\nredis-server.exe!QForkChildInit(D:\\dev\\GitHub\\redis\\src\\rdb.c:1321)(0x00000220, 0x00000000, 0x00000220, 0x2AAAAAAAAAAAAAAB)\r\nredis-server.exe!main(D:\\dev\\GitHub\\redis\\src\\rdb.c:1321)(0x00000000, 0x00000000, 0x00546F30, 0x00000000)\r\nredis-server.exe!__scrt_common_main_seh(d:\\a01\\_work\\12\\s\\src\\vctools\\crt\\vcstartup\\src\\startup\\exe_common.inl:288)(0x00000000, 0x00000000, 0x00000000, 0x00000000)\r\nKERNEL32.DLL!BaseThreadInitThunk(d:\\a01\\_work\\12\\s\\src\\vctools\\crt\\vcstartup\\src\\startup\\exe_common.inl:288)(0x00000000, 0x00000000, 0x00000000, 0x00000000)\r\nntdll.dll!RtlUserThreadStart(d:\\a01\\_work\\12\\s\\src\\vctools\\crt\\vcstartup\\src\\startup\\exe_common.inl:288)(0x00000000, 0x00000000, 0x00000000, 0x00000000)\r\nntdll.dll!RtlUserThreadStart(d:\\a01\\_work\\12\\s\\src\\vctools\\crt\\vcstartup\\src\\startup\\exe_common.inl:288)(0x00000000, 0x00000000, 0x00000000, 0x00000000)\r\n[13408] 24 Sep 07:25:39.240 #\r\n=== REDIS BUG REPORT END. Make sure to include from START to END. ===",
+  "state": "open",
+  "created_at": "2024-09-24T07:05:59Z",
+  "updated_at": "2024-09-24T07:12:24Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 2370378290,
+      "user": "sundb",
+      "created_at": "2024-09-24T07:12:24Z",
+      "body": "@khairul01914 windows version is not maintained by Redis community, you can get help from the project maintainer."
+    }
+  ]
+}

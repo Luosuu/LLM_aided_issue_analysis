@@ -1,0 +1,171 @@
+{
+  "issue_number": 2647.0,
+  "title": "Unexpected evictions with LRU policy",
+  "body": "So this really behaves strange, and we could not understand why after few hours of testing. We have this master redis 3.0.2 with one slave connected, and we are using 3 databases.\n\nThe problem is, with `volatile-ttl`, `allkeys-lru` or `volatile-lru`, keys with 2 years expire time (PHP sessions) are removed before keys with 2 hours.\n\nMy understanding would be that those long TTL keys should be removed the last, or I'm missing something? Also a new key added will always be \"less used\" than an old one that had a few hits, but in my case I don't want to remove those keys. Isn't SET considered \"usage\"?\n\nAlso does the order of the DBs matter for the eviction? I had the feeling that it removes preponderantly from DB 0, but I moved them to the last DB and those objects are still the ones that get removed immediately after write when there is memory pressure.\n",
+  "state": "closed",
+  "created_at": "2015-06-29T16:22:50Z",
+  "updated_at": "2019-08-25T20:23:49Z",
+  "closed_at": "2016-07-22T14:48:33Z",
+  "labels": [
+    "non critical bug",
+    "state-work-needed"
+  ],
+  "comments_data": [
+    {
+      "id": 116751173,
+      "user": "antirez",
+      "created_at": "2015-06-29T16:31:54Z",
+      "body": "Hello, is this observing just a _given_ key removed while there were other better keys, or something with a statistical significance? Because Redis LRU algorithm is an approximation, so if you have many keys with a very long TTL (let's call them Set \"A\") and keys with short TTL (set \"B\") this is what could happen:\n1. You have 1000 keys in set A.\n2. You have 10 keys in set B.\n\nRedis LRU approximation samples the DB for 5 random keys, but only gets keys from Set A since they are so much compared to set B. So it picks the best among the sample obtained, and expires a key from A instead of one from B. Is this the case perhaps? If so, this is an expected behavior.\n\nThis may also happen when you have the same amount of keys in set A and B, but is statistically rare, and should not be too bad for a cache since most of the times, Redis will expire A keys.\n\nDBs don't matter too much for eviction, but matters a bit... Keys are removed from each DB one after the other, so the sampling thing I explained above is performed in a local way in each DB, so it will expire a few keys from each DB.\n\nIf you have Keys A in DB 0, and Keys B in DB 1, then this is why you see keys from Set A expired at the same rate as keys in the Set B.\n"
+    },
+    {
+      "id": 116751834,
+      "user": "antirez",
+      "created_at": "2015-06-29T16:34:12Z",
+      "body": "p.s. it should be possible to change the algorithm in order to have cross-DBs coherence of LRU. Let's see what is the problem before to go forward...\n"
+    },
+    {
+      "id": 116754308,
+      "user": "razvanphp",
+      "created_at": "2015-06-29T16:38:45Z",
+      "body": "Thank you for the fast response.\n\nThe size of the DBs is indeed very unbalanced:\n\n```\n# Keyspace\ndb0:keys=8,expires=6,avg_ttl=2591868775\ndb1:keys=80,expires=70,avg_ttl=3313829\ndb2:keys=183102,expires=183100,avg_ttl=5698824\n```\n\nin my case, the sessions live in DB0, with expire time of 1 year, application cache in DB1, with expire of around 1 day (routes, views etc) and in DB2 is the things that I would like to have removed - oldest first, with expire of 2 hours, with bulk data that gets populated from a cron job.\n\nDoes this confirm your theory?\n"
+    },
+    {
+      "id": 116754913,
+      "user": "antirez",
+      "created_at": "2015-06-29T16:40:53Z",
+      "body": "Exactly confirmed... It's not optimal how it works indeed, but I'm not sure we can fix it without impacting the performances a lot. Adding everything to a single DB would fix it BTW. However, are you in the mood to try a few patches in the next days? Thanks.\n"
+    },
+    {
+      "id": 116755821,
+      "user": "razvanphp",
+      "created_at": "2015-06-29T16:44:01Z",
+      "body": "Adding them to the same DB would not be good, because we wipe from time to time DB1 or DB2, but not the sessions. I would assume also using different instances would solve the problem? I read somewhere that you wanted to deprecate the multiple DBs feature anyway, should we use a cluster instead? I'm not really sure what would be the equivalent setup.\n\nSure, we can try some patches, I have it rather easily reproducible in our environment.\n"
+    },
+    {
+      "id": 116759152,
+      "user": "antirez",
+      "created_at": "2015-06-29T16:52:33Z",
+      "body": "Not going to deprecate it in the near future for sure, but it is not a feature of Redis Cluster, so the advice is to use multi DBs wisely. To remove all the keys in a single DB is wise, if you don't have latency sensitive workloads. Otherwise IMHO a better setup is for you to use a single DB, and just use different prefixes for keys of different groups, and mass-remove when needed using SCAN patterns + DEL (variadic) operations. This way you can mass-remove without blocking the server with FLUSHDB. At the same time you solve your eviction problem.\n\nI still think its' worth it to experiment with a few patches, but I think that at this point now I'm aware of your use case, your main problem would be FLUSHDB is blocking (it will no longer be blocking in the future, btw. There is an issue about it).\n"
+    },
+    {
+      "id": 116761345,
+      "user": "razvanphp",
+      "created_at": "2015-06-29T16:59:27Z",
+      "body": "Blocking with FLUSHDB is not such a big problem, because it happens really rearly, but the eviction problem affects the site really bad, because you cannot login, since the session is stored and gone immediately.\n\nMaybe a new algorithm would be a good idea? Since it depends on the use case..\n"
+    },
+    {
+      "id": 116761834,
+      "user": "antirez",
+      "created_at": "2015-06-29T17:01:15Z",
+      "body": "Yep, I'll try with the new algo. Let's see if it can be made as fast as the current one... News ASAP.\n"
+    },
+    {
+      "id": 122295655,
+      "user": "antirez",
+      "created_at": "2015-07-17T14:35:05Z",
+      "body": "In the meantime as my colleague noted about this issue, maybe the @razvanphp is best served using two separated instances until the problem is not investigated and (if possible) solved?\n"
+    },
+    {
+      "id": 223095377,
+      "user": "cheald",
+      "created_at": "2016-06-01T19:13:52Z",
+      "body": "If I understand this discussion correctly, then LRU purging happens per-db? We're seeing issues where we're using a Redis instance configured as an LRU cache for Rails, and we use separate DBs per stages (production, staging, etc). Keys written to the staging DBs are evicted nearly instantaneously - I suspect because the production DB consumes nearly all the memory. Is there any movement towards making eviction happen across all DBs, or do we need to re-structure the app to write namespaced keys into the same DB?\n"
+    },
+    {
+      "id": 226761855,
+      "user": "antirez",
+      "created_at": "2016-06-17T12:57:03Z",
+      "body": "@cheald in the long run there is my intention to fix this, however it may require some non trivial change in order to avoid totally trashing the LRU algorithm performances, so I would go in favor of dropping the multiple DBs thing since does not look like a huge change (apparently), in order to make it working well with current Redis. I'm just currently not sure about when/how this will be fixed, but technically, the bug report is accepted and there is willingness to fix it.\n"
+    },
+    {
+      "id": 231330225,
+      "user": "antirez",
+      "created_at": "2016-07-08T10:42:50Z",
+      "body": "UPDATE: I've a working fix for this, I'm improving it and checking speed regressions. Is a large amount of code changed so not sure if it will make 3.2 or will remain into `unstable`.\n"
+    },
+    {
+      "id": 231349855,
+      "user": "razvanphp",
+      "created_at": "2016-07-08T12:44:05Z",
+      "body": "Nice, how is the algorithm going to work now? or is it a totally different (new) algorithm?\n\nWe were just preparing to split our redis instances because of this, but if it lands in 3.2 we could give it a try.\n"
+    },
+    {
+      "id": 232281381,
+      "user": "ben-manes",
+      "created_at": "2016-07-13T07:48:10Z",
+      "body": "Have you considered using an [admission policy](http://arxiv.org/pdf/1512.00727.pdf) to account for frequency in addition to recency? Remains O(1) while also providing [near optimal](https://github.com/ben-manes/caffeine/wiki/Efficiency) hit rates.\n"
+    },
+    {
+      "id": 233577870,
+      "user": "antirez",
+      "created_at": "2016-07-19T09:24:05Z",
+      "body": "@ben-manes hey, I'm working at LFU right now. You can find a first implementation in the `lfu` branch on Github. I had 24 bits of space in the object to implement this, but AFAIK it's working fairly well and I'm getting better results with power-law access patterns compared to the Redis original LRU algo.\n"
+    },
+    {
+      "id": 233578105,
+      "user": "antirez",
+      "created_at": "2016-07-19T09:25:03Z",
+      "body": "@razvanphp The fix for this issue it's a non trivial change to the original LRU algorithm, I've the feeling I'll not merge back into 3.2, but instead try to push for a 4.0 ASAP.\n"
+    },
+    {
+      "id": 233581009,
+      "user": "ben-manes",
+      "created_at": "2016-07-19T09:37:05Z",
+      "body": "LFU is optimal for power law, but is less intelligent for many real world workloads. My proposal can be highly compact and achieves near optimal hit rates across a variety of traces. Please take a look at the above link and research paper.\n"
+    },
+    {
+      "id": 233586672,
+      "user": "antirez",
+      "created_at": "2016-07-19T10:01:39Z",
+      "body": "@ben-manes reading the paper right now. Note that what I implemented supports aging so it's not naive LFU and adapts over time, so it should not be different to what described in the paper if I understand the abstract correctly. However reading it all to check the details. Thanks.\n"
+    },
+    {
+      "id": 233587179,
+      "user": "antirez",
+      "created_at": "2016-07-19T10:03:52Z",
+      "body": "Another aspect to consider is that the design of the cache proposed in the paper, may be unacceptable for Redis, because of the _admission policy_ concept... While we want Redis to evict things in an intelligent way, I'm not sure it is viable to completely ignore writes.\n"
+    },
+    {
+      "id": 233588289,
+      "user": "ben-manes",
+      "created_at": "2016-07-19T10:08:58Z",
+      "body": "The majority of writes are one hit wonders and pollution, which is a cause for LRU degrading. The larger history and optional window avoids ignoring good writes.\n"
+    },
+    {
+      "id": 233791967,
+      "user": "ben-manes",
+      "created_at": "2016-07-19T23:00:07Z",
+      "body": "btw, the difference between LFU and TinyLFU (LFU with longer history) is between 0-20% in my traces. The difference is on the large side for search and analytical workloads and smaller (5%+) for database. In those traces LFU is still much better than LRU, as expected, so no matter what you'll have a win in a large cache. Ideally if you can acquire redis traces we can simulate the different options so that you can make an informed design.\n"
+    },
+    {
+      "id": 234564175,
+      "user": "antirez",
+      "created_at": "2016-07-22T14:47:54Z",
+      "body": "@ben-manes I tried to do data-driven development using the tests you can find in the `utils/lru` directory in the Redis unstable distribution, and also using `redis-cli` power-law access hits/misses meter, and AFAIK this \"windowed\" LFU is working very well compared to the past LRU. However I'm not sure how to meter it better with other tests, everything will end up being pretty synthetic I guess, since there is the big issue of the access timing that may change significantly among workloads, so I expect the new users of Redis 4.0 (that's where this code will be released) to test and report if LFU is working well and how to improve it.\n\nBtw the LFU algorithm has two tunable parameters, the logarithmic factor, and the decay time, so that it is possible to tune how much aggressively the LFU counter increases with accesses and how much often it is divide by two over time. This should help to experiment with different tuning factors.\n\nEvery change that can improve the current hit rate, without degrading performances will be very welcome. About remembering the history of keys that are not in the dataset right now, as exploited by the paper you linked, that's an interesting idea, and my LFU implementation does it at least a bit: when a key is replaced with a different value, but having the same name, we make sure to don't forget hits LFU history.\n\nHowever generally applying this concept to Redis is a problem given that the paper you mentioned is geared towards pure GET/SET caches. A Redis user hardly expects that, even when `maxmemory` is set, a command may have no effect at all because the caching algorithm thought this key will not be accessed, so it would be a huge shift in behavior.\n\nNow instead keys are always created and taken for some time before being evicted, which is a lot less surprising, even if a bit less effective when Redis is purely used as a cache.\n"
+    },
+    {
+      "id": 234564339,
+      "user": "antirez",
+      "created_at": "2016-07-22T14:48:33Z",
+      "body": "General update for this issue: the cross-DB problems of Redis expire are now fixed into the `unstable` branch, that will be Redis 4.0 before end of October. So I'm closing this issue. Thanks all for your help.\n"
+    },
+    {
+      "id": 234661798,
+      "user": "ben-manes",
+      "created_at": "2016-07-22T21:30:23Z",
+      "body": "Thanks for the thoughtful response @antirez.\n\nMany eviction policies are now segmented to more aggressively evict low value entries. SLRU has a \"probation\", S4LRU has levels, LIRS has a \"HIR\" region, ARC has T1, 2Q has an IN queue, etc. These policies are based on recency, promoting from the low value region upon a subsequent access. The more advanced ones use \"ghost entries\" (evicted keys) to monitor a longer history to try to correct if they evicted an entry prematurely. This allows recency-based policies to capture frequency information.\n\nTinyLFU is frequency-based and can be viewed as a straightforward filter. The \"admission window\" approach (W-TinyLFU) avoids filtering immediately, making it similar to the above policies. In that mode it allows a new entry into the cache and delays the filtering until it no longer has a high recency. The regions can use any eviction policy, e.g. S/LRU in the paper as the most optimal (but random does very well). Using this variation you would not break user expectations by having \"no effect at all\" for SET operations.\n\nI found using synthetic tests (e.g. Zipf) to be less interesting than real-world traces. I used previously published ones, but it would be easy to simulate other workloads if you can acquire some from Redis users. The simulator includes many policies and variants, including memcached's recent adoption of [TuQ](https://github.com/memcached/memcached/pull/97). We could easily add your LFU variant for comparison and to see its strengths/weaknesses. Let me know if you'd like to collaborate on an analysis.\n"
+    },
+    {
+      "id": 239089826,
+      "user": "ben-manes",
+      "created_at": "2016-08-11T07:20:54Z",
+      "body": "@antirez \n\nPlease see the traces in [Caffeine #106](https://github.com/ben-manes/caffeine/issues/106) which shows a workload where LRU is optimal. This causes policies that are based on recency, but try to infer frequency, to match LRU. However policies that are based on frequency and try to infer recency underperform. The longer frequency histogram in TinyLFU causes it to suffer longer than LFU. The variant with an admission window helps to reduce the impact, but stays at a slight disadvantage.\n\nThat workload may help you analyze Redis' LFU to see how well it adapts.\n"
+    },
+    {
+      "id": 524660868,
+      "user": "KeitelDOG",
+      "created_at": "2019-08-25T20:23:49Z",
+      "body": "Why not implementing WHITE LIST or/and BLACK LIST pattern to prevent or to allow eviction on keys starting with `session_*`, or to restrict db access on it if necessary?"
+    }
+  ]
+}

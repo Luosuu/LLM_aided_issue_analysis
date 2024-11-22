@@ -1,0 +1,24 @@
+{
+  "issue_number": 12162.0,
+  "title": "[BUG] Sentinel failover not as expected - ends up with multiple masters",
+  "body": "**Describe the bug**\r\n\r\nI'm running sentinel on K8S using [spotahome/redis-operator](https://github.com/spotahome/redis-operator) (the problem shouldn't be related to it).\r\n\r\nI have 3 redis and 3 sentinel instances using the image `redis:6.2.6-alpine`.\r\n\r\nredis.conf\r\n```\r\nslaveof 127.0.0.1 6379\r\nport 6379\r\ntcp-keepalive 60\r\nsave 900 1\r\nsave 300 10\r\nuser pinger -@all +ping on >pingpass\r\nmasterauth pass\r\nrequirepass pass\r\n```\r\n\r\nsentinel.conf\r\n```\r\nsentinel monitor mymaster 127.0.0.1 6379 2\r\nsentinel down-after-milliseconds mymaster 5000\r\nsentinel failover-timeout mymaster 5000\r\nsentinel parallel-syncs mymaster 2\r\n```\r\n\r\nK8S PBD:\r\n```\r\nNAME                        MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS\r\nrfr-redis-routes-sentinels        2                N/A                 1                 \r\nrfs-redis-routes-sentinels        2                N/A                 1                \r\n```\r\n\r\nDuring an update of the image to `v6.2.12`, I suffered the following situation:\r\n\r\n- ![image](https://github.com/redis/redis/assets/39015378/083b8d23-0ede-4742-bb8d-366f3a654998)\r\n- Sentinel A --- restarted (13:22:25)\r\n- Redis-0 --- restarted (13:22:37)\r\n- Sentinel B --- restarted (13:23:08)\r\n- Sentinel C --- restarted (13:23:47)\r\n- Redis-1 --- restarted (13:23:41)\r\n- Redis-0 --- connection lost with master (redis-2) --- become master (13:24:34)\r\n    - From Redis-0 logs: `Connection with master lost` --- `Caching the disconnected master state` --- `Discarding previously cached master state`\r\n    - From Redis-2 logs: `Connection with replica 172.16.89.182:6379 lost`\r\n    - From sentinel logs: `Executing user requested FAILOVER of 'mymaster'` --- `+new-epoch 7` --- ... --- `+elected-leader master mymaster 172.16.55.123 6379` (Redis-2)\r\n        - Note that here the failover process doesn't finish with `failover-end`\r\n- Redis-1 --- become slave of Redis-0 (13:25:04)\r\n- Redis-1 --- connection lost with master (Redis-0) --- become master (13:25:10)\r\n- Redis-2 --- restarted (13:25:15)\r\n- ![image](https://github.com/redis/redis/assets/39015378/d455856b-a5fb-4034-94a4-ae1e2a6af33e)\r\n- Redis-2 can't start correctly\r\n\r\nHere are the full logs: [sentinels-logs.txt](https://github.com/redis/redis/files/11451615/sentinels-logs.txt), [redis-0-logs.txt](https://github.com/redis/redis/files/11451616/redis-0-logs.txt), [redis-1-logs.txt](https://github.com/redis/redis/files/11451619/redis-1-logs.txt), [redis-2-logs.txt](https://github.com/redis/redis/files/11451620/redis-2-logs.txt)\r\n\r\n\r\nScaling down replicas to 0 and scaling up again solved the issue.\r\n\r\nI would like to know how it could have happened that I ended up with two masters and one of the redises without being able to get up. How could it be fixed or avoid this situation in the future?\r\n\r\nSteps to reproduce the behavior and/or a minimal code sample.\r\n\r\nN/A\r\n\r\nA description of what you expected to happen.\r\n\r\nI would expect to still have just one master.",
+  "state": "closed",
+  "created_at": "2023-05-11T16:09:56Z",
+  "updated_at": "2023-05-15T07:27:56Z",
+  "closed_at": "2023-05-15T07:27:56Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1546907209,
+      "user": "moticless",
+      "created_at": "2023-05-14T14:00:14Z",
+      "body": "Hi @txabman42 , \r\nIn order to proceed, it's important that you provide a clear steps of your scenario as it's not entirely clear from your description, particularly regarding what you're simulating and what unexpected behavior you're experiencing. I suggest for a start seeking assistance from the [spotahome/redis-operator](https://github.com/spotahome/redis-operator) to determine whether others are also experiencing this issue, and if it's specific to certain versions or exist from day one. If, with the help of other contributors, you're able to confidently identify this as a core Redis issue and have clear steps to reproduce it, please inform us. \r\n\r\nBTW, I peeped to the logs and saw some write error to configuration file. Check it. Didn't look further.\r\n\r\nThanks,\r\nMoti"
+    },
+    {
+      "id": 1547328465,
+      "user": "txabman42",
+      "created_at": "2023-05-15T07:27:56Z",
+      "body": "Thank you so much, I will move this issue to [spotahome/redis-operator](https://github.com/spotahome/redis-operator)."
+    }
+  ]
+}

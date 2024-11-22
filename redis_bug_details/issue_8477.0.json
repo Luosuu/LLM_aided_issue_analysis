@@ -1,0 +1,24 @@
+{
+  "issue_number": 8477.0,
+  "title": "[BUG] redis 6.0 benchmark test redis-cluster mset with requirepass",
+  "body": "use benchmark\r\n`./redis-benchmark -h 10.0.1.208 -a test123 -r 1 -n 2 -c 1 -t mset --cluster -e -q`\r\nerr:\r\n`Error from server ***:6379: ERR Protocol error: expected '$', got 'S'`\r\n\r\ngdb the benchmark , first mset buf is \r\n`*2\\r\\n$4\\r\\nAUTH\\r\\n$7\\r\\ntest123\\r\\n*21\\r\\n$4\\r\\nMSET\\r\\n$22\\r\\nkey:{tag}:`\r\nsecond mset bug if \r\n`*21\\r\\n$4\\r\\nMSET\\r\\n$22\\r\\nkey:{tag}:`\r\n\r\nI see the problem here\r\n`c->stagptr` ",
+  "state": "closed",
+  "created_at": "2021-02-09T07:00:27Z",
+  "updated_at": "2021-02-14T12:42:42Z",
+  "closed_at": "2021-02-14T12:42:42Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 775802428,
+      "user": "filipecosta90",
+      "created_at": "2021-02-09T09:39:53Z",
+      "body": "If you guys agree, happy to take a look at the issue and try to reproduce/fix on my side :)"
+    },
+    {
+      "id": 778252042,
+      "user": "filipecosta90",
+      "created_at": "2021-02-12T15:10:59Z",
+      "body": "Hi there @huxiaozhe, #8486 should fix the above issue. \r\nI've validated the issue and the fix o my side, but can you please confirm it?"
+    }
+  ]
+}

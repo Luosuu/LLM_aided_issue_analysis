@@ -1,0 +1,93 @@
+{
+  "issue_number": 3035.0,
+  "title": "Redis-sentinel 3.2rc1 crashed after master was shutdown using \"poweroff\"",
+  "body": "Redis-sentinel on one of the slaves crashed after master was shut down using the \"poweroff\" system command.\n\n```\nJan 26 15:52:06 redis-sentinel[652]: 652:X 26 Jan 15:52:06.315 # +sdown master redis-data-development 10.10.2.4 6379\nJan 26 15:52:06 redis-sentinel[652]: 652:X 26 Jan 15:52:06.315 # +sdown sentinel 10.10.2.4:26379 10.10.2.4 26379 @ redis-data-development 10.10.2.4 6379\nJan 26 15:52:07 redis-sentinel[652]: 652:X 26 Jan 15:52:07.180 # +new-epoch 22\nJan 26 15:52:07 redis-sentinel[652]: 652:X 26 Jan 15:52:07.188 # +vote-for-leader 6536d4c1dd3c9ad32fded751fe9a799947f88a85 22\nJan 26 15:52:07 redis-sentinel[652]: 652:X 26 Jan 15:52:07.440 # +odown master redis-data-development 10.10.2.4 6379 #quorum 2/2\nJan 26 15:52:07 redis-sentinel[652]: 652:X 26 Jan 15:52:07.440 # Next failover delay: I will not start a failover before Tue Jan 26 15:58:07 2016\nJan 26 15:52:08 redis-sentinel[652]: === REDIS BUG REPORT START: Cut & paste starting from here ===\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.233 # Redis 3.1.101 crashed by signal: 11\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.233 # Crashed running the instuction at: 0x470c4a\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.233 # Accessing address: (nil)\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.233 # Failed assertion: <no assertion failed> (<no file>:0)\nJan 26 15:52:08 redis-sentinel[652]: ------ STACK TRACE ------\nJan 26 15:52:08 redis-sentinel[652]: EIP:\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](sentinelEvent+0x24a)[0x470c4a]\nJan 26 15:52:08 redis-sentinel[652]: Backtrace:\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](logStackTrace+0x29)[0x45bf69]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](sigsegvHandler+0xa4)[0x45c454]\nJan 26 15:52:08 redis-sentinel[652]: /lib/x86_64-linux-gnu/libpthread.so.0(+0xf8d0)[0x7f76fe5ea8d0]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](sentinelEvent+0x24a)[0x470c4a]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](sentinelProcessHelloMessage+0x10d)[0x4731bd]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](sentinelPublishCommand+0x60)[0x4734d0]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](call+0x81)[0x4258c1]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](processCommand+0x44f)[0x4289af]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](processInputBuffer+0x97)[0x435087]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](aeProcessEvents+0x133)[0x41ff93]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](aeMain+0x2b)[0x4202ab]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel](main+0x40a)[0x41d24a]\nJan 26 15:52:08 redis-sentinel[652]: /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf5)[0x7f76fe253b45]\nJan 26 15:52:08 redis-sentinel[652]: /opt/redis/bin/redis-sentinel *:26379 [sentinel][0x41d4af]\nJan 26 15:52:08 redis-sentinel[652]: ------ INFO OUTPUT ------\nJan 26 15:52:08 redis-sentinel[652]: # Server\nJan 26 15:52:08 redis-sentinel[652]: redis_version:3.1.101\nJan 26 15:52:08 redis-sentinel[652]: redis_git_sha1:00000000\nJan 26 15:52:08 redis-sentinel[652]: redis_git_dirty:0\nJan 26 15:52:08 redis-sentinel[652]: redis_build_id:a00651db5b4a8f93\nJan 26 15:52:08 redis-sentinel[652]: redis_mode:sentinel\nJan 26 15:52:08 redis-sentinel[652]: os:Linux 3.16.0-4-amd64 x86_64\nJan 26 15:52:08 redis-sentinel[652]: arch_bits:64\nJan 26 15:52:08 redis-sentinel[652]: multiplexing_api:epoll\nJan 26 15:52:08 redis-sentinel[652]: gcc_version:4.9.2\nJan 26 15:52:08 redis-sentinel[652]: process_id:652\nJan 26 15:52:08 redis-sentinel[652]: run_id:7084b1ec107b710eca77677f4210a1df2e36785b\nJan 26 15:52:08 redis-sentinel[652]: tcp_port:26379\nJan 26 15:52:08 redis-sentinel[652]: uptime_in_seconds:15534\nJan 26 15:52:08 redis-sentinel[652]: uptime_in_days:0\nJan 26 15:52:08 redis-sentinel[652]: hz:14\nJan 26 15:52:08 redis-sentinel[652]: lru_clock:10979352\nJan 26 15:52:08 redis-sentinel[652]: executable:/opt/redis/bin/redis-sentinel\nJan 26 15:52:08 redis-sentinel[652]: config_file:/etc/redis/sentinel.conf\nJan 26 15:52:08 redis-sentinel[652]: # Clients\nJan 26 15:52:08 redis-sentinel[652]: connected_clients:1\nJan 26 15:52:08 redis-sentinel[652]: client_longest_output_list:0\nJan 26 15:52:08 redis-sentinel[652]: client_biggest_input_buf:0\nJan 26 15:52:08 redis-sentinel[652]: blocked_clients:0\nJan 26 15:52:08 redis-sentinel[652]: # Memory\nJan 26 15:52:08 redis-sentinel[652]: used_memory:869152\nJan 26 15:52:08 redis-sentinel[652]: used_memory_human:848.78K\nJan 26 15:52:08 redis-sentinel[652]: used_memory_rss:4603904\nJan 26 15:52:08 redis-sentinel[652]: used_memory_rss_human:4.39M\nJan 26 15:52:08 redis-sentinel[652]: used_memory_peak:882272\nJan 26 15:52:08 redis-sentinel[652]: used_memory_peak_human:861.59K\nJan 26 15:52:08 redis-sentinel[652]: total_system_memory:67589103616\nJan 26 15:52:08 redis-sentinel[652]: total_system_memory_human:62.95G\nJan 26 15:52:08 redis-sentinel[652]: used_memory_lua:37888\nJan 26 15:52:08 redis-sentinel[652]: used_memory_lua_human:37.00K\nJan 26 15:52:08 redis-sentinel[652]: maxmemory:0\nJan 26 15:52:08 redis-sentinel[652]: maxmemory_human:0B\nJan 26 15:52:08 redis-sentinel[652]: maxmemory_policy:volatile-lru\nJan 26 15:52:08 redis-sentinel[652]: mem_fragmentation_ratio:5.30\nJan 26 15:52:08 redis-sentinel[652]: mem_allocator:jemalloc-4.0.3\nJan 26 15:52:08 redis-sentinel[652]: # Persistence\nJan 26 15:52:08 redis-sentinel[652]: loading:0\nJan 26 15:52:08 redis-sentinel[652]: rdb_changes_since_last_save:0\nJan 26 15:52:08 redis-sentinel[652]: rdb_bgsave_in_progress:0\nJan 26 15:52:08 redis-sentinel[652]: rdb_last_save_time:1453804394\nJan 26 15:52:08 redis-sentinel[652]: rdb_last_bgsave_status:ok\nJan 26 15:52:08 redis-sentinel[652]: rdb_last_bgsave_time_sec:-1\nJan 26 15:52:08 redis-sentinel[652]: rdb_current_bgsave_time_sec:-1\nJan 26 15:52:08 redis-sentinel[652]: aof_enabled:0\nJan 26 15:52:08 redis-sentinel[652]: aof_rewrite_in_progress:0\nJan 26 15:52:08 redis-sentinel[652]: aof_rewrite_scheduled:0\nJan 26 15:52:08 redis-sentinel[652]: aof_last_rewrite_time_sec:-1\nJan 26 15:52:08 redis-sentinel[652]: aof_current_rewrite_time_sec:-1\nJan 26 15:52:08 redis-sentinel[652]: aof_last_bgrewrite_status:ok\nJan 26 15:52:08 redis-sentinel[652]: aof_last_write_status:ok\nJan 26 15:52:08 redis-sentinel[652]: # Stats\nJan 26 15:52:08 redis-sentinel[652]: total_connections_received:2\nJan 26 15:52:08 redis-sentinel[652]: total_commands_processed:22563\nJan 26 15:52:08 redis-sentinel[652]: instantaneous_ops_per_sec:2\nJan 26 15:52:08 redis-sentinel[652]: total_net_input_bytes:1320536\nJan 26 15:52:08 redis-sentinel[652]: total_net_output_bytes:135174\nJan 26 15:52:08 redis-sentinel[652]: instantaneous_input_kbps:0.14\nJan 26 15:52:08 redis-sentinel[652]: instantaneous_output_kbps:0.05\nJan 26 15:52:08 redis-sentinel[652]: rejected_connections:0\nJan 26 15:52:08 redis-sentinel[652]: sync_full:0\nJan 26 15:52:08 redis-sentinel[652]: sync_partial_ok:0\nJan 26 15:52:08 redis-sentinel[652]: sync_partial_err:0\nJan 26 15:52:08 redis-sentinel[652]: expired_keys:0\nJan 26 15:52:08 redis-sentinel[652]: evicted_keys:0\nJan 26 15:52:08 redis-sentinel[652]: keyspace_hits:0\nJan 26 15:52:08 redis-sentinel[652]: keyspace_misses:0\nJan 26 15:52:08 redis-sentinel[652]: pubsub_channels:0\nJan 26 15:52:08 redis-sentinel[652]: pubsub_patterns:0\nJan 26 15:52:08 redis-sentinel[652]: latest_fork_usec:0\nJan 26 15:52:08 redis-sentinel[652]: migrate_cached_sockets:0\nJan 26 15:52:08 redis-sentinel[652]: # Replication\nJan 26 15:52:08 redis-sentinel[652]: role:master\nJan 26 15:52:08 redis-sentinel[652]: connected_slaves:0\nJan 26 15:52:08 redis-sentinel[652]: master_repl_offset:0\nJan 26 15:52:08 redis-sentinel[652]: repl_backlog_active:0\nJan 26 15:52:08 redis-sentinel[652]: repl_backlog_size:1048576\nJan 26 15:52:08 redis-sentinel[652]: repl_backlog_first_byte_offset:0\nJan 26 15:52:08 redis-sentinel[652]: repl_backlog_histlen:0\nJan 26 15:52:08 redis-sentinel[652]: # CPU\nJan 26 15:52:08 redis-sentinel[652]: used_cpu_sys:13.95\nJan 26 15:52:08 redis-sentinel[652]: used_cpu_user:11.71\nJan 26 15:52:08 redis-sentinel[652]: used_cpu_sys_children:0.00\nJan 26 15:52:08 redis-sentinel[652]: used_cpu_user_children:0.00\nJan 26 15:52:08 redis-sentinel[652]: # Commandstats\nJan 26 15:52:08 redis-sentinel[652]: # Cluster\nJan 26 15:52:08 redis-sentinel[652]: cluster_enabled:0\nJan 26 15:52:08 redis-sentinel[652]: # Keyspace\nJan 26 15:52:08 redis-sentinel[652]: hash_init_value: 1453940872\nJan 26 15:52:08 redis-sentinel[652]: ------ CLIENT LIST OUTPUT ------\nJan 26 15:52:08 redis-sentinel[652]: id=3 addr=10.100.10.100:47830 fd=15 name=sentinel-6536d4c1-cmd age=15519 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=60 oll=0 omem=0 events=r cmd=publish\nJan 26 15:52:08 redis-sentinel[652]: ------ CURRENT CLIENT INFO ------\nJan 26 15:52:08 redis-sentinel[652]: id=3 addr=10.100.10.100:47830 fd=15 name=sentinel-6536d4c1-cmd age=15519 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=60 oll=0 omem=0 events=r cmd=publish\nJan 26 15:52:08 redis-sentinel[652]: argv[0]: 'PUBLISH'\nJan 26 15:52:08 redis-sentinel[652]: argv[1]: '__sentinel__:hello'\nJan 26 15:52:08 redis-sentinel[652]: argv[2]: '10.10.1.20,26379,6536d4c1dd3c9ad32fded751fe9a799947f88a85,22,redis-data-development,10.10.2.10,6379,22'\nJan 26 15:52:08 redis-sentinel[652]: ------ REGISTERS ------\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 #\nJan 26 15:52:08 redis-sentinel[652]: RAX:0000000000000025 RBX:0000000000000000\nJan 26 15:52:08 redis-sentinel[652]: RCX:00000000004f47e3 RDX:0000000000000000\nJan 26 15:52:08 redis-sentinel[652]: RDI:0000000000000003 RSI:00000000004f4a82\nJan 26 15:52:08 redis-sentinel[652]: RBP:0000000000000003 RSP:00007ffc31d17c30\nJan 26 15:52:08 redis-sentinel[652]: R8 :0000000000000088 R9 :00007f76fda0d070\nJan 26 15:52:08 redis-sentinel[652]: R10:0000000000000016 R11:00007f76fda0e1c0\nJan 26 15:52:08 redis-sentinel[652]: R12:00000000004f4a82 R13:00000000004f47e3\nJan 26 15:52:08 redis-sentinel[652]: R14:00000000000018eb R15:0000000000000000\nJan 26 15:52:08 redis-sentinel[652]: RIP:0000000000470c4a EFL:0000000000010246\nJan 26 15:52:08 redis-sentinel[652]: CSGSFS:0000000000000033\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c3f) -> 617461642d736964\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c3e) -> 0000000000000000\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c3d) -> 00007ffc31d17d60\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c3c) -> 00000000004f4ab4\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c3b) -> 3a30312e322e302e\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c3a) -> 3031206576616c73\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c39) -> 00007f76fe302d62\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c38) -> 00007ffc31d17e30\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c37) -> 0000000000000000\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c36) -> 0000000000000040\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c35) -> 00007f76fe2ae070\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c34) -> 0000000000000002\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c33) -> 00007ffc31d17ca0\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c32) -> 00007ffc31d17ce0\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c31) -> 00007ffc31d18000\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # (00007ffc31d17c30) -> 0000000000000040\nJan 26 15:52:08 redis-sentinel[652]: ------ FAST MEMORY TEST ------\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # Bio thread for job type #0 terminated\nJan 26 15:52:08 redis-sentinel[652]: 652:X 26 Jan 15:52:08.236 # Bio thread for job type #1 terminated\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 72c000 (114688 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 78a000 (135168 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 7f76fc9ff000 (8388608 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 7f76fd200000 (10485760 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 7f76fe000000 (2097152 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 7f76fe5d7000 (16384 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 7f76fe7f4000 (16384 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 7f76fef13000 (16384 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 7f76fef19000 (16384 bytes)\nJan 26 15:52:08 redis-sentinel[652]: *** Preparing to test memory region 7f76fef1f000 (4096 bytes)\nJan 26 15:52:08 redis-sentinel[652]: .O.O.O.O.O.O.O.O.O.O\nJan 26 15:52:08 redis-sentinel[652]: Fast memory test PASSED, however your memory can still be broken. Please run a memory test for several hours if possible.\nJan 26 15:52:08 redis-sentinel[652]: === REDIS BUG REPORT END. Make sure to include from START to END. ===\nJan 26 15:52:08 redis-sentinel[652]: Please report the crash by opening an issue on github:\nJan 26 15:52:08 redis-sentinel[652]: http://github.com/antirez/redis/issues\nJan 26 15:52:08 redis-sentinel[652]: Suspect RAM error? Use redis-server --test-memory to verify it.\nJan 26 15:52:08 systemd[1]: redis-sentinel.service: main process exited, code=killed, status=11/SEGV\nJan 26 15:52:08 systemd[1]: Unit redis-sentinel.service entered failed state.\n```\n",
+  "state": "closed",
+  "created_at": "2016-01-26T15:33:56Z",
+  "updated_at": "2016-01-27T15:39:54Z",
+  "closed_at": "2016-01-27T15:39:54Z",
+  "labels": [
+    "critical bug",
+    "sentinel"
+  ],
+  "comments_data": [
+    {
+      "id": 175081059,
+      "user": "antirez",
+      "created_at": "2016-01-26T15:36:47Z",
+      "body": "Thanks, I was pretty sure there were left crashes on edge cases in Sentinel of Redis 3.2, connection sharing changed too many internals... I hope I can fix this before RC2 which is due for tomorrow.\n"
+    },
+    {
+      "id": 175094512,
+      "user": "pako-pl",
+      "created_at": "2016-01-26T16:10:16Z",
+      "body": "Thank you for a quick reply. I just noticed that the bug persists on this server event after restarting redis-sentinel.\n"
+    },
+    {
+      "id": 175104512,
+      "user": "antirez",
+      "created_at": "2016-01-26T16:34:39Z",
+      "body": "That's interesting, you mean it immediately crashes again after restart? Please could you post `sentinel.conf` and the new crash report in that case?\n"
+    },
+    {
+      "id": 175104926,
+      "user": "antirez",
+      "created_at": "2016-01-26T16:35:30Z",
+      "body": "Btw, it looks like it's a NULL pointer deference. Finally in the new 3.2 crash report we have this:\n\n```\n# Accessing address: (nil)\n```\n"
+    },
+    {
+      "id": 175120819,
+      "user": "pako-pl",
+      "created_at": "2016-01-26T17:08:23Z",
+      "body": "Sure, I just opened a new issue. It just seems that the same problem occurs after restart. I pasted my configuration file in the description:\n\nhttps://github.com/antirez/redis/issues/3036\n"
+    },
+    {
+      "id": 175560183,
+      "user": "antirez",
+      "created_at": "2016-01-27T11:02:40Z",
+      "body": "Hello @pako-pl, please could you kindly send me at antirez AT gmail your `redis-server` executable? Thanks.\n"
+    },
+    {
+      "id": 175564390,
+      "user": "pako-pl",
+      "created_at": "2016-01-27T11:10:49Z",
+      "body": "Sure, please check your e-mail.\n"
+    },
+    {
+      "id": 175568770,
+      "user": "antirez",
+      "created_at": "2016-01-27T11:22:50Z",
+      "body": "Thank you, disassembling the functions apparently the issue is that `si` is NULL in the following call:\n\n```\n                sentinelEvent(LL_WARNING,\"+config-update-from\",si,\"%@\");\n```\n\nThis should be enough clue to fix the bug. News ASAP, I'm working on it, thanks.\n"
+    },
+    {
+      "id": 175581069,
+      "user": "antirez",
+      "created_at": "2016-01-27T11:53:28Z",
+      "body": "Issue #3036 is exactly the same bug fortunately.\n"
+    },
+    {
+      "id": 175658802,
+      "user": "antirez",
+      "created_at": "2016-01-27T14:35:47Z",
+      "body": "Yez! I can replicate... Basically this happens when:\n1. For some reason one of the Sentinels, let's call it Sentinel_A, changed `ID` (reconfigured from scratch), but is as the same address at which it used to be.\n2. Sentinel_A performs a failover and/or has a newer configuration compared to another Sentinel, that we call, Sentinel_B.\n3. Sentinel_B receives an HELLO message from Sentinel_A, where the address and/or ID is mismatched, but it is reporting a newer configuration for the master they are both monitoring.\n\nWhen the above conditions happen, the code enters a wrong state where `si` in sentinelProcessHelloMessage is NULL and gets deferenced. Fixing...\n"
+    },
+    {
+      "id": 175664356,
+      "user": "pako-pl",
+      "created_at": "2016-01-27T14:48:26Z",
+      "body": "Great to hear that. Thanks a lot. I'm really impressed how quickly you addressed this issue.\n"
+    },
+    {
+      "id": 175693246,
+      "user": "antirez",
+      "created_at": "2016-01-27T15:39:15Z",
+      "body": "Thanks @pako-pl, your help was really appreciated! RC2 will be released within the next 24h.\n"
+    },
+    {
+      "id": 175693676,
+      "user": "antirez",
+      "created_at": "2016-01-27T15:39:54Z",
+      "body": "p.s. It will be just the last commit of the 3.2 branch tagged as \"RC2\" so if you want to use it, you can just grab it right now.\n"
+    }
+  ]
+}

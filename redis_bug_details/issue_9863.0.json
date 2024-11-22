@@ -1,0 +1,30 @@
+{
+  "issue_number": 9863.0,
+  "title": "[BUG] DEBUG POPULATE is not replicated",
+  "body": "**Describe the bug**\r\n\r\nKeys created using `DEBUG POPULATE` are not propagated to replicas.\r\n\r\n**To reproduce**\r\n\r\nSet up a master and a replica. Call e.g. `DEBUG POPULATE 10` on the master. Check the keys on the replica using DBSIZE, KEYS or SCAN 0.\r\n\r\n**Expected behavior**\r\n\r\nI expect the same content on the replica as on the master (given the replica isn't writable, slow, offline or defect).\r\n\r\n**Additional information**\r\n\r\nI guess that the reason is that `server.dirty++` is not done in the implementation of DEBUG POPULATE.\r\n\r\n**Other fun facts**\r\n\r\n* The DEBUG command is not flagged as a write command (although DEBUG POPULATE is doing writes)\r\n* DEBUG POPULATE doesn't care about cluster slots, so when called on a cluster node, keys not belonging to this node can be created.\r\n* DEBUG POPULATE is documented in the output of DEBUG HELP, but not on redis.io",
+  "state": "closed",
+  "created_at": "2021-11-29T20:03:05Z",
+  "updated_at": "2021-11-30T10:36:52Z",
+  "closed_at": "2021-11-30T10:36:52Z",
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 981988528,
+      "user": "oranagra",
+      "created_at": "2021-11-29T20:21:23Z",
+      "body": "Fun fact number 4:\r\n* DEBUG POPULATE is not meant to be consistent with other parts of Redis (IMHO). \r\n\r\nit's not a real command, just a testing hack.. \r\nOther sub-commands of DEBUG are also not consistent, like not supporting COMMAND GETKEYS and cluster MOVED response. \r\n\r\nIMHO It is perfectly fine that it is documented in DEBUG HELP but not in Redis.io. other DEBUG subcommands should not be in Redis.io, and soon they'll be gone from there. \r\nI suppose it'll also be missing from COMMAND output too. \r\n\r\nSee #9687, #9656, #9684\r\nAll in some way partially related. "
+    },
+    {
+      "id": 981991901,
+      "user": "zuiderkwast",
+      "created_at": "2021-11-29T20:26:03Z",
+      "body": "OK, then at least some of these limitations could be mentioned in the DEBUG HELP output. It'd be helpful. (Today I tried to use debug populate in a test case involving replication...)"
+    },
+    {
+      "id": 982010817,
+      "user": "oranagra",
+      "created_at": "2021-11-29T20:50:39Z",
+      "body": "Meh.. You won't make that mistake again... 8-)\r\nFeel free to add warnings.. \r\nIn theory we can also fix things, but I think that incrementing the dirty counter and propagating it would be a mistake, and may also cause some tests to break. "
+    }
+  ]
+}

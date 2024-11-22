@@ -1,0 +1,128 @@
+{
+  "issue_number": 4278.0,
+  "title": "Potential Buffer Overflow from user-controllable Array Index value",
+  "body": "The _clusterLoadConfig_ function within _/redis/src/cluster.c_ seems to allow for a Buffer Overflow vulnerability leading from an array index being set from user-controllable input. The vulnerable code is:\r\n\r\n```\r\ndirection = p[1]; /* Either '>' or '<' */\r\nslot = atoi(argv[j]+1);\r\np += 3;\r\ncn = clusterLookupNode(p);\r\nif (!cn) {\r\n   cn = createClusterNode(p,0);\r\n   clusterAddNode(cn);\r\n   }\r\nif (direction == '>') {\r\n   server.cluster->migrating_slots_to[slot] = cn;\r\n} else {\r\n   server.cluster->importing_slots_from[slot] = cn;\r\n}\r\n```\r\n\r\nAs we can see, the _slot_ variable is receiving the output of atoi being run here: `slot = atoi(argv[j]+1);`\r\n\r\nNow, _argv[j]_ is basically the arguments of each line (stored in _line[]_) being put into the array using _sdssplitargs_ for further processing.\r\n\r\nThe slot value, after being extracted is then used in the _if-else_ block which controls the slot migration, i.e. `server.cluster->migrating_slots_to[slot] = cn;` and `server.cluster->importing_slots_from[slot] = cn;`.\r\n\r\nIt is safe to assume that a user won't try to put in invalid slot numbers in the cluster configuration file. However, an attacker with limited access to the machine would be able to trigger memory corruption issues or even potentially execute code by forcing an Array Index out of Bounds exception from happening due to invalid values of _slot_. There should be some validation on the value of _slot_ and the maximum length of the _migrating_slots_to_ and _migrating_slots_from_ arrays.",
+  "state": "closed",
+  "created_at": "2017-08-31T19:06:03Z",
+  "updated_at": "2019-10-20T03:45:41Z",
+  "closed_at": "2017-10-31T08:54:47Z",
+  "labels": [
+    "critical bug"
+  ],
+  "comments_data": [
+    {
+      "id": 330818331,
+      "user": "kirit1193",
+      "created_at": "2017-09-20T11:00:57Z",
+      "body": "Was this confirmed as a bug that needs to be fixed?"
+    },
+    {
+      "id": 334838769,
+      "user": "carnil",
+      "created_at": "2017-10-06T18:45:50Z",
+      "body": "This issue has been assigned [CVE-2017-15047](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-15047)"
+    },
+    {
+      "id": 334854035,
+      "user": "badboy",
+      "created_at": "2017-10-06T19:53:17Z",
+      "body": "cc @antirez "
+    },
+    {
+      "id": 335095580,
+      "user": "natoscott",
+      "created_at": "2017-10-09T08:36:48Z",
+      "body": "FWIW, I don't think this is actually exploitable with a normal configuration of Redis, where\r\nthe cluster-config-file is being used from a default location.  For example, on Fedora we'd\r\nbe creating the file in /var/lib/redis (dir directive in redis.conf) by default, which is writable\r\nby the redis:redis user:group, which a local unprivileged user would not have access to.\r\n\r\nIOW, an administrator would have to have changed the default settings, such that this file\r\nis used from an unprotected location, such that its contents became \"user-controllable\" by\r\nusers without elevated privileges.\r\n\r\nAnyway, I've opened PR4365  to add some bounds checking with improved diagnostics,\r\nand to perform a more orderly shutdown of the server in this invalid-input situation."
+    },
+    {
+      "id": 335185390,
+      "user": "badboy",
+      "created_at": "2017-10-09T15:03:11Z",
+      "body": "It's true that this is not really exploitable without otherwise access. Still a good idea to fix it."
+    },
+    {
+      "id": 335186726,
+      "user": "lamby",
+      "created_at": "2017-10-09T15:07:49Z",
+      "body": "@kirit1193 How did you find this out of interest?"
+    },
+    {
+      "id": 335203444,
+      "user": "lamby",
+      "created_at": "2017-10-09T16:04:54Z",
+      "body": "Added in https://github.com/natoscott/redis/commit/0ba2932298e3e432f32441ebc5d95a86158d706c\r\n\r\nAll versions since ``2.6.0-rc1`` affected."
+    },
+    {
+      "id": 335228453,
+      "user": "kirit1193",
+      "created_at": "2017-10-09T17:37:06Z",
+      "body": "@lamby , I was grepping for some strings and functions in the src folder, looking for these kinds of issues in general."
+    },
+    {
+      "id": 335255768,
+      "user": "lamby",
+      "created_at": "2017-10-09T18:59:41Z",
+      "body": "@antirez I'd love to get an upstream blessing on the patch so distributions can roll-out updates, even if there is no new latest released version yet."
+    },
+    {
+      "id": 336247539,
+      "user": "lamby",
+      "created_at": "2017-10-12T19:53:38Z",
+      "body": "@antirez Ping? :)"
+    },
+    {
+      "id": 340693540,
+      "user": "antirez",
+      "created_at": "2017-10-31T08:30:45Z",
+      "body": "Hello, I agree it's worth to fix indeed. I'm fixing it and patching all versions. However this bug will not trigger a new release of Redis because anyway we are going to have new releases soon and the bug is not critical enough, so expect Redis versions with such a fix to actually be deployed in a few weeks. Thanks for reporting, following up soon with the fix."
+    },
+    {
+      "id": 340694125,
+      "user": "antirez",
+      "created_at": "2017-10-31T08:33:38Z",
+      "body": "Note that there is another similar bug here as well:\r\n\r\n```\r\n                start = atoi(argv[j]);\r\n                stop = atoi(p+1);\r\n            } else {\r\n                start = stop = atoi(argv[j]);\r\n            }\r\n            while(start <= stop) clusterAddSlot(n, start++);\r\n```"
+    },
+    {
+      "id": 340699388,
+      "user": "antirez",
+      "created_at": "2017-10-31T08:57:46Z",
+      "body": "Bug fixed in all the branches. I think the bug is exploitable, because you can basically write the address of a Cluster node structure everywhere in the process memory. So the attacker may:\r\n\r\n1. Modify the nodes.conf so that a node is loaded with the ID containing actually a sequence which is executable.\r\n2. Being the node ID almost the first field of the structure (the second actually), we could set the address in a place (like a function pointer) so that the execution of the program will jump there.\r\n\r\nThe problem with this approach is that there is the `ctime` field as the first member of the structure, so there are 8 initial bytes the user cannot completely control, however probably there is some way to still exploit the bug, for instance by also using the other `clusterAddSlot()` call to selectively alter the last byte bits of the return address or alike. Did not investigate very carefully but in general it looks exploitable with efforts."
+    },
+    {
+      "id": 340718408,
+      "user": "lamby",
+      "created_at": "2017-10-31T10:16:39Z",
+      "body": "Thanks @antirez. I had already uploaded the previous patch/PR to Debian in ``4.0.2-4`` but I've replaced it with ffcf7d5 in ``4.0.2-5``."
+    },
+    {
+      "id": 341325329,
+      "user": "kirit1193",
+      "created_at": "2017-11-02T05:58:05Z",
+      "body": "> I think the bug is exploitable, because you can basically write the address of a Cluster node structure everywhere in the process memory.\r\n\r\nThis is what I had in mind when I was reporting this as well. Just didn't have a malicious nodes.conf file which would be able to achieve this."
+    },
+    {
+      "id": 544217493,
+      "user": "jinxyugit",
+      "created_at": "2019-10-20T03:39:09Z",
+      "body": "Where can I download the revised redis Windows version"
+    },
+    {
+      "id": 544217586,
+      "user": "jinxyugit",
+      "created_at": "2019-10-20T03:41:16Z",
+      "body": "Only version 3.2 of redis can be downloaded under Windows"
+    },
+    {
+      "id": 544217685,
+      "user": "jinxyugit",
+      "created_at": "2019-10-20T03:43:18Z",
+      "body": "How to compile redis source code"
+    },
+    {
+      "id": 544217779,
+      "user": "jinxyugit",
+      "created_at": "2019-10-20T03:45:41Z",
+      "body": "Does redis 3.2 Windows version also have this vulnerability?"
+    }
+  ]
+}

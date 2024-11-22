@@ -1,0 +1,63 @@
+{
+  "issue_number": 8993.0,
+  "title": "[QUESTION] using iterators when insert to a list",
+  "body": "Hi guys,\r\n\r\nI got a question about `linsertCommand`. This inserting process starts with initializing an iterator but only uses `entry` as the pivot to insert a new value. And after `listTypeInsert` successfully, either `entry` or `iter` loses the information about the current entry.\r\n\r\n```C\r\nvoid linsertCommand(client *c) {\r\n    ...\r\n    /* Seek pivot from head to tail */\r\n    iter = listTypeInitIterator(subject,0,LIST_TAIL);\r\n    while (listTypeNext(iter,&entry)) {\r\n        if (listTypeEqual(&entry,c->argv[3])) {\r\n            listTypeInsert(&entry,c->argv[4],where);\r\n            inserted = 1;\r\n            break;\r\n        }\r\n    }\r\n    listTypeReleaseIterator(iter);\r\n    ...\r\n```\r\n\r\n\r\nFor now this works well as we only insert one entry and no need to worry about the position of the new entry. But if we want to insert more entry at one time in future, I think it might be better to pass iterator into `listTypeInsert`, so we could know the position of the updated entry just like `quicklistDelEntry` does.\r\n\r\n```C\r\nvoid quicklistDelEntry(quicklistIter *iter, quicklistEntry *entry) ;\r\n```\r\n\r\n---------\r\nBy the way, when we release a `quicklistIter` in `listTypeReleaseIterator`, why just use `zfree` rather than `quicklistReleaseIterator`? \r\n```C\r\n/* Clean up the iterator. */\r\nvoid listTypeReleaseIterator(listTypeIterator *li) {\r\n    zfree(li->iter);\r\n    zfree(li);\r\n}\r\n```\r\n\r\n\r\n    ",
+  "state": "closed",
+  "created_at": "2021-05-26T11:29:24Z",
+  "updated_at": "2022-05-23T02:34:19Z",
+  "closed_at": "2022-05-23T02:34:18Z",
+  "labels": [
+    "state-work-needed",
+    "class:bug"
+  ],
+  "comments_data": [
+    {
+      "id": 848719723,
+      "user": "sundb",
+      "created_at": "2021-05-26T12:15:59Z",
+      "body": "1) I think there is no need to increase the code complexity for unknown requirements is better.\r\n2) This should be a bug, should use ```quicklistReleaseIterator```, may cause the last iterated element will not be recompressed, Can you make a pr?"
+    },
+    {
+      "id": 848899245,
+      "user": "enjoy-binbin",
+      "created_at": "2021-05-26T16:02:16Z",
+      "body": "1: I agree with sundb\r\n\r\n2: I took a look. Seems to be a bug. So i made https://github.com/redis/redis/pull/8994 to fix it . Hope you don't mind :)\r\n↑ forget about that one"
+    },
+    {
+      "id": 849007435,
+      "user": "DarrenJiang13",
+      "created_at": "2021-05-26T18:10:17Z",
+      "body": "I do not think it is that easy to just use `quicklistReleaseIterator` in `listTypeReleaseIterator`. \r\nCause I was trying to use it but encountered a problem like \r\n```\r\n==19869==ERROR: AddressSanitizer: heap-use-after-free on address 0x6030000a3dcc at pc 0x000103970859 bp 0x70000a3f6610 sp 0x70000a3f6608\r\n```\r\n------\r\nThe function calling is like \"`linsertCommand`->`listTypeInsert`->`quicklistInsertBefore`->`_quicklistInsert`->`_quicklistMergeNodes`->`_quicklistZiplistMerge`->`__quicklistDelNode`\". Which means, in some situations, the node was deleted, but the `iter->current` was not updated. So when we try to call `quicklistReleaseIterator`, error comes.\r\n\r\n```C\r\nvoid quicklistReleaseIterator(quicklistIter *iter) {\r\n    if (iter->current)\r\n        quicklistCompress(iter->quicklist, iter->current);\r\n\r\n    zfree(iter);\r\n}\r\n```\r\nSo I guess the designer used `zfree` for this kind of reason: when you insert with a node change, the `quicklistIterator.current` points to another node or anywhere. Then it becomes meaningless or even dangerous to use `quicklistReleaseIterator`.\r\n\r\nThis could also support my opinion passing iterators during insertion.  Adding iterators might be complex,  but this could make the quicklist more like stl implementations, which also enables merging and spliting list in future.\r\n\r\n"
+    },
+    {
+      "id": 849217869,
+      "user": "enjoy-binbin",
+      "created_at": "2021-05-27T00:48:34Z",
+      "body": "ohh... I will go deeper when i have time. And the meaning time maybe you can ping core team"
+    },
+    {
+      "id": 849251551,
+      "user": "sundb",
+      "created_at": "2021-05-27T01:44:57Z",
+      "body": "Thanks, @DarrenJiang13 \r\nNow it seems like it might be worthwhile to modify ```quicklistInsert*``` like ```quicklistDelEntry```.\r\nStill need to see if others have other comments.\r\nping @oranagra"
+    },
+    {
+      "id": 849335126,
+      "user": "oranagra",
+      "created_at": "2021-05-27T05:34:23Z",
+      "body": "It seems to me that the conclusion from the discussion above is correct.\r\ni.e. we can't use `quicklistReleaseIterator` unless we fix the other problem (which leaves the iterator in an unusable state).\r\n\r\nSince there's no bug currently, there's no rush to fix this, but i agree that it would be nice to improve `listTypeInsert` to take (and update) an iterator. or maybe have a version of it that does that (we may also want to keep the option of using it without an iterator).\r\nThe challenge may be to produce elegant and safe code that's easy to review and see that it's bug free."
+    },
+    {
+      "id": 849440424,
+      "user": "DarrenJiang13",
+      "created_at": "2021-05-27T08:23:14Z",
+      "body": "Thank you guys,  seems interesting to me to make a new quicklist version with iterators. "
+    },
+    {
+      "id": 1134103959,
+      "user": "DarrenJiang13",
+      "created_at": "2022-05-23T02:34:18Z",
+      "body": "Seems to be fixed in #9849 . Closed."
+    }
+  ]
+}

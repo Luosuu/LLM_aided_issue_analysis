@@ -1,0 +1,36 @@
+{
+  "issue_number": 10177.0,
+  "title": "[CRASH] Should disable module unload command in multi",
+  "body": "**Crash report**\r\n\r\nWhen we execute the following command, it will definitely cause a crash.\r\nAfter `module unload`, the `hello.simple` command has been released.\r\n\r\n```sh\r\nmulti\r\nmodule unload helloworld\r\nhello.simple\r\nexec\r\n```\r\n\r\n**Additional information**\r\nIt's going to be a breaking change.\r\n",
+  "state": "open",
+  "created_at": "2022-01-25T09:41:48Z",
+  "updated_at": "2022-01-29T20:21:20Z",
+  "closed_at": null,
+  "labels": [],
+  "comments_data": [
+    {
+      "id": 1021002074,
+      "user": "oranagra",
+      "created_at": "2022-01-25T09:52:48Z",
+      "body": "do you see any reason to load or unload modules in a transaction?\r\n\r\ni guess someone could try to atomically load a module, use it and unload it without it being exposed to other clients:\r\n```\r\nmulti\r\nmodule load\r\nmymodule.command\r\nmodule unload\r\nexec\r\n```\r\n\r\nI don't think i care much about this use case, but maybe don't think that the scenario in that crash is very severe (someone shooting himself in the leg).\r\n@yossigo @itamarhaber WDYT?"
+    },
+    {
+      "id": 1021004728,
+      "user": "sundb",
+      "created_at": "2022-01-25T09:55:32Z",
+      "body": "@oranagra I just found it by accident."
+    },
+    {
+      "id": 1024970177,
+      "user": "yossigo",
+      "created_at": "2022-01-29T19:13:51Z",
+      "body": "@oranagra I don't see a reason to allow that.\r\nIn the scenario you describe, the module itself can implement a kill switch command that will effectively make it inaccessible effective immediately, so it can be lazily unloaded later."
+    },
+    {
+      "id": 1024979970,
+      "user": "oranagra",
+      "created_at": "2022-01-29T20:21:20Z",
+      "body": "@sundb go ahead and make a PR"
+    }
+  ]
+}
