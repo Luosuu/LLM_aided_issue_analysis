@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Server Shutdown Handler",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Redis 6 attempts to save RDB snapshot during shutdown, but fails when configured directory no longer exists, preventing graceful termination",
+  "issue_number": 10330.0,
+  "title": "[BUG] Redis doesn't shut down on a SIGTERM if its directory doesn't exist"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "LoadBalance"
+  ],
+  "root_cause": "Sentinel fails to initiate failover during master node restart due to master being in LOADING state while rebuilding dataset from RDB/AOF, causing cluster unavailability during recovery period",
+  "issue_number": 11333.0,
+  "title": "[BUG] Sentinel fails to failover"
+}

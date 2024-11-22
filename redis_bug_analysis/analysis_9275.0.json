@@ -1,0 +1,11 @@
+{
+  "bug_location": "AOF (Append Only File) Persistence Module",
+  "severity": 3,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Lua script persistence mechanism fails when AOF is disabled and RDB preamble is not used, causing script loss during background AOF rewrite operation",
+  "issue_number": 9275.0,
+  "title": "[BUG] bgrewriteaof command result in lua script loss"
+}

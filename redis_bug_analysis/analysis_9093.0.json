@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis build system / pthread linking",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Incompatible pthread library version on older Linux distribution (SUSE 11 SP4) lacking pthread_setname_np function, causing build failure during linking stage",
+  "issue_number": 9093.0,
+  "title": "[BUG] Redis build failed on suse 11 sp4"
+}

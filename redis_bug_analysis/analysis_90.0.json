@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis RDB Persistence Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Redis silently continues operation when RDB persistence fails, potentially leading to undetected data loss scenarios where background saving cannot write to configured persistence directory",
+  "issue_number": 90.0,
+  "title": "Redis silently continues working when RDB persistence fails"
+}

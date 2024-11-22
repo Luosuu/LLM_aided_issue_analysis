@@ -1,0 +1,11 @@
+{
+  "bug_location": "src/replication.c, replicationCron() function",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Use-after-free vulnerability where a client pointer is freed and then subsequently dereferenced, potentially causing memory corruption or undefined behavior",
+  "issue_number": 8797.0,
+  "title": "[BUG] A use after free bug in replicationCron"
+}

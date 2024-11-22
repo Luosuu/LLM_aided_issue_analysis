@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Replication Synchronization",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Partial sync mechanism fails during manual cluster failover, forcing a full resynchronization even when minimal changes have occurred, likely due to an issue in handling replication offset tracking during failover process",
+  "issue_number": 12937.0,
+  "title": "[BUG] Redis partial sync not working when doing manual failover"
+}

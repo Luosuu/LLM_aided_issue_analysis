@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Connection Handling",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Improper connection closure during RDB process, where close() method fails to immediately terminate the connection, causing client-side blocking and delayed disconnection",
+  "issue_number": 11337.0,
+  "title": "[BUG] when executing RDB, the server actively disconnects and the client cannot sense the disconnection"
+}

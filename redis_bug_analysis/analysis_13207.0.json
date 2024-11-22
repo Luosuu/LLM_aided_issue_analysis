@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Command Parsing/GETRANGE Implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of negative indices in GETRANGE command, allowing out-of-bounds string extraction when negative indices should return an empty string",
+  "issue_number": 13207.0,
+  "title": "[BUG] `GETRANGE` returns incorrect response with negative indices"
+}

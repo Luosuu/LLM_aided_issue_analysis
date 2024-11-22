@@ -1,0 +1,21 @@
+{
+  "bug_analysis": {
+    "bug_location": "RedisJSON Module",
+    "severity": 2,
+    "categories": [
+      "CodeBug"
+    ],
+    "root_cause": "Inconsistent return value behavior in JSON retrieval method",
+    "details": {
+      "description": "JSON.GET method returns an array with a single value when retrieving a single field, which is considered unintuitive by the user",
+      "expected_behavior": "Return the direct value instead of a single-element array",
+      "current_behavior": "Returns [value] instead of value when getting a single JSON field",
+      "impact": "Requires additional client-side processing to extract single values",
+      "reproducibility": "Consistent across JSON.GET operations with single field selection"
+    },
+    "recommendation": "Modify JSON.GET to return scalar values directly when a single field is requested",
+    "user_frustration_level": "High"
+  },
+  "issue_number": 13028.0,
+  "title": "[BUG] json.get default behavior is dumb and unintuitive"
+}

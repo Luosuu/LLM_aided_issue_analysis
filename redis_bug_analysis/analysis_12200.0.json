@@ -1,0 +1,11 @@
+{
+  "bug_location": "Set operations (t_set.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential infinite loop in SRANDMEMBER command during dictionary rehashing, caused by non-uniform random key selection when dictionary is in a partially rehashed state with concentrated elements near the end of the hash table",
+  "issue_number": 12200.0,
+  "title": "[BUG] Hang in SRANDMEMBER call during CoW fork saving"
+}

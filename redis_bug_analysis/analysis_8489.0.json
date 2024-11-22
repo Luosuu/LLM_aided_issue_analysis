@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis INFO command parsing and error reporting",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Inconsistent error message formatting and parsing in command and error statistics reporting, allowing malformed key-value pairs with unexpected characters like ':' and '@'",
+  "issue_number": 8489.0,
+  "title": "[BUG] INFO commandstats and INFO errorstats can contain badly formatted info fields"
+}

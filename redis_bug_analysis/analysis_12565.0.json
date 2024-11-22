@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark CLI tool",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Misunderstanding of SCRIPT LOAD command behavior, which only caches a Lua script without executing it, requiring subsequent EVALSHA to run the script",
+  "issue_number": 12565.0,
+  "title": "[BUG] redis-benchmark lua  script not working"
+}

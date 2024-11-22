@@ -1,0 +1,11 @@
+{
+  "bug_location": "AOF (Append Only File) Manifest Parsing",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Incompatible AOF manifest parsing logic between Redis versions 6.2.5 and 7.2.1, causing false-positive validation errors when processing AOF files created in older versions",
+  "issue_number": 12951.0,
+  "title": "[BUG] redis-check-aof fails when aof file is ok"
+}

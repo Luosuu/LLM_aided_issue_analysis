@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Key Expiration Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Unknown"
+  ],
+  "root_cause": "Potential application-level issue causing unexpected key deletion before TTL expiration, likely due to an API call or build functionality that inadvertently flushed the Redis database",
+  "issue_number": 8123.0,
+  "title": "[BUG] redis key getting deleted even it has enough TTL"
+}

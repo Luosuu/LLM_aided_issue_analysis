@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Client Write Handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Incorrect handling of client write events in multi-threaded IO scenarios, causing write handlers to not be properly installed when multiple file descriptors need replies",
+  "issue_number": 10509.0,
+  "title": "[BUG] IO threads not work well in  many fds which are need to reply\u3002such as feed 100 replicas "
+}

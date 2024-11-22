@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis RDB (Persistence) Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Integer overflow vulnerability in rdbWriteRaw function where return type (int) cannot handle large data writes over 2GB, causing potential RDB format corruption and server panic during data loading",
+  "issue_number": 8299.0,
+  "title": "[BUG] rdbWriteRaw retval overflow"
+}

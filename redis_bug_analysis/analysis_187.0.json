@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Replication and Key Expiration Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Inconsistent key expiration behavior between Redis master and slave nodes, where slaves do not actively expire keys and return conflicting results for expired keys (exists/get/ttl commands)",
+  "issue_number": 187.0,
+  "title": "Redis slaves, while not allowed to expire keys without master input, should reply to clients consistently with the key expire information."
+}

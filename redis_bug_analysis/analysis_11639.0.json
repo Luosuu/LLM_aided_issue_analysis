@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel and Replication Configuration",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Network"
+  ],
+  "root_cause": "Sentinel incorrectly configures the newly promoted master to replicate to itself during failover, causing a replication loop and cluster failure",
+  "issue_number": 11639.0,
+  "title": "[BUG] Sentinel adds replicaof to newly selected master!"
+}

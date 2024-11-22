@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Component (src/cluster.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Potential use-after-free vulnerability where a cluster node link is freed but might still be referenced in subsequent code execution paths",
+  "issue_number": 8798.0,
+  "title": "[BUG] A potential use after free bug in clusterCron"
+}

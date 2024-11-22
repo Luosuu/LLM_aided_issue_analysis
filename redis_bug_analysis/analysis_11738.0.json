@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis String Command Implementation (SUBSTR/GETRANGE)",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent handling of negative index ranges in substring extraction, where start and end index conversion logic produces unexpected results when end index is less than start index",
+  "issue_number": 11738.0,
+  "title": "[BUG] SUBSTR returns wrong result with start 0 and end less than start"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "LoadBalance"
+  ],
+  "root_cause": "Memory management issue during disk-based replication where Copy-On-Write buffer accumulates without proper termination of RDB saving process, leading to potential Out of Memory (OOM) conditions",
+  "issue_number": 7717.0,
+  "title": "[BUG] Disk Based Replication Causing OOM in Master (v6.0.5)"
+}

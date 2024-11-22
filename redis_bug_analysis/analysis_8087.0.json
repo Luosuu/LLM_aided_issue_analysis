@@ -1,0 +1,11 @@
+{
+  "bug_location": "activeExpireCycle function in expire.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Race condition during key expiration where a notification callback can delete a subsequent dictionary entry, causing an invalid pointer dereference in the expiration iteration loop",
+  "issue_number": 8087.0,
+  "title": "[CRASH] activeExpireCycle crash"
+}

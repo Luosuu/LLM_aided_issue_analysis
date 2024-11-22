@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Transaction/Database Swap Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "SWAPDB command does not properly handle watched keys, potentially allowing unexpected transaction behavior by not setting CLIENT_DIRTY_CAS flag when database contents are swapped",
+  "issue_number": 8236.0,
+  "title": "Should the SWAPDB command set CLIENT_DIRTY_CAS?"
+}

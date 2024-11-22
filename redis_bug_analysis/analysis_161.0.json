@@ -1,0 +1,11 @@
+{
+  "bug_location": "AOF (Append Only File) rewrite mechanism",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Missing flag reset for aofrewrite_scheduled when background AOF rewrite is triggered during a BGSAVE operation, potentially causing unintended repeated AOF rewrites",
+  "issue_number": 161.0,
+  "title": "a bug about aofrewrite_scheduled"
+}

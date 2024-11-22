@@ -1,0 +1,11 @@
+{
+  "bug_location": "RDB persistence module (rdb.c)",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Unexpected memory corruption or invalid object type during RDB background save process, specifically at line 669 of rdb.c, causing a segmentation fault when attempting to save key-value pairs",
+  "issue_number": 13127.0,
+  "title": "[CRASH] Guru Meditation: Unknown object type #rdb.c:669"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Replication and RDB Saving Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Race condition between BGSAVE and slave synchronization processes where temporary RDB files can be incorrectly overwritten during rename operations, potentially causing data corruption during replication",
+  "issue_number": 1676.0,
+  "title": "[BUG] Slave may mis-overwriten synced server.repl_transfer_tmpfile file with BGSAVE file"
+}

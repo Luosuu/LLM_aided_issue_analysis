@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Security"
+  ],
+  "root_cause": "Sentinel returns IP address instead of hostname when resolving master node, causing TLS certificate validation failures in clients that expect hostname matching",
+  "issue_number": 7928.0,
+  "title": "[BUG] Sentinel returning master ip instead of hostname which is failing in case of TLS"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Stream Trimming Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Upgrade"
+  ],
+  "root_cause": "Stream node configuration defaults set to zero, causing ineffective stream length trimming in Redis 6.0.8 and potential radix tree implementation changes in 6.2.3 that impact approximate MAXLEN behavior",
+  "issue_number": 9469.0,
+  "title": "[BUG] XADD/XTRIM approximate (~) MAXLEN not trimming stream"
+}

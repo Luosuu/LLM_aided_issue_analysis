@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua Scripting Engine",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Lua script commands bypass the min-slaves-to-write configuration check in processCommand(), allowing write operations when insufficient replicas are available",
+  "issue_number": 5301.0,
+  "title": "Lua set question when using min-slaves-to-write configure."
+}

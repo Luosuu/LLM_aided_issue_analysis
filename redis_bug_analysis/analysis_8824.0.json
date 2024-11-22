@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis RESP3 Protocol Response Handling",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Inconsistent return value types between ZRANGE, ZPOPMAX, and ZPOPMIN commands in RESP3 protocol, causing potential client-side parsing confusion",
+  "issue_number": 8824.0,
+  "title": "confused return value type(ZPOPMAX/ZPOPMIN--ZRANGE)"
+}

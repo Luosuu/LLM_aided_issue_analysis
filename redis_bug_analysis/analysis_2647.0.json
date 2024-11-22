@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Eviction Policy / Multiple Database Management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "LRU eviction algorithm samples keys per database independently, causing unintended key evictions across databases with different key characteristics and sizes",
+  "issue_number": 2647.0,
+  "title": "Unexpected evictions with LRU policy"
+}

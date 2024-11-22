@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Sorted Set (ZADD) Implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent handling of ZADD command with LT/GT modifiers and INCR option, causing a mismatch between returned value and actual stored score",
+  "issue_number": 8718.0,
+  "title": "[BUG] ZADD LT with INCR will reply with the INCR number but actual score doesn't change"
+}

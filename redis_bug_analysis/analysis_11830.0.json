@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Networking Component (networking.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Inefficient memory allocation strategy in processMultibulkBuffer() function that assumes subsequent large arguments and pre-allocates memory without proper size checks, potentially causing memory exhaustion even when system memory is available",
+  "issue_number": 11830.0,
+  "title": "[BUG] fat argv caused oom reply even redis had enough memory"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module System",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect memory management of module type methods, specifically passing a non-pointer RedisModuleTypeMethods by reference which becomes invalid after initial scope",
+  "issue_number": 10836.0,
+  "title": "[CRASH] Custom module works in debug but not release mode"
+}

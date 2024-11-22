@@ -1,0 +1,11 @@
+{
+  "bug_location": "/redis/src/redis-cli.c",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Dynamically allocated memory (argv2) is not freed before function return, causing a memory leak at line 3615",
+  "issue_number": 13259.0,
+  "title": "[BUG]There is a memory leak defect at line 3615 in the file /redis/src/redis-cli.c."
+}

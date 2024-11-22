@@ -1,0 +1,11 @@
+{
+  "bug_location": "AOF (Append-Only File) persistence mechanism",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Redis AOF replay mechanism fails to properly process and replay the FLUSHALL command during database recovery, causing unintended data restoration instead of clearing the database as expected",
+  "issue_number": 142.0,
+  "title": "AOF ignores FLUSHALL"
+}

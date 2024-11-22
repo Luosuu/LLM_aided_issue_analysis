@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Client/Spring RedisTemplate",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Race condition between delete and get operations, likely caused by improper synchronization in multi-threaded Redis client usage",
+  "issue_number": 7619.0,
+  "title": "delete key then get key , key is existed [BUG]"
+}

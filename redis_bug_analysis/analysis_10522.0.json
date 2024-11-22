@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream (XADD) command",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Automatic sequence generation with 1-* syntax was not implemented in Redis versions prior to 7.0, causing an invalid stream ID error when attempting to use the feature",
+  "issue_number": 10522.0,
+  "title": "[BUG] XADD automatic sequence (1-*) doesn't work"
+}

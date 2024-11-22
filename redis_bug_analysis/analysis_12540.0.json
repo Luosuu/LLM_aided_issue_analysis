@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis networking and TLS components",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Security"
+  ],
+  "root_cause": "Race condition in handling SSL pending data when IO threads and TLS are simultaneously enabled, causing double client freeing and potential memory corruption",
+  "issue_number": 12540.0,
+  "title": "[CRASH] Double freeClient() when io-threads-do-reads and TLS are enabled"
+}

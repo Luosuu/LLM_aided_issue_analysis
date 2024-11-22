@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Management CLI",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Race condition in cluster node synchronization where gossip protocol fails to immediately propagate new master node information, causing master ID lookup failure during node addition",
+  "issue_number": 11877.0,
+  "title": "[BUG]  Join some new nodes to the cluster error"
+}

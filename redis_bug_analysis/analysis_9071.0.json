@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Configuration Parser (createULongLongConfig)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Integer overflow when parsing large numeric configuration values using strtoll, which limits values to LLONG_MAX instead of supporting full ULLONG_MAX range",
+  "issue_number": 9071.0,
+  "title": "[BUG] The value exceeding LLONG_MAX in createULongLongConfig is invalid"
+}

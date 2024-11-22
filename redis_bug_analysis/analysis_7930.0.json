@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark CLI tool",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Incorrect hash tag generation logic that always uses the same hash slot when cluster mode is not explicitly specified, limiting benchmark performance across distributed proxy setups",
+  "issue_number": 7930.0,
+  "title": "[BUG] redis-benchmark non clustered benchmark forces always the same hash tag {tag} which makes proxy setups to be limited by standalone performance"
+}

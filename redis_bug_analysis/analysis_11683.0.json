@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Core - Increment Commands",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent handling of zero-value numeric inputs with sign variations in increment commands, causing unexpected error behavior when using -0 as an increment value",
+  "issue_number": 11683.0,
+  "title": "[BUG] hincrby/incrby -0 will report an error"
+}

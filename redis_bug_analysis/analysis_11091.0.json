@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Client Pipeline/Expiry Handling",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Race condition or timing issue between pipeline commands where key might be created and immediately expired before being retrievable",
+  "issue_number": 11091.0,
+  "title": "[BUG]incr and get command return not equal"
+}

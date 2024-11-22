@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Replication Protocol Handler",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Protocol incompatibility between Redis 2.6.14 (using inline protocol) and Redis 6.0.7 (expecting RESP protocol) during replication, causing connection termination when processing SELECT command",
+  "issue_number": 7740.0,
+  "title": "[BUG] Failure of 6.0.7 slave to replicate a 2.6.14 master"
+}

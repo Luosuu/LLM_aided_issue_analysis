@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module API",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Redis Modules do not automatically increment the dirty counter when modifying keys, requiring explicit replication calls to trigger RDB snapshots",
+  "issue_number": 8608.0,
+  "title": "[BUG] Redis Module key manipulations don't initiate RDB snapshot saves"
+}

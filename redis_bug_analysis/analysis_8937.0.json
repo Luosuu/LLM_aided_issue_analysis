@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark.c time event processing",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Unknown"
+  ],
+  "root_cause": "Potential concurrent access to shared configuration variable without proper synchronization during throughput reporting",
+  "issue_number": 8937.0,
+  "title": "[BUG] Potential data race in showThroughput function in redis-benchmark"
+}

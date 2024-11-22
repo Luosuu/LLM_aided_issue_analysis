@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Connection Management during Bgsave",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "During Bgsave fork, file descriptors are held by child process, preventing proper socket disconnection. The server's close() method is insufficient to terminate idle client connections when a background save is in progress.",
+  "issue_number": 10077.0,
+  "title": "[BUG] During Bgsave, failed to disconnect idle client connection properly"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sorted Set (ZSET) Implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect dictionary value retrieval when using ZRANDMEMBER with a count of 1, causing an invalid score to be returned due to a pointer dereference error in the implementation",
+  "issue_number": 9160.0,
+  "title": "[BUG] `ZRANDMEMBER \u2026 1` returns invalid score"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Lua scripting engine",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Unsafe global environment access in Lua script execution that triggers an unhandled error when attempting to access non-existent global variable '_G'",
+  "issue_number": 11030.0,
+  "title": "[BUG] EVAL \"return _G\" 0  leads to immediate panic"
+}

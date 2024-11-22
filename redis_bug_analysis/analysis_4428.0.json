@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Streams (listpack component)",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Memory corruption in listpack implementation when handling 32-bit length encoded strings, causing segmentation fault during XREAD command processing",
+  "issue_number": 4428.0,
+  "title": "Crash on XREAD (streams branch)"
+}

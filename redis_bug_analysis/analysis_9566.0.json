@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis server shutdown process (server.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Synchronous RDB snapshot creation during shutdown blocks client requests, causing extended service unavailability when saving large datasets",
+  "issue_number": 9566.0,
+  "title": "[BUG] Instance with RDB enabled will block and timeout any client requests when shutting down"
+}

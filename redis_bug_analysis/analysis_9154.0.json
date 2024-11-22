@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis LZF Compression Module (lzf_c.c)",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Potential uninitialized memory usage in hash table initialization for LZF compression, where the INIT_HTAB macro is always set to 0, potentially leading to undefined behavior during compression operations",
+  "issue_number": 9154.0,
+  "title": "[BUG] the function - lzf_compress Why use it without initialization"
+}

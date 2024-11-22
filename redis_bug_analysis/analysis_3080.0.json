@@ -1,0 +1,12 @@
+{
+  "bug_location": "RDB Object Loading (rdbLoadObject)",
+  "severity": 5,
+  "categories": [
+    "Security",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Lack of input validation when parsing RDB encoded data structures, allowing potential buffer overflow and memory corruption during RESTORE command processing",
+  "issue_number": 3080.0,
+  "title": "crashes in rdbLoadObject"
+}

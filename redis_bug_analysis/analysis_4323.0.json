@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Lazyfree Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Security"
+  ],
+  "root_cause": "Race condition in reference counting during asynchronous key deletion where slowlog entries can prevent proper memory deallocation of string objects",
+  "issue_number": 4323.0,
+  "title": "Redis 4.x lazyfree: memory leak may happen when free slowlog entry"
+}

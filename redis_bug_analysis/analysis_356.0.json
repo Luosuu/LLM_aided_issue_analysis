@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis server configuration initialization",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Insufficient validation of system file descriptor limits during server initialization, causing negative maxclients value when ulimit is set too low",
+  "issue_number": 356.0,
+  "title": "server.maxclients could be minus!"
+}

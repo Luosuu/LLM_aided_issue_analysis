@@ -1,0 +1,11 @@
+{
+  "bug_location": "Connection Socket Handling (connSocketBlockingConnect)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Missing error return (C_ERR) when aeWait fails during socket connection, potentially allowing incorrect connection state propagation",
+  "issue_number": 12900.0,
+  "title": "[BUG] Potential Error Handling Bug in connSocketBlockingConnect When aeWait Fails"
+}

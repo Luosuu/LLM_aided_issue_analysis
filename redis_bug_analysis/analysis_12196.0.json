@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster PubSub Messaging",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Excessive metadata overhead during cluster message propagation, where publish messages are broadcasted with large cluster state information across all nodes, causing network traffic to be significantly higher than the actual data payload",
+  "issue_number": 12196.0,
+  "title": "[BUG] In redis cluster, the traffic delivered to each node during publish exceeds 10 \"multiply\"."
+}

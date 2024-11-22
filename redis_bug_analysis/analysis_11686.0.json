@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Transaction Handler",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent error handling for UNWATCH command within MULTI/EXEC transactions, allowing a no-op command that silently does nothing instead of being explicitly rejected",
+  "issue_number": 11686.0,
+  "title": "[BUG] UNWATCH should be rejected within a MULTI/EXEC transaction just like WATCH is"
+}

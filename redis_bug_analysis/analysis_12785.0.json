@@ -1,0 +1,11 @@
+{
+  "bug_location": "networking.c, module thread handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Race condition in thread-safe context management when freeing clients with IO threads enabled, specifically related to improper synchronization during module thread context release",
+  "issue_number": 12785.0,
+  "title": "[CRASH] Redis crashing on 7.2.3 version"
+}

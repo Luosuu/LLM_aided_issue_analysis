@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Modules System",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "RM_Call creates a new client which disrupts the global MULTI/Lua state tracking, causing incorrect context flag reporting when module commands are nested",
+  "issue_number": 8104.0,
+  "title": "[BUG] Modules: MULTI and Lua states change because of RM_Call"
+}

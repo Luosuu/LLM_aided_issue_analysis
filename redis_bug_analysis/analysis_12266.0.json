@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli client connection handling",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Redis CLI does not handle null/empty hostname correctly during cluster server redirects when cluster-preferred-endpoint-type is set to unknown-endpoint",
+  "issue_number": 12266.0,
+  "title": "[BUG] redis-cli does not use the \"previously used host address\" to connect when it gets a null/None response for the host during server redirects."
+}

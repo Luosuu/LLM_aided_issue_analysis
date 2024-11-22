@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Persistence Layer",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Config"
+  ],
+  "root_cause": "RDB persistence continues to load keys from previous master despite configuration settings disabling persistence, causing unexpected slot importing during cluster restart",
+  "issue_number": 10457.0,
+  "title": "[BUG] Inspite of disabling the redis persistance both AOF and RDB, RDB is loading keys of diffrent master leading to keys importing "
+}

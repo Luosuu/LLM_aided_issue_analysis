@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Packaging/Init System",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "Daemonization configuration was disabled by default in recent packaging commits, causing Redis service to not properly background itself on WSL2 environments without systemd",
+  "issue_number": 8669.0,
+  "title": "[BUG] Redis installed from the Redis Labs PPA fails to daemonize on WSL2"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis String Type Implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Missing jemalloc memory allocation check in 7.0 branch for large SET operations, causing memory usage test failure on macOS Ventura",
+  "issue_number": 12431.0,
+  "title": "[BUG] redis 7.0.12 \"trim on SET with big value\" test fails on Intel and Silicon Macs running Ventura"
+}

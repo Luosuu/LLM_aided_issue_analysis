@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Replica Nodes",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Replica nodes are unaware of slot migration process and cannot properly handle ASK redirection during key migration, causing nil responses instead of redirecting clients to the correct node",
+  "issue_number": 11312.0,
+  "title": "[BUG] ASK redirection from replica nodes"
+}

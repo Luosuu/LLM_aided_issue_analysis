@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Memory Allocator (jemalloc)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Upgrade"
+  ],
+  "root_cause": "Memory fragmentation issue in jemalloc bin sizes (224 and 320 bytes) after upgrading from Redis 6.2.5 to 7.2.5, causing RSS memory to grow unexpectedly despite active defragmentation",
+  "issue_number": 13612.0,
+  "title": "[BUG] High RSS Memory Usage Even with Active Defrag"
+}

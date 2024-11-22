@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Data Structures (SET/ZSET/LIST)",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Redis data structures like SET and ZSET are implemented using hash tables which do not inherently preserve insertion order, while LIST uses a different internal mechanism that can reverse order depending on push direction (LPUSH vs RPUSH)",
+  "issue_number": 8790.0,
+  "title": "[BUG] SADD/ZADD/LPUSH members not saved in the order it was added"
+}

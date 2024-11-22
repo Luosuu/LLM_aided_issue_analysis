@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Streams Consumer Group PEL (Pending Entries List)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "XDEL command only removes messages from stream, not from Pending Entries List (PEL), which requires explicit XACK for removal",
+  "issue_number": 13314.0,
+  "title": "[BUG] Record, deleted from stream, stays in PEL"
+}

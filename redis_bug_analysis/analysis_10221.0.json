@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Command Processing",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Potential race condition where a client's command pointer is nullified during command processing, likely during a replication acknowledgment (REPLCONF ACK) where a slave client is freed while still being processed",
+  "issue_number": 10221.0,
+  "title": "[CRASH] c->cmd nullified within `cmd->proc` call."
+}

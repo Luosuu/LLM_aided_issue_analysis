@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Dictionary (dict.c) Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Memory allocation issue with jemalloc when running under QEMU emulation on Apple M1 architecture, causing calloc() to not properly zero memory during dictionary initialization",
+  "issue_number": 10341.0,
+  "title": "[CRASH] Redis / Docker / Apple M1"
+}

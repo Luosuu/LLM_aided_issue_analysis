@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Failover Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Regression in write client handling during manual failover, causing extended pause before -MOVED response in Redis 6.2 cluster mode",
+  "issue_number": 10985.0,
+  "title": "[BUG] [CLUSTER] Redis 6.2 don't unpause write clients after manual failover immediately"
+}

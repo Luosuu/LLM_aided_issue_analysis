@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis server loading mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Potential data race on non-atomic access to shared server.loading flag between main thread and signal handler during data loading process",
+  "issue_number": 7777.0,
+  "title": "[BUG] Potential data race on server.loading flag"
+}

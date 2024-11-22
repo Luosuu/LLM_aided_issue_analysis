@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Client Connection Handling",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "Persistent CLOSE_WAIT socket connection not properly releasing resources when Redis server is unavailable, causing potential memory leaks and resource exhaustion",
+  "issue_number": 13496.0,
+  "title": "[BUG] Redis clients add 1GB/s memory usage through a CLOSE_WAIT server connection"
+}

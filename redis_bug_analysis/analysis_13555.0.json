@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua Script Execution Engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Redis does not support executing pre-compiled Lua bytecode files (.ljbc, .out) due to security restrictions in the Lua sandbox, preventing direct bytecode loading to maintain script permission controls",
+  "issue_number": 13555.0,
+  "title": "[BUG] eval/evalSha fails to execute lua byte code"
+}

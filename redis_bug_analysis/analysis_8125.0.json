@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Processing",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Synchronization issue with stream entries added by Redis modules not being immediately recognized by blocking XREAD commands, causing timeout behavior",
+  "issue_number": 8125.0,
+  "title": "[BUG] Redis Stream entries added by module not recognized by XREAD with special ID $"
+}

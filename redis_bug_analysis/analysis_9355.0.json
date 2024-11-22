@@ -1,0 +1,24 @@
+{
+  "bug_analysis": {
+    "Bug Location/Component": "Redis Shutdown Script (Distribution-specific)",
+    "Severity": 3,
+    "Categories": [
+      "Config",
+      "Human"
+    ],
+    "Root Cause": "The shutdown script does not properly parse TLS configuration from Redis configuration file, leading to incorrect port selection and connection failure",
+    "Detailed Analysis": {
+      "Origin": "Distribution-specific script (RHEL/RPM package)",
+      "Impact": "TLS-configured Redis instances cannot be cleanly shut down using default script",
+      "Mitigation": "Modify script to correctly parse TLS port and add TLS flag",
+      "Proposed Fix": "Update script to check for TLS port first, use TLS flag when appropriate"
+    },
+    "Reproduction Steps": {
+      "1": "Configure Redis with port=0 and tls-port=6379",
+      "2": "Attempt to use redis-shutdown script",
+      "3": "Observe connection failure"
+    }
+  },
+  "issue_number": 9355.0,
+  "title": "[BUG] redis-shutdown doesn't use tls-port"
+}

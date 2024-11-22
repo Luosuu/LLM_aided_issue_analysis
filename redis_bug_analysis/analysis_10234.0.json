@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Memory Allocator (jemalloc)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Unknown"
+  ],
+  "root_cause": "Memory mapping exhaustion potentially caused by jemalloc memory fragmentation when allocating 16400 bytes, likely triggered by complex multi-exec transactions with large list operations",
+  "issue_number": 10234.0,
+  "title": "[CRASH] Out Of Memory allocating 16400 bytes!  redis_version: 6.2.6"
+}

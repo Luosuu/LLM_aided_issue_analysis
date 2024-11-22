@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis RDB Persistence Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Frequent and expensive reading of /proc/self/smaps during BGSAVE process causing significant performance degradation, with each read taking approximately 1.3 seconds for large memory datasets",
+  "issue_number": 8609.0,
+  "title": "[BUG] BGSAVE performance order of magnitude slower in Redis 6.2"
+}

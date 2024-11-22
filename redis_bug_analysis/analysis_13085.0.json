@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Server Memory Management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential memory cache clearing operation causing unexpected Redis process termination when system-wide cache drop is performed",
+  "issue_number": 13085.0,
+  "title": "The Linux command sysctl -wvm.drop_caches=3 was executed, and the process started on port 6379 exited[BUG]"
+}

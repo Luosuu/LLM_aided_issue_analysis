@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel Failover Mechanism",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Security"
+  ],
+  "root_cause": "Sentinel failover process allows inconsistent master promotion that can result in data loss during rapid node state changes, specifically when an old master is restarted after being demoted",
+  "issue_number": 12570.0,
+  "title": "[BUG] sentinel cluster auto failover caused data loss"
+}

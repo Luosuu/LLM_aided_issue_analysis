@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel Event Loop",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Potential busy loop in event processing caused by repeated non-blocking socket read attempts, likely triggered during network connection state changes or during sentinel cluster reconfiguration",
+  "issue_number": 9956.0,
+  "title": "[BUG] redis sentinel 100% cpu usage "
+}

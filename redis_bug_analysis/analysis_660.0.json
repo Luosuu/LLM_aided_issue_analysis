@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sorted Set Implementation",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential data loss issue when using EXPIRE on a sorted set, causing subsequent ZADD operations to reset the entire set instead of preserving existing members",
+  "issue_number": 660.0,
+  "title": "zadd to key with sorted set deletes all previous members of set"
+}

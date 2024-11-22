@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-check-aof.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Potential integer overflow when reading string length without proper bounds checking, which can lead to memory allocation vulnerabilities and undefined behavior",
+  "issue_number": 9668.0,
+  "title": "[BUG] Missing check for string length in redis-check-aof.c leads to integer overflow."
+}

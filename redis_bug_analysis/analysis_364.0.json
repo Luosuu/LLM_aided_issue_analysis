@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Client Buffer Management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Client query buffers dynamically grow to accommodate large data transfers but do not automatically shrink or reclaim memory after operations are complete, leading to persistent memory overhead",
+  "issue_number": 364.0,
+  "title": "Client buffers are never reclaimed until connection is closed"
+}

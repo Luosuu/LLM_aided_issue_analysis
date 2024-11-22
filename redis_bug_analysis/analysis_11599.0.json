@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Network Configuration",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Network"
+  ],
+  "root_cause": "Unexpected port reservation behavior when setting `port 0`, automatically defaulting to port 10000 without clear documentation or expected behavior",
+  "issue_number": 11599.0,
+  "title": "[BUG] Setting `port 0` maybe disables listening, but will instead bind `port 10000` for some reason"
+}

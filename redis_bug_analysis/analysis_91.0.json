@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Client Output Buffer Management",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "LoadBalance"
+  ],
+  "root_cause": "Unbounded client output buffer growth causing potential memory exhaustion and server instability, especially for Pub/Sub and slave clients with slow consumption rates",
+  "issue_number": 91.0,
+  "title": "Redis should close the connection when the client output buffer is too big"
+}

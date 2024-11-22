@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua Script Execution Path",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Replication validation check in processCommand() does not apply to Lua script execution, causing min-slaves-to-write configuration to be bypassed during script evaluation",
+  "issue_number": 9993.0,
+  "title": "[BUG] Config min-slaves-to-write is not worked with Lua scripts"
+}

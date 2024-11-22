@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Streams Component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "XDEL operation fails to correctly update the stream's last_id when deleting the most recent stream entry, causing unexpected nil response for XREAD STREAMS query",
+  "issue_number": 13628.0,
+  "title": "[BUG] Unexpected behavior of XREAD STREAMS stream +"
+}

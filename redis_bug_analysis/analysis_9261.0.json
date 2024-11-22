@@ -1,0 +1,11 @@
+{
+  "bug_location": "geo.c - Geospatial operations module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "When a source key for GEOSEARCHSTORE is empty, the function returns an empty array instead of resetting the destination key and returning zero, causing unexpected behavior in key management",
+  "issue_number": 9261.0,
+  "title": "[BUG] GEOSEARCHSTORE returns an empty array when src points to an empty key"
+}

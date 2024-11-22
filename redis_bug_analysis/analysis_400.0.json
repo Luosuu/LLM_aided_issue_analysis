@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis build system / ziplist.c / intset.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Lack of big-endian compatibility in memory byte order manipulation functions for ppc64 architecture, causing undefined references to memrev functions during compilation",
+  "issue_number": 400.0,
+  "title": "build fails on ppc64"
+}

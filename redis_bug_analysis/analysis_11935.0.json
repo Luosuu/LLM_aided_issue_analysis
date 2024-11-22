@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis RDB child process synchronization",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Lack of parent process liveness check in child process responsible for RDB data transfer, causing orphaned process that continues running without proper termination mechanism",
+  "issue_number": 11935.0,
+  "title": "[BUG] Child process `redis-rdb-to-slaves` is running continuously forever when parent process is restarted"
+}

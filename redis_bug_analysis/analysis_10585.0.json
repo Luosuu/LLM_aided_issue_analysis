@@ -1,0 +1,11 @@
+{
+  "bug_location": "AWS ElastiCache Redis Monitor Output",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Incorrect command name display in monitor output when rewriting expireat command for replication, specifically when a key exists, causing pexpireat to be shown instead of expireat",
+  "issue_number": 10585.0,
+  "title": "[BUG] Calling expireat on existing key shows pexpireat in monitor output"
+}

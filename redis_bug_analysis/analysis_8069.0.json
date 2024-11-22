@@ -1,0 +1,12 @@
+{
+  "bug_location": "Memory Management / Client Tracking Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Config"
+  ],
+  "root_cause": "Recursive memory pressure caused by client tracking and maxmemory eviction policy, where key evictions trigger client output buffer growth, which in turn causes more memory pressure and further evictions",
+  "issue_number": 8069.0,
+  "title": "[BUG] maxmemory-policy eviction with client tracking can cause feedback loop"
+}

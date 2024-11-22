@@ -1,0 +1,10 @@
+{
+  "bug_location": "server.c latency measurement function",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Using gettimeofday() which can be affected by system clock adjustments, potentially causing inaccurate time measurements compared to monotonic clock sources",
+  "issue_number": 5225.0,
+  "title": "[BUG] why use gettimeofday to measure latency"
+}

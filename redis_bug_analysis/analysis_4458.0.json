@@ -1,0 +1,29 @@
+{
+  "bug_analysis": {
+    "bug_location": "Redis Replication Module/Thread Handling",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Network"
+    ],
+    "root_cause": "RM_ReplicateVerbatim fails when invoked in reply callback or different thread contexts, potentially due to improper client context initialization when using RM_GetThreadSafeContext",
+    "detailed_analysis": {
+      "symptoms": [
+        "Replication command does not work when called in reply callback",
+        "Commands added to server.also_propagate get cleared unexpectedly",
+        "Potential thread-safety issue with module replication"
+      ],
+      "potential_impact": [
+        "Inconsistent data replication",
+        "Loss of command propagation in multi-threaded module scenarios"
+      ],
+      "investigation_notes": [
+        "Issue discovered during module development with RediSQL",
+        "Problem occurs when creating new threads and executing database commands",
+        "Debugging revealed complex interaction between thread contexts and replication mechanism"
+      ]
+    }
+  },
+  "issue_number": 4458.0,
+  "title": "[Module][Bug] Replication does not work if called in different thread "
+}

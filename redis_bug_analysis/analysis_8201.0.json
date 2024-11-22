@@ -1,0 +1,32 @@
+{
+  "bug_analysis": {
+    "bug_location": "Redis Core / Memory Management",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage",
+      "Upgrade"
+    ],
+    "root_cause": "Potential memory corruption or segmentation fault during Lua script execution, likely related to Rosetta 2 translation layer on Mac OS Big Sur",
+    "details": {
+      "version": "6.0.9",
+      "os": "Darwin 20.2.0 (Big Sur)",
+      "crash_signal": 11,
+      "crash_address": "0x3059ea000",
+      "crash_location": "libsystem_platform.dylib/_platform_memset$VARIANT$Rosetta",
+      "problematic_function": "luaD_call",
+      "potential_triggers": [
+        "Rosetta 2 translation layer",
+        "Lua script execution",
+        "Memory allocation/deallocation"
+      ]
+    },
+    "recommended_actions": [
+      "Upgrade to Redis 6.2 RC1",
+      "Verify native ARM64 compatibility",
+      "Test on clean system configuration"
+    ]
+  },
+  "issue_number": 8201.0,
+  "title": "[CRASH]"
+}

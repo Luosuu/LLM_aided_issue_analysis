@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ACL (Access Control List) module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "During ACL LOAD operation, Redis disconnects all clients even when their user configurations remain unchanged, causing unnecessary connection resets",
+  "issue_number": 11986.0,
+  "title": "[BUG] `ACL LOAD` results in `ECONNRESET` error on clients"
+}

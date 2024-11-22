@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli command line interface",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Inconsistent error handling in exit code generation, where some failure scenarios return 255 and others return 1, causing potential confusion for script and program integrations",
+  "issue_number": 10437.0,
+  "title": "[BUG] redis-cli exit codes are inconsistent"
+}

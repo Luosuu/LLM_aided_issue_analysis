@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis server client management (clientsCron function)",
+  "severity": 4,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient client list rotation in clientsCron causing timeout starvation for older connections under high connection churn scenarios",
+  "issue_number": 10801.0,
+  "title": "[BUG] Blocking commands do not unblock in time under high volume of new connection churns"
+}

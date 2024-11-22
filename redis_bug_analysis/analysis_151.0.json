@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Migration/Transaction Handling",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Transaction watch mechanism does not properly track key migrations during cluster resharding, potentially allowing inconsistent state changes",
+  "issue_number": 151.0,
+  "title": "MIGRATE should set WATCHED keys as dirty"
+}

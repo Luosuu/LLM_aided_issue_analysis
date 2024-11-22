@@ -1,0 +1,11 @@
+{
+  "bug_location": "Signal Handling Component (redis.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Incorrect preprocessor conditional compilation for signal handler setup on platforms without backtrace support, leading to compilation errors on NetBSD and Cygwin due to undefined signal action flags",
+  "issue_number": 155.0,
+  "title": "Problems building on NetBSD"
+}

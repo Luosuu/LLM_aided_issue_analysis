@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Persistence Layer (RDB/AOF)",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Redis does not properly handle or check the return code of the fsync system call, which can result in undetected data corruption during disk write operations",
+  "issue_number": 8111.0,
+  "title": "[BUG] Redis doesn't check a return code of fsync thus potentially corrupting keys/values and silently returning them."
+}

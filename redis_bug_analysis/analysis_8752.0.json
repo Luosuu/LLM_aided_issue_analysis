@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Election Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Insufficient validation of election eligibility within a short time window, allowing a slave node to win multiple elections in rapid succession without proper epoch management and vote tracking",
+  "issue_number": 8752.0,
+  "title": "[BUG] slave vote for  twice in 2*timeout  will won election"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Memory Management / Key Eviction System",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "LoadBalance"
+  ],
+  "root_cause": "Infinite memory loop during key eviction when slaves are present, caused by output buffer memory accounting not correctly handling slave replication buffers during maxmemory scenarios",
+  "issue_number": 327.0,
+  "title": "maxmemory + evicting policy + slaves = death"
+}

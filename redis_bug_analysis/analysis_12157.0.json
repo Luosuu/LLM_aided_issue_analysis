@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Module API",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Memory allocation leak in moduleCreateArgvFromUserFormat() when REDISMODULE_ARGV_RUN_AS_USER fails to execute, preventing proper memory deallocation of argv",
+  "issue_number": 12157.0,
+  "title": "[BUG] REDISMODULE_ARGV_RUN_AS_USER might leak allocated RM_Call argv on failure"
+}

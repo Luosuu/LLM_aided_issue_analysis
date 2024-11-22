@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Pub/Sub and Client Tracking subsystem",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Race condition in message delivery order during high-rate key modifications and client tracking/subscription initialization, potentially caused by asynchronous message processing and subscription acknowledgement handling",
+  "issue_number": 13645.0,
+  "title": "[BUG] invalidation messages received before ACK of SUBSCRIBE __redis__:invalidate"
+}

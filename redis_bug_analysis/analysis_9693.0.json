@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication Socket Handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Network"
+  ],
+  "root_cause": "Incomplete socket buffer handling during graceful master shutdown under high load, causing premature socket closure and data replication interruption",
+  "issue_number": 9693.0,
+  "title": "[BUG] Data loss when performing a graceful master shutdown under high load"
+}

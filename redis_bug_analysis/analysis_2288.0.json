@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Cluster (cluster.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Race condition in cluster state update during node failover, causing null node reference when processing client commands",
+  "issue_number": 2288.0,
+  "title": "[2.9.102] Assertion failed: cluster.c:4641 'n != NULL' is not true"
+}

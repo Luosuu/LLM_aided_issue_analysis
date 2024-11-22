@@ -1,0 +1,30 @@
+{
+  "bug_analysis": {
+    "Bug Location/Component": "Redis Cluster Radix Tree (rax) Memory Management",
+    "Severity": 4,
+    "Categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "Root Cause": "Potential memory corruption or null pointer dereference in raxRecursiveFree function during cluster state management, specifically in radix tree memory deallocation process",
+    "Technical Details": {
+      "Version": "Redis 5.0.5",
+      "Crash Signal": 11,
+      "Crash Location": "raxRecursiveFree function at memory address 0x4aa80e",
+      "Problematic Operation": "Recursive memory free in cluster data structures",
+      "Potential Triggers": [
+        "Complex cluster state changes",
+        "Memory pressure scenarios",
+        "Concurrent cluster reconfiguration"
+      ]
+    },
+    "Recommended Actions": [
+      "Upgrade to a newer Redis version",
+      "Investigate memory management in radix tree implementation",
+      "Run comprehensive memory tests",
+      "Monitor cluster state transitions carefully"
+    ]
+  },
+  "issue_number": 8400.0,
+  "title": "[CRASH]  Redis 5.0.5 crashed by signal: 11"
+}

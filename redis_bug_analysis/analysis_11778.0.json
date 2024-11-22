@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Replication and Propagation Module (blocked.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Assertion failure in propagation logic during key expiration on a writable replica with AOF enabled, causing unexpected state where 'server.also_propagate.numops' is not zero as expected",
+  "issue_number": 11778.0,
+  "title": "[CRASH] Docker redis crash"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis server startup configuration binding mechanism",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "Redis server does not validate all bind addresses during startup and silently falls back to a partial configuration instead of failing completely when an explicitly configured address is unavailable",
+  "issue_number": 7933.0,
+  "title": "[BUG] Redis-server should refuse to start with wrong bind address"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Key Expiration Mechanism",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Integer overflow in time-based expiration handling on 32-bit systems, causing unexpected key deletion behavior when large timestamp values are used",
+  "issue_number": 86.0,
+  "title": "EXPIRE, SETEX, should detect time overflows"
+}

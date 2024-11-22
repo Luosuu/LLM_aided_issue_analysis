@@ -1,0 +1,11 @@
+{
+  "bug_location": "t_zset.c (Sorted Set Implementation)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Assertion failure during conversion of ziplist to skiplist when inserting large values into a destination zset during ZRANGESTORE command",
+  "issue_number": 11416.0,
+  "title": "[CRASH] `ZRANGESTORE` with binary keys leads to crash"
+}

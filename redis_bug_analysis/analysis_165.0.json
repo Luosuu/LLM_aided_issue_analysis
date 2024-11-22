@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Set and Scripting Engine",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Non-deterministic set member ordering when accessed via Lua scripts, which can cause inconsistent script execution results across different Redis instances",
+  "issue_number": 165.0,
+  "title": "Modify SMEMBERS behavior when the client is a Lua script"
+}

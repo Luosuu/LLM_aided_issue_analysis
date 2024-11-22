@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel TLS Connection Handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Memory leak in SSL context management when negotiating TLS connections to unreachable Redis nodes, where SSL contexts are not properly freed when connection attempts fail",
+  "issue_number": 9725.0,
+  "title": "[BUG] Redis Sentinel TLS Memory Leak"
+}

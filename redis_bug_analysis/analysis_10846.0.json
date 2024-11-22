@@ -1,0 +1,11 @@
+{
+  "bug_location": "Memory Warning System / Linux Compatibility Layer",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Improper error handling in checkOvercommit() function when /proc/sys/vm/overcommit_memory is inaccessible, causing null pointer dereference during log message generation",
+  "issue_number": 10846.0,
+  "title": "[CRASH] redis 7.0.1 crashes on start after upgrading from 7.0.0"
+}

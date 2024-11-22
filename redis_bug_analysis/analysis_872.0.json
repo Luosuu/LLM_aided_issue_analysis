@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Lua Script Execution Handler",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Event handler for long-running Lua scripts not properly restored, causing client connection to become unresponsive after exceeding lua_time_limit",
+  "issue_number": 872.0,
+  "title": "Slow EVAL command cause the link unusable"
+}

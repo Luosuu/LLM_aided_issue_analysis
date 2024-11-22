@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Cluster Module (cluster.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Race condition in cluster state management where a node's master/replica state becomes inconsistent during node role transitions, causing a NULL pointer dereference when processing delayed cluster messages",
+  "issue_number": 12441.0,
+  "title": "[CRASH] Redis cluster.c:1946 crashed by signal 11, si_code: 1"
+}

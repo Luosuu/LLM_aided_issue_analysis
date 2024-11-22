@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Scanning Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incomplete key retrieval in multi-shard database environments where SCAN command does not consistently return all keys across shards, potentially due to cursor and shard traversal limitations",
+  "issue_number": 10557.0,
+  "title": "[BUG] Not all keys are returned on \"scan 0 match *\" for multi-shard DB"
+}

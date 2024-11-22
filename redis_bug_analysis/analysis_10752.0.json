@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Component (t_stream.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Memory leak due to missing call to streamIteratorStop() after streamIteratorStart() is used, which fails to properly deallocate iterator resources",
+  "issue_number": 10752.0,
+  "title": "[BUG] memory leak in streamGetEdgeID"
+}

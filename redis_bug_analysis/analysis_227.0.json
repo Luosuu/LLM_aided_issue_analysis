@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis SORT command implementation",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent behavior in handling empty result sets during store operations across different Redis commands, specifically with SORT command not deleting destination key when result is empty",
+  "issue_number": 227.0,
+  "title": "SORT ... STORE does not behave like other *STORE commands"
+}

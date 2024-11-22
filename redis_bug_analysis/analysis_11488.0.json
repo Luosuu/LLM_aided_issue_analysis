@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Command Processing (XREAD/XREADGROUP)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "RESP3 protocol implementation returns duplicate map keys when multiple stream keys are requested, causing potential client-side parsing issues",
+  "issue_number": 11488.0,
+  "title": "[BUG] XREAD[GROUP] with RESP3 may return a map with dup keys when user requested the same key twice"
+}

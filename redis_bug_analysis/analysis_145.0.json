@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Replication Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Race condition during master/slave synchronization where connection events are not properly handled after role changes, causing potential server crashes during replication state transitions",
+  "issue_number": 145.0,
+  "title": "Server crash on failed master/slave sync (refused connection)"
+}

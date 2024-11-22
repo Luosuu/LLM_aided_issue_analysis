@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Memory Management",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Overly restrictive memory limit handling that prevents read-only commands in MULTI/EXEC blocks when maxmemory is reached",
+  "issue_number": 106.0,
+  "title": "Even when maxmemory is reached Redis should allow MULTI/EXEC blocks containing only commands allowed on out of memory."
+}

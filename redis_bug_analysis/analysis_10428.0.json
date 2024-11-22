@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Replication Component",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient traversal and preparation of replica write handlers during replication, causing high CPU overhead when feeding replication buffer to multiple slaves",
+  "issue_number": 10428.0,
+  "title": "[BUG]replicationFeedSlaves  still high CPU utilization in redis7.0 when it Replication backlog and replicas use one global shared replication buffer"
+}

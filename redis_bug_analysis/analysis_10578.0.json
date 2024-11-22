@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential race condition or edge case in stream reading mechanism when handling very large streams with dynamic trimming, causing nil return when attempting to read from the latest position ($)",
+  "issue_number": 10578.0,
+  "title": "[BUG] Restart reading from start ($) of very large STREAM returns nil"
+}

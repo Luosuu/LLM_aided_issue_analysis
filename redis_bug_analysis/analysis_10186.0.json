@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module System",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Unfinished module timer not properly cleaned up during module unload, causing memory access violation and crash when timer callback attempts to execute after module is unloaded",
+  "issue_number": 10186.0,
+  "title": "[CRASH] unfinished module timer causes crash after the module unload"
+}

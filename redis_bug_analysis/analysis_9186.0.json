@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli URI parsing component",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Incorrect handling of empty string user in URI parsing, causing unintended authentication behavior when connecting with redis://:<password>@<host>:<port> format",
+  "issue_number": 9186.0,
+  "title": "[BUG] User parsing in redis-cli URI should ignore empty string"
+}

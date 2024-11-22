@@ -1,0 +1,11 @@
+{
+  "bug_location": "t_zset.c (Sorted Set Implementation)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential unsigned integer overflow in rank array when handling large skiplist datasets, where unsigned int cannot represent element counts exceeding 2^32",
+  "issue_number": 8043.0,
+  "title": "[BUG] method  zslInsert in t_zset.c update and rank array length need not maxlevel and unsigned int may overflow"
+}

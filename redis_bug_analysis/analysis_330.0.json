@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Increment Operations (INCRBY/HINCRBY)",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent integer overflow handling between different Redis increment commands, where INCRBY strictly prevents overflow while HINCRBY allows wrapping around the signed 64-bit integer range",
+  "issue_number": 330.0,
+  "title": "INCRBY / HINCRBY different overflow behavior"
+}

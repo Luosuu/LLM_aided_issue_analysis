@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel/Replication Component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Partial resynchronization failure during sentinel failover due to offset mismatch between master and replica, causing unexpected full synchronization (BGSAVE) instead of partial sync",
+  "issue_number": 12113.0,
+  "title": "[BUG] Sentinel failover trigger resulting in replicas Full Sync"
+}

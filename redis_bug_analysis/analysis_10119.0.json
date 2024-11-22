@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Configuration Parsing (src/config.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Inconsistent integer parsing methods (atoi() vs strtoll()) for 'save' configuration option between redis.conf and CONFIG SET, causing different range handling and validation",
+  "issue_number": 10119.0,
+  "title": "[BUG] Config option \"save\" input strings treated differently between redis.conf and CONFIG SET"
+}

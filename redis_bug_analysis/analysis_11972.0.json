@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Test Framework",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Test configuration management failure where maxmemory settings are not properly reset after a failed test, potentially impacting subsequent test runs on external Redis instances",
+  "issue_number": 11972.0,
+  "title": "[BUG] if a test that sets maxmemory fails, it doesn't unset maxmemory limits"
+}

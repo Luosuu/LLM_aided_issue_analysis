@@ -1,0 +1,10 @@
+{
+  "bug_location": "RedisTimeSeries Module",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "TS.INFO command incorrectly uses REDISMODULE_WRITE flag when opening key, causing unnecessary invalidation messages for read-only operations",
+  "issue_number": 12772.0,
+  "title": "[BUG] TS.INFO causes __redis__:invalidate"
+}

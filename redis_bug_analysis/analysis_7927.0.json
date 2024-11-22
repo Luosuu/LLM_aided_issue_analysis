@@ -1,0 +1,11 @@
+{
+  "bug_location": "RDB Background Save Process",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Memory management error in error handling code path when failing to write RDB file, causing incorrect memory deallocation using zfree() on improperly allocated memory",
+  "issue_number": 7927.0,
+  "title": "[CRASH]"
+}

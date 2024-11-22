@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua scripting and replication system",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Inconsistent replication behavior of PUBLISH command when executed within Lua scripts, dependent on server.dirty state modification by other commands",
+  "issue_number": 873.0,
+  "title": "PUBLISH is not replicated from EVAL unless other commands in script increment server.dirty"
+}

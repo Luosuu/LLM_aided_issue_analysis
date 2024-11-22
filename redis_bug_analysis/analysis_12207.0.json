@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Transaction/Pub-Sub Subsystem",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Inconsistent handling of SUBSCRIBE commands within MULTI/EXEC transactions, causing protocol response anomalies and potential client-side parsing errors",
+  "issue_number": 12207.0,
+  "title": "[BUG] Should `SUBSCRIBE/UNSUBSCRIBE` be rejected in `MULTI`?"
+}

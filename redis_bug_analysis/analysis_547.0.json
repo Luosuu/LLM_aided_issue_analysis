@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis hash conversion (t_hash.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect integer encoding comparison during hash conversion, causing assertion failure when converting ziplists with small integer fields between Redis versions",
+  "issue_number": 547.0,
+  "title": "Crash in Redis 2.6 RC4 converting an hash value."
+}

@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis SET command parser/implementation",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Conflicting command parameters NX (only set if not exists) and GET (retrieve existing value) cannot be simultaneously processed, causing a syntax error",
+  "issue_number": 8838.0,
+  "title": "[BUG] SET with NX and GET parameters"
+}

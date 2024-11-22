@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis String Operations",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Append operation creates a string key with zero-length value when appending an empty string to a non-existent key, which differs from expected nil/non-existence behavior",
+  "issue_number": 9520.0,
+  "title": "[BUG] APPEND KEY \"\" creates an empty string"
+}

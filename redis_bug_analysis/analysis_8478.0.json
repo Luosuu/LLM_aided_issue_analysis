@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Lua Scripting Engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Storage"
+  ],
+  "root_cause": "Redis Lua scripts do not properly enforce memory limits when executing write commands, allowing memory to grow beyond configured maxmemory when using 'noeviction' policy",
+  "issue_number": 8478.0,
+  "title": "[BUG] Lua script doesn't return OOM when making arbitrary delete command first"
+}

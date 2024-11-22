@@ -1,0 +1,11 @@
+{
+  "bug_location": "RDB Persistence Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Unhandled error condition during RDB save process when attempting to shutdown with restricted file permissions, causing a segmentation fault instead of gracefully handling the file write error",
+  "issue_number": 10439.0,
+  "title": "[CRASH] Redis-Server Crashed after failed to save rdb when receive shutdown command"
+}

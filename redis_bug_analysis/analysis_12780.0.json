@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Replica Persistence Layer (server.c)",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Replica encountered a critical error while attempting to write RDB snapshot to disk, specifically failing to move the temporary RDB file to its final destination due to a missing file or directory permissions issue",
+  "issue_number": 12780.0,
+  "title": "[CRASH] Replica was unable to write command to disk"
+}

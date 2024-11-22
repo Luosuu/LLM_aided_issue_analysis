@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Consumer Group Tracking",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential inconsistency in tracking stream entries_read counter during XCLAIM operations with LASTID argument, which may lead to incorrect lag heuristic calculations",
+  "issue_number": 10569.0,
+  "title": "[BUG] Stream consumer group lag heuristic isn't handled when executing `XCLAIM ... LASTID`"
+}

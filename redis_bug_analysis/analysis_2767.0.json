@@ -1,0 +1,10 @@
+{
+  "bug_location": "Geospatial (GEORADIUS) command implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of geospatial neighbor square calculations when using large radius, causing duplicate key returns in GEORADIUS query",
+  "issue_number": 2767.0,
+  "title": "GEORADIUS returns the same key twice on Redis 3.1.999"
+}

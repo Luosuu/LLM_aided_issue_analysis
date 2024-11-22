@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Lua Scripting Engine",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent type conversion of simple string responses from Redis commands when called within Lua scripts, where TYPE command returns a table with 'ok' key instead of a direct string",
+  "issue_number": 11413.0,
+  "title": "[BUG] TYPE command does not return a string in LUA"
+}

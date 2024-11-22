@@ -1,0 +1,11 @@
+{
+  "bug_location": "RDB Background Save (rdbSaveBackground)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential memory corruption or null pointer dereference during LZF compression of string object during background RDB save, likely caused by an internal list/quicklist management issue",
+  "issue_number": 8276.0,
+  "title": "[CRASH]Redis 4.0.14 crashed by signal: 11"
+}

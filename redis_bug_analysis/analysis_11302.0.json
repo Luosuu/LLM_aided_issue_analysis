@@ -1,0 +1,11 @@
+{
+  "bug_location": "adlist.c (linked list implementation)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential memory corruption causing list tail pointer to become NULL unexpectedly, despite list length being non-zero, likely due to complex interactions between list manipulation and memory management in Redis cluster operations",
+  "issue_number": 11302.0,
+  "title": "[CRASH] <crash at listRotateTailToHead+0x12 >"
+}

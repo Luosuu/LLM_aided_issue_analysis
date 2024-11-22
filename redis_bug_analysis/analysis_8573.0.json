@@ -1,0 +1,11 @@
+{
+  "bug_location": "zmalloc.c preprocessor macro",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Incorrect preprocessor macro comparison attempting to use sizeof() in a preprocessor directive, which cannot resolve type sizes at preprocessor stage",
+  "issue_number": 8573.0,
+  "title": "[BUG] Redis 6.2.0 does not build without jemalloc on musl"
+}

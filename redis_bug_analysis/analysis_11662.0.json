@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis RDB Persistence Module",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Storage"
+  ],
+  "root_cause": "RDB snapshot generation continues even when save configuration is set to an empty string, primarily due to replication processes generating dump files when no explicit save configuration is present",
+  "issue_number": 11662.0,
+  "title": "[BUG] Snapshot not disabled when configuration parameter save is \"\""
+}

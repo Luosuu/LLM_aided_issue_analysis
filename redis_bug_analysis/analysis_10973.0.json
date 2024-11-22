@@ -1,0 +1,32 @@
+{
+  "bug_analysis": {
+    "bug_location": "Redis Database Persistence Layer",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "Config"
+    ],
+    "root_cause": "Potential RDB file corruption or invalid database file signature during Redis startup",
+    "detailed_analysis": {
+      "symptoms": [
+        "Fatal error loading DB",
+        "Invalid argument error",
+        "Redis server exiting immediately"
+      ],
+      "potential_triggers": [
+        "Corrupted RDB persistence file",
+        "Incompatible file format",
+        "Incorrect volume mounting",
+        "Mixed volume configurations"
+      ],
+      "resolution_hints": [
+        "Completely remove existing Redis data volumes",
+        "Verify Docker image compatibility (especially for ARM)",
+        "Check file permissions and storage integrity",
+        "Ensure clean database initialization"
+      ]
+    }
+  },
+  "issue_number": 10973.0,
+  "title": "[CRASH] Fatal error loading the DB: Invalid argument. Exiting."
+}

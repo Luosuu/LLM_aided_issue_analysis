@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication Buffer (replication.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Security"
+  ],
+  "root_cause": "Buffer size calculation vulnerability triggered by compiler fortification checks in glibc, causing memory access inconsistencies when using malloc_usable_size() with variable-sized allocations",
+  "issue_number": 11965.0,
+  "title": "[CRASH] 7.0.10 memcpy sigabrt due to buffer overflow in replication.c line 367"
+}

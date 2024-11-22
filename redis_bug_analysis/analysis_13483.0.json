@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel Failover Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "LoadBalance"
+  ],
+  "root_cause": "Sentinel incorrectly selecting replica with lower replication offset during failover, causing unnecessary full resynchronization and potential data loss/downtime",
+  "issue_number": 13483.0,
+  "title": "[BUG] During failover sentinel picked replica up with less replication offset which caused full resync "
+}

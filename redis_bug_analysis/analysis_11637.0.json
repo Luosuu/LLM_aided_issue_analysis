@@ -1,0 +1,12 @@
+{
+  "bug_location": "networking.c (client connection handling)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Config"
+  ],
+  "root_cause": "Incomplete loopback address range validation in isLocalClient() function, which fails to recognize the entire 127.0.0.0/8 range as valid loopback addresses",
+  "issue_number": 11637.0,
+  "title": "[BUG] Wrong loopback definition"
+}

@@ -1,0 +1,23 @@
+{
+  "bug_analysis": {
+    "Bug Location/Component": "Redis SSCAN Command",
+    "Severity": 2,
+    "Categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "Root Cause": "Inconsistent COUNT behavior for different set encodings (intset vs regular set)",
+    "Details": {
+      "Description": "SSCAN COUNT parameter does not consistently limit returned elements across different set encodings",
+      "Behavior": {
+        "String Set": "Respects COUNT limit (returns 3 elements)",
+        "Integer Set (intset)": "Returns all elements regardless of COUNT"
+      },
+      "Technical Explanation": "For small sets encoded as intsets, Redis returns all elements in first SCAN call, ignoring COUNT parameter",
+      "Confirmed By": "Redis maintainer @oranagra, who clarified COUNT is an advisory parameter, not a strict limit"
+    },
+    "Recommended Action": "Document the behavior clearly, consider potential future improvements to scan cursor mechanism"
+  },
+  "issue_number": 11872.0,
+  "title": "[BUG] redis version 6.2.3 sscan count is not work for int number"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis DEL command implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Configuration setting `lazyfree-lazy-server-del` does not actually modify the behavior of `DEL` command to use async deletion as expected, instead continuing to use synchronous deletion",
+  "issue_number": 7601.0,
+  "title": "[BUG] lazyfree-lazy-server-del does not turn DELs into UNLINKs"
+}

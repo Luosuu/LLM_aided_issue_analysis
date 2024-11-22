@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module Context",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Context state loss during nested command execution in Redis modules, causing multi/exec transaction flags to be reset unexpectedly when generating new RedisModuleContext during key space event notifications",
+  "issue_number": 8049.0,
+  "title": "[BUG] replica receive nested \"multi\" command"
+}

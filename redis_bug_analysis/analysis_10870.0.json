@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis CLI User Authentication Module",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Human"
+  ],
+  "root_cause": "Shell redirection syntax interferes with Redis CLI command parsing when setting user passwords, causing unintended file output redirection instead of password setting",
+  "issue_number": 10870.0,
+  "title": "[BUG] user password is not saved when creating with \"redis-cli setuser\" (non-interactive mode) and \">\" is not escaped"
+}

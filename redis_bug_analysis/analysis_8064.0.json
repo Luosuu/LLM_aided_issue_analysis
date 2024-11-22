@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis setproctitle.c environment handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Undefined behavior in environment manipulation when using clearenv() and setenv(), causing memory corruption when external libraries like XALT modify process environment",
+  "issue_number": 8064.0,
+  "title": "[BUG] Segfault with 6.0.9 when running under XALT"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ACL (Access Control List) Module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "ACL key prefix restrictions are not properly enforced for keyspace scanning commands like KEYS, which should respect the defined user permissions but currently do not filter results according to the specified prefix",
+  "issue_number": 8152.0,
+  "title": "[BUG]ACLs are not working properly while setting to a specific prefix."
+}

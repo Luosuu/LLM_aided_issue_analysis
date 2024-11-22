@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli command-line tool",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Redis CLI tool incorrectly appending newline character during DUMP operation, causing RESTORE to fail due to payload corruption",
+  "issue_number": 12631.0,
+  "title": "[BUG] `redis-cli DUMP` add an extra `\\n` that breaks the DUMP"
+}

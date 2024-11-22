@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Set Operations (intsetGet function)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Memory corruption or invalid memory access during SMEMBERS operation on a set with an inconsistent/corrupted size metadata, causing a segmentation fault in the intsetGet function",
+  "issue_number": 10592.0,
+  "title": "[CRASH]Redis 4.0.14 crashed by signal: 11"
+}

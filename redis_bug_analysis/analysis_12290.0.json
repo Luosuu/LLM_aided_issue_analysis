@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Processing (blocked.c)",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Infinite blocking loop in stream group consumer processing where clients are repeatedly re-added to blocking queue without proper termination conditions, causing server to become unresponsive",
+  "issue_number": 12290.0,
+  "title": "[BUG] Deadlock with streams on redis 7.2"
+}

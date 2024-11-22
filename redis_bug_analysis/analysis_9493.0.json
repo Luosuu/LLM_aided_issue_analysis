@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Command Processing (GETKEYS)",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of zero-key scenarios in command key extraction logic for EVAL command, causing an error instead of returning an empty key array",
+  "issue_number": 9493.0,
+  "title": "[BUG] Error from `command getkeys eval \"\u2026\" 0`"
+}

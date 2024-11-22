@@ -1,0 +1,24 @@
+{
+  "bug_analysis": {
+    "Bug Location/Component": "Redis Documentation",
+    "Severity": 2,
+    "Categories": [
+      "CodeBug",
+      "Human"
+    ],
+    "Root Cause": "Inconsistent documentation describing maximum string value size between different pages",
+    "Details": {
+      "Original Claim": "512 MB max string size",
+      "Conflicting Claim": "1 GB max string size",
+      "Actual Limit": "512 MB (confirmed by creator antirez)",
+      "Reason for 512 MB": "To ensure whole space is addressable as a bitmap using 32-bit unsigned integer"
+    },
+    "Resolution": {
+      "Status": "Acknowledged",
+      "Action": "Documentation to be updated for consistency",
+      "Confirmed By": "antirez"
+    }
+  },
+  "issue_number": 210.0,
+  "title": "Binary string as value max size"
+}

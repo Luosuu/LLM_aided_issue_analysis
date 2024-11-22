@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Client (Python)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "The Redis cluster client cannot determine the correct slot for the XGROUP CREATE command due to missing key specification, which is a change in behavior between Redis 6.2.6 and 7.0.0",
+  "issue_number": 10678.0,
+  "title": "[BUG] The method xgroup_create of the redis cluster client fails when running on redis version 7.0.0."
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Synchronization Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of network failure and IP resolution during master-slave synchronization, causing persistent connection state inconsistency when 'getpeername' system call fails",
+  "issue_number": 13511.0,
+  "title": "[BUG]The master-slave synchronization relationship of cluster shards cannot be restored due to network failure"
+}

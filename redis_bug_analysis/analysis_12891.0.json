@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli cluster creation command",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Inconsistent error handling when insufficient nodes are provided for cluster creation, leading to different error messages based on node count",
+  "issue_number": 12891.0,
+  "title": "[BUG] `redis-cli --cluster create` reports different errors when trying to create a cluster with lesser than 3 master nodes"
+}

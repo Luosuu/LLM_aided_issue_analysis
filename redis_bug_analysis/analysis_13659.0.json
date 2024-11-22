@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Core - Key Size Tracking",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Performance overhead introduced by multiple calls to updateKeysizesList function in dbSetValue, causing increased latency during MSET operations",
+  "issue_number": 13659.0,
+  "title": "[BUG] Performance regression of mset command after introducing INFO KEYSIZES"
+}

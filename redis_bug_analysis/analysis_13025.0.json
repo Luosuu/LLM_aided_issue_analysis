@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Replication/Module Interaction",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Memory access violation during client memory usage calculation when transitioning between master/replica roles, likely triggered by race condition or memory state corruption during role change event",
+  "issue_number": 13025.0,
+  "title": "[CRASH] When role change occurs, if the new master causes a write, it crashes"
+}

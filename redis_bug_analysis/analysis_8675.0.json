@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis I/O Threading Subsystem",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Network"
+  ],
+  "root_cause": "OS CPU scheduling conflict with Redis thread allocation, causing thread contention on core 0 due to `isolcpus` kernel parameter, preventing proper thread distribution across available CPU cores",
+  "issue_number": 8675.0,
+  "title": "[BUG] threaded-io causes increased CPU utilization that's only resolved after a Redis restart"
+}

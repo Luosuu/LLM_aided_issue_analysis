@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis ZADD command parsing",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent handling of empty string score between different libc implementations (libc vs musl), with different parsing behaviors for numeric conversion",
+  "issue_number": 4391.0,
+  "title": "Different results for ZADD alpine/debian docker container"
+}

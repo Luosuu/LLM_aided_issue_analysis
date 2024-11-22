@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Cluster SORT command implementation in sort.c",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect slot comparison logic in SORT command that does not handle the special '#' pattern correctly in cluster mode, causing unnecessary slot validation for a special return pattern",
+  "issue_number": 13607.0,
+  "title": "[BUG]7.4 sort in cluster mode should ignore: get # while doing slot comparison "
+}

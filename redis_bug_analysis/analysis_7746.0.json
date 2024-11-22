@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Protocol Parser (networking.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Incomplete error handling in multi-bulk protocol parsing where protocol errors do not consistently close client connections across different protocol modes",
+  "issue_number": 7746.0,
+  "title": "[BUG]non-resp bytes make the connection unusable forever"
+}

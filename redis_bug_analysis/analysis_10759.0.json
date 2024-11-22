@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis SCAN command implementation",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Unknown"
+  ],
+  "root_cause": "SCAN command's non-deterministic iteration design intentionally allows inconsistent result sets during key scanning to prevent blocking the main thread and maintain performance",
+  "issue_number": 10759.0,
+  "title": "[BUG] SCAN command does not always returns the identical result"
+}

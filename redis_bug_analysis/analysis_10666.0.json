@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ziplist integer encoding",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect byte manipulation during 24-bit integer encoding, potentially causing memory copy and byte order issues in the zipSaveInteger() function, specifically when handling integer values across different endianness scenarios",
+  "issue_number": 10666.0,
+  "title": "[BUG] ziplist for 24bits  zipSaveInteger() functions"
+}

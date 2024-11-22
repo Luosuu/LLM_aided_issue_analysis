@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Transaction Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Potential implementation issue with handling watched key volatility changes, where modifications to key expiration do not consistently trigger transaction abort as per Redis specification",
+  "issue_number": 10492.0,
+  "title": "[BUG] Changing volatility of Watched keys does not abort Txn"
+}

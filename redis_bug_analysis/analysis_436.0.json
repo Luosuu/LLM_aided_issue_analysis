@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua scripting engine",
+  "severity": 4,
+  "categories": [
+    "Security",
+    "CodeBug"
+  ],
+  "root_cause": "Unrestricted file access via loadfile() in Lua scripting, allowing potential file system enumeration and denial of service by loading large/infinite files",
+  "issue_number": 436.0,
+  "title": "2.6 Denial of Service via EVAL loadfile()"
+}

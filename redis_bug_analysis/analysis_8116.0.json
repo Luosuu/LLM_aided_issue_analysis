@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis String Command Handling (t_string.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Missing error handling in setGenericCommand when attempting to set a value on a key with a different type, allowing partial operation completion despite type mismatch",
+  "issue_number": 8116.0,
+  "title": "[BUG] SET with GET option: WRONGTYPE Error"
+}

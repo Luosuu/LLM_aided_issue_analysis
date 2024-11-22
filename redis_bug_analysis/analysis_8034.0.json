@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Client Tracking Module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Global key tracking without database context, causing cross-database invalidation messages when keys with same name are modified in different databases",
+  "issue_number": 8034.0,
+  "title": "[BUG] Invalidation message wrongly produced for key when key of the same name is changed in a different db"
+}

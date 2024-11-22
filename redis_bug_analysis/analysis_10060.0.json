@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Replication Protocol (RDB Sync)",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Missing CR-LF termination in bulk string during FULLRESYNC, which deviates from standard RESP protocol specification when sending RDB data between master and slave",
+  "issue_number": 10060.0,
+  "title": "[BUG] Redis not following RESP protocol while sending FULLRESYNC message to SLAVE"
+}

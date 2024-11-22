@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Blocking List Operations (BLMPOP)",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "Test assumes deterministic command processing order, which is not guaranteed in distributed network environments with potential network delays or race conditions",
+  "issue_number": 9850.0,
+  "title": "[BUG] One BLMPOP test case may fail on external server"
+}

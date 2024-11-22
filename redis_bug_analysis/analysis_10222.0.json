@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis create-cluster script",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "The create-cluster clean script fails to remove the appendonlydir directory containing AOF files during cluster cleanup, leaving residual data files behind",
+  "issue_number": 10222.0,
+  "title": "[BUG]create-cluster doesn't clean appendonlydir in redis 7.0"
+}

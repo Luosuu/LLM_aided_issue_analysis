@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis CLI / Persistence Module",
+  "severity": 3,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "No explicit error handling or reporting mechanism when background save fails due to insufficient disk space, causing scripts to hang or not detect save failures",
+  "issue_number": 7346.0,
+  "title": "[BUG] redis-cli --csv BGSAVE/LASTSAVE do not return ERROR Message ( out of disk )"
+}

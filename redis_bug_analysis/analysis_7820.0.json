@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Lua Script Evaluation Engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Lua array truncation behavior where arrays with non-consecutive indices or nil values are automatically truncated during conversion to Redis multi-bulk reply, causing unexpected partial returns of table contents",
+  "issue_number": 7820.0,
+  "title": "[BUG] Lua script returning table doesn't return all members."
+}

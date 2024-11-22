@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Streams (XCLAIM command)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential race condition or synchronization issue during message claiming in Redis Streams, where a message is technically claimed but not returned, possibly related to replication or concurrent consumer group operations",
+  "issue_number": 8924.0,
+  "title": "[BUG] xclaim claims the message but returns nil"
+}

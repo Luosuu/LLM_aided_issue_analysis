@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module API / Replication Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Changes in Redis 7.x module replication behavior where RedisModule_ReplicateVerbatim() cannot be safely called from worker threads without explicit thread-safe context locking",
+  "issue_number": 12647.0,
+  "title": "[CRASH] worker thread call RedisModule_ReplicateVerbatim(ctx); trigger redis crash"
+}

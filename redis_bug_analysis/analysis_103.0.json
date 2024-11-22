@@ -1,0 +1,11 @@
+{
+  "bug_location": "RDB File Loading Mechanism",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect error handling during RDB file loading, allowing server to start with empty key space instead of aborting when file version or signature is incompatible",
+  "issue_number": 103.0,
+  "title": "Redis should abort when can't load the RDB file"
+}

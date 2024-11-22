@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Authentication/ACL Module",
+  "severity": 3,
+  "categories": [
+    "Security",
+    "CodeBug"
+  ],
+  "root_cause": "Authentication mechanism allows 'auth default foo' to succeed without a configured password, potentially creating a false sense of security",
+  "issue_number": 13590.0,
+  "title": "[BUG] \"auth default foo\" returns OK even if there is no password set for \"default\""
+}

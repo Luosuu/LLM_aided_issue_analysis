@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis RDB/AOF Persistence Layer",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Config"
+  ],
+  "root_cause": "Unexpected data loss when transitioning from RDB-only to RDB+AOF persistence mode, where existing RDB snapshot is not properly loaded or preserved during configuration change",
+  "issue_number": 12762.0,
+  "title": "[BUG] redis did not load dump.rdb after restart - all data lost"
+}

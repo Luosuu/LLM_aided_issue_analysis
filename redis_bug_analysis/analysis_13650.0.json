@@ -1,0 +1,29 @@
+{
+  "bug_analysis": {
+    "bug_location": "Redis Module Loading Subsystem",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Security"
+    ],
+    "root_cause": "Null pointer dereference during module unload when invalid configuration is provided, causing server crash",
+    "technical_details": {
+      "trigger": "MODULE LOADEX with invalid configuration parameter",
+      "crash_mechanism": "Attempting to unload module with unhandled null error message pointer",
+      "affected_versions": "Redis 255.255.255 (development/unstable version)",
+      "crash_signal": "SIGSEGV (Segmentation Fault)",
+      "crash_address": "0x0"
+    },
+    "reproduction_steps": [
+      "Load module using MODULE LOADEX",
+      "Provide an invalid configuration parameter",
+      "Observe server crash"
+    ],
+    "confirmed_modules_affected": [
+      "rejson.so",
+      "redisearch.so"
+    ]
+  },
+  "issue_number": 13650.0,
+  "title": "[CRASH] MODULE LOADEX invalid config"
+}

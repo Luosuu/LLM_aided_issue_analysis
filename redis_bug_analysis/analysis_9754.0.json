@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Stream Persistence/RDB Loading",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Upgrade"
+  ],
+  "root_cause": "Potential memory corruption or inconsistent state when loading stream keys with maxlen configuration from RDB files, causing client-side crashes during subsequent XADD operations",
+  "issue_number": 9754.0,
+  "title": "[BUG] loading redis streams with maxlen from .rdb"
+}

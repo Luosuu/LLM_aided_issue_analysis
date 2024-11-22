@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Replication Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Race condition during master failover where a new slave incorrectly attaches to the previous master node instead of the new master during a simultaneous cluster reconfiguration",
+  "issue_number": 12999.0,
+  "title": "[BUG] Slave node attached to a slave node instead of a master node during upgrade. "
+}

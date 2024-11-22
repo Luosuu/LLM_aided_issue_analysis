@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Persistence Layer",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Config"
+  ],
+  "root_cause": "Unexpected data loss when switching between RDB and AOF persistence modes during server restart, with no clear warning about potential data truncation or conversion requirements",
+  "issue_number": 12484.0,
+  "title": "[BUG] Complete data loss when enabling AOF through config"
+}

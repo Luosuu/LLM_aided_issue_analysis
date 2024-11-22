@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis quicklist data structure compression mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Compression logic in quicklist node fails to properly handle node compression after insertion, specifically due to 'recompress' flag remaining 0 and preventing compression of nodes that should be compressed",
+  "issue_number": 12563.0,
+  "title": "[BUG] quicklist compress bug"
+}

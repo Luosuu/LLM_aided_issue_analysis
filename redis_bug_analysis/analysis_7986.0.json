@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Pub/Sub Subsystem",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Redis Cluster's Pub/Sub implementation returns subscriber count from local node instead of total cluster subscribers, causing unexpected return value of 0 when publishing across nodes",
+  "issue_number": 7986.0,
+  "title": "[BUG] PUBLISH always return 0 on redis cluster"
+}

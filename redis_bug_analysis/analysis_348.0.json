@@ -1,0 +1,12 @@
+{
+  "bug_location": "t_zset.c (Sorted Set Implementation)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Upgrade",
+    "Storage"
+  ],
+  "root_cause": "Incompatible handling of empty sorted sets between Redis 1.2.2 and 2.4.7, causing null pointer dereference during zrangebyscore command",
+  "issue_number": 348.0,
+  "title": "Crash in t_zset.c using 2.4.7"
+}

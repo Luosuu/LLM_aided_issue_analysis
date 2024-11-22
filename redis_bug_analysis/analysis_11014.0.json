@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Cluster Rebalancing Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Lazy key expiration during cluster rebalancing can trigger an assertion failure in blocked.c when operations are not properly propagated, specifically when keys are accessed via getNodeByQuery during slot migration",
+  "issue_number": 11014.0,
+  "title": "[CRASH] Failure to rebalance on 7.0.0-rc2"
+}

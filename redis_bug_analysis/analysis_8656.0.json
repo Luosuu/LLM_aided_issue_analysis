@@ -1,0 +1,22 @@
+{
+  "bug_analysis": {
+    "Bug Location/Component": "Redis Server Info Reporting",
+    "Severity": 1,
+    "Categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "Root Cause": "Terminology confusion in Redis mode reporting - 'standalone' does not mean single instance, but non-clustered mode",
+    "Details": {
+      "Observed Behavior": "Redis-cli reports 'redis_mode:standalone' even in Sentinel configuration",
+      "Expected Behavior": "Consistent mode reporting across Redis and Sentinel CLIs",
+      "Impact": "Cosmetic/reporting issue, no functional impact on Redis operation"
+    },
+    "Resolution": {
+      "Official Response": "Not a bug, but potentially confusing terminology",
+      "Explanation": "In Redis, 'standalone' refers to non-clustered mode and can include master-replica setups"
+    }
+  },
+  "issue_number": 8656.0,
+  "title": "[BUG] Redis-cli INFO says its running in standalone mode even though it is running with Sentinel (6.0.10)"
+}

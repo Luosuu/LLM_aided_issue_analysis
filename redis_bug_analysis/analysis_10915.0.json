@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis TLS Connection Handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Security"
+  ],
+  "root_cause": "Incompatibility with OpenSSL 3's stricter connection closure handling, which requires explicit SSL_shutdown() for graceful connection termination",
+  "issue_number": 10915.0,
+  "title": "[BUG] redis-server TLS connection close breaks OpenSSL 3 clients"
+}

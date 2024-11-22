@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Event Loop (ae module)",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Race condition in event processing where a file descriptor can be reused before its previous event is fully processed, potentially causing incorrect event handling",
+  "issue_number": 333.0,
+  "title": "firelist is unstable"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "evict.c memory management function",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect implementation of keys_freed tracking mechanism in memory eviction logic, causing the variable to always return 1 or less when multiple keys should be freed",
+  "issue_number": 8760.0,
+  "title": "[BUG] The keys_freed variable in the freeMemoryIfNeeded(void) function of evict.c in redis5.0 does not work, it is always less than or equal to 1"
+}

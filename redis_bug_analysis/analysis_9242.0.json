@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Set Operations (t_set.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Premature signaling of key modification in smove command before actual modification occurs, causing unnecessary transaction aborts",
+  "issue_number": 9242.0,
+  "title": "[BUG] smovecommand may signal its dstkey modified while the dstkey is not."
+}

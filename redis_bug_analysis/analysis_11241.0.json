@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel Failover Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Hostname resolution failure during master node failure prevents sentinel from correctly selecting a new master node, causing failover mechanism to break when master's hostname becomes unresolvable",
+  "issue_number": 11241.0,
+  "title": "[BUG] Sentinel failover not working as expected"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "t_zset.c (ZINTER/ZDIFF command processing)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Lack of proper encoding handling for SET objects during ZDIFF operation, specifically with LISTPACK encoding not being correctly processed",
+  "issue_number": 11578.0,
+  "title": "[CRASH] ZINTER betwen SET and ZSET crashes"
+}

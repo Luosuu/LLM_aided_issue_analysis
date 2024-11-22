@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Inconsistent master switch event publishing when a sentinel is temporarily offline during failover, causing incorrect master information to be propagated when the sentinel rejoins the cluster",
+  "issue_number": 12798.0,
+  "title": "[BUG] Sentinel publishing wrong master switch info on switch-master event, whereas the sentinel logs shows the correct master switch info."
+}

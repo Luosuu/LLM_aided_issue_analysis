@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel Failover Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Upgrade",
+    "Network"
+  ],
+  "root_cause": "Race condition during sentinel failover process causing multiple masters to be created during simultaneous node restarts and version upgrades, likely due to incomplete failover state management and network disconnection handling",
+  "issue_number": 12162.0,
+  "title": "[BUG] Sentinel failover not as expected - ends up with multiple masters"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Streams (XAUTOCLAIM command)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential issue with message retrieval mechanism in Redis Streams when attempting to autoclaim very old pending messages, causing nil returns despite messages existing in the Pending Entry List (PEL)",
+  "issue_number": 10198.0,
+  "title": "[BUG] XAUTOCLAIM returns nil for old messages in PEL"
+}

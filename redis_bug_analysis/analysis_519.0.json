@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ZINTERSTORE command implementation",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of intersection logic when mixing sets and sorted sets with different weight configurations, causing inconsistent and unpredictable intersection results",
+  "issue_number": 519.0,
+  "title": "ZINTERSTORE mixing sets and sorted sets may produce wrong results."
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua scripting engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Lack of atomic synchronization in SCRIPT KILL command processing, allowing potential race conditions during script termination and subsequent command execution",
+  "issue_number": 9581.0,
+  "title": "[BUG] Killing slow scripts should be synchronous to ensure atomicity"
+}

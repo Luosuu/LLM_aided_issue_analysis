@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Service Configuration / Systemd Integration",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Human",
+    "Upgrade"
+  ],
+  "root_cause": "Systemd's ReadOnlyDirectories=/ configuration preventing Redis from writing essential files like RDB snapshots, PID files, or configuration updates, causing service startup failure",
+  "issue_number": 13621.0,
+  "title": "[BUG] Crash of Redis Server - have to  #ReadOnlyDirectories=/"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "debug.c source file",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Missing conditional compilation directive for platform-specific code handling ucontext_t on FreeBSD, causing build failure when HAVE_BACKTRACE is not defined",
+  "issue_number": 450.0,
+  "title": "Build failure FreeBSD 8.2 (2.6, missing HAVE_BACKTRACE)"
+}

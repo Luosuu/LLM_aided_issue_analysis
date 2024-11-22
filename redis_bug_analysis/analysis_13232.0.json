@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Key Expiration/Deletion Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Race condition in key deletion and retrieval process where concurrent threads can observe inconsistent key states due to potential timing issues in Redis's atomic operations",
+  "issue_number": 13232.0,
+  "title": "[BUG] Redis key present in cache even after deleted by first thread and reading around same point of time by other thread."
+}

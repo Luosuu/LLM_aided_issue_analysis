@@ -1,0 +1,20 @@
+{
+  "bug_analysis": {
+    "bug_location": "Redis Transaction (WATCH) Mechanism",
+    "severity": 3,
+    "categories": [
+      "CodeBug"
+    ],
+    "root_cause": "WATCH command does not properly handle key expiration, failing to trigger transaction failure when a watched key expires",
+    "details": {
+      "description": "The WATCH command in Redis transactions does not consider expired keys as a trigger for transaction failure, which contradicts expected transactional behavior",
+      "expected_behavior": "Transaction should fail if a watched key expires or is deleted",
+      "actual_behavior": "Transaction continues even if watched key expires",
+      "test_reference": "https://github.com/redis/redis/blob/unstable/tests/unit/multi.tcl#L224",
+      "community_consensus": "Recognized as a potential bug by core Redis developers",
+      "previous_discussion": "https://github.com/redis/redis/issues/6860"
+    }
+  },
+  "issue_number": 7918.0,
+  "title": "[BUG] WATCH ignores keys which has expired"
+}

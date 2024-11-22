@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli command parsing",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Redis CLI incorrectly interprets numeric command names as repeat modifiers, causing unexpected behavior when renaming commands in redis.conf that start with numbers",
+  "issue_number": 3978.0,
+  "title": "rename-command in redis.conf seems to break redis-cli if command starts with a number"
+}

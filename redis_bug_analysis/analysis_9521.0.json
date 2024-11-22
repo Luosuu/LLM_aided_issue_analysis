@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Event Loop (ae.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Struct definition mismatch in aeEventLoop between Redis 6.0.15 and later versions, specifically on AIX platform. The 'reqevents' member is missing or renamed, causing compilation errors.",
+  "issue_number": 9521.0,
+  "title": "[BUG] error: 'aeEventLoop' has no member named 'reqevents'; did you mean 'events'? on AIX"
+}

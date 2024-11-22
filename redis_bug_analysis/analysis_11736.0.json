@@ -1,0 +1,12 @@
+{
+  "bug_location": "Configuration Management / Config Rewrite Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Upgrade"
+  ],
+  "root_cause": "CONFIG REWRITE does not handle included configuration files correctly, causing duplicate user definitions when rewriting configuration, which prevents Redis from starting due to ACL user definition conflicts",
+  "issue_number": 11736.0,
+  "title": "[BUG] CONFIG REWRITE ignores already set ACL in included config - preventing service start"
+}

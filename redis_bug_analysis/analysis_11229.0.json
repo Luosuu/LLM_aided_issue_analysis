@@ -1,0 +1,11 @@
+{
+  "bug_location": "cli_common.c",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential memory leak in SSL context initialization where SSL_CTX_new() return value might not be properly freed, though mitigated by being a static variable",
+  "issue_number": 11229.0,
+  "title": "[BUG] Potential memory leak."
+}
