@@ -1,0 +1,57 @@
+{
+  "issue_number": 3092,
+  "title": "Unsafe recover should only drop some nodes instead of all down nodes",
+  "body": "For example, A region contains six nodes a, b, c, d, e and f, a is leader. If a, b and c are down forever, we need to just delete two nodes instead of all three nodes. It's possible that just a, b, c and d share the committed log. If a, b, c are deleted, d's committed log can be overridden if e or f becomes leader. Note that d may even not know that a has committed the log, so the cluster can run smoothly without knowing that committed logs are lost, which can be prevented in this case.",
+  "state": "closed",
+  "created_at": "2018-05-20T17:10:23Z",
+  "updated_at": "2018-08-07T00:47:46Z",
+  "closed_at": "2018-07-12T12:05:36Z",
+  "labels": [
+    "type/bug",
+    "priority/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 390601186,
+      "user": "hicqu",
+      "created_at": "2018-05-21T09:22:11Z",
+      "body": "If we want to keep the recover with `remove-fail-stores` **safe**, Seems this rule should be conformed:\r\n```\r\nquorum(old_cluster) + quorum(new_cluster) > sizeof(old_cluster)\r\n```\r\nIt equals to `sizeof(new_cluster) > sizeof(old_cluster) - 2`.\r\n"
+    },
+    {
+      "id": 390616011,
+      "user": "BusyJay",
+      "created_at": "2018-05-21T10:26:44Z",
+      "body": "It's not fixed yet."
+    },
+    {
+      "id": 393562079,
+      "user": "ghost",
+      "created_at": "2018-05-31T15:08:06Z",
+      "body": "I don't know how your raft library solves the problem in paragraph 5.4.2. My solution is to add some restrictions on the response of the requstvote RPC."
+    },
+    {
+      "id": 393565996,
+      "user": "ghost",
+      "created_at": "2018-05-31T15:19:33Z",
+      "body": "For example there are 7 nodes, abcdefg, a is leader, if abcd is down. At this point only the abcde log is synchronized, at this time the leader is elected. If g requestvote , if it finds that the lastlogindex and lastlogterm of some nodes are greater than their own, they will automatically abstain until the node with normal log is selected. I am currently testing."
+    },
+    {
+      "id": 393578997,
+      "user": "BusyJay",
+      "created_at": "2018-05-31T15:53:07Z",
+      "body": "This is not the same problem in 5.4.2. Raft itself guarantees that logs committed from last term will never get overwritten as long as majority still alive. However the problem described here is at least half of the nodes are down and ruined forever that those nodes have to be removed from the meta manually. This case can't be solved by raft itself automatically, extra effort is required.\r\n\r\nA node can become a leader once quorum vote for it. So a candidate can never know for sure if there is a node whose log is more up to date. If it has to wait for all nodes to answer the vote request, then the implementation can't defect network partition."
+    },
+    {
+      "id": 393738827,
+      "user": "siddontang",
+      "created_at": "2018-06-01T02:22:32Z",
+      "body": "hi @pxps \r\n\r\n> if it finds that the lastlogindex and lastlogterm of some nodes are greater than their own\r\n\r\nSeem that the node will response a reject message. "
+    },
+    {
+      "id": 393738831,
+      "user": "siddontang",
+      "created_at": "2018-06-01T02:22:33Z",
+      "body": "hi @pxps \r\n\r\n> if it finds that the lastlogindex and lastlogterm of some nodes are greater than their own\r\n\r\nSeem that the node will response a reject message. "
+    }
+  ]
+}

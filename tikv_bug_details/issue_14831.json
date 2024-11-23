@@ -1,0 +1,84 @@
+{
+  "issue_number": 14831,
+  "title": "TiKV resolved ts gap keep increasing",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\nTiKV\r\nRelease Version:   7.1.0\r\nEdition:           Community\r\nGit Commit Hash:   76d524f7acb4215ee68f07307e0312b9f56ec866\r\nGit Commit Branch: heads/refs/tags/v7.1.0\r\nUTC Build Time:    2023-05-23 11:47:10\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nK8s, 16c 32G\r\n\r\n### Steps to reproduce\r\n1. CDC changefeed running to replicate data to kafka. and TiDB tidb_enable_row_level_checksum is on\r\n2. There are 2 workload running. workload 2 is insert only, workload 1 with insert/update/select.\r\n3. some chaos testing executed on the cluster like pod failure, network partition, etc. (each chaos testing lasted for 10 minutes, and wait for cdc checkpoint recovery before next chaos injection.) \r\n\r\n### What did you expect?\r\nResolved ts gap should not keep increasing.\r\n\r\n### What did happened?\r\nTiKV resolved ts gap keep increasing since ~5/24 19:34\r\n![image](https://github.com/tikv/tikv/assets/7403864/80726f95-9522-4977-9145-e5f5a875a957)\r\n",
+  "state": "open",
+  "created_at": "2023-05-25T10:28:29Z",
+  "updated_at": "2024-01-29T21:57:23Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/moderate",
+    "affects-7.1",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1562671784,
+      "user": "fubinzh",
+      "created_at": "2023-05-25T10:33:31Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1563712128,
+      "user": "tonyxuqqi",
+      "created_at": "2023-05-26T01:57:06Z",
+      "body": "Is it by design if there's node failure? @fubinzh "
+    },
+    {
+      "id": 1563807448,
+      "user": "fubinzh",
+      "created_at": "2023-05-26T04:52:22Z",
+      "body": "@tonyxuqqi Is it possible to resolve the lock automatically somehow? Though we can unlock it manually following https://github.com/pingcap/tiflow/issues/4516#issuecomment-1049540773, it is quite difficult for a user to itendify/work around such issue."
+    },
+    {
+      "id": 1591618219,
+      "user": "zhangjinpeng87",
+      "created_at": "2023-06-14T16:35:11Z",
+      "body": "@fubinzh Does the chaos test always running or just running for a while(10min or 20min) and then stop chaos test let the system to recover by itself? I think the first one is a more common case and meaningful for users. cc @tonyxuqqi "
+    },
+    {
+      "id": 1591692741,
+      "user": "tonyxuqqi",
+      "created_at": "2023-06-14T17:19:57Z",
+      "body": "The TiDB is killed during the test and therefore remaining locks are uncleared until the GC kicks in. The question is if GC is enabled or tikv_gc_life_time is changed during this test. @fubinzh "
+    },
+    {
+      "id": 1592341672,
+      "user": "fubinzh",
+      "created_at": "2023-06-15T04:34:45Z",
+      "body": "> @fubinzh Does the chaos test always running or just running for a while(10min or 20min) and then stop chaos test let the system to recover by itself? I think the first one is a more common case and meaningful for users. cc @tonyxuqqi\r\n\r\nYes, the chaos only lasted for 10m, and we wait for cdc checkpoiny recovery before next chaos injection.  I updated the issue description as well."
+    },
+    {
+      "id": 1592343343,
+      "user": "fubinzh",
+      "created_at": "2023-06-15T04:37:24Z",
+      "body": "> The TiDB is killed during the test and therefore remaining locks are uncleared until the GC kicks in. The question is if GC is enabled or tikv_gc_life_time is changed during this test. @fubinzh\r\n@tonyxuqqi we didn't change gc configurations during testing explicitely. "
+    },
+    {
+      "id": 1592345819,
+      "user": "tonyxuqqi",
+      "created_at": "2023-06-15T04:41:21Z",
+      "body": "OK, So it's because TiCDC would block GC if TiCDC cannot move forward. But it should still clear locks. Need to figure out why it's not behaved as expected. @nongfushanquan"
+    },
+    {
+      "id": 1593211057,
+      "user": "fubinzh",
+      "created_at": "2023-06-15T14:47:21Z",
+      "body": "Run scenario ha-tidb-random-kill -> recovery -> ha-tikv-random-to-tidb-random-network-partition-last-for-10m for several times today with 7.1.0, on a tidb cluster with 3 pd/tidb/tikv running tpcc workload (100 warehouse, qps ~25k), the issue is not reproduced. "
+    },
+    {
+      "id": 1598005928,
+      "user": "fubinzh",
+      "created_at": "2023-06-20T01:54:07Z",
+      "body": "/remove-severity critical"
+    },
+    {
+      "id": 1598006065,
+      "user": "fubinzh",
+      "created_at": "2023-06-20T01:54:28Z",
+      "body": "/severity moderate"
+    }
+  ]
+}

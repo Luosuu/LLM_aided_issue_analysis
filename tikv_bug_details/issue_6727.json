@@ -1,0 +1,21 @@
+{
+  "issue_number": 6727,
+  "title": "The default size limit of grpc is too small after using batch grpc",
+  "body": "https://github.com/tikv/tikv/blob/64741a1f1e5259a372bca51b70f4e41b3d2fd34c/src/server/raft_client.rs#L27\r\n\r\nThe send size is limited to 10MiB. It's a reasonable value in the past as we limit the size of a single entry to 8MiB and the a raft message to 1MiB. Hence a raft message can't be larger than 8MiB. But since using batch gRPC, several messages are merged into one, the total size in a round of call can reach 10 * 8 = 80MiB and exceed the limit. You can find gRPC connection is reset very frequently when there are a lot of batch write requests.\r\n\r\n```\r\n[2020/02/27 23:59:34.164 +08:00] [WARN] [raft_client.rs:118] [\"batch_raft RPC finished fail\"] [err=RemoteStopped]\r\n[2020/02/27 23:59:34.164 +08:00] [WARN] [raft_client.rs:132] [\"batch_raft/raft RPC finally fail\"] [err=RemoteStopped] [to_addr=127.0.0.1:15011]\r\n[2020/02/27 23:59:34.414 +08:00] [WARN] [raft_client.rs:207] [\"send to 127.0.0.1:15011 fail, the gRPC connection could be broken\"]\r\n[2020/02/27 23:59:34.414 +08:00] [ERROR] [transport.rs:318] [\"send raft msg err\"] [err=\"Other(\\\"[src/server/raft_client.rs:216]: RaftClient send fail\\\")\"]\r\n[2020/02/27 23:59:34.566 +08:00] [INFO] [transport.rs:299] [\"resolve store address ok\"] [addr=127.0.0.1:15011] [store_id=1]\r\n[2020/02/27 23:59:34.566 +08:00] [INFO] [raft_client.rs:50] [\"server: new connection with tikv endpoint\"] [addr=127.0.0.1:15011]\r\n[2020/02/27 23:59:34.568 +08:00] [INFO] [subchannel.cc:841] [\"New connected subchannel at 0x7f1c76800bc0 for subchannel 0x7f1cbde29800\"]\r\n[2020/02/27 23:59:38.273 +08:00] [WARN] [raft_client.rs:118] [\"batch_raft RPC finished fail\"] [err=RemoteStopped]\r\n[2020/02/27 23:59:38.273 +08:00] [WARN] [raft_client.rs:132] [\"batch_raft/raft RPC finally fail\"] [err=RemoteStopped] [to_addr=127.0.0.1:15011]\r\n[2020/02/27 23:59:38.416 +08:00] [WARN] [raft_client.rs:207] [\"send to 127.0.0.1:15011 fail, the gRPC connection could be broken\"]\r\n[2020/02/27 23:59:38.416 +08:00] [ERROR] [transport.rs:318] [\"send raft msg err\"] [err=\"Other(\\\"[src/server/raft_client.rs:216]: RaftClient send fail\\\")\"]\r\n[2020/02/27 23:59:38.568 +08:00] [INFO] [transport.rs:299] [\"resolve store address ok\"] [addr=127.0.0.1:15011] [store_id=1]\r\n[2020/02/27 23:59:38.568 +08:00] [INFO] [raft_client.rs:50] [\"server: new connection with tikv endpoint\"] [addr=127.0.0.1:15011]\r\n[2020/02/27 23:59:38.570 +08:00] [INFO] [subchannel.cc:841] [\"New connected subchannel at 0x7f1c2ef26830 for subchannel 0x7f1cbde29400\"]\r\n```",
+  "state": "closed",
+  "created_at": "2020-02-28T10:09:13Z",
+  "updated_at": "2020-03-12T09:22:18Z",
+  "closed_at": "2020-03-12T09:22:18Z",
+  "labels": [
+    "type/bug",
+    "component/gRPC"
+  ],
+  "comments_data": [
+    {
+      "id": 592449412,
+      "user": "BusyJay",
+      "created_at": "2020-02-28T10:24:14Z",
+      "body": "Or maybe we should also consider message size during batch. Batching up large messages are unnecessary."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "issue_number": 16256,
+  "title": "titan blob file can't be cleared when fallback",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ntitan cluster fallback to rocksdb\r\nDuring the GC process, a new blob file was generated but not yet added to the manifest. However, Titan restarted before it was added to the manifest, and a new manifest file with the same ID was created after Titan restarted. This resulted in the blob file not being cleaned up.\r\n![image](https://github.com/tikv/tikv/assets/7677963/63f5538e-e9f2-4964-a5df-fa9912cc9e7d)\r\n\r\n[2023/12/29 11:20:37.276 +08:00] [FATAL] [[setup.rs:310](http://setup.rs:310/)] [\"invalid configuration: check: titandb-data-dir-empty; err: \\\"data-dir.empty.check: the number of file with extension blob in directory /var/lib/tikv/data/db/titandb is non-zero, got 1, expect 0.\\\"; hint: You have disabled titan when its data directory is not empty. To properly shutdown titan, please enter fallback blob-run-mode and wait till titandb files are all safely ingested.\"] [thread_id=0x5]\r\n^C\r\n[root@tc-tikv-0 /]# ls /var/lib/tikv/data/db/titandb\r\n541107.blob  CURRENT  LOCK  MANIFEST-541107\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-12-29T05:12:42Z",
+  "updated_at": "2024-01-04T07:32:53Z",
+  "closed_at": "2024-01-04T07:32:53Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5"
+  ],
+  "comments_data": []
+}

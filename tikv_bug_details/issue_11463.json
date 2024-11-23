@@ -1,0 +1,94 @@
+{
+  "issue_number": 11463,
+  "title": "tikv error when demote follower to learner",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\n[root@tikv-1-0 bin]# ./tikv-server -V\r\nTiKV\r\nRelease Version:   5.3.0\r\nEdition:           Community\r\nGit Commit Hash:   2bba8cce69b1da1cfb1181ed4630b084ad7a542b\r\nGit Commit Branch: heads/refs/tags/v5.2.3\r\nUTC Build Time:    2021-11-20 04:29:29\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n```\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86 linux\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. disable balance `pd-ctl config set region-schedule-limit 0`\r\n2. enable placement rules `pd-ctl config placement-rules enable`\r\n3. prepared rules.json\r\n```[\r\n  {\r\n    \"group_id\": \"pd\",\r\n    \"rules\": [\r\n      {\r\n        \"group_id\": \"pd\",\r\n        \"id\": \"default\",\r\n        \"start_key\": \"\",\r\n        \"end_key\": \"\",\r\n        \"role\": \"voter\",\r\n        \"count\": 1\r\n      },\r\n      {\r\n        \"group_id\": \"pd\",\r\n        \"id\": \"learner\",\r\n        \"start_key\": \"\",\r\n        \"end_key\": \"\",\r\n        \"role\": \"learner\",\r\n        \"count\": 2,\r\n        \"location_labels\": [ \"zone\", \"host\"]\r\n      }\r\n    ]\r\n  }\r\n]\r\n```\r\n4. apply the rules `pd-ctl config placement-rules rule-bundle save --in=\"rules.json\"`\r\n### What did you expect?\r\nfollowers demoted to learner\r\n\r\n### What did happened?\r\nno learners from the pd monitor panel.\r\npd error observed\r\n```\r\n\"fix-demote-voter {demote peer: store [2]} (kind:leader, region:27297(575,5), createAt:2021-11-24 14:13:03.029484698 +0800 CST m=+1723.126547708, startAt:2021-11-24 14:13:03.02956604 +0800 CST m=+1723.126629057, currentStep:1, steps:[transfer leader from store 2 to store 1, demote follower peer 27299 on store 2 to learner]) timeout\",\r\n  \"fix-demote-voter {demote peer: store [2]} (kind:leader, region:27241(575,5), createAt:2021-11-24 14:13:03.026463593 +0800 CST m=+1723.123526603, startAt:2021-11-24 14:13:03.026487511 +0800 CST m=+1723.123550523, currentStep:1, steps:[transfer leader from store 2 to store 1, demote follower peer 27243 on store 2 to learner]) timeout\",\r\n  \"fix-demote-voter {demote peer: store [2]} (kind:unknown, region:28201(531,5), createAt:2021-11-24 14:13:03.083497632 +0800 CST m=+1723.180560641, startAt:2021-11-24 14:13:03.083519035 +0800 CST m=+1723.180582046, currentStep:0, steps:[demote follower peer 28203 on store 2 to learner]) timeout\",\r\n  \"fix-demote-voter {demote peer: store [2]} (kind:unknown, region:29229(470,5), createAt:2021-11-24 14:13:03.123877868 +0800 CST m=+1723.220940885, startAt:2021-11-24 14:13:03.123914335 +0800 CST m=+1723.220977375, currentStep:0, steps:[demote follower peer 29231 on store 2 to learner]) timeout\",\r\n  \"fix-demote-voter {demote peer: store [2]} (kind:unknown, region:29541(580,5), createAt:2021-11-24 14:13:03.138161506 +0800 CST m=+1723.235224516, startAt:2021-11-24 14:13:03.138180225 +0800 CST m=+1723.235243236, currentStep:0, steps:[demote follower peer 29543 on store 2 to learner]) timeout\"\r\n```\r\ntikv error observed\r\n```\r\n[2021/11/24 14:28:32.985 +08:00] [INFO] [apply.rs:1755] [\"exec ConfChange\"] [epoch=\"conf_ver: 5 version: 363\"] [type=AddLearner] [peer_id=26238] [region_id=26237]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1248] [\"execute raft command\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/apply.rs:1884]: can't add duplicated learner id: 26223 store_id: 2 role: Learner to region id: 26221 start_key: 7480000000000000FF415F728000000000FF1F9C1A0000000000FA end_key: 7480000000000000FF415F728000000000FF25FD970000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26222 store_id: 1 } peers { id: 26223 store_id: 2 } peers { id: 26224 store_id: 5 }\\\")\"] [peer_id=26222] [region_id=26221]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1877] [\"can't add duplicated learner\"] [region=\"id: 26237 start_key: 7480000000000000FF415F728000000000FF394C840000000000FA end_key: 7480000000000000FF415F728000000000FF3FB3090000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26238 store_id: 1 } peers { id: 26239 store_id: 2 } peers { id: 26240 store_id: 5 }\"] [peer=\"id: 26239 store_id: 2 role: Learner\"] [peer_id=26238] [region_id=26237]\r\n[2021/11/24 14:28:32.985 +08:00] [INFO] [apply.rs:1383] [\"execute admin command\"] [command=\"cmd_type: ChangePeer change_peer { change_type: AddLearnerNode peer { id: 26283 store_id: 2 role: Learner } }\"] [index=933] [term=29] [peer_id=26282] [region_id=26281]\r\n[2021/11/24 14:28:32.985 +08:00] [INFO] [apply.rs:1755] [\"exec ConfChange\"] [epoch=\"conf_ver: 5 version: 363\"] [type=AddLearner] [peer_id=26282] [region_id=26281]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1877] [\"can't add duplicated learner\"] [region=\"id: 26281 start_key: 7480000000000000FF415F728000000000FF7FA3860000000000FA end_key: 7480000000000000FF415F728000000000FF8602350000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26282 store_id: 1 } peers { id: 26283 store_id: 2 } peers { id: 26284 store_id: 5 }\"] [peer=\"id: 26283 store_id: 2 role: Learner\"] [peer_id=26282] [region_id=26281]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1248] [\"execute raft command\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/apply.rs:1884]: can't add duplicated learner id: 26239 store_id: 2 role: Learner to region id: 26237 start_key: 7480000000000000FF415F728000000000FF394C840000000000FA end_key: 7480000000000000FF415F728000000000FF3FB3090000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26238 store_id: 1 } peers { id: 26239 store_id: 2 } peers { id: 26240 store_id: 5 }\\\")\"] [peer_id=26238] [region_id=26237]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1248] [\"execute raft command\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/apply.rs:1884]: can't add duplicated learner id: 26283 store_id: 2 role: Learner to region id: 26281 start_key: 7480000000000000FF415F728000000000FF7FA3860000000000FA end_key: 7480000000000000FF415F728000000000FF8602350000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26282 store_id: 1 } peers { id: 26283 store_id: 2 } peers { id: 26284 store_id: 5 }\\\")\"] [peer_id=26282] [region_id=26281]\r\n[2021/11/24 14:28:32.985 +08:00] [INFO] [apply.rs:1383] [\"execute admin command\"] [command=\"cmd_type: ChangePeer change_peer { change_type: AddLearnerNode peer { id: 26503 store_id: 2 role: Learner } }\"] [index=904] [term=23] [peer_id=26502] [region_id=26501]\r\n[2021/11/24 14:28:32.985 +08:00] [INFO] [apply.rs:1755] [\"exec ConfChange\"] [epoch=\"conf_ver: 5 version: 363\"] [type=AddLearner] [peer_id=26502] [region_id=26501]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1877] [\"can't add duplicated learner\"] [region=\"id: 26501 start_key: 7480000000000000FF4B5F728000000000FF2C6AC20000000000FA end_key: 7480000000000000FF4B5F728000000000FF32DDE10000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26502 store_id: 1 } peers { id: 26503 store_id: 2 } peers { id: 26504 store_id: 5 }\"] [peer=\"id: 26503 store_id: 2 role: Learner\"] [peer_id=26502] [region_id=26501]\r\n[2021/11/24 14:28:32.985 +08:00] [INFO] [apply.rs:1383] [\"execute admin command\"] [command=\"cmd_type: ChangePeer change_peer { change_type: AddLearnerNode peer { id: 26495 store_id: 2 role: Learner } }\"] [index=920] [term=27] [peer_id=26494] [region_id=26493]\r\n[2021/11/24 14:28:32.985 +08:00] [INFO] [apply.rs:1755] [\"exec ConfChange\"] [epoch=\"conf_ver: 5 version: 363\"] [type=AddLearner] [peer_id=26494] [region_id=26493]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1877] [\"can't add duplicated learner\"] [region=\"id: 26493 start_key: 7480000000000000FF4B5F728000000000FF1FA3EC0000000000FA end_key: 7480000000000000FF4B5F728000000000FF2610740000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26494 store_id: 1 } peers { id: 26495 store_id: 2 } peers { id: 26496 store_id: 5 }\"] [peer=\"id: 26495 store_id: 2 role: Learner\"] [peer_id=26494] [region_id=26493]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1248] [\"execute raft command\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/apply.rs:1884]: can't add duplicated learner id: 26503 store_id: 2 role: Learner to region id: 26501 start_key: 7480000000000000FF4B5F728000000000FF2C6AC20000000000FA end_key: 7480000000000000FF4B5F728000000000FF32DDE10000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26502 store_id: 1 } peers { id: 26503 store_id: 2 } peers { id: 26504 store_id: 5 }\\\")\"] [peer_id=26502] [region_id=26501]\r\n[2021/11/24 14:28:32.985 +08:00] [ERROR] [apply.rs:1248] [\"execute raft command\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/apply.rs:1884]: can't add duplicated learner id: 26495 store_id: 2 role: Learner to region id: 26493 start_key: 7480000000000000FF4B5F728000000000FF1FA3EC0000000000FA end_key: 7480000000000000FF4B5F728000000000FF2610740000000000FA region_epoch { conf_ver: 5 version: 363 } peers { id: 26494 store_id: 1 } peers { id: 26495 store_id: 2 } peers { id: 26496 store_id: 5 }\\\")\"] [peer_id=26494] [region_id=26493]\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-11-24T06:43:33Z",
+  "updated_at": "2022-01-18T08:14:13Z",
+  "closed_at": "2022-01-10T07:22:31Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.3"
+  ],
+  "comments_data": [
+    {
+      "id": 977580435,
+      "user": "dbsid",
+      "created_at": "2021-11-24T06:47:17Z",
+      "body": "/assign NingLin-P"
+    },
+    {
+      "id": 977630662,
+      "user": "NingLin-P",
+      "created_at": "2021-11-24T08:11:47Z",
+      "body": "When demoting a voter to a learner with simple `confchange`, the following check will fail because L1876 only checks whether the current region peer list contains the incoming learner peer id but not whether its role is the requested role. \r\n\r\nPreviously there are no such schedule (demoting a voter to a learner with simple `confchange`) but it is supported recently by PD and hence lead to this issue.\r\n\r\nhttps://github.com/tikv/tikv/blob/6a0792a850ae4b141bfa9caa19695bb5833e958f/components/raftstore/src/store/fsm/apply.rs#L1871-L1899\r\n"
+    },
+    {
+      "id": 977773409,
+      "user": "BusyJay",
+      "created_at": "2021-11-24T11:10:54Z",
+      "body": "Why PD wants to demote follower to learner with single step?"
+    },
+    {
+      "id": 985289923,
+      "user": "HunDunDM",
+      "created_at": "2021-12-03T07:51:55Z",
+      "body": "After PD enables joint consensus, joint consensus will not be used for changes that only have a single demote. But PD did not produce such scheduling before. DemoteFollower must be used as recorded in [pd#4140](https://github.com/tikv/pd/issues/4140), which is supported in v5.3.0."
+    },
+    {
+      "id": 985290598,
+      "user": "HunDunDM",
+      "created_at": "2021-12-03T07:53:10Z",
+      "body": "`DemoteFollower` was tested when joint consensus was introduced in v5.0.0."
+    },
+    {
+      "id": 986566105,
+      "user": "w41ter",
+      "created_at": "2021-12-06T08:54:28Z",
+      "body": "@BusyJay @NingLin-P \r\nDo you have any suggestions for fixing this problem? It seems that may cause incompatibility or even insecurity if modify the logic in apply.rs directly."
+    },
+    {
+      "id": 986588458,
+      "user": "w41ter",
+      "created_at": "2021-12-06T09:21:41Z",
+      "body": "`HeartbeatResponse::change_peer_v2` would demoting a voter directly, how about use change_peer_v2 instead of change_peer to demote a voter to learner?"
+    },
+    {
+      "id": 986601865,
+      "user": "BusyJay",
+      "created_at": "2021-12-06T09:38:54Z",
+      "body": "Isn't just rejecting the proposal should be enough?"
+    },
+    {
+      "id": 986634041,
+      "user": "Lily2025",
+      "created_at": "2021-12-06T10:18:10Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 987896746,
+      "user": "BusyJay",
+      "created_at": "2021-12-07T12:50:49Z",
+      "body": "> `HeartbeatResponse::change_peer_v2` would demoting a voter directly, how about use change_peer_v2 instead of change_peer to demote a voter to learner?\r\n\r\nI see your question. It feels good to me. /cc @NingLin-P "
+    },
+    {
+      "id": 989624662,
+      "user": "w41ter",
+      "created_at": "2021-12-09T08:31:15Z",
+      "body": "@HunDunDM I have submit a PR to solve this problem, would you like to help me review the code?"
+    },
+    {
+      "id": 993220460,
+      "user": "NingLin-P",
+      "created_at": "2021-12-14T07:04:59Z",
+      "body": "> HeartbeatResponse::change_peer_v2 would demoting a voter directly, how about use change_peer_v2 instead of change_peer to demote a voter to learner?\r\n\r\nlgtm"
+    },
+    {
+      "id": 1006273108,
+      "user": "HunDunDM",
+      "created_at": "2022-01-06T04:20:05Z",
+      "body": "fixed by https://github.com/tikv/pd/pull/4534"
+    }
+  ]
+}

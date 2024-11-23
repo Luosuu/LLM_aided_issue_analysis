@@ -1,0 +1,58 @@
+{
+  "issue_number": 13848,
+  "title": "TiKV panic because the buffer size in log_batch is more than 2G when append to RaftEngine.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nV6.4.0 \r\n```\r\n195295 [2022/11/25 17:57:34.327 +08:00] [FATAL] [lib.rs:495] [\"called `Result::unwrap()` on an `Err` value: Other(\\\"[components/raft_log_engine/src/engine.rs:647]: Full\\\")\"] [backtrace=\" 0: tikv_util::set_panic_hook::{{closure}}\r\n at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:494:18\r\n 1: std::panicking::rust_panic_with_hook\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unkn own-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:702:17\r\n 2: std::panicking::begin_panic_handler::{{closure}}\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/libra ry/std/src/panicking.rs:588:13\r\n 3: std::sys_common::backtrace::__rust_end_short_backtrace\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs :138:18\r\n 4: rust_begin_unwind\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:584:5\r\n 5: core::panicking::panic_fmt\r\n at /rust/toolcha ins/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:142:14\r\n 6: core::result::unwrap_failed\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/ src/rust/library/core/src/result.rs:1814:5\r\n 7: core::result::Result<T,E>::unwrap\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:1107:23\r\n raftst ore::store::async_io::write::WriteTaskBatch<EK,ER>::add_write_task\r\n at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/async_io/write.rs:394:9\r\n raftstore:: store::async_io::write::Worker<EK,ER,N,T>::handle_write_task\r\n at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/async_io/write.rs:665:9\r\n 8: raftstore::store: :async_io::write::Worker<EK,ER,N,T>::handle_msg\r\n at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/async_io/write.rs:652:17\r\n 9: raftstore::store::async_io::w rite::Worker<EK,ER,N,T>::run\r\n at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/async_io/write.rs:595:32\r\n raftstore::store::async_io::write::StoreWriters< EK,ER>::spawn::{{closure}}\r\n at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/async_io/write.rs:906:21\r\n <std::thread::Builder as tikv_util::sys::thread::S tdThreadBuildWrapper>::spawn_wrapper::{{closure}}\r\n at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/sys/thread.rs:415:23\r\n std::sys_common::backtrace::__rust_be gin_short_backtrace\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:122:18\r\n 10: std::thread::Builder::spawn_unchecked_::{{closure}}::{{clo sure}}\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/mod.rs:505:17\r\n <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()> >::call_once\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/unwind_safe.rs:271:9\r\n std::panicking::try::do_call\r\n at /rust/toolchains/night ly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:492:40\r\n std::panicking::try\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/s td/src/panicking.rs:456:19\r\n std::panic::catch_unwind\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panic.rs:137:14\r\n std::thread::Builder::spawn_unchec ked_::{{closure}}\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/mod.rs:504:30\r\n core::ops::function::FnOnce::call_once{{vtable.shim}}\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:248:5\r\n 11: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\r\n at /rust/toolch ains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:1935:9\r\n <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\r\n at /rust/toolchains/nightly-2022- 07-31-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:1935:9\r\n std::sys::unix::thread::Thread::new::thread_start\r\n at /rust/toolchains/nightly-2022-07-31-x86_64-unknown-linux-gnu/lib/rustli b/src/rust/library/std/src/sys/unix/thread.rs:108:17\r\n 12: start_thread\r\n 13: clone\r\n```\r\n\r\nWhen the the buffer in log_batch is larger than 2G, it resturns Err(). \r\nhttps://github.com/tikv/raft-engine/blob/c01135d9ad9dd550b3aeda87963b3527f5b31fbb/src/log_batch.rs#L618",
+  "state": "closed",
+  "created_at": "2022-11-27T08:13:46Z",
+  "updated_at": "2024-02-28T07:10:12Z",
+  "closed_at": "2024-01-29T23:59:16Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1330199506,
+      "user": "joccau",
+      "created_at": "2022-11-29T07:31:30Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1453434240,
+      "user": "3pointer",
+      "created_at": "2023-03-03T12:05:04Z",
+      "body": "reopen this issue since it reproduce on latest release-6.5 (112123e787665c557a50d12ade185380d1b6c882)"
+    },
+    {
+      "id": 1624521025,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-07T01:45:50Z",
+      "body": "fixed by restore code "
+    },
+    {
+      "id": 1731172542,
+      "user": "YuJuncen",
+      "created_at": "2023-09-22T10:17:10Z",
+      "body": "Reopen this since https://github.com/tikv/tikv/pull/14363 cannot be (at least trivially) (and indeed not) cherry-picked to release-6.5."
+    },
+    {
+      "id": 1731187718,
+      "user": "YuJuncen",
+      "created_at": "2023-09-22T10:29:32Z",
+      "body": "Generally #13463 requires https://github.com/tikv/tikv/pull/14294, due to it relies on the TLS Engine. But for all release 6.5 versions, we didn't use Engine at all. Perhaps we need to rebuild a TLS RaftStoreRouter(TBH I would prefer just wrapping it with mutex...) or go back to the local executor. Each of which is painful.\r\n\r\n(If I recall right, is there a patch that restricts the per-region concurrency? If possible can we link that PR here so we can safely close this.) \r\n\r\nBut anyway perhaps #13463 is needed for the performance of restoring, and the metrics will get inconsistent between v6.5.x and v7.1.x or higher. "
+    },
+    {
+      "id": 1776215256,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T23:35:19Z",
+      "body": "It should be fixed by https://github.com/tikv/tikv/issues/13976 as well"
+    },
+    {
+      "id": 1968343887,
+      "user": "mzygQAQ",
+      "created_at": "2024-02-28T06:53:55Z",
+      "body": "any updates? this reproduce in tikv6.5, which include [ raftstore: split raft write batch on 1GiB limit](https://github.com/tikv/tikv/pull/13872)\r\n\r\n`\r\n[FATAL] [lib.rs:495] \r\n[\"called `Result::unwrap()` on an `Err` value: Other(\\\"[components/raft_log_engine/src/engine.rs:646]: Full\\\")\"]\r\n [backtrace=\"   \r\n 0: tikv_util::set_panic_hook::{{closure}}\\n   \r\n 1: std::panicking::rust_panic_with_hook\\n   \r\n 2: std::panicking::begin_panic_handler::{{closure}}\\n   \r\n 3: std::sys_common::backtrace::__rust_end_short_backtrace\\n   \r\n 4: rust_begin_unwind\\n   \r\n 5: core::panicking::panic_fmt\\n   \r\n 6: core::result::unwrap_failed\\n   \r\n 7: raftstore::store::async_io::write::WriteTaskBatch<EK,ER>::add_write_task\\n   \r\n 8: raftstore::store::async_io::write::Worker<EK,ER,N,T>::handle_msg\\n   \r\n 9: raftstore::store::async_io::write::Worker<EK,ER,N,T>::run\\n  \r\n 10: std::sys_common::backtrace::__rust_begin_short_backtrace\\n  \r\n 11: core::ops::function::FnOnce::call_once{{vtable.shim}}\\n  \r\n 12: std::sys::unix::thread::Thread::new::thread_start\\n  \r\n 13: start_thread\\n  \r\n 14: __clone\\n\"] [location=/data/tikv/components/raftstore/src/store/async_io/write.rs:449] \r\n[thread_name=store-writer-0]\r\n`\r\ndo not use pitr, only normal writes, value is big (every propose 32MB)\r\n"
+    }
+  ]
+}

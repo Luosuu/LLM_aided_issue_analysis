@@ -1,0 +1,35 @@
+{
+  "issue_number": 10900,
+  "title": "CDC may hold snapshots for a long time when eventfeed is flowcontrolled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nCDC holds snapshot for a long time due to flowcontrol. See more: https://github.com/pingcap/ticdc/pull/2699#issue-724007913\r\n\r\n![image](https://user-images.githubusercontent.com/2150711/131610531-f40fcbb2-cf2b-4fd4-a4c6-bfd203853859.png)\r\n\r\n### What version of TiKV are you using?\r\n\r\nv4.0.13\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nPause TiCDC process, eg., `kill -SIGSTOP <CDC_PID>` .\r\n\r\n### What did you expect?\r\n\r\nSnapshots should be released within a specified time period., eg 10mins. \r\n\r\n### What did happened?\r\n\r\nSnapshots may be hold arbitrary long. ",
+  "state": "closed",
+  "created_at": "2021-09-03T10:20:15Z",
+  "updated_at": "2023-04-06T08:13:01Z",
+  "closed_at": "2023-04-06T08:13:01Z",
+  "labels": [
+    "type/bug",
+    "difficulty/medium",
+    "component/CDC",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 912982087,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-09-04T14:18:49Z",
+      "body": "Any proposal to fix it? Like, add a timeout for holding snapshot?"
+    },
+    {
+      "id": 913308238,
+      "user": "overvenus",
+      "created_at": "2021-09-06T03:18:45Z",
+      "body": "> Any proposal to fix it? Like, add a timeout for holding snapshot?\r\n\r\nA timeout should be good enough for most cases.\r\n\r\nAlso, we need to consider another variant of this case: a TiCDC straggler, flow control can always make progress, but extremely slow. It may hold snapshot for a long time too."
+    },
+    {
+      "id": 1498663126,
+      "user": "overvenus",
+      "created_at": "2023-04-06T08:13:01Z",
+      "body": "This issue has been mitigated by #10135"
+    }
+  ]
+}

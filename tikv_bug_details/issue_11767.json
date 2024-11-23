@@ -1,0 +1,33 @@
+{
+  "issue_number": 11767,
+  "title": "Resolved ts exceed 1 hours for more than 30min without any fault inject",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   5.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   74cd8ae2a9ff930460cba15acdf1847726eb6db8\r\nGit Commit Branch: heads/refs/tags/v5.4.0-nightly\r\nUTC Build Time:    2021-12-31 05:14:05\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun oltp_stability_002\r\nRun sysbench read only workload, and do split region repeatly and randomly.\r\n\r\n### What did you expect?\r\nresolved ts should below serval minutes.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/9443637/147817972-23aac9da-a395-4088-ae31-1bb5cc4b11eb.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-12-31T10:28:34Z",
+  "updated_at": "2022-01-12T09:26:14Z",
+  "closed_at": "2022-01-10T17:13:42Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1003338208,
+      "user": "mayjiang0203",
+      "created_at": "2021-12-31T10:29:05Z",
+      "body": "/type bug\r\n/severity major"
+    },
+    {
+      "id": 1003338493,
+      "user": "mayjiang0203",
+      "created_at": "2021-12-31T10:30:19Z",
+      "body": "/assign 5kbpers"
+    },
+    {
+      "id": 1006550184,
+      "user": "5kbpers",
+      "created_at": "2022-01-06T12:33:36Z",
+      "body": "From the log we can ensure that the region with minimal resolved ts is an orphan follower:\r\n![image](https://user-images.githubusercontent.com/20279863/148382580-b7b43c90-16d7-421c-9cff-1766ad785822.png)\r\n\r\nIn general, the resolved ts of a follower should be synced from its leader. But in this case, the orphan follower cannot get resolved ts from any other peer, so this phenomenon is expected.\r\n\r\nThis issue exports a problem that we can not simply distinguish whether the resolved ts could not be advanced or just could not receive from leaders. This PR #11809 added more metrics to fix this problem."
+    }
+  ]
+}

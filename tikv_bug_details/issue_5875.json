@@ -1,0 +1,27 @@
+{
+  "issue_number": 5875,
+  "title": "Replica read may cause tikv panic",
+  "body": "## Bug Report\r\nA newly created peer has empty region info until it applies snapshot. If a read request is sent to it, it will cause panic at https://github.com/tikv/tikv/blob/master/src/raftstore/store/fsm/peer.rs#L2425.\r\n\r\nReplica read should skip these peers because it will take a long time to catch up with the leader.",
+  "state": "closed",
+  "created_at": "2019-11-13T05:10:22Z",
+  "updated_at": "2019-11-15T03:20:54Z",
+  "closed_at": "2019-11-15T03:20:54Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 553243458,
+      "user": "5kbpers",
+      "created_at": "2019-11-13T05:18:28Z",
+      "body": "Good catch, I will investigate it."
+    },
+    {
+      "id": 553276933,
+      "user": "5kbpers",
+      "created_at": "2019-11-13T07:33:53Z",
+      "body": "Have investigated this issue, the panic would happen when an uninitialized peer receives a proposal.\r\nThis case should be covered by our long-running test, I will address that after fixing this bug."
+    }
+  ]
+}

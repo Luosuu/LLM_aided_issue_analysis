@@ -1,0 +1,34 @@
+{
+  "issue_number": 17444,
+  "title": "the tikv that is being scaled is incorrectly identified as a slow node",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   8.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   444270cf9736e7496138605341ac565331727f03\r\nGit Commit Branch: heads/refs/tags/v8.4.0-alpha\r\nUTC Build Time:    2024-08-24 11:39:01\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n2024-08-26T15:32:20.213+0800\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run tpcc\r\n2、scale out one tikv\r\n\r\n### What did you expect?\r\nThe leader should not be evicted unexpectedly\r\n\r\n### What did happened?\r\nthe tikv that is being scaled is incorrectly identified as a slow node\r\n\r\n![image](https://github.com/user-attachments/assets/758e1f55-0c29-4862-b43c-ebd8204e10d8)\r\n\r\n![img_v3_02e5_c7ec89b6-65e8-427d-9dd0-66cb01eb823g](https://github.com/user-attachments/assets/88dbaee2-c1a8-408c-9b74-4ae41dfef791)\r\n\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-08-27T08:10:59Z",
+  "updated_at": "2024-11-12T08:15:56Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2311855765,
+      "user": "LykxSassinator",
+      "created_at": "2024-08-27T08:14:38Z",
+      "body": "According to the metrics, it's a false-positive case caused by Slow-Score detection algorithm occasionally.\r\n\r\n![img_v3_02e5_2a32e817-5357-4213-b3ca-4c830289107g](https://github.com/user-attachments/assets/4e9ae51c-ffa0-44d6-a315-14ca7114f3f5)\r\n\r\nWhile, the SlowTrend detection algorithm thought that this case should not be regarded as an slowness case.\r\n![img_v3_02e5_ca5d9dbd-3ce6-42c9-b406-2d50ff50d44g](https://github.com/user-attachments/assets/5f970a21-85fd-47de-b7d1-a819dea33580)\r\n\r\nThis case can be recorded as a false-positive case for enhancing SlowScore in the future."
+    },
+    {
+      "id": 2311857307,
+      "user": "Lily2025",
+      "created_at": "2024-08-27T08:15:25Z",
+      "body": "/assign LykxSassinator"
+    }
+  ]
+}

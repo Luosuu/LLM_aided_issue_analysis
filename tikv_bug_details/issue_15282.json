@@ -1,0 +1,29 @@
+{
+  "issue_number": 15282,
+  "title": "Improve compaction check mechanism",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\nAssuming a workload that does a lot of update at some time, and then do the read later one. Because there're too many versions, the scan/point select performance is bad. What's worse, then the key value size is large, we're seeing these regions' load balance or hot region balance lead to too many L0 SST files that would lead to write flow throttling.  \r\nFor example, a region can have 3K+ MVCC versions with quite large value size.  Its size is over 1.5GB ,  but it does not trigger the compaction because the 3K does not hit the threshold of https://docs.pingcap.com/tidb/v5.4/tikv-configuration-file#region-compact-min-tombstones.\r\nWe can change the configuration region-compact-min-tombstones, but that may not work well in other cases that lead to too frequent compaction. \r\nAnd split in this case may not work because the split key is just the start key, due to large mvcc version of start key. \r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster or 7.1\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nLarge region can be split or compacted.\r\n### What did happened?\r\nThe large region with large mvcc versions cannot be split or compacted, and the read performance is bad. ",
+  "state": "closed",
+  "created_at": "2023-08-04T04:50:24Z",
+  "updated_at": "2024-11-11T16:00:04Z",
+  "closed_at": "2023-08-09T07:16:56Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "report/customer"
+  ],
+  "comments_data": [
+    {
+      "id": 2146447769,
+      "user": "seiya-annie",
+      "created_at": "2024-06-04T02:23:48Z",
+      "body": "/found customer"
+    }
+  ]
+}

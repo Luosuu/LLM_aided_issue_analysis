@@ -1,0 +1,17 @@
+{
+  "issue_number": 15817,
+  "title": "Commit can't advance for region in joint state when dr auto sync is enabled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.4\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNot related\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n![image](https://github.com/tikv/tikv/assets/13497871/2c3c4f1b-a305-488d-a0b3-4099b5ba39ba)\r\nConsider the case, where there are two data centers and dr-auto-sync is enabled. The region is in state 1. In the primary data center (dc-1), there are three voters, and in the backup data center, there are two voters and one learner.\r\n\r\nIf all instances in the backup data center are down. The cluster is scale out with new instances, referred to as dc-2'. At this point, the region is in state 2. You can see that the peers that were previously in dc-2 are still present in metadata but as \"down.\"\r\n\r\nPD scheduling begins to remove the down peers from dc-2 and add new peers to dc-2'. During these scheduling processes, the region may transition to state 3, entering a joint state. \"Demoting Voter\" indicates a voter that is about to become a learner, and \"Incoming Voter\" indicates a learner that is about to become a voter. In the joint state, committing requires both \"Voter + Demoting\" and \"Voter + Incoming Voter\" to meet the log commit conditions. At this time, the cluster is in a SyncRecover state due to a bug error that enabled group commit.\r\n\r\nIn the context of group commit, it is necessary to ensure that the logs are present on peers in both the primary data center (dc-2 and dc-2') and satisfy the quorum conditions simultaneously to commit. Therefore, the commitment criteria in state 3 are as follows:\r\n\r\nAmong Store 1, Store 2, Store 3, and Store 5, at least 3 out of 3 Voter + Demoting Voter must have the log, and Demoting Voter must have the log.\r\nAmong Store 1, Store 2, Store 3, and Store 7, at least 3 out of 3 Voter + Incoming Voter must have the log, and Incoming Voter must have the log.\r\nSince Demoting Voter is on the failed store-5, it can never have the log, which prevents the commit from progressing, leading to the region being unable to exit the joint state and unable to handle read and write requests normally.\r\n\r\n### What did you expect?\r\nCommit can advance\r\n\r\n### What did happened?\r\nCommit can't advance",
+  "state": "closed",
+  "created_at": "2023-10-23T07:26:45Z",
+  "updated_at": "2023-10-26T03:32:05Z",
+  "closed_at": "2023-10-26T03:32:04Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

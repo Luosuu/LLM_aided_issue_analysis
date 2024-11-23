@@ -1,0 +1,94 @@
+{
+  "issue_number": 12232,
+  "title": "tikv panic:peer id increased after region is merged, message peer id 2228, local peer id 1140, region id: 649",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/03/18 20:12:33.638 +00:00] [INFO] [lib.rs:80] [\"Welcome to TiKV\"]\r\n[2022/03/18 20:12:33.638 +00:00] [INFO] [lib.rs:85] [\"Release Version:   6.0.0-alpha\"]\r\n[2022/03/18 20:12:33.638 +00:00] [INFO] [lib.rs:85] [\"Edition:           Community\"]\r\n[2022/03/18 20:12:33.638 +00:00] [INFO] [lib.rs:85] [\"Git Commit Hash:   d9cc441141800888d5780e029b5473fd68109ae9\"]\r\n[2022/03/18 20:12:33.638 +00:00] [INFO] [lib.rs:85] [\"Git Commit Branch: heads/refs/tags/v6.0.0-nightly\"]\r\n[2022/03/18 20:12:33.638 +00:00] [INFO] [lib.rs:85] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2022/03/18 20:12:33.639 +00:00] [INFO] [lib.rs:85] [\"Rust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\"]\r\n\r\n### What operating system and CPU are you using?\r\ndo not care\r\n\r\n### Steps to reproduce\r\nrun jepsen case：jepsen-misc\r\nhttp://172.16.4.180:31714/artifacts/testground/plan-exec-721189/plan-exec-721189-2743424832/main-logs\r\n\r\n### What did you expect?\r\n\r\ncase run success.\r\n\r\n### What did happened?\r\n tikv panic.\r\n\r\n[2022/03/18 20:15:01.240 +00:00] [INFO] [apply.rs:1882] [\"remove peer successfully\"] [region=\"id: 2001 start_key: 6D44423A33000000FF00FB000000000000FF00685449443A3137FF0000FD0000000000FA end_key: 6D44423A33000000FF00FB000000000000FF00685449443A3231FF0000FD0000000000FA region_epoch { conf_ver: 287 version: 156 } peers { id: 2002 store_id: 5 } peers { id: 2004 store_id: 7 } peers { id: 2231 store_id: 1 role: Learner } peers { id: 2233 store_id: 6 }\"] [peer=\"id: 2231 store_id: 1 role: Learner\"] [peer_id=2233] [region_id=2001]\r\n[2022/03/18 20:15:01.240 +00:00] [INFO] [raft.rs:2646] [\"switched to configuration\"] [config=\"Configuration { voters: Configuration { incoming: Configuration { voters: {2002, 2004, 2233} }, outgoing: Configuration { voters: {} } }, learners: {}, learners_next: {}, auto_leave: false }\"] [raft_id=2233] [region_id=2001]\r\n[2022/03/18 20:15:01.244 +00:00] [FATAL] [lib.rs:468] [\"peer id increased after region is merged, message peer id 2228, local peer id 1140, region id: 649 start_key: 6D44423A33000000FF00FB000000000000FF00685449443A3137FF0000FD0000000000FA end_key: 6D44423A33000000FF00FB000000000000FF00685461626C653AFF3135FF0000000000FF000000F700000000FB region_epoch { conf_ver: 276 version: 153 } peers { id: 1140 store_id: 5 } peers { id: 1145 store_id: 6 } peers { id: 1155 store_id: 7 }\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:467:18\\n   1: std::panicking::rust_panic_with_hook\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:702:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:588:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:138:18\\n   4: rust_begin_unwind\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:584:5\\n   5: core::panicking::panic_fmt\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panicking.rs:143:14\\n   6: raftstore::store::fsm::store::StoreFsmDelegate<EK,ER,T>::check_msg\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:1671:21\\n      raftstore::store::fsm::store::StoreFsmDelegate<EK,ER,T>::on_raft_message\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:1804:32\\n      raftstore::store::fsm::store::StoreFsmDelegate<EK,ER,T>::handle_msgs\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:589:37\\n   7: <raftstore::store::fsm::store::RaftPoller<EK,ER,T> as batch_system::batch::PollHandler<raftstore::store::fsm::peer::PeerFsm<EK,ER>,raftstore::store::fsm::store::StoreFsm<EK>>>::handle_control\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:743:9\\n      batch_system::batch::Poller<N,C,Handler>::poll\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/batch-system/src/batch.rs:407:27\\n   8: raftstore::store::worker::refresh_config::PoolController<N,C,H>::increase_by::{{closure}}\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/worker/refresh_config.rs:71:21\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:122:18\\n   9: std::thread::Builder::spawn_unchecked_::{{closure}}::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/mod.rs:498:17\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panic/unwind_safe.rs:271:9\\n      std::panicking::try::do_call\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:492:40\\n      std::panicking::try\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:456:19\\n      std::panic::catch_unwind\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panic.rs:137:14\\n      std::thread::Builder::spawn_unchecked_::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/mod.rs:497:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/ops/function.rs:227:5\\n  10: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/boxed.rs:1854:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/boxed.rs:1854:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys/unix/thread.rs:108:17\\n  11: start_thread\\n  12: clone\\n\"] [location=/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:1671] [thread_name=raftstore-6-1]",
+  "state": "closed",
+  "created_at": "2022-03-22T04:23:25Z",
+  "updated_at": "2022-03-28T09:29:39Z",
+  "closed_at": "2022-03-25T11:46:34Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1074743577,
+      "user": "Lily2025",
+      "created_at": "2022-03-22T05:31:01Z",
+      "body": "/type bug\r\n/severity Critical"
+    },
+    {
+      "id": 1074882045,
+      "user": "NingLin-P",
+      "created_at": "2022-03-22T08:38:01Z",
+      "body": "The panic is likely caused by:\r\nhttps://github.com/tikv/tikv/blob/ac32d5c8099a85994a9790ae1840755033dd0fac/components/raftstore/src/store/peer.rs#L989-L994\r\nwhich write the `pending_merge_state` into the region state, but the merge could be rollbacked later.\r\n\r\nFrom the logs:\r\npeer 1145\r\n```\r\n[2022/03/18 20:13:52.139 +00:00] [INFO] [raft.rs:2646] [\"switched to configuration\"] [config=\"Configuration { voters: Configuration { incoming: Configuration { voters: {1140, 1145, 1155} }, outgoing: Configuration { voters: {} } }, learners: {}, learners_next: {}, auto_leave: false }\"] [raft_id=1145] [region_id=649]\r\n[2022/03/18 20:13:52.140 +00:00] [INFO] [apply.rs:1392] [\"execute admin command\"] [command=\"cmd_type: PrepareMerge prepare_merge { min_index: 230 target { id: 657 start_key: 6D44423A33000000FF00FB000000000000FF00685461626C653AFF3135FF0000000000FF000000F700000000FB end_key: 6D44423A33000000FF00FB000000000000FF00685461626C653AFF3237FF0000000000FF000000F700000000FB region_epoch { conf_ver: 269 version: 150 } peers { id: 1021 store_id: 5 } peers { id: 1129 store_id: 7 } peers { id: 1144 store_id: 6 } } }\"] [index=230] [term=56] [peer_id=1145] [region_id=649]\r\n[2022/03/18 20:15:01.147 +00:00] [INFO] [peer.rs:2205] [\"receives gc message, trying to remove\"] [to_peer=\"id: 1145 store_id: 6\"] [peer_id=1145] [region_id=649]\r\n[2022/03/18 20:15:01.149 +00:00] [INFO] [peer.rs:1022] [\"peer destroy itself\"] [takes=539.286µs] [peer_id=1145] [region_id=649]\r\n[2022/03/18 20:15:01.237 +00:00] [INFO] [store.rs:1660] [\"merged peer receives a stale message\"] [msg_type=MsgAppend] [current_region_epoch=\"conf_ver: 276 version: 153\"] [region_id=649]\r\n[2022/03/18 20:15:01.244 +00:00] [FATAL] [lib.rs:468] [\"peer id increased after region is merged, message peer id 2228, local peer id 1140\" ...]\r\n```\r\n\r\nother peers \r\n```\r\n[2022/03/18 20:13:51.729 +00:00] [INFO] [apply.rs:1392] [\"execute admin command\"] [command=\"cmd_type: PrepareMerge prepare_merge { min_index: 209 target { id: 649 start_key: 6D44423A33000000FF00FB000000000000FF00685449443A3500FF0000FC0000000000FA end_key: 6D44423A33000000FF00FB000000000000FF00685461626C653AFF3135FF0000000000FF000000F700000000FB region_epoch { conf_ver: 227 version: 148 } peers { id: 995 store_id: 7 } peers { id: 1033 store_id: 5 } peers { id: 1074 store_id: 6 } } }\"] [index=209] [term=43] [peer_id=1017] [region_id=645]\r\n[2022/03/18 20:13:56.150 +00:00] [INFO] [apply.rs:1392] [\"execute admin command\"] [command=\"cmd_type: RollbackMerge rollback_merge { commit: 230 }\"] [index=231] [term=56] [peer_id=1155] [region_id=649]\r\n[2022/03/18 20:15:01.124 +00:00] [INFO] [apply.rs:1392] [\"execute admin command\"] [command=\"cmd_type: ChangePeer change_peer { change_type: AddLearnerNode peer { id: 2228 store_id: 5 role: Learner } }\"] [index=248] [term=57] [peer_id=1155] [region_id=649]\r\n[2022/03/18 20:15:01.076 +00:00] [INFO] [apply.rs:1882] [\"remove peer successfully\"] [region=\"id: 649 start_key: 6D44423A33000000FF00FB000000000000FF00685449443A3431FF0000FD0000000000FA end_key: 6D44423A33000000FF00FB000000000000FF00685461626C653AFF3135FF0000000000FF000000F700000000FB region_epoch { conf_ver: 281 version: 156 } peers { id: 1140 store_id: 5 } peers { id: 1145 store_id: 6 role: Learner } peers { id: 1155 store_id: 7 } peers { id: 2225 store_id: 4 }\"] [peer=\"id: 1145 store_id: 6 role: Learner\"] [peer_id=1155] [region_id=649]\r\n```\r\n\r\n/cc @BusyJay \r\n"
+    },
+    {
+      "id": 1074901782,
+      "user": "BusyJay",
+      "created_at": "2022-03-22T09:00:00Z",
+      "body": "Maybe we should just log a warning and ignore the assert."
+    },
+    {
+      "id": 1074933256,
+      "user": "NingLin-P",
+      "created_at": "2022-03-22T09:32:45Z",
+      "body": "> Maybe we should just log a warning and ignore the assert.\r\n\r\nSetting the `merge_state` while the region is not merged, may cause the store to generate gc message to destroy other peers. "
+    },
+    {
+      "id": 1074946880,
+      "user": "BusyJay",
+      "created_at": "2022-03-22T09:47:19Z",
+      "body": "> Setting the `merge_state` while the region is not merged, may cause the store to generate gc message to destroy other peers.\r\n\r\nHow? Shouldn't the epoch and ID be checked before other peers destroying itself?"
+    },
+    {
+      "id": 1074967052,
+      "user": "glorv",
+      "created_at": "2022-03-22T09:56:49Z",
+      "body": "I think this panic is caused by: \r\nregion propose a prepare merge and then merge was rollbacked. One of the peers  is network isolated then, so it tried to ask rollback merge as well as prevote again and again but got not response for a long time. Then the region continues to add and remove peers (include the isolated one) in that time period. When the store's network recovered, the peer found itself outdated from pd and then destroyed itself. Then the region add another learner in the same store. Then the first AppendLog message for the new peer was checked by the outdated peer and caused this failure.\r\n\r\nSo maybe we should add a check here to see if the target peer id in the message is the same as in the local state. What do you think @NingLin-P  @BusyJay "
+    },
+    {
+      "id": 1074967739,
+      "user": "NingLin-P",
+      "created_at": "2022-03-22T09:57:18Z",
+      "body": "> How? Shouldn't the epoch and ID be checked before other peers destroying itself?\r\n\r\nOther peers may have the same epoch (or staler epoch) but are still on the region's current peer list. "
+    },
+    {
+      "id": 1075101117,
+      "user": "BusyJay",
+      "created_at": "2022-03-22T12:14:26Z",
+      "body": "> So maybe we should add a check here to see if the target peer id in the message is the same as in the local state. \r\n\r\nI don't see how this check can fix the problem.\r\n\r\n> Other peers may have the same epoch (or staler epoch) but are still on the region's current peer list.\r\n\r\nThe peer will destroy itself by:\r\n1. From a message with larger ID\r\n2. From querying PD\r\n3. From target peer's merged message\r\n4. From snapshot\r\n5. From gc message\r\n6. From other source merged message\r\n\r\nFor 1, 2 and 5, it's clear that the merge must be aborted. For 3 and 6, if merge_state is trustworthy, then the merge must be succeeded. For 4, the peer is destroyed only when it has collected enough information from other peers and it's merged by the snapshot peer. So the peer can know if it will be merged in the end when being destroyed, hence can decide whether to keep merge_state."
+    },
+    {
+      "id": 1075233598,
+      "user": "NingLin-P",
+      "created_at": "2022-03-22T14:11:46Z",
+      "body": "> 5. From gc message\r\n\r\n> For 1, 2 and 5, it's clear that the merge must be aborted.\r\n\r\nSo even the merge is aborted, some peers of the source region can still be destroyed accidentally by gc message? I don't think it is expected. I have also constructed a test case to show it is possible in  current code base https://gist.github.com/NingLin-P/966e92dae16afa5bd61ec4109c7ea3c5"
+    },
+    {
+      "id": 1075295118,
+      "user": "BusyJay",
+      "created_at": "2022-03-22T15:03:09Z",
+      "body": "> So even the merge is aborted, some peers of the source region can still be destroyed accidentally by gc message?\r\n\r\nYes.\r\n\r\n> I don't think it is expected.\r\n\r\nIndeed. So merge_state need to be cleared if it's known to be aborted.\r\n"
+    },
+    {
+      "id": 1076050283,
+      "user": "NingLin-P",
+      "created_at": "2022-03-23T08:02:00Z",
+      "body": "> Indeed. So merge_state need to be cleared if it's known to be aborted.\r\n\r\nI think `pending_merge_state` should only keep if it's known to be merged instead, which can be determined by the `keep_data` flag. \r\n\r\nBecause the `merge_state` while writing along with `PeerState::Tombstone` is only used for generating gc message, we should not do so if we can't know the merge is succeeded or not to avoid the abovementioned problem. \r\n\r\nAnd even the merge is indeed succeeded, the `merge_state` is only written if the source region has applied the `PrepareMerge`, which is not guaranteed when it is destroyed. So it is okay to not write the `merge_state` even the merge is succeeded is these corner cases.\r\n"
+    },
+    {
+      "id": 1076078345,
+      "user": "BusyJay",
+      "created_at": "2022-03-23T08:28:41Z",
+      "body": "> I think pending_merge_state should only keep if it's known to be merged instead\r\n\r\nYes. What I'm described is it always know if it's merged or not when being destroyed.\r\n\r\n> which can be determined by the keep_data flag.\r\n\r\nNot true. If a target peer is destroyed before commit merging, keep_data can be false while the source region is merged.\r\n\r\n> So it is okay to not write the merge_state even the merge is succeeded is these corner cases.\r\n\r\nI'm OK with it as in most cases the left peer should be able to contact one of the quorum."
+    }
+  ]
+}

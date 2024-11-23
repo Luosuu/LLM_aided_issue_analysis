@@ -1,0 +1,88 @@
+{
+  "issue_number": 9012,
+  "title": "TiKV panics when the size of response exceeds 4GB",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n3.x, 4.x, master\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nnot related\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nDeploy the TiKV in https://github.com/tikv/tikv/pull/9010 which builds a 6GB result of mvcc_key and send mvcc_key request to it.\r\n\r\n### What did you expect?\r\nThe request is canceled or finished but TiKV is alive.\r\n\r\n### What did happened?\r\nTiKV panics.\r\n```(gdb) bt\r\n#0  __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:50\r\n#1  0x00007f120c3e0859 in __GI_abort () at abort.c:79\r\n#2  0x00005630b1749ebb in grpc_core::SliceBufferByteStream::SliceBufferByteStream (this=0x7f11fdafd718, slice_buffer=0x7f11fda98e58, flags=<optimized out>)\r\n    at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.6.0/grpc/src/core/lib/transport/byte_stream.cc:40\r\n#3  0x00005630b173da4e in grpc_core::ManualConstructor<grpc_core::SliceBufferByteStream>::Init<grpc_slice_buffer*, unsigned int&> (this=0x7f11fdafd718)\r\n    at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.6.0/grpc/src/core/lib/gprpp/manual_constructor.h:195\r\n#4  call_start_batch (call=call@entry=0x7f11fdafd060, ops=ops@entry=0x7f11adacd1f0, nops=nops@entry=3, notify_tag=notify_tag@entry=0x7f11ab8df3c0, is_notify_tag_closure=is_notify_tag_closure@entry=0)\r\n    at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.6.0/grpc/src/core/lib/surface/call.cc:1701\r\n#5  0x00005630b173f764 in grpc_call_start_batch (call=0x7f11fdafd060, ops=0x7f11adacd1f0, nops=3, tag=0x7f11ab8df3c0, reserved=<optimized out>)\r\n    at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.6.0/grpc/src/core/lib/surface/call.cc:1974\r\n#6  0x00005630b1758a11 in grpcwrap_call_send_status_from_server (call=0x7f11fdafd060, ctx=0x7f11fda9d9e0, status_code=GRPC_STATUS_OK, status_details=<optimized out>, status_details_len=<optimized out>, trailing_metadata=0x0,\r\n    send_empty_initial_metadata=1,\r\n    optional_send_buffer=0x7f0960200600 \"\\032\\266\\365\\352\\327\\t\\022\\202\\002\\\"\\377\\001\\377\\020\\255#\\325\\340\\251\\020x\\354>2\\006\\214\\312O\\374\\257\\344\\243\\324^\\016g \\335 `\\003\\254\\350\\354\\r\\225\\356`k\\327\\022U\\201\\372\\215\\022\\001\\r\\333\\356\\211\\340>\\362u\\245L\\222\\217\\027\\271\\\"\\230\\346M,\\264\\203\\350\\234y\\003v\\363]\\271\\313\\367\\262\\333}\\221Kh}<\\364\\256\\224\\224\\235\\250\\244*'\\273v\\016\\320\\032vѬ\", optional_send_buffer_len=6895090364, write_flags=0, tag=0x7f11ab8df3c0)\r\n    at grpc_wrap.cc:714\r\n#7  0x00005630b0604c63 in grpcio::call::Call::start_send_status_from_server::{{closure}} (ctx=0x7f11fda9d9e0, tag=0x7f11ab8df3c0) at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/call/mod.rs:367\r\n#8  grpcio::call::check_run (bt=grpcio::task::promise::BatchType::Finish, f=...) at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/call/mod.rs:268\r\n#9  grpcio::call::Call::start_send_status_from_server (self=0x7f11adacd4f0, status=0x7f11adacd5f0, send_empty_metadata=<optimized out>, payload=<optimized out>, write_flags=<optimized out>)\r\n    at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/call/mod.rs:361\r\n#10 0x00005630b016c4ae in grpcio::call::server::UnarySink<T>::success (self=..., t=...) at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/call/server.rs:346\r\n#11 0x00005630b03c0915 in <futures_util::future::future::Map<Fut,F> as core::future::future::Future>::poll (self=..., cx=0x7f11adace190) at /home/jenkins/agent/workspace/tikv_ghpr_build_release/tikv/src/server/service/kv.rs:131\r\n#12 0x00005630b060d33b in grpcio::task::executor::poll (task=..., woken=<optimized out>) at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/task/executor.rs:201\r\n#13 0x00005630b060b255 in grpcio::task::executor::resolve (task=..., success=<optimized out>) at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/task/executor.rs:141\r\n#14 grpcio::task::CallTag::resolve (self=..., cq=0x7f11adace2d0, success=<optimized out>) at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/task/mod.rs:179\r\n#15 grpcio::env::poll_queue (tx=...) at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/env.rs:30\r\n#16 grpcio::env::EnvBuilder::build::{{closure}} () at /rust/registry/src/github.com-1ecc6299db9ec823/grpcio-0.6.0/src/env.rs:84\r\n#17 std::sys_common::backtrace::__rust_begin_short_backtrace (f=...) at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/sys_common/backtrace.rs:125\r\n#18 0x00005630b060a795 in std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}} () at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/thread/mod.rs:470\r\n#19 <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once (self=..., _args=<optimized out>) at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/panic.rs:308\r\n#20 std::panicking::try::do_call (data=<optimized out>) at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/panicking.rs:381\r\n#21 std::panicking::try (f=...) at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/panicking.rs:345\r\n#22 std::panic::catch_unwind (f=...) at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/panic.rs:382\r\n#23 std::thread::Builder::spawn_unchecked::{{closure}} () at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/thread/mod.rs:469\r\n#24 core::ops::function::FnOnce::call_once{{vtable-shim}} () at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/core/src/ops/function.rs:227\r\n#25 0x00005630b0b3d9aa in std::sys::unix::thread::Thread::new::thread_start () at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/alloc/src/boxed.rs:1042\r\n#26 0x00007f120c731609 in start_thread (arg=<optimized out>) at pthread_create.c:477\r\n#27 0x00007f120c4dd293 in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:95\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2020-11-11T03:30:21Z",
+  "updated_at": "2022-02-21T05:36:27Z",
+  "closed_at": "2021-09-26T12:40:46Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "component/gRPC",
+    "difficulty/medium",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2"
+  ],
+  "comments_data": [
+    {
+      "id": 725194249,
+      "user": "BusyJay",
+      "created_at": "2020-11-11T04:44:01Z",
+      "body": "It's by [design](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md) that grpc can't send message larger than 4GB. Though it should report error instead of core dump.\r\n\r\nTo solve this, maybe we should change the rpc to server streaming call or add paging logic."
+    },
+    {
+      "id": 725216340,
+      "user": "youjiali1995",
+      "created_at": "2020-11-11T05:52:48Z",
+      "body": "We can avoid this panic from the TiKV side, but it's better gRPC can report errors."
+    },
+    {
+      "id": 728903240,
+      "user": "BusyJay",
+      "created_at": "2020-11-17T12:43:46Z",
+      "body": "I'm afraid this is not possible ATM for latest gRPC. The binary will either core dump or panic inside rust-protobuf. See also stepancheg/rust-protobuf#530."
+    },
+    {
+      "id": 730190720,
+      "user": "youjiali1995",
+      "created_at": "2020-11-19T07:42:11Z",
+      "body": "Lower its severity since it rarely occurs."
+    },
+    {
+      "id": 812337166,
+      "user": "Connor1996",
+      "created_at": "2021-04-02T05:59:27Z",
+      "body": "Encounter it again https://asktug.com/t/topic/69426"
+    },
+    {
+      "id": 833478123,
+      "user": "BusyJay",
+      "created_at": "2021-05-06T12:20:23Z",
+      "body": "Now that we have been using the forked version of protobuf, we can also add such protection inside the forked."
+    },
+    {
+      "id": 927305518,
+      "user": "BusyJay",
+      "created_at": "2021-09-26T13:18:48Z",
+      "body": "After the fix, TiKV will log the failure instead of panicking."
+    },
+    {
+      "id": 1042752105,
+      "user": "Connor1996",
+      "created_at": "2022-02-17T09:39:32Z",
+      "body": "Encounter it again, do you have any idea when the response size would be so large without a large region. @youjiali1995 @BusyJay "
+    },
+    {
+      "id": 1042783697,
+      "user": "BusyJay",
+      "created_at": "2022-02-17T10:12:27Z",
+      "body": "You mean panic? What version did you use?"
+    },
+    {
+      "id": 1046470061,
+      "user": "Connor1996",
+      "created_at": "2022-02-21T04:44:53Z",
+      "body": "@BusyJay It doesn't panic, but the query can't succeed. After investigation, it's confirmed as the chunk codec(arrow codec) would reserve space for the fixed-length field even if the value is null. So when there are lots of fixed-length fields filling with null, the size of copr resp would be amplified by multiple times and exceed 4GB."
+    },
+    {
+      "id": 1046492182,
+      "user": "BusyJay",
+      "created_at": "2022-02-21T05:36:27Z",
+      "body": "/cc @coocood "
+    }
+  ]
+}

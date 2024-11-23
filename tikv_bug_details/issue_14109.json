@@ -1,0 +1,15 @@
+{
+  "issue_number": 14109,
+  "title": "cop: some scan details batch are mistakenly dropped",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/a33eb2d08991f278785e8b3047c643bf07839bce/src/coprocessor/endpoint.rs#L603-L607\r\n\r\nThe scan details are written into an empty one by the tracker, there are some details already generated in `resp`.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nExplain analyze a batched cop query from TiDB.\r\n\r\n### What did you expect?\r\n\r\n```\r\ncop_task: {num: 1000, ..., iters:1000, tasks:1000}, scan_detail: {total_process_keys: 1000, ...}}}\r\n```\r\n\r\n### What did happened?\r\n\r\n```\r\ncop_task: {num: 1000, ..., iters:1000, tasks:1000}, scan_detail: {total_process_keys: 91, ...}}}\r\n```\r\n\r\n`total_process_keys` is not correct.\r\n",
+  "state": "closed",
+  "created_at": "2023-01-31T09:31:45Z",
+  "updated_at": "2023-02-01T07:43:57Z",
+  "closed_at": "2023-02-01T07:43:57Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

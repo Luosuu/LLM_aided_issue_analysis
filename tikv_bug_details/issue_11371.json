@@ -1,0 +1,63 @@
+{
+  "issue_number": 11371,
+  "title": "tikv error in log: Raft raft: cannot step raft local message",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv5.2.2 + pr #11304\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRunning sysbench oltp_insert for 24 hours\r\n### What did you expect?\r\nno tikv error\r\n### What did happened?\r\n```\r\n[2021/11/13 23:12:14.915 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=15443] [region_id=15440]\r\n[2021/11/13 23:12:14.915 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=10307] [region_id=10304]\r\n[2021/11/13 23:12:14.915 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=17923] [region_id=17920]\r\n[2021/11/13 23:12:14.915 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=12343] [region_id=12340]\r\n[2021/11/13 23:12:14.917 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=18683] [region_id=18680]\r\n[2021/11/13 23:12:14.923 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=16823] [region_id=16820]\r\n[2021/11/13 23:12:14.923 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=3459] [region_id=3456]\r\n[2021/11/13 23:12:14.923 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=1935] [region_id=1932]\r\n[2021/11/13 23:12:14.923 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=15443] [region_id=15440]\r\n[2021/11/13 23:12:14.923 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=22299] [region_id=22296]\r\n[2021/11/13 23:12:14.923 +08:00] [ERROR] [peer.rs:553] [\"handle raft message err\"] [err_code=KV:Raft:StepLocalMsg] [err=\"Raft raft: cannot step raft local message\"] [peer_id=14195] [region_id=14192]```\r\n",
+  "state": "open",
+  "created_at": "2021-11-14T03:22:06Z",
+  "updated_at": "2022-04-21T09:48:53Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 968198399,
+      "user": "dbsid",
+      "created_at": "2021-11-14T03:22:42Z",
+      "body": "/assign gengliqi"
+    },
+    {
+      "id": 977569168,
+      "user": "BusyJay",
+      "created_at": "2021-11-24T06:23:39Z",
+      "body": "Any updates?"
+    },
+    {
+      "id": 977677042,
+      "user": "gengliqi",
+      "created_at": "2021-11-24T09:09:04Z",
+      "body": "Seems it is caused by https://github.com/tikv/tikv/blob/6a0792a850ae4b141bfa9caa19695bb5833e958f/components/raftstore/src/store/fsm/peer.rs#L903-L910.\r\nThe `MsgUnreachable` is a local msg in raft-rs. So it should not be sent to other peers. /cc @hicqu "
+    },
+    {
+      "id": 977689714,
+      "user": "BusyJay",
+      "created_at": "2021-11-24T09:23:33Z",
+      "body": "@tier-cap PTAL"
+    },
+    {
+      "id": 986682274,
+      "user": "Lily2025",
+      "created_at": "2021-12-06T11:19:58Z",
+      "body": "/severity Moderate"
+    },
+    {
+      "id": 987568452,
+      "user": "hicqu",
+      "created_at": "2021-12-07T04:56:04Z",
+      "body": "@gengliqi do you have any suggestions for this? Here I want a mechanism that a raft follower can tell its leader something, and then its leader can change the follower's replication state from `Replicate` to `Probe`."
+    },
+    {
+      "id": 988606715,
+      "user": "gengliqi",
+      "created_at": "2021-12-08T08:38:38Z",
+      "body": "How about making `MsgUnreachable` as a remote message?"
+    },
+    {
+      "id": 988620461,
+      "user": "BusyJay",
+      "created_at": "2021-12-08T08:59:02Z",
+      "body": "You should check the message and using `report_unreachable` API instead."
+    }
+  ]
+}

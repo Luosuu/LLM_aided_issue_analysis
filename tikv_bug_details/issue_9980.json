@@ -1,0 +1,34 @@
+{
+  "issue_number": 9980,
+  "title": "raftstore panics during merge",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n`b2fad976da192006888e2fc80746f9196cf425b6`\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86-64 CentOS 7.6\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRunning tests on TiCDC with a large write throughput and CDC scan throughput.\r\n\r\n### What did you expect?\r\nThat everything works.\r\n\r\n### What did happened?\r\n\r\n```\r\n[2021/04/07 16:23:44.597 +08:00] [FATAL] [lib.rs:455] [\"assertion failed: min_matched >= min_committed\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{closure}}\\n   1: std::panicking::rust_panic_with_hook\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/panicking.rs:595\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/panicking.rs:495\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/sys_common/backtrace.rs:141\\n   4: rust_begin_unwind\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/panicking.rs:493\\n   5: core::panicking::panic_fmt\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/core/src/panicking.rs:92\\n   6: core::panicking::panic\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/core/src/panicking.rs:50\\n   7: raftstore::store::peer::Peer<EK,ER>::propose_normal\\n   8: raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::propose_raft_command\\n   9: raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::handle_msgs\\n  10: <raftstore::store::fsm::store::RaftPoller<EK,ER,T> as batch_system::batch::PollHandler<raftstore::store::fsm::peer::PeerFsm<EK,ER>,raftstore::store::fsm::store::StoreFsm<EK>>>::handle_normal\\n  11: batch_system::batch::Poller<N,C,Handler>::poll\\n  12: std::sys_common::backtrace::__rust_begin_short_backtrace\\n  13: core::ops::function::FnOnce::call_once{{vtable.shim}}\\n  14: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35/library/alloc/src/boxed.rs:1484\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35/library/alloc/src/boxed.rs:1484\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at /rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/sys/unix/thread.rs:71\\n  15: start_thread\\n  16: __clone\\n\"] [location=/home/tidb/tikv/components/raftstore/src/store/peer.rs:2813] [thread_name=raftstore-1-0]\r\n```",
+  "state": "closed",
+  "created_at": "2021-04-07T09:22:45Z",
+  "updated_at": "2021-04-11T10:20:34Z",
+  "closed_at": "2021-04-11T10:20:34Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 814953102,
+      "user": "NingLin-P",
+      "created_at": "2021-04-07T14:18:10Z",
+      "body": "The `progress.committed_index` may not accurate and `progress.matched >= progress.committed_index` may not be true as https://github.com/tikv/raft-rs/issues/426 found.\r\n\r\nThis assert just for robustness and not a fatal error, I think we can remove it and print a warning log instead /cc @BusyJay @gengliqi "
+    },
+    {
+      "id": 814970986,
+      "user": "BusyJay",
+      "created_at": "2021-04-07T14:40:50Z",
+      "body": ">  print a warning log\r\n\r\nSound like a good quick fix."
+    },
+    {
+      "id": 816587885,
+      "user": "gengliqi",
+      "created_at": "2021-04-09T10:30:09Z",
+      "body": "The async ready has not been used yet. So the panic happens probably because of the case mentioned here https://github.com/tikv/raft-rs/issues/426#issuecomment-814970073"
+    }
+  ]
+}

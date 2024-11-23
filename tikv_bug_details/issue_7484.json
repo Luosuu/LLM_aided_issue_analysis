@@ -1,0 +1,26 @@
+{
+  "issue_number": 7484,
+  "title": "The unified read pool should not use start_ts as task id",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\n4.0-beta.2 and up\r\n\r\n### What operating system and CPU are you using?\r\n\r\nUnrelated\r\n\r\n### Steps to reproduce\r\n\r\n1. Start a transaction, run a big query (for example `SELECT COUNT(*)` from a big table).\r\n2. Start some other big queries.\r\n3. While those big queries are in process, run a small query (for example a point select) in the transaction started in 1.\r\n\r\n### What did you expect?\r\n\r\nThe small query finishes quickly.\r\n\r\n### What did happened?\r\n\r\nBecause we use start_ts as the task id, the priority of the small query is lowered by the previously executed big query, thus it may take some time to finish. I don't think it's a reasonable strategy.",
+  "state": "closed",
+  "created_at": "2020-04-16T03:16:07Z",
+  "updated_at": "2020-05-13T04:06:37Z",
+  "closed_at": "2020-05-13T04:06:37Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 614392758,
+      "user": "sticnarf",
+      "created_at": "2020-04-16T03:18:46Z",
+      "body": "There is also a problem that max u64 is not handled specifically. So all queries using max u64 as its start ts share the same task id."
+    },
+    {
+      "id": 627727577,
+      "user": "sticnarf",
+      "created_at": "2020-05-13T03:48:09Z",
+      "body": "Do not close it until all related PRs are merged."
+    }
+  ]
+}

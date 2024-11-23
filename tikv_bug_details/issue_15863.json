@@ -1,0 +1,29 @@
+{
+  "issue_number": 15863,
+  "title": "A 12GB region is not splitted automatically, cause TiSpark's failure due to too large coproc response. ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nImport many SST files to a region to make it larger than region-max-size.\r\n### What did you expect?\r\nThe region can be split correctly\r\n### What did happened?\r\nThe region is not split. \r\n\r\nLogs:\r\ntikv-2023-10-21T04-19-59.819.log:{\"level\":\"INFO\",\"caller\":\"peer.rs:5773\",\"message\":\"on split\",\"time\":\"2023/10/21 04:06:55.797 +00:00\",\"source\":\"split checker\",\"split_keys\":\"10 keys range from ? to ?\",\"peer_id\":69583985,\"region_id\":69583975}\r\ntikv-2023-10-21T04-19-59.819.log:{\"level\":\"INFO\",\"caller\":\"pd.rs:1098\",\"message\":\"try to batch split region\",\"time\":\"2023/10/21 04:06:55.798 +00:00\",\"task\":\"batch_split\",\"region\":\"id: 69583975 start_key: ? end_key: ? region_epoch { conf_ver: 302 version: 5278 } peers { id: 69583977 store_id: 29 } peers { id: 69583979 store_id: 68611552 } peers { id: 69583985 store_id: 36 } peers { id: 69583986 store_id: 12007 role: Learner }\",\"new_region_ids\":\"[new_region_id: 77356595 new_peer_ids: 77356596 new_peer_ids: 77356597 new_peer_ids: 77356598 new_peer_ids: 77356599, new_region_id: 77356600 new_peer_ids: 77356601 new_peer_ids: 77356602 new_peer_ids: 77356603 new_peer_ids: 77356604, new_region_id: 77356605 new_peer_ids: 77356606 new_peer_ids: 77356607 new_peer_ids: 77356608 new_peer_ids: 77356609, new_region_id: 77356610 new_peer_ids: 77356611 new_peer_ids: 77356612 new_peer_ids: 77356613 new_peer_ids: 77356614, new_region_id: 77356615 new_peer_ids: 77356616 new_peer_ids: 77356617 new_peer_ids: 77356618 new_peer_ids: 77356619, new_region_id: 77356620 new_peer_ids: 77356621 new_peer_ids: 77356622 new_peer_ids: 77356623 new_peer_ids: 77356624, new_region_id: 77356625 new_peer_ids: 77356626 new_peer_ids: 77356627 new_peer_ids: 77356628 new_peer_ids: 77356629, new_region_id: 77356630 new_peer_ids: 77356631 new_peer_ids: 77356632 new_peer_ids: 77356633 new_peer_ids: 77356634, new_region_id: 77356635 new_peer_ids: 77356636 new_peer_ids: 77356637 new_peer_ids: 77356638 new_peer_ids: 77356639, new_region_id: 77356640 new_peer_ids: 77356641 new_peer_ids: 77356642 new_peer_ids: 77356643 new_peer_ids: 77356644]\",\"region_id\":69583975}\r\ntikv-2023-10-23T17-57-02.378.log:{\"level\":\"INFO\",\"caller\":\"peer.rs:4770\",\"message\":\"propose conf change peer\",\"time\":\"2023/10/21 04:34:35.597 +00:00\",\"kind\":\"Simple\",\"changes\":\"[change_type: AddLearnerNode peer { id: 77887276 store_id: 27 role: Learner }]\",\"peer_id\":69583985,\"region_id\":69583975}\r\n\r\n\r\nAs we can see the split check runs, but some how the batch split does not go through, probably because propose failure for some reason.  Right now we don't log the propose failure so the exact reason of propose failure is unknown, but generally propose failure is normal scenario. \r\nWhat's not normal in this case is that the split check should run again later to make sure the region get splitted. \r\n",
+  "state": "closed",
+  "created_at": "2023-10-27T16:26:37Z",
+  "updated_at": "2023-11-07T20:56:31Z",
+  "closed_at": "2023-11-07T20:54:43Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-7.5",
+    "user_report"
+  ],
+  "comments_data": [
+    {
+      "id": 1783286522,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-27T17:45:02Z",
+      "body": "The reason is that we reset the self.fsm.peer.size_diff_hint after a split check is sucessfully scheduled. However,  that split check may fail or the split generated from the split check may fail. \r\nIf there's no more update on that region, the region won't be splitted automatically. "
+    },
+    {
+      "id": 1790136182,
+      "user": "bufferflies",
+      "created_at": "2023-11-02T06:19:06Z",
+      "body": "> The reason is that we reset the self.fsm.peer.size_diff_hint after a split check is sucessfully scheduled. However, that split check may fail or the split generated from the split check may fail. If there's no more update on that region, the region won't be splitted automatically.\r\nso we can reset this flag(`size_diff_hint `) only if the update info has notified. \r\nThe condition maybe change, the region size also needs to be considered.\r\n"
+    }
+  ]
+}

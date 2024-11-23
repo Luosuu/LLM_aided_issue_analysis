@@ -1,0 +1,35 @@
+{
+  "issue_number": 15507,
+  "title": "[Titan] the number of live blob file can not be reduced to 0 when enable fallback mode",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv7.0.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nLoad the data and make sure the the total store size is around 100TB, there are 55 stores\r\n1. enable Titan and there is over 70TB in Titan\r\n2. set Titan fallback mode\r\n```\r\n[rocksdb.defaultcf.titan]\r\nblob-run-mode = \"fallback\"\r\ndiscardable-ratio = 1.0\r\n```\r\n\r\n### What did you expect?\r\nThe number of live blob file is reduced to 0\r\n\r\n### What did happened?\r\nThere are 3 live blob file remaining, each live blob file on 3 TiKV instances. \r\nDoing a manual compaction on the 3 tikv instances does not remove the live blob files either.\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/65325a2a-6d9d-4b8b-be65-1386aa2ecd8c)\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/db90b0b1-59c5-4d93-9e20-78cfc34af361)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-09-04T08:49:58Z",
+  "updated_at": "2024-01-11T03:06:14Z",
+  "closed_at": "2024-01-11T03:06:14Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1708266983,
+      "user": "stevenayu",
+      "created_at": "2023-09-06T12:35:07Z",
+      "body": "![67b625da-8c3f-45c6-afb7-610d31b55c58](https://github.com/tikv/tikv/assets/28386799/348c1228-f8a1-4e28-b47c-a61fb1f292ab)\r\nv6.5.4 can also reproduce this issue"
+    },
+    {
+      "id": 1758965255,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-12T06:05:57Z",
+      "body": "No real impact to user behavior, change it to moderate. "
+    },
+    {
+      "id": 1886148427,
+      "user": "Connor1996",
+      "created_at": "2024-01-11T03:06:14Z",
+      "body": "Fixed by https://github.com/tikv/tikv/pull/16338"
+    }
+  ]
+}

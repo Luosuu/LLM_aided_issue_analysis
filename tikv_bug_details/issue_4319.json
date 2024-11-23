@@ -1,0 +1,90 @@
+{
+  "issue_number": 4319,
+  "title": "TiKV may fail to find PD cluster if all PD members are changed ",
+  "body": "## Bug Report\r\n\r\nTiKV may stop service if PD members are all changed and PD leader is the last one removed because TiKV caches PD member list and does not update unless  PD leader has changed.\r\n\r\n```\r\nPD1 PD2 PD3(leader)\r\n        |\r\n        | Remove PD1 and PD2, TiKV does not update member cache.\r\n        |\r\nPD3(leader) PD4 PD5 PD6\r\n        |\r\n        | Remove PD3, TiKV cannot find PD cluster because it still holds the old member cache.\r\n        |\r\nPD4 PD5 PD6(leader)\r\n```\r\n\r\nTiKV needs to update the PD member list periodically. \r\n",
+  "state": "closed",
+  "created_at": "2019-03-06T09:06:29Z",
+  "updated_at": "2021-03-22T03:10:22Z",
+  "closed_at": "2021-03-22T03:10:21Z",
+  "labels": [
+    "type/bug",
+    "component/pd-client",
+    "priority/low",
+    "sig/scheduling",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 471381033,
+      "user": "siddontang",
+      "created_at": "2019-03-11T02:08:29Z",
+      "body": "How to fix it?"
+    },
+    {
+      "id": 688194071,
+      "user": "nolouch",
+      "created_at": "2020-09-07T09:22:53Z",
+      "body": "ref https://github.com/tikv/tikv/pull/7028, but do not solve it at all."
+    },
+    {
+      "id": 688202830,
+      "user": "Yisaer",
+      "created_at": "2020-09-07T09:37:33Z",
+      "body": "/assign"
+    },
+    {
+      "id": 692028017,
+      "user": "Yisaer",
+      "created_at": "2020-09-14T12:45:21Z",
+      "body": "I think the error can be fixed by following steps:\r\n\r\n1. If the pd leader found the member changed (down or offline / up or be added), it will broadcast the change to tikv at most once.\r\n2. The changing informing could be brought by the stream heartbeat response (like store heartbeat) or a new grpc interface hosted by tikv.\r\n3. The member changing in PD could be directly referenced as the stream connection of the region syncer between PD leader and member.\r\n\r\nAs described below, only pd leader will broadcast the changing to tikv. If the informing failed, pd leader won't retry as tikv have its own periodically syncing ability. \r\n\r\n@overvenus  @nolouch WDYT?"
+    },
+    {
+      "id": 692036556,
+      "user": "nolouch",
+      "created_at": "2020-09-14T13:01:53Z",
+      "body": "LGTM"
+    },
+    {
+      "id": 692468414,
+      "user": "overvenus",
+      "created_at": "2020-09-15T05:11:56Z",
+      "body": "> If the pd leader found the member changed (down or offline / up or be added), it will broadcast the change to tikv at most once.\r\n> The changing informing could be brought by the stream heartbeat response (like store heartbeat) or a new grpc interface hosted by tikv.\r\n\r\nWhy not include term or index and send to tikv until PD gets a response in cause broken connection.\r\nI'd like to know why you choose \"at most once\"?\r\n\r\n----------\r\n\r\n> As described below, only pd leader will broadcast the changing to tikv. If the informing failed, pd leader won't retry as tikv have its own periodically syncing ability.\r\n\r\nI'm afraid TiKV can not know the new leader unless, older leader (or all PD server) broadcast, as the current implementation  only keeps connection to PD leader."
+    },
+    {
+      "id": 692479777,
+      "user": "Yisaer",
+      "created_at": "2020-09-15T05:47:54Z",
+      "body": "> Why not include term or index and send to tikv until PD gets a response in cause broken connection.\r\n\r\nThe idea is good, but I think it would be too complex for solving this problem as the recommending practice is to redeploy and update pd-address for the upstream applications(tikv/tidb) (which means it isn't necessary for PD itself to inform the member changing)\r\n\r\n> I'd like to know why you choose \"at most once\"?\r\n\r\nThe reason why PD only inform the changing at most once is considered based on the #7028 since each tikv would sync the whole pd cluster info periodically. \r\n\r\n> I'm afraid TiKV can not know the new leader unless, older leader (or all PD server) broadcast\r\n\r\nI think `TiKV cann't know the new leader` is due to losing all the member added informing between the syncing interval as the solution I mentioned above tried to solve this.\r\n\r\nAnother reason why I try to make this implementation as simple as possible is to make other upstream applications(like tidb) easy to use this solution.\r\n\r\nWDYT? @overvenus "
+    },
+    {
+      "id": 693188481,
+      "user": "overvenus",
+      "created_at": "2020-09-16T05:53:31Z",
+      "body": "\"At most once\" sound problematic to me, the message could be lost during redeploy as connections are unstable (server restart).\r\n\r\nI'm where is the complication 🤔.\r\n\r\nTiDB does not care about it because it uses `pd.Client` (assume it handle reconnection in the pd package.)\r\n"
+    },
+    {
+      "id": 693206552,
+      "user": "Yisaer",
+      "created_at": "2020-09-16T06:40:42Z",
+      "body": "What about adding an `Admin` API in TiKV to reset the pd-endpoints to enable the `deploying tools` reset the address in order to avoid `Rolling Update`? @overvenus "
+    },
+    {
+      "id": 693216326,
+      "user": "overvenus",
+      "created_at": "2020-09-16T07:04:10Z",
+      "body": "I think the root cause is that from tikv's perspective all these changes are atomic (PD 3 steps down). So we could send cluster-info to tikv and wait for response before proceeding next PD member change.   "
+    },
+    {
+      "id": 802524624,
+      "user": "Yisaer",
+      "created_at": "2021-03-19T03:37:56Z",
+      "body": "In `tidb`, it dependeds `pdclient` to [periodicity update pd members](https://github.com/tikv/pd/blob/1c84784e5c26f938ae3d63972f152da170d32e4e/client/base_client.go#L149-L169) in order to avoid this problem, as currently the pd client in tikv also perform as the same action,  In this respect I think we can close this issue as the current solution is enough. WDYK? @overvenus "
+    },
+    {
+      "id": 803731127,
+      "user": "Yisaer",
+      "created_at": "2021-03-22T03:10:21Z",
+      "body": "> In `tidb`, it dependeds `pdclient` to [periodicity update pd members](https://github.com/tikv/pd/blob/1c84784e5c26f938ae3d63972f152da170d32e4e/client/base_client.go#L149-L169) in order to avoid this problem, as currently the pd client in tikv also perform as the same action, In this respect I think we can close this issue as the current solution is enough. WDYK? @overvenus\r\n\r\nI will close this issue as the comment before, feel free to AT me if you have any question.\r\n"
+    }
+  ]
+}

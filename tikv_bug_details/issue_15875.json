@@ -1,0 +1,35 @@
+{
+  "issue_number": 15875,
+  "title": "transfer leader too slow when inject one of tikv io delay with “evict-slow-trend-scheduler” or “evict-slow-store-scheduler”",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./pd-server -V\r\n Release Version: v7.6.0-alpha\r\nEdition: Community\r\nGit Commit Hash: 744e51d33acf6132b7a741486648ae8bb8ce9bba\r\nGit Branch: heads/refs/tags/v7.6.0-alpha\r\nUTC Build Time:  2023-10-27 11:36:01\r\n2023-10-30T19:27:26.200+0800\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run tpcc with 2000 warehouse and 32 threads\r\n2、schedule add evict-slow-trend-scheduler\r\n3、inject one of tikv io delay 50ms\r\n\r\n### What did you expect?\r\nqps can recover within 5mins\r\n\r\n### What did happened?\r\n1、qps drop during one of tikv io delay \r\n![image](https://github.com/tikv/tikv/assets/84712107/a7e7057d-9ed1-4df1-80df-cf119c4102fd)\r\n\r\n2、transfer leader too slow \r\n![afcb9de7-f0b9-4c6e-a749-de53345afae1](https://github.com/tikv/tikv/assets/84712107/d35a708f-cf47-460f-9592-c1fa5a56e085)\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-10-31T03:11:43Z",
+  "updated_at": "2024-11-01T10:18:27Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1786375951,
+      "user": "LykxSassinator",
+      "created_at": "2023-10-31T03:20:18Z",
+      "body": "Root cause：too much cost on transferring leader, resulting in too-long scheduling.\r\n\r\nReferring:\r\n1. PD scheduler details:\r\n![350ab475-1ea1-4e3a-84aa-a2feb1d676d5](https://github.com/tikv/tikv/assets/18441614/cc02e71b-939b-42b0-93ff-fd7da82ef074)\r\n\r\n2. PD logging on slow transferring leaders:\r\n![46f0517d-12cb-4668-843d-0e95d9684049](https://github.com/tikv/tikv/assets/18441614/d05f72d5-8a6d-482c-a9bd-f28118492866)\r\n\r\nFYI, in general, in synchronous I/O mode (when store-io-pool-size is set to 0), the slowness in data transfer is often caused by the Raftstore leader being stuck in writing previous Raft logs. This leads to a delay in processing the \"transfer leader\" message until the preceding writes have been flushed to disk. The duration of this delay, whether it is long or short, depends on the number of Raft logs waiting in the Raftstore's queue to be written at that moment."
+    },
+    {
+      "id": 1915343257,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T18:41:55Z",
+      "body": "Async IO can help this issue. @LykxSassinator "
+    }
+  ]
+}

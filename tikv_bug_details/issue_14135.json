@@ -1,0 +1,41 @@
+{
+  "issue_number": 14135,
+  "title": "[dynamic regions] region is not split for hot write",
+  "body": "## Bug Report\r\n\r\nWhen loading TPCC into 6 nodes, only three of them have heavy write flow. That's because hotspot is not split. We have develop bucket split in the past, what needs to do now is always enable bucket for dynamic regions.",
+  "state": "closed",
+  "created_at": "2023-02-03T08:30:10Z",
+  "updated_at": "2023-07-18T06:50:42Z",
+  "closed_at": "2023-07-18T06:50:42Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1486236831,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-28T05:25:26Z",
+      "body": "/assign @bufferflies "
+    },
+    {
+      "id": 1486236859,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-28T05:25:28Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: bufferflies.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14135#issuecomment-1486236831):\n\n>/assign @bufferflies \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1496759292,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-05T00:18:48Z",
+      "body": "/cc @bufferflies "
+    },
+    {
+      "id": 1496809302,
+      "user": "bufferflies",
+      "created_at": "2023-04-05T01:44:58Z",
+      "body": "yes, the hot region is too big and aggregate on one or two regions.  It needs to be splited by `split-buckets ` if the `hot-region-schedule` scheduled region is too big."
+    }
+  ]
+}

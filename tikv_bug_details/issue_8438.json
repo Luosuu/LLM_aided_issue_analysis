@@ -1,0 +1,36 @@
+{
+  "issue_number": 8438,
+  "title": "Last configuration can be corrupted when disk is full",
+  "body": "## Bug Report\r\n\r\nTiKV save current configuration before startup. If disk is full at that time, the configuration can be partially saved hence corrupted. It's recommended to check if the configuration is the same before saving so that a lot of writes can be saved. If they are different, we should dump and rename instead of writing directly.",
+  "state": "closed",
+  "created_at": "2020-08-13T04:36:49Z",
+  "updated_at": "2020-08-28T08:06:36Z",
+  "closed_at": "2020-08-28T08:06:36Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "difficulty/easy",
+    "priority/low",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 675898353,
+      "user": "gentcys",
+      "created_at": "2020-08-19T07:17:58Z",
+      "body": "Does `check if the configuration is the same` mean to compare two instances of `TiKvConfig` struct?"
+    },
+    {
+      "id": 675902640,
+      "user": "BusyJay",
+      "created_at": "2020-08-19T07:27:55Z",
+      "body": "Maybe check the serialized result is simpler."
+    },
+    {
+      "id": 676117980,
+      "user": "gentcys",
+      "created_at": "2020-08-19T10:37:44Z",
+      "body": "I'd like to work on this."
+    }
+  ]
+}

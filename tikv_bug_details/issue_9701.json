@@ -1,0 +1,28 @@
+{
+  "issue_number": 9701,
+  "title": "Corruption when upgrade from v4.0.9 to nightly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster c514eb5e71bc0e150a168463d2fd7ad777fffaa7\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nDBaas dev\r\n\r\n### Steps to reproduce\r\n```\r\n[security.encryption]\r\ndata-encryption-method = \"aes128-ctr\"\r\ndata-key-rotation-period = \"7d\"\r\n\r\n[security.encryption.master-key]\r\ntype = \"file\"\r\npath = \"/root/key\"\r\n```\r\n\r\n```\r\ntiup cluster start <cluster-name>\r\ntiup cluster upgrade <cluster-name> nightly\r\n```\r\n\r\n### What did you expect?\r\nNo crash\r\n\r\n### What did happened?\r\n```\r\n[2021/02/20 05:21:06.243 +00:00] [ERROR] [server.rs:848] [\"failed to init io snooper\"] [err_code=KV:Unknown] [err=\"\\\"IO snooper is not started due to not compiling with BCC\\\"\"]\r\n[2021/02/20 05:21:08.600 +00:00] [INFO] [mod.rs:96] [\"encryption: found both of key dictionary and file dictionary.\"]\r\n[2021/02/20 05:21:08.600 +00:00] [INFO] [mod.rs:496] [\"encryption is enabled. method = Aes256Ctr\"]\r\n[2021/02/20 05:21:08.601 +00:00] [FATAL] [server.rs:952] [\"failed to create raft engine: Storage Engine Corruption: CURRENT file does not end with newline\"]\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-02-24T08:30:04Z",
+  "updated_at": "2021-03-10T02:33:49Z",
+  "closed_at": "2021-03-10T02:33:49Z",
+  "labels": [
+    "type/bug",
+    "component/security",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 786447591,
+      "user": "hunterlxt",
+      "created_at": "2021-02-26T06:42:31Z",
+      "body": "@yiwu-arbug and I confirmed that the reason: TiKV 5.0 skips the encryption of the file `CURRENT`, but didn't take upgrade into account. After restarting TiKV to 5.0, plaintext `CURRENT` will be written. but this information is not deleted in `file.dict`. When next restart, TiKV will read a plaintext file as an encrypted file."
+    },
+    {
+      "id": 794763820,
+      "user": "hunterlxt",
+      "created_at": "2021-03-10T02:33:49Z",
+      "body": "this has been fixed in #9736 "
+    }
+  ]
+}

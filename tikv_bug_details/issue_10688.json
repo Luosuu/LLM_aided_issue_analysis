@@ -1,0 +1,93 @@
+{
+  "issue_number": 10688,
+  "title": "tikv panic with \"no such file or directory\" when disk space is not enough",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\n[root@centos76_vm tikv-20161]# bin/tikv-server -V\r\nTiKV\r\nRelease Version:   5.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   353897753d27fedc6343a0b84bcab454cdec10d3\r\nGit Commit Branch: master\r\nUTC Build Time:    2021-07-27 09:39:00\r\nRust Version:      rustc 1.53.0-nightly (16bf626a3 2021-04-14)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1. disk full and tikv restart repeatly with error log\r\n```\r\n[2021/08/09 12:05:06.956 +08:00] [FATAL] [server.rs:1177] [\"failed to create raft engine: Storage Engine IO error: No space left on deviceWhile appending to file: /tidb/eindex/data/tikv-20161/       raft/226776.sst: No space left on device\"]\r\n```\r\n2. remove the space_hodler_file manually\r\n\r\n### What did you expect?\r\n\r\nDon't know. Maybe restart with some error message, instead of panic with \"No such file or directory\".\r\n\r\n### What did happened?\r\n1. tikv panic with following log. \r\n```\r\ncalled `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: \"No such file or directory\" }\"] [backtrace=\"stack backtrace:\r\n   0: tikv_util::set_panic_hook::{{closure}}\r\n             at components/tikv_util/src/lib.rs:462\r\n   1: std::panicking::rust_panic_with_hook\r\n             at library/std/src/panicking.rs:595\r\n   2: std::panicking::begin_panic_handler::{{closure}}\r\n             at library/std/src/panicking.rs:497\r\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\r\n             at library/std/src/sys_common/backtrace.rs:141\r\n   4: rust_begin_unwind\r\n             at library/std/src/panicking.rs:493\r\n   5: core::panicking::panic_fmt\r\n             at library/core/src/panicking.rs:92\r\n   6: core::result::unwrap_failed\r\n             at library/core/src/result.rs:1355\r\n   7: core::result::Result<T,E>::unwrap\r\n             at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/core/src/result.rs:1037\r\n      server::server::TiKVServer<ER>::init_fs\r\n             at components/server/src/server.rs:416\r\n      server::server::run_tikv\r\n             at components/server/src/server.rs:151\r\n   8: tikv_server::main\r\n             at cmd/tikv-server/src/main.rs:181\r\n   9: core::ops::function::FnOnce::call_once\r\n             at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/core/src/ops/function.rs:227\r\n      std::sys_common::backtrace::__rust_begin_short_backtrace\r\n             at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/std/src/sys_common/backtrace.rs:125\r\n  10: main\r\n  11: __libc_start_main\r\n  12: <unknown>\r\n```\r\n2. I checked the `space_holder_file` file size, and it is 0, which seems also strange.\r\n```\r\n[root@centos76_vm tikv-20161]# du -hs /tidb/eindex/data/tikv-20161/space_placeholder_file\r\n0\t/tidb/eindex/data/tikv-20161/space_placeholder_file\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-08-09T08:35:48Z",
+  "updated_at": "2021-12-27T07:12:11Z",
+  "closed_at": "2021-12-27T07:12:11Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 895052740,
+      "user": "cosven",
+      "created_at": "2021-08-09T08:48:28Z",
+      "body": "/type bug\r\n\r\ncc @aytrack"
+    },
+    {
+      "id": 895654434,
+      "user": "Lily2025",
+      "created_at": "2021-08-10T01:11:12Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 899379185,
+      "user": "Lily2025",
+      "created_at": "2021-08-16T09:53:37Z",
+      "body": "/assign tier-cap"
+    },
+    {
+      "id": 899379202,
+      "user": "ti-chi-bot",
+      "created_at": "2021-08-16T09:53:38Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: tier-cap.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/10688#issuecomment-899379185):\n\n>/assign tier-cap\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 899379750,
+      "user": "Lily2025",
+      "created_at": "2021-08-16T09:54:34Z",
+      "body": "/assign  tier-cap"
+    },
+    {
+      "id": 993109149,
+      "user": "7yyo",
+      "created_at": "2021-12-14T02:59:09Z",
+      "body": "I have also encountered this problem, I hope this error message can be clearer"
+    },
+    {
+      "id": 997213756,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-12-18T14:56:03Z",
+      "body": "@hicqu Does this issue fixed in master and 5.3?"
+    },
+    {
+      "id": 997613819,
+      "user": "hicqu",
+      "created_at": "2021-12-20T05:40:55Z",
+      "body": "It should be fixed in master and 5.3.0. @7yyo would you mind to send another issue to describe it detailly? Or share more infomation about version and topology here. They will be helpful for us. Thank you!"
+    },
+    {
+      "id": 997629391,
+      "user": "cosven",
+      "created_at": "2021-12-20T06:17:39Z",
+      "body": "> send another issue to describe it deta\r\n\r\n@hicqu  Which PR fixes this issue? "
+    },
+    {
+      "id": 997641529,
+      "user": "hicqu",
+      "created_at": "2021-12-20T06:44:42Z",
+      "body": "The feature \"disk full resolver\" introduced in 5.3.0 should fix the problem. The feature is implemented in several PRs.\r\n\r\nAnd, the feature doesn't handle panicks exactly because it can panic anywhere if disk usage reaches full. The feature just rejects write requests when disk usage reaches a threshold."
+    },
+    {
+      "id": 997643218,
+      "user": "hicqu",
+      "created_at": "2021-12-20T06:48:28Z",
+      "body": "@tier-cap can you give more information about this feature? I guess we need a PR or commit to close the issue."
+    },
+    {
+      "id": 997655365,
+      "user": "7yyo",
+      "created_at": "2021-12-20T07:10:50Z",
+      "body": "> It should be fixed in master and 5.3.0. @7yyo would you mind to send another issue to describe it detailly? Or share more infomation about version and topology here. They will be helpful for us. Thank you!\r\n\r\nDeploy the TiDB cluster, the disk size < `reserve-space`"
+    },
+    {
+      "id": 997946168,
+      "user": "tier-cap",
+      "created_at": "2021-12-20T13:57:07Z",
+      "body": "Cannot re-produce it, and maybe we can close it by https://github.com/tikv/tikv/pull/10833."
+    }
+  ]
+}

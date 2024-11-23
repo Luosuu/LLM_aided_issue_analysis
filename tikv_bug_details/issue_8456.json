@@ -1,0 +1,15 @@
+{
+  "issue_number": 8456,
+  "title": "Request vote messages are lost during split",
+  "body": "## Bug Report\r\n\r\nRequest vote messages are lost during split. 99.999% latency is up to 15s.\r\n\r\nhttps://github.com/tikv/tikv/blob/ae7a6ecee6e3367da016df0293a9ffe9cc2b5705/components/raftstore/src/store/fsm/store.rs#L1567-L1571\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster branch.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nsysbench oltp_write.\r\n",
+  "state": "closed",
+  "created_at": "2020-08-17T03:53:55Z",
+  "updated_at": "2020-08-28T02:42:16Z",
+  "closed_at": "2020-08-18T08:24:03Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": []
+}

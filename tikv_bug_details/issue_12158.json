@@ -1,0 +1,28 @@
+{
+  "issue_number": 12158,
+  "title": "Entry count of raft-engine seems not right",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\nThe entry count keep increasing. After the tikv is restarted, it goes down.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\ne1fae9469b33ff1ec4fd66aa143a21a5f30f5aa3\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1. Run go-tpc workload\r\n\r\n### What did you expect?\r\n\r\nThe entry count should not increase at all time.\r\n\r\n### What did happened?\r\n![middle_img_v2_594c76d4-a0e7-4179-a1f5-3c723c74e03g](https://user-images.githubusercontent.com/4962134/158298883-bca5c4e2-4537-434f-8fa7-4ccf797b2ac4.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-03-15T03:18:21Z",
+  "updated_at": "2022-03-24T11:11:01Z",
+  "closed_at": "2022-03-24T11:11:00Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "found/automation"
+  ],
+  "comments_data": [
+    {
+      "id": 1067520499,
+      "user": "cosven",
+      "created_at": "2022-03-15T03:19:48Z",
+      "body": "/type bug\r\n/assign @tabokie \r\n/severity moderate\r\n/found automation"
+    },
+    {
+      "id": 1077510372,
+      "user": "tabokie",
+      "created_at": "2022-03-24T11:11:00Z",
+      "body": "Reopen this if another case pops up."
+    }
+  ]
+}

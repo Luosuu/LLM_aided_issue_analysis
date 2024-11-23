@@ -1,0 +1,13 @@
+{
+  "issue_number": 4221,
+  "title": "TiKV/Importer should ignore tombstoned stores",
+  "body": "## Bug Report\r\n\r\nCurrently TiKV/Importer gets all stores via the `get_all_stores` API. Its result includes tombstoned stores. TiKV/Importer should ignore them, otherwise there will be unexpected behaviors, eg, try to connect to an invalid address https://github.com/pingcap/tidb/issues/9269 .\r\n",
+  "state": "closed",
+  "created_at": "2019-02-15T07:01:20Z",
+  "updated_at": "2019-02-26T15:49:51Z",
+  "closed_at": "2019-02-26T15:49:51Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,66 @@
+{
+  "issue_number": 12934,
+  "title": "Master: two tikv don't report region heartbeat after inject fault to pd leader",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n./tikv-server -V\r\n TiKV\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   a9c3e56552c803642f640e9b3fa8725aa3072400\r\nGit Commit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time:    2022-06-24 11:02:31\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nplan/850383\r\nclinic\r\n    /portal/#/orgs/31/clusters/7113750135811495492?from=1656298923&to=1656335643\r\n\r\n[2022/06/27 12:58:56.346 +08:00] [INFO] [chaos.go:93] [\"Run chaos\"] [name=\"pd io delay\"] [selectors=\"[endless-oltp-tps-850383-1-635/tc-pd-1]\"] [SelectorsRetainPolicy(selectors)=\"[endless-oltp-tps-850383-1-635/tc-pd-1]\"] [targetSelectors=\"[nil]\"] [\r\nTargetSelectorsRetainPolicy(targetSelectors)=\"[nil]\"] [experimentSpec=\"IODelaySpec{Duration: \\\"\\\", Scheduler: <nil>, Delay: \\\"438ms\\\", Path: \\\"\\\", Percent: 72}\"]\r\n[2022/06/27 13:03:56.369 +08:00] [INFO] [chaos.go:156] [\"Clean chaos\"] [name=\"pd io delay\"] [chaosId=\"ns=endless-oltp-tps-850383-1-635,kind=io-delay,name=io-delay-xknijuyf,spec=&k8s.ChaosIdentifier{Namespace:\\\"endless-oltp-tps-850383-1-635\\\", Name\r\n:\\\"io-delay-xknijuyf\\\", Spec:IODelaySpec{Duration: \\\"\\\", Scheduler: <nil>, Delay: \\\"438ms\\\", Path: \\\"\\\", Percent: 72}}\"]\r\n\r\n### What did you expect?\r\ntikv should works fine\r\n\r\n### What did happened?\r\nTwo tikvs don't report region heartbeat.\r\n![image](https://user-images.githubusercontent.com/9443637/176410395-deb88135-345e-49ec-a9e1-1fde3e199e9b.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-06-29T10:24:40Z",
+  "updated_at": "2022-08-22T03:56:24Z",
+  "closed_at": "2022-07-27T03:51:12Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "affects-6.1",
+    "affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1169809621,
+      "user": "mayjiang0203",
+      "created_at": "2022-06-29T10:25:43Z",
+      "body": "/type bug\r\n/severity major\r\n/assign @5kbpers "
+    },
+    {
+      "id": 1172051357,
+      "user": "5kbpers",
+      "created_at": "2022-07-01T07:54:27Z",
+      "body": "```\r\n[2022/06/27 04:59:09.479 +00:00] [ERROR] [client.rs:631] [\"failed to send heartbeat\"] [err_code=KV:PD:gRPC] [err=\"Grpc(RpcFinished(Some(RpcStatus { code: 14-UNAVAILABLE, message: \\\"not leader\\\", details: [] })))\"]\r\n[2022/06/27 04:59:09.800 +00:00] [ERROR] [util.rs:447] [\"request failed, retry\"] [err_code=KV:PD:gRPC] [err=\"Grpc(RpcFailure(RpcStatus { code: 14-UNAVAILABLE, message: \\\"not leader\\\", details: [] }))\"]\r\n```\r\n\r\nFound some TiKVs were keeping reconnecting the PD who is not leader.\r\nIt could be introduced by https://github.com/tikv/tikv/pull/12629. @Connor1996 Do you have any idea to fix this issue?"
+    },
+    {
+      "id": 1173407443,
+      "user": "5kbpers",
+      "created_at": "2022-07-04T06:32:40Z",
+      "body": "Turns out it was caused by PD RegionHeartbeat RPC returns an \"OK\" response, then the stream exited on TiKV side without any retrying mechanism.\r\n![yqiirc4368](https://user-images.githubusercontent.com/20279863/177092800-6e470cc1-eee1-4606-b472-600772b39fff.jpg)\r\n![origin_img_v2_daf0f176-a759-4003-b050-7de3dcefbb1g](https://user-images.githubusercontent.com/20279863/177092621-2b81a53a-b0eb-458a-a116-12414966b176.jpg)\r\n\r\nThink we need to fix this issue on PD."
+    },
+    {
+      "id": 1189747251,
+      "user": "bufferflies",
+      "created_at": "2022-07-20T02:50:03Z",
+      "body": "In the faulted cluster, I use tcpdump to capture the net direction of the faulted tikv：\r\nfaulted tikv ->  old pd: none\r\nfaulted tikv -> new pd: normal \r\n\r\nso I think the potential problem is not the response of  the RegionHeartbeat RPC."
+    },
+    {
+      "id": 1191582549,
+      "user": "bufferflies",
+      "created_at": "2022-07-21T14:51:29Z",
+      "body": "> Turns out it was caused by PD RegionHeartbeat RPC returns an \"OK\" response, then the stream exited on TiKV side without any retrying mechanism. ![yqiirc4368](https://user-images.githubusercontent.com/20279863/177092800-6e470cc1-eee1-4606-b472-600772b39fff.jpg) ![origin_img_v2_daf0f176-a759-4003-b050-7de3dcefbb1g](https://user-images.githubusercontent.com/20279863/177092621-2b81a53a-b0eb-458a-a116-12414966b176.jpg)\r\n> \r\n> Think we need to fix this issue on PD.\r\n\r\nI think the potential problem is this code:\r\nhttps://github.com/tikv/tikv/blob/dc7c48d1731e079ae0949694f88858554982136e/components/pd_client/src/client.rs#L644-L647.\r\n\r\nThe unkown error will not trigger the event that will reconnect pd  client even if the pd respinse is  the grpc errors.\r\n\r\n one case is that:\r\nBuild Link: https://ci.pingcap.net/blue/organizations/jenkins/tiflash_regression_test_daily/detail/tiflash_regression_test_daily/2605/pipeline\r\nJob Page: https://ci.pingcap.net/blue/organizations/jenkins/tiflash_regression_test_daily\r\n\r\n```\r\n[2022/07/20 06:41:07.720 +00:00] [ERROR] [client.rs:631] [\"failed to send heartbeat\"] [err_code=KV:PD:gRPC] [err=\"Grpc(RpcFinished(Some(RpcStatus { code: 14-UNAVAILABLE, message: \\\"not leader\\\", details: [] })))\"]\r\n\r\n[2022/07/21 17:38:39.343 +08:00] [ERROR] [util.rs:445] [\"request failed, retry :unknown error TrySendError { kind: Disconnected }\"]\r\n\r\n```\r\n\r\n\r\n "
+    },
+    {
+      "id": 1196235951,
+      "user": "Connor1996",
+      "created_at": "2022-07-27T03:53:29Z",
+      "body": "It should be a problem after https://github.com/tikv/tikv/pull/12827"
+    },
+    {
+      "id": 1221772175,
+      "user": "mayjiang0203",
+      "created_at": "2022-08-22T03:56:22Z",
+      "body": "/severity critical\r\n/remove-severity major"
+    }
+  ]
+}

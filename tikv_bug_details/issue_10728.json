@@ -1,0 +1,39 @@
+{
+  "issue_number": 10728,
+  "title": "TiKV oom when inject bandwidth limit",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@copy-of-vm-ee-centos76-v1 bin]# ./tikv-server -V\r\nTiKV\r\nRelease Version:   5.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   d78394cb8dcc3e55a53d34378253a0888d26b438\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time:    2021-08-09 12:08:07\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\ntiup ：\r\n1PD\r\n1TiDB\r\n3TiKV\r\nall node：500G NVME、4 cores、8G mem\r\n\r\n### Steps to reproduce\r\n1、run sysbench oltp_point_select prepare\r\n    tableNum = 512\r\n    tableSize = 10000000000\r\n    threads=128\r\n2、inject bandwidth limit （mybe too low）\r\necho \"8:0 20971520\" > /sys/fs/cgroup/blkio/g1/blkio.throttle.write_bps_device\r\necho $(pgrep tikv-server) > /sys/fs/cgroup/blkio/g1/cgroup.procs\r\n\r\n### What did you expect?\r\ntikv is normal\r\n\r\n### What did happened?\r\nTiKV oom\r\n<img width=\"456\" alt=\"oom \" src=\"https://user-images.githubusercontent.com/84712107/129331328-62f6cdf9-42d9-40b9-8d1f-dbf0b3922ed7.png\">\r\n![log](https://user-images.githubusercontent.com/84712107/129331350-c17c904e-d0b4-4479-aeee-9d3091a50fa0.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-08-13T08:51:16Z",
+  "updated_at": "2021-11-23T05:39:02Z",
+  "closed_at": "2021-11-23T05:39:02Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 898296188,
+      "user": "Lily2025",
+      "created_at": "2021-08-13T08:51:43Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 898296286,
+      "user": "Lily2025",
+      "created_at": "2021-08-13T08:51:53Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 898296496,
+      "user": "Lily2025",
+      "created_at": "2021-08-13T08:52:16Z",
+      "body": "/assign hicqu"
+    },
+    {
+      "id": 976181353,
+      "user": "hicqu",
+      "created_at": "2021-11-23T05:39:01Z",
+      "body": "Similar as #10927 . Can't do anything without heap profiling."
+    }
+  ]
+}

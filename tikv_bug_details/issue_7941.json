@@ -1,0 +1,28 @@
+{
+  "issue_number": 7941,
+  "title": "It takes 10 mins to recover QPS",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n4.0.0-rc.2\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. run a go-tpc with 40k warehouse\r\n2. kill a tikv-server in 20 mins.\r\n![企业微信截图_9b9be7d0-e806-4149-8d11-4e8260630068](https://user-images.githubusercontent.com/23521459/82856401-75b8f380-9f40-11ea-9f28-d5139c533e57.png)\r\n\r\n\r\n### What did you expect?\r\nIt recover in 2 mins\r\n\r\n### What did happened?\r\nIt recover in 10 mins\r\n",
+  "state": "closed",
+  "created_at": "2020-05-26T03:03:28Z",
+  "updated_at": "2020-11-10T09:22:51Z",
+  "closed_at": "2020-11-10T09:22:51Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 635071576,
+      "user": "gengliqi",
+      "created_at": "2020-05-28T03:18:19Z",
+      "body": "It may be caused by tidb backoff at least 1(then 2, 4, 8, 10)ms when getting the `not leader` response."
+    },
+    {
+      "id": 635232522,
+      "user": "zhouqiang-cl",
+      "created_at": "2020-05-28T09:36:14Z",
+      "body": "@gengliqi 's commit improve much, but still have 2-4 minutes to recover\r\n![企业微信截图_4828e831-c2bd-437f-ba0c-1afdb89a2c1e](https://user-images.githubusercontent.com/23521459/83125068-91bbc100-a109-11ea-8c4d-206289925988.png)\r\n"
+    }
+  ]
+}

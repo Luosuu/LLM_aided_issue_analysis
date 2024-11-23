@@ -1,0 +1,14 @@
+{
+  "issue_number": 8211,
+  "title": "Should notify lock observer after applying logs",
+  "body": "## Bug Report\r\n\r\nNow the raftstore notifies lock observer before applying logs. It may cause locks missing during green GC:\r\n1. Store-1 transfers a region to store-2 and store-2 is applying logs.\r\n2. GC worker registers lock observer on store-2 after calling lock observer's callback and before finishing applying which means the lock won't be observed.\r\n3. GC worker scans locks on each store independently. It's possible GC worker has scanned all locks on store-2 and hasn't scanned locks on store-1.\r\n4. Store-2 applies all logs and removes the peer on store-1.\r\n5. GC worker can't scan the lock on store-1 because the peer has been destroyed.\r\n6. GC worker can't get the lock from store-2 because it can't observe the lock and has scanned it.\r\n\r\nOne solution is notifying lock observer after applying logs.",
+  "state": "closed",
+  "created_at": "2020-07-08T11:12:59Z",
+  "updated_at": "2020-08-18T06:18:41Z",
+  "closed_at": "2020-08-18T06:18:41Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction"
+  ],
+  "comments_data": []
+}

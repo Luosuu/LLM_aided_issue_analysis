@@ -1,0 +1,22 @@
+{
+  "issue_number": 16021,
+  "title": "Coprocessor deadlink check ignore `max_execution_duration_ms`",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nThe request running over [`max_execution_duration_ms`](https://github.com/pingcap/kvproto/blob/ecf635d1a67b57ace980deca2d9fa838d05e63d8/proto/kvrpcpb.proto#L820) should be discarded because the client already response the request with timeout error.\r\n\r\nHowever, TiKV choose the deadline only from it's configuration here, which means long running requests may waste resources.\r\n\r\nhttps://github.com/tikv/tikv/blob/2631094f5afb3d112d18b32ee1c9f79a68c73216/src/coprocessor/endpoint.rs#L223\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-11-20T08:06:39Z",
+  "updated_at": "2023-11-22T03:39:50Z",
+  "closed_at": "2023-11-22T03:39:50Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1822039525,
+      "user": "you06",
+      "created_at": "2023-11-22T03:39:50Z",
+      "body": "Duplicate with #15565"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "issue_number": 15718,
+  "title": "Need a standalone space holder file for raft engine",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.4\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. Setup a standalone raft engine data dir (not the same dir of the default data dir of TiKV)\r\n2. Make some no space left error on the raft engine dir\r\n3. Try to recover this TiKV\r\n\r\n### What did you expect?\r\nIt should be possible to delete the space holder file to release some spaces for raft engine.\r\n\r\n### What did happened?\r\n\r\nNo such file and get some error logs\r\n\r\n```\r\n[2023/10/04 20:42:12.390 +00:00] [WARN] [server.rs:583] [\"failed to remove space holder on starting: No such file or directory (os error 2)\"]\r\n[2023/10/04 20:42:12.390 +00:00] [WARN] [server.rs:592] [\"no enough disk space left to create the place holder file\"]\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-10-05T16:54:58Z",
+  "updated_at": "2023-10-11T06:06:15Z",
+  "closed_at": "2023-10-11T06:06:15Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1756729351,
+      "user": "LykxSassinator",
+      "created_at": "2023-10-11T03:59:35Z",
+      "body": "Nope, this issue can be canceled. \r\n\r\nAs discussed offline, and the reason why `place-holder` file cannot be created is that the setting `config.reserve_space` is too big to make the disk reserve free space to create a `place-holder` file. It's clear.\r\nhttps://github.com/tikv/tikv/blob/88aaaa3e7b1e194d389fee6a9831f7491d7f9acd/components/server/src/common.rs#L201-L215\r\n\r\nAnd as for seperated raft disk in this case, it's also check the above strategy in https://github.com/tikv/tikv/blob/88aaaa3e7b1e194d389fee6a9831f7491d7f9acd/components/server/src/common.rs#L238C4-L253.\r\n\r\nSo, it's not a bug. This tikv node behaved as expected."
+    }
+  ]
+}

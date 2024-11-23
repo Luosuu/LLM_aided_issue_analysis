@@ -1,0 +1,13 @@
+{
+  "issue_number": 1028,
+  "title": "failed to send msg SnapApplyRes [region_id: 912, is_success: true] after 5 tries",
+  "body": "```\n[tidb@10-9-13-159 deploy]$ thread 'snapshot worker' panicked at 'failed to notify snap apply result of 912: Other(StringError(\"Other(StringError(\\\"failed to send msg SnapApplyRes [region_id: 912, is_success: true] after 5 tries\\\"))\"))', src/raftstore/store/worker/snap.rs:203\nnote: Run with `RUST_BACKTRACE=1` for a backtrace.\npure virtual method called\npure virtual method called\npure virtual method called\nterminate called recursively\nterminate called without an active exception\nterminate called recursively\npure virtual method called\nterminate called recursively\n```\n\n3 nodes, 1 is down for a long time, when 1 starts, panic.\nSeem that the message channel is full, we may consider distinguishing droppable and un-droppable message, we can drop droppable message if possible. \n\n/cc @hhkbp2 \n",
+  "state": "closed",
+  "created_at": "2016-09-05T23:55:59Z",
+  "updated_at": "2018-08-07T00:46:05Z",
+  "closed_at": "2016-09-22T06:37:25Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

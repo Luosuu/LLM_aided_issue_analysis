@@ -1,0 +1,35 @@
+{
+  "issue_number": 12807,
+  "title": "TiKV oom due to memory leak",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   c26134bbf04235f61484d4f5ed58c47b520e8015\r\nGit Commit Branch: heads/refs/tags/v6.1.0\r\nUTC Build Time:    2022-06-07 11:55:22\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8core、32GB\r\n\r\n### Steps to reproduce\r\nrun tikv failure chaos\r\n1、2022/06/10 13:04   inject tikv5 restart\r\n2、[2022/06/10 14:09:12.611 +08:00] inject tc-tikv-1 down 10min\r\n3、2022/06/10 17:51:42.608 inject tc-tikv-3 down 1h\r\n\r\n### What did you expect?\r\nafter fault recover，all tikv run normal\r\n\r\n### What did happened?\r\ntikv2 oom\r\n\r\n    State:          Running\r\n      Started:      Sat, 11 Jun 2022 02:20:42 +0800\r\n    Last State:     Terminated\r\n      Reason:       OOMKilled\r\n      Exit Code:    137\r\n      Started:      Fri, 10 Jun 2022 10:51:36 +0800\r\n      Finished:     Sat, 11 Jun 2022 02:20:37 +0800\r\n    Ready:          True\r\n\r\n![middle_img_v2_186c63b7-96b0-4c96-b491-3ff89658ecfg](https://user-images.githubusercontent.com/84712107/173301913-46f053ad-d1ef-4d08-b038-b9b753d668f4.png)\r\n\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7107438089304276341",
+  "state": "closed",
+  "created_at": "2022-06-13T07:30:08Z",
+  "updated_at": "2022-07-06T05:58:15Z",
+  "closed_at": "2022-07-06T05:58:15Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1153581725,
+      "user": "Lily2025",
+      "created_at": "2022-06-13T07:40:27Z",
+      "body": "/type bug\r\n/severity major\r\n/assign tier-cap"
+    },
+    {
+      "id": 1175813053,
+      "user": "Lily2025",
+      "created_at": "2022-07-06T05:58:11Z",
+      "body": "due to the configuration of Kingsoft Cloud（thp）"
+    }
+  ]
+}

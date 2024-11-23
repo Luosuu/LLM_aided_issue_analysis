@@ -1,0 +1,30 @@
+{
+  "issue_number": 4193,
+  "title": "cases::test_conf_change::test_write_after_destroy fails on CI",
+  "body": "**What did you expect to see?**\r\nAll tests pass correctly.\r\n\r\n**What did you see instead?**\r\nThe case [fails](https://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/1387/pipeline).\r\n",
+  "state": "closed",
+  "created_at": "2019-02-11T06:52:46Z",
+  "updated_at": "2020-11-04T05:53:46Z",
+  "closed_at": "2020-11-04T05:53:46Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 462258993,
+      "user": "siddontang",
+      "created_at": "2019-02-11T09:12:43Z",
+      "body": "```\r\ntest cases::test_conf_change::test_write_after_destroy ... thread 'cases::test_conf_change::test_write_after_destroy' panicked at 'region Some(id: 1 region_epoch {conf_ver: 2 version: 1} peers {id: 1 store_id: 1} peers {id: 2 store_id: 2}) has no peer id: 3 store_id: 3', components/test_raftstore/src/pd.rs:744:9\r\n\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n\r\nstack backtrace:\r\n\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n\r\n             at src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n\r\n   1: std::sys_common::backtrace::_print\r\n\r\n             at src/libstd/sys_common/backtrace.rs:71\r\n\r\n   2: std::panicking::default_hook::{{closure}}\r\n\r\n             at src/libstd/sys_common/backtrace.rs:59\r\n\r\n             at src/libstd/panicking.rs:211\r\n\r\n   3: std::panicking::default_hook\r\n\r\n             at src/libstd/panicking.rs:227\r\n\r\n   4: std::panicking::rust_panic_with_hook\r\n\r\n             at src/libstd/panicking.rs:491\r\n\r\n   5: std::panicking::continue_panic_fmt\r\n\r\n             at src/libstd/panicking.rs:398\r\n\r\n   6: std::panicking::begin_panic_fmt\r\n\r\n             at src/libstd/panicking.rs:353\r\n\r\n   7: test_raftstore::pd::TestPdClient::must_have_peer\r\n\r\n             at components/test_raftstore/src/pd.rs:744\r\n\r\n   8: test_raftstore::pd::TestPdClient::must_add_peer\r\n\r\n             at components/test_raftstore/src/pd.rs:840\r\n\r\n   9: failpoints::cases::test_conf_change::test_write_after_destroy\r\n\r\n             at tests/failpoints/cases/test_conf_change.rs:108\r\n\r\n  10: failpoints::cases::test_conf_change::test_write_after_destroy::{{closure}}\r\n\r\n             at tests/failpoints/cases/test_conf_change.rs:86\r\n\r\n  11: core::ops::function::FnOnce::call_once\r\n\r\n             at /rustc/14997d56a550f4aa99fe737593cd2758227afc56/src/libcore/ops/function.rs:238\r\n\r\n  12: <F as alloc::boxed::FnBox<A>>::call_box\r\n\r\n             at src/libtest/lib.rs:1471\r\n\r\n             at /rustc/14997d56a550f4aa99fe737593cd2758227afc56/src/libcore/ops/function.rs:238\r\n\r\n             at /rustc/14997d56a550f4aa99fe737593cd2758227afc56/src/liballoc/boxed.rs:673\r\n\r\n  13: __rust_maybe_catch_panic\r\n\r\n             at src/libpanic_unwind/lib.rs:102\r\n\r\nFAILED\r\n```"
+    },
+    {
+      "id": 721526971,
+      "user": "hicqu",
+      "created_at": "2020-11-04T05:53:46Z",
+      "body": "It fails at `pd_client.must_add_peer(r1, new_peer(3, 3))`. This logic is not changed in a long time, so close it as stable."
+    }
+  ]
+}

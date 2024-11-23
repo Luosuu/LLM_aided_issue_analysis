@@ -1,0 +1,16 @@
+{
+  "issue_number": 14211,
+  "title": "[dynamic regions] wrong peer cache can make a peer isolated forever",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/c9cebe6cd44255018202d2e56023df096038bc09/components/raftstore-v2/src/operation/ready/mod.rs#L249-L253\r\n\r\n`take_from_peer` will always return an empty peer, so the peer will never be able to respond to a peer that is not in its configuration. If the sender is leader, then the peer will be isolated forever.",
+  "state": "closed",
+  "created_at": "2023-02-13T09:21:07Z",
+  "updated_at": "2023-02-15T04:08:04Z",
+  "closed_at": "2023-02-15T04:08:04Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-6.6"
+  ],
+  "comments_data": []
+}

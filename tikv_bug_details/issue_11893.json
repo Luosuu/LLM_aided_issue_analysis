@@ -1,0 +1,27 @@
+{
+  "issue_number": 11893,
+  "title": "The predicate on the bit column cannot be pushed down",
+  "body": "## Bug Report （From TiDB[#30738](https://github.com/pingcap/tidb/issues/30738)）\r\nPlease answer these questions before submitting your issue. Thanks!\r\n\r\n### 1. Minimal reproduce step (Required)\r\n```sql\r\n    create table t(a int, b int, c bit(1), key(a, b, c));\r\n    explain select * from t where c=0 order by a, b limit 10;\r\n```\r\n\r\n### 2. What did you expect to see? (Required)\r\n```\r\n+------------------------------+---------+-----------+---------------------------+-------------------------------+\r\n| id                           | estRows | task      | access object             | operator info                 |\r\n+------------------------------+---------+-----------+---------------------------+-------------------------------+\r\n| Limit_12                     | 10.00   | root      |                           | offset:0, count:10            |\r\n| └─IndexReader_30             | 10.00   | root      |                           | index:Limit_29                |\r\n|   └─Limit_29                 | 10.00   | cop[tikv] |                           | offset:0, count:10            |\r\n|     └─Selection_28           | 10.00   | cop[tikv] |                           | gt(test.t.c, 0)               |\r\n|       └─IndexFullScan_27     | 30.00   | cop[tikv] | table:t, index:a(a, b, c) | keep order:true, stats:pseudo |\r\n+------------------------------+---------+-----------+---------------------------+-------------------------------+\r\n```\r\n### 3. What did you see instead (Required)\r\n```\r\n+----------------------------+---------+-----------+----------------------------+-------------------------------+\r\n| id                         | estRows | task      | access object              | operator info                 |\r\n+----------------------------+---------+-----------+----------------------------+-------------------------------+\r\n| Limit_14                   | 10.00   | root      |                            | offset:0, count:10            |\r\n| └─Selection_21             | 10.00   | root      |                            | eq(test.t.c, 0)               |\r\n|   └─IndexReader_23         | 10.00   | root      |                            | index:IndexFullScan_22        |\r\n|     └─IndexFullScan_22     | 10.00   | cop[tikv] | table:t, index:a(a, b, c) | keep order:true, stats:pseudo  |\r\n+----------------------------+---------+-----------+----------------------------+-------------------------------+\r\n```\r\n### 4. What is your TiDB version? (Required)\r\nRelease Version: v5.4.0-alpha-411-g04a9618f5\r\nEdition: Community\r\nGit Commit Hash: 04a9618\r\nGit Branch: HEAD\r\nUTC Build Time: 2021-12-15 07:14:59\r\nGoVersion: go1.17.3\r\nRace Enabled: false\r\nTiKV Min Version: v3.0.0-60965b006877ca7234adaced7890d7b029ed1306\r\nCheck Table Before Drop: false",
+  "state": "closed",
+  "created_at": "2022-01-21T07:48:27Z",
+  "updated_at": "2022-02-15T13:33:39Z",
+  "closed_at": "2022-02-15T13:33:39Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1032347345,
+      "user": "Lily2025",
+      "created_at": "2022-02-08T08:36:01Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1032347516,
+      "user": "Lily2025",
+      "created_at": "2022-02-08T08:36:14Z",
+      "body": "/severity Moderate"
+    }
+  ]
+}

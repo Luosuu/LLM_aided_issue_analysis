@@ -36,7 +36,7 @@ def analyze_bug_issues(bug_issues):
 
 def main():
     # Load the data
-    df = load_and_clean_data('redis_issues.csv')
+    df = load_and_clean_data('tikv_issues.csv')
 
     # Identify and analyze bug issues
     bug_issues = identify_bug_issues(df)
@@ -57,7 +57,7 @@ def main():
         print("-" * 100)
 
     # Save bug issues to a separate CSV file
-    bug_issues.to_csv('redis_bug_issues.csv', index=False)
+    bug_issues.to_csv('tikv_bug_issues.csv', index=False)
 
     # Calculate percentage of bugs in total issues
     total_issues = len(df[~df['is_pull_request']])

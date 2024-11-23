@@ -1,0 +1,15 @@
+{
+  "issue_number": 17403,
+  "title": "In-memory engine: pending region split may cause tikv panic",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/9734214510548db97c6ff61c3af52fb9dee13de0/components/range_cache_memory_engine/src/background.rs#L925-L940\r\n\r\nThe current implementation will update region's state from `ReadyToLoad` to `Loading` before start batch loading. But target region may be split after the task is scheduled by before loading start. So this update only update the region with the same id with source region, but not other split region in the same range.\r\n\r\nThis will cause panic in `on_snapshot_load_finished` as it assumes all the regions in the range should be in `Loading` state.\r\n",
+  "state": "closed",
+  "created_at": "2024-08-20T03:17:25Z",
+  "updated_at": "2024-08-20T18:34:43Z",
+  "closed_at": "2024-08-20T18:34:43Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "impact/panic"
+  ],
+  "comments_data": []
+}

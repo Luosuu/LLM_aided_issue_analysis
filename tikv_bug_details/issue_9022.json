@@ -1,0 +1,22 @@
+{
+  "issue_number": 9022,
+  "title": "Learner may not be created after a long time when enabling hibernate region",
+  "body": "## Bug Report\r\n\r\nSuppose region 1 [a, c) is split into region 2 [a, b) and region 1 [b, c). If learner is isolated before split for quite a long time that leader has been hibernated. After the learner rejoin the group, it may catch up logs by snapshot. So new replica for region 2 will not be created on the node. And because leader of region 2 is hibernated, so it will not be woken up until a long time. In this case learner for the region 2 will be missing for quite a long time, hence lead to unavailable.",
+  "state": "closed",
+  "created_at": "2020-11-12T03:36:21Z",
+  "updated_at": "2020-11-23T07:26:25Z",
+  "closed_at": "2020-11-23T07:26:25Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 725811371,
+      "user": "BusyJay",
+      "created_at": "2020-11-12T03:47:26Z",
+      "body": "Perhaps we should prevent regions go to sleep when there is pending peers. Though it may lead to a problem that isolated nodes will cause high CPU usage, availability is more important than performance."
+    }
+  ]
+}

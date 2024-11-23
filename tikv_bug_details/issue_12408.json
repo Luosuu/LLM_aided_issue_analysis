@@ -1,0 +1,22 @@
+{
+  "issue_number": 12408,
+  "title": "The tikv component triggers the alarm type = \"unreachable\" when reloading",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv4.0.12\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ncase1:\r\ntiup cluster reload dba-test -R tikv  --transfer-timeout 1\r\n![LQucGq04v9](https://user-images.githubusercontent.com/63033738/164404734-cdb12add-52a5-47ec-86da-cc64d71ec36f.jpg)\r\n![image](https://user-images.githubusercontent.com/63033738/164404869-89a1ce46-92e4-4352-96df-ad84caf171f3.png)\r\n\r\n\r\ncase2:\r\ntiup cluster reload dba-test -R tikv  --transfer-timeout 100000\r\n![uU87vNq7YR](https://user-images.githubusercontent.com/63033738/164405163-866e2807-351a-405c-a199-0fe97acf0a5c.jpg)\r\n![image](https://user-images.githubusercontent.com/63033738/164405500-3851e732-7c82-4fec-acc2-081caf54fbf2.png)\r\n\r\n\r\n### What did you expect?\r\nDo not trigger alarm type = \"unreachable\"\r\n\r\n\r\n### What did happened?\r\na lot of \"sum(rate(tikv_server_report_failure_msg_total{type=#unreachable#}[10m])) BY (store_id) > 10”\r\n",
+  "state": "closed",
+  "created_at": "2022-04-21T07:50:07Z",
+  "updated_at": "2022-05-23T03:06:13Z",
+  "closed_at": "2022-05-23T03:06:13Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "won't fix"
+  ],
+  "comments_data": [
+    {
+      "id": 1104925057,
+      "user": "BusyJay",
+      "created_at": "2022-04-21T09:11:09Z",
+      "body": "I think this is expected, restarting TiKV is supposed to abort connection."
+    }
+  ]
+}

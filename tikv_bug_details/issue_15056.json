@@ -1,0 +1,40 @@
+{
+  "issue_number": 15056,
+  "title": "[Dynamic Region] region unavailable when prepare tpcc data",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n20 tikv with mulitple rocksdb enable\r\ntpcc prepare ch 100k warehouse with partition\r\nit raise region unavailabe error\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\nmaster",
+  "state": "closed",
+  "created_at": "2023-07-03T07:28:29Z",
+  "updated_at": "2023-09-21T02:14:01Z",
+  "closed_at": "2023-09-21T02:14:00Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1619360885,
+      "user": "lilinghai",
+      "created_at": "2023-07-04T02:11:14Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign bufferflies"
+    },
+    {
+      "id": 1620127206,
+      "user": "bufferflies",
+      "created_at": "2023-07-04T12:07:20Z",
+      "body": "the prewrite response doesn't contain the current leader info only the region_id, so the client doesn't redirect this request to the correct leader:\r\n```\r\n[2023/07/04 17:33:01.700 +08:00] [DEBUG] [region_request.go:1672] [\"tikv reports `NotLeader` retry later\"] [notLeader=\"region_id:117589406 \"] [ctx=\"region ID: 117589406, meta: id:117589406 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000a\\\\346\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000a\\\\347\\\" region_epoch:<conf_ver:181 version:1120 > peers:<id:117605029 store_id:49 > peers:<id:117606188 store_id:4 > , peer: id:117605029 store_id:49 , addr: tc-tikv-8.tc-tikv-peer.mutiple-rocksdb-btdpb.svc:20160, idx: 0, reqStoreType: TiKvOnly, runStoreType: tikv\"]\r\n[2023/07/04 17:33:01.702 +08:00] [DEBUG] [backoff.go:209] [\"retry later\"] [error=\"no leader, ctx: region ID: 117589406, meta: id:117589406 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000a\\\\346\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000a\\\\347\\\" region_epoch:<conf_ver:181 version:1120 > peers:<id:117605029 store_id:49 > peers:<id:117606188 store_id:4 > , peer: id:117605029 store_id:49 , addr: tc-tikv-8.tc-tikv-peer.mutiple-rocksdb-btdpb.svc:20160, idx: 0, reqStoreType: TiKvOnly, runStoreType: tikv\"] [totalSleep=24012] [excludedSleep=0] [maxSleep=40000] [type=regionScheduling] [txnStartTS=null]\r\n```\r\nsometime, the response contains the leader info, it also doesn't switch the leader :\r\n```\r\n[2023/07/04 17:33:01.555 +08:00] [DEBUG] [region_request.go:1672] [\"tikv reports `NotLeader` retry later\"] [notLeader=\"region_id:117589406 leader:<id:117604703 store_id:52 > \"] [ctx=\"region ID: 117589406, meta: id:117589406 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000a\\\\346\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000a\\\\347\\\" region_epoch:<conf_ver:181 version:1120 > peers:<id:117605029 store_id:49 > peers:<id:117606188 store_id:4 > , peer: id:117605029 store_id:49 , addr: tc-tikv-8.tc-tikv-peer.mutiple-rocksdb-btdpb.svc:20160, idx: 0, reqStoreType: TiKvOnly, runStoreType: tikv\"]\r\n[2023/07/04 17:33:01.555 +08:00] [DEBUG] [region_request.go:1201] [\"throwing pseudo region error due to region not found in cache\"] [region=\"{ region id: 117589406, ver: 1120, confVer: 181 }\"]\r\n```\r\n\r\nsome client go code: https://github.com/tikv/client-go/blob/c946782286d2e7f9508ae9c1342e6e418857a25d/internal/locate/region_request.go#L943-L957"
+    },
+    {
+      "id": 1620167423,
+      "user": "bufferflies",
+      "created_at": "2023-07-04T12:33:43Z",
+      "body": "When I restart the tidb(clean up the region cache), the qps recovery.\r\n<img width=\"1847\" alt=\"image\" src=\"https://github.com/tikv/tikv/assets/23159587/f7714c5b-ebdf-4734-9009-9ac513ab0149\">\r\n"
+    },
+    {
+      "id": 1728664264,
+      "user": "bufferflies",
+      "created_at": "2023-09-21T02:14:01Z",
+      "body": "can't reproduce, it may reopen if necessary."
+    }
+  ]
+}

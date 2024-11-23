@@ -1,0 +1,15 @@
+{
+  "issue_number": 14143,
+  "title": "Flashback should not return any unexpected error to the client",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nv6.5.0\r\n\r\n### What operating system and CPU are you using?\r\n\r\nDoesn't matter.\r\n\r\n### What happened?\r\n\r\nThe client like TiDB will handle `FlashbackNotPrepared` as a sign that the flashback has been finished for this region and keep retrying the flashback if any other error occurs until success. However, the current implementation will directly return a `TxnLockNotFound` error in the case the flashback request is received without preparing first, which will cause TiDB client to keep retrying to send the flashback request to a region that has finished the flashback.",
+  "state": "closed",
+  "created_at": "2023-02-06T03:19:17Z",
+  "updated_at": "2023-02-06T08:31:59Z",
+  "closed_at": "2023-02-06T08:31:59Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

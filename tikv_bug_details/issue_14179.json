@@ -1,0 +1,22 @@
+{
+  "issue_number": 14179,
+  "title": "[Dynamic Regions] store size is not reduced during the scale-out when the region count is reduced",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nDuring scale-out, when a tikv node's region count is reduced, its store size should be reduced as well.\r\n### What did happened?\r\nThe store size is not reduced. \r\n<img width=\"542\" alt=\"Screen Shot 2023-02-07 at 12 10 46 PM\" src=\"https://user-images.githubusercontent.com/9442422/217354315-ef8d19e3-63a8-4525-92ba-4219d130f272.png\">\r\n<img width=\"839\" alt=\"Screen Shot 2023-02-07 at 12 10 58 PM\" src=\"https://user-images.githubusercontent.com/9442422/217354321-15645a35-4b8a-4330-8270-ef851e157301.png\">\r\n<img width=\"398\" alt=\"Screen Shot 2023-02-07 at 12 13 55 PM\" src=\"https://user-images.githubusercontent.com/9442422/217354898-2c356ac8-4c35-4718-b3b0-b4432af1e4d5.png\">\r\n\r\nAnd it seems there's no tablet gc tasks at all\r\n<img width=\"820\" alt=\"Screen Shot 2023-02-07 at 12 00 36 PM\" src=\"https://user-images.githubusercontent.com/9442422/217355230-640aaa17-20b7-483c-bac5-81240610dfe8.png\">\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-02-07T20:14:44Z",
+  "updated_at": "2023-02-15T05:13:29Z",
+  "closed_at": "2023-02-15T05:13:29Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1430767311,
+      "user": "tonyxuqqi",
+      "created_at": "2023-02-15T05:13:29Z",
+      "body": "Not repro-ed any more."
+    }
+  ]
+}

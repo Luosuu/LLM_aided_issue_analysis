@@ -1,0 +1,32 @@
+{
+  "issue_number": 13638,
+  "title": "PITR checkpoint lag > 10min during tikv rolling restart",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.3.0\r\n\r\n### What operating system and CPU are you using?\r\nk8s\r\n\r\n### Steps to reproduce\r\n1. Start log backup task\r\n2. Running workload \r\n3. Rolling restart TiKV\r\n4. check PITR checkpoint lag\r\n\r\n### What did you expect?\r\nCheckpoint lag should be normal (< 5min) during rolling upgrade\r\n\r\n### What did happened?\r\nCheckpoint lag > 10min\r\n![image](https://user-images.githubusercontent.com/7403864/196848487-a09018be-fd89-4e06-9d23-f017dcf952c7.png)\r\n![image](https://user-images.githubusercontent.com/7403864/196848503-4ebff66c-af82-4b1a-8453-123a2fce3d38.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-10-20T03:19:27Z",
+  "updated_at": "2024-05-07T08:31:26Z",
+  "closed_at": "2024-05-07T08:12:17Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1284860220,
+      "user": "fubinzh",
+      "created_at": "2022-10-20T03:19:35Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1705904400,
+      "user": "fubinzh",
+      "created_at": "2023-09-05T03:42:42Z",
+      "body": "This issue is still seen with masater tikv, commit 1669a72fac8176cc7a2be7fe10f43f1657d4c21f\r\n![534f6d19-0092-4ec8-bd55-5f0678a52c54](https://github.com/tikv/tikv/assets/7403864/f069adb5-1206-4285-af23-4b307e089120)\r\n![f8d30584-74f8-4f9e-ac0b-fa99097c3672](https://github.com/tikv/tikv/assets/7403864/0d1ac779-55aa-4b45-87b6-f1e80d9eb10d)\r\n"
+    }
+  ]
+}

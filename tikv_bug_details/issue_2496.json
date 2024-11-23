@@ -1,0 +1,33 @@
+{
+  "issue_number": 2496,
+  "title": "bug: StoreNotMatch",
+  "body": "```\r\n2017/11/21 12:23:11.374 region_cache.go:447: [info] drop regions of store 1 from cache due to request fail, err: rpc error: code = DeadlineExceeded desc = context deadline exceeded\r\n2017/11/21 12:23:11.378 region_cache.go:447: [info] drop regions of store 1 from cache due to request fail, err: rpc error: code = DeadlineExceeded desc = context deadline exceeded\r\n2017/11/21 12:23:11.389 region_cache.go:447: [info] drop regions of store 1 from cache due to request fail, err: rpc error: code = DeadlineExceeded desc = context deadline exceeded\r\n2017/11/21 12:23:13.545 region_request.go:164: [warning] tikv reports `StoreNotMatch`: , ctx: &{{1009 3 4} id:1009 start_key:\"t\\200\\000\\000\\000\\000\\000\\000O_i\\200\\000\\000\\000\\000\\000\\000\\014\\0012104\\000\\000\\000\\000\\373\\003\\200\\000\\000\\000\\013\\271\\210]\" end_key:\"t\\200\\000\\000\\000\\000\\000\\000O_r\\200\\000\\000\\000\\013\\2662^\" region_epoch:<conf_ver:3 version:4 > peers:<id:1010 store_id:1 > peers:<id:1011 store_id:7 > peers:<id:1012 store_id:4 >  id:1011 store_id:7  10.10.9.23:20160}, retry later\r\n```\r\n\r\nWe can ensure that TiDB connects the right PD, TiKV reports correct address and store ID to PD and PD also has correct cluster information, so meeting this error is very strange.\r\n\r\nBtw, I find that we will output the error in scheduler but not in coprocessor, and the coprocessor error metric will use \"other\" for this error, this is not intuitive. /cc @BusyJay ",
+  "state": "closed",
+  "created_at": "2017-11-21T06:23:54Z",
+  "updated_at": "2018-08-07T00:47:18Z",
+  "closed_at": "2017-12-25T04:41:41Z",
+  "labels": [
+    "type/bug",
+    "priority/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 345932624,
+      "user": "BusyJay",
+      "created_at": "2017-11-21T06:46:08Z",
+      "body": "> ... and the coprocessor error metric will use \"other\" for this error...\r\n\r\nI'm not sure if I understand it correctly. You mean [this line](https://github.com/pingcap/tikv/blob/master/src/coprocessor/endpoint.rs#L593) will be encountered? But that's impossible. If coprocessor reports other error, All TiDB receives is just an error string, it has no idea what the precise error TiKV returns, hence it can't output a log about `StoreNotMatch`."
+    },
+    {
+      "id": 345948054,
+      "user": "disksing",
+      "created_at": "2017-11-21T08:09:55Z",
+      "body": "I believe it is caused by data race in region_cache. See https://github.com/pingcap/tidb/pull/5171"
+    },
+    {
+      "id": 345962694,
+      "user": "siddontang",
+      "created_at": "2017-11-21T09:11:26Z",
+      "body": "@BusyJay \r\n\r\nI think we should add a metric for invalid propose like we do for invalid raft message."
+    }
+  ]
+}

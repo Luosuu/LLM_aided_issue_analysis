@@ -1,0 +1,17 @@
+{
+  "issue_number": 7373,
+  "title": "tikv-ctl coredump",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nMaster\r\n\r\n### What operating system and CPU are you using?\r\nLinux\r\n\r\n### Steps to reproduce\r\n```\r\n$ make dist_release\r\n$ ./bin/tikv-ctl --db not-exist-path unsafe-recover remove-fail-stores -s 1,2 --all-regions\r\nremoving stores [1, 2] from configurations...\r\nDebugger::remove_fail_stores: Not Found \"No store ident key\"\r\npure virtual method called\r\nterminate called without an active exception\r\n$ gdb ./bin/tikv-ctl core -batch -ex bt\r\n#0  0x00007f6a476e5337 in raise () from /lib64/libc.so.6\r\nwarning: Missing auto-load scripts referenced in section .debug_gdb_scripts\r\nof file /mnt/workspace/tikv/bin/tikv-ctl\r\nUse `info auto-load python [REGEXP]' to list them.\r\n#0  0x00007f6a476e5337 in raise () from /lib64/libc.so.6\r\n#1  0x00007f6a476e6a28 in abort () from /lib64/libc.so.6\r\n#2  0x00007f6a4831b7d5 in __gnu_cxx::__verbose_terminate_handler() () from /lib64/libstdc++.so.6\r\n#3  0x00007f6a48319746 in ?? () from /lib64/libstdc++.so.6\r\n#4  0x00007f6a48319773 in std::terminate() () from /lib64/libstdc++.so.6\r\n#5  0x00007f6a4831a2df in __cxa_pure_virtual () from /lib64/libstdc++.so.6\r\n#6  0x000055c72651337d in wait (delay=600000000, this=0x7f6a4584d7e0) at /home/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c79d2c2/librocksdb_sys/rocksdb/util/repeatable_thread.h:84\r\n#7  thread (this=0x7f6a4584d7e0) at /home/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c79d2c2/librocksdb_sys/rocksdb/util/repeatable_thread.h:117\r\n#8  operator() (__closure=<optimized out>) at /home/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c79d2c2/librocksdb_sys/rocksdb/util/repeatable_thread.h:38\r\n#9  _M_invoke<> (this=<optimized out>) at /usr/include/c++/4.8.2/functional:1732\r\n#10 operator() (this=<optimized out>) at /usr/include/c++/4.8.2/functional:1720\r\n#11 std::thread::_Impl<std::_Bind_simple<rocksdb::RepeatableThread::RepeatableThread(std::function<void ()>, std::string const&, rocksdb::Env*, unsigned long, unsigned long)::{lambda()#1} ()> >::_M_run() (this\r\n=<optimized out>) at /usr/include/c++/4.8.2/thread:115\r\n#12 0x00007f6a48370070 in ?? () from /lib64/libstdc++.so.6\r\n#13 0x00007f6a480a6e65 in start_thread () from /lib64/libpthread.so.0\r\n#14 0x00007f6a477ad88d in clone () from /lib64/libc.so.6\r\n```\r\n### What did you expect?\r\n\r\ntikv-ctl reports error and exit gracefully with an error code.\r\n\r\n### What did happened?\r\n\r\ntikv-ctl reports error and then coredump.",
+  "state": "open",
+  "created_at": "2020-04-07T07:36:47Z",
+  "updated_at": "2020-08-28T09:08:01Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/rocksdb",
+    "priority/low",
+    "sig/engine",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

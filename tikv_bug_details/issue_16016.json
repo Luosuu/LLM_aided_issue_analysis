@@ -1,0 +1,71 @@
+{
+  "issue_number": 16016,
+  "title": "High apply wait tail latency  ",
+  "body": "![image](https://github.com/tikv/tikv/assets/13497871/24976d9e-cfc9-4361-ae97-881b3303af1f)\r\n![image](https://github.com/tikv/tikv/assets/13497871/492408dd-2700-49ef-9de6-81d01b4e8f79)\r\nAs you can see, the append log duration and apply log duration is 100ms at most, whereas, the apply wait duration is quite high reaching 5s. Indeed, it was a write hotspot at the time. \r\n\r\nThe write flow of append and apply should be nearly the same. As no slow in raft append process, raft apply wait shouldn't be that large. \r\n\r\n![image](https://github.com/tikv/tikv/assets/13497871/0e4d3e23-b09b-4c91-a3ad-22e0b77dbcb5)\r\n![image](https://github.com/tikv/tikv/assets/13497871/e3c5f219-3797-4f9b-bede-2b77cd84f207)\r\n",
+  "state": "open",
+  "created_at": "2023-11-19T04:00:53Z",
+  "updated_at": "2024-11-01T10:02:05Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1829284224,
+      "user": "Connor1996",
+      "created_at": "2023-11-28T07:56:23Z",
+      "body": "It turns out the io flow difference between raft-engine and kvdb. As raft-engine performs lz4 compression on write while kvdb doesn't enable wal compression, the size after compression would be quite small if the data of high rate of repetition \r\n![image](https://github.com/tikv/tikv/assets/13497871/aaf640a3-71ee-42bd-b7dc-620af2ff358c)\r\n![image](https://github.com/tikv/tikv/assets/13497871/9c43e43d-9966-4b52-9a8d-506d2def0bdf)\r\n\r\n"
+    },
+    {
+      "id": 1880598802,
+      "user": "LykxSassinator",
+      "created_at": "2024-01-08T08:57:44Z",
+      "body": "Wait for enhancements in the later work."
+    },
+    {
+      "id": 1915325053,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T18:30:05Z",
+      "body": "cc @v01dstar After  rocksdb is upgraded and WAL compression is supported, this issue should be mitigated. "
+    },
+    {
+      "id": 2136383200,
+      "user": "mzygQAQ",
+      "created_at": "2024-05-29T02:01:21Z",
+      "body": "@tonyxuqqi @Connor1996 \r\nMay I ask, what are the possible reasons for high apply wait?\r\nI have a TikV cluster here, and the applyWaitDuration P99 can reach 3-5 seconds, but the applyDuration not slow, (1-2ms P99)\r\n﻿\r\nThe number of threads in the apply pool is 4, and I have checked their CPU consumption, which is approximately 20% per thread. The machine level CPU idle is also very high.\r\n﻿\r\nI am unable to identify the cause and make improvements. I checked the code and found that the apply wait duration measures the time a Committed Entry spends in the Apply BatchSystem (pending in the queue), but I don't know why it's so slow.\r\nCan you help me, thanks !"
+    },
+    {
+      "id": 2141410323,
+      "user": "LykxSassinator",
+      "created_at": "2024-05-31T07:45:55Z",
+      "body": "There are several clues for u to do the further investigation:\r\n- Write conflicts on fetching mutex in Rocksdb are frequent. Check the perf metrics of Rocksdb.write in `TiKV-Details / Raft Propose / Perf Context Duration` to see whether the duration on `apply-xxx` is high. If these metrics are high, u can check whether there are too many flushes or too many ingestion of sst files caused by applying snapshots.\r\n![image](https://github.com/tikv/tikv/assets/18441614/c04c1dbb-93dd-47a3-91e0-531fc47ebf85)\r\n- Heavy writes. Check the memory usage of `raftstore.raft-entry` in the `Server / Memory Trace` panel to see whether there are too many writes in a short time.\r\n- Busy on loading evicted raft entries from Disk. Check the metrics `Raft Entry Cache Evicts` in the `Server / Memory Trace` panel, and do the double check on the `RaftEngine / Operation` panel. If there are too many loading operations, u will see it on the `read_entry` label.\r\n![image](https://github.com/tikv/tikv/assets/18441614/4ee53d1c-401a-479d-93f3-6fe58433e59e)\r\n"
+    },
+    {
+      "id": 2146414277,
+      "user": "mzygQAQ",
+      "created_at": "2024-06-04T01:49:32Z",
+      "body": "@LykxSassinator In my scenario, apply is fast, but apply_wait is high. it think that apply_wait be the time it stays in the queue?\r\nShouldn't it involve the Rocksdb Mutex and load entry eviced what you mentioned?  "
+    },
+    {
+      "id": 2159876283,
+      "user": "LykxSassinator",
+      "created_at": "2024-06-11T06:13:07Z",
+      "body": "@guoxiangCN Pls check the others mentioned above.\r\n"
+    },
+    {
+      "id": 2357441029,
+      "user": "LykxSassinator",
+      "created_at": "2024-09-18T03:55:08Z",
+      "body": "https://github.com/tikv/tikv/pull/17408 is made to mitigate the issue where apply wait latency is high when merging numerous small regions."
+    }
+  ]
+}

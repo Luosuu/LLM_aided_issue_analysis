@@ -1,0 +1,21 @@
+{
+  "issue_number": 12489,
+  "title": "Causal timestamp fall back",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nTiKV\r\nRelease Version:   6.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   51dc281fbb3c64df6f77750595b5be9927d5ba85\r\nGit Commit Branch: heads/refs/tags/v6.1.0-alpha\r\nUTC Build Time:    2022-05-05 14:54:07\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n```\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nCentOS 7.6\r\nIntel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRun a multi-thread program and each thread running the following codes repeatedly:\r\n```go\r\nTry(cli.Put(ctx, key, value0))\r\nTry(cli.Put(ctx, key, value1))\r\n\r\nres := Try(cli.Get(ctx, key)).([]byte)\r\nExpect(res).To(Equal(value1))\r\n```\r\n\r\n### What did you expect?\r\n`Expect` succeed.\r\n\r\n### What did happened?\r\n`Expect` fail. `res` equals to `value0`.\r\n\r\n### Analysis\r\n1. Timestamp of entry with value0 is larger than entry with value1. From result of `tikv-ctl raw-scan`:\r\n<img width=\"1278\" alt=\"image\" src=\"https://user-images.githubusercontent.com/1907938/167783650-ba8c9bbd-01ce-4da7-9bfa-746bcf9b9268.png\">\r\n\r\n2. Check timestamp in `batch` and compare with `last_ts` in [`TsoBatch.renew`](https://github.com/tikv/tikv/blob/d0ff0f3f71d58efd005a81523a2d6c84c31233c9/components/causal_ts/src/tso.rs#L65). Found that there is a little chance that `last_ts` is smaller than current `batch`.\r\n```\r\n[2022/05/10 18:14:56.342 +08:00] [ERROR] [tso.rs:72] [\"timestamp fall back\"] [logical_start=1] [logical=201] [physical=1652177696340] [batch=\"TsoBatch { size: 200, physical: 1652177696340, logical_end: 40\r\n1, logical_start: 201 }\"] [last_ts=TimeStamp(433108470029353160)]\r\n```\r\n\r\n3. Inspect TSO batch renew codes [here](https://github.com/tikv/tikv/blob/d0ff0f3f71d58efd005a81523a2d6c84c31233c9/components/causal_ts/src/tso.rs#L165):\r\n```rust\r\n        match pd_client.batch_get_tso(new_batch_size).await {\r\n            Err(err) => {\r\n                ...\r\n            }\r\n            Ok(ts) => {\r\n                {\r\n                    let mut batch = tso_batch.write();\r\n                    batch.renew(new_batch_size, ts);\r\n                    debug!(\"BatchTsoProvider::renew_tso_batch\"; \"batch renew\" => ?batch, \"ts\" => ?ts);\r\n                }\r\n                ...\r\n                Ok(())\r\n            }\r\n        }\r\n```\r\nIf there are more than one thread renewing TSO batch, when a late thread acquire a larger timestamp but acquire the lock of `tso_batch.write()` earlier, the timestamp fall back will happen.\r\n\r\n### Solution\r\nInvoke a worker thread to get TSO and renew batch serially. Also batch up renew requests as this [comment](https://github.com/tikv/tikv/pull/12099#discussion_r832135245) suggested.\r\n",
+  "state": "closed",
+  "created_at": "2022-05-11T07:01:37Z",
+  "updated_at": "2022-05-16T15:56:37Z",
+  "closed_at": "2022-05-16T15:56:37Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1123259290,
+      "user": "pingyu",
+      "created_at": "2022-05-11T07:01:48Z",
+      "body": "/assign"
+    }
+  ]
+}

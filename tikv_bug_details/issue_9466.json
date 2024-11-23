@@ -1,0 +1,28 @@
+{
+  "issue_number": 9466,
+  "title": "Performance decline in TPCC bench due to the absence of GC",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster 7757bd416b5f087f8a67bb02fd827feb78376aa6\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nCentOS 3.10.0-1127.13.1.el7.x86_64\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n```\r\n# 1TiDB/1PD/1TiKV\r\n# default config\r\n\r\ngo-tpc tpcc -P 20000 --warehouses 1000 --parts 1 prepare\r\ngo-tpc tpcc -P 20000 -T 200 --warehouses 1000 --parts 1 run\r\n```\r\n\r\n### What did you expect?\r\nStable QPS\r\n\r\n### What did happened?\r\nDeclining QPS\r\n\r\n### Supplement\r\nI found that `next` operation increased in `acquire_pessimistic_lock` which means there were more and more old versions. But, I checked `GC` panel and found there is no data in GC Speed. It might be a bug.\r\n\r\n![image](https://user-images.githubusercontent.com/18193301/104012533-eae4ea80-51ea-11eb-9eff-ed0da2362f60.png)\r\n\r\n![image](https://user-images.githubusercontent.com/18193301/104012453-c983fe80-51ea-11eb-8953-529ba8ca17fd.png)\r\n\r\n![image](https://user-images.githubusercontent.com/18193301/104012646-25e71e00-51eb-11eb-9a16-65e7fa1e7c26.png)\r\n\r\n![image](https://user-images.githubusercontent.com/18193301/104012756-4fa04500-51eb-11eb-82ae-204af1ad040f.png)\r\n",
+  "state": "closed",
+  "created_at": "2021-01-08T11:43:55Z",
+  "updated_at": "2021-01-11T11:14:43Z",
+  "closed_at": "2021-01-11T11:14:43Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "priority/high"
+  ],
+  "comments_data": [
+    {
+      "id": 756726280,
+      "user": "MyonKeminta",
+      "created_at": "2021-01-08T12:17:07Z",
+      "body": "According to the metrics, GC normally proceeds to the final distributed GC phase (compaction filter is not enabled).\r\n\r\n![image](https://user-images.githubusercontent.com/9948422/104014505-1917f980-51ee-11eb-93d5-6cb1f689b5c2.png)\r\n\r\n\r\nThen according to the log, auto gc founds no regions in the store.\r\n\r\n```\r\n[2021/01/08 18:41:43.776 +08:00] [INFO] [future.rs:146] [\"starting working thread\"] [worker=gc-worker]\r\n[2021/01/08 18:41:43.871 +08:00] [ERROR] [gc_manager.rs:352] [\"failed to get safe point from pd\"] [err_code=KV:Storage:Unknown] [err=\"Other(\\\"[src/server/gc_worker/gc_worker.rs:56]: failed to get safe point from PD: Other(\\\\\\\"[components/pd_client/src/util.rs:298]: request retry exceeds limit\\\\\\\")\\\")\"]\r\n[2021/01/08 18:53:33.966 +08:00] [INFO] [gc_manager.rs:428] [\"gc_worker: auto gc starts\"] [safe_point=422078711892017152]\r\n[2021/01/08 18:53:33.966 +08:00] [INFO] [gc_manager.rs:467] [\"gc_worker: auto gc finishes\"] [processed_regions=0]\r\n[2021/01/08 19:03:34.036 +08:00] [INFO] [gc_manager.rs:428] [\"gc_worker: auto gc starts\"] [safe_point=422078869165309952]\r\n[2021/01/08 19:03:34.036 +08:00] [INFO] [gc_manager.rs:467] [\"gc_worker: auto gc finishes\"] [processed_regions=0]\r\n[2021/01/08 19:13:34.112 +08:00] [INFO] [gc_manager.rs:428] [\"gc_worker: auto gc starts\"] [safe_point=422079026464817152]\r\n[2021/01/08 19:13:34.113 +08:00] [INFO] [gc_manager.rs:467] [\"gc_worker: auto gc finishes\"] [processed_regions=0]\r\n[2021/01/08 19:23:34.191 +08:00] [INFO] [gc_manager.rs:428] [\"gc_worker: auto gc starts\"] [safe_point=422079183738109952]\r\n[2021/01/08 19:23:34.192 +08:00] [INFO] [gc_manager.rs:467] [\"gc_worker: auto gc finishes\"] [processed_regions=0]\r\n[2021/01/08 19:33:34.267 +08:00] [INFO] [gc_manager.rs:428] [\"gc_worker: auto gc starts\"] [safe_point=422079341037617152]\r\n[2021/01/08 19:33:34.267 +08:00] [INFO] [gc_manager.rs:467] [\"gc_worker: auto gc finishes\"] [processed_regions=0]\r\n[2021/01/08 19:43:34.346 +08:00] [INFO] [gc_manager.rs:428] [\"gc_worker: auto gc starts\"] [safe_point=422079498310909952]\r\n[2021/01/08 19:43:34.346 +08:00] [INFO] [gc_manager.rs:467] [\"gc_worker: auto gc finishes\"] [processed_regions=0]\r\n[2021/01/08 19:53:34.422 +08:00] [INFO] [gc_manager.rs:428] [\"gc_worker: auto gc starts\"] [safe_point=422079655610417152]\r\n[2021/01/08 19:53:34.422 +08:00] [INFO] [gc_manager.rs:467] [\"gc_worker: auto gc finishes\"] [processed_regions=0]\r\n[2021/01/08 20:03:34.507 +08:00] [INFO] [gc_manager.rs:428] [\"gc_worker: auto gc starts\"] [safe_point=422079812883709952]\r\n[2021/01/08 20:03:34.507 +08:00] [INFO] [gc_manager.rs:467] [\"gc_worker: auto gc finishes\"] [processed_regions=0]\r\n```\r\n\r\nSomething went wrong about the region_info_accessor, or the gc_worker's region querying logic."
+    },
+    {
+      "id": 757850427,
+      "user": "MyonKeminta",
+      "created_at": "2021-01-11T10:11:32Z",
+      "body": "#9350 moves the `AutoGCConfig` creation before node starting, and the `store_id` is invalid (0) at that time. `GCManager` checks the region's peers by store_id, and it always fail. So no region will be GC-ed."
+    }
+  ]
+}

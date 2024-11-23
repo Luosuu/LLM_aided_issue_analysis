@@ -1,0 +1,120 @@
+{
+  "issue_number": 8986,
+  "title": "copr: UTF8 functions should consider collation",
+  "body": "Some [UTF8 functions](https://github.com/tikv/tikv/blob/master/components/tidb_query_vec_expr/src/impl_string.rs) in TiKV coprocessor do not properly take collation into consideration. For example, [`instr_utf8`](https://github.com/tikv/tikv/blob/44f189c39460ccec75c3f0a5d0210c82eeddc6fa/components/tidb_query_vec_expr/src/impl_string.rs#L561) now compares two strings by their lowercase representation, which is not the right definition.\r\n\r\nRelated functions:\r\n- [x] ord (may need to split into ord_utf8)\r\n- [ ] ~~instr_utf8~~\r\n- [x] find_in_set\r\n- [x] strcmp\r\n- [ ]  ~~Locate2ArgsUTF8~~\r\n- [ ] ~~Locate3ArgsUTF8~~",
+  "state": "closed",
+  "created_at": "2020-11-06T06:26:28Z",
+  "updated_at": "2021-02-05T12:20:14Z",
+  "closed_at": "2021-02-05T09:03:47Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/coprocessor",
+    "difficulty/easy",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 722901536,
+      "user": "andylokandy",
+      "created_at": "2020-11-06T06:34:18Z",
+      "body": "Useful reference: https://github.com/tikv/tikv/blob/308c641fce76c65313f9ffa491f0b4a5be8b1f70/components/tidb_query_vec_expr/src/impl_like.rs#L10-L16"
+    },
+    {
+      "id": 767490444,
+      "user": "TszKitLo40",
+      "created_at": "2021-01-26T11:46:33Z",
+      "body": "Can I try `strcmp` and `strcmp_utf8`? Is `strcmp` like the function in C++?"
+    },
+    {
+      "id": 770636960,
+      "user": "andylokandy",
+      "created_at": "2021-02-01T07:30:11Z",
+      "body": "@TszKitLo40 \r\n\r\n> Can I try strcmp and strcmp_utf8? Is strcmp like the function in C++?\r\n\r\nYes, sure! You need to use a [collator](https://tikv.github.io/doc/tidb_query_datatype/codec/collation/trait.Collator.html) to compare strings [here](https://github.com/tikv/tikv/blob/515df8d552cce67111991fc6b205ec2905716c2b/components/tidb_query_expr/src/impl_string.rs#L684). In order to retrieve a collator, you need to expose the collator as a generic parameter like [this](https://github.com/tikv/tikv/blob/515df8d552cce67111991fc6b205ec2905716c2b/components/tidb_query_expr/src/impl_string.rs#L101). At last, the [function entrance](https://github.com/tikv/tikv/blob/515df8d552cce67111991fc6b205ec2905716c2b/components/tidb_query_expr/src/lib.rs#L589) needs to be replaced by a collation mapper like [this](https://github.com/tikv/tikv/blob/515df8d552cce67111991fc6b205ec2905716c2b/components/tidb_query_expr/src/lib.rs#L93) .\r\n"
+    },
+    {
+      "id": 770696490,
+      "user": "TszKitLo40",
+      "created_at": "2021-02-01T09:05:02Z",
+      "body": "> @TszKitLo40\r\n> \r\n> > Can I try strcmp and strcmp_utf8? Is strcmp like the function in C++?\r\n> \r\n> Yes, sure! You need to use a [collator](https://tikv.github.io/doc/tidb_query_datatype/codec/collation/trait.Collator.html) to compare strings [here](https://github.com/tikv/tikv/blob/515df8d552cce67111991fc6b205ec2905716c2b/components/tidb_query_expr/src/impl_string.rs#L684). In order to retrieve a collator, you need to expose the collator as a generic parameter like [this](https://github.com/tikv/tikv/blob/515df8d552cce67111991fc6b205ec2905716c2b/components/tidb_query_expr/src/impl_string.rs#L101). At last, the [function entrance](https://github.com/tikv/tikv/blob/515df8d552cce67111991fc6b205ec2905716c2b/components/tidb_query_expr/src/lib.rs#L589) needs to be replaced by a collation mapper like [this](https://github.com/tikv/tikv/blob/515df8d552cce67111991fc6b205ec2905716c2b/components/tidb_query_expr/src/lib.rs#L93) .\r\n\r\nDo you mean replace `strcmp` with `strcmp_utf8` or add add new function `strcmp_utf8`?"
+    },
+    {
+      "id": 770749930,
+      "user": "andylokandy",
+      "created_at": "2021-02-01T10:27:16Z",
+      "body": "You don't have to. The collator itself can handle the charset difference."
+    },
+    {
+      "id": 771455005,
+      "user": "TszKitLo40",
+      "created_at": "2021-02-02T08:18:07Z",
+      "body": "I am pleased to implement the rest part."
+    },
+    {
+      "id": 771596861,
+      "user": "TszKitLo40",
+      "created_at": "2021-02-02T12:19:02Z",
+      "body": "For `find_in_set` and `ord`, should we use `collator` too?"
+    },
+    {
+      "id": 771601654,
+      "user": "andylokandy",
+      "created_at": "2021-02-02T12:28:40Z",
+      "body": "I'm sure that find_in_set has to be collation-aware."
+    },
+    {
+      "id": 771611562,
+      "user": "TszKitLo40",
+      "created_at": "2021-02-02T12:47:41Z",
+      "body": "Should we need to consider `C::IS_CASE_INSENSITIVE` like `locate_2_args_utf8` and is the logic almost the same like `locate_2_args_utf8` ? There is no method in `collator` for me to use in `find_in_set`."
+    },
+    {
+      "id": 771618440,
+      "user": "andylokandy",
+      "created_at": "2021-02-02T13:01:06Z",
+      "body": "Changing `.position(|str_in_set| str_in_set == s)` to `.position(|str_in_set| C::sort_compare(str_in_set, s) == Ordering::Equal)` should be enough?"
+    },
+    {
+      "id": 772204549,
+      "user": "TszKitLo40",
+      "created_at": "2021-02-03T03:56:33Z",
+      "body": "I use `let result = String::from_utf8_lossy(str_list)\r\n        .split(',')\r\n        .position(|str_in_set| C::sort_compare(str_in_set.as_ref(), s).unwrap() == Ordering::Equal)\r\n        .map(|p| p as i64 + 1)\r\n        .or(Some(0));` but the test fill fail."
+    },
+    {
+      "id": 772246091,
+      "user": "andylokandy",
+      "created_at": "2021-02-03T05:39:32Z",
+      "body": "Do you mean the intergration test?"
+    },
+    {
+      "id": 772259304,
+      "user": "TszKitLo40",
+      "created_at": "2021-02-03T06:08:41Z",
+      "body": "The `test_find_in_set`."
+    },
+    {
+      "id": 772279040,
+      "user": "andylokandy",
+      "created_at": "2021-02-03T06:51:01Z",
+      "body": "Do you know which case failed? And in addition, you can use `bstr` instead of `String::from_utf8_lossy`."
+    },
+    {
+      "id": 772463477,
+      "user": "TszKitLo40",
+      "created_at": "2021-02-03T12:12:42Z",
+      "body": "Should `ord` like `locate_2_args` which is split into `locate_2_args_utf8`?"
+    },
+    {
+      "id": 772572061,
+      "user": "andylokandy",
+      "created_at": "2021-02-03T14:58:51Z",
+      "body": "> Should ord like locate_2_args which is split into locate_2_args_utf8?\r\n\r\nSeems not necessary"
+    },
+    {
+      "id": 773068501,
+      "user": "TszKitLo40",
+      "created_at": "2021-02-04T06:33:57Z",
+      "body": "> > Should ord like locate_2_args which is split into locate_2_args_utf8?\r\n> \r\n> Seems not necessary\r\n\r\nAlso use `collator` to do that? But `ord` just decode and convert the arg to utf8 bytes, and iterate it reversely to get the result."
+    }
+  ]
+}

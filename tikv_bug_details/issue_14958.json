@@ -1,0 +1,16 @@
+{
+  "issue_number": 14958,
+  "title": "backup-stream: failpoint tests may fail",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nCurrent master.\r\n\r\n### What operating system and CPU are you using?\r\nx86, ubuntu 22\r\n\r\n### Steps to reproduce\r\nFAIL_POINT=1 ./scripts/test --package backup-stream --test integrations\r\n\r\n### What did you expect?\r\nSuccess.\r\n\r\n### What did happened?\r\nFailed. \"no error loaded.\" (Because some of failpoints has been removed.)\r\n",
+  "state": "closed",
+  "created_at": "2023-06-16T02:14:09Z",
+  "updated_at": "2023-06-16T06:39:12Z",
+  "closed_at": "2023-06-16T06:39:12Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

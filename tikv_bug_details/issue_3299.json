@@ -1,0 +1,14 @@
+{
+  "issue_number": 3299,
+  "title": "clippy warnings in master",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\n```\r\nmake dev\r\n```\r\n\r\n**What did you see instead?**\r\n\r\n```\r\nwarning: casting u32 to i64 may become silently lossy if types change\r\n   --> src/util/mpsc.rs:354:18\r\n    |\r\n354 |         assert!((timer.elapsed().subsec_nanos() as i64 - 100_000_000).abs() < 1_000_000);\r\n    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `i64::from(timer.elapsed().subsec_nanos())`\r\n    |\r\n    = note: #[warn(cast_lossless)] on by default\r\n    = help: for further information visit https://rust-lang-nursery.github.io/rust-clippy/v0.0.207/index.html#cast_lossless\r\n\r\nwarning: casting u32 to i64 may become silently lossy if types change\r\n   --> src/util/mpsc.rs:382:18\r\n    |\r\n382 |         assert!((timer.elapsed().subsec_nanos() as i64 - 100_000_000).abs() < 1_000_000);\r\n    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `i64::from(timer.elapsed().subsec_nanos())`\r\n    |\r\n    = help: for further information visit https://rust-lang-nursery.github.io/rust-clippy/v0.0.207/index.html#cast_lossless\r\n```\r\n\r\nThese warnings are introduced in https://github.com/pingcap/tikv/commit/238a2fd59430366f122d93480bcc032826107a71",
+  "state": "closed",
+  "created_at": "2018-07-10T09:54:51Z",
+  "updated_at": "2018-08-07T00:47:57Z",
+  "closed_at": "2018-07-11T11:31:46Z",
+  "labels": [
+    "type/bug",
+    "component/build"
+  ],
+  "comments_data": []
+}

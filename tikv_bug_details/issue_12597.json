@@ -1,0 +1,34 @@
+{
+  "issue_number": 12597,
+  "title": "[Dynamic Region] Some large regions did not split as expected",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   a23fd680807d35d60828dc298cf99eca7448faa2\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2022-05-19 04:37:08\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2022-05-19T18:30:12.351+0800\tINFO\tk8s/client.go:107\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./pd-server -V\r\n Release Version: v6.1.0-nightly\r\nEdition: Community\r\nGit Commit Hash: 85918318d7a127a845af25e208b82b153820fc0d\r\nGit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time:  2022-05-18 10:57:30\r\n2022-05-19T18:30:12.527+0800\tINFO\tk8s/client.go:107\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./tidb-server -V\r\n Release Version: v6.1.0-nightly\r\nEdition: Community\r\nGit Commit Hash: 381e870c5ca018d9b5b6e89233d2cbd9a3b41cac\r\nGit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time: 2022-05-18 11:04:58\r\nGoVersion: go1.18.2\r\nRace Enabled: false\r\nTiKV Min Version: v3.0.0-60965b006877ca7234adaced7890d7b029ed1306\r\nCheck Table Before Drop: false\r\n\r\n### What operating system and CPU are you using?\r\n8core、16GB\r\n\r\n### Steps to reproduce\r\nupdate config repeatedly while run tpcc\r\n[2022/05/19 18:42:08.656 +08:00] [INFO] [cmd.go:124] [\"Start remote command\"] [cmd=\"go-tpc tpcc run -D tpcc --host tc-tidb.glh-dynamic-regions-jw8pv -P4000 --warehouses 1000 -T 64 --time 36000m --ignore-error '2013,1213,1105,1205,8022,8027,8028,9004,9007,9001'\"] [nodename=benchtoolset]\r\n\r\n### What did you expect?\r\nbig region can split\r\n\r\n### What did happened?\r\ncurrent config\r\n    \"coprocessor\": {\r\n        \"split-region-on-table\": false,\r\n        \"batch-split-limit\": 10,\r\n        \"region-max-size\": \"800MiB\",\r\n        \"region-split-size\": \"512MiB\",\r\n        \"region-max-keys\": 8000000,\r\n        \"region-split-keys\": 4800000,\r\n        \"consistency-check-method\": \"mvcc\",\r\n        \"enable-region-bucket\": true,\r\n        \"region-bucket-size\": \"128MiB\",\r\n        \"region-size-threshold-for-approximate\": \"384MiB\",\r\n        \"region-bucket-merge-size-ratio\": 0.33\r\n    },\r\n\r\n    \"max-merge-region-keys\": 1000000,\r\n    \"max-merge-region-size\": 100,\r\n\r\nSome large regions did not split as expected\r\n![eGUffDgG8s](https://user-images.githubusercontent.com/84712107/169491584-fc371e8c-39af-4a56-aced-163a10b6b0d2.png)\r\n/pd-ctl region topsize 1\r\n![image](https://user-images.githubusercontent.com/84712107/169491682-ec88a070-96b3-42ee-b197-918993015b6c.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-20T09:11:37Z",
+  "updated_at": "2022-05-27T03:28:48Z",
+  "closed_at": "2022-05-27T03:28:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1132874602,
+      "user": "Lily2025",
+      "created_at": "2022-05-20T13:01:23Z",
+      "body": "/type bug\r\n/severity major\r\n/assign 5kbpers"
+    },
+    {
+      "id": 1136609809,
+      "user": "Lily2025",
+      "created_at": "2022-05-25T01:34:56Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/label affects-6.1"
+    },
+    {
+      "id": 1136667838,
+      "user": "nolouch",
+      "created_at": "2022-05-25T02:52:32Z",
+      "body": "duplicated with https://github.com/tikv/tikv/issues/12597."
+    }
+  ]
+}

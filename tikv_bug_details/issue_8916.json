@@ -1,0 +1,26 @@
+{
+  "issue_number": 8916,
+  "title": "Restore slow down due to rewriting file/key.dict after enabling encryption at rest",
+  "body": "## Bug Report\r\n\r\nRestore slow down due to rewriting file/key.dict after enabling encryption at rest.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nrelease-4.0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nBR restore 1T backup.\r\n\r\n### What did you expect?\r\n\r\nRestore should not slow down greatly due to encryption at rest.\r\n\r\n### What did happened?\r\n\r\nRestore becomes slower as sst file increases.\r\n\r\n![image](https://user-images.githubusercontent.com/2150711/97679021-b0b2ea80-1acf-11eb-8cc5-1655780f22e9.png)\r\n\r\nFlame graph https://gist.github.com/overvenus/ba034073b37e8ed461bc550b9a97ddd6",
+  "state": "closed",
+  "created_at": "2020-10-30T08:48:35Z",
+  "updated_at": "2020-11-05T11:30:43Z",
+  "closed_at": "2020-11-05T11:30:43Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 719452975,
+      "user": "overvenus",
+      "created_at": "2020-10-30T09:47:18Z",
+      "body": "Cc https://github.com/pingcap/br/issues/570"
+    },
+    {
+      "id": 722320390,
+      "user": "hunterlxt",
+      "created_at": "2020-11-05T11:30:43Z",
+      "body": "Closed. ref https://github.com/tikv/tikv/pull/8960 https://github.com/tikv/tikv/pull/8865"
+    }
+  ]
+}

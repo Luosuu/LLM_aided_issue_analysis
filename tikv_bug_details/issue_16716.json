@@ -1,0 +1,39 @@
+{
+  "issue_number": 16716,
+  "title": "TiKV store down when running workload",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n1c7b34419feaf8901046df335d4da55ad3ca9b5d\r\n\r\n### What operating system and CPU are you using?\r\nX86 K8S\r\n\r\n### Steps to reproduce\r\n1. TiDB Cluster with 30 TiKV node, Titan on, cluster size ~70TB, run 3 workloads:   2 Big tables (15TB each table, row width ~9KB); 4000 small tables (row width ~1.7KB); 1 larger row workload  (row width: ~1MB)\r\n\r\n\r\n### What did you expect?\r\nTiKV store shoult not down\r\n\r\n### What did happened?\r\nAfter the cluster recently upgraded from 397d8d4894d06913c6bc72304fe1f83ba6fedd33 to 1c7b34419feaf8901046df335d4da55ad3ca9b5d, TiKV down issue is seen when run workload, and restored after workload is stopped.\r\n![img_v3_029d_968e0445-f6d4-47fb-9cd2-5c2cc841d34g](https://github.com/tikv/tikv/assets/7403864/05142498-ce6f-443c-a255-9e4ecb4a4a11)\r\n",
+  "state": "closed",
+  "created_at": "2024-03-28T11:07:40Z",
+  "updated_at": "2024-05-22T04:12:23Z",
+  "closed_at": "2024-03-29T20:42:16Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 2024977614,
+      "user": "fubinzh",
+      "created_at": "2024-03-28T11:39:04Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 2025021379,
+      "user": "LykxSassinator",
+      "created_at": "2024-03-28T12:04:27Z",
+      "body": "The testing environment also enables `titan` feature, and tests with `wide-table` workloads.\r\n\r\nAccording to the monitoring metrics, we see that the `store_heartbeat` is not sent to PD and pending in the task list and there exists numerous pending tasks in `pd_worker` when executing the test. That is, the pending tasks in the `pd_worker` should be `store_heartbeat` tasks.\r\n![img_v3_029d_befba7ee-33a7-4d85-8e9a-d994d5399a1g](https://github.com/tikv/tikv/assets/18441614/d7af9b47-1181-41a2-a8a8-7a24ecc5896f)\r\nAnd after the workloads are stopped, the processing on `store_heartbeat` tasks can be recovered.\r\n![img_v3_029d_b7e63f60-a29b-437a-9a40-d1ac7a0dd2ag](https://github.com/tikv/tikv/assets/18441614/0f314d3d-6312-4ee3-862b-af2eb2b7f50c)\r\n \r\n\r\n And the log of one abnormal tikv node shows that this bug might be introduced by one pr starting from 20240322 to 20240325, the related `commit-id` ranges from 397d8d4894d06913c6bc72304fe1f83ba6fedd33 to 1c7b34419feaf8901046df335d4da55ad3ca9b5d.\r\n![img_v3_029d_968e0445-f6d4-47fb-9cd2-5c2cc841d34g](https://github.com/tikv/tikv/assets/18441614/a7d7a8a3-9875-4cef-a18e-8f1ba7fa400b)\r\n\r\n\r\n\r\nRef: \r\nThe commit id range:\r\n+ 20240322 normal state, with commit-id 397d8d4894d06913c6bc72304fe1f83ba6fedd33\r\n![img_v3_029d_23cdf093-128e-4f13-ae6e-e6ea2d15caeg](https://github.com/tikv/tikv/assets/18441614/b404fdc6-d7e4-4fda-97b9-6e69c4e1c6a4)\r\n\r\n+ 20240325 abnormal state, with commit-id 1c7b34419feaf8901046df335d4da55ad3ca9b5d\r\n![img_v3_029d_a15a1d20-ffb7-4529-939c-51c8e09bbebg](https://github.com/tikv/tikv/assets/18441614/2c3753a8-ef30-482d-b072-84ea549ff7d0)\r\n\r\nThe first time that this tests encountered this bug:\r\n![img_v3_029d_62d7495f-ff0a-40b2-8813-2f99de7e611g](https://github.com/tikv/tikv/assets/18441614/542db19a-f020-4d2f-ac44-173df3a5b9d1)\r\n\r\n"
+    },
+    {
+      "id": 2025027812,
+      "user": "LykxSassinator",
+      "created_at": "2024-03-28T12:07:10Z",
+      "body": "/cc @overvenus PTAL, thx"
+    },
+    {
+      "id": 2123831716,
+      "user": "overvenus",
+      "created_at": "2024-05-22T04:12:22Z",
+      "body": "Touch #16678"
+    }
+  ]
+}

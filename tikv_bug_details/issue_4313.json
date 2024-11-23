@@ -1,0 +1,27 @@
+{
+  "issue_number": 4313,
+  "title": "RocksEngineCore can probably panic on drop",
+  "body": "It's not ok generally to panic in destructors because of the risk of double-panic ([see api guide](https://rust-lang-nursery.github.io/api-guidelines/dependability.html#destructors-never-fail-c-dtor-fail)), which causes an abort.\r\n\r\nHere's the drop impl:\r\n\r\n```\r\nimpl Drop for RocksEngineCore {\r\n    fn drop(&mut self) {\r\n        if let Some(h) = self.worker.stop() {\r\n            h.join().unwrap();\r\n        }\r\n    }\r\n}\r\n```\r\n\r\nThat's a thread join handle being unwrapped, so if the worker panicked, the joinhandle will return an error. Now, RocksEngine has a `stop` method, so this branch is supposed to not be called, but there's still an abort-causing error here.\r\n\r\nThe best that can be done in `drop` is to ignore the joinhandle error, and hope somebody called `stop`.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2019-03-05T02:04:29Z",
+  "updated_at": "2020-08-28T11:23:24Z",
+  "closed_at": "2020-08-28T11:23:24Z",
+  "labels": [
+    "type/bug",
+    "difficulty/easy"
+  ],
+  "comments_data": [
+    {
+      "id": 469508923,
+      "user": "brson",
+      "created_at": "2019-03-05T02:22:34Z",
+      "body": "Actually, this could use `std::thread::panicking` to only panic on a joinhandle failure if the stack is not already unwinding. I'm not sure what the best solution is offhand, though I recall that using `panicking` in that way is frowned on for reasons I don't recall."
+    },
+    {
+      "id": 469510967,
+      "user": "brson",
+      "created_at": "2019-03-05T02:31:59Z",
+      "body": "Before trying to fix this I think we should get more clarity on the downsides of using `thread::panicking` in drop."
+    }
+  ]
+}

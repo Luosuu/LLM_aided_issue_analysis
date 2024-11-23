@@ -1,0 +1,13 @@
+{
+  "issue_number": 1317,
+  "title": "Make sure different stages of a kv command execute raft command in a same term.",
+  "body": "Currently, a mutable kv command's execution is split into 3 stages: (Refer https://github.com/pingcap/tikv/issues/807)\r\n- Stage1: Create snapshot (through Raft).\r\n- Stage2: Execute txn command (on snapshot).\r\n- Stage3: Write modifications (through Raft).\r\n\r\nIf leader transfers away then quickly transfers back between Stage1 and Stage3, another transaction may abnormally get executed on the other short-lived leader, which will certainly break the transaction model.",
+  "state": "closed",
+  "created_at": "2016-11-17T09:23:09Z",
+  "updated_at": "2016-12-02T02:12:17Z",
+  "closed_at": "2016-12-02T02:12:17Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

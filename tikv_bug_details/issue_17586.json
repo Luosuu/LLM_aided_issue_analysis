@@ -1,0 +1,21 @@
+{
+  "issue_number": 17586,
+  "title": "heatmap panel should use increase instead of rate",
+  "body": "https://github.com/tikv/tikv/blob/e6b3613ec8b689a3ed3ce5a8380490f0a9eca3c9/metrics/grafana/common.py#L919\r\n![image](https://github.com/user-attachments/assets/c7afd660-fded-4eb2-8f91-b69b3918877c)\r\n![image](https://github.com/user-attachments/assets/5d6bec96-bbb0-455a-bac6-167a754f8f53)\r\n\r\nOtherwise you will get `count/$__rate_interval` instead of real count",
+  "state": "closed",
+  "created_at": "2024-09-25T16:12:03Z",
+  "updated_at": "2024-10-08T04:50:09Z",
+  "closed_at": "2024-10-08T04:50:09Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 2378747940,
+      "user": "overvenus",
+      "created_at": "2024-09-27T08:33:58Z",
+      "body": "Thanks you for your report!\r\n\r\nJust notice there is an errata in Grafana blog https://grafana.com/blog/2020/06/23/how-to-visualize-prometheus-histograms-in-grafana/#:~:text=Note%3A%20I%20accidentally,appearance."
+    }
+  ]
+}

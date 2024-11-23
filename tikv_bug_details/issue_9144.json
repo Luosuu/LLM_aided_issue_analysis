@@ -1,0 +1,22 @@
+{
+  "issue_number": 9144,
+  "title": "TiKV OOM because BR read a large region in memory",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nrelease-4.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nBR will read all data of a region and fill it in a SST writer. But it is in-memory, see: https://github.com/tikv/tikv/blob/master/components/backup/src/writer.rs#L138.\r\nSo if there is a huge region, TiKV may crash for OOM because of keeping all data of this region in memory.\r\n\r\n### What did happened?\r\n\r\n- TiKV crashed because of OOM.\r\n",
+  "state": "closed",
+  "created_at": "2020-11-30T06:09:34Z",
+  "updated_at": "2021-01-06T11:45:49Z",
+  "closed_at": "2021-01-06T11:45:49Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 736143686,
+      "user": "cosven",
+      "created_at": "2020-12-01T00:45:53Z",
+      "body": "/label severity/major"
+    }
+  ]
+}

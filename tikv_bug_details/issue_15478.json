@@ -1,0 +1,89 @@
+{
+  "issue_number": 15478,
+  "title": "[regexp lib] TiKV's regexp is inconsistent with that of Tidb",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.x, v7.1.x\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n1tikv (72c/385g)\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n```SQL\r\ncreate table TT (str varchar(1000));\r\ninsert into TT (str) values('^/home/ap/ncbs/file/output/fa/xbrl/\\d{4}([0]{1}[1-9]{1}|[1]{1}[012]{1})([0]{1}[1-9]{1}|[12]{1}\\d{1}|[3]{1}[01]{1})/IVSR_HOLD_FNDLOT_PERCN_\\d{2}\\_\\d{8}\\.txt$');\r\nselect 1 from TT where 'abc' regexp str;\r\n```\r\n\r\n### What did you expect?\r\nno error\r\n\r\n### What did happened?\r\n![image](https://github.com/tikv/tikv/assets/5057528/2694cedc-b8c4-4b9c-82f7-7c3c232d4dec)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-08-30T07:27:49Z",
+  "updated_at": "2024-01-04T12:22:08Z",
+  "closed_at": "2023-11-08T09:34:33Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "found/gs",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1698643268,
+      "user": "knull-cn",
+      "created_at": "2023-08-30T07:30:30Z",
+      "body": "same query run on tidb v6.1.1 was correct\r\nbecause the regexp was run on tidb-server at v6.1.1；and  pushdown to tikv v6.5.x\r\nmeans , regexp was different between on golang and rust\r\n"
+    },
+    {
+      "id": 1727401310,
+      "user": "seiya-annie",
+      "created_at": "2023-09-20T10:07:38Z",
+      "body": "/found gs"
+    },
+    {
+      "id": 1728944555,
+      "user": "jebter",
+      "created_at": "2023-09-21T06:40:51Z",
+      "body": "/label affects-6.5\r\n/label affects-7.1"
+    },
+    {
+      "id": 1759144282,
+      "user": "gengliqi",
+      "created_at": "2023-10-12T08:13:09Z",
+      "body": "The escape `\\` for `\\_` is useless. \r\nSo the reason is as https://github.com/rust-lang/regex/issues/497 said,\r\n```\r\nInconsequential escapes are not allowed.\r\n```\r\nIf you delete this `\\`, no error will be reported.\r\n\r\nMost of the behavior between the regexp library of Go and Rust is the same, but a few behaviors like this one are different. Only when we unify the three compute engines(tidb,tikv,tiflash) can all behaviors be truly consistent."
+    },
+    {
+      "id": 1801356885,
+      "user": "zanmato1984",
+      "created_at": "2023-11-08T08:59:42Z",
+      "body": "This seems a duplicate of https://github.com/pingcap/tidb/issues/48360\r\n\r\nLet's close this one and track the issue in the other."
+    },
+    {
+      "id": 1801357043,
+      "user": "zanmato1984",
+      "created_at": "2023-11-08T08:59:49Z",
+      "body": "/close"
+    },
+    {
+      "id": 1801357131,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-11-08T08:59:52Z",
+      "body": "@zanmato1984: You can't close an active issue/PR unless you authored it or you are a collaborator.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15478#issuecomment-1801357043):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1801415724,
+      "user": "jebter",
+      "created_at": "2023-11-08T09:34:30Z",
+      "body": "/close"
+    },
+    {
+      "id": 1801415786,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-11-08T09:34:33Z",
+      "body": "@jebter: Closing this issue.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15478#issuecomment-1801415724):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1877010730,
+      "user": "kennedy8312",
+      "created_at": "2024-01-04T12:22:04Z",
+      "body": "/type regression\r\n"
+    },
+    {
+      "id": 1877010814,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-01-04T12:22:07Z",
+      "body": "@kennedy8312: The label(s) `type/regression` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15478#issuecomment-1877010730):\n\n>/type regression\r\n>\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "issue_number": 15106,
+  "title": "[Dynamic Regions] running task in unified read pool keep increasing during checksum after restore 1TB sysbench data",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv7.2\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\nTopology\r\n2-tidb-8C16G / 3-tikv-8C32G-1500G / 3-pd-4C8G-20G\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrestore 1tb sysbench \r\n\r\n```\r\n--sysbench_options \"--rand-type=uniform --tables=50 --table-size=100000000 --mysql-ignore-errors=1062,2013,8028,9007 --auto-inc=false\" \\\r\n--storage_url \"benchmark/sysbench-50-100M-1T/\" --db_name \"test\" \\\r\n--tidb_configs \"{new_collations_enabled_on_first_bootstrap: false}\" \\\r\n--tidb_globals \"set global tidb_prepared_plan_cache_size=1000;\" \\\r\n--tikv_configs '{storage: {engine: partitioned-raft-kv}, server: {end-point-request-max-handle-duration: 3600s}}'\r\n```\r\n### What did you expect?\r\nrestore successfully\r\n\r\n### What did happened?\r\ntable checksum does not completed and running task in unified read pool keep increasing \r\n![image](https://github.com/tikv/tikv/assets/2316425/17e443de-74ff-4cef-b000-6ddd240b38ff)\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/5935a68e-97eb-42d1-b683-f14263dcf9a5)\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/75ec2c5f-b0cc-4f40-a0e6-93228d5aea96)\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/597825e4-a448-4acb-a613-53806b209cd5)\r\n",
+  "state": "closed",
+  "created_at": "2023-07-11T14:09:45Z",
+  "updated_at": "2023-08-08T03:26:00Z",
+  "closed_at": "2023-08-08T03:25:59Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1631764907,
+      "user": "dbsid",
+      "created_at": "2023-07-12T02:39:40Z",
+      "body": "```\r\nI0711 14:07:18.037510      10 restore.go:163] [2023/07/11 14:07:18.037 +00:00] [WARN] [backoff.go:158] [\"tikvRPC backoffer.maxSleep 40000ms is exceeded, errors:\\nsend tikv request error: wait recvLoop: context deadline exceeded, ctx: region ID: 244, meta: id:244 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\211_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\001\\\\373\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\211_r\\\\200\\\\000\\\\000\\\\000\\\\002\\\\360SQ\\\" region_epoch:<conf_ver:5 version:187 > peers:<id:245 store_id:1 > peers:<id:246 store_id:4 > peers:<id:247 store_id:180 > , peer: id:246 store_id:4 , addr: db-tikv-1.db-tikv-peer.tidb1373933076662827107.svc:20160, idx: 0, reqStoreType: TiKvOnly, runStoreType: tikv, try next peer later at 2023-07-11T14:04:12.17840883Z\\nsend tikv request error: wait recvLoop: context deadline exceeded, ctx: region ID: 244, meta: id:244 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\211_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\001\\\\373\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\211_r\\\\200\\\\000\\\\000\\\\000\\\\002\\\\360SQ\\\" region_epoch:<conf_ver:5 version:187 > peers:<id:245 store_id:1 > peers:<id:246 store_id:4 > peers:<id:247 store_id:180 > , peer: id:246 store_id:4 , addr: db-tikv-1.db-tikv-peer.tidb1373933076662827107.svc:20160, idx: 0, reqStoreType: TiKvOnly, runStoreType: tikv, try next peer later at 2023-07-11T14:05:14.198610675Z\\nsend tikv request error: wait recvLoop: context deadline exceeded, ctx: region ID: 244, meta: id:244 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\211_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\001\\\\373\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\211_r\\\\200\\\\000\\\\000\\\\000\\\\002\\\\360SQ\\\" region_epoch:<conf_ver:5 version:187 > peers:<id:245 store_id:1 > peers:<id:246 store_id:4 > peers:<id:247 store_id:180 > , peer: id:246 store_id:4 , addr: db-tikv-1.db-tikv-peer.tidb1373933076662827107.svc:20160, idx: 0, reqStoreType: TiKvOnly, runStoreType: tikv, try next peer later at 2023-07-11T14:06:16.128613392Z\\nlongest sleep type: tikvRPC, time: 41691ms\"]\r\n```\r\n"
+    },
+    {
+      "id": 1631765203,
+      "user": "dbsid",
+      "created_at": "2023-07-12T02:40:06Z",
+      "body": "/assign @SpadeA-Tang"
+    },
+    {
+      "id": 1668849967,
+      "user": "dbsid",
+      "created_at": "2023-08-08T03:25:59Z",
+      "body": "fixed"
+    }
+  ]
+}

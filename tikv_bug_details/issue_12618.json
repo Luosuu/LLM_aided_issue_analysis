@@ -1,0 +1,90 @@
+{
+  "issue_number": 12618,
+  "title": "checks for snapshot last index is wrong",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/1fb8980ccab9ff40c1adc206df52952dab8e8ad8/components/raftstore/src/store/peer_storage.rs#L467-L475\r\n\r\nSupposing a leader append a lot of logs without replicating any of them. After several elections, new leader compacts all previous logs. If the old leader rejoin the group, new leader will send it a snapshot. If old leader exits before updating raft state, then the condition will be false and result in corrupted state.",
+  "state": "closed",
+  "created_at": "2022-05-23T16:36:40Z",
+  "updated_at": "2022-08-29T05:18:24Z",
+  "closed_at": "2022-08-29T05:18:24Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1135311172,
+      "user": "Lily2025",
+      "created_at": "2022-05-24T01:48:01Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1135311537,
+      "user": "Lily2025",
+      "created_at": "2022-05-24T01:48:48Z",
+      "body": "/assign busyjay"
+    },
+    {
+      "id": 1181370387,
+      "user": "tonyxuqqi",
+      "created_at": "2022-07-12T06:32:48Z",
+      "body": "/assign LintianShi"
+    },
+    {
+      "id": 1181370404,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-12T06:32:49Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: LintianShi.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12618#issuecomment-1181370387):\n\n>/assign LintianShi\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1186176052,
+      "user": "LintianShi",
+      "created_at": "2022-07-16T12:46:23Z",
+      "body": "The root cause of this bug is that both apply state and raft state are updated during snapshot applying. However, apply state and raft state are seperately persisted in kvdb and raftdb. So we cannot write apply state and raft state atomically. If the instance crashes during snapshot applying, raft state may not be persisted successfully while apply state is persisted. When the instance recovers from the snapshot-applying state, the raft state is possible to be inconsistent with apply state.  \r\n\r\nThe current solution is that we saves a copy of raft state into kvdb which is named `snapshot_raft_state`. When recovering from the snapshot-applying state, we check the `snapshot_raft_state` in kvdb with raft state in raftdb. If the last index of raft state is behind the snapshot_raft_state, we use `snapshot_raft_state` as the correct raft state. Unluckily, the above solution still has a corner case mentioned by Jay. \r\n\r\nTo ensure the correctness of recovering, we can use `snapshot_raft_state` to recover the raft state in every situation. The drawback of this solution is that the log entries appended during snapshot applying may be dropped after recovery. However, appending log entries during snapshot applying occurs with low possibility. So this solution may not hurt the performance a lot. "
+    },
+    {
+      "id": 1186318186,
+      "user": "BusyJay",
+      "created_at": "2022-07-16T22:57:04Z",
+      "body": "How about checking `commit` field instead?"
+    },
+    {
+      "id": 1186380947,
+      "user": "LintianShi",
+      "created_at": "2022-07-17T02:50:45Z",
+      "body": "I find weird that `commit` field in RaftLocalState.hard_state is not updated in `fn apply_snapshot`. Is it expected?"
+    },
+    {
+      "id": 1186521002,
+      "user": "BusyJay",
+      "created_at": "2022-07-17T13:37:47Z",
+      "body": "It should be updated in the end. You can verify it with a test case."
+    },
+    {
+      "id": 1186893841,
+      "user": "LintianShi",
+      "created_at": "2022-07-18T08:07:24Z",
+      "body": "Yes, `commit` is updated out of `fn apply_snapshot`. It is updated in `fn handle_raft_ready`. "
+    },
+    {
+      "id": 1191197313,
+      "user": "LintianShi",
+      "created_at": "2022-07-21T08:28:50Z",
+      "body": "As the `commit` of raft state always increases monotonically, we can use `commit` to check snapshot raft state in kvdb with raft state in raftdb. \r\nIn `save_snapshot_raft_state_to`, the commit of snapshot_raft_state is set to snapshot_index (snapshot_index is the applied index of the leader). Since the peer rejects snapshot whose snapshot_index is smaller than commit of its raft state, we ensure that the commit of raft state cannot decrease if snapshot is applied successfully. When recovering from applying snapshot state, we can confirm that raft_state failed to persist if commit in raft_state is smaller than that in snapshot_raft_state.\r\nIf snapshot_index is equal to the commit of the follower, it seems difficult to handle. However, the follower will only forward its apply state if it receives a snapshot with snapshot_index equal to its commit. It can be seen as the follower has applied all its committed log. If the raft state fails to persist, it does not affect correctness. We just keep those uncommitted log entries."
+    },
+    {
+      "id": 1191197414,
+      "user": "LintianShi",
+      "created_at": "2022-07-21T08:28:57Z",
+      "body": "PR: https://github.com/tikv/tikv/pull/13088"
+    }
+  ]
+}

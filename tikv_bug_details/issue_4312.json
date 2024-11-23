@@ -1,0 +1,53 @@
+{
+  "issue_number": 4312,
+  "title": "RotatingFileLoggerPanics on drop",
+  "body": "It's not ok generally to panic in destructors because of the risk of double-panic ([see api guide](https://rust-lang-nursery.github.io/api-guidelines/dependability.html#destructors-never-fail-c-dtor-fail)), which causes an abort.\r\n\r\nRotatingFileLogger's drop method calls `close` which calls `flush` on a file, which can fail. It then unwraps that result, potentially panicking. The best that con be done by the time the dtor is called is to silently ignore the failed call to `close` and hope for the best.",
+  "state": "closed",
+  "created_at": "2019-03-05T01:50:23Z",
+  "updated_at": "2019-04-10T10:30:03Z",
+  "closed_at": "2019-04-10T10:30:03Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "difficulty/easy",
+    "status/mentor"
+  ],
+  "comments_data": [
+    {
+      "id": 469510953,
+      "user": "brson",
+      "created_at": "2019-03-05T02:31:53Z",
+      "body": "Before trying to fix this I think we should get more clarity on the downsides of using `thread::panicking` in drop."
+    },
+    {
+      "id": 470339886,
+      "user": "axelmagn",
+      "created_at": "2019-03-07T01:00:58Z",
+      "body": "I am interested in patching this.  I think I've got a handle on how I would do it.  I did some googling, but I couldn't find any reference to the downsides of thread::panicking that you are referring to."
+    },
+    {
+      "id": 470761128,
+      "user": "brson",
+      "created_at": "2019-03-08T00:52:40Z",
+      "body": "@axelmagn great, please give it a try.\r\n\r\nI chatted a bit on #rust-libs about fallible destructor patterns today, and came away thinking we should go ahead and use thread::panicking to avoid the double-panic.\r\n\r\nGenerally though, I think the best pattern for fallible destructors is to have a close method that returns a Result, and a drop method that verifies that close was called. I sketched out how this looks [here](https://gist.github.com/brson/4ab0526baab38972bccdfb60ef7a9bd9), though I must say I've never seen code with the dual `close()`/`destroy()` methods like this."
+    },
+    {
+      "id": 470761897,
+      "user": "brson",
+      "created_at": "2019-03-08T00:56:26Z",
+      "body": "@axelmagn if you like this one, there are two more like it: https://github.com/tikv/tikv/issues/4310, https://github.com/tikv/tikv/issues/4309"
+    },
+    {
+      "id": 473912774,
+      "user": "liufuyang",
+      "created_at": "2019-03-18T13:37:14Z",
+      "body": "@axelmagn Are you still working on this? Or is there something I can also help with?"
+    },
+    {
+      "id": 480611165,
+      "user": "kennytm",
+      "created_at": "2019-04-07T17:13:03Z",
+      "body": "<details><summary><del>There's an easy way to reproduce the double panic crash.</del></summary>\r\n\r\n1. Start TiKV, log to some folder, and set a very short log rotation period\r\n\r\n    ```toml\r\n    log-file = \"inaccessible/tikv.log\"\r\n    log-rotation-timespan = \"5s\"\r\n\r\n    [server]\r\n    addr = \"127.0.0.1:20160\"\r\n    advertise-addr = \"127.0.0.1:20160\"\r\n\r\n    [pd]\r\n    endpoints = [\"127.0.0.1:2379\"]\r\n\r\n    [rocksdb]\r\n    max-open-files = 4096\r\n\r\n    [raftdb]\r\n    max-open-files = 4096\r\n    ```\r\n\r\n    ```sh\r\n    mkdir inaccessible\r\n    target/debug/tikv-server -C config.toml\r\n    ```\r\n\r\n2. Make the log folder read-only (*in practice, this means any kind of I/O error happening during log rotation*)\r\n\r\n    ```sh\r\n    chmod a-w inaccessible\r\n    ```\r\n\r\n3. Force TiKV to log something, e.g. send SIGUSR1 to it.\r\n\r\n    ```sh\r\n    kill -USR1 7096\r\n    ```\r\n\r\n4. TiKV will now crash with the pretty obscure error `[FATAL] [mod.rs:484] [\"failed to join thread: Resource deadlock avoided (os error 35)\"]`, while the original error causing the double panic is lost.\r\n\r\n</details>\r\n\r\nEdit: Turns out the panic of log rotation comes from [slog itself](https://github.com/slog-rs/slog/blob/v2.3.3/src/lib.rs#L1904) 😕."
+    }
+  ]
+}

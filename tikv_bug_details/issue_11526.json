@@ -1,0 +1,55 @@
+{
+  "issue_number": 11526,
+  "title": "After inserted 1 billions data in to tidb, the one of TiKV never able to startup, neither restart.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\n> [root@ip-172-16-5-33 bin]# ./tikv-server --version\r\nTiKV \r\nRelease Version:   5.2.2\r\nEdition:           Community\r\nGit Commit Hash:   7acaec5d9c809439b9b0017711f114b44ffd9a49\r\nGit Commit Branch: heads/refs/tags/v5.2.2\r\nUTC Build Time:    2021-10-25 12:00:54\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n\r\n> 40 cpus, 2 numa nodes. \r\nprocessor\t: 39\r\nvendor_id\t: GenuineIntel\r\ncpu family\t: 6\r\nmodel\t\t: 79\r\nmodel name\t: Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\nstepping\t: 1\r\nmicrocode\t: 0xb00001f\r\ncpu MHz\t\t: 1994.958\r\ncache size\t: 25600 KB\r\nphysical id\t: 1\r\nsiblings\t: 20\r\ncore id\t\t: 12\r\ncpu cores\t: 10\r\napicid\t\t: 57\r\ninitial apicid\t: 57\r\nfpu\t\t: yes\r\nfpu_exception\t: yes\r\ncpuid level\t: 20\r\nwp\t\t: yes\r\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb cat_l3 cdp_l3 invpcid_single intel_pt tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a rdseed adx smap xsaveopt cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local dtherm ida arat pln pts\r\nbogomips\t: 4399.36\r\nclflush size\t: 64\r\ncache_alignment\t: 64\r\naddress sizes\t: 46 bits physical, 48 bits virtual\r\npower management:\r\n\r\n### Steps to reproduce\r\n\r\n- Using BR to restore 60K empty tables (60K table generate by [betting](https://github.com/yongpan0709/workloads))\r\n- Using betting to generate 1 billions data\r\n`nohup ./bin/go-ycsb load mysql -P workloads/betting -p recordcount=1000000000 -p mysql.host=172.16.4.2 -p mysql.user=root -p mysql.port=44000 --threads 200 -p dbnameprefix=test_betting_ -p databaseproportions=1.0 -p unitnameprefix=unit1_ -p unitscount=200 -p tablecount=60000 -p loadbatchsize=1000&`\r\n\r\nManual: https://pingcap.feishu.cn/docs/doccnijeesmUrKiHLHay6rMwnaf\r\n\r\n### What did you expect?\r\nTiKV can work without problem.\r\n### What did happened?\r\nTiKV down and never able to startup\r\n![W1SzCKWuFj](https://user-images.githubusercontent.com/85682690/144202227-349e5b53-2819-4e7a-b37f-82b5468af5f1.png)\r\n\r\nError log from tikv_stderr:\r\n>[2021/12/01 15:23:21.831 +08:00] [FATAL] [mod.rs:376] [\"logger encountered error\"] [err=\"Cannot allocate memory (os error 12)\"]\r\n\r\nother error log:\r\n28492 [2021/12/01 16:05:09.604 +08:00] [FATAL] [server.rs:831] [\"failed to start node: Engine(Other(\\\"[components/raftstore/src/store/fsm/store.rs:1056]: \\\\\\\"[components/raftstore/src/store/peer_storage.rs:768]: [region 36305] 36307 validate state fail: Other(\\\\\\\\\\\\\\\"[c      omponents/raftstore/src/store/peer_storage.rs:678]: term of raft state < commit term of apply state, region 36305, raft state hard_state { term: 13 vote: 36307 commit: 815 } last_index: 815, apply state applied_index: 815 commit_index: 815 commit_term: 14 truncate      d_state { index: 772 term: 11 }\\\\\\\\\\\\\\\")\\\\\\\"\\\"))\"]\r\n\r\nKernel log:\r\n![dYNplGHNuh](https://user-images.githubusercontent.com/85682690/144203334-8926cec2-8635-4992-b891-2897f629e881.png)\r\n\r\ndmesg -T:\r\n![zliAC9HuPM](https://user-images.githubusercontent.com/85682690/144203525-8fb71148-bdf1-4816-8f52-0573743aad4d.png)\r\n\r\n\r\nLinux has enough memory:\r\n![F7AqrUnbbX](https://user-images.githubusercontent.com/85682690/144202640-346bbe39-bb75-4a3a-9df5-65eea4b6ae21.png)\r\n\r\ncheck NUMA nodes:\r\n![middle_img_v2_9f444510-cb64-4a72-8625-b35b5c7d9a5g](https://user-images.githubusercontent.com/85682690/144202734-ca85e580-6736-4f9d-8e6a-199ca18c8cd0.png)\r\n\r\nmore log in 172.16.5.33:/data4/log/\r\n",
+  "state": "closed",
+  "created_at": "2021-12-01T09:05:34Z",
+  "updated_at": "2021-12-03T13:01:54Z",
+  "closed_at": "2021-12-03T13:01:54Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3"
+  ],
+  "comments_data": [
+    {
+      "id": 983516531,
+      "user": "youjiali1995",
+      "created_at": "2021-12-01T10:48:47Z",
+      "body": "It's reproduced! We have met this panic 2 times in users' environments and haven't located the root cause.\r\n```\r\nterm of raft state < commit term of apply state, region 36305, raft state hard_state { term: 13 vote: 36307 commit: 815 } last_index: 815, apply state applied_index: 815 commit_index: 815 commit_term: 14 truncate d_state { index: 772 term: 11 }\r\n```\r\n/cc @BusyJay @gengliqi "
+    },
+    {
+      "id": 983564262,
+      "user": "BusyJay",
+      "created_at": "2021-12-01T11:50:30Z",
+      "body": "The region has just applied catching up logs for merge before TiKV is crashing for OOM. When catching up logs in merge, source peer only updates logs without changing any properties in raft state machine:\r\n\r\nhttps://github.com/tikv/tikv/blob/237fe392eccc003cb4554dd58b03fa5cf5464f4d/components/raftstore/src/store/peer.rs#L824-L828\r\n\r\nSo when handling raft ready, it can persist the wrong term with the correct index and logs, hence corrupt the internal states. Marking the corrupted peer as tombstone may lead to deadlock or OOM depends on whether merge has finished. The safest way is to scale out the panic store.\r\n\r\nTo fix the bug, perhaps we should construct the whole `AppendLog` message to let raft state machine update its all states correctly. Otherwise we may still hit another pitfall in the future."
+    },
+    {
+      "id": 983690234,
+      "user": "BusyJay",
+      "created_at": "2021-12-01T14:22:22Z",
+      "body": "The problem is introduced by https://github.com/tikv/tikv/pull/9982 since 5.0.1. /cc @NingLin-P \r\n\r\nBecause min_matched is set to min_committed, so even an old leader is crashed and not online, the new leader can still propose a the prepare merge, which will include log entries from different term."
+    },
+    {
+      "id": 984479379,
+      "user": "NingLin-P",
+      "created_at": "2021-12-02T10:07:48Z",
+      "body": "> The problem is introduced by #9982 since 5.0.1. /cc @NingLin-P \r\n\r\n@BusyJay  Sorry I don't get it.\r\n\r\n> so even an old leader is crashed and not online, the new leader can still propose a the prepare merge, which will include log entries from different term\r\n\r\nSo if the old leader crashed, region merge should be forbidden? forever? And how does whether `min_matched is set to min_committed` could affect whether there are `log entries from different term`? And how does if there are `log entries from different term` could trigger this issue as it is about comparing the term of the follower and the term of log entries, where there must have log entries from the current leader's term?\r\n\r\nIMO, the fundamental fault is not changing the follower's term while changing its log entries, and that causes the follower's term even less than the term of log entries that it already has. And it doesn't seem a good idea to me to rely on any external checks to cover up for such fundamental fault.\r\n"
+    },
+    {
+      "id": 984512815,
+      "user": "BusyJay",
+      "created_at": "2021-12-02T10:50:37Z",
+      "body": "> So if the old leader crashed, region merge should be forbidden? forever?\r\n\r\nNo, PD can remove the failed peer and merge can be resumed.\r\n\r\n> And how does whether `min_matched is set to min_committed` could affect whether there are `log entries from different term`?\r\n\r\nIn the past, when a new leader is elected without hearing responses from all followers, it won't propose prepare merge. So when prepare merge is proposed, all followers' term should be as large as leader. So all logs in the gap should have \"log's term <= any(followers' term)\". So it's OK not to check term in the past.\r\n\r\nAfter setting `min_matched` to `min_committed`, a new leader is allowed to propose prepare merge without syncing all followers, so there can be a follower whose term is less than leader, hence the pitfall.\r\n"
+    },
+    {
+      "id": 984566139,
+      "user": "NingLin-P",
+      "created_at": "2021-12-02T12:05:10Z",
+      "body": "Although it is not my question I got your point. BTW if we reset `Progress::committed_index` to 0 like `Progress::matched` as https://github.com/tikv/raft-rs/pull/375#discussion_r439275718 suggest, this issue won't be triggered too."
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "issue_number": 528,
+  "title": "investigate failed test ",
+  "body": "https://s3.amazonaws.com/archive.travis-ci.org/jobs/127716176/log.txt\nhttps://travis-ci.org/pingcap/tikv/jobs/127716176\n",
+  "state": "closed",
+  "created_at": "2016-05-04T13:36:53Z",
+  "updated_at": "2018-08-07T00:45:44Z",
+  "closed_at": "2016-05-13T03:34:24Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 217699798,
+      "user": "BusyJay",
+      "created_at": "2016-05-08T07:15:14Z",
+      "body": "At first cluster has 2 peers labeled 1, 2. Assuming peer 1 is leader. Cluster adds peer 3 first, then removes it, adds it again. In the first step, peer 3 applies a snapshot, its progress in peer 1 becomes `Probe`, in which case it will be sent only one entry a time. In the second step, peer 1 broadcasts conf remove to both peer 2 and peer 3. If peer 2 replies it first, peer 1 will broadcast all peers that confchange is committed then applies conf change. But peer 3 has not replied to proposal and it's in `Probe` mode, so it won't get notified. In step 3, peer 3 finally knows that conf remove is committed, so it removes itself. But peer 1 still considers peer 3 is alive and sends heartbeat to it which will lead to out of range commit panic.\n\nIn more general sense, when add peer a to group, then remove it, add it again. If in step 2, peer a is isolated and log has not been compacted yet, this may cause problem.\n"
+    },
+    {
+      "id": 217708161,
+      "user": "BusyJay",
+      "created_at": "2016-05-08T10:28:42Z",
+      "body": "Currently we get around this with #547, we should fix that permanently and add stable test cases.\n"
+    },
+    {
+      "id": 217716761,
+      "user": "siddontang",
+      "created_at": "2016-05-08T12:55:40Z",
+      "body": "When the follower receives a heartbeat message which log index is > current last log index, it will panic now. \nMaybe we can ignore this invalid heartbeat, and reject the following AppendLog to let leader re-send snapshot again. is it ok? /cc @xiang90 \n"
+    },
+    {
+      "id": 217724548,
+      "user": "xiang90",
+      "created_at": "2016-05-08T14:50:53Z",
+      "body": ">  But peer 1 still considers peer 3 is alive and sends heartbeat to it which will lead to out of range commit panic.\n\nThe panic indicates that the peer lost some entries. It is true in your case too. After peer 3 removes itself, shouldnt it ignore any incoming messages? When you add a peer again, it should have a new id, then leader will treat it as a fresh peer, not an existing one. Right?\n"
+    },
+    {
+      "id": 217725309,
+      "user": "siddontang",
+      "created_at": "2016-05-08T14:59:42Z",
+      "body": "Em, now we add the peer again with the same id (using store id).\n"
+    },
+    {
+      "id": 217725410,
+      "user": "siddontang",
+      "created_at": "2016-05-08T15:01:47Z",
+      "body": "The PR is https://github.com/pingcap/tikv/pull/511 here.\nIf we have no way to fix this, maybe we should re-add peer id again. \n"
+    },
+    {
+      "id": 217725453,
+      "user": "xiang90",
+      "created_at": "2016-05-08T15:02:35Z",
+      "body": "@siddontang Why do you want to do that? Is there a hard requirement? raft expects the id to be unique. There will be tons of issues if you plan to reuse ids, at application layer and raft layer... It will just complicate the problem.\n"
+    },
+    {
+      "id": 217725553,
+      "user": "siddontang",
+      "created_at": "2016-05-08T15:04:37Z",
+      "body": "We just want to simplify the code before, 😭 \n\nmaybe we should re-add it. @ngaut @BusyJay \n"
+    },
+    {
+      "id": 217726568,
+      "user": "xiang90",
+      "created_at": "2016-05-08T15:18:01Z",
+      "body": "@siddontang \n\nIf we: Add peer1, Remove peer1, Add peer1, Remove peer1, Add peer1\n\nWhen peer1 comes back, it has to have the logic to ignore the 2 removals and adds itself back on the last request. Also there might be messages reorder issues, so besides checking peer ids we have to check the configuration version to ignore messages. \n"
+    },
+    {
+      "id": 217756239,
+      "user": "siddontang",
+      "created_at": "2016-05-09T00:45:06Z",
+      "body": "@xiang90 \nWe also check conf versions when doing ConfChange, maybe we won't meet the reorder issue, but I will make a confirm. \n"
+    }
+  ]
+}

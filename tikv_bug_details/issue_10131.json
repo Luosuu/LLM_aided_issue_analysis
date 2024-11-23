@@ -1,0 +1,63 @@
+{
+  "issue_number": 10131,
+  "title": "TiKV disconnected after profiled on TiDB Dashboard under load",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv5.0.1 or latest nightly version\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. prepare tpcc 5k warehouse\r\n2.  ./go-tpc tpcc run -U root --db tpcc --host 127.0.0.1 --port 3390 --time 300s --warehouses 5000 --threads 900\r\n3. profile one TiKV instance on TiDB Dashboard\r\n4. the profile failed and the TiKV disconnected\r\n\r\n### What did you expect?\r\nthe profile succeed and the TiKV perform normally.\r\n\r\n### What did happened?\r\nThe profile failed and the TiKV disconnected",
+  "state": "closed",
+  "created_at": "2021-05-08T02:36:53Z",
+  "updated_at": "2021-05-27T14:35:47Z",
+  "closed_at": "2021-05-27T14:35:47Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 835259089,
+      "user": "cosven",
+      "created_at": "2021-05-08T09:59:02Z",
+      "body": "/type bug\r\n/severity critical"
+    },
+    {
+      "id": 836555201,
+      "user": "sticnarf",
+      "created_at": "2021-05-10T11:01:06Z",
+      "body": "What is your operating system and CPU?\r\n\r\nCould you check if there is an error log or a coredump? If so, please paste the error log or the backtrace from the coredump, thanks!"
+    },
+    {
+      "id": 836595449,
+      "user": "dbsid",
+      "created_at": "2021-05-10T11:44:58Z",
+      "body": "no core dump\r\n\r\n```\r\n$ uname -a\r\nLinux ip-172-31-16-249.us-west-2.compute.internal 3.10.0-1062.12.1.el7.x86_64 #1 SMP Tue Feb 4 23:02:59 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux\r\n$ cat /etc/redhat-release\r\nCentOS Linux release 7.7.1908 (Core)\r\n```\r\n\r\ngdb log\r\n\r\n```\r\n(gdb) bt\r\n#0  0x00007f9bdf3bc381 in sigwait () from /lib64/libpthread.so.0\r\n\r\n#1  0x0000564a553f4ce9 in _$LT$signal..trap..Trap$u20$as$u20$core..iter..traits..iterator..Iterator$GT$::next::hd421367d1657b686 (self=<optimized out>,\r\n    self@entry=<error reading variable: Dwarf Error: Cannot find DIE at 0x21f3226 referenced from DIE at 0x37a3dc5 [in module /aws-test/deploy/tikv-20160/bin/tikv-server]>)\r\n    at /rust/registry/src/github.com-1ecc6299db9ec823/signal-0.6.0/src/trap.rs:113\r\nDwarf Error: Cannot find DIE at 0x21f3226 referenced from DIE at 0x37a3dc5 [in module /aws-test/deploy/tikv-20160/bin/tikv-server]\r\n(gdb)\r\n#0  0x00007f9bdf3bc381 in sigwait () from /lib64/libpthread.so.0\r\n#1  0x0000564a553f4ce9 in _$LT$signal..trap..Trap$u20$as$u20$core..iter..traits..iterator..Iterator$GT$::next::hd421367d1657b686 (self=<optimized out>,\r\n    self@entry=<error reading variable: Dwarf Error: Cannot find DIE at 0x21f3226 referenced from DIE at 0x37a3dc5 [in module /aws-test/deploy/tikv-20160/bin/tikv-server]>)\r\n    at /rust/registry/src/github.com-1ecc6299db9ec823/signal-0.6.0/src/trap.rs:113\r\nDwarf Error: Cannot find DIE at 0x21f3226 referenced from DIE at 0x37a3dc5 [in module /aws-test/deploy/tikv-20160/bin/tikv-server]\r\n(gdb) thread all apply bt\r\nNo symbol \"all\" in current context.\r\n(gdb) thread apply all bt\r\n\r\nThread 108 (Thread 0x7f9bddd7f700 (LWP 30148)):\r\n\r\n#0  0x00007f9bde9b7ba9 in syscall () from /lib64/libc.so.6\r\n#1  0x0000564a5543414a in futex_wait () at library/std/src/sys/unix/futex.rs:25\r\n#2  park () at library/std/src/sys_common/thread_parker/futex.rs:50\r\n#3  park () at library/std/src/thread/mod.rs:894\r\n#4  std::sync::mpsc::blocking::WaitToken::wait::hf02446aaac7f1c1f () at library/std/src/sync/mpsc/blocking.rs:68\r\nDwarf Error: Cannot find DIE at 0x21f3226 referenced from DIE at 0x37a3dc5 [in module /aws-test/deploy/tikv-20160/bin/tikv-server]\r\n(gdb)\r\n\r\nThread 108 (Thread 0x7f9bddd7f700 (LWP 30148)):\r\n#0  0x00007f9bde9b7ba9 in syscall () from /lib64/libc.so.6\r\n#1  0x0000564a5543414a in futex_wait () at library/std/src/sys/unix/futex.rs:25\r\n#2  park () at library/std/src/sys_common/thread_parker/futex.rs:50\r\n#3  park () at library/std/src/thread/mod.rs:894\r\n#4  std::sync::mpsc::blocking::WaitToken::wait::hf02446aaac7f1c1f () at library/std/src/sync/mpsc/blocking.rs:68\r\nDwarf Error: Cannot find DIE at 0x21f3226 referenced from DIE at 0x37a3dc5 [in module /aws-test/deploy/tikv-20160/bin/tikv-server]\r\n(gdb) quit\r\n```"
+    },
+    {
+      "id": 836595571,
+      "user": "sticnarf",
+      "created_at": "2021-05-10T11:45:05Z",
+      "body": "cc @YangKeao \r\nThis seems like a different case. Maybe related to https://github.com/tikv/pprof-rs/issues/36?\r\n\r\nBut gdb cannot print out the backtrace because of unrecognizable dwarf. So we cannot confirm it..."
+    },
+    {
+      "id": 842952947,
+      "user": "5kbpers",
+      "created_at": "2021-05-18T08:06:10Z",
+      "body": "@sticnarf @YangKeao Any progress on this issue? We have met it again."
+    },
+    {
+      "id": 842957846,
+      "user": "YangKeao",
+      "created_at": "2021-05-18T08:12:47Z",
+      "body": "> @sticnarf @YangKeao Any progress on this issue? We have met it again.\r\n\r\nThe `tiup cluster` has been fixed in https://github.com/pingcap/tiup/pull/1361 , but I forgot to fix `tiup playground` :facepalm: . https://github.com/pingcap/tiup/pull/1369 is going to fix this problem on `tiup playground`. \r\n\r\nA workaround is to modify the environment variable settings in `run_tikv.sh` to make `prof_active` default to `false`."
+    },
+    {
+      "id": 842962438,
+      "user": "YangKeao",
+      "created_at": "2021-05-18T08:19:47Z",
+      "body": "> > @sticnarf @YangKeao Any progress on this issue? We have met it again.\r\n> \r\n> The `tiup cluster` has been fixed in [pingcap/tiup#1361](https://github.com/pingcap/tiup/pull/1361) , but I forgot to fix `tiup playground` facepalm . [pingcap/tiup#1369](https://github.com/pingcap/tiup/pull/1369) is going to fix this problem on `tiup playground`.\r\n> \r\n> A workaround is to modify the environment variable settings in `run_tikv.sh` to make `prof_active` default to `false`.\r\n\r\n@5kbpers A even simpler workaround is to get a heap profiling first (e.g. `curl http://127.0.0.1:20180/debug/pprof/heap?seconds=5`), then the heap profiling turns off automatically, and we can get CPU profiling safely (through dashboard or url) :smile_cat: "
+    },
+    {
+      "id": 849688259,
+      "user": "YangKeao",
+      "created_at": "2021-05-27T14:35:47Z",
+      "body": "Fixed in [tiup v1.4.4](https://github.com/pingcap/tiup/releases/tag/v1.4.4)\r\n\r\nNeed to run `tiup cluster reload <cluster-name> -R tikv` to make the update applied\r\n"
+    }
+  ]
+}

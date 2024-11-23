@@ -1,0 +1,56 @@
+{
+  "issue_number": 16220,
+  "title": "TiKV tzdata out of date and may cause correctness issues",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\nTiKV bundles tzdata in its binary. We need to upgrade chrono-tz regularly, because tzdata out of date may cause correctness issues, e.g., https://github.com/pingcap/tidb/issues/49586\r\n\r\nIn addition to upgrading chrono-tz,, we should reconsider alternative timezone libraries that read system tzdata directly. This would ensure that TiKV uses the latest tzdata available to the system. Maybe https://crates.io/crates/tzfile?\r\n\r\nCc #4553\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nAll TiKV version.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nSee https://github.com/pingcap/tidb/issues/49586\r\n\r\n### What did you expect?\r\n\r\nTiKV uses the correct timezone info.\r\n\r\n### What did happened?\r\n\r\nTiKV uses stale timezone info.\r\n",
+  "state": "open",
+  "created_at": "2023-12-22T05:06:23Z",
+  "updated_at": "2024-11-01T09:59:47Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5",
+    "user_report",
+    "affects-8.1",
+    "report/customer",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1867332267,
+      "user": "breezewish",
+      "created_at": "2023-12-22T07:23:53Z",
+      "body": "Maybe we could also let TiDB read the same embedded tzdata, as Golang natively support parsing tzdata dynamically."
+    },
+    {
+      "id": 1869406426,
+      "user": "Defined2014",
+      "created_at": "2023-12-26T09:34:08Z",
+      "body": "A previous issue link https://github.com/pingcap/tidb/issues/29427, I think the root cause it same as this one. :("
+    },
+    {
+      "id": 2146450529,
+      "user": "seiya-annie",
+      "created_at": "2024-06-04T02:26:20Z",
+      "body": "/found customer"
+    }
+  ]
+}

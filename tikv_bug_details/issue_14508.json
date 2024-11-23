@@ -1,0 +1,35 @@
+{
+  "issue_number": 14508,
+  "title": "[dr-autosync] query hit 9005 after switch to backup dc in sync mode",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nplan/1621045\r\ncase: [oltp_tiup_dr_autosync_fun_002]\r\n\r\n### What did you expect?\r\nquery should succeeded.\r\n\r\n### What did happened?\r\n```\r\n[2023/02/14 14:17:47.489 +08:00] [INFO] [drcluster.go:113] [\"select count(*) from DDL_JOBS;\"]\r\n[2023/02/14 14:18:27.574 +08:00] [INFO] [drcluster.go:130] [\"query failed,retry\"] [tableName=DDL_JOBS] [\"error mesg\"=\"Error 9005: Region is unavailable\"\r\n```\r\n\r\n```\r\n[2023/02/14 14:18:27.602 +08:00] [INFO] [conn.go:1158] [\"command dispatched failed\"] [conn=8097997696570230041] [connInfo=\"id:8097997696570230041, addr:10.233.107.187:48498 status:10, collation:utf8mb4_general_ci, user:root\"] [command=Query] [status=\"inTxn:0, autocommit:1\"] [sql=\"select count(*) from DDL_JOBS;\"] [txn_mode=PESSIMISTIC] [timestamp=0] [err=\"[tikv:9005]Region is unavailable\\ngithub.com/pingcap/errors.AddStack\\n\\t/go/pkg/mod/github.com/pingcap/errors@v0.11.5-0.20221009092201-b66cddb77c32/errors.go:174\\ngithub.com/pingcap/errors.Trace\\n\\t/go/pkg/mod/github.com/pingcap/errors@v0.11.5-0.20221009092201-b66cddb77c32/juju_adaptor.go:15\\ngithub.com/pingcap/tidb/structure.newHashReverseIter\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/structure/hash.go:310\\ngithub.com/pingcap/tidb/structure.NewHashReverseIter\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/structure/hash.go:291\\ngithub.com/pingcap/tidb/meta.(*Meta).GetLastHistoryDDLJobsIterator\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/meta/meta.go:1210\\ngithub.com/pingcap/tidb/ddl.GetLastHistoryDDLJobsIterator\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/ddl/ddl.go:1612\\ngithub.com/pingcap/tidb/executor.(*DDLJobRetriever).initial\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/executor/executor.go:520\\ngithub.com/pingcap/tidb/executor.(*DDLJobsReaderExec).Open\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/executor/infoschema_reader.go:1399\\ngithub.com/pingcap/tidb/executor.(*baseExecutor).Open\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/executor/executor.go:202\\ngithub.com/pingcap/tidb/executor.(*HashAggExec).Open\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/executor/aggregate.go:303\\ngithub.com/pingcap/tidb/executor.(*ExecStmt).openExecutor\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/executor/adapter.go:1214\\ngithub.com/pingcap/tidb/executor.(*ExecStmt).Exec\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/executor/adapter.go:550\\ngithub.com/pingcap/tidb/session.runStmt\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/session/session.go:2361\\ngithub.com/pingcap/tidb/session.(*session).ExecuteStmt\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/session/session.go:2218\\ngithub.com/pingcap/tidb/server.(*TiDBContext).ExecuteStmt\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/driver_tidb.go:247\\ngithub.com/pingcap/tidb/server.(*clientConn).handleStmt\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn.go:1999\\ngithub.com/pingcap/tidb/server.(*clientConn).handleQuery\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn.go:1849\\ngithub.com/pingcap/tidb/server.(*clientConn).dispatch\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn.go:1380\\ngithub.com/pingcap/tidb/server.(*clientConn).Run\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn.go:1129\\ngithub.com/pingcap/tidb/server.(*Server).onConn\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/server.go:625\\nruntime.goexit\\n\\t/usr/local/go/src/runtime/asm_amd64.s:1594\"]\r\n[2023/02/14 14:18:55.532 +08:00] [ERROR] [domain.go:803] [\"reload schema in loop failed\"] [error=\"[tikv:9005]Region is unavailable\"]\r\n[2023/02/14 14:19:35.600 +08:00] [ERROR] [domain.go:803] [\"reload schema in loop failed\"] [error=\"[tikv:9005]Region is unavailable\"]\r\n[2023/02/14 14:20:15.672 +08:00] [ERROR] [domain.go:803] [\"reload schema in loop failed\"] [error=\"[tikv:9005]Region is unavailable\"]\r\n[2023/02/14 14:20:55.744 +08:00] [ERROR] [domain.go:803] [\"reload schema in loop failed\"] [error=\"[tikv:9005]Region is unavailable\"]\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-04-03T04:16:54Z",
+  "updated_at": "2023-04-20T09:00:11Z",
+  "closed_at": "2023-04-20T09:00:11Z",
+  "labels": [
+    "type/bug",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1493635278,
+      "user": "mayjiang0203",
+      "created_at": "2023-04-03T04:19:24Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign disksing"
+    },
+    {
+      "id": 1515973130,
+      "user": "mayjiang0203",
+      "created_at": "2023-04-20T09:00:01Z",
+      "body": "can't reproduce it recently, close it.\r\n/remove-severity critical"
+    }
+  ]
+}

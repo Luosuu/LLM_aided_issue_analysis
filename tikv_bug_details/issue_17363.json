@@ -1,0 +1,74 @@
+{
+  "issue_number": 17363,
+  "title": "qps continued to drop to zero during one of tikv io hang",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   8.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   7c509085cbe59c82b51c853abf230cd7f188b5a0\r\nGit Commit Branch: heads/refs/tags/v8.3.0-alpha\r\nUTC Build Time:    2024-08-02 11:38:35\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run tpcc with 32 threads\r\n2、inject one of tikv  io hang\r\n\r\n### What did you expect?\r\nqps can recover after 5mins when fault injection\r\n\r\n### What did happened?\r\nqps continued to drop to zero during one of tikv io hang\r\n\r\n![img_v3_02dg_a9ec58dd-36b9-442c-ab48-4ab6b2549aag](https://github.com/user-attachments/assets/4ae0f514-e988-4541-befd-dab8cd07b26c)\r\n![img_v3_02dg_b4ba3d11-78bd-41d8-ab2f-5341b6c163bg](https://github.com/user-attachments/assets/cb70924e-f07a-4626-9e62-d7be7f5a5170)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-08-06T03:55:44Z",
+  "updated_at": "2024-11-06T12:58:34Z",
+  "closed_at": "2024-11-06T12:58:34Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2270333100,
+      "user": "Lily2025",
+      "created_at": "2024-08-06T03:56:28Z",
+      "body": "/severity major\r\n/assign LykxSassinator"
+    },
+    {
+      "id": 2270529186,
+      "user": "LykxSassinator",
+      "created_at": "2024-08-06T07:00:56Z",
+      "body": "The root cause is that the remained region (the only one, region_id = 4189) is hanging on waiting for the previous `ConfChange` to be finished, where the `ConfChange` log could not be flushed into disk due to io-hang errors.\r\n\r\n1. From the tikv-1's log, it's proved that the region 4189 was pending on waiting for the the previous `ConfChange`.\r\n```Prolog\r\n[2024/08/05 07:31:56.339 +08:00] [INFO] [pd.rs:1503] [\"try to change peer\"] [changes=\"[peer { id: 2444530 store_id: 14 role: Learner } change_type: AddLearnerNode]\"] [region_id=4189] [thread_id=37]\r\n[2024/08/05 07:31:56.340 +08:00] [INFO] [peer.rs:4939] [\"propose conf change peer\"] [kind=Simple] [changes=\"[change_type: AddLearnerNode peer { id: 2444530 store_id: 14 role: Learner }]\"] [peer_id=6264] [region_id=4189] [thread_id=108]\r\n[2024/08/05 07:31:56.437 +08:00] [INFO] [endpoint.rs:581] [\"the max gap of leader resolved-ts is large\"] [last_resolve_attempt=None] [duration_to_last_update_safe_ts=11684ms] [min_memory_lock=None] [txn_num=1] [lock_num=1] [min_lock=\"Some((TimeStamp(451625427617185820), TxnLocks { lock_count: 1, sample_lock: Some(7480000000000000725F728000000024AEE927) }))\"] [applied_index=17997318] [read_state=\"ReadState { idx: 17997318, ts: 451625427617185820 }\"] [gap=32608ms] [region_id=4189] [thread_id=74]\r\n[2024/08/05 07:32:01.735 +08:00] [INFO] [pd.rs:1503] [\"try to change peer\"] [changes=\"[peer { id: 2444530 store_id: 14 role: Learner } change_type: AddLearnerNode]\"] [region_id=4189] [thread_id=37]\r\n[2024/08/05 07:32:01.735 +08:00] [INFO] [peer.rs:4851] [\"there is a pending conf change, try later\"] [peer_id=6264] [region_id=4189] [thread_id=107]\r\n...... # hang by io errors, logs cannot be flushed.\r\n[2024/08/05 07:51:24.361 +08:00] [INFO] [peer.rs:3894] [\"reject transfer leader due to pending conf change\"] [peer=\"id: 957896 store_id: 1\"] [peer_id=6264] [region_id=4189] [thread_id=107]\r\n[2024/08/05 07:51:24.392 +08:00] [INFO] [peer.rs:3894] [\"reject transfer leader due to pending conf change\"] [peer=\"id: 957896 store_id: 1\"] [peer_id=6264] [region_id=4189] [thread_id=108]\r\n[2024/08/05 07:51:24.400 +08:00] [INFO] [peer.rs:3894] [\"reject transfer leader due to pending conf change\"] [peer=\"id: 4194 store_id: 12\"] [peer_id=6264] [region_id=4189] [thread_id=108]\r\n```\r\n\r\n2. From the leader of the PD's log, there exists one `move-hot-write-peer` scheduling on region 4189:\r\n```Prolog\r\n[2024/08/05 07:31:56.340 +08:00] [INFO] [operator_controller.go:510] [\"add operator\"] [region-id=4189] [operator=\"\\\"move-hot-write-peer {mv peer: store [12] to [14]} (kind:hot-region,region, region:4189(296, 29), createAt:2024-08-05 07:31:56.339352096 +0800 CST m=+26740.075572434, startAt:0001-01-01 00:00:00 +0000 UTC, currentStep:0, size:81, steps:[0:{add learner peer 2444530 on store 14}, 1:{use joint consensus, promote learner peer 2444530 on store 14 to voter, demote voter peer 4194 on store 12 to learner}, 2:{leave joint state, promote learner peer 2444530 on store 14 to voter, demote voter peer 4194 on store 12 to learner}, 3:{remove peer on store 12}], timeout:[17m0s])\\\"\"] [additional-info=]\r\n[2024/08/05 07:31:56.340 +08:00] [INFO] [operator_controller.go:786] [\"send schedule command\"] [region-id=4189] [step=\"add learner peer 2444530 on store 14\"] [source=create]\r\n[2024/08/05 07:32:01.735 +08:00] [INFO] [operator_controller.go:786] [\"send schedule command\"] [region-id=4189] [step=\"add learner peer 2444530 on store 14\"] [source=\"active push\"]\r\n[2024/08/05 07:32:04.971 +08:00] [INFO] [operator_controller.go:510] [\"add operator\"] [region-id=4189] [operator=\"\\\"evict-slow-store-scheduler {evict leader: from store 13 to one in [1 12], or to 1 (for compatibility)} (kind:leader, region:4189(296, 29), createAt:2024-08-05 07:32:04.970854642 +0800 CST m=+26748.707075018, startAt:0001-01-01 00:00:00 +0000 UTC, currentStep:0, size:81, steps:[0:{transfer leader from store 13 to store 1}], timeout:[1m0s])\\\"\"] [additional-info=]\r\n[2024/08/05 07:32:04.971 +08:00] [INFO] [operator_controller.go:705] [\"replace old operator\"] [region-id=4189] [takes=8.630555378s] [operator=\"\\\"move-hot-write-peer {mv peer: store [12] to [14]} (kind:hot-region,region, region:4189(296, 29), createAt:2024-08-05 07:31:56.339352096 +0800 CST m=+26740.075572434, startAt:2024-08-05 07:31:56.340492291 +0800 CST m=+26740.076712636, currentStep:0, size:81, steps:[0:{add learner peer 2444530 on store 14}, 1:{use joint consensus, promote learner peer 2444530 on store 14 to voter, demote voter peer 4194 on store 12 to learner}, 2:{leave joint state, promote learner peer 2444530 on store 14 to voter, demote voter peer 4194 on store 12 to learner}, 3:{remove peer on store 12}], timeout:[17m0s])\\\"\"] [additional-info=]\r\n[2024/08/05 07:32:04.971 +08:00] [INFO] [operator_controller.go:786] [\"send schedule command\"] [region-id=4189] [step=\"transfer leader from store 13 to store 1\"] [source=create]\r\n```"
+    },
+    {
+      "id": 2270530257,
+      "user": "LykxSassinator",
+      "created_at": "2024-08-06T07:01:35Z",
+      "body": "This issue cannot be handled or tackled with a simple solution."
+    },
+    {
+      "id": 2273096462,
+      "user": "glorv",
+      "created_at": "2024-08-07T10:02:20Z",
+      "body": "Seems the current `has_pending_conf` check that leader transfer must wait pending ConfChange applied is too strong and unnecessary. Maybe we can loose it to \"the conf change is committed and target peer has apply(or just persisted?) this conf change\"? /cc @Connor1996 @overvenus  What do you think?"
+    },
+    {
+      "id": 2286141191,
+      "user": "Connor1996",
+      "created_at": "2024-08-13T12:30:58Z",
+      "body": "@glorv But how can you tell whether the transfer leader is safe until the conf change is applied locally? The transfer leader safe check needs the latest voter list"
+    },
+    {
+      "id": 2402004926,
+      "user": "hhwyt",
+      "created_at": "2024-10-09T11:00:49Z",
+      "body": "After discussions with @glory and @Connor1996, we proposed relaxing the constraints to address this issue: TransferLeader will require only that the target peer has applied the ConfChange, without requiring the leader peer to have applied it.\r\n\r\nImplementation Details:\r\n\r\nPART I\r\n- After the leader peer sends a pre-check TransferLeader message (`MessageType: MsgTransferLeader`) to the target peer and receives a response, we extracts the applied index from the target peer’s response, then checks if this applied index >= conf-change-index.\r\n    - If true, TransferLeader pre-check passes.\r\n    - Otherwise, TransferLeader fails.\r\n\r\nPART II\r\n- Remove the logic that checks for pending ConfChange in TransferLeader."
+    },
+    {
+      "id": 2404227253,
+      "user": "hhwyt",
+      "created_at": "2024-10-10T07:07:44Z",
+      "body": "To prove that transferring the leader role to a target peer that has already applied a ConfChange does not compromise State Machine Safety, we consider two possible scenarios that arise once this target peer has applied the ConfChange:\r\n1. If the target peer is not in the new configuration (removed), it is no longer a voter and therefore cannot be promoted to leader(see Raft::step_follower). Consequently, this peer does not impact State Machine Safety.\r\n2. If the target peer is part of the new configuration and is elected as the leader, it adheres to Raft’s Election Safety property ([Raft thesis](https://web.stanford.edu/~ouster/cgi-bin/papers/OngaroPhD.pdf) §3.4). This property ensures that only one leader is elected per term, eliminating the possibility of conflicting leaders within the same term. Additionally, by the Leader Completeness property ([Raft thesis](https://web.stanford.edu/~ouster/cgi-bin/papers/OngaroPhD.pdf) §3.6), the new leader will include all log entries that were committed in previous terms. As a result, any log entry committed will be present in the new leader’s log. As the new leader continues to append and apply log entries, it guarantees that these entries include all previously committed entries. Consequently, State Machine Safety is maintained, as each node applies the same set of committed entries."
+    },
+    {
+      "id": 2404402006,
+      "user": "overvenus",
+      "created_at": "2024-10-10T08:16:49Z",
+      "body": "> PART I\r\n> - After the leader peer sends a pre-check TransferLeader message (`MessageType: MsgTransferLeader`) to the target peer and receives a response, we extracts the applied index from the target peer’s response, then checks if this applied index >= conf-change-index.\r\n>     - If true, TransferLeader pre-check passes.\r\n>     - Otherwise, TransferLeader fails.\r\n\r\nI think we have already implemented this check https://github.com/tikv/tikv/blob/801379f8e973c822e62a041a4180444839a8a5e4/components/raftstore/src/store/peer.rs#L3990-L3994"
+    },
+    {
+      "id": 2408457762,
+      "user": "hhwyt",
+      "created_at": "2024-10-12T08:31:32Z",
+      "body": "/assign hhwyt"
+    }
+  ]
+}

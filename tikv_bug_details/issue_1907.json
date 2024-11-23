@@ -1,0 +1,32 @@
+{
+  "issue_number": 1907,
+  "title": "Snapshot truncated if leader crashes during snapshot transferring",
+  "body": "Hi,\r\n\r\nThis grpc server will improperly schedule `SnapTask::Close()` to Snapshot Receiver in `server` layer, in code \r\n\r\nhttps://github.com/pingcap/tikv/blob/3050fef8565787a655e30de503b49149435fdeab/src/server/grpc_service.rs#L645\r\n\r\nIt should schedule `SnapTask::Discard()` in this case, so that the partly received snapshot could be discarded and deleted.\r\n\r\nBecause the snapshot V1 implementation reply on the completeness of the snapshot transferring stream. It doesn't check the received length when it calls `save()` on the handling of `SnapTask::Close()`. So in a cluster that runs the code in `branch master, tag 3050fef8565787a655e30de503b49149435fdeab`, which use snapshot V1 by default, if the leader crashes when it transferring the snapshot to followers, the followers would receive and apply a truncated snapshot, and then panic on applying a malformed snapshot.",
+  "state": "closed",
+  "created_at": "2017-06-08T12:26:01Z",
+  "updated_at": "2018-08-07T00:46:47Z",
+  "closed_at": "2017-06-10T02:34:43Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 307088870,
+      "user": "hhkbp2",
+      "created_at": "2017-06-08T12:31:11Z",
+      "body": "How to reproduce this issue:\r\n\r\n1. Use the code to setup single tikv node cluster, set log level to debug.\r\n          tikv branch [hhkbp2/debug-truncated-snapshot](https://github.com/pingcap/tikv/tree/hhkbp2/debug-truncated-snapshot)\r\n          pd  master\r\n2. Write a few GB data into the tikv. You could use rawkv binary or [YABF](https://github.com/hhkbp2/yabf/tree/tikv) to do that.\r\n3. Start a second node tikv, and then wait for two tikv nodes to crash\r\n\r\nCheck both nodes' data dir and log, ensure that a truncated snapshot is received and saved on the follower. And then confirm `SnapTask::Close()` is scheduled in the follower's log."
+    },
+    {
+      "id": 307089121,
+      "user": "hhkbp2",
+      "created_at": "2017-06-08T12:32:24Z",
+      "body": "PTAL @disksing "
+    },
+    {
+      "id": 307350665,
+      "user": "BusyJay",
+      "created_at": "2017-06-09T10:07:46Z",
+      "body": "ref pingcap/grpc-rs#53"
+    }
+  ]
+}

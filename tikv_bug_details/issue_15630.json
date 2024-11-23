@@ -1,0 +1,39 @@
+{
+  "issue_number": 15630,
+  "title": "[Dynamic Regions] Compared with 7.3.0, write-heavy workloads have 7.6% - 31% performance regression",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\narm64 openEuler\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. deploy tidb clusters with 3 tidb + 3 tikv + 1pd with version 7.3.0 and nightly\r\n2. set tikv-configs: \"{storage: {engine: partitioned-raft-kv}, coprocessor: {region-split-size: 1GB, region-max-size: 1.5GB}}\" \r\n3. run the following benchmarks \r\n - sysbench oltp_delete, oltp_update_index, oltp_write_only, oltp_read_write\r\n - benchmarksql\r\n \r\n\r\n### What did you expect?\r\nNo performance regression\r\n\r\n### What did happened?\r\nWrite-heavy workloads have 7.6% - 31% performance regression\r\n![image](https://github.com/tikv/tikv/assets/84501897/5d7bb7a0-3e2a-4d3a-805f-a265695adb79)\r\n",
+  "state": "closed",
+  "created_at": "2023-09-19T03:29:09Z",
+  "updated_at": "2023-09-25T23:01:47Z",
+  "closed_at": "2023-09-25T23:01:47Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1724784138,
+      "user": "Yui-Song",
+      "created_at": "2023-09-19T03:34:40Z",
+      "body": "/type performance\r\n/severity major\r\n/assign @tonyxuqqi "
+    },
+    {
+      "id": 1724784160,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-09-19T03:34:42Z",
+      "body": "@Yui-Song: The label(s) `type/performance` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15630#issuecomment-1724784138):\n\n>/type performance\r\n>/severity major\r\n>/assign @tonyxuqqi \n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1724833492,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-19T05:00:14Z",
+      "body": "@glorv  PTLA.  Compare the 7.3 and 7.4's metrics on these big regression workloads. "
+    },
+    {
+      "id": 1724932723,
+      "user": "glorv",
+      "created_at": "2023-09-19T06:57:01Z",
+      "body": "Seems this is the side-effect of a smaller default lock-cf write-buffer-size introduced in #15453. The smaller default write buffer size will trigger more flush and level-0 compaction which will consume a lot of cpu and io, and thus have a non-trivial performance impact.\r\nTake oltp_update_index as a example:\r\nmetrics of v7.3:\r\n\r\n![ba3eee7e-c7c1-490c-965a-368b3cda6543](https://github.com/tikv/tikv/assets/5196885/85b06ad4-91f5-49f7-ad51-0ab7159e3842)\r\n![a1d8e6e9-37ef-4c6f-a552-afb502736002](https://github.com/tikv/tikv/assets/5196885/ea3bd295-0577-4eb5-a533-4d151a261408)\r\n\r\nmetrics of v7.4 nightly:\r\n\r\n![bcecf5f3-268a-4a77-8ad0-a03fd68714df](https://github.com/tikv/tikv/assets/5196885/03b7d5d1-580e-458b-8218-377079a4deac)\r\n![e47b0ebf-5fc3-4a0d-bf16-9f91290a69bf](https://github.com/tikv/tikv/assets/5196885/f0614de7-6073-4808-a443-c95f10a6447c)\r\n\r\n@SpadeA-Tang will file a pr to adjust the default lock-cf write-buffer-size and make this config dynamic configurable. We can rerun these cases after the change is merged."
+    }
+  ]
+}

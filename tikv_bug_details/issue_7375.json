@@ -1,0 +1,22 @@
+{
+  "issue_number": 7375,
+  "title": "external_storage: if S3 upload cannot finish within 15 minutes it will fail",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\n4.1.0-beta (94aa9ec5d584ab1069b898b49832f02d276b63ee).\r\n\r\n### What operating system and CPU are you using?\r\n\r\nLinux (Amazon EKS)\r\n\r\n### Steps to reproduce\r\n\r\nUse BR to back up to AWS S3 with a very low speed limit, such that some SST file always needs more than 15 minutes to complete.\r\n\r\n### What did you expect?\r\n\r\nSuccess.\r\n\r\n### What did happened?\r\n\r\nAWS S3 failed with InternalError.\r\n\r\n----\r\n\r\nAccording to https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html, each S3 request only live up to 15 minutes\r\n\r\n> **Protect against reuse of the signed portions of the request** – The signed portions (using AWS Signatures) of requests are valid within 15 minutes of the timestamp in the request. \r\n\r\nso for such files, we need to use \"multi-part upload\" to ensure both the time and speed limit are respected.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-04-07T09:51:33Z",
+  "updated_at": "2020-05-29T06:51:37Z",
+  "closed_at": "2020-05-29T06:51:37Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "sig/migrate"
+  ],
+  "comments_data": [
+    {
+      "id": 629790413,
+      "user": "shuijing198799",
+      "created_at": "2020-05-17T12:39:26Z",
+      "body": "DBaaS can't reproduce this bug for files will not exceed the upsheild of limit"
+    }
+  ]
+}

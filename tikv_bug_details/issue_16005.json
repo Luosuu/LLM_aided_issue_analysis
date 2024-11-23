@@ -1,0 +1,32 @@
+{
+  "issue_number": 16005,
+  "title": "sst_importer needs to clean the sst if no kv need to be saved and rewritten",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster, v7.5, v7.1, v6.5\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. run snapshot restore on a regions having been splitted cluster\r\n### What did you expect?\r\n\r\n### What did happened?\r\nThere are many empty sst files(size is 0 by `ls -l`) in the `import/` directory. Besides, there are many warning logs `download file skipped` in the BR log.\r\nNeed to remove the sst file here:\r\nhttps://github.com/tikv/tikv/blob/a0dbe2d0b893489015fc99ae73c6646f7989fe32/components/sst_importer/src/sst_importer.rs#L1379-L1382\r\n",
+  "state": "closed",
+  "created_at": "2023-11-16T06:50:15Z",
+  "updated_at": "2024-04-30T02:17:50Z",
+  "closed_at": "2024-04-30T02:17:50Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1813880436,
+      "user": "Leavrth",
+      "created_at": "2023-11-16T06:50:43Z",
+      "body": "/component backup-restore"
+    },
+    {
+      "id": 1815984251,
+      "user": "BornChanger",
+      "created_at": "2023-11-17T09:01:28Z",
+      "body": "/severity major"
+    }
+  ]
+}

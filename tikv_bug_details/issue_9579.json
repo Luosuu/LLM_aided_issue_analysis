@@ -1,0 +1,28 @@
+{
+  "issue_number": 9579,
+  "title": "The uninitialized voter which comes from splitting may lead to two same-term raft leaders",
+  "body": "## Bug Report\r\n\r\nLike #3572 and #8381, there is another case that there may be two same-term leaders.\r\n\r\nSee this case:\r\n1.  region A has peer 1, 2, 3 on store 1, 2, 3, respectively\r\n2. peer 1 is leader and peer 3 is isolated\r\n3. 1 proposes split cmd and region B is created.\r\n4. 1 proposes two conf change to remove peer 3 and add peer 4\r\n5. peer 3's network recovers and it will get a gc response from 1 or 2 then it will destroy itself.\r\n\r\nSo the peer of region B on store 3 is not created because peer 3 of region A does not apply the split cmd.\r\nBut the other peer of region B will consider this peer is a voter.\r\n\r\nAs a result, the problem of two same-term leaders may occur.\r\n\r\n",
+  "state": "open",
+  "created_at": "2021-01-27T06:45:39Z",
+  "updated_at": "2021-02-01T10:53:02Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 768074611,
+      "user": "gengliqi",
+      "created_at": "2021-01-27T06:51:10Z",
+      "body": "/cc @BusyJay @NingLin-P "
+    },
+    {
+      "id": 768087469,
+      "user": "BusyJay",
+      "created_at": "2021-01-27T07:16:56Z",
+      "body": "To fix it permanently, maybe we need to store hard state. It may change some assumptions but the change should be small."
+    }
+  ]
+}

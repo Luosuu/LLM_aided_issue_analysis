@@ -1,0 +1,33 @@
+{
+  "issue_number": 9170,
+  "title": "Load split cannot work when the request covers the region",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What did happened?\r\nhttps://github.com/tikv/tikv/blob/bec81566c785492a4de2351b88b886134d8a91c4/components/raftstore/src/store/worker/split_controller.rs#L229-L231\r\n\r\nThere might be a case that `(sample.left + sample.right) == 0` but `sample.contained != 0`. In this case, we still need to split the region instead of doing nothing.",
+  "state": "open",
+  "created_at": "2020-12-02T07:45:41Z",
+  "updated_at": "2022-01-14T12:26:53Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 737123979,
+      "user": "lhy1024",
+      "created_at": "2020-12-02T09:59:17Z",
+      "body": "Besides, all start_key is the same, only sample.right is no zero, it will cause the same problem"
+    },
+    {
+      "id": 737599081,
+      "user": "cosven",
+      "created_at": "2020-12-03T01:27:47Z",
+      "body": "/label severity/moderate"
+    },
+    {
+      "id": 1013076101,
+      "user": "BusyJay",
+      "created_at": "2022-01-14T12:26:53Z",
+      "body": "Is it still valid?"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "issue_number": 2643,
+  "title": "storage::test_raftkv::test_read_leader_in_lease randomly failed",
+  "body": "hi,\r\n    ```test_read_leader_in_lease``` failed randomly on my machine with the following details:\r\n```\r\n     Running target/debug/deps/failpoints-e75e784bcde2f213\r\n\r\nrunning 42 tests\r\ntest failpoints_cases::test_pending_peers::test_pending_peers ... ok\r\ntest storage::test_raft_storage::test_engine_leader_change_twice ... ok\r\ntest storage::test_raft_storage::test_raft_storage ... ok\r\ntest failpoints_cases::test_storage::test_storage_1gc ... ok\r\ntest storage::test_raft_storage::test_raft_storage_rollback_before_prewrite ... ok\r\ntest storage::test_raft_storage::test_raft_storage_get_after_lease ... ok\r\ntest storage::test_raft_storage::test_raft_storage_store_not_match ... ok\r\ntest storage::test_raftkv::test_batch_snapshot ... ok\r\nthread 'storage::test_raftkv::test_read_leader_in_lease' panicked at 'called `Result::unwrap()` on an `Err` value: Request(message: \"peer is not leader\" not_leader {region_id: 1 leader {id: 2 store_id: 2}})', src/libcore/result.rs:860:4\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::imp::backtrace::tracing::imp::unwind_backtrace\r\n   1: std::panicking::default_hook::{{closure}}\r\n   2: std::panicking::default_hook\r\n   3: std::panicking::rust_panic_with_hook\r\n   4: std::panicking::begin_panic\r\n   5: std::panicking::begin_panic_fmt\r\n   6: rust_begin_unwind\r\n   7: core::panicking::panic_fmt\r\n   8: core::result::unwrap_failed\r\n   9: <core::result::Result<T, E>>::unwrap\r\n  10: failpoints::storage::test_raftkv::must_put\r\n  11: failpoints::storage::test_raftkv::test_read_leader_in_lease\r\n  12: <F as test::FnBox<T>>::call_box\r\n  13: __rust_maybe_catch_panic\r\ntest storage::test_raftkv::test_raftkv ... ok\r\ntest failpoints_cases::test_storage::test_scheduler_leader_change_twice ... ok\r\ntest storage::test_raftkv::test_read_leader_in_lease ... FAILED\r\n\r\n```\r\n  ",
+  "state": "closed",
+  "created_at": "2018-01-04T03:43:48Z",
+  "updated_at": "2020-11-05T07:29:57Z",
+  "closed_at": "2020-11-03T10:18:23Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 355215314,
+      "user": "overvenus",
+      "created_at": "2018-01-04T07:24:11Z",
+      "body": "Which test does it belong to, failpoints for integrations? Could you provide more details?"
+    },
+    {
+      "id": 355224410,
+      "user": "overvenus",
+      "created_at": "2018-01-04T08:25:56Z",
+      "body": "If the test belongs to the `failpoints` and `RUST_TEST_THREADS` is greater than 1, it is interfered by other tests."
+    },
+    {
+      "id": 721026547,
+      "user": "tabokie",
+      "created_at": "2020-11-03T10:18:23Z",
+      "body": "Seems this test is already removed from `failpoints`. Closing it for now."
+    },
+    {
+      "id": 722197353,
+      "user": "tabokie",
+      "created_at": "2020-11-05T07:29:54Z",
+      "body": "/info"
+    },
+    {
+      "id": 722197370,
+      "user": "ti-srebot",
+      "created_at": "2020-11-05T07:29:56Z",
+      "body": "## Please edit this comment to complete the following information\n\n### Not a bug\n\n1. Remove the 'type/bug' label\n2. Add notes to indicate why it is not a bug\n\n### Duplicate bug\n\n1. Add the 'type/duplicate' label\n2. Add the link to the original bug\n\n### Bug\n\nNote: Make Sure that 'component', and 'severity' labels are added\nExample for how to fill out the template: https://github.com/pingcap/tidb/issues/20100\n\n#### 1. Root Cause Analysis (RCA) (optional) \n<!-- Write down the reason why this bug occurs -->\n\n#### 2. Symptom (optional)\n\n<!-- What will the user see when this bug occurs. The error message may be in the terminal, log or monitoring -->\n\n#### 3. All Trigger Conditions (optional)\n\n<!-- All the user scenarios that may trigger this bug -->\n\n#### 4. Workaround (optional)\n\n#### 5. Affected versions\n\n<!--\nIn the format of [start_version:end_version], multiple version ranges are\naccepted. If the bug only affects the unreleased version, please input:\n\"unreleased\". For example:\n\nNotes:\n  1. Do not use any white spaces in '[]'.\n  2. The range in '[]' is a closed interval\n  3. The version format is `v$Major.$Minor.$Patch`, the $Majoy and $Minor\n     number in a version range should be the same. [v3.0.1:v3.1.2] is\n     invalid because the $Minor number of the version range is different.\n\nExample 1: [v3.0.1:v3.0.5], [v4.0.1:v4.0.5]\nExample 2: unreleased\n-->\n\n#### 6. Fixed versions\n\n<!--\nThe first released version that contains this fix in each minor version. If the bug's affected version has been released, the fixed version should be a detailed version number; If the bug doesn't affect any released version, the fixed version can be \"master\";  \n\nExample 1: v3.0.13, v4.0.5\nExample 2: master\n-->"
+    }
+  ]
+}

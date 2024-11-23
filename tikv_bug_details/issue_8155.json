@@ -1,0 +1,49 @@
+{
+  "issue_number": 8155,
+  "title": "Active written leaders is wrong",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nMaster\r\n\r\n### What did happened?\r\n\r\nhttps://github.com/tikv/tikv/blob/bcea06ca85daab94f47608d7d98976ec086fb24c/components/raftstore/src/store/worker/pd.rs#L607\r\n\r\nPD updates the metrics no matter whether there are keys/bytes written or not. So active written leaders graph actually shows all leaders instead.",
+  "state": "open",
+  "created_at": "2020-06-29T11:56:09Z",
+  "updated_at": "2020-11-12T03:54:36Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/raft",
+    "difficulty/easy",
+    "priority/low",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 722857392,
+      "user": "MyonKeminta",
+      "created_at": "2020-11-06T05:49:36Z",
+      "body": "Why is #8644 closed? Is there any argument about that PR? @BusyJay @5kbpers \r\n"
+    },
+    {
+      "id": 722861258,
+      "user": "BusyJay",
+      "created_at": "2020-11-06T05:57:33Z",
+      "body": "No, I don't. I think the PR is correctly implemented."
+    },
+    {
+      "id": 723788840,
+      "user": "MyonKeminta",
+      "created_at": "2020-11-09T06:24:04Z",
+      "body": "It's still incorrect even with #8644. The grafana panel's expression\r\n```\r\nsum(rate(tikv_region_written_keys_count{instance=~\"$instance\"}[1m])) by (instance)\r\n```\r\ncalculates the metric `tikv_region_written_keys`'s updating frequency per second. However it's not updated once per sec per leader, instead, it's updated on region heart beat, which is by default once per minute. What's more, it's flush frequency is low, and seems even lower when hibernate regions is enabled (I'm not sure the reason). What's more again, it seems region heart beat may be skipped if it's hibernating.\r\n\r\nAs a result, in my test cluster, (without #8644) only after I disable hibernate regions, increase the time window of the `rate` function, and time the result by 60 (which is seconds of the default region heart beat interval), the metric becomes close to the leader count in my cluster:\r\n\r\n```\r\nsum(rate(tikv_region_written_keys_count{instance=~\"$instance\"}[10m])) by (instance) * 60\r\n```\r\n\r\nAccording to the document, the Active written leaders means to show the count of leaders that's being written. I think it should be reimplemented to make it actually works."
+    },
+    {
+      "id": 725789964,
+      "user": "BusyJay",
+      "created_at": "2020-11-12T02:35:15Z",
+      "body": "Thanks for the investigation! Do you have suggestions on design?"
+    },
+    {
+      "id": 725813313,
+      "user": "MyonKeminta",
+      "created_at": "2020-11-12T03:54:36Z",
+      "body": "Currently not. Perhaps make an LRU and let regions with writes in, and pop regions without any write for 1.5 * region_heart_beat_interval, and count it with a gauge."
+    }
+  ]
+}

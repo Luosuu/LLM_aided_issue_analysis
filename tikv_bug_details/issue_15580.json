@@ -1,0 +1,30 @@
+{
+  "issue_number": 15580,
+  "title": "[dr-autosync] online recover time out after switching to backup cluster in sync_recover mode",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.4.5\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nWhen the cluster runs in sync_recover mode, shutdown the primary dc, and restore the cluster in the backup dc.\r\nHit following error when do online unsafe recovery.\r\n\r\nclient ctl run:\r\n```\r\n[2023/09/12 04:54:46.358 +08:00] [INFO] [cluster.go:397] [\"will run cmd\"] [cmd:=\"tiup ctl:v6.5.4 pd -u http://pd3-peer.e2e-dr-auto-sync-with-tiflash-tps-2340579-1-968:2379 unsafe remove-failed-stores --auto-detect\"]\r\n2023-09-12T04:54:46.364+0800\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n```\r\npd logs:\r\n```\r\n[2023/09/12 05:05:34.903 +08:00] [INFO] [unsafe_recovery_controller.go:430] [\"Unsafe recovery store recovery plan execution timeout, retry\"] [store-id=5]\r\n[2023/09/12 05:05:34.967 +08:00] [INFO] [unsafe_recovery_controller.go:547] [\"{\\\"info\\\":\\\"Unsafe recovery failed: Exceeds timeout 2023-09-12 05:04:46.513196231 +0800 CST m=+745.880814757\\\",\\\"time\\\":\\\"2023-09-12 05:05:34.967\\\",\\\"details\\\":[\\\"affected table ids: 113, 83, 84, 88, 111, 140, 281474976710651, 42, 126, 130, 138, 110, 82, 128, 132, 134, 114, 115, 116, 136, 28, 89, 90, 91, 85, 112, 26, 86, 87\\\"]}\"]\r\n```\r\n\r\n### What did you expect?\r\nunsafe remove-failed-stores can succeed.\r\n\r\n### What did happened?\r\n\r\n```\r\n  {\r\n    \"info\": \"Unsafe recovery enters demote failed voter stage\",\r\n    \"time\": \"2023-09-12 05:04:32.885\",\r\n    \"actions\": {\r\n      \"store 8\": [\r\n        \"region 278 demotes peers { id:279 store_id:1 }, { id:341 store_id:9 }, { id:373 store_id:6 }\"\r\n      ]\r\n    }\r\n  },\r\n  {\r\n    \"info\": \"Unsafe recovery enters force leader stage\",\r\n    \"time\": \"2023-09-12 05:04:42.746\",\r\n    \"actions\": {\r\n      \"store 5\": [\r\n        \"force leader on regions: 278\"\r\n      ],\r\n      \"store 7\": [\r\n        \"force leader on regions: \"\r\n      ],\r\n      \"store 8\": [\r\n        \"force leader on regions: \"\r\n      ]\r\n    }\r\n  },\r\n  {\r\n    \"info\": \"Unsafe recovery enters exit force leader stage\",\r\n    \"time\": \"2023-09-12 05:04:49.153\",\r\n    \"details\": [\r\n      \"triggered by error: Exceeds timeout 2023-09-12 05:04:46.513196231 +0800 CST m=+745.880814757\"\r\n    ]\r\n  },\r\n  {\r\n    \"info\": \"Unsafe recovery failed: Exceeds timeout 2023-09-12 05:04:46.513196231 +0800 CST m=+745.880814757\",\r\n    \"time\": \"2023-09-12 05:05:34.967\",\r\n    \"details\": [\r\n      \"affected table ids: 113, 83, 84, 88, 111, 140, 281474976710651, 42, 126, 130, 138, 110, 82, 128, 132, 134, 114, 115, 116, 136, 28, 89, 90, 91, 85, 112, 26, 86, 87\"\r\n    ]\r\n  }\r\n]\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-09-13T01:01:26Z",
+  "updated_at": "2024-11-08T08:07:57Z",
+  "closed_at": "2023-09-14T04:42:10Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1716782545,
+      "user": "mayjiang0203",
+      "created_at": "2023-09-13T01:02:03Z",
+      "body": "/assign @v01dstar \r\n/severity critical"
+    },
+    {
+      "id": 1716783190,
+      "user": "mayjiang0203",
+      "created_at": "2023-09-13T01:03:08Z",
+      "body": "/label affects-6.5\r\n/label affects-7.1"
+    }
+  ]
+}

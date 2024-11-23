@@ -1,0 +1,39 @@
+{
+  "issue_number": 17614,
+  "title": "tikv panic repeatedly after injection one of tikv failure and recovery",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   8.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   02506bd9508990aaa65a433d5c60111f067b40be\r\nGit Commit Branch: heads/refs/tags/v8.4.0-upgrade-rocksdb\r\nUTC Build Time:    2024-10-07 02:45:47\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n2024-10-08T06:13:59.887+0800\tINFO\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run sysbench read write\r\n2、inject one of tikv failure last for 10mins\r\n\r\n### What did you expect?\r\nno panic\r\n\r\n### What did happened?\r\ntikv panic repeatedly after fault recovery\r\n`{\"log\":\"[lib.rs:479] [\\\"failed to load_latest_options \\\\\\\"Invalid argument: [RocksDBOptionsParser Error] : A valid statement must have a '='. (at line 1)\\\\\\\"\\\"] [backtrace=\\\"   0: tikv_util::set_panic_hook::{{closure}}\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:478:18\\\\n   1: <alloc::boxed::Box<F,A> as core::ops::function::Fn<Args>>::call\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:2029:9\\\\n      std::panicking::rust_panic_with_hook\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:783:13\\\\n   2: std::panicking::begin_panic_handler::{{closure}}\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:657:13\\\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:171:18\\\\n   4: rust_begin_unwind\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:645:5\\\\n   5: core::panicking::panic_fmt\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:72:14\\\\n   6: engine_rocks::util::new_engine_opt::{{closure}}\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/engine_rocks/src/util.rs:77:33\\\\n      core::result::Result<T,E>::unwrap_or_else\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:1426:23\\\\n      engine_rocks::util::new_engine_opt\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/engine_rocks/src/util.rs:77:14\\\\n   7: tikv::server::engine_factory::KvEngineFactory::create_shared_db\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/src/server/engine_factory.rs:195:13\\\\n   8: server::server::TikvServer<CER,F>::init_raw_engines\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/server/src/server.rs:1654:25\\\\n      server::server::run_impl\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/server/src/server.rs:172:35\\\\n   9: server::server::run_tikv\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/server/src/server.rs:231:5\\\\n      tikv_server::main\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/cmd/tikv-server/src/main.rs:249:31\\\\n  10: core::ops::function::FnOnce::call_once\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\\\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:155:18\\\\n  11: main\\\\n  12: __libc_start_call_main\\\\n  13: __libc_start_main_alias_1\\\\n  14: <unknown>\\\\n\\\"] [location=components/engine_rocks/src/util.rs:77] [thread_name=main] [thread_id=1]\",\"container\":\"tikv\",\"pod\":\"tc-tikv-1\",\"level\":\"FATAL\",\"namespace\":\"endless-ha-test-ticdc-tps-7631237-1-25\"}`",
+  "state": "closed",
+  "created_at": "2024-10-08T06:18:54Z",
+  "updated_at": "2024-10-09T05:45:29Z",
+  "closed_at": "2024-10-09T05:45:29Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2398950835,
+      "user": "Lily2025",
+      "created_at": "2024-10-08T06:22:33Z",
+      "body": "/severity critical  "
+    },
+    {
+      "id": 2398969367,
+      "user": "Lily2025",
+      "created_at": "2024-10-08T06:35:29Z",
+      "body": "/assign v01dstar"
+    },
+    {
+      "id": 2401366580,
+      "user": "v01dstar",
+      "created_at": "2024-10-09T05:45:23Z",
+      "body": "It should fixed by https://github.com/tikv/rust-rocksdb/pull/805/files#diff-a958fd0a71f92c480c1c468f73ed5d1a9ffcd23faed253d7fffadd7a82515be0R3544\r\n"
+    }
+  ]
+}

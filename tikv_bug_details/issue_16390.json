@@ -1,0 +1,38 @@
+{
+  "issue_number": 16390,
+  "title": "tikv max gap of resolved ts metrics may be incorrect",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV \r\nRelease Version:   7.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   956c9f377d759b45b92531e0eebda1b880a8ecc7\r\nGit Commit Branch: heads/refs/tags/v7.6.0-alpha\r\nUTC Build Time:    2024-01-10 11:44:50\r\nRust Version:      rustc 1.76.0-nightly (06e02d5b2 2023-12-09)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. logs show that tikv-12 min-lock tso is 446932621116571716, and the tso is  2024-01-11 02:50:47.692 +0800 ,max gap is larger than 24h\r\n``` 2024-01-12 11:08:25 (UTC+08:00)TiKV maincluster-tikv-12.maincluster-tikv-peer.stable-testbed-47l4r.svc:20160[[endpoint.rs:575](http://endpoint.rs:575/)] [\"the max gap of leader resolved-ts is large\"] [last_resolve_attempt=None] [duration_to_last_update_safe_ts=21641ms] [min_memory_lock=None] [txn_num=1] [lock_num=1] [min_lock=\"Some((TimeStamp(446932621116571716), TxnLocks { lock_count: 1, sample_lock: Some(7480000000000335555F7280000000000DAAE3) }))\"] [applied_index=1451790] [read_state=\"ReadState { idx: 1451789, ts: 446932621116571716 }\"] [gap=41684ms] [region_id=13466505] [thread_id=0x5]```\r\n \r\n![image](https://github.com/tikv/tikv/assets/50363732/b191469d-e3d8-415b-85e5-a34736f27065)\r\n2. but in grafana, the ts shows wrong max gap resolved ts \r\n![img_v3_0275_126184c1-06b2-4634-9ee6-46c4a9d9299g](https://github.com/tikv/tikv/assets/50363732/a46b98be-5cd9-4b09-b72b-a596442ee6b0)\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "open",
+  "created_at": "2024-01-16T07:25:26Z",
+  "updated_at": "2024-01-17T08:04:38Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1893194451,
+      "user": "AkiraXie",
+      "created_at": "2024-01-16T07:25:50Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1893199106,
+      "user": "jebter",
+      "created_at": "2024-01-16T07:30:07Z",
+      "body": "/cc @overvenus "
+    },
+    {
+      "id": 1895287244,
+      "user": "overvenus",
+      "created_at": "2024-01-17T08:03:47Z",
+      "body": "What's your dashboard timezone? It may caused by using a timezone that differs from utc+8:00."
+    }
+  ]
+}

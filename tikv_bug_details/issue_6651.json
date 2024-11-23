@@ -1,0 +1,48 @@
+{
+  "issue_number": 6651,
+  "title": "Coredump when running test case",
+  "body": "## Bug Report\r\n\r\nWhen running\r\n```\r\nmake dev\r\n```\r\n, after a long test case name and it printed a core dump message without any panic or fail case name. The message looked like following:\r\n```\r\ntikv-e88ed24a0ad8c177: /home/jay/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/6191b41/librocksdb_sys/rocksdb/memory/jemalloc_nodump_allocator.cc:123: virtual rocksdb::JemallocNodumpAllocator::~JemallocNodumpAllocator(): Assertion `s.ok()' failed.\r\n```\r\n@yiwu-arbug @Connor1996 any ideas?\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\nLinux\r\n\r\n### Steps to reproduce\r\nI can't reproduce it anymore. But what I did was just `make dev`.\r\n\r\n### What did you expect?\r\nTests finish normally.\r\n\r\n### What did happened?\r\nCoredumped.",
+  "state": "closed",
+  "created_at": "2020-02-19T16:25:31Z",
+  "updated_at": "2020-11-05T06:48:11Z",
+  "closed_at": "2020-11-05T06:48:10Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench",
+    "priority/low",
+    "sig/engine",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 588308776,
+      "user": "sre-bot",
+      "created_at": "2020-02-19T16:25:34Z",
+      "body": "Dear contributor, the first Performance challenge program has been closed. But you can still contribute to this issue and we appreciate your contribution."
+    },
+    {
+      "id": 588308781,
+      "user": "sre-bot",
+      "created_at": "2020-02-19T16:25:34Z",
+      "body": "Dear contributor, the first Performance challenge program has been closed. But you can still contribute to this issue and we appreciate your contribution."
+    },
+    {
+      "id": 588308786,
+      "user": "sre-bot",
+      "created_at": "2020-02-19T16:25:35Z",
+      "body": "Dear contributor, the first Performance challenge program has been closed. But you can still contribute to this issue and we appreciate your contribution."
+    },
+    {
+      "id": 588619172,
+      "user": "yiwu-arbug",
+      "created_at": "2020-02-20T05:38:40Z",
+      "body": "This is rocksdb failed to destroy jemalloc arena that it creates for block cache. Without a reproduce it is hard to know what's the error return from jemalloc. Related code: https://github.com/facebook/rocksdb/blob/master/memory/jemalloc_nodump_allocator.cc#L92"
+    },
+    {
+      "id": 722179703,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-11-05T06:48:10Z",
+      "body": "Can't reproduce again."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "issue_number": 17410,
+  "title": "encryption: error occurs when rotating master key",
+  "body": "## Bug Report\r\n```\r\n[2024/08/20 11:16:19.933 +00:00] [FATAL] [lib.rs:478] [\"Encryption failed to initialize: Cloud KMS error Key error: Kms error OAuth(HttpStatus(400), \\\"https://cloudkms.googleapis.com/v1/projects/qa-infra-dev/locations/us-west1/keyRings/tikv-kms-testing/cryptoKeys/tikv_kms_testing_v2/:decrypt?alt=json\\\") decrypt encrypted key failed. code: KV:Cloud:Unknown\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\r\n             at /workspace/source/tikv/components/tikv_util/src/lib.rs:477:18\r\n   1: <alloc::boxed::Box<F,A> as core::ops::function::Fn<Args>>::call\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:2029:9\r\n      std::panicking::rust_panic_with_hook\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:783:13\r\n   2: std::panicking::begin_panic_handler::{{closure}}\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:657:13\r\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:171:18\r\n   4: rust_begin_unwind\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:645:5\r\n   5: core::panicking::panic_fmt\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:72:14\r\n   6: server::common::TikvServerCore::init_encryption::{{closure}}\r\n             at /workspace/source/tikv/components/server/src/common.rs:277:13\r\n      core::result::Result<T,E>::map_err\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs:829:27\r\n      server::common::TikvServerCore::init_encryption\r\n             at /workspace/source/tikv/components/server/src/common.rs:272:39\r\n   7: server::server::run_impl\r\n             at /workspace/source/tikv/components/server/src/server.rs:165:5\r\n   8: server::server::run_tikv\r\n             at /workspace/source/tikv/components/server/src/server.rs:227:5\r\n      tikv_server::main\r\n             at /workspace/source/tikv/cmd/tikv-server/src/main.rs:249:31\r\n   9: core::ops::function::FnOnce::call_once\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\r\n      std::sys_common::backtrace::__rust_begin_short_backtrace\r\n             at /root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:155:18\r\n  10: main\r\n  11: <unknown>\r\n  12: __libc_start_main\r\n  13: <unknown>\r\n```\r\n\r\n### What version of TiKV are you using?\r\nv8.2.0.\r\n\r\n### What operating system and CPU are you using?\r\nindependent of OS and CPU.\r\n\r\n### Steps to reproduce\r\n1. Enable GCP KMS encryption.\r\n2. Rotate to a new master key.\r\n3. Reload TiKV.\r\n\r\n### What did you expect?\r\nTiKV should reload success without errors.\r\n\r\n### What did happened?\r\nTiKV failed to reload, and errors are in the TiKV log.",
+  "state": "closed",
+  "created_at": "2024-08-21T11:09:18Z",
+  "updated_at": "2024-08-27T10:19:26Z",
+  "closed_at": "2024-08-23T02:18:15Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2304121249,
+      "user": "hhwyt",
+      "created_at": "2024-08-22T08:48:56Z",
+      "body": "/assign @hhwyt "
+    }
+  ]
+}

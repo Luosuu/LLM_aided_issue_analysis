@@ -1,0 +1,21 @@
+{
+  "issue_number": 11082,
+  "title": "CDC message batching is too aggressive and may exceed the default memory quota   ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv5.1.1\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1 tikv(ssd) 1 cdc(hdd) cluster.\r\nSet tidb gc lifetime to 2400h.\r\nSysbench prepare 10 tables, 100GB data.\r\nCreate a changefeed start-ts = gcsafepoint+1\r\n\r\n### What did you expect?\r\n\r\nMemory consumption should be not exceed the default memory quota(512MB). \r\n\r\n### What did happened?\r\n\r\nCDC message batching is too aggressive and may exceed the default memory quota. It causes eventfeed RPC meltdown.\r\n![image](https://user-images.githubusercontent.com/2150711/137587711-a4415329-bea7-4bb7-bee8-0ca92cdabf17.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-10-16T12:38:42Z",
+  "updated_at": "2021-10-18T12:30:42Z",
+  "closed_at": "2021-10-18T12:30:42Z",
+  "labels": [
+    "type/bug",
+    "component/CDC"
+  ],
+  "comments_data": [
+    {
+      "id": 944909913,
+      "user": "overvenus",
+      "created_at": "2021-10-16T12:44:02Z",
+      "body": "After decreasing batch params, memory consumption is much smaller.\r\n\r\n```diff\r\ndiff --git a/components/cdc/src/channel.rs b/components/cdc/src/channel.rs\r\nindex 56917233b..c4bb6add6 100644\r\n--- a/components/cdc/src/channel.rs\r\n+++ b/components/cdc/src/channel.rs\r\n@@ -19,8 +19,9 @@ use kvproto::cdcpb::ChangeDataEvent;\r\n use tikv_util::{impl_display_as_debug, warn};\r\n\r\n use crate::service::{CdcEvent, EventBatcher};\r\n+use crate::metrics::*;\r\n\r\n-const CDC_MSG_MAX_BATCH_SIZE: usize = 128;\r\n+const CDC_MSG_MAX_BATCH_SIZE: usize = 63;\r\n // Assume the average size of event is 1KB.\r\n // 2 = (CDC_MSG_MAX_BATCH_SIZE * 1KB / service::CDC_MAX_RESP_SIZE).ceil() + 1 /* reserve for ResolvedTs */;\r\n pub const CDC_EVENT_MAX_BATCH_SIZE: usize = 2;\r\ndiff --git a/components/cdc/src/delegate.rs b/components/cdc/src/delegate.rs\r\nindex 7da71943e..6bc33de44 100644\r\n--- a/components/cdc/src/delegate.rs\r\n+++ b/components/cdc/src/delegate.rs\r\n@@ -40,7 +40,7 @@ use crate::old_value::{OldValueCache, OldValueCallback};\r\n use crate::service::{CdcEvent, ConnID};\r\n use crate::{Error, Result};\r\n\r\n-const EVENT_MAX_SIZE: usize = 6 * 1024 * 1024; // 6MB\r\n+const EVENT_MAX_SIZE: usize = 32 * 1024; // 6MB\r\n static DOWNSTREAM_ID_ALLOC: AtomicUsize = AtomicUsize::new(0);\r\n\r\n /// A unique identifier of a Downstream.\r\ndiff --git a/components/cdc/src/service.rs b/components/cdc/src/service.rs\r\nindex fc60b2be6..fada281e8 100644\r\n--- a/components/cdc/src/service.rs\r\n+++ b/components/cdc/src/service.rs\r\n@@ -279,7 +279,7 @@ impl ChangeData for Service {\r\n         mut sink: DuplexSink<ChangeDataEvent>,\r\n     ) {\r\n         // TODO explain buffer.\r\n-        let buffer = 1024;\r\n+        let buffer = 128;\r\n         let (event_sink, mut event_drain) = channel(buffer, self.memory_quota.clone());\r\n         let peer = ctx.peer();\r\n         let conn = Conn::new(event_sink, peer);\r\n```\r\n\r\n![image](https://user-images.githubusercontent.com/2150711/137587765-9bc759df-ffe1-4604-87c4-c612078e386c.png)\r\n"
+    }
+  ]
+}

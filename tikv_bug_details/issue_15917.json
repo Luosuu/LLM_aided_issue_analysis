@@ -1,0 +1,16 @@
+{
+  "issue_number": 15917,
+  "title": "Priority Scheduling Optimization",
+  "body": "## Development Task\r\n\r\nCurrently, the tasks scheduling across different resource groups are handled via a priority queue, it works well when the task arrival   rate from different resource group are at a similar level. But still, low-priority resource group may consume more resource by send tasks at a much higher rate than other groups. Also our control between read & write is not very good as these two kind of tasks are running in two separate thread pool.\r\n\r\nIn order to handle this issue, we decided to apply a auto tuned quota-limiter to each priority, by adjusting the quota of each limiter periodically, we can adjust the resource usage of each priority level so we can avoid low-priority tasks consuming too many resources.\r\n\r\n## Tasks\r\n- Add Priority-level Quota Limiter\r\n- Add a background task to auto-tune each quota limiter\r\n- (maybe) Use unified-read-pool to replace txn-scheduler-worker-pool \r\n",
+  "state": "closed",
+  "created_at": "2023-11-03T10:53:54Z",
+  "updated_at": "2023-11-10T12:39:44Z",
+  "closed_at": "2023-11-10T12:39:44Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "severity/major",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,21 @@
+{
+  "issue_number": 12009,
+  "title": "Apply can't catch up when raft engine is enabled",
+  "body": "## Bug Report\r\n\r\nApply lagging -> Entry cache evicted -> Apply needs to fetch raft logs from Raft Engine\r\n\r\n![image](https://user-images.githubusercontent.com/27005812/155275763-30e5379e-a62f-4634-9219-c30497d5670d.png)\r\n\r\n![image](https://user-images.githubusercontent.com/27005812/155275508-7d2c007e-dd83-4813-82ae-379096480859.png)\r\n\r\n### What version of TiKV are you using?\r\n\r\nNightly\r\n\r\n### What operating system and CPU are you using?\r\n\r\nN/A\r\n\r\n### Steps to reproduce\r\n\r\nFollower apply is slower than leader append.\r\n\r\n### What did you expect?\r\n\r\nApply can catch up eventually.\r\n\r\n### What did happened?\r\n\r\nRaft Engine grows oversized. TiKV repeatedly reports `target region still not catch up, skip.`.",
+  "state": "closed",
+  "created_at": "2022-02-23T07:20:25Z",
+  "updated_at": "2022-02-28T11:28:56Z",
+  "closed_at": "2022-02-28T11:28:56Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1048511383,
+      "user": "tabokie",
+      "created_at": "2022-02-23T07:31:22Z",
+      "body": "Ultimately, this situation can only be avoided by constraining leader write flow when follower apply is lagging.\r\n\r\nFor the time being, we can do two things to alleviate the impact of this issue:\r\n- Rewrite Raft Groups that consistently lags behind others: https://github.com/tikv/raft-engine/pull/193\r\n- Improve the read performance of Raft Engine: https://github.com/tikv/raft-engine/pull/194\r\n\r\nWorkaround: https://github.com/tikv/tikv/issues/12011#issuecomment-1049477349"
+    }
+  ]
+}

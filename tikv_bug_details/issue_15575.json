@@ -1,0 +1,26 @@
+{
+  "issue_number": 15575,
+  "title": "[Dynamic Regions] Auto Analyze failed for context deadline exceeded",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nRelease Version:   7.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   87d0f7cf143524222b4b0d80a4a8c5e02d11cf67\r\nGit Commit Branch: heads/refs/tags/v7.4.0-alpha\r\nUTC Build Time:    2023-09-07 11:47:00\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nThe cluster contains about 60 tikv with dynamic region enabled, each tikv contains 2.5TB data, a table contains about 6billion rows with each row size about 10kb.\r\nauto analyze always failed for wait recvLoop: context deadline exceeded\r\n```\r\nmysql> show analyze status \\G\r\n*************************** 1. row ***************************\r\n        Table_schema: xxx\r\n          Table_name: t1\r\n      Partition_name:\r\n            Job_info: auto analyze table all columns with 256 buckets, 500 topn, 6.058293454781894e-05 samplerate\r\n      Processed_rows: 41324846\r\n          Start_time: 2023-09-12 17:06:54\r\n            End_time: NULL\r\n               State: running\r\n         Fail_reason: NULL\r\n            Instance: tc-tidb-4.tc-tidb-peer.partition-raft-s9dkz.svc:4000\r\n          Process_ID: 1917548278841343\r\n   Remaining_seconds: -279h36m27s\r\n            Progress: 0.02276134057120847\r\nEstimated_total_rows: 1815571709\r\n*************************** 2. row ***************************\r\n        Table_schema: xxx\r\n          Table_name: t1\r\n      Partition_name:\r\n            Job_info: auto analyze table all columns with 256 buckets, 500 topn, 6.058174326120741e-05 samplerate\r\n      Processed_rows: 107188153\r\n          Start_time: 2023-09-12 14:38:40\r\n            End_time: 2023-09-12 17:06:54\r\n               State: failed\r\n         Fail_reason: wait recvLoop: context deadline exceeded\r\n            Instance: tc-tidb-4.tc-tidb-peer.partition-raft-s9dkz.svc:4000\r\n          Process_ID: NULL\r\n   Remaining_seconds: NULL\r\n            Progress: NULL\r\nEstimated_total_rows: NULL\r\n*************************** 3. row ***************************\r\n        Table_schema: xxx\r\n          Table_name: t1\r\n      Partition_name:\r\n            Job_info: auto analyze table all columns with 256 buckets, 500 topn, 6.058174329457239e-05 samplerate\r\n      Processed_rows: 107188157\r\n          Start_time: 2023-09-12 12:37:35\r\n            End_time: 2023-09-12 14:38:40\r\n               State: failed\r\n         Fail_reason: wait recvLoop: context deadline exceeded\r\n            Instance: tc-tidb-4.tc-tidb-peer.partition-raft-s9dkz.svc:4000\r\n          Process_ID: NULL\r\n   Remaining_seconds: NULL\r\n            Progress: NULL\r\nEstimated_total_rows: NULL\r\n```\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "open",
+  "created_at": "2023-09-12T10:40:38Z",
+  "updated_at": "2023-10-23T22:39:31Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1715524330,
+      "user": "glorv",
+      "created_at": "2023-09-12T11:12:00Z",
+      "body": "/cc @winoros "
+    }
+  ]
+}

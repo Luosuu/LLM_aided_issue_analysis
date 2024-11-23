@@ -1,0 +1,45 @@
+{
+  "issue_number": 13758,
+  "title": "one tikv is isolated from others tikv, and services are unavailable during a failure",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   97ab36eb7147cde02c1654595f99104155ac0c21\r\nGit Commit Branch: heads/refs/tags/v6.4.0-alpha\r\nUTC Build Time:    2022-11-02 11:01:58\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c、16G\r\n\r\n### Steps to reproduce\r\ninject one tikv isolated from others tikv last for 10m\r\n[cmd=\"go-tpc tpcc run -D tpcc10000 --host tc-tidb.glh-master-htap-xxw5g -P4000 --warehouses 10000 -T 8 --time 36000m --ignore-error '2013,1213,1105,1205,8022,8028,9004,9007,1062' --password ''\"] [nodename=benchtoolset]\r\n\r\n### What did you expect?\r\nqps can recover in 2mins\r\n\r\n### What did happened?\r\none tikv is isolated from others tikv, and services are unavailable during a failure\r\n![image](https://user-images.githubusercontent.com/84712107/200755666-17841bc2-bbbd-40a9-a0f8-4f7a05b4547a.png)\r\n![image](https://user-images.githubusercontent.com/84712107/200755897-41945887-2970-458d-9296-ad7a6de2a730.png)\r\n![image](https://user-images.githubusercontent.com/84712107/200755792-dbe4bd8a-a0ce-4e35-a5f7-43290aab83d6.png)\r\n",
+  "state": "open",
+  "created_at": "2022-11-09T06:31:15Z",
+  "updated_at": "2024-11-01T10:18:20Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1308277087,
+      "user": "Lily2025",
+      "created_at": "2022-11-09T06:32:46Z",
+      "body": "/type bug\r\n/severity major\r\n/assign tonyxuqqi"
+    },
+    {
+      "id": 1736708373,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-27T05:04:20Z",
+      "body": "/close"
+    },
+    {
+      "id": 1809420550,
+      "user": "Lily2025",
+      "created_at": "2023-11-14T01:58:20Z",
+      "body": "issue still exists"
+    },
+    {
+      "id": 1809421232,
+      "user": "jebter",
+      "created_at": "2023-11-14T01:59:24Z",
+      "body": "/open"
+    }
+  ]
+}

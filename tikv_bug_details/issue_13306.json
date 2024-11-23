@@ -1,0 +1,40 @@
+{
+  "issue_number": 13306,
+  "title": "Lots of log backup generated during data preparation",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n│/ # /tikv-server -V\r\n│TiKV\r\n│Release Version: 6.2.0-alpha\r\n│Edition: Community\r\n│Git Commit Hash: https://github.com/tikv/tikv/commit/7824699f4e05feb3eb37b12265ecc1e26511a4d7\r\n│Git Commit Branch: heads/refs/tags/v6.2.0\r\n│UTC Build Time: 2022-08-11 13:49:18\r\n│Rust Version: rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\n│Enable Features: pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-e\r\n│ngine cloud-aws cloud-gcp cloud-azure\r\n│Profile: dist_release\r\n\r\n### What operating system and CPU are you using?\r\nCentOS 8C\r\n\r\n### Steps to reproduce\r\n1. Start log backup task\r\n2. Run sysbench prepare to insert 1 billion rows of data, after it finishes  PD storage size is 385.4 GB， table size from information_schame is about 240GB\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/185345041-ea8a573d-7189-4b3a-8f90-0c87e6725b87.png)\r\n\r\nTake full backup,  total kv size s about 700GB, backup data size after compressed is about 110GB\r\n![M14DEhWQh2](https://user-images.githubusercontent.com/7403864/185346208-9da277e4-e549-4537-aa1c-19193e9ba287.jpg)\r\n\r\n3. Check size of log backups\r\n\r\n### What did you expect?\r\nLog backup should not be too big\r\n\r\n### What did happened?\r\nLog backup is about 1.5TB, which is much larger than tikv data size.\r\n![image](https://user-images.githubusercontent.com/7403864/185346529-33c94a48-4328-45bc-b89f-c0f88b89c678.png)\r\n![image](https://user-images.githubusercontent.com/7403864/185354317-9f71db66-40cb-4e20-8308-f24955426ba1.png)\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-08-18T08:21:51Z",
+  "updated_at": "2022-09-02T01:56:41Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1219180888,
+      "user": "fubinzh",
+      "created_at": "2022-08-18T08:22:12Z",
+      "body": "/type bug\r\n/severity Major"
+    },
+    {
+      "id": 1219181631,
+      "user": "fubinzh",
+      "created_at": "2022-08-18T08:22:58Z",
+      "body": "/remove-label severity/major"
+    },
+    {
+      "id": 1219181659,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-18T08:22:59Z",
+      "body": "@fubinzh: The label(s) `severity/major` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, needs-cherry-pick-6.1, needs-cherry-pick-6.2, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13306#issuecomment-1219181631):\n\n>/remove-label severity/major\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1234980022,
+      "user": "Leavrth",
+      "created_at": "2022-09-02T01:56:40Z",
+      "body": "Updated by https://github.com/tikv/tikv/pull/13233\r\n1. Start log backup task\r\n2. Insert into about 1 billion rows for one table by `sysbench oltp_write_only prepare`.\r\n3. After it finishes, PD storage size is 333.5 GB, and table size from information_schame is about 185 GB.\r\n```\r\nmysql> select round((data_length/1024/1024),2) as data from information_schema.tables where table_schema = 'test' and table_name = 'sbtest1';\r\n+-----------+\r\n| data      |\r\n+-----------+\r\n| 189570.05 |\r\n+-----------+\r\n1 row in set (0.01 sec)\r\n\r\nmysql> select count(*) from test.sbtest1;\r\n+------------+\r\n| count(*)   |\r\n+------------+\r\n| 1008562587 |\r\n+------------+\r\n1 row in set (8.10 sec)\r\n```\r\n\r\n4. Do full backup.\r\n```\r\n./br backup full  -s \"local:///mnt/nfs/less_files/full-cluster2\" -u 10.2.7.108:2379 --check-requirements=false\r\nDetail BR log in /tmp/br.log.2022-09-02T09.36.05+0800 \r\nFull Backup <----------------------------------------------------------------------------------------------> 100.00%\r\nChecksum <-------------------------------------------------------------------------------------------------> 100.00%\r\n[2022/09/02 09:49:49.992 +08:00] [INFO] [collector.go:69] [\"Full Backup success summary\"] [total-ranges=2479] [ranges-succeed=2479] [ranges-failed=0] [backup-checksum=6m22.111064864s] [backup-fast-checksum=4.404632ms] [backup-total-ranges=71] [backup-total-regions=2525] [total-take=13m44.822822036s] [BackupTS=435704971135287297] [total-kv=1008565827] [total-kv-size=217.9GB] [average-speed=264.1MB/s] [backup-data-size(after-compressed)=99.38GB] [Size=99375337222]\r\n```\r\n```\r\ntotal-kv-size=217.9GB\r\nbackup-data-size(after-compressed)=99.38GB\r\n```\r\n\r\n6. The size of log backup files is about 236 GB.\r\n```\r\ndu -shl *   \r\n4.0K    backup.lock\r\n152K    backupmeta\r\n236G    v1\r\n```\r\n"
+    }
+  ]
+}

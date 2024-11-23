@@ -1,0 +1,27 @@
+{
+  "issue_number": 14874,
+  "title": "Too many \"cannot step raft local message\" when RejectRaftAppend occurs",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nDo an evict leader on a TiKV with 100K regions.\r\n\r\n### What did you expect?\r\nWe observed lots of raft-entry cached and thus trigger the append reject logic below. \r\nCasualMessage::RejectRaftAppend { peer_id } => {\r\n                let mut msg = raft::eraftpb::Message::new();\r\n                msg.msg_type = MessageType::MsgUnreachable;\r\n                [msg.to](http://msg.to/) = peer_id;\r\n                msg.from = self.fsm.peer.peer_id();\r\n                self.fsm.peer.send(\r\n                    &mut self.ctx.trans,\r\n                    vec![msg],\r\n                    &mut self.ctx.raft_metrics.send_message,\r\n                );\r\n            }\r\n\r\nHowever, the MsgUnreachable cannot be step because it's a local message. \r\n### What did happened?\r\nThe message is ignored and there're lots of error message \"cannot step raft local message\".",
+  "state": "open",
+  "created_at": "2023-06-03T01:18:23Z",
+  "updated_at": "2023-06-21T07:30:15Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1586992366,
+      "user": "cfzjywxk",
+      "created_at": "2023-06-12T09:55:59Z",
+      "body": "Maybe when the receives a `MsgUnreachable` message from the follower, just process it like `SignificantMsg::Unreachable` but not `step` it directly."
+    },
+    {
+      "id": 1600326339,
+      "user": "MyonKeminta",
+      "created_at": "2023-06-21T07:29:52Z",
+      "body": "The only effect of this issue is to produce some useless logs. It won't cause any other problem."
+    }
+  ]
+}

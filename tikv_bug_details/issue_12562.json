@@ -1,0 +1,44 @@
+{
+  "issue_number": 12562,
+  "title": "tls metrics is not reliable",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nNightly\r\n\r\n### What operating system and CPU are you using?\r\nLinux\r\n\r\n### Steps to reproduce\r\nRun test case `raftstore::test_stats::test_query_stats` several times\r\n\r\n### What did you expect?\r\nTest case always pass.\r\n\r\n### What did happened?\r\nIt will panic eventually.\r\n\r\ntls metrics relies on periodically calling `tls_flush` to aggregate counters. The metrics is also used for flow reports and can affect the PD scheduling.\r\n\r\nThe fundamental pitfall of tls is that it's maintained by thread itself, other threads have no access to the storage, hence it's critical to ensure all threads that have mutation must call `tls_flush` afterwards, otherwise the metrics will be missed. Coprocessor thread pool and scheduler thread pool are hooked up. However, there is no such guarantee in grpc thread.\r\n\r\nAnd because we are using async/await, which thread the execution takes place is unpredictable, so the metrics can be mutated in all possible threads. So the metrics collected in grpc thread will be missed and cause the case panic.\r\n\r\nTo get around the problem, we can also add `tls_flush` to all grpc threads.\r\n\r\nTo fix the fundamental problems, we may need to redesign and reimplement TLS. For example, instead of using thread local variables, we can use global metrics and shard one for each threads.\r\n\r\n```\r\n|<pading> metrics <pading>|<pading> metrics <pading>| ...\r\n```\r\n\r\nAnd a thread can be used for polling and aggregating metrics periodically.\r\n\r\nAnother alternatives is using per-core metrics just like RocksDB does. http://rocksdb.org/blog/2017/05/14/core-local-stats.html\r\n\r\nPrevious discussions #2651 #4565\r\n\r\n/cc @breezewish @lhy1024 ",
+  "state": "open",
+  "created_at": "2022-05-17T19:54:07Z",
+  "updated_at": "2024-11-01T10:17:54Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1129396660,
+      "user": "breezewish",
+      "created_at": "2022-05-17T22:53:13Z",
+      "body": "The current TLS metrics work unreliably *by design*. We design the TLS metrics to be flush \"eventually\", as long as all threads got a chance to be scheduled. \r\n\r\na. It is possible that a thread is not flushed in time (e.g. in 15sec) so that the reported data is delayed. This could be accepted since it will happen only if the cluster is idle and it is not our main scenario. It is accepted even when it really happens, as individual delay for the metrics may even not be noticed by users.\r\n\r\nb. It is also possible that metrics data got lost when a thread is destroyed before flushing. This could also be accepted by design since threads in TiKV works in a thread pool way (or let's say, this is what TLS metrics user need to ensure).\r\n\r\nThe major problem we are encountering now might be: We observe the metrics in the test while the test does not guarantee that all threads have chance to be scheduled (as in real world?). This makes tests failed. \r\n\r\n---\r\n\r\nI do agree that this design is too simple and we could make it better with some nice designs that will not sacrifice timeliness while preserving performance. There could be a refinement for the rust-prometheus crate as the usage was also becoming more complicated with comes with \"static metrics\".\r\n\r\nAbout sharing the metrics ref, I think we need to discuss about this further: What if a thread is created and destroyed? How could we maintain the lifecycle of the global ref correctly?\r\n\r\nThe first idea comes up to me is to have something like pthread ThreadID, that could be used to know a thread is destroyed externally."
+    },
+    {
+      "id": 1129408251,
+      "user": "BusyJay",
+      "created_at": "2022-05-17T23:15:52Z",
+      "body": "Using per core metrics doesn't require tracking thread lifetime."
+    },
+    {
+      "id": 1129412168,
+      "user": "breezewish",
+      "created_at": "2022-05-17T23:21:13Z",
+      "body": "> Using per core metrics doesn't require tracking thread lifetime.\r\n\r\nOne thing worries about me is how to know which core the call is working on *efficiently*. In Timeline Tracing we use `RDTSCP` instruction which contains a CPU core information. However it is not portable (and this instruction does take small amount of time, at least noticeably cost more time than a simple TLS ADD). RocksDB uses [CPUID](https://github.com/facebook/rocksdb/blob/ac39d6bec5b2c23a2c3fd0f0e61d468be4f3e803/port/port_posix.cc#L141) + `sched_getcpu()` which could be portable, but was reported to have some high costs in certain cloud environments when `sched_getcpu` is not available https://github.com/facebook/rocksdb/issues/3889"
+    }
+  ]
+}

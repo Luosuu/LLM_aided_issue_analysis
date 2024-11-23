@@ -1,0 +1,63 @@
+{
+  "issue_number": 11765,
+  "title": "Unstable test: resource_metering::test_read_keys::test_read_keys_coprocessor",
+  "body": "## Bug Report\r\n\r\nSee https://ci.pingcap.net/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/14507/nodes/113/steps/272/log/?start=0 for details.\r\n\r\n```\r\n[2021-12-31T06:23:53.148Z] test resource_metering::test_read_keys::test_read_keys_coprocessor ... thread 'main' panicked at 'assertion failed: `(left == right)`\r\n[2021-12-31T06:23:53.148Z]   left: `8`,\r\n[2021-12-31T06:23:53.148Z]  right: `4`', tests/integrations/resource_metering/test_read_keys.rs:218:5\r\n[2021-12-31T06:23:53.148Z] stack backtrace:\r\n[2021-12-31T06:23:53.148Z]    0: rust_begin_unwind\r\n[2021-12-31T06:23:53.148Z]              at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:515:5\r\n[2021-12-31T06:23:53.148Z]    1: core::panicking::panic_fmt\r\n[2021-12-31T06:23:53.148Z]              at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/panicking.rs:92:14\r\n[2021-12-31T06:23:53.148Z]    2: core::panicking::assert_failed_inner\r\n[2021-12-31T06:23:53.406Z]    3: core::panicking::assert_failed\r\n[2021-12-31T06:23:53.406Z]              at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/panicking.rs:117:5\r\n[2021-12-31T06:23:53.406Z]    4: integrations::resource_metering::test_read_keys::test_read_keys_coprocessor\r\n[2021-12-31T06:23:53.406Z]              at /home/jenkins/tikv-src/tests/integrations/resource_metering/test_read_keys.rs:218:5\r\n[2021-12-31T06:23:53.406Z]    5: integrations::resource_metering::test_read_keys::test_read_keys_coprocessor::{{closure}}\r\n[2021-12-31T06:23:53.406Z]              at /home/jenkins/tikv-src/tests/integrations/resource_metering/test_read_keys.rs:177:1\r\n[2021-12-31T06:23:53.406Z]    6: core::ops::function::FnOnce::call_once\r\n[2021-12-31T06:23:53.406Z]              at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/ops/function.rs:227:5\r\n[2021-12-31T06:23:53.406Z]    7: test_util::runner::run_test_with_hook::{{closure}}::{{closure}}\r\n[2021-12-31T06:23:53.406Z]              at /home/jenkins/tikv-src/components/test_util/src/runner.rs:64:21\r\n[2021-12-31T06:23:53.406Z]    8: core::ops::function::FnOnce::call_once{{vtable.shim}}\r\n[2021-12-31T06:23:53.406Z]              at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/ops/function.rs:227:5\r\n[2021-12-31T06:23:53.406Z]    9: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\r\n[2021-12-31T06:23:53.406Z]              at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572:9\r\n[2021-12-31T06:23:53.406Z] note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n```",
+  "state": "closed",
+  "created_at": "2021-12-31T06:39:52Z",
+  "updated_at": "2022-01-08T09:21:45Z",
+  "closed_at": "2022-01-08T09:21:45Z",
+  "labels": [
+    "type/bug",
+    "component/test"
+  ],
+  "comments_data": [
+    {
+      "id": 1003323927,
+      "user": "breezewish",
+      "created_at": "2021-12-31T09:36:13Z",
+      "body": "@mornyx PTAL~"
+    },
+    {
+      "id": 1004572588,
+      "user": "tonyxuqqi",
+      "created_at": "2022-01-04T07:08:33Z",
+      "body": "/assign mornyx "
+    },
+    {
+      "id": 1004572596,
+      "user": "ti-chi-bot",
+      "created_at": "2022-01-04T07:08:34Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: mornyx.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/11765#issuecomment-1004572588):\n\n>/assign mornyx \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1005331926,
+      "user": "mornyx",
+      "created_at": "2022-01-05T02:36:20Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1007619492,
+      "user": "tonyxuqqi",
+      "created_at": "2022-01-07T18:06:51Z",
+      "body": "/close"
+    },
+    {
+      "id": 1007619524,
+      "user": "ti-chi-bot",
+      "created_at": "2022-01-07T18:06:53Z",
+      "body": "@tonyxuqqi: You can't close an active issue/PR unless you authored it or you are a collaborator.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/11765#issuecomment-1007619492):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1007880989,
+      "user": "mornyx",
+      "created_at": "2022-01-08T04:03:31Z",
+      "body": "/close"
+    },
+    {
+      "id": 1007880992,
+      "user": "ti-chi-bot",
+      "created_at": "2022-01-08T04:03:33Z",
+      "body": "@mornyx: You can't close an active issue/PR unless you authored it or you are a collaborator.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/11765#issuecomment-1007880989):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

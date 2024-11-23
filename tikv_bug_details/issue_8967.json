@@ -1,0 +1,35 @@
+{
+  "issue_number": 8967,
+  "title": "Rolling upgrade from 2.1 or older version to newer version may break region replicas consistency",
+  "body": "## Bug Report\r\nDue to compatibility issues introduced in https://github.com/tikv/tikv/pull/3807, the new and old versions will behave differently for split operation. Therefore, during the upgrade process, when the leader of a region is of version 2.1 and the follower is version 3.0, if the region promotes learner after the split is initiated, the follower of version 3.0 will silently ignore the split operation. Thus, the follower's region epoch version will be smaller than the leader's region epoch version. When the leader transfers the leader to this follower, this new leader will always complain epoch not match because the epoch version is less than the epoch version stored by the PD. Eventually, the read, write, and scheduling requests of this region cannot succeed, and the region cannot provide services normally.\r\n\r\n### Phenomenon:\r\n\r\n- When rolling upgrade, the leader fails to transfer and can not provide service with the error of “get snapshot failed: EpochNotMatch”. \r\n- There are some regions always with pending peer\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-11-05T04:12:23Z",
+  "updated_at": "2020-11-10T06:32:07Z",
+  "closed_at": "2020-11-09T05:28:06Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/critical",
+    "won't fix"
+  ],
+  "comments_data": [
+    {
+      "id": 723573523,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-11-08T12:53:16Z",
+      "body": "@Connor1996 Please add the workaround"
+    },
+    {
+      "id": 723725574,
+      "user": "Connor1996",
+      "created_at": "2020-11-09T02:57:35Z",
+      "body": "Workaround when doing rolling upgrade :\r\n1. Disable PD schedule by setting all xxx-limit to 0\r\n2. Confirm there is no schedule operation by `pd-ctl operator show`\r\n3. Confirm no pending-peer by `pd-ctl region check pending-peer`\r\n4. Wait 5 minutes (you can wait even longer to avoid extreme condition)\r\n5. Do rolling upgrade\r\n6. After finishing upgrading, enable PD schedule"
+    },
+    {
+      "id": 723764774,
+      "user": "Connor1996",
+      "created_at": "2020-11-09T05:28:04Z",
+      "body": "Won't fix cause it's hard to relieve an already existed incompatibility problem. So please just use the workaround to avoid this case when doing a rolling upgrade."
+    }
+  ]
+}

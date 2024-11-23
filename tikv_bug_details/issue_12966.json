@@ -1,0 +1,52 @@
+{
+  "issue_number": 12966,
+  "title": "one az is isolated from other az networks, and the service is unavailable for 4 minutes",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.1.0\r\nEdition:           Community\r\nGit Commit Hash:   080d086832ae5ce2495352dccaf8df5d40f30687\r\nGit Commit Branch: heads/refs/tags/v6.1.0\r\nUTC Build Time:    2022-06-10 11:22:39\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8core、32g\r\n\r\n### Steps to reproduce\r\ninject one az is isolated from other az networks\r\n\r\n### What did you expect?\r\nthe service is available\r\n\r\n### What did happened?\r\nthe service is unavailable for 4 minutes\r\n![image](https://user-images.githubusercontent.com/84712107/177475459-cb9b016e-8388-4b4c-86a0-74c22d7e64b7.png)\r\n\r\nmore info see https://pingcap.feishu.cn/wiki/wikcnzK33Ck6q1BQldXOnMUMvPc\r\n",
+  "state": "closed",
+  "created_at": "2022-07-06T05:29:28Z",
+  "updated_at": "2022-08-19T09:52:54Z",
+  "closed_at": "2022-08-19T09:52:54Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1175797912,
+      "user": "Lily2025",
+      "created_at": "2022-07-06T05:29:58Z",
+      "body": "/type bug\r\n/severity major\r\n/assign cosven"
+    },
+    {
+      "id": 1175797921,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-06T05:29:59Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: cosven.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12966#issuecomment-1175797912):\n\n>/type bug\r\n>/severity major\r\n>/assign cosven\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1175799520,
+      "user": "cosven",
+      "created_at": "2022-07-06T05:33:07Z",
+      "body": "This issue is in investigation. I'll update this issue when there is any update.\r\n\r\n/assign @cosven"
+    },
+    {
+      "id": 1216880878,
+      "user": "cosven",
+      "created_at": "2022-08-16T16:36:48Z",
+      "body": "This bug can affects all the old versions. However, since this will only be fixed in latest LTS version (v6.1) and lator versions, so I add and remove some labels.\r\n\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-4.0\r\n/remove-label affects-6.2\r\n/remove-label affects-6.0\r\n/remove-label affects-5.4\r\n/remove-label affects-5.3\r\n/remove-label affects-5.2\r\n/remove-label affects-5.1\r\n/remove-label affects-5.0\r\n/remove-label affects-4.0"
+    },
+    {
+      "id": 1216903059,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-16T16:55:54Z",
+      "body": "@cosven: These labels are not set on the issue: `may-affects-5.4, may-affects-5.3, may-affects-5.2, may-affects-5.1, may-affects-5.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12966#issuecomment-1216880878):\n\n>This bug can affects all the old versions. However, since this will only be fixed in latest LTS version (v6.1) and lator versions, so I add and remove some labels.\r\n>\r\n>/affects-6.1\r\n>/remove-label may-affects-6.0\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.2\r\n>/remove-label may-affects-5.1\r\n>/remove-label may-affects-5.0\r\n>/remove-label may-affects-4.0\r\n>/remove-label affects-6.2\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1216904408,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-16T16:57:07Z",
+      "body": "@cosven: These labels are not set on the issue: `may-affects-6.2, may-affects-6.0, may-affects-5.4, may-affects-5.3, may-affects-5.2, may-affects-5.1, may-affects-5.0, may-affects-4.0, affects-6.2, affects-6.0, affects-4.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12966#issuecomment-1216880878):\n\n>This bug can affects all the old versions. However, since this will only be fixed in latest LTS version (v6.1) and lator versions, so I add and remove some labels.\r\n>\r\n>/remove-label may-affects-6.2\r\n>/remove-label may-affects-6.0\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.2\r\n>/remove-label may-affects-5.1\r\n>/remove-label may-affects-5.0\r\n>/remove-label may-affects-4.0\r\n>/remove-label affects-6.2\r\n>/remove-label affects-6.0\r\n>/remove-label affects-5.4\r\n>/remove-label affects-5.3\r\n>/remove-label affects-5.2\r\n>/remove-label affects-5.1\r\n>/remove-label affects-5.0\r\n>/remove-label affects-4.0\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

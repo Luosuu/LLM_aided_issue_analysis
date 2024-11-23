@@ -1,0 +1,42 @@
+{
+  "issue_number": 12514,
+  "title": "Log backup checkpoint gap > 5 mins  during log backup",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/05/14 12:50:49.208 +08:00] [INFO] [lib.rs:84] [\"Release Version: 6.1.0-alpha\"]\r\n[2022/05/14 12:50:49.208 +08:00] [INFO] [lib.rs:84] [\"Edition: Community\"]\r\n[2022/05/14 12:50:49.208 +08:00] [INFO] [lib.rs:84] [\"Git Commit Hash: https://github.com/tikv/tikv/commit/de208b5b4e97b134bc8b7daff7a4b304c618e9e8\"]\r\n\r\n### What operating system and CPU are you using?\r\nCentOS 16U\r\n\r\n### Steps to reproduce\r\n1. Start a log backup task when there is no workload running, and check log backup status\r\n\r\n### What did you expect?\r\n1. checkpoint gap should be < 5 min\r\n\r\n### What did happened?\r\n1. The checkpoint is > 5 min every several minutes\r\n\r\n```\r\n12:13:40 root@172 20220514_package → tiup br:v6.1.0-alpha-nightly-20220514 log start --pd 172.16.5.52:2379 --storage 's3://nfs/fubin/pitr/pp_log_5?access-key=minioadmin&secret-access-key=minioadmin&endpoint=http%3a%2f%2fminio.pingcap.net%3a9000&force-path-style=true'  --task-name test5 --start-ts \"2022-05-14 12:00:00\"                                                                                                                             Starting component `br`: /root/.tiup/components/br/v6.1.0-alpha-nightly-20220514/br /root/.tiup/components/br/v6.1.0-alpha-nightly-20220514/br log start --pd 172.16.5.52:2379 --storage s3://nfs/fubin/pitr/pp_log_5?access-key=minioadmin&secret-access-key=minioadmin&endpoint=http%3a%2f%2fminio.pingcap.net%3a9000&force-path-style=true --task-name test5 --start-ts 2022-05-14 12:00:00\r\nDetail BR log in /tmp/br.log.2022-05-14T12.14.00+0800\r\n[2022/05/14 12:14:00.841 +08:00] [INFO] [collector.go:69] [\"log start\"] [streamTaskInfo=\"{taskName=test5,startTs=433193169715200000,endTS=537708095078400000,tableFilter=*.*}\"] [pausing=false] [rangeCount=2]\r\n[2022/05/14 12:14:02.174 +08:00] [INFO] [collector.go:69] [\"log start success summary\"] [total-ranges=0] [ranges-succeed=0] [ranges-failed=0] [backup-checksum=616.945µs] [total-take=1.451110996s]\r\n12:14:02 root@172 20220514_package → tiup br:v6.1.0-alpha-nightly-20220514 log start --pd 172.16.5.52:2379 --storage 's3://nfs/fubin/pitr/pp_log_5?access-key=minioadmin&secret-access-key=minioadmin&endpoint=http%3a%2f%2fminio.pingcap.net%3a9000&force-path-style=true'  --task-name test5 --start-ts \"2022-[B^C-14 12:00:00\"                                                                                                                           12:17:33 root@172 20220514_package → tiup br:v6.1.0-alpha-nightly-20220514 log status --pd 172.16.5.52:2379\r\nStarting component `br`: /root/.tiup/components/br/v6.1.0-alpha-nightly-20220514/br /root/.tiup/components/br/v6.1.0-alpha-nightly-20220514/br log status --pd 172.16.5.52:2379\r\nDetail BR log in /tmp/br.log.2022-05-14T12.17.49+0800\r\n● Total 1 Tasks.\r\n> #1 <\r\n               name: test5\r\n             status: ● NORMAL\r\n              start: 2022-05-14 12:00:00 +0800 CST\r\n                end: 2035-01-01 00:00:00 +0800 CST\r\n            storage: s3://nfs/fubin/pitr/pp_log_5\r\n        speed(est.): 535160.47 ops/s\r\n checkpoint[global]: 2022-05-14 12:15:26.518 +0800 CST; gap=2m24s\r\ncheckpoint[store=1]: 2022-05-14 12:15:29.968 +0800 CST; gap=2m21s\r\ncheckpoint[store=4]: 2022-05-14 12:15:26.518 +0800 CST; gap=2m24s\r\ncheckpoint[store=5]: 2022-05-14 12:15:26.518 +0800 CST; gap=2m24s\r\ncheckpoint[store=6]: 2022-05-14 12:15:26.518 +0800 CST; gap=2m24s\r\n12:17:51 root@172 20220514_package → tiup br:v6.1.0-alpha-nightly-20220514 log status --pd 172.16.5.52:2379\r\nStarting component `br`: /root/.tiup/components/br/v6.1.0-alpha-nightly-20220514/br /root/.tiup/components/br/v6.1.0-alpha-nightly-20220514/br log status --pd 172.16.5.52:2379\r\nDetail BR log in /tmp/br.log.2022-05-14T13.23.44+0800\r\n● Total 1 Tasks.\r\n> #1 <\r\n               name: test5\r\n             status: ● NORMAL\r\n              start: 2022-05-14 12:00:00 +0800 CST\r\n                end: 2035-01-01 00:00:00 +0800 CST\r\n            storage: s3://nfs/fubin/pitr/pp_log_5\r\n        speed(est.): 0.00 ops/s\r\n checkpoint[global]: 2022-05-14 13:15:39.018 +0800 CST; gap=8m6s\r\ncheckpoint[store=1]: 2022-05-14 13:20:05.718 +0800 CST; gap=3m40s\r\ncheckpoint[store=4]: 2022-05-14 13:20:11.168 +0800 CST; gap=3m34s\r\ncheckpoint[store=5]: 2022-05-14 13:20:06.418 +0800 CST; gap=3m39s\r\ncheckpoint[store=6]: 2022-05-14 13:15:39.018 +0800 CST; gap=8m6s\r\n01:23:45 root@172 20220514_package → tiup br:v6.1.0-alpha-nightly-20220514 log status --pd 172.16.5.52:2379\r\nStarting component `br`: /root/.tiup/components/br/v6.1.0-alpha-nightly-20220514/br /root/.tiup/components/br/v6.1.0-alpha-nightly-20220514/br log status --pd 172.16.5.52:2379\r\nDetail BR log in /tmp/br.log.2022-05-14T14.24.52+0800\r\n● Total 1 Tasks.\r\n> #1 <\r\n               name: test5\r\n             status: ● NORMAL\r\n              start: 2022-05-14 12:00:00 +0800 CST\r\n                end: 2035-01-01 00:00:00 +0800 CST\r\n            storage: s3://nfs/fubin/pitr/pp_log_5\r\n        speed(est.): 0.00 ops/s\r\n checkpoint[global]: 2022-05-14 14:18:54.318 +0800 CST; gap=6m0s\r\ncheckpoint[store=1]: 2022-05-14 14:24:21.068 +0800 CST; gap=33s\r\ncheckpoint[store=4]: 2022-05-14 14:24:11.468 +0800 CST; gap=42s\r\ncheckpoint[store=5]: 2022-05-14 14:24:06.768 +0800 CST; gap=47s\r\ncheckpoint[store=6]: 2022-05-14 14:18:54.318 +0800 CST; gap=6m0s\r\n``` \r\n![image](https://user-images.githubusercontent.com/7403864/168415434-9b81dfa7-44e4-4395-b35d-02ab94eee659.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-05-14T07:22:29Z",
+  "updated_at": "2022-07-19T03:34:13Z",
+  "closed_at": "2022-07-19T03:34:13Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1126662162,
+      "user": "fubinzh",
+      "created_at": "2022-05-14T07:24:44Z",
+      "body": "/type bug\r\n/severity Critical\r\n/feature developing"
+    },
+    {
+      "id": 1126669578,
+      "user": "3pointer",
+      "created_at": "2022-05-14T08:19:13Z",
+      "body": "The slowest store is always store6 which is 172.16.5.53."
+    },
+    {
+      "id": 1188556683,
+      "user": "3pointer",
+      "created_at": "2022-07-19T03:34:13Z",
+      "body": "After we implement new checkpoint model. this issue has been fixed. https://github.com/pingcap/tidb/issues/35164"
+    }
+  ]
+}

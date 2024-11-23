@@ -1,0 +1,130 @@
+{
+  "issue_number": 13191,
+  "title": "Inject a minority of tikv network isolation，after network isolation was recovered, one tikv status still show down and can not transfer leader back",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   940e1395869e2d92aa91eb2d59380ce894125b70\r\nGit Commit Branch: heads/refs/tags/v6.2.0-alpha\r\nUTC Build Time:    2022-07-29 11:04:30\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n./pd-server -V\r\n Release Version: v6.2.0-alpha\r\nEdition: Community\r\nGit Commit Hash: e1c6ad3d8b01ee875121c85006da8d1514a50fec\r\nGit Branch: heads/refs/tags/v6.2.0-alpha\r\nUTC Build Time:  2022-07-29 11:03:18\r\n\r\n### What operating system and CPU are you using?\r\n8core、16GB\r\n\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1022596\r\n6 tikv（5 replicas）\r\n1、inject two tikv network isolation for 50min\r\n2、recover network isolation\r\n\r\n### What did you expect?\r\nafter recover network isolation，tikv status should be normal\r\n\r\n### What did happened?\r\nafter the failure is restored, one tikv status still show down\r\n![origin_img_v2_35ba4dd1-ca21-4d08-8c8c-8ba0402809cg](https://user-images.githubusercontent.com/84712107/182079743-87c6d51a-ed05-4347-ab07-aea98313d226.jpg)\r\n![image](https://user-images.githubusercontent.com/84712107/182079822-35624a4b-eb95-4b4d-a43c-7b551455d171.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-08-01T05:36:31Z",
+  "updated_at": "2022-08-11T10:32:50Z",
+  "closed_at": "2022-08-11T10:32:50Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1200731673,
+      "user": "Lily2025",
+      "created_at": "2022-08-01T05:37:28Z",
+      "body": "/type bug\r\n/assign bufferflies"
+    },
+    {
+      "id": 1200731693,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-01T05:37:30Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: bufferflies.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13191#issuecomment-1200731673):\n\n>/type bug\r\n>/assign bufferflies\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1200740359,
+      "user": "Lily2025",
+      "created_at": "2022-08-01T05:51:35Z",
+      "body": "cc @bufferflies"
+    },
+    {
+      "id": 1200755657,
+      "user": "bufferflies",
+      "created_at": "2022-08-01T06:12:25Z",
+      "body": "/assign @bufferflies "
+    },
+    {
+      "id": 1200820812,
+      "user": "Lily2025",
+      "created_at": "2022-08-01T07:28:20Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1200833145,
+      "user": "bufferflies",
+      "created_at": "2022-08-01T07:40:35Z",
+      "body": "maybe related: https://github.com/tikv/tikv/issues/12933 , the key codes:\r\nhttps://github.com/5kbpers/tikv/blob/e278777f97cc71aa60cf21550c5e8f55bfa95b84/components/pd_client/src/util.rs#L322-L344\r\n\r\nthe fault tikv has no log in the network isolation, the normal tikv-2 has log it：\r\n```\r\n[2022/07/29 19:05:52.655 +00:00] [INFO] [util.rs:578] [\"connecting to PD endpoint\"] [endpoints=http://tc-pd-0.tc-pd-peer.endless-oltp-tps-1022596-1-727.svc:2379]\r\n```\r\n\r\nI need to the stacktrace to analyze the deadlock."
+    },
+    {
+      "id": 1204729807,
+      "user": "bufferflies",
+      "created_at": "2022-08-04T04:04:04Z",
+      "body": "pd-worker-0 need inner write lock.\r\n```\r\nThread 44 (LWP 79 \"pd-worker-0\"):\r\n#0  0x00007f8de18eae49 in syscall () from /usr/glibc-compat/lib/libc.so.6\r\n#1  0x00005654d6713808 in std::sys::unix::futex::futex_wait (futex=0x7f8de129539c, expected=231, timeout=...) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/futex.rs:36\r\n#2  0x00005654d4ee9176 in std::sys::unix::locks::futex_rwlock::RwLock::write_contended (self=0x7f8de1295398) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/locks/futex_rwlock.rs:218\r\n#3  0x00005654d55956e3 in std::sys::unix::locks::futex_rwlock::RwLock::write (self=0x7f8de1295398) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/locks/futex_rwlock.rs:153\r\n#4  std::sys_common::rwlock::MovableRwLock::write (self=0x7f8de1295398) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/rwlock.rs:100\r\n#5  std::sync::rwlock::RwLock<pd_client::util::Inner>::write<pd_client::util::Inner> (self=0x7f8de1295398) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sync/rwlock.rs:288\r\n#6  tikv_util::{impl#4}::wl<pd_client::util::Inner> (self=0x7f8de1295398) at components/tikv_util/src/lib.rs:174\r\n```\r\nadvance-ts has read lock and wait the read lock again.\r\n```\r\nThread 97 (LWP 132 \"advance-ts\"):\r\n#0  0x00007f8de18eae49 in syscall () from /usr/glibc-compat/lib/libc.so.6\r\n#1  0x00005654d6713808 in std::sys::unix::futex::futex_wait (futex=0x7f8de1295398, expected=3221225473, timeout=...) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/futex.rs:36\r\n#2  0x00005654d4ee8f7b in std::sys::unix::locks::futex_rwlock::RwLock::read_contended (self=0x7f8de1295398) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/locks/futex_rwlock.rs:136\r\n#3  0x00005654d5556db7 in std::sys::unix::locks::futex_rwlock::RwLock::read (self=0x7f8de1295398) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/locks/futex_rwlock.rs:85\r\n#4  std::sys_common::rwlock::MovableRwLock::read (self=0x7f8de1295398) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/rwlock.rs:84\r\n#5  std::sync::rwlock::RwLock<pd_client::util::Inner>::read<pd_client::util::Inner> (self=0x7f8de1295398) at /rust/toolchains/nightly-2022-05-01-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sync/rwlock.rs:200\r\n#6  tikv_util::{impl#4}::rl<pd_client::util::Inner> (self=0x7f8de1295398) at components/tikv_util/src/lib.rs:178\r\n#7  0x00005654d558327a in pd_client::client::RpcClient::call_option (client=<optimized out>) at components/pd_client/src/client.rs:195\r\n#8  pd_client::client::{impl#0}::get_store_and_stats::{closure#0} (client=<optimized out>, req=...) at components/pd_client/src/client.rs:260\r\n```"
+    },
+    {
+      "id": 1204837550,
+      "user": "bufferflies",
+      "created_at": "2022-08-04T06:50:18Z",
+      "body": "affect releasse 5.0+."
+    },
+    {
+      "id": 1205205150,
+      "user": "bufferflies",
+      "created_at": "2022-08-04T12:42:42Z",
+      "body": "/close by https://github.com/tikv/tikv/issues/12933"
+    },
+    {
+      "id": 1209087128,
+      "user": "Lily2025",
+      "created_at": "2022-08-09T08:39:42Z",
+      "body": "/open"
+    },
+    {
+      "id": 1209091998,
+      "user": "Lily2025",
+      "created_at": "2022-08-09T08:44:19Z",
+      "body": "/reopen"
+    },
+    {
+      "id": 1209092051,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-09T08:44:22Z",
+      "body": "@Lily2025: Reopened this issue.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13191#issuecomment-1209091998):\n\n>/reopen\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1209095047,
+      "user": "Lily2025",
+      "created_at": "2022-08-09T08:47:17Z",
+      "body": "New discovery in image :  hub-new.pingcap.net/robert/tikv:panic-a5412ce\r\nSteps to reproduce：restart all pod (all tidb、pd、tikv)\r\n\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   a5412ce55e56b87c759434c161eea7fd7fe404ce\r\nGit Commit Branch: client/panic\r\nUTC Build Time:    2022-08-08 08:29:43\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           release\r\n./pd-server -V\r\n Release Version: v6.2.0-alpha-149-g760a107\r\nEdition: Community\r\nGit Commit Hash: 760a107f574c03fff2df33e9a94a7970d0aef361\r\nGit Branch: pd/panic\r\nUTC Build Time:  2022-08-08 09:07:23\r\n./tidb-server -V\r\n Release Version: v6.2.0\r\nEdition: Community\r\nGit Commit Hash: 7cc526a9a52256c0e0bd49bb166063fa5b265f2e\r\n\r\n![DvNq4gAFEW](https://user-images.githubusercontent.com/84712107/183606311-352de5c5-dbfb-4c2e-abb2-ca2302c289e4.jpg)\r\n![origin_img_v2_27769a8a-6c4b-4d3c-a8aa-096df97fa5cg](https://user-images.githubusercontent.com/84712107/183606323-b02674a9-2ead-4245-9c52-7810df96f281.jpg)\r\n"
+    },
+    {
+      "id": 1209126487,
+      "user": "Lily2025",
+      "created_at": "2022-08-09T09:16:37Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/label affects-5.0\r\n/label affects-5.1\r\n/label affects-5.2\r\n/label affects-5.3\r\n/label affects-5.4\r\n/label affects-6.1\r\n/label affects-6.2"
+    },
+    {
+      "id": 1209127127,
+      "user": "Lily2025",
+      "created_at": "2022-08-09T09:17:14Z",
+      "body": "/remove-label may-affects-6.0"
+    },
+    {
+      "id": 1209127155,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-09T09:17:16Z",
+      "body": "@Lily2025: These labels are not set on the issue: `may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13191#issuecomment-1209127127):\n\n>/remove-label may-affects-6.0\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1209127908,
+      "user": "bufferflies",
+      "created_at": "2022-08-09T09:17:58Z",
+      "body": "The pr: https://github.com/tikv/tikv/pull/13226 did not  clear all RWR  scene, `sync_request` will double read lock the inner: \r\n\r\nWhen I delete pods tikv , the tikv can not  exit , some stack trace is :\r\n```\r\n[the backgroud thread]\r\nThread 75 (Thread 0x7fe5719ca700 (LWP 32)):\r\n#0  0x00007fe5839c71c9 in syscall () from /lib64/libc.so.6\r\n#1  0x000055d3dbbbc9b8 in std::sys::unix::futex::futex_wait::h0c1abc2af9025d67 ()\r\n#2  0x000055d3dbbab288 in std::thread::park::he5968c80ba8308e0 ()\r\n#3  0x000055d3da56ce88 in futures_executor::local_pool::block_on::h28442ebcf6af778c ()\r\n#4  0x000055d3da5c4886 in _$LT$pd_client..client..RpcClient$u20$as$u20$pd_client..PdClient$GT$::get_store::h07f480ec07eb50b0 ()\r\n````\r\nand  log:\r\n```\r\n [2022/08/09 04:05:39.919 +00:00] [INFO] [node.rs:520] [\"stop raft store thred\"] [store_id=6]\r\n```\r\n\r\nthe monitor:\r\n<img width=\"812\" alt=\"image\" src=\"https://user-images.githubusercontent.com/23159587/183612954-33d5fb6b-0611-41d5-98bb-619831545782.png\">\r\n\r\n"
+    },
+    {
+      "id": 1209138583,
+      "user": "bufferflies",
+      "created_at": "2022-08-09T09:27:54Z",
+      "body": "the RWR should be same  in all os after  https://github.com/rust-lang/rust/issues/93740"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 14815,
+  "title": "cdc's old value cache sometimes exceeds the quota",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nv6.5.1\r\n\r\n### What operating system and CPU are you using?\r\nNot sure, but probably irrelative.\r\n\r\n### Steps to reproduce\r\n(Not checked, but this did be observed in a production cluster.)\r\n1. Create a table with small raws(perhaps with a sole column of primary key), let it be `t1`.\r\n2. Create a table with larger raws(perhaps with a huge `blob` or `json` column), let it be `t2`.\r\n3. Open a changefeed which observes both `t1` and `t2`.\r\n4. Update as many different rows as possible in `t1`.\r\n5. Update as many different rows as possible in `t2`, until the memory usage of old value doesn't increase any more.\r\n\r\n### What did you expect?\r\nAfter step 5, the memory usage of old value cache should be kept under the memory quota.\r\n\r\n### What did happened?\r\n![f0dfe499-6db5-4c5d-b612-989d3dcbb821](https://github.com/tikv/tikv/assets/36239017/8a235f82-298f-4262-b336-d19e8e94285e)\r\n\r\nThe old-value cache usage exceeds the quota.\r\n",
+  "state": "closed",
+  "created_at": "2023-05-24T05:16:39Z",
+  "updated_at": "2023-05-30T08:40:43Z",
+  "closed_at": "2023-05-30T08:40:43Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1563758158,
+      "user": "YuJuncen",
+      "created_at": "2023-05-26T03:14:02Z",
+      "body": "I have reproduced this by a unit test case:\r\n```rust\r\n#[test]\r\n    fn test_old_value_capacity_not_exceed_quota() {\r\n        let mut cache = OldValueCache::new(ReadableSize(1000));\r\n        fn short_val() -> OldValue {\r\n            OldValue::Value { value: b\"s\".to_vec() }\r\n        }\r\n        fn long_val() -> OldValue {\r\n            OldValue::Value { value: vec![b'l'; 1024] }\r\n        }\r\n        fn enc(i :i32) -> Key {\r\n        Key::from_encoded(i32::to_ne_bytes(i).to_vec())\r\n        }\r\n\r\n        for i in 0..100 {\r\n            cache.insert(enc(i), (short_val(), None));\r\n        }\r\n        for i in 100..200 {\r\n            // access the previous key for making it not be evicted\r\n            cache.cache.get(&enc(i-1));\r\n            cache.insert(enc(i), (long_val(), None));\r\n        }\r\n        assert!(cache.cache.size() <= 1000, \"but it is {}\", cache.cache.size());\r\n    }\r\n```\r\nIt panicked at:\r\n```\r\nthread 'old_value::tests::test_old_value_capacity_not_exceed_quota' panicked at 'but it is 28647'\r\n```\r\nWhich means it exceeded about 28x of the quota."
+    }
+  ]
+}

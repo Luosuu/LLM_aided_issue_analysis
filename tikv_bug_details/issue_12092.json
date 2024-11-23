@@ -1,0 +1,81 @@
+{
+  "issue_number": 12092,
+  "title": "v5.3.1 version, run tpch workload, print lots of [advance.rs:273] [\"check leader failed\"] ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv5.3.1\r\n\r\n### What operating system and CPU are you using?\r\nlinux\r\n\r\n### Steps to reproduce\r\n1. install v5.3.1\r\n2. /data-sdb/tools/go-tpc/bin/go-tpc tpch -H xxx.16.5.xxx -P 4000 -D tpch --sf 1 --analyze --tiflash prepare \r\n\r\n### What did you expect?\r\nrun normally\r\n\r\n### What did happened?\r\n[2022/03/04 12:35:43.011 +08:00] [ERROR] [advance.rs:273] [\"check leader failed\"] [to_store=56] [store_id=1] [error=\"RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"\\\", details: [] })\"]\r\n[2022/03/04 12:35:44.011 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f7efa22e690 for subchannel 0x7f7e88e1d1c0\"]\r\n[2022/03/04 12:35:44.011 +08:00] [ERROR] [advance.rs:273] [\"check leader failed\"] [to_store=56] [store_id=1] [error=\"RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"\\\", details: [] })\"]\r\n[2022/03/04 12:35:45.012 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f7e4a64c0f0 for subchannel 0x7f7e88e1d1c0\"]\r\n[2022/03/04 12:35:45.012 +08:00] [ERROR] [advance.rs:273] [\"check leader failed\"] [to_store=56] [store_id=1] [error=\"RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"\\\", details: [] })\"]\r\n[2022/03/04 12:35:46.013 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f7efbb97200 for subchannel 0x7f7e88e1d1c0\"]\r\n[2022/03/04 12:35:46.013 +08:00] [ERROR] [advance.rs:273] [\"check leader failed\"] [to_store=56] [store_id=1] [error=\"RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"\\\", details: [] })\"]\r\n[2022/03/04 12:35:47.015 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f7efb329ed0 for subchannel 0x7f7e88e1d1c0\"]\r\n[2022/03/04 12:35:47.015 +08:00] [ERROR] [advance.rs:273] [\"check leader failed\"] [to_store=56] [store_id=1] [error=\"RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"\\\", details: [] })\"]\r\n[2022/03/04 12:35:48.015 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f7efaaa7790 for subchannel 0x7f7e88e1d1c0\"]\r\n[2022/03/04 12:35:48.016 +08:00] [ERROR] [advance.rs:273] [\"check leader failed\"] [to_store=56] [store_id=1] [error=\"RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"\\\", details: [] })\"]\r\n[2022/03/04 12:35:49.016 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f7efa2939d0 for subchannel 0x7f7e88e1d1c0\"]\r\n[2022/03/04 12:35:49.016 +08:00] [ERROR] [advance.rs:273] [\"check leader failed\"] [to_store=56] [store_id=1] [error=\"RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"\\\", details: [] })\"]\r\n[2022/03/04 12:35:50.017 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f7efbb83140 for subchannel 0x7f7e88e1d1c0\"]\r\n[2022/03/04 12:35:50.017 +08:00] [ERROR] [advance.rs:273] [\"check leader failed\"] [to_store=56] [store_id=1] [error=\"RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"\\\", details: [] })\"]\r\n[2022/03/04 12:35:51.019 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f7efbb1f660 for subchannel 0x7f7e88e1d1c0\"]\r\n[2022/03/04 12:35:51.019 +08:00\r\n\r\nlog file\r\n[tikv.log](https://github.com/tikv/tikv/files/8183096/tikv.log)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-03-04T04:42:01Z",
+  "updated_at": "2022-08-29T03:34:33Z",
+  "closed_at": "2022-08-29T03:34:33Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1067508199,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T02:51:36Z",
+      "body": "/component test"
+    },
+    {
+      "id": 1067508352,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T02:51:58Z",
+      "body": "/remove-component test"
+    },
+    {
+      "id": 1067512414,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T03:01:47Z",
+      "body": "/type bug\r\n/assign Connor1996"
+    },
+    {
+      "id": 1067593971,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T06:00:09Z",
+      "body": "/remove-type bug"
+    },
+    {
+      "id": 1067594195,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T06:00:30Z",
+      "body": "/assign hicqu"
+    },
+    {
+      "id": 1067594344,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T06:00:45Z",
+      "body": "/type question"
+    },
+    {
+      "id": 1067603398,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T06:15:13Z",
+      "body": "/remove-assign Connor1996"
+    },
+    {
+      "id": 1067605439,
+      "user": "hicqu",
+      "created_at": "2022-03-15T06:18:29Z",
+      "body": "It's expected. TiFlash doesn't implement the `check_leader` RPC. The error log should be omit for this case."
+    },
+    {
+      "id": 1067664005,
+      "user": "seiya-annie",
+      "created_at": "2022-03-15T07:41:48Z",
+      "body": "The printing frequency of this error is too high, maybe we can reduce it "
+    },
+    {
+      "id": 1067706728,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T08:38:17Z",
+      "body": "/remove-type question\r\n/type bug\r\n/severity Moderate"
+    },
+    {
+      "id": 1229717998,
+      "user": "tabokie",
+      "created_at": "2022-08-29T03:34:33Z",
+      "body": "Should be closed by #13312"
+    }
+  ]
+}

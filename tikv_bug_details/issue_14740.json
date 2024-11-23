@@ -1,0 +1,41 @@
+{
+  "issue_number": 14740,
+  "title": "[Dynamic Regions] tikv leader can not balance after one tikv network partition for 50m and recover",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   7.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   358564185d38d0570345dcf907e0f80c2619f2e2\r\nGit Commit Branch: heads/refs/tags/v7.2.0-alpha\r\nUTC Build Time:    2023-05-10 11:40:30\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-05-11T21:01:01.208+0800\tINFO\tk8s/client.go:132\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1710011\r\nha-tikv-random-to-all-network-partition-last-for-50m\r\n\r\n### What did you expect?\r\ntikv leader can balance\r\n\r\n### What did happened?\r\n![image](https://github.com/tikv/tikv/assets/84712107/757832ca-2fbc-4ad9-a008-0a1befce3299)\r\n![image](https://github.com/tikv/tikv/assets/84712107/7b0137bf-caa9-458d-8853-bd94ebabd202)",
+  "state": "closed",
+  "created_at": "2023-05-12T02:42:33Z",
+  "updated_at": "2023-06-21T07:37:14Z",
+  "closed_at": "2023-06-21T07:37:14Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1545026708,
+      "user": "Lily2025",
+      "created_at": "2023-05-12T02:42:48Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign bufferflies"
+    },
+    {
+      "id": 1545026763,
+      "user": "Lily2025",
+      "created_at": "2023-05-12T02:42:54Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign bufferflies"
+    },
+    {
+      "id": 1545070765,
+      "user": "bufferflies",
+      "created_at": "2023-05-12T03:56:52Z",
+      "body": "the root cause is that tikv can't exec the `transfer leader ` command: \r\n```\r\npd log :\r\n\"balance-leader {transfer leader: store 6 to 4} (kind:leader, region:504(181, 11), createAt:2023-05-12 10:31:10.308633726 +0800 CST m=+55638.683848862, startAt:2023-05-12 10:31:10.309020766 +0800 CST m=+55638.684235920, currentStep:0, size:12390, steps:[transfer leader from store 6 to store 4]，timeout:[2h3m54s])\"\r\ntikv log :\r\n[2023/05/12 11:52:28.695 +08:00] [INFO] [region.rs:258] [\"try to transfer leader\"] [to_peers=\"[]\"] [to_peer=\"id: 837 store_id: 4\"] [from_peer=\"id: 507 store_id: 6\"] [region_id=504]\r\n[2023/05/12 11:52:28.696 +08:00] [INFO] [transfer_leader.rs:170] [\"reject to transfer leader\"] [last_index=67798] [index=49315] [reason=\"pending conf change\"] [to=\"id: 837 store_id: 4\"] [peer_id=507] [region_id=504]\r\n```\r\n\r\nthe log gap between the follower and leader is too big,  so it can't exec the cmd."
+    },
+    {
+      "id": 1549024024,
+      "user": "bufferflies",
+      "created_at": "2023-05-16T05:45:20Z",
+      "body": "after restart the failed store,  the follower can fetch some log (from 49315  to 50014), and the commit index is the latest:\r\n```\r\n[2023/05/12 18:51:22.009 +08:00] [INFO] [peer.rs:489] [\"recovery completed\"] [apply_index=50014] [peer_id=837] [region_id=504]\r\n[2023/05/12 19:04:04.192 +08:00] [INFO] [transfer_leader.rs:170] [\"reject to transfer leader\"] [last_index=69421] [index=50014] [reason=\"pending conf change\"] [to=\"id: 837 store_id: 4\"] [peer_id=507] [region_id=504]\r\n[2023/05/12 19:06:41.981 +08:00] [DEBUG] [raft.rs:612] [\"Sending from 837 to 507\"] [msg=\"msg_type: MsgHeartbeatResponse to: 507 commit: 69427\"] [to=507] [from=837] [raft_id=837] [peer_id=837] [region_id=504]\r\n```"
+    }
+  ]
+}

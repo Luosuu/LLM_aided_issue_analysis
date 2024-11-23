@@ -1,0 +1,20 @@
+{
+  "issue_number": 4182,
+  "title": "Titan may forget to close the file handle. ",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\nSysbench with Titan enabled\r\n\r\n**What did you expect to see?**\r\n\r\nDisk not full.\r\n\r\n**What did you see instead?**\r\n\r\nDisk full. \r\n\r\nThrough `df -h`, we can see \r\n\r\n```\r\n[tidb@ip-172-16-4-32 tikv1]$ df -h\r\nFilesystem      Size  Used Avail Use% Mounted on\r\n/dev/sda2       272G  1.2G  257G   1% /\r\ndevtmpfs         95G     0   95G   0% /dev\r\ntmpfs            95G     0   95G   0% /dev/shm\r\ntmpfs            95G  850M   94G   1% /run\r\ntmpfs            95G     0   95G   0% /sys/fs/cgroup\r\n/dev/sda1       477M  107M  341M  24% /boot\r\n/dev/nvme0n1    3.6T  1.8T  1.7T  53% /data1\r\n/dev/nvme1n1    3.6T  3.4T  7.9G 100% /data2\r\ntmpfs            19G     0   19G   0% /run/user/1000\r\n```\r\n\r\n`/data2` is full, but use `dh -h -d 1`, we can see \r\n\r\n```\r\n[tidb@ip-172-16-4-32 data2]$ du -h -d 1\r\ndu: cannot read directory './lost+found': Permission denied\r\n16K\t./lost+found\r\n446G\t./tikv2\r\n688G\t./tikv1\r\n1.2T\t.\r\n```\r\n\r\nThe output of `dh` is very different from `df`, use `lsof`, we can see TiKV still has many deleted files.\r\n\r\n```\r\ntikv-serv 146055 tidb 6258r      REG              259,0  100477496 58999467 /data2/tikv2/data/db/titandb/016371.blob\r\ntikv-serv 146055 tidb 6259r      REG              259,0  100263660 58987218 /data2/tikv2/data/db/titandb/006648.blob (deleted)\r\ntikv-serv 146055 tidb 6260r      REG              259,0  388983993 58988425 /data2/tikv2/data/db/titandb/007153.blob (deleted)\r\ntikv-serv 146055 tidb 6261r      REG              259,0  100712942 58990036 /data2/tikv2/data/db/042171.sst\r\ntikv-serv 146055 tidb 6262r      REG              259,0  197319568 58984786 /data2/tikv2/data/db/titandb/003564.blob\r\n```\r\n\r\nAnd through the metrics, we can see the file number is increased continuously.\r\n\r\n![image](https://user-images.githubusercontent.com/1080370/52197053-1e999600-2899-11e9-9046-1258e8c41f43.png)\r\n\r\nI guess this is a bug for Titan, maybe it doesn't close the blob file.\r\n",
+  "state": "closed",
+  "created_at": "2019-02-04T08:27:59Z",
+  "updated_at": "2019-03-08T02:59:58Z",
+  "closed_at": "2019-03-08T02:59:58Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 470786658,
+      "user": "Connor1996",
+      "created_at": "2019-03-08T02:59:56Z",
+      "body": "Fixed by https://github.com/pingcap/rocksdb/pull/69"
+    }
+  ]
+}

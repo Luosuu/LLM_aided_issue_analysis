@@ -1,0 +1,16 @@
+{
+  "issue_number": 17589,
+  "title": "tail lantency is too high when task is limited by flow control priority limiter",
+  "body": "## Bug Report\r\n\r\nIn one customer's production environment, we observed high tail latency when resource control is enable. But the TiKV's cpu is used about 5/8 of its quota. While we think some tasks' triggering flow-control is expected behavior, the high tail latency is not expected.\r\n\r\nAfter some investigation, we found this high latency is due to our async-speed-limit mechanism:\r\n\r\n<img width=\"699\" alt=\"image\" src=\"https://github.com/user-attachments/assets/2ac7b003-b078-4197-a84c-001fc725fa00\">\r\n\r\nhttps://github.com/tikv/async-speed-limit/blob/0e74acf491cfdd1fb3cce5d958cf48a82ee880bb/src/limiter.rs#L49-L57\r\n\r\nWhen a tasks triggers wait, it will at least wait `self.fill` seconds and its default value is 0.1 seconds. This is too long and not acceptable in our case. \r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2024-09-26T08:50:47Z",
+  "updated_at": "2024-09-27T09:11:32Z",
+  "closed_at": "2024-09-27T09:11:31Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": []
+}

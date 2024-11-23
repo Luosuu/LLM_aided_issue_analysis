@@ -1,0 +1,46 @@
+{
+  "issue_number": 14761,
+  "title": "Raft engine encounters log file magic header mismatch",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNot relevant\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\npause and resume in cloud env\r\n\r\n### What did you expect?\r\nRuns normally\r\n\r\n### What did happened?\r\n![3v2HjlXzB4](https://github.com/tikv/tikv/assets/13497871/c5cb71d1-ec1a-462d-b698-63a32a32bad6)\r\n",
+  "state": "closed",
+  "created_at": "2023-05-17T10:04:10Z",
+  "updated_at": "2023-06-02T14:31:36Z",
+  "closed_at": "2023-05-24T03:45:40Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1551111820,
+      "user": "Connor1996",
+      "created_at": "2023-05-17T10:05:52Z",
+      "body": "tikv-ctl can't decrypt the file, complaining about it's not encrypted.\r\n![img_v2_23866811-3759-4a6c-b8a7-73ff56df64ag](https://github.com/tikv/tikv/assets/13497871/7c753768-4060-4b71-ac1a-09211585d753)\r\n\r\nFrom the encryption meta, the file is not in the list\r\n![img_v2_86ca8e9e-1bac-4ec9-8089-dc9e316b4f5g](https://github.com/tikv/tikv/assets/13497871/723356fe-a9fb-42b9-b438-376575449dfd)\r\n"
+    },
+    {
+      "id": 1551115769,
+      "user": "Connor1996",
+      "created_at": "2023-05-17T10:08:27Z",
+      "body": "When deleting a file, the encryption meta is deleted before deleting the file in file system. So there is a chance that TiKV process is killed before deleting the file in file system. And after restart, can't find the encryption meta for that file.\r\n\r\n![bUXB3VUyEq](https://github.com/tikv/tikv/assets/13497871/850b342a-ab6a-47dc-9d48-c236c927e544)\r\n"
+    },
+    {
+      "id": 1562429802,
+      "user": "Connor1996",
+      "created_at": "2023-05-25T07:41:22Z",
+      "body": "This happens again in a normal restart process. It's due to when stopping the purge worker, the interval task loop isn't notified by stop. So the purge is called even after graceful shutdown and killed by kernel in final when process exit.\r\n![x20dYDtgTJ](https://github.com/tikv/tikv/assets/13497871/2a05834c-a8d3-4e29-ab4c-3564ddd2838f)\r\n"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "issue_number": 11547,
+  "title": "One TiKV OOM when it exhausts memory in one numa",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n[root@IDC-172-16-6-60 bin]# ./tikv-server -V\r\nTiKV\r\nRelease Version:   5.2.3\r\nEdition:           Community\r\nGit Commit Hash:   2bba8cce69b1da1cfb1181ed4630b084ad7a542b\r\nGit Commit Branch: heads/refs/tags/v5.2.3\r\nUTC Build Time:    2021-11-20 04:29:29\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nUse sysbench insert, 300 thread.\r\n\r\n### What did you expect?\r\nNothing error hit.\r\n\r\n### What did happened?\r\nOne tikv oom many times.\r\n![image](https://user-images.githubusercontent.com/9443637/144398817-d00a3506-e792-46a0-bf1e-d2663c239510.png)\r\n[root@IDC-172-16-6-60 bin]# numastat -m\r\n\r\nPer-node system memory usage (in MBs):\r\n                          Node 0          Node 1           Total\r\n                 --------------- --------------- ---------------\r\nMemTotal                96894.21        98304.00       195198.21\r\nMemFree                   447.65        81727.59        82175.25\r\nMemUsed                 96446.55        16576.41       113022.96\r\nActive                  87802.64        10575.84        98378.48\r\nInactive                 4768.19         2854.50         7622.69\r\nActive(anon)            87328.89         4624.38        91953.27\r\nInactive(anon)           4113.32          174.57         4287.89\r\nActive(file)              473.75         5951.46         6425.21\r\nInactive(file)            654.87         2679.93         3334.80\r\nUnevictable                 0.00            0.00            0.00\r\nMlocked                     0.00            0.00            0.00\r\nDirty                       4.02            0.16            4.18\r\nWriteback                   0.07            0.00            0.07\r\nFilePages                1476.59         9244.65        10721.24\r\nMapped                     17.01          229.61          246.61\r\nAnonPages               91100.90         4185.85        95286.75\r\nShmem                     277.42          597.57          874.99\r\nKernelStack                14.69           21.23           35.92\r\nPageTables                214.78           27.60          242.38\r\nNFS_Unstable                0.00            0.00            0.00\r\nBounce                      0.00            0.00            0.00\r\nWritebackTmp                0.00            0.00            0.00\r\nSlab                      921.03          720.35         1641.38\r\nSReclaimable              771.07          576.41         1347.48\r\nSUnreclaim                149.96          143.94          293.91\r\nAnonHugePages              36.00          180.00          216.00\r\nHugePages_Total             0.00            0.00            0.00\r\nHugePages_Free              0.00            0.00            0.00\r\nHugePages_Surp              0.00            0.00            0.00",
+  "state": "closed",
+  "created_at": "2021-12-02T09:59:12Z",
+  "updated_at": "2022-01-12T11:44:41Z",
+  "closed_at": "2022-01-12T11:44:41Z",
+  "labels": [
+    "type/bug",
+    "won't fix"
+  ],
+  "comments_data": [
+    {
+      "id": 984486520,
+      "user": "mayjiang0203",
+      "created_at": "2021-12-02T10:16:44Z",
+      "body": "/assign @tier-cap "
+    },
+    {
+      "id": 984520248,
+      "user": "BusyJay",
+      "created_at": "2021-12-02T11:00:31Z",
+      "body": "I think it's near impossible for TiKV to solve the problem. Instead we should let the system allow allocate memory across numa."
+    },
+    {
+      "id": 986578084,
+      "user": "Lily2025",
+      "created_at": "2021-12-06T09:09:43Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 988550172,
+      "user": "Lily2025",
+      "created_at": "2021-12-08T06:58:41Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 988553123,
+      "user": "BusyJay",
+      "created_at": "2021-12-08T07:04:43Z",
+      "body": "I would say it works as expected. It's an issue but not a bug."
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "issue_number": 14468,
+  "title": "[Dynamic Regions] max_prefill_count conflicts with large purge-threshhold",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv7.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n3pd(8c) + 3tidb(32c) + 3tikv(32c)\r\n\r\n### What did you expect?\r\nmultiRocksDB out performance baseline\r\n\r\n### What did happened?\r\nmultiRocksDB query P99 18ms\r\nbaseline query P99 ~10ms\r\n\r\n\r\n raft-engine.purge-threshold 200GB conflicts with prefill, because max_prefill_count = 96, this is why the first 5 minutes is good performance, when the file count grows over 96, recycling log does not take effects and performance degrades by around 4x.\r\n![image](https://user-images.githubusercontent.com/2316425/227967567-aa51060d-669e-4ccd-87eb-bb7b8daa8600.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-27T14:23:52Z",
+  "updated_at": "2023-03-31T09:24:57Z",
+  "closed_at": "2023-03-31T09:24:57Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1485218301,
+      "user": "LykxSassinator",
+      "created_at": "2023-03-27T14:28:50Z",
+      "body": "This root cause of this issue is that the max size of `raft-engine.prefill-for-recycle` is 12GB by default. This makes the max capacity of prefilled recycled files is 12 GB / 128MB(`target-file-size`) = 96.\r\n\r\nIn this test case, the `purge-threshold` is set to be 200GB (expect at least 200GB / 128MB = 1600 files for making log recycling effective), massively exceeding the expectation of `prefill-for-recycle` function."
+    },
+    {
+      "id": 1489553419,
+      "user": "dbsid",
+      "created_at": "2023-03-30T01:25:37Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1491394269,
+      "user": "LykxSassinator",
+      "created_at": "2023-03-31T06:43:04Z",
+      "body": "/label may-affects-master"
+    },
+    {
+      "id": 1491394656,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-31T06:43:30Z",
+      "body": "@LykxSassinator: The label(s) `may-affects-master` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-2.1, needs-cherry-pick-release-3.0, needs-cherry-pick-release-3.1, needs-cherry-pick-release-4.0, needs-cherry-pick-release-5.0, needs-cherry-pick-release-5.1, needs-cherry-pick-release-5.2, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, needs-cherry-pick-release-6.6, needs-cherry-pick-release-7.0, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, affects-6.6, affects-7.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5, may-affects-6.6, may-affects-7.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14468#issuecomment-1491394269):\n\n>/label may-affects-master\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

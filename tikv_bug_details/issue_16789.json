@@ -1,0 +1,32 @@
+{
+  "issue_number": 16789,
+  "title": "[flay test]  test_rawkv::test_leader_transfer ",
+  "body": "https://ci.pingcap.net/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/43640/tests/\r\n\r\nStacktrace\r\nthread 'cases::test_rawkv::test_leader_transfer' panicked at '', components/test_raftstore/src/util.rs:1422:5\r\nstack backtrace:\r\n   0: rust_begin_unwind\r\n             at /rustc/96ddd32c4bfb1d78f0cd03eb068b1710a8cebeef/library/std/src/panicking.rs:575:5\r\n   1: core::panicking::panic_fmt\r\n             at /rustc/96ddd32c4bfb1d78f0cd03eb068b1710a8cebeef/library/core/src/panicking.rs:65:14\r\n   2: test_raftstore::util::must_raw_put\r\n   3: failpoints::cases::test_rawkv::TestSuite::must_raw_put\r\n             at /home/jenkins/tikv-src/tests/failpoints/cases/test_rawkv.rs:65:9\r\n   4: failpoints::cases::test_rawkv::test_leader_transfer\r\n             at /home/jenkins/tikv-src/tests/failpoints/cases/test_rawkv.rs:196:9\r\n   5: failpoints::cases::test_rawkv::test_leader_transfer::{{closure}}\r\n             at /home/jenkins/tikv-src/tests/failpoints/cases/test_rawkv.rs:153:27\r\n   6: core::ops::function::FnOnce::call_once\r\n             at /rustc/96ddd32c4bfb1d78f0cd03eb068b1710a8cebeef/library/core/src/ops/function.rs:513:5\r\n   7: test_util::runner::run_test_with_hook::{{closure}}::{{closure}}\r\n   8: core::ops::function::FnOnce::call_once{{vtable.shim}}\r\n   9: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\r\n             at /rustc/96ddd32c4bfb1d78f0cd03eb068b1710a8cebeef/library/alloc/src/boxed.rs:2000:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.",
+  "state": "closed",
+  "created_at": "2024-04-09T20:51:19Z",
+  "updated_at": "2024-07-17T09:34:53Z",
+  "closed_at": "2024-04-16T04:22:37Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "flaky_test",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2046471248,
+      "user": "pingyu",
+      "created_at": "2024-04-10T03:15:25Z",
+      "body": "> 'cases::test_rawkv::test_leader_transfer' panicked at ''\r\n\r\nIt's strange that [`must_raw_put`](https://github.com/tikv/tikv/blob/ca7d7fc0721da54d90d62ec51cc25cf5915831c6/components/test_raftstore/src/util.rs#L1422) met a region error but it was empty. As there is no tikv logs in CI, currently I don't know what is the error and where it raised.\r\n\r\nMaybe we should try to package tikv logs in CI first."
+    },
+    {
+      "id": 2053604730,
+      "user": "pingyu",
+      "created_at": "2024-04-13T10:26:38Z",
+      "body": "After add some debug logs in [`future_raw_put`](https://github.com/tikv/tikv/blob/b1715ea3070d1d0dc8a81e1cd8b5ce13b8129ee3/src/server/service/kv.rs#L1918):\r\n\r\n```\r\n    async move {\r\n        let v = match res {\r\n            Err(e) => {\r\n                error!(\"[debug] raw_put\"; \"e\" => ?e);\r\n                Err(e)\r\n            }\r\n            Ok(_) => f.await?,\r\n        };\r\n        info!(\"[debug] raw_put\"; \"v\" => ?v);\r\n        let mut resp = RawPutResponse::default();\r\n        if let Some(err) = extract_region_error(&v) {\r\n            error!(\"[debug] raw_put\"; \"err\" => ?err);\r\n            resp.set_region_error(err);\r\n        } else if let Err(e) = v {\r\n            resp.set_error(format!(\"{}\", e));\r\n        }\r\n        Ok(resp)\r\n    }\r\n```\r\n\r\nIt shows that it's a error of `MaxTimestampNotSynced`:\r\n\r\n```\r\ntest_region_merge-0 2024/04/13 17:39:57.625 kv.rs:1926: [INFO] [debug] raw_put, v: Err(Error(Txn(Error(MaxTimestampNotSynced { region_id: 1004, start_ts: TimeStamp(0) })))), thread_id: 863\r\ntest_region_merge-0 2024/04/13 17:39:57.625 kv.rs:1929: [ERRO] [debug] raw_put, err: , thread_id: 863\r\n```\r\n"
+    }
+  ]
+}

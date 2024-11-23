@@ -1,0 +1,21 @@
+{
+  "issue_number": 11673,
+  "title": "Can't cleanup overlapped ranges due to out-or-order keys",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nv5.2.2\r\n\r\n### What operating system and CPU are you using?\r\n\r\nN/A\r\n\r\n### Steps to reproduce\r\n\r\nInternal issue: https://internal.pingcap.net/jira/browse/ONCALL-4226\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n\r\nfailed to cleanup stale range: Keys must be added in order.\r\n\r\n### Workaround\r\n\r\nDisable deletion by SST writer: `raftstore.use-delete-range = true`",
+  "state": "closed",
+  "created_at": "2021-12-17T04:34:03Z",
+  "updated_at": "2022-01-04T06:27:59Z",
+  "closed_at": "2022-01-04T06:27:59Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1004557940,
+      "user": "tabokie",
+      "created_at": "2022-01-04T06:27:59Z",
+      "body": "Suspect to be data corruption. The same TiKV node experienced out-of-order insertion during compaction later that week. We can't pursue the investigation because user already scale-in the problematic node.\r\n\r\nNext time, it's advised to run the following commands to check whether the corruption is at memory level (block-cache) or persistent level:\r\n```bash\r\nfor filename in /path/to/tikv/data/*.sst; do\r\n  echo dump $filename && tikv-ctl ldb dump --path=$filename > /dev/null\r\ndone\r\n```"
+    }
+  ]
+}

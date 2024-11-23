@@ -1,0 +1,56 @@
+{
+  "issue_number": 11320,
+  "title": "Raft should fetch log entries in async way",
+  "body": "## Development Task\r\n\r\nWe encounter a latency spike issue when some TiKV machines are down and restart after a while. \r\n<img width=\"920\" alt=\"截屏2021-11-10 下午4 15 56\" src=\"https://user-images.githubusercontent.com/13497871/141075539-559ecb86-3610-407b-8638-58c80e128905.png\">\r\n\r\nProcess ready duration is increased greatly at the time of the down TiKVs back online.\r\n<img width=\"921\" alt=\"截屏2021-11-10 下午1 52 30\" src=\"https://user-images.githubusercontent.com/13497871/141075705-ae107ca0-34e3-4bf5-b12e-63507c89716e.png\">\r\n\r\nAfter investigation, it turns out that fetching raft log entries cost a lot of time which blocks the raftstore for 100ms\r\n<img width=\"926\" alt=\"截屏2021-11-10 下午1 52 21\" src=\"https://user-images.githubusercontent.com/13497871/141076789-e01f637e-04c2-4b69-9c79-8b6d7e6ced02.png\">\r\n<img width=\"1849\" alt=\"截屏2021-11-10 下午1 52 42\" src=\"https://user-images.githubusercontent.com/13497871/141076804-eb9acc9b-b616-41fb-9a10-873bd79108d1.png\">\r\n \r\nTo alleviate this issue, we should fetch log entries in async way\r\n",
+  "state": "closed",
+  "created_at": "2021-11-10T08:25:58Z",
+  "updated_at": "2023-06-02T09:49:59Z",
+  "closed_at": "2022-02-09T10:37:36Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1032481551,
+      "user": "Lily2025",
+      "created_at": "2022-02-08T11:02:02Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1032482205,
+      "user": "Lily2025",
+      "created_at": "2022-02-08T11:02:41Z",
+      "body": "/remove-type enhancement"
+    },
+    {
+      "id": 1032482322,
+      "user": "Lily2025",
+      "created_at": "2022-02-08T11:02:49Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1032483723,
+      "user": "Lily2025",
+      "created_at": "2022-02-08T11:04:16Z",
+      "body": "when open raft engine，while network fault recover，QPS dropped a lot\r\n![pCr3ivwqbp](https://user-images.githubusercontent.com/84712107/152974633-86892040-0db2-488b-9551-987560890959.png)\r\ncc @tabokie "
+    },
+    {
+      "id": 1034497054,
+      "user": "Connor1996",
+      "created_at": "2022-02-10T05:04:20Z",
+      "body": "@Lily2025 Async fetch raft log has been merged, you can test it again to see if it's relieved."
+    },
+    {
+      "id": 1103429877,
+      "user": "Lily2025",
+      "created_at": "2022-04-20T03:20:17Z",
+      "body": "/label affects-5.2\r\n/label affects-5.3\r\n/label affects-5.4"
+    }
+  ]
+}

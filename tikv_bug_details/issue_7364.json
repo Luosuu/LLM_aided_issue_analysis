@@ -1,0 +1,15 @@
+{
+  "issue_number": 7364,
+  "title": "Txn: collapsing the rollback record of pessimistic lock could cause inconsistency",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster\r\n\r\n### What did happened?\r\n\r\nA false assertion is found in: https://github.com/tikv/tikv/blob/c3f9fba14b04811e77614bcd50007bad17e251c3/src/storage/mvcc/txn.rs#L684-L691\r\n\r\nwhere pessimistic transactions may commit successfully even when some of its keys it prewrited are rollbacked by cleanup-resolve procedural invoked by a duplicated cleanup command, which is sent before for cleaning up the pessimistic lock.\r\n\r\n### Steps to reproduce\r\n\r\nAssume that we have three clients {c1, c2, c3} and two keys {k1, k2}:\r\n\r\n1. Pessimistic client c1 acquires a pessimistic lock on k1(primary), k2. But the command for k1 is lost at this point.\r\n2. Optimistic client c2 requires to clean up the lock on k2\r\n3. k1 is rollbacked and a write record `(\"rollback\", c1_start_ts, not_protected)` is written into k1 (not_protected because the lock on k1 is missing), and a `cleanup(primary=k1, ts=c1_start_ts)`(*1) is sent but lost at this point.\r\n4. Client c3 prewrites k1\r\n5. Client c2 requires to clean up the lock on k1\r\n6. k1 is rollbacked and the rollback write record is **collapsed** to `(\"rollback\", c3_start_ts, protected/not_protected)`\r\n7. Client c1 retries to lock on k1\r\n8. k1 is locked by c1\r\n9. Client c1 prewrites k1, k2\r\n10. k1, k2 are prewrited by c1, and c1 received the prewrite succeed response\r\n11. The lost cleanup command (*1) in step 3 is received by k2, therefore k2 is rollbacked\r\n12. Client c1 commit k1\r\n13. k1 is committed, while k2 is rollbacked \r\n\r\nThen atomic guarantee is broken.\r\n",
+  "state": "closed",
+  "created_at": "2020-04-05T11:35:04Z",
+  "updated_at": "2020-12-21T14:30:22Z",
+  "closed_at": "2020-04-08T02:46:57Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/critical"
+  ],
+  "comments_data": []
+}

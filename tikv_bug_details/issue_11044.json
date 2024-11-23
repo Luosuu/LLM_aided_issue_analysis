@@ -1,0 +1,15 @@
+{
+  "issue_number": 11044,
+  "title": "Should reset perf context after writing to kvdb",
+  "body": "## Bug Report\r\nNow perf context is reset at the beginning of each round https://github.com/tikv/tikv/blob/6d0edd7e690d376e651aecf6f0bbefdeec22c390/components/raftstore/src/store/fsm/apply.rs#L3683 and report for each write https://github.com/tikv/tikv/blob/6d0edd7e690d376e651aecf6f0bbefdeec22c390/components/raftstore/src/store/fsm/apply.rs#L527 Should reset the perf context after writing to kvdb because apply batch system may write to kvdb more than once in a round.  Otherwise, the 99% latency of perf context duration is greater than the max write duration.\r\n![image](https://user-images.githubusercontent.com/14819777/136975731-f3ea41d6-b202-4271-881e-a8cd8936426e.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-10-12T14:33:23Z",
+  "updated_at": "2022-06-14T07:10:34Z",
+  "closed_at": "2022-06-14T07:10:34Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

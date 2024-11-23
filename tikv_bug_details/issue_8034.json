@@ -1,0 +1,15 @@
+{
+  "issue_number": 8034,
+  "title": "Local read may get stale data during merging",
+  "body": "## Bug Report\r\n\r\nIn this PR(https://github.com/tikv/tikv/pull/3116), it prevents unsafe local read by suspecting the leader lease.\r\nhttps://github.com/tikv/tikv/blob/5755b3e67e910486fcd8ae76084e9979eec2bcd3/components/raftstore/src/store/peer.rs#L1456-L1466\r\nBut this may be too late to prevent unsafe local read.\r\n\r\nAfter getting a raft ready, the msg will be sent immediately if it's a leader, which means the followers will know the `PrepareMerge` log is committed sooner. If a follower knows it, it will apply `PrepareMerge` log and propose `CommitMerge` to the target region, the merge process will succeed and can provide services.\r\nIn the previous fix, we suspect a leader lease after persisting the ready data. Between this time interval, local read will work as normal but it may get stale data.\r\n\r\nI construct a simple test to reproduce this bug.\r\n\r\n1. put (k1, v)\r\n2. split region\r\n2. set failpoint(pause) before suspecting the leader lease\r\n3. merge left region to right region(only in other two pair regions, the leader of left region is stuck due to failpoint)\r\n4. put (k1, v1)\r\n5. read to the leader of left region => get (k1, v)\r\n\r\nTest case code in https://github.com/gengliqi/tikv/commit/28d39f7e0308758adb81a9a973846619c2207b0d\r\n\r\n### What version of TiKV are you using?\r\n3.x, 4.x, master\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2020-06-04T11:06:56Z",
+  "updated_at": "2020-08-10T03:23:18Z",
+  "closed_at": "2020-06-19T09:00:06Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": []
+}

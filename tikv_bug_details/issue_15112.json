@@ -1,0 +1,51 @@
+{
+  "issue_number": 15112,
+  "title": "[dr-autosync] too much logs during online recovery after switching to back dc in sync_recovery mode",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n6.5.3\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n\r\n### What did happened?\r\n```\r\n[2023/07/11 18:21:44.936 +08:00] [INFO] [cluster.go:384] [\"will run cmd\"] [cmd:=\"tiup ctl:v6.5.3 pd -u http://pd3-peer.e2e-dr-auto-sync-func-thin-tps-1818031-1-434:2379 unsafe remove-failed-stores --auto-detect\"]\r\n\r\n....\r\n  {\r\n    \"info\": \"Unsafe recovery finished\",\r\n    \"time\": \"2023-07-11 18:23:34.459\",\r\n    \"details\": [\r\n      \"affected table ids: 10, 72, 281474976710654, 34, 48, 88, 46, 82, 89, 281474976710652, 281474976710653, 26, 76, 104, 8, 38, 52, 78, 83, 22, 44, 60, 64, 66, 68, 85, 4, 24, 36, 84, 6, 42, 30, 40, 87, 100, 102, 32, 50, 54, 58, 62, 108, 96, 98, 106, 20, 12, 56, 70, 18, 28, 94, 281474976710651, 14, 16, 74, 86, 90\"\r\n    ]\r\n  }\r\n]\r\n```\r\n\r\n```\r\nsh-4.2# ls -lrh\r\ntotal 522M\r\n-rw-r--r--. 1 tidb tidb  466 Jul 11 18:25 tikv_stderr.log\r\n-rw-r--r--. 1 tidb tidb 8.8M Jul 12 15:16 tikv.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-50.912.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-40.594.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-33.361.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-29.736.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-26.884.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-23.517.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-19.517.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-15.533.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-11.542.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-07.535.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:23 tikv-2023-07-11T18-23-03.505.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-59.481.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-55.478.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-51.478.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-47.494.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-43.484.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-39.443.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-35.412.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-31.420.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-27.419.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-23.386.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-19.353.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-15.291.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-11.215.log\r\n-rw-r--r--. 1 tidb tidb  11M Jul 11 18:22 tikv-2023-07-11T18-22-06.588.log\r\n-rw-r--r--. 1 tidb tidb 263M Jul 11 18:21 tikv-2023-07-11T18-21-30.055.log\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-07-13T02:45:16Z",
+  "updated_at": "2024-03-01T03:50:50Z",
+  "closed_at": "2023-07-14T02:56:16Z",
+  "labels": [
+    "type/bug",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1633464152,
+      "user": "mayjiang0203",
+      "created_at": "2023-07-13T02:45:27Z",
+      "body": "/type enhancement"
+    },
+    {
+      "id": 1633464253,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-07-13T02:45:30Z",
+      "body": "@mayjiang0203: The label(s) `type/enhencement` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15112#issuecomment-1633464152):\n\n>/type enhencement\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1633466833,
+      "user": "mayjiang0203",
+      "created_at": "2023-07-13T02:46:54Z",
+      "body": "/assign @v01dstar "
+    },
+    {
+      "id": 1972373709,
+      "user": "TonsnakeLin",
+      "created_at": "2024-03-01T02:53:00Z",
+      "body": "/label affects-7.1"
+    },
+    {
+      "id": 1972456950,
+      "user": "TonsnakeLin",
+      "created_at": "2024-03-01T03:47:02Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1972459327,
+      "user": "TonsnakeLin",
+      "created_at": "2024-03-01T03:50:47Z",
+      "body": "/remove-type enhancement"
+    }
+  ]
+}

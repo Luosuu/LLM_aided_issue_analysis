@@ -1,0 +1,22 @@
+{
+  "issue_number": 15051,
+  "title": "[Dynamic Regions] v2 ~8% QPS drop compare with v1, sysbench oltp_read_write",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun sysbench oltp_read_write with 32tables, each with 10m rows\r\n\r\n### What did you expect?\r\nno performance degradation\r\n\r\n### What did happened?\r\n~8% QPS drop, one of the tikv is much slower in commit log duration.\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/2edfbfca-92a1-47ba-aeee-70ab7e8042e0)\r\n![image](https://github.com/tikv/tikv/assets/2316425/01514486-f15a-4c56-bde6-2bfa6529d652)\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/1686e699-5241-4e37-81aa-9f6bb904976a)\r\n![image](https://github.com/tikv/tikv/assets/2316425/3308c616-747c-4f52-80c0-cf719fd3e204)\r\n![image](https://github.com/tikv/tikv/assets/2316425/ca6913b2-f60c-4d83-8bb8-632fc5e46d87)\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-07-03T01:18:18Z",
+  "updated_at": "2023-08-30T03:25:04Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1698430474,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-30T03:24:49Z",
+      "body": "~8% drop is acceptable in v7.4, changing it to moderate. "
+    }
+  ]
+}

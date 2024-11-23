@@ -1,0 +1,20 @@
+{
+  "issue_number": 3393,
+  "title": "Single-node TiKV cluster logs abnormal leader missing ",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\nRun a single-node TiKV cluster.\r\n\r\n**What did you expect to see?**\r\n\r\nNo abnormal leader missing.\r\n\r\n**What did you see instead?**\r\n\r\n```\r\n2018/08/03 17:44:28.277 WARN store.rs:2816: [region 102] 103 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.277 WARN store.rs:2816: [region 96] 97 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.277 WARN store.rs:2816: [region 90] 91 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.277 WARN store.rs:2816: [region 84] 85 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 78] 79 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 72] 73 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 66] 67 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 60] 61 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 54] 55 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 48] 49 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 42] 43 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 36] 37 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 30] 31 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 158] 159 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 24] 25 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 152] 153 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 18] 19 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 146] 147 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 12] 13 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 140] 141 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 6] 7 leader missing longer than abnormal_leader_missing_duration 600s\r\n2018/08/03 17:44:28.278 WARN store.rs:2816: [region 134] 135 leader missing longer than abnormal_leader_missing_duration 600s\r\n```\r\n\r\nBecause there is no heartbeat message, `peer.step` will not be invoked, it will eventually lead to `abnormal_leader_missing`.\r\n\r\nCC #3133 ",
+  "state": "closed",
+  "created_at": "2018-08-03T09:59:07Z",
+  "updated_at": "2018-08-15T18:43:58Z",
+  "closed_at": "2018-08-15T18:43:58Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 410210152,
+      "user": "BusyJay",
+      "created_at": "2018-08-03T10:13:23Z",
+      "body": "Duplicate with #3384."
+    }
+  ]
+}

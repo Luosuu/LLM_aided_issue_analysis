@@ -1,0 +1,14 @@
+{
+  "issue_number": 15980,
+  "title": "make: `basename` prints errors.",
+  "body": "## Bug Report\r\nCompile the master branch with `make dist_release`, it reports the following errors:\r\n```\r\n[root@virtualmachine-5 tikv]# make dist_release\r\nbasename: 缺少操作数\r\n请尝试执行 \"basename --help\" 来获取更多信息。\r\nmake build_dist_release\r\nmake[1]: 进入目录“/root/workspace/codes/tikv”\r\nbasename: 缺少操作数\r\n请尝试执行 \"basename --help\" 来获取更多信息。\r\nmake x-build-dist\r\nmake[2]: 进入目录“/root/workspace/codes/tikv”\r\nbasename: 缺少操作数\r\n请尝试执行 \"basename --help\" 来获取更多信息。\r\nbash scripts/run-cargo.sh\r\nusing etc/cargo.config.dist\r\n+ cp etc/cargo.config.dist .cargo/config\r\n+ set +x\r\n+ [[ -n 1 ]]\r\n+ [[ 1 != \\0 ]]\r\n+ rustup component add rust-src\r\ninfo: component 'rust-src' is up to date\r\n+ cargo build --no-default-features --release --package=tikv-server --package=tikv-ctl '--features= pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure openssl-vendored' -Z build-std=core,std,alloc,proc_macro,test --target=x86_64-unknown-linux-gnu -Z unstable-options --out-dir=/root/workspace/codes/tikv/target/release\r\n    Updating git repository `https://github.com/tikv/rust-rocksdb.git`\r\n```\r\nIt reflected that the introduced `basename` was not used with a correct syntax.\r\nAnd I found that it was introduced in pr e29eae2fdc984042671c93541499cb4c20241066:\r\nhttps://github.com/tikv/tikv/blob/03499fff2e2bcb32cf33f76bc92f8b1cf3b4f0a3/Makefile#L167\r\n\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV\r\nRelease Version: nightly\r\nEdition: Community\r\nGit Commit Hash: https://github.com/tikv/tikv/commit/03499fff2e2bcb32cf33f76bc92f8b1cf3b4f0a3\r\nGit Commit Branch: master\r\nRust Version: rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\n\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux version 4.18.0-305.3.1.el8_4.x86_64 (mockbuild@ord1-prod-x86build003.svc.aws.rockylinux.org) (gcc version 8.4.1 20200928 (Red Hat 8.4.1-1) (GCC)) #1 SMP Thu Jun 17 07:52:48 UTC 2021\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\ndo not prints:\r\n```\r\nbasename: 缺少操作数\r\n请尝试执行 \"basename --help\" 来获取更多信息\r\n```\r\n\r\n### What did happened?\r\nprints:\r\n```\r\nbasename: 缺少操作数\r\n请尝试执行 \"basename --help\" 来获取更多信息\r\n```",
+  "state": "closed",
+  "created_at": "2023-11-14T06:48:59Z",
+  "updated_at": "2023-11-14T07:14:16Z",
+  "closed_at": "2023-11-14T07:14:15Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

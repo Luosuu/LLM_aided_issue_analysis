@@ -1,0 +1,53 @@
+{
+  "issue_number": 10182,
+  "title": "CDC should validate request's cluster ID",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nTiKV does not validate CDC request's cluster-ID. TiKV should send ClusterID Mismatch error instead of RegionNotFound error.\r\n\r\nThere is no CDC nodes.\r\n![image](https://user-images.githubusercontent.com/2150711/118431782-ae317e80-b709-11eb-90e1-b4df7fdf1f3e.png)\r\n\r\nTiKV keeps logging CDC RegionNotFound error.\r\n![image](https://user-images.githubusercontent.com/2150711/118431762-a5d94380-b709-11eb-9e02-f468d365004b.png)\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n5.0.0\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-05-17T04:17:22Z",
+  "updated_at": "2021-10-08T05:57:24Z",
+  "closed_at": "2021-10-08T05:57:24Z",
+  "labels": [
+    "difficulty/easy",
+    "type/bugfix",
+    "component/CDC",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 850360172,
+      "user": "overvenus",
+      "created_at": "2021-05-28T11:44:02Z",
+      "body": "@JinLingChristopher Could you take a look?"
+    },
+    {
+      "id": 850892335,
+      "user": "gdivya6028",
+      "created_at": "2021-05-29T20:12:32Z",
+      "body": "I will work on this issue"
+    },
+    {
+      "id": 872178587,
+      "user": "Rustin170506",
+      "created_at": "2021-07-01T11:49:41Z",
+      "body": "@divyaguduru Are you still looking at this problem? I'd like to try to fix it."
+    },
+    {
+      "id": 884004318,
+      "user": "Rustin170506",
+      "created_at": "2021-07-21T08:38:59Z",
+      "body": "/assign"
+    },
+    {
+      "id": 886175977,
+      "user": "Rustin170506",
+      "created_at": "2021-07-25T09:53:48Z",
+      "body": "@overvenus Can you help provide more guidance please? At the moment I'm not quite sure how we should validate it? It looks like we can get the cluster id from the header, but how do I verify it? Also, how can I reproduce it?"
+    },
+    {
+      "id": 888989070,
+      "user": "overvenus",
+      "created_at": "2021-07-29T10:11:00Z",
+      "body": "> It looks like we can get the cluster id from the header, but how do I verify it?\r\n\r\nYes, cluster id is attached in the header.\r\n\r\n> At the moment I'm not quite sure how we should validate it? \r\n\r\nYou can add a new field (cluster_id) in `Service`. TiKV validates a request when TiKV receives it in `event_feed` gRPC handler.\r\n \r\nhttps://github.com/tikv/tikv/blob/3f0c72a389b4987c27b3dc42d8931a7ecaff9638/components/cdc/src/service.rs#L275-L280 \r\n\r\n> Also, how can I reproduce it?\r\n\r\nI think adding a unit test that covers it is enough. It is not necessary to reproduce it in a real cluster. "
+    }
+  ]
+}

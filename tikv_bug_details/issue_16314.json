@@ -1,0 +1,34 @@
+{
+  "issue_number": 16314,
+  "title": "Jepsen monotonic test failed with anomalies",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n run jepsen misc pessimistic case\r\n\r\n### What did you expect?\r\nno error report \r\n### What did happened?\r\n```\r\nINFO [2024-01-06 05:52:50,160] jepsen test runner - jepsen.core {:perf\r\n {:latency-graph {:valid? true},\r\n  :rate-graph {:valid? true},\r\n  :valid? true},\r\n :workload\r\n {:perf\r\n  {:latency-graph {:valid? true},\r\n   :rate-graph {:valid? true},\r\n   :valid? true},\r\n  :sequential\r\n  {:valid? false,\r\n   :results\r\n   {0 {:valid? true, :errors []},\r\n    121 {:valid? true, :errors []},\r\n    65 {:valid? true, :errors []},\r\n      ...\r\n    81 {:valid? true, :errors []},\r\n    120 {:valid? true, :errors []},\r\n    79 {:valid? true, :errors []},\r\n    38 {:valid? true, :errors []},\r\n    126 {:valid? true, :errors []},\r\n    98 {:valid? true, :errors []},\r\n    I124\r\n    {:valid? false,\r\n     :errors\r\n     [{:type :ok,\r\n       :f :read,\r\n       :process 5,\r\n       :time 288501472611,\r\n       :txn-info {:start_ts 446829770314350625},\r\n       :index 124812,\r\n       :missing #{31292},\r\n       :expected-count 202}\r\n      {:type :ok,\r\n       :f :read,\r\n       :process 9,\r\n       :time 288517114467,\r\n       :txn-info {:start_ts 446829770314350642},\r\n       :index 124823,\r\n       :missing #{31292},\r\n```",
+  "state": "closed",
+  "created_at": "2024-01-08T09:41:21Z",
+  "updated_at": "2024-01-25T08:01:08Z",
+  "closed_at": "2024-01-25T08:01:08Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.6"
+  ],
+  "comments_data": [
+    {
+      "id": 1880910851,
+      "user": "seiya-annie",
+      "created_at": "2024-01-08T12:27:47Z",
+      "body": "[node-0.tar.gz](https://github.com/tikv/tikv/files/13859912/node-0.tar.gz)\r\n[node-1.tar.gz](https://github.com/tikv/tikv/files/13859949/node-1.tar.gz)\r\n"
+    },
+    {
+      "id": 1880925230,
+      "user": "seiya-annie",
+      "created_at": "2024-01-08T12:35:35Z",
+      "body": "[node-2.tar.gz](https://github.com/tikv/tikv/files/13860050/node-2.tar.gz)\r\n[node-3.tar.gz](https://github.com/tikv/tikv/files/13860051/node-3.tar.gz)\r\n"
+    },
+    {
+      "id": 1891151401,
+      "user": "cfzjywxk",
+      "created_at": "2024-01-15T01:07:55Z",
+      "body": "Possible relatated to https://github.com/tikv/tikv/pull/16261."
+    }
+  ]
+}

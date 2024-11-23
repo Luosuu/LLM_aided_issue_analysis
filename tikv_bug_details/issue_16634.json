@@ -1,0 +1,29 @@
+{
+  "issue_number": 16634,
+  "title": "Writing protected rollback directly to rollback flag of another transaction's commit record may cause resolved_ts being blocked",
+  "body": "## Bug Report\r\n\r\nConsider the following case of transaction:\r\n\r\n1. Transaction $T_1$ committed on key $k$, $T_1.start\\\\_ts = 10$, $T_1.commit\\\\_ts = 20$;\r\n2. Transaction $T_2$ prewrites on key $k$, $T_2.start\\\\_ts = 20$;\r\n3. Transaction $T_2$ is rolled back by resolve-lock of another transaction and a protected rollback on key $k$ is being written.\r\n4. As $T_2.start\\\\_ts = T_1.commit\\\\_ts$, the `has_overlapped_rollback` flag of $T_1$'s commit record would be set.\r\n5. Therefore, a write batch containing following content is applied to the storage:\r\n    * Delete `k` from lock_cf\r\n    * Write `k{T1.commit_ts}` to write_cf, with `has_overlapped_rollback` set\r\n        * And as it's an existing write record being read and re-written, its `gc_fence` field will also be set.\r\n\r\nSo when the applying message comes to resolved_ts module:\r\n\r\nhttps://github.com/tikv/tikv/blob/8ab73504d8abd5cea53b49e2f231c9fddcaafb66/components/resolved_ts/src/cmd.rs#L79-L138\r\n\r\nThe branch at L83 (writing write_cf, deleting lock_cf) will be executed. Then in the `decode_write` function:\r\n\r\nhttps://github.com/tikv/tikv/blob/8ab73504d8abd5cea53b49e2f231c9fddcaafb66/components/resolved_ts/src/cmd.rs#L140-L159\r\n\r\nL150 will be executed as a rewritten record must have `gc_fence` set. As a result, `encode_rows` gets nothing for this write. No rollback information is returned.\r\n\r\nAfter confirming with @overvenus , this can possibly block the resolved_ts used by stale read.",
+  "state": "open",
+  "created_at": "2024-03-12T09:42:54Z",
+  "updated_at": "2024-11-01T10:17:02Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2083636602,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-29T20:48:38Z",
+      "body": "@MyonKeminta Do you have any potential solution for this issue?"
+    }
+  ]
+}

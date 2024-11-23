@@ -1,0 +1,34 @@
+{
+  "issue_number": 15566,
+  "title": "[Dynamic Regions] Analyze table failed: [tikv:9005] Region is unavailable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nThe cluster contains about 60 tikv with dynamic region enabled, each tikv contains 2.5TB data.\r\nWhen manually exection `analyze table` on a table contains about 6billion rows with each row size about 10kb, analyze execution failed after several hours with error `[tikv:9005] Region is unavailable`.\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\nFrom tidb's log I see a low of logs like following:\r\n```\r\n[2023/09/11 13:10:21.144 +08:00] [INFO] [region_request.go:1513] [\"throwing pseudo region error due to no replica available\"] [conn=1826707712] [session_alias=] [req-ts=444179148789776392] [req-type=Cop] [region=\"{ region id: 8200951, ver: 189, confVer: 407 }\"] [replica-read-type=leader] [stale-read=false] [request-sender=\"{replicaSelector: replicaSelector{selectorStateStr: tryFollower, cacheRegionIsValid: false, replicaStatus: [peer: 8200952, store: 42, isEpochStale: false, attempts: 1, replica-epoch: 0, store-epoch: 0, store-state: resolved, store-liveness-state: reachable peer: 8200953, store: 69, isEpochStale: false, attempts: 1, replica-epoch: 0, store-epoch: 0, store-state: resolved, store-liveness-state: reachable peer: 8200954, store: 60, isEpochStale: false, attempts: 10, replica-epoch: 0, store-epoch: 0, store-state: resolved, store-liveness-state: reachable]}}\"] [retry-times=12] [total-backoff-ms=1072] [total-backoff-times=14] [total-region-errors=\"8200954-stale_command:10, 8200952-not_leader-nil:1, 8200953-not_leader-nil:1\"]\r\n[2023/09/11 13:10:57.190 +08:00] [INFO] [region_request.go:1513] [\"throwing pseudo region error due to no replica available\"] [conn=1826707724] [session_alias=] [req-ts=444179160691113990] [req-type=Cop] [region=\"{ region id: 8200951, ver: 189, confVer: 407 }\"] [replica-read-type=leader] [stale-read=false] [request-sender=\"{replicaSelector: replicaSelector{selectorStateStr: nil, cacheRegionIsValid: unknown, replicaStatus: []}}\"] [retry-times=0] [total-backoff-ms=0] [total-backoff-times=0] [total-region-errors=]\r\n```\r\nThis error happened on many regions and some of them occurs for more than 2000 times. But from tikv and pd's log I can see the region heartbeat was reported successfully but seems the region epoch was outdated for a long time at tidb side.\r\n",
+  "state": "closed",
+  "created_at": "2023-09-11T10:37:02Z",
+  "updated_at": "2023-10-13T09:22:51Z",
+  "closed_at": "2023-10-13T09:22:50Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1713620651,
+      "user": "glorv",
+      "created_at": "2023-09-11T10:37:20Z",
+      "body": "/cc @you06  PTAL"
+    },
+    {
+      "id": 1715542998,
+      "user": "you06",
+      "created_at": "2023-09-12T11:25:51Z",
+      "body": "```\r\n[total-region-errors=\"8200954-stale_command:10, 8200952-not_leader-nil:1, 8200953-not_leader-nil:1\"]\r\n```\r\n\r\nFrom the log, there are 10 stale-command errors and not-eader error for the other two replicas.\r\n\r\nThe stale-command is produced by term check here, however, what I found is the term field of KV request's context it never set in TiDB. If so, the header's term is 0, and the check should always pass.\r\n\r\nhttps://github.com/tikv/tikv/blob/d830a58335839fe02434727f2d8b252a02ba386d/components/raftstore/src/store/util.rs#L410-L419\r\n\r\nThe term may be set somewhere else, need further investigation.\r\n"
+    },
+    {
+      "id": 1761199558,
+      "user": "glorv",
+      "created_at": "2023-10-13T09:22:51Z",
+      "body": "After some optimization in both tikv and client-go, we didn't meet this issue recently. "
+    }
+  ]
+}

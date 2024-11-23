@@ -1,0 +1,33 @@
+{
+  "issue_number": 10308,
+  "title": "TiKV segfaults during profiling",
+  "body": "## Bug Report\r\n\r\nTiKV segfaults unexpectedly.\r\n\r\n```\r\n[Sun Jun  6 02:37:58 2021] unified-read-po[3381]: segfault at 4c2b8 ip 00007f5178d510f8 sp 00007f50ce7cdb20 error 4 in libgcc_s-4.8.5-20150702.so.1[7f5178d42000+15000]\r\n[Sun Jun  6 02:38:54 2021] unified-read-po[25653]: segfault at 8 ip 00007f50c53340f8 sp 00007f500efd3c60 error 4 in libgcc_s-4.8.5-20150702.so.1[7f50c5325000+15000]\r\n```\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n2021/06/05 nightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```sh\r\n# run sysbench\r\nsysbench --db-driver=mysql --mysql-host=tidbhost --mysql-port=47904 --mysql-user=root --time=15000000 --report-interval=10 --threads=64 --mysql-db=test --tables=200 --table-size=12500000 --create_secondary=off oltp_write_only run &\r\n\r\nfor i in $(seq 1 300); do { curl -v http://tikvhost:port/debug/pprof/profile\\?seconds\\=5 > profile.`date +\"%m-%d-%T.%3N\"`.svg; sleep 0.2; } done;\r\n```\r\n\r\n### What did you expect?\r\n\r\nNo segfault.\r\n\r\n### What did happened?\r\n\r\nSegfault.",
+  "state": "closed",
+  "created_at": "2021-06-06T03:35:58Z",
+  "updated_at": "2022-01-08T15:30:15Z",
+  "closed_at": "2022-01-08T15:30:14Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 855710773,
+      "user": "BusyJay",
+      "created_at": "2021-06-07T08:17:26Z",
+      "body": "Perhaps related to #10150. Can you upgrade tiup can try again?"
+    },
+    {
+      "id": 856620401,
+      "user": "Lily2025",
+      "created_at": "2021-06-08T09:37:15Z",
+      "body": "/severity moderate"
+    },
+    {
+      "id": 1008025612,
+      "user": "BusyJay",
+      "created_at": "2022-01-08T15:30:14Z",
+      "body": "It's probably a fixed issue. Close it for now."
+    }
+  ]
+}

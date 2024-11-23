@@ -1,0 +1,23 @@
+{
+  "issue_number": 6247,
+  "title": "Test test_server_down_peers_with_hibernate_regions fails",
+  "body": "## Bug Report\r\n\r\n```\r\n[2019-12-16T05:54:50.740Z] thread 'raftstore::test_region_heartbeat::test_server_down_peers_with_hibernate_regions' panicked at 'failed to transfer leader to [1] id: 2 store_id: 2', components/test_raftstore/src/cluster.rs:825:17\r\n[2019-12-16T05:54:50.740Z] stack backtrace:\r\n[2019-12-16T05:54:50.740Z]    0: backtrace::backtrace::libunwind::trace\r\n[2019-12-16T05:54:50.740Z]              at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.35/src/backtrace/libunwind.rs:88\r\n[2019-12-16T05:54:50.740Z]    1: backtrace::backtrace::trace_unsynchronized\r\n[2019-12-16T05:54:50.740Z]              at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.35/src/backtrace/mod.rs:66\r\n[2019-12-16T05:54:50.740Z]    2: std::sys_common::backtrace::_print\r\n[2019-12-16T05:54:50.740Z]              at src/libstd/sys_common/backtrace.rs:47\r\n[2019-12-16T05:54:50.740Z]    3: std::sys_common::backtrace::print\r\n[2019-12-16T05:54:50.740Z]              at src/libstd/sys_common/backtrace.rs:36\r\n[2019-12-16T05:54:50.740Z]    4: std::panicking::default_hook::{{closure}}\r\n[2019-12-16T05:54:50.740Z]              at src/libstd/panicking.rs:200\r\n[2019-12-16T05:54:50.740Z]    5: std::panicking::default_hook\r\n[2019-12-16T05:54:50.740Z]              at src/libstd/panicking.rs:214\r\n[2019-12-16T05:54:50.740Z]    6: std::panicking::rust_panic_with_hook\r\n[2019-12-16T05:54:50.740Z]              at src/libstd/panicking.rs:477\r\n[2019-12-16T05:54:50.740Z]    7: std::panicking::continue_panic_fmt\r\n[2019-12-16T05:54:50.740Z]              at src/libstd/panicking.rs:384\r\n[2019-12-16T05:54:50.740Z]    8: std::panicking::begin_panic_fmt\r\n[2019-12-16T05:54:50.740Z]              at src/libstd/panicking.rs:339\r\n[2019-12-16T05:54:50.740Z]    9: test_raftstore::cluster::Cluster<T>::must_transfer_leader\r\n[2019-12-16T05:54:50.740Z]              at ./<::std::macros::panic macros>:9\r\n[2019-12-16T05:54:50.740Z]   10: integrations::raftstore::test_region_heartbeat::test_down_peers\r\n[2019-12-16T05:54:50.740Z]              at tests/integrations/raftstore/test_region_heartbeat.rs:62\r\n[2019-12-16T05:54:50.740Z]   11: integrations::raftstore::test_region_heartbeat::test_server_down_peers_with_hibernate_regions\r\n[2019-12-16T05:54:50.740Z]              at tests/integrations/raftstore/test_region_heartbeat.rs:84\r\n[2019-12-16T05:54:50.740Z]   12: integrations::raftstore::test_region_heartbeat::test_server_down_peers_with_hibernate_regions::{{closure}}\r\n[2019-12-16T05:54:50.740Z]              at tests/integrations/raftstore/test_region_heartbeat.rs:78\r\n[2019-12-16T05:54:50.740Z]   13: core::ops::function::FnOnce::call_once\r\n[2019-12-16T05:54:50.740Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libcore/ops/function.rs:227\r\n[2019-12-16T05:54:50.740Z]   14: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n[2019-12-16T05:54:50.740Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/liballoc/boxed.rs:922\r\n[2019-12-16T05:54:50.740Z]   15: __rust_maybe_catch_panic\r\n[2019-12-16T05:54:50.740Z]              at src/libpanic_unwind/lib.rs:80\r\n[2019-12-16T05:54:50.740Z]   16: std::panicking::try\r\n[2019-12-16T05:54:50.740Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libstd/panicking.rs:275\r\n[2019-12-16T05:54:50.740Z]   17: std::panic::catch_unwind\r\n[2019-12-16T05:54:50.740Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libstd/panic.rs:394\r\n[2019-12-16T05:54:50.740Z]   18: test::run_test::run_test_inner::{{closure}}\r\n[2019-12-16T05:54:50.740Z]              at src/libtest/lib.rs:1413\r\n[2019-12-16T05:54:50.740Z] note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n```\r\n\r\n[internal.pingcap.net.txt](https://github.com/tikv/tikv/files/3966307/internal.pingcap.net.txt)\r\n",
+  "state": "closed",
+  "created_at": "2019-12-16T06:09:53Z",
+  "updated_at": "2020-11-04T06:03:08Z",
+  "closed_at": "2020-11-04T06:03:08Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 721530008,
+      "user": "BusyJay",
+      "created_at": "2020-11-04T06:03:08Z",
+      "body": "It seems to work well in my local environment and CI now. Feel free to reopen if it still exists."
+    }
+  ]
+}

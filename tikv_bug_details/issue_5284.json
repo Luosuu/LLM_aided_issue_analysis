@@ -1,0 +1,26 @@
+{
+  "issue_number": 5284,
+  "title": "CI failed in raftstore::test_lease_read::test_read_index_when_transfer_leader_1",
+  "body": "this is the logs\r\nhttps://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/7852/pipeline/\r\n\r\nhttps://internal.pingcap.net/idc-jenkins/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/7852/nodes/150/steps/1152/log/?start=0",
+  "state": "closed",
+  "created_at": "2019-08-15T02:24:59Z",
+  "updated_at": "2019-09-02T11:35:31Z",
+  "closed_at": "2019-09-02T11:35:31Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 523720682,
+      "user": "siddontang",
+      "created_at": "2019-08-22T02:27:41Z",
+      "body": "\r\n```\r\n[2019-08-22T02:17:42.572Z] running 9 tests\r\n[2019-08-22T02:17:42.572Z] test _1_check_system_requirement ... ok\r\n[2019-08-22T02:17:42.572Z] test _0_ci_setup ... ok\r\n[2019-08-22T02:17:45.092Z] test coprocessor::test_select::test_batch_row_limit ... ok\r\n[2019-08-22T02:17:45.654Z] test pd::test_rpc_client::test_restart_leader_insecure ... ok\r\n[2019-08-22T02:17:52.195Z] thread 'raftstore::test_lease_read::test_read_index_when_transfer_leader_1' panicked at 'failed to transfer leader to [1] Peer { id: 3, store_id: 3, is_learner: false, unknown_fields: UnknownFields { fields: None }, cached_size: CachedSize { size: 0 } }', components/test_raftstore/src/cluster.rs:815:17\r\n[2019-08-22T02:17:52.195Z] stack backtrace:\r\n[2019-08-22T02:17:52.195Z]    0: backtrace::backtrace::libunwind::trace\r\n[2019-08-22T02:17:52.195Z]              at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/libunwind.rs:88\r\n[2019-08-22T02:17:52.195Z]    1: backtrace::backtrace::trace_unsynchronized\r\n[2019-08-22T02:17:52.195Z]              at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/mod.rs:66\r\n[2019-08-22T02:17:52.195Z]    2: std::sys_common::backtrace::_print\r\n[2019-08-22T02:17:52.195Z]              at src/libstd/sys_common/backtrace.rs:47\r\n[2019-08-22T02:17:52.195Z]    3: std::sys_common::backtrace::print\r\n[2019-08-22T02:17:52.195Z]              at src/libstd/sys_common/backtrace.rs:36\r\n[2019-08-22T02:17:52.195Z]    4: std::panicking::default_hook::{{closure}}\r\n[2019-08-22T02:17:52.195Z]              at src/libstd/panicking.rs:200\r\n[2019-08-22T02:17:52.195Z]    5: std::panicking::default_hook\r\n[2019-08-22T02:17:52.195Z]              at src/libstd/panicking.rs:214\r\n[2019-08-22T02:17:52.195Z]    6: std::panicking::rust_panic_with_hook\r\n[2019-08-22T02:17:52.195Z]              at src/libstd/panicking.rs:477\r\n[2019-08-22T02:17:52.195Z]    7: std::panicking::continue_panic_fmt\r\n[2019-08-22T02:17:52.195Z]              at src/libstd/panicking.rs:384\r\n[2019-08-22T02:17:52.195Z]    8: std::panicking::begin_panic_fmt\r\n[2019-08-22T02:17:52.195Z]              at src/libstd/panicking.rs:339\r\n[2019-08-22T02:17:52.195Z]    9: test_raftstore::cluster::Cluster<T>::must_transfer_leader\r\n[2019-08-22T02:17:52.195Z]              at ./<::std::macros::panic macros>:8\r\n[2019-08-22T02:17:52.195Z]   10: integrations::raftstore::test_lease_read::test_read_index_when_transfer_leader_1\r\n[2019-08-22T02:17:52.195Z]              at tests/integrations/raftstore/test_lease_read.rs:396\r\n[2019-08-22T02:17:52.195Z]   11: integrations::raftstore::test_lease_read::test_read_index_when_transfer_leader_1::{{closure}}\r\n[2019-08-22T02:17:52.195Z]              at tests/integrations/raftstore/test_lease_read.rs:337\r\n[2019-08-22T02:17:52.195Z]   12: core::ops::function::FnOnce::call_once\r\n[2019-08-22T02:17:52.195Z]              at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/libcore/ops/function.rs:231\r\n[2019-08-22T02:17:52.195Z]   13: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n[2019-08-22T02:17:52.195Z]              at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/liballoc/boxed.rs:766\r\n[2019-08-22T02:17:52.195Z]   14: __rust_maybe_catch_panic\r\n[2019-08-22T02:17:52.195Z]              at src/libpanic_unwind/lib.rs:82\r\n[2019-08-22T02:17:52.195Z]   15: std::panicking::try\r\n[2019-08-22T02:17:52.195Z]              at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/libstd/panicking.rs:275\r\n[2019-08-22T02:17:52.195Z]   16: std::panic::catch_unwind\r\n[2019-08-22T02:17:52.195Z]              at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/libstd/panic.rs:394\r\n[2019-08-22T02:17:52.195Z]   17: test::run_test::run_test_inner::{{closure}}\r\n[2019-08-22T02:17:52.195Z]              at src/libtest/lib.rs:1472\r\n[2019-08-22T02:17:52.195Z] note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n[2019-08-22T02:17:52.195Z] test raftstore::test_lease_read::test_read_index_when_transfer_leader_1 ... FAILED\r\n```"
+    },
+    {
+      "id": 527114821,
+      "user": "overvenus",
+      "created_at": "2019-09-02T11:35:31Z",
+      "body": "Dup with #5163."
+    }
+  ]
+}

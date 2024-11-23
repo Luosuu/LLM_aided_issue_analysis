@@ -1,0 +1,40 @@
+{
+  "issue_number": 14753,
+  "title": "Coprocessor task terminated due to exceeding the deadline in tispark scenario",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n6.5.1\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n9 tikvs for voter role, 3 tikvs for learner role, tispark read from learner roles.\r\ntispark job is `select * from a_big_table(3T,single replica)` and the learner tikv cpu is about 80% during the spark job\r\nThe spark job takes about 30 minutes and failed for the error of `Coprocessor task terminated due to exceeding the deadline` occasionally.\r\nMaybe we can refine ther retry logic for the coprocessor timeout in the tispark or tikv.\r\n### What did you expect?\r\nspark job success\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-05-16T06:49:28Z",
+  "updated_at": "2024-01-29T23:49:27Z",
+  "closed_at": "2024-01-29T23:49:27Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1637248364,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-17T01:01:16Z",
+      "body": "@lilinghai Did you try to increase the https://docs.pingcap.com/tidb/dev/tikv-configuration-file#end-point-request-max-handle-duration in TiKV?\r\nAfter this change, if it's still unable to solve this issue, then it's probably related to client side coprocessor timeout.  We're making client-side timeout value configuration in configuration file. \r\nhttps://github.com/pingcap/tidb/issues/45298\r\nhttps://github.com/tikv/client-go/pull/865"
+    },
+    {
+      "id": 1870954048,
+      "user": "glkappe",
+      "created_at": "2023-12-28T08:54:15Z",
+      "body": "https://github.com/pingcap/tidb/issues/45298 https://github.com/tikv/client-go/pull/865\r\nI want to make sure they haven't been picked to the release version yet, right?"
+    },
+    {
+      "id": 1915773616,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T23:46:10Z",
+      "body": "@glkappe It's merged. "
+    }
+  ]
+}

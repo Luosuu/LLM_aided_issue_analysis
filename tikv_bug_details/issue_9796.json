@@ -1,0 +1,75 @@
+{
+  "issue_number": 9796,
+  "title": "Region written stats is abnormal",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nVersions that I know of: 4.0.10, 5.0.0-rc\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\nValue of region written bytes make sense, and is relatively stable.\r\n\r\n### What did happened?\r\n\r\nIn this case (5.0.0-rc), service is running normally, but region written bytes reach multiple PBs\r\n\r\n![image](https://user-images.githubusercontent.com/27005812/110889028-58ff7800-8328-11eb-8172-205c64f1b8ac.png)\r\n\r\nIn this case (4.0.10), two down servers worsen the abnormal state\r\n\r\n![image](https://user-images.githubusercontent.com/27005812/110888901-1a69bd80-8328-11eb-88a5-48796a563744.png)",
+  "state": "closed",
+  "created_at": "2021-03-12T03:56:58Z",
+  "updated_at": "2021-07-06T10:35:54Z",
+  "closed_at": "2021-07-06T10:35:54Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 797301540,
+      "user": "tabokie",
+      "created_at": "2021-03-12T07:43:41Z",
+      "body": "In one of the cases, the `tikv_region_written_bytes_sum` value is 1.8e19, it's likely a u64 overflow, possibly caused by `written_bytes_delta` calculation during heartbeat task."
+    },
+    {
+      "id": 836508252,
+      "user": "BusyJay",
+      "created_at": "2021-05-10T10:10:03Z",
+      "body": "Because the average written bytes keeps growing, and it's calculated by\r\n```\r\nlet written_bytes = current_written_bytes - last_written_bytes;\r\nlast_written_bytes = current_written_bytes;\r\n```\r\n. If it's underflow, then `current_written_bytes` keeps decreasing for more than 5 hours, which doesn't seem reasonable."
+    },
+    {
+      "id": 836536740,
+      "user": "tabokie",
+      "created_at": "2021-05-10T10:40:19Z",
+      "body": "@BusyJay Are you referring to the second screenshot? I recheck the metrics, it seems like something wrong with grafana, the linear graph is a display error:\r\n\r\n![image](https://user-images.githubusercontent.com/27005812/117647067-168ad800-b1bf-11eb-90f0-40b0b43d85c1.png)\r\n"
+    },
+    {
+      "id": 836574105,
+      "user": "BusyJay",
+      "created_at": "2021-05-10T11:21:11Z",
+      "body": "So it seems like the metrics is not updated for 5 hours, and then hit underflow?"
+    },
+    {
+      "id": 837635324,
+      "user": "cosven",
+      "created_at": "2021-05-11T01:59:13Z",
+      "body": "Is the region scheduling affected by these stats?\r\n\r\n/severity moderate"
+    },
+    {
+      "id": 838517267,
+      "user": "BusyJay",
+      "created_at": "2021-05-11T13:54:54Z",
+      "body": "If metrics is not updated for 5 hours, then either the clock of the prometheus machine jumps or tikv/pd thread is stuck for 5 hours. If the latter is the case, and only pd thread is stuck, then scheduling will not work for the time; if tikv is stuck, then it should be completely out of service."
+    },
+    {
+      "id": 839462236,
+      "user": "tabokie",
+      "created_at": "2021-05-12T05:39:56Z",
+      "body": "> If metrics is not updated for 5 hours, then either the clock of the prometheus machine jumps or tikv/pd thread is stuck for 5 hours. If the latter is the case, and only pd thread is stuck, then scheduling will not work for the time; if tikv is stuck, then it should be completely out of service.\r\n\r\nI think during this 5 hours the two problematic servers stayed down, thus no metrics reporting."
+    },
+    {
+      "id": 843790497,
+      "user": "tabokie",
+      "created_at": "2021-05-19T06:38:09Z",
+      "body": "It seems there are two separate cases here:\r\n1) Metrics slowly increasing, the value of `tikv_region_written_bytes_sum` has not reach u64::max\r\n2) `tikv_region_written_bytes_sum` instantly jumping to u64::max, suspect u64 underflow\r\n\r\nThose two cases can be randomly triggered when restarting tikv nodes, or killing one tikv node and restart it after a while.\r\n\r\nAssigning this to @MrCroxx for further investigation."
+    },
+    {
+      "id": 851763948,
+      "user": "MrCroxx",
+      "created_at": "2021-06-01T02:42:10Z",
+      "body": "For problem 1, the bug locates in `pub fn heartbeat_pd` of `component/raftstore/src/store/peer.rs`.\r\n\r\nWhen a region is created, the leader will spawn 3 `heartbeat_pd` task. 1 for notify its leadership, 2 for notify that one of its peers has caught up (3 replicas). Normally, `heartbeat_pd` will spawn a task and let `pd_scheduler` schedule it, but when `approximate_xxx` is initially 0,  `heartbeat_pd` will spawn a task with `approximate_xxx` data, then pass it to `split_check_scheduler`, then use callback to let `pd_scheduler` to scheduler it. It will lead to the 3 tasks in wrong order as expected.\r\n\r\nThe bad case comes up when there is a `ApplyRes` message between the messages which spawn the 3 tasks. `ApplyRes` will trigger `fn post_apply` which advance `last_written_xxx`. If the tasks are in wrong order, the `written_xxx` will be `0 -> some unzero value -> 0`, and will cause `last_written_xxx` underflow.\r\n\r\nI logged the related data and found a sample:\r\n![image](https://user-images.githubusercontent.com/22407295/120259155-ffbf3900-c2c5-11eb-8936-6d83e86b6510.png)\r\n"
+    },
+    {
+      "id": 852642523,
+      "user": "MrCroxx",
+      "created_at": "2021-06-02T01:34:01Z",
+      "body": "[This](https://github.com/tikv/tikv/pull/10119) pull request fixed this bug and was picked to release-5.0 . Need to pick it to release-4.0 ."
+    }
+  ]
+}

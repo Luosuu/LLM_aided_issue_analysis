@@ -1,0 +1,70 @@
+{
+  "issue_number": 11747,
+  "title": "sysbench write only run makes tikv oom",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV \r\nRelease Version:   5.0.6\r\nEdition:           Community\r\nGit Commit Hash:   7fcfaf4a9dd6b245fa7b6ac26740effda57b5139\r\nGit Commit Branch: heads/refs/tags/v5.0.6\r\nUTC Build Time:    2021-12-21 09:12:26\r\nRust Version:      rustc 1.51.0-nightly (bc39d4d9c 2021-01-15)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nk8s pod, 3 tikv, each  has 8c, 16g memory\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n- Testbed: 3 tikv 16GB memory, 3 pd, 3 tidb, test-infra k8s.\r\n- Workload: \r\n   1.   2021-12-28T19:32:34.888Z   INFO    host/workload.go:41     Execute command {\"command\": \"sysbench --db-driver=mysql --mysql-host=upst\r\nream-tidb.cdc-testbed--tps-542872-1-247 --mysql-port=4000 --mysql-user=root --mysql-db=workload --tables=300 --table-size=50 --time=3600 --debug=true --threads=1\r\n00 oltp_write_only prepare\", \"timeout\": \"1h10m0s\", \"resource name\": \"workload\"}\r\n  2.   2021-12-28T19:53:54.677Z   INFO    host/workload.go:41     Execute command {\"command\": \"sysbench --db-driver=mysql --mysql-host=upst\r\nream-tidb.cdc-testbed--tps-542872-1-247 --mysql-port=4000 --mysql-user=root --mysql-db=workload --tables=300 --table-size=50 --time=3600 --debug=true --threads=1\r\n00 oltp_write_only run\", \"timeout\": \"1h10m0s\", \"resource name\": \"workload\"}\r\n### What did you expect?\r\n\r\n- TiKV can recognize cgroup memory limit (<= 70% totally memory), to avoid OOM.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/78345569/147636244-7652336b-9c9b-4716-bedc-ece93f70148e.png)\r\n![image](https://user-images.githubusercontent.com/78345569/147636321-1644623c-5e84-431a-a618-a9d45fdc8548.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-12-29T07:10:53Z",
+  "updated_at": "2024-05-16T06:29:49Z",
+  "closed_at": "2024-05-16T06:29:49Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation",
+    "affects-5.0",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1002430050,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T07:14:21Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002430084,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T07:14:27Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1002430212,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T07:14:56Z",
+      "body": "/assign xiejiandong"
+    },
+    {
+      "id": 1002430216,
+      "user": "ti-chi-bot",
+      "created_at": "2021-12-29T07:14:57Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: xiejiandong.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/11747#issuecomment-1002430212):\n\n>/assign xiejiandong\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1002430319,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T07:15:17Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1002431034,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T07:17:39Z",
+      "body": "/assign tier-cap"
+    },
+    {
+      "id": 2114130727,
+      "user": "overvenus",
+      "created_at": "2024-05-16T06:29:49Z",
+      "body": "We haven't seen similar report in past two years, I believe we have fixed/mitigated this issue. \r\nFeel free to reopen if it occurs again."
+    }
+  ]
+}

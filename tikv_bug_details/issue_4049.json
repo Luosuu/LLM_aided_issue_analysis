@@ -1,0 +1,26 @@
+{
+  "issue_number": 4049,
+  "title": "Build TiKV failed because 'google' has not been declared when compile rust-rocksdb",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\n\r\nrustc 1.29.0-nightly (4f3c7a472 2018-07-17)\r\n\r\n**What operating system and CPU are you using?**\r\nCentOS7 3.10.0-862.el7.x86_64\r\n\r\n**What did you do?**\r\n\r\n`make unportable_release`\r\n\r\n**What did you expect to see?**\r\n\r\nBuild successfully.\r\n\r\n**What did you see instead?**\r\n\r\n```\r\ngmake[5]: Leaving directory `/data3/tangliu/tikv/target/release/build/librocksdb_sys-209ad5b0b08f68be/out/build'\r\ngmake[4]: Leaving directory `/data3/tangliu/tikv/target/release/build/librocksdb_sys-209ad5b0b08f68be/out/build'\r\ngmake[3]: Leaving directory `/data3/tangliu/tikv/target/release/build/librocksdb_sys-209ad5b0b08f68be/out/build'\r\ngmake[2]: Leaving directory `/data3/tangliu/tikv/target/release/build/librocksdb_sys-209ad5b0b08f68be/out/build'\r\n\r\n--- stderr\r\nUnknown option: -C\r\nusage: git [--version] [--help] [-c name=value]\r\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\r\n           [-p|--paginate|--no-pager] [--no-replace-objects] [--bare]\r\n           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]\r\n           <command> [<args>]\r\nIn file included from /home/pingcap/.cargo/git/checkouts/rust-rocksdb-82ef6e5337b3fbe6/2a65792/librocksdb_sys/rocksdb/tools/db_bench_tool.cc:65:0:\r\n/home/pingcap/.cargo/git/checkouts/rust-rocksdb-82ef6e5337b3fbe6/2a65792/librocksdb_sys/rocksdb/util/gflags_compat.h:11:26: error: 'google' has not been declared\r\n #define GFLAGS_NAMESPACE google\r\n                          ^\r\n/home/pingcap/.cargo/git/checkouts/rust-rocksdb-82ef6e5337b3fbe6/2a65792/librocksdb_sys/rocksdb/tools/db_bench_tool.cc:82:7: note: in expansion of macro 'GFLAGS_NAMESPACE'\r\n using GFLAGS_NAMESPACE::ParseCommandLineFlags;\r\n```\r\n\r\nIt is weird that building db_bench_tool for TiKV. ",
+  "state": "closed",
+  "created_at": "2019-01-10T06:55:50Z",
+  "updated_at": "2019-01-17T03:09:16Z",
+  "closed_at": "2019-01-17T03:09:15Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 453385040,
+      "user": "DorianZheng",
+      "created_at": "2019-01-11T05:41:21Z",
+      "body": "Thanks @siddontang for the issue. We won't build RocksDB with GFlags unless you have installed GFlags.  Could you find any GFlags library in `/usr/local/lib` or `/usr/lib`? If yes, which version of GFlags you are using?"
+    },
+    {
+      "id": 455026340,
+      "user": "DorianZheng",
+      "created_at": "2019-01-17T03:09:15Z",
+      "body": "I think this issue is caused by an old version of GFlags. I will close it, but feel free to re-open it if you there is anything else to do with this issue."
+    }
+  ]
+}

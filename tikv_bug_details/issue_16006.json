@@ -1,0 +1,27 @@
+{
+  "issue_number": 16006,
+  "title": "TiKV store size can't converges stablly after titan enable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV\r\nRelease Version:   7.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   7be1b17d72870bb95fcb7443b1f945f9c59657fa\r\nGit Commit Branch: heads/refs/tags/v7.6.0-alpha\r\nUTC Build Time:    2023-11-09 11:56:08\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nsysbench wide table read write worload run for some days.\r\nThe store size is stable if titan disable, but the store size increase always until disk full if titan enable\r\n![img_v3_0258_298f356f-7f5b-4210-87f9-c616d2f8a65g](https://github.com/tikv/tikv/assets/7677963/e2c087cf-32c6-490e-bbfd-460e2edc12e7)\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-11-16T06:53:59Z",
+  "updated_at": "2024-01-05T06:05:55Z",
+  "closed_at": "2024-01-05T06:03:56Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1878172380,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-05T06:05:55Z",
+      "body": "Dup with https://github.com/tikv/tikv/issues/16091"
+    }
+  ]
+}

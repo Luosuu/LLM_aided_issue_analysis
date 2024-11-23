@@ -1,0 +1,16 @@
+{
+  "issue_number": 17082,
+  "title": "In-memory Engine: u64 endian in key encoding is wrong",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/290dab1617c138e790bed26b7c127de2a58adfde/components/region_cache_memory_engine/src/keys.rs#L182-L198\r\n\r\nThe comments state that the `encode_internal_bytes` matches rocksdb internal key encoding, but actually it's not.\r\nIt encodes `(seq << 8) | v_type` in big endian which is the oppopsite to rocksdb's little endian.\r\nThe actually bytes representation is \r\n```\r\nuser key (n bytes) | sequence number shifted by 1 bytes (7 bytes) | value type (1 byte)\r\n```\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nNightly 2024-05-29\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nN/A\r\n\r\n### What did you expect?\r\n\r\nIt matches rocksdb's encoding.\r\n",
+  "state": "closed",
+  "created_at": "2024-05-30T05:57:48Z",
+  "updated_at": "2024-06-13T04:37:31Z",
+  "closed_at": "2024-06-13T04:37:31Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-8.0",
+    "affects-8.1"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,22 @@
+{
+  "issue_number": 10411,
+  "title": "CDC sink quota leaks after channel is dropped",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/77e488ca0563b44a4524bf221dafb59575297925/components/cdc/src/channel.rs#L127-L136\r\n\r\nSink quota leaks after channel is dropped, it should free quota if sending message fails.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nRelease-5.0 / master\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nN/A\r\n\r\n### What did you expect?\r\n\r\nNo quota leak.\r\n\r\n### What did happened?\r\n\r\nQuota leaks.",
+  "state": "closed",
+  "created_at": "2021-06-21T08:42:18Z",
+  "updated_at": "2021-06-22T06:52:54Z",
+  "closed_at": "2021-06-22T06:52:54Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 864911119,
+      "user": "Lily2025",
+      "created_at": "2021-06-21T10:11:00Z",
+      "body": "/severity Major"
+    }
+  ]
+}

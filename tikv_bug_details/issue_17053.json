@@ -1,0 +1,14 @@
+{
+  "issue_number": 17053,
+  "title": "In-memory engine: failed to start raft_server in jepsen test",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\nfailed to start raft_server: Grpc(RpcFailure(RpcStatus { code: 14-UNAVAILABLE, message: \\\"not leader\\\", details: [] }))\r\n```\r\nINFO [2024-05-22 09:35:53,722] jepsen test runner - jepsen.core {:perf\r\n {:latency-graph {:valid? true},\r\n  :rate-graph {:valid? true},\r\n  :valid? true},\r\n :workload\r\n {:cycle {:valid? true, :scc-count 0, :cycles []},\r\n  :timeline {:valid? true},\r\n  :valid? true},\r\n :valid? true}\r\n\r\n\r\nEverything looks good! ヽ(‘ー`)ノ\r\nstore/TiDB master monotonic auto-retry auto-retry-limit :default select FOR UPDATE txn-mode pessimistic isolation :repeatable-read nemesis kill,partition-one,schedules,stop/20240522T092610.000Z/node-3.node-peer.jepsen-tps-7583422-1-495/kv.log:[2024/05/22 09:30:34.249 +00:00] [FATAL] [server.rs:1039] [\"failed to start raft_server: Grpc(RpcFailure(RpcStatus { code: 14-UNAVAILABLE, message: \\\"not leader\\\", details: [] }))\"] [thread_id=1]\r\n2024-05-22T09:36:01.126Z plan-exec-7583422-re0-case-540371-4-1685556212 ERROR [user:?] - server panicked unexpectedly or data might be inconsistent\r\n```\r\n",
+  "state": "open",
+  "created_at": "2024-05-22T10:00:07Z",
+  "updated_at": "2024-05-22T10:00:19Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "jepsen"
+  ],
+  "comments_data": []
+}

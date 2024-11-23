@@ -1,0 +1,27 @@
+{
+  "issue_number": 6596,
+  "title": "raftstore: read index may fail after node restart",
+  "body": "## Bug Report\r\n\r\nAfter a leader hibernates, it doesn't send heartbeats to replicas. Once a replica is restarted at this time, the replica cannot find who the leader is, then all the read index requests will be rejected.",
+  "state": "closed",
+  "created_at": "2020-02-13T07:05:17Z",
+  "updated_at": "2020-02-28T11:25:20Z",
+  "closed_at": "2020-02-28T11:25:20Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 586590766,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-02-15T13:33:16Z",
+      "body": "@5kbpers @gengliqi Does https://github.com/tikv/tikv/pull/6598 fix this issue?"
+    },
+    {
+      "id": 586595043,
+      "user": "5kbpers",
+      "created_at": "2020-02-15T14:23:21Z",
+      "body": "@zhangjinpeng1987 No, but this issue can be fixed by a similar way."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "issue_number": 6254,
+  "title": "TiKV fails to serve after network partition",
+  "body": "## Bug Report\r\n\r\nI have tried to apply network partition on TiKV to test the stability. And found in some situation TiKV will stop to serve.\r\n\r\n### 2/2/1 partition\r\n\r\n5 TiKV clusters. They are splitted into three group (which has 2/2/1 TiKV). The connection between first and second group are blocked (through iptables). And the third group can connect with the first and second group.\r\n\r\nIf you can use chaos-operator, it can be represented as below crd:\r\n\r\n```yaml\r\napiVersion: pingcap.com/v1alpha1\r\nkind: NetworkChaos\r\nmetadata:\r\n  name: partitiontikv\r\n  namespace: chaos-testing\r\nspec:\r\n  action: partition\r\n  mode: all\r\n  selector:\r\n    namespaces:\r\n      - chaos-operator-test-exp6-cat0-tidb-cluster\r\n    labelSelectors:\r\n      \"partition\": \"1\"\r\n  direction: both\r\n  target:\r\n    selector:\r\n      namespaces:\r\n        - chaos-operator-test-exp6-cat0-tidb-cluster\r\n      labelSelectors:\r\n        \"partition\": \"2\"\r\n    mode: all\r\n  duration: \"5m\"\r\n  scheduler:\r\n    cron: \"@every 7m\"\r\n```\r\n\r\nIt keeps working for several hours. But after nearly 3 hours, QPS falls to zero.\r\n\r\n![image9](https://user-images.githubusercontent.com/5244316/70963372-33eb6d80-20c3-11ea-98ba-b12a83715dce.png)\r\n\r\n### 3/2 (one way)\r\n\r\n5 TiKVs are splitted into two groups. The TCP connection from second group (which has 2 TiKVs) to first groups is blocked which the reverse is allowed. It can be represented as below:\r\n\r\n```yaml\r\napiVersion: pingcap.com/v1alpha1\r\nkind: NetworkChaos\r\nmetadata:\r\n  name: partitiontikv\r\n  namespace: chaos-testing\r\nspec:\r\n  action: partition\r\n  mode: all\r\n  selector:\r\n    namespaces:\r\n      - chaos-operator-test-exp7-cat0-tidb-cluster\r\n    labelSelectors:\r\n      \"partition\": \"1\"\r\n  direction: from\r\n  target:\r\n    selector:\r\n      namespaces:\r\n        - chaos-operator-test-exp7-cat0-tidb-cluster\r\n      labelSelectors:\r\n        \"partition\": \"2\"\r\n    mode: all\r\n  duration: \"5m\"\r\n  scheduler:\r\n    cron: \"@every 7m\"\r\n```\r\n\r\nIn the beginning hours, TiKV stops to work sometimes. \r\n\r\n![image12](https://user-images.githubusercontent.com/5244316/70963718-529e3400-20c4-11ea-886d-c8f73a3e88cd.png)\r\n\r\nAfter several hours TiKV stops working forever (QPS falls to zero).\r\n\r\n![image1](https://user-images.githubusercontent.com/5244316/70963731-6053b980-20c4-11ea-9ce1-2a8e3bb10f3f.png)\r\n\r\n### What version of TiKV are you using?\r\n\r\nMaster 28d2e\r\n\r\n### Steps to reproduce\r\n\r\nYou can use chaos-operator and schrodinger to simply reproduce these bugs. \r\n\r\n### What did you expect?\r\n\r\nI don't know whether these phenomenons are expected (@5kbpers told me they are not!)",
+  "state": "closed",
+  "created_at": "2019-12-17T04:02:00Z",
+  "updated_at": "2020-11-09T08:42:36Z",
+  "closed_at": "2020-11-09T08:42:35Z",
+  "labels": [
+    "type/bug",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 567461824,
+      "user": "YangKeao",
+      "created_at": "2019-12-19T12:02:35Z",
+      "body": "After reading logs, these tikvs were killed several times and were restarted by schrodinger's daemon. They might meet schrodinger's `RestartLimit` :cry:."
+    },
+    {
+      "id": 567505193,
+      "user": "zhouqiang-cl",
+      "created_at": "2019-12-19T14:12:06Z",
+      "body": "we can just use tidb-operator to create tidb cluster"
+    },
+    {
+      "id": 569184230,
+      "user": "5kbpers",
+      "created_at": "2019-12-27T04:25:42Z",
+      "body": "I guess the possible root cause of case 2 is \"transfer leader\", we can open the `shuffle leader` scheduler to verify it."
+    },
+    {
+      "id": 723860605,
+      "user": "5kbpers",
+      "created_at": "2020-11-09T08:42:35Z",
+      "body": "Cannot reproduce."
+    }
+  ]
+}

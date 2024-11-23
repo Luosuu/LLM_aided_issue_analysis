@@ -1,0 +1,42 @@
+{
+  "issue_number": 15620,
+  "title": "PiTR restore failed due to reading S3 files too frequently",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.5.5\r\nEdition:           Community\r\nGit Commit Hash:   d7f7809ecdd3da92fe203f98676bd782fc0be5d7\r\nGit Commit Branch: heads/refs/tags/v6.5.0-nightly\r\n\r\n### What operating system and CPU are you using?\r\nX86, 16C 64G\r\n\r\n### Steps to reproduce\r\n1. Create PITR log backup to store log backup to Ksyun S3.\r\n2. Running insert workload for a database with 2000+ tables.\r\n\r\n### What did you expect?\r\nPITR restore should not fail\r\n\r\n### What did happened?\r\nLog restore fails due to single file read QPS > 6000, which triggered cloud provider rate limit and other risk control operations.\r\n\r\nrestore parameters:\r\n```\r\nConfigure: \r\n  tikv:\r\n    import.num-threads = 32\r\n  br:\r\n    --pitr-batch-count 32\r\n    --pitr-batch-size 100663296\r\n    --concurrency 400 (for snapshot restore > [ 9 TiKV * 32/TiKV ])\r\n    --pitr-concurrency 400 (for log restore)\r\n```\r\n![image](https://github.com/tikv/tikv/assets/7403864/14545808-e46e-47d7-9eb9-133bc1e5f77b)\r\n\r\n\r\n\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-09-18T02:55:17Z",
+  "updated_at": "2024-11-01T10:17:29Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1722689124,
+      "user": "fubinzh",
+      "created_at": "2023-09-18T02:57:04Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1722689749,
+      "user": "fubinzh",
+      "created_at": "2023-09-18T02:58:27Z",
+      "body": "The PITR restore can be successful with default parameters."
+    },
+    {
+      "id": 1729876192,
+      "user": "BornChanger",
+      "created_at": "2023-09-21T16:03:56Z",
+      "body": "/component backup-restore"
+    }
+  ]
+}

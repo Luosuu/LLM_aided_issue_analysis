@@ -1,0 +1,47 @@
+{
+  "issue_number": 17191,
+  "title": "tikv scaling in blocked due to one region can not transfer",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2024/06/25 11:43:54.651 +08:00] [INFO] [cmd.go:151] [\"Start remote command\"] [cmd=\"/tiup/deploy/tikv-*/bin/tikv-server -V\"] [nodename=tikv2]\r\nTiKV \r\nRelease Version:   8.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   87f66434fb7fa2395cb5ebfe45b3f66e2527c451\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2024-06-24 06:44:26\r\nRust Version:      rustc 1.77.0-nightly\r\n\r\n[2024/06/25 11:43:55.616 +08:00] [INFO] [cmd.go:151] [\"Start remote command\"] [cmd=\"/tiup/deploy/pd-*/bin/pd-server -V\"] [nodename=pd2]\r\nRelease Version: v8.2.0-alpha-97-gdebb5fe\r\nEdition: Community\r\nGit Commit Hash: debb5febb83e032da5a0c0162b1bff656a8fe931\r\nGit Branch: HEAD\r\nUTC Build Time:  2024-06-24 03:24:39\r\n\r\n### What operating system and CPU are you using?\r\n8c/16g\r\n\r\n### Steps to reproduce\r\n1、scale out tikv from 3 to 6\r\n2、wait for scale out to complete\r\n3、scale in tikv from 6 to 3\r\n\r\n### What did you expect?\r\nscale in tikv success\r\n\r\n### What did happened?\r\nthe status of one tikv is always offline due to one region can not transfer\r\n![img_v3_02c7_125604a5-1a00-4992-aabd-759b2523bf6g](https://github.com/tikv/tikv/assets/84712107/7fbec4a5-b825-43ca-b247-663df1bbbe7d)\r\n![image](https://github.com/tikv/tikv/assets/84712107/c7aae5fe-bba1-4277-8946-0ec65e38365e)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-06-26T03:35:35Z",
+  "updated_at": "2024-07-01T03:34:28Z",
+  "closed_at": "2024-07-01T03:34:28Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "impact/func-failure",
+    "affects-8.2"
+  ],
+  "comments_data": [
+    {
+      "id": 2190499286,
+      "user": "Lily2025",
+      "created_at": "2024-06-26T03:45:56Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 2190499667,
+      "user": "Lily2025",
+      "created_at": "2024-06-26T03:46:27Z",
+      "body": " /impact func-failure "
+    },
+    {
+      "id": 2190507694,
+      "user": "jebter",
+      "created_at": "2024-06-26T03:57:59Z",
+      "body": "/impact func-failure"
+    },
+    {
+      "id": 2190672186,
+      "user": "glorv",
+      "created_at": "2024-06-26T04:39:24Z",
+      "body": "@Lily2025 Does metrics and logs still available, please provide the address"
+    },
+    {
+      "id": 2194335780,
+      "user": "overvenus",
+      "created_at": "2024-06-27T10:28:27Z",
+      "body": "Caused by https://github.com/tikv/tikv/issues/17213"
+    }
+  ]
+}

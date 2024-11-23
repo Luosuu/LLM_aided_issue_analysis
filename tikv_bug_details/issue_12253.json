@@ -1,0 +1,95 @@
+{
+  "issue_number": 12253,
+  "title": "tikv panic：[region 12786953] 12786955 hash at 226 not correct, want \\\"\\\\200\\\\207\\\\326{\\\", got \\\"5\\\\305'R\\\"!!!\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\n[2022/03/20 15:12:04.141 +00:00] [INFO] [lib.rs:80] [\"Welcome to TiKV\"]\r\n[2022/03/20 15:12:04.157 +00:00] [INFO] [lib.rs:85] [\"Release Version:   6.0.0-alpha\"]\r\n[2022/03/20 15:12:04.157 +00:00] [INFO] [lib.rs:85] [\"Edition:           Community\"]\r\n[2022/03/20 15:12:04.157 +00:00] [INFO] [lib.rs:85] [\"Git Commit Hash:   18a119cbc551db53c1025912c164d994461f3aee\"]\r\n[2022/03/20 15:12:04.158 +00:00] [INFO] [lib.rs:85] [\"Git Commit Branch: heads/refs/tags/v6.0.0-alpha\"]\r\n[2022/03/20 15:12:04.158 +00:00] [INFO] [lib.rs:85] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2022/03/20 15:12:04.158 +00:00] [INFO] [lib.rs:85] [\"Rust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\"]\r\n[2022/03/20 15:12:04.158 +00:00] [INFO] [lib.rs:85] [\"Enable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\"]\r\n[2022/03/20 15:12:04.158 +00:00] [INFO] [lib.rs:85] [\"Profile:           dist_release\"]\r\n[2022/03/20 15:12:04.158 +00:00] [INFO] [mod.rs:73] [\"cgroup quota: memory=9223372036854771712, cpu=None, cores={3, 0, 7, 4, 1, 5, 6, 2}\"]\r\n[2022/03/20 15:12:04.158 +00:00] [INFO] [mod.rs:80] [\"memory limit in bytes: 17056027648, cpu cores quota: 8\"]\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n`do not care`\r\n\r\n### Steps to reproduce\r\n`set tikv configure：\"config-file\": \"[raftstore]\\nconsistency-check-interval = \\\"60s\\\"\\n\";\r\n\r\nrun gc test in local, the case do follow step:\r\n1、do dml operations continuous\r\n2、do drop table/drop database continuous`\r\n\r\n### What did you expect?\r\n` tidb cluster is normal`\r\n\r\n### What did happened?\r\n\r\n\r\ntikv panic：\r\n[2022/03/20 15:11:47.483 +00:00] [FATAL] [lib.rs:466] [\"[region 12786953] 12786956 hash at 226 not correct, want \\\"\\\\200\\\\207\\\\326{\\\", got \\\"5\\\\305'R\\\"!!!\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:465:18\\n   1: std::panicking::rust_panic_with_hook\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:702:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:588:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:138:18\\n   4: rust_begin_unwind\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:584:5\\n   5: core::panicking::panic_fmt\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panicking.rs:143:14\\n   6: raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::verify_and_store_hash\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:4958:17\\n   7: raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_ready_verify_hash\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:4876:9\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_ready_result\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:3970:22\\n   8: raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_apply_res\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:1566:17\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::handle_msgs\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:648:21\\n   9: <raftstore::store::fsm::store::RaftPoller<EK,ER,T> as batch_system::batch::PollHandler<raftstore::store::fsm::peer::PeerFsm<EK,ER>,raftstore::store::fsm::store::StoreFsm<EK>>>::handle_normal\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:789:9\\n  10: batch_system::batch::Poller<N,C,Handler>::poll\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/batch-system/src/batch.rs:446:27\\n  11: raftstore::store::worker::refresh_config::PoolController<N,C,H>::increase_by::{{closure}}\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/worker/refresh_config.rs:71:21\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:122:18\\n  12: std::thread::Builder::spawn_unchecked_::{{closure}}::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/mod.rs:498:17\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panic/unwind_safe.rs:271:9\\n      std::panicking::try::do_call\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:492:40\\n      std::panicking::try\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:456:19\\n      std::panic::catch_unwind\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panic.rs:137:14\\n      std::thread::Builder::spawn_unchecked_::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/mod.rs:497:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/ops/function.rs:227:5\\n  13: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/boxed.rs:1854:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/boxed.rs:1854:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys/unix/thread.rs:108:17\\n  14: start_thread\\n  15: __clone\\n\"] [location=/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:4958] [thread_name=raftstore-5-0] \r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-03-23T16:51:42Z",
+  "updated_at": "2022-07-26T08:43:08Z",
+  "closed_at": "2022-07-26T08:42:56Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1076567149,
+      "user": "vivid392845427",
+      "created_at": "2022-03-23T16:52:30Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1077340003,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T07:59:41Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1077568194,
+      "user": "you06",
+      "created_at": "2022-03-24T12:19:42Z",
+      "body": "@BusyJay PTAL"
+    },
+    {
+      "id": 1077576416,
+      "user": "BusyJay",
+      "created_at": "2022-03-24T12:29:46Z",
+      "body": "/cc @MyonKeminta PTAL.\r\n\r\nI don't think consistency check still work after enabling compaction filter gc."
+    },
+    {
+      "id": 1078703706,
+      "user": "MyonKeminta",
+      "created_at": "2022-03-25T06:34:00Z",
+      "body": "As far as I know the consistency check was adapted to GC bypassing raft.\r\ncc @hicqu "
+    },
+    {
+      "id": 1078758150,
+      "user": "BusyJay",
+      "created_at": "2022-03-25T08:05:24Z",
+      "body": "Well, the stacktrace shows it panic inside raft."
+    },
+    {
+      "id": 1080357856,
+      "user": "hicqu",
+      "created_at": "2022-03-28T08:37:28Z",
+      "body": "Here is a test case which shows `delete_ranges_cf` can cause a different `compute_hash` result even if the snapshot is taken before it:\r\n```rust\r\n    #[test]\r\n    fn test_mvcc_checksum_with_delete_files_in_range() {\r\n        use engine_rocks::raw::CompactOptions;\r\n        use engine_rocks::util::get_cf_handle;\r\n        use engine_traits::{DeleteStrategy,Range, MiscExt};\r\n\r\n        let init_safe_point = 100;\r\n        for i in 0..2 {\r\n            let engine = TestEngineBuilder::new().build().unwrap();\r\n            let raw = engine.get_rocksdb();\r\n            let db = raw.as_inner();\r\n            must_prewrite_put(&engine, b\"zAAAAA\", b\"value\", b\"PRIMARY\", init_safe_point);\r\n            must_commit(&engine, b\"zAAAAA\", init_safe_point, init_safe_point + 1);\r\n\r\n            let handle = get_cf_handle(db, CF_WRITE).unwrap();\r\n            let mut compact_opts = CompactOptions::new();\r\n            compact_opts.set_change_level(true);\r\n            compact_opts.set_target_level(6);\r\n            db.compact_range_cf_opt(handle, &compact_opts, None, None);\r\n\r\n            let snap = raw.snapshot();\r\n            if i == 1 {\r\n                let range = Range::new(&[b'z'], &[b'z' + 1]);\r\n                raw.delete_ranges_cf(CF_WRITE, DeleteStrategy::DeleteFiles, &[range])\r\n                    .unwrap();\r\n                std::thread::sleep(std::time::Duration::from_secs(1));\r\n            }\r\n\r\n            let mut scanner = MvccInfoScanner::new(\r\n                |cf, opts| snap.iterator_cf_opt(cf, opts).map_err(|e| box_err!(e)),\r\n                Some(b\"zA\"),\r\n                Some(b\"zB\"),\r\n                MvccChecksum::new(init_safe_point),\r\n            ).unwrap();\r\n\r\n            while scanner.next_item().unwrap().is_some() {}\r\n            let digest = scanner.observer.digest;\r\n            let hash = digest.finalize();\r\n            println!(\"hash: {:?}\", hash);\r\n        }\r\n    }\r\n```\r\n\r\nThe output is:\r\n```\r\nrunning 1 test\r\nhash: 3628551031\r\nhash: 0\r\ntest storage::mvcc::consistency_check::tests::test_mvcc_checksum_with_delete_files_in_range ... ok\r\n```"
+    },
+    {
+      "id": 1080370023,
+      "user": "BusyJay",
+      "created_at": "2022-03-28T08:49:55Z",
+      "body": "I think corrupting snapshot is expected.\r\n\r\nSee https://github.com/facebook/rocksdb/wiki/Delete-A-Range-Of-Keys\r\n\r\n> Also, be aware that, DeleteFilesInRange() will be removed despite of existing snapshots, so you shouldn't expect to be able to read data from the range using existing snapshots any more."
+    },
+    {
+      "id": 1080480182,
+      "user": "MyonKeminta",
+      "created_at": "2022-03-28T10:32:41Z",
+      "body": "If it's confirmed to be caused by unsafe_destroy_range, it should be actually a known issue, and it doesn't need to block releasing."
+    },
+    {
+      "id": 1080483304,
+      "user": "Lily2025",
+      "created_at": "2022-03-28T10:35:53Z",
+      "body": "/remove-severity critical\r\n/severity major"
+    },
+    {
+      "id": 1080969489,
+      "user": "tonyxuqqi",
+      "created_at": "2022-03-28T17:59:43Z",
+      "body": "@vivid392845427 could you please disable the gc.enable-compaction-filter and run the test again?\r\nIf it cannot be repro-ed then we're pretty sure this is the known issue. \r\n@BusyJay Maybe we should skip the consistency check run when gc.enable-compaction-filter is enabled?"
+    },
+    {
+      "id": 1081575193,
+      "user": "BusyJay",
+      "created_at": "2022-03-29T08:23:58Z",
+      "body": "Agree, but we need a way to run consistency check with compaction filter, either using current implementation or a new one."
+    },
+    {
+      "id": 1195186702,
+      "user": "5kbpers",
+      "created_at": "2022-07-26T08:42:56Z",
+      "body": "Added an alert to suggest no consistency check when enabling GC https://github.com/pingcap/docs-cn/pull/9526, close this issue until resolving this compatibility issue."
+    }
+  ]
+}

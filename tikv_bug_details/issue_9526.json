@@ -1,0 +1,22 @@
+{
+  "issue_number": 9526,
+  "title": "incompatibility between gc and async commit",
+  "body": "## Bug Report\r\n\r\nBecause min_commit_ts is not updated for resolving locks in gc, so async commit may commit a transaction using a ts smaller than safe ts, which is dangerous and can break transaction easily.",
+  "state": "closed",
+  "created_at": "2021-01-19T10:33:39Z",
+  "updated_at": "2021-01-28T08:37:47Z",
+  "closed_at": "2021-01-28T08:37:47Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 762754228,
+      "user": "BusyJay",
+      "created_at": "2021-01-19T10:34:10Z",
+      "body": "The issue exists in both traditional gc and green gc."
+    }
+  ]
+}

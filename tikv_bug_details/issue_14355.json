@@ -1,0 +1,22 @@
+{
+  "issue_number": 14355,
+  "title": "[Dynamic Regions] When there's about 100 split happening roughly at same time, some splits are very slow.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly hash# d74fd1325280999b367424ee332c49e11bbf80b0\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRun some insert workload that has hot write region,  make it trigger the split-bucket operators. \r\n### What did you expect?\r\nQPS is not impacted and split can be done in a second or so. \r\n### What did happened?\r\nSome split takes more than 10 seconds. During this time, all read/write request could be impacted because of read-index is blocked. \r\n\r\nLogs:\r\n[2023/03/03 18:49:13.086 +00:00] [INFO] [[region.rs:277](http://region.rs:277/)] [\"try to split\"] [region_epoch=\"conf_ver: 5 version: 86\"] [region_id=368]\r\n[2023/03/03 18:49:24.148 +00:00] [INFO] [split.rs:407] [\"split region\"] [boundaries=\"3 keys....region_epoch { conf_ver: 5 version: 86 } peers { id: 369 store_id: 1 } peers { id: 370 store_id: 12 } peers { id: 371 store_id: 18 }\"] [peer_id=369] [region_id=368]\r\n\r\nDuring this time, the region has several split retry.\r\n[2023/03/03 18:49:13.086 +00:00] [INFO] [[region.rs:277](http://region.rs:277/)] [\"try to split\"] [region_epoch=\"conf_ver: 5 version: 86\"] [region_id=368]\r\n[2023/03/03 18:49:18.260 +00:00] [INFO] [[region.rs:277](http://region.rs:277/)] [\"try to split\"] [region_epoch=\"conf_ver: 5 version: 86\"] [region_id=368]\r\n[2023/03/03 18:49:20.479 +00:00] [INFO] [[region.rs:277](http://region.rs:277/)] [\"try to split\"] [region_epoch=\"conf_ver: 5 version: 86\"] [region_id=368]\r\n[2023/03/03 18:49:23.760 +00:00] [INFO] [[region.rs:277](http://region.rs:277/)] [\"try to split\"] [region_epoch=\"conf_ver: 5 version: 86\"] [region_id=368]",
+  "state": "closed",
+  "created_at": "2023-03-06T19:24:07Z",
+  "updated_at": "2023-09-27T05:09:11Z",
+  "closed_at": "2023-06-29T21:57:59Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1456822483,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-06T19:25:45Z",
+      "body": "/cc SpadeA-Tang\r\n"
+    }
+  ]
+}

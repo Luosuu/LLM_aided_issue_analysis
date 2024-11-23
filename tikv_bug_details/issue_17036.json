@@ -1,0 +1,40 @@
+{
+  "issue_number": 17036,
+  "title": "Compared with v7.5.1, v8.1.0 has a 7%-10% performance regression in oltp_read_write on openEuler 22.03 (LTS-SP1)",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv8.1.0 commit ba73b0d92d94463d74543550d0efe61fa6a6f416\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n```\r\n[root@10 ~]# lscpu\r\n架构：               aarch64\r\n  CPU 运行模式：     64-bit\r\n  字节序：           Little Endian\r\nCPU:                 64\r\n  在线 CPU 列表：    0-63\r\n厂商 ID：            HiSilicon\r\n  BIOS Vendor ID:    HiSilicon\r\n  型号名称：         Kunpeng-920\r\n    BIOS Model name: HUAWEI Kunpeng 920 5220\r\n    型号：           0\r\n    每个核的线程数： 1\r\n    每个座的核数：   32\r\n    座：             2\r\n    步进：           0x1\r\n    Frequency boost: disabled\r\n    CPU 最大 MHz：   2600.0000\r\n    CPU 最小 MHz：   200.0000\r\n    BogoMIPS：       200.00\r\n    标记：           fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma dcpop asimddp asimdfhm\r\nCaches (sum of all):\r\n  L1d:               4 MiB (64 instances)\r\n  L1i:               4 MiB (64 instances)\r\n  L2:                32 MiB (64 instances)\r\n  L3:                64 MiB (2 instances)\r\nNUMA:\r\n  NUMA 节点：        2\r\n  NUMA 节点0 CPU：   0-31\r\n  NUMA 节点1 CPU：   32-63\r\nVulnerabilities:\r\n  Itlb multihit:     Not affected\r\n  L1tf:              Not affected\r\n  Mds:               Not affected\r\n  Meltdown:          Not affected\r\n  Mmio stale data:   Not affected\r\n  Retbleed:          Not affected\r\n  Spec store bypass: Not affected\r\n  Spectre v1:        Mitigation; __user pointer sanitization\r\n  Spectre v2:        Not affected\r\n  Srbds:             Not affected\r\n  Tsx async abort:   Not affected\r\n[root@10 ~]# uname -a\r\nLinux 10.2.12.137 5.10.0-136.12.0.86.oe2203sp1.aarch64 #1 SMP Tue Dec 27 17:51:19 CST 2022 aarch64 aarch64 aarch64 GNU/Linux\r\n[root@10 ~]# cat /proc/cpuinfo\r\nprocessor\t: 0\r\nBogoMIPS\t: 200.00\r\nFeatures\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma dcpop asimddp asimdfhm\r\nCPU implementer\t: 0x48\r\nCPU architecture: 8\r\nCPU variant\t: 0x1\r\nCPU part\t: 0xd01\r\nCPU revision\t: 0\r\n\r\nprocessor\t: 1\r\nBogoMIPS\t: 200.00\r\nFeatures\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma dcpop asimddp asimdfhm\r\nCPU implementer\t: 0x48\r\nCPU architecture: 8\r\nCPU variant\t: 0x1\r\nCPU part\t: 0xd01\r\nCPU revision\t: 0\r\n\r\nprocessor\t: 2\r\nBogoMIPS\t: 200.00\r\nFeatures\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma dcpop asimddp asimdfhm\r\nCPU implementer\t: 0x48\r\nCPU architecture: 8\r\nCPU variant\t: 0x1\r\nCPU part\t: 0xd01\r\nCPU revision\t: 0\r\n```\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. deploy a tidb cluster on openEuler 22.03 (LTS-SP1) with aarch64\r\n2. run sysbench oltp_point_select with v7.5.1 and v8.1.0\r\n### What did you expect?\r\nNo performance regression\r\n### What did happened?\r\nNo performance regression on CentOS Linux 7 (Core) with Intel(R) Xeon(R) Silver 4214R CPU @ 2.40GHz，\r\nbut 7.3% performance regression in oltp_point_select on Kylin Linux with aarch64\r\n\r\n\r\n\r\nv7.5.1 QPS  \r\n- run 1: 62247\r\n- run 2: 61499\r\n![image](https://github.com/tikv/tikv/assets/84501897/02aaef29-705b-4fa6-bc91-68b98269cc08)\r\n![image](https://github.com/tikv/tikv/assets/84501897/642dbd58-5345-4e2d-ba2b-40eefc33a4c4)\r\n\r\nv8.1.0 QPS\r\n- run1 57154\r\n- run2:55733\r\n![image](https://github.com/tikv/tikv/assets/84501897/bbe2ad48-573e-4cb6-a4e6-377ac9a16967)\r\n![image](https://github.com/tikv/tikv/assets/84501897/42008f88-a9eb-48f2-a001-80dd0e6efa5c)\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-05-21T03:19:22Z",
+  "updated_at": "2024-05-22T10:12:39Z",
+  "closed_at": "2024-05-22T10:12:39Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2121643893,
+      "user": "Yui-Song",
+      "created_at": "2024-05-21T03:20:15Z",
+      "body": "/label affects-8.1\r\n/severity critical"
+    },
+    {
+      "id": 2121644718,
+      "user": "Yui-Song",
+      "created_at": "2024-05-21T03:20:50Z",
+      "body": "/remove-label may-affects-7.5\r\n/remove-label may-affects-7.1\r\n/remove-label may-affects-6.5\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-5.4"
+    },
+    {
+      "id": 2121645223,
+      "user": "Yui-Song",
+      "created_at": "2024-05-21T03:21:09Z",
+      "body": "/remove-label may-affects-8.1"
+    },
+    {
+      "id": 2124411074,
+      "user": "Yui-Song",
+      "created_at": "2024-05-22T10:12:39Z",
+      "body": "When using `raftstore: {store-io-pool-size: 1}` the performance of both versions is essentially the same. Thus, close the issue."
+    }
+  ]
+}

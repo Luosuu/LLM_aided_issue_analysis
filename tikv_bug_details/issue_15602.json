@@ -1,0 +1,49 @@
+{
+  "issue_number": 15602,
+  "title": "Log Backup stopped due to \"No such file or directory\" error",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5/v7.1\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nIt's hard to reproduce. \r\none possible scenario is may be trigger lots of region merge/split make the light write(few keys change) on these regions.\r\n### What did you expect?\r\nno error\r\n### What did happened?\r\n[Error] [errors.rs:178] [\"backup stream meet fatal error\"] [err_code=KV:LogBackup:Io] [err=\"I/O Error: No such file or directory (os error 2)\"] [verbose=\"Io(Os { code: 2, kind: NotFound, message: \\\"No such file or directory\\\" })\"]",
+  "state": "closed",
+  "created_at": "2023-09-14T09:31:19Z",
+  "updated_at": "2024-11-12T02:51:33Z",
+  "closed_at": "2023-09-20T06:22:45Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "report/customer"
+  ],
+  "comments_data": [
+    {
+      "id": 1719113523,
+      "user": "3pointer",
+      "created_at": "2023-09-14T09:43:27Z",
+      "body": "From the code the issue seems to be like this\r\n\r\n1. handle bunch of kv changes in a thread _T1_\r\n2. handle flush in a thread _T2_\r\n3. handle another bunch of kv changes in a thread _T3_\r\n\r\nIn 1 millisecond, three things happened\r\n\r\n1. _T1_ generate [temp file name](https://github.com/tikv/tikv/blob/e43a157c4a35034dfd705bdd94fac6d958e8a1ff/components/backup-stream/src/router.rs#L710) _F1_ -> write kv changes in _F1_ and put it in a RWLock HashMap `files`.\r\n2. _T2_ moving _F1_ from `files` to `flushing_files` and starts flush.\r\n3. _T3_ generate temp file name which name is as same as _F1_. because the timestamp of F1 according to table id/region id and **Timestamp with a millisecond precision** and put it in a RWLock HashMap `files` again.\r\n4. _T2_ delete the _F1_ in disk after flush finished.\r\n5. Next flush triggered, and _F1_ cannot be read anymore.\r\n\r\n"
+    },
+    {
+      "id": 1720952548,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-09-15T09:18:33Z",
+      "body": "@BornChanger: The label(s) `severity/major` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, needs-cherry-pick-release-6.6, needs-cherry-pick-release-7.0, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.2, needs-cherry-pick-release-7.3, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, affects-6.6, affects-7.0, affects-7.1, affects-7.2, affects-7.3, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5, may-affects-6.6, may-affects-7.0, may-affects-7.1, may-affects-7.2, may-affects-7.3`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15602#issuecomment-1720952500):\n\n>/label severity/major\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1720953022,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-09-15T09:18:55Z",
+      "body": "@BornChanger: The label(s) `severity/major` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, needs-cherry-pick-release-6.6, needs-cherry-pick-release-7.0, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.2, needs-cherry-pick-release-7.3, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, affects-6.6, affects-7.0, affects-7.1, affects-7.2, affects-7.3, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5, may-affects-6.6, may-affects-7.0, may-affects-7.1, may-affects-7.2, may-affects-7.3`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15602#issuecomment-1720952500):\n\n>/label severity/major\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1720953189,
+      "user": "BornChanger",
+      "created_at": "2023-09-15T09:19:03Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 2469485935,
+      "user": "seiya-annie",
+      "created_at": "2024-11-12T02:51:30Z",
+      "body": "/report customer"
+    }
+  ]
+}

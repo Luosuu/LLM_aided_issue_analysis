@@ -1,0 +1,67 @@
+{
+  "issue_number": 14159,
+  "title": "after restart all tikv pods、pd pods、tidb pods，pitr task became to disabled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nUTC Build Time:  2023-02-02 11:41:40\r\n2023-02-03T05:29:54.644Z        INFO    k8s/client.go:132       it should be noted that a long-running command will not be inter\r\nrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./tidb-server -V\r\n Release Version: v6.6.0-alpha\r\nEdition: Community\r\nGit Commit Hash: d28a8d84b5c3978156c29318529900a6e527be1b\r\nGit Branch: heads/refs/tags/v6.6.0-alpha\r\nUTC Build Time: 2023-02-01 11:50:11\r\nGoVersion: go1.19.5\r\nRace Enabled: false\r\nTiKV Min Version: 6.2.0-alpha\r\nCheck Table Before Drop: false\r\nStore: unistore\r\n2023-02-03T05:29:54.845Z        INFO    k8s/client.go:132       it should be noted that a long-running command will not be inter\r\nrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./br -V\r\n Release Version: v6.6.0-alpha\r\nGit Commit Hash: d28a8d84b5c3978156c29318529900a6e527be1b\r\nGit Branch: heads/refs/tags/v6.6.0-alpha\r\nGo Version: go1.19.5\r\nUTC Build Time: 2023-02-01 11:41:38\r\nRace Enabled: false\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、enable pitr tasks\r\n2、run workload\r\n3、restart all tikv pods、pd pods、tidb pods\r\n\r\n### What did you expect?\r\nafter restart all tikv pods、pd pods、tidb pods，pitr task should be running\r\n\r\n### What did happened?\r\ncase：ha-all-comp-restart\r\nafter restart all tikv pods、pd pods、tidb pods，pitr task became to disabled\r\n![image](https://user-images.githubusercontent.com/84712107/217170129-017b187c-42c8-4d91-b6b5-6ae2d3c15c35.png)\r\n\r\ntest-plan：https://tcms.pingcap.net/dashboard/executions/plan/1530066\r\nclinic：https://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7195459875523993624?from=1675402183&to=1675403670\r\nlogs：[MinIO Console (pingcap.net)](http://minio.pingcap.net:38888/buckets/test-infra-testground/browse/YXJjaGl2ZS9lbmRsZXNzLWhhLXRlc3Qtd2l0bmVzcy10cHMtMTUzMDA2Ni0xLTYxOQ==)\r\nthe time point of issue is abort 0203 13:41 \r\n",
+  "state": "closed",
+  "created_at": "2023-02-07T06:50:20Z",
+  "updated_at": "2023-02-08T03:38:00Z",
+  "closed_at": "2023-02-08T03:38:00Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1420284955,
+      "user": "Lily2025",
+      "created_at": "2023-02-07T06:57:26Z",
+      "body": "/type bug\r\n/severity major"
+    },
+    {
+      "id": 1420310322,
+      "user": "Lily2025",
+      "created_at": "2023-02-07T07:26:17Z",
+      "body": "/assign joccau"
+    },
+    {
+      "id": 1420310356,
+      "user": "ti-chi-bot",
+      "created_at": "2023-02-07T07:26:20Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: joccau.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14159#issuecomment-1420310322):\n\n>/assign joccau\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1420310582,
+      "user": "Lily2025",
+      "created_at": "2023-02-07T07:26:38Z",
+      "body": "@joccau "
+    },
+    {
+      "id": 1420364373,
+      "user": "ti-chi-bot",
+      "created_at": "2023-02-07T08:14:45Z",
+      "body": "@joccau: These labels are not set on the issue: `may-affects-4.0, may-affects-4.0, may-affects-4.0, may-affects-4.0, may-affects-4.0, may-affects-4.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14159#issuecomment-1420364163):\n\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-4.0\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1420365209,
+      "user": "joccau",
+      "created_at": "2023-02-07T08:15:26Z",
+      "body": "/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n"
+    },
+    {
+      "id": 1420367336,
+      "user": "joccau",
+      "created_at": "2023-02-07T08:17:03Z",
+      "body": "/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5\r\n\r\n"
+    },
+    {
+      "id": 1420368064,
+      "user": "joccau",
+      "created_at": "2023-02-07T08:17:39Z",
+      "body": "/label affects-6.2\r\n/label affects-6.5\r\n/label affects-6.4\r\n/label affects-6.3\r\n"
+    }
+  ]
+}

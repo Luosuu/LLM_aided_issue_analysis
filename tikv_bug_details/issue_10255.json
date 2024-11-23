@@ -1,0 +1,35 @@
+{
+  "issue_number": 10255,
+  "title": "CDC some info level logs are very verbose",
+  "body": "## Bug Report\r\n\r\nAfter pausing a changefeed, there are lots of following logs:\r\n\r\n```\r\n[2021/05/27 17:49:23.388 +08:00] [INFO] [apply.rs:392] [\"region is no longer observerd\"] [region_id=10106]\r\n```\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nTiKV v4.0.13\r\n\r\n### Steps to reproduce\r\n\r\n```sh\r\ncdc cli changefeed pause -c \"cf\"\r\n```\r\n\r\n### What did you expect?\r\n\r\nNo verbose logs\r\n",
+  "state": "closed",
+  "created_at": "2021-05-27T09:52:41Z",
+  "updated_at": "2022-03-06T13:34:55Z",
+  "closed_at": "2022-03-06T13:34:55Z",
+  "labels": [
+    "type/bug",
+    "difficulty/easy",
+    "component/CDC",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 849524381,
+      "user": "ben1009",
+      "created_at": "2021-05-27T10:33:43Z",
+      "body": "I will take this one"
+    },
+    {
+      "id": 859271136,
+      "user": "SuperSupeng",
+      "created_at": "2021-06-11T05:13:17Z",
+      "body": "update: I will take this one"
+    },
+    {
+      "id": 1059963971,
+      "user": "Rustin170506",
+      "created_at": "2022-03-06T13:34:55Z",
+      "body": "I tested it locally with the latest tikv (master) and it no longer has this problem.\r\n\r\n1. build tikv\r\n2. tiup playground  --tiflash 0 --kv.binpath  ./target/debug/tikv-server\r\n3. build cdc\r\n4. ./cdc server\r\n5. ./cdc cli changefeed create --sink-uri=\"blackhole://\" --changefeed-id=\"test\"\r\n6. create a table\r\n7. insert some data\r\n8. grep \"apply.rs\" tikv.log\r\n9. no more this log"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "issue_number": 14469,
+  "title": "[Dynamic Regions] TiKV CPUs are not balanced under heavy write with default PD scheduler setting",
+  "body": "## Bug Report\r\nIn 4 TiKV Cluster, the tikv's CPUs are not balanced\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nLaunch write heavy workload (e.g. mhy) and \r\n### What did you expect?\r\nExpect the CPU usage is balanced\r\n### What did happened?\r\nTiKV CPU usage is not balanced based on qps, keys.\r\nBut with byte, key, the TiKV CPU achieves roughly balance\r\n(e.g. scheduler config balance-hot-region-scheduler set write-leader-priorities byte,key)\r\n\r\n![img_v2_90b4ed25-ed0f-4c78-84ab-1be78599e9ag](https://user-images.githubusercontent.com/9442422/228082211-c43a13ac-8c12-49ea-91cd-6a9bb0c991f1.jpg)\r\n(qps, keys)\r\n<img width=\"799\" alt=\"Screen Shot 2023-03-27 at 4 36 39 PM\" src=\"https://user-images.githubusercontent.com/9442422/228090400-d56cef25-132b-42e1-b943-db56d55e676e.png\">\r\nAfter changing it to (byte, keys) on 03/27 16:25 PST, the TiKV CPU balance is much better.  ",
+  "state": "closed",
+  "created_at": "2023-03-27T22:37:29Z",
+  "updated_at": "2023-07-18T06:41:31Z",
+  "closed_at": "2023-07-18T06:41:31Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1485953782,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-27T22:38:29Z",
+      "body": "/cc bufferflies"
+    }
+  ]
+}

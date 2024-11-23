@@ -1,0 +1,53 @@
+{
+  "issue_number": 9886,
+  "title": "tikv can't startup after the disk is full",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv4.0.11\r\n### What operating system and CPU are you using?\r\ncentos-3.10.0-1127.el7.x86_64\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\ntikv can start up without any panic\r\n### What did happened?\r\nhere is some logs of tikv：\r\n```\r\n[2021/03/24 08:49:24.697 +00:00] [FATAL] [lib.rs:482] [\"called `Result::unwrap()` on an `Err` value: Other(\\\"[components/encryption/src/file_dict_file.rs:330]: file corrupted! crc32 mismatch 1448223484 != 1104170698\\\")\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{closure}}\\n             at components/tikv_util/src/lib.rs:481\\n   1: std::panicking::rust_panic_with_hook\\n             at src/libstd/panicking.rs:475\\n   2: rust_begin_unwind\\n             at src/libstd/panicking.rs:375\\n   3: core::panicking::panic_fmt\\n             at src/libcore/panicking.rs:84\\n   4: core::result::unwrap_failed\\n             at src/libcore/result.rs:1188\\n   5: core::result::Result<T,E>::unwrap\\n             at rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libcore/result.rs:956\\n      cmd::server::TiKVServer::init_encryption\\n             at cmd/src/server.rs:324\\n      cmd::server::run_tikv\\n             at cmd/src/server.rs:97\\n   6: tikv_server::main\\n\r\n   at cmd/src/bin/tikv-server.rs:166\\n   7: std::rt::lang_start::{{closure}}\\n             at rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/rt.rs:67\\n   8: main\\n   9: __libc_start_main\\n  10: <unknown>\\n\"] [location=src/libcore/result.rs:1188] [thread_name=main]\r\n```",
+  "state": "closed",
+  "created_at": "2021-03-25T00:48:02Z",
+  "updated_at": "2021-04-06T06:01:25Z",
+  "closed_at": "2021-04-06T06:01:25Z",
+  "labels": [
+    "type/bug",
+    "sig/engine",
+    "component/security",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 806293344,
+      "user": "aylei",
+      "created_at": "2021-03-25T01:32:40Z",
+      "body": "The tikv disk is full due to br restore, but tikv was still encountering panic after we expand the storage size of that disk"
+    },
+    {
+      "id": 806340026,
+      "user": "glorv",
+      "created_at": "2021-03-25T03:38:18Z",
+      "body": "The panic was caused by the encryption key file corruption. Since br don't write to this file directly, I think this is more like a encryption manager issue. @yiwu-arbug  @hunterlxt  PTAL"
+    },
+    {
+      "id": 810203773,
+      "user": "hunterlxt",
+      "created_at": "2021-03-30T12:51:20Z",
+      "body": "Sorry for late reply, how did this error reappear? Is it accidental?"
+    },
+    {
+      "id": 810349175,
+      "user": "hunterlxt",
+      "created_at": "2021-03-30T15:19:58Z",
+      "body": "a conjecture: when disk is full, the action to append log record in file.dict interrupts and panic.\r\n\r\nCan you check the previous log to see if the file dict is written but throwed an error?\r\n\r\ncc @yiwu-arbug "
+    },
+    {
+      "id": 810576299,
+      "user": "yiwu-arbug",
+      "created_at": "2021-03-30T21:03:40Z",
+      "body": "yes, it looks like a partial record is written to the end of file dictionary file when disk is full, then on recovery it fail the checksum check. I go through the code and we are not handling the partial tail record.\r\n\r\n@zkkxu @aylei Is the instance still available? We want to grab the `file.dict` file to verify."
+    },
+    {
+      "id": 810588646,
+      "user": "yiwu-arbug",
+      "created_at": "2021-03-30T21:26:19Z",
+      "body": "Affecting TiKV >= 4.0.9 (including 5.0-RC and upcoming 5.0-GA)."
+    }
+  ]
+}

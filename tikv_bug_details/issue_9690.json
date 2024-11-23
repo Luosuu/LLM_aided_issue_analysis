@@ -1,0 +1,46 @@
+{
+  "issue_number": 9690,
+  "title": "pd connection is reconnecting every 10 minutes",
+  "body": "## Bug Report\r\n\r\n#7028 adds a new behavior that reconnecting PD leader every 10 minutes. The motivation is avoiding unavailability during pd member changes without restarting TiKV. However, the implementation reconnecting PD unconditionally, which can drop all pd region heartbeats every 10 minutes. If hibernate region is enabled, it can make scheduler ops from PD working very slowly.\r\n\r\nPD doesn't need to be reconnected if memberships are the same.\r\n\r\nPerhaps related to #9681.\r\n",
+  "state": "closed",
+  "created_at": "2021-02-22T12:20:27Z",
+  "updated_at": "2023-01-17T12:02:50Z",
+  "closed_at": "2021-03-12T12:38:55Z",
+  "labels": [
+    "type/bug",
+    "component/pd-client",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 790618570,
+      "user": "NingLin-P",
+      "created_at": "2021-03-04T13:29:51Z",
+      "body": "Instead of reconnecting every 10m, maybe it is better to attach the PD member list to `StoreHeartbeatResponse` when the list is changed so that TiKV can update its PD member list within about 10s (much shorter than 10m)."
+    },
+    {
+      "id": 790649531,
+      "user": "BusyJay",
+      "created_at": "2021-03-04T14:17:40Z",
+      "body": "Coupling `StoreHeartbeatResponse` and PD client doesn't seem a good idea to me."
+    },
+    {
+      "id": 792517205,
+      "user": "xuhui-lu",
+      "created_at": "2021-03-08T06:52:34Z",
+      "body": "@BusyJay hey jay, is there anyone taking this issue already? Or is there anything I could help with? I am interested in this one, and glad to help if possible."
+    },
+    {
+      "id": 792538478,
+      "user": "BusyJay",
+      "created_at": "2021-03-08T07:30:15Z",
+      "body": "Thank you @xuhui-lu. I don't think anyone is working on this. If you have any questions, you can ask me in the issue or at our [slack](https://github.com/tikv/tikv#slack)."
+    },
+    {
+      "id": 796692560,
+      "user": "BusyJay",
+      "created_at": "2021-03-11T12:12:14Z",
+      "body": "@xuhui-lu Hi, we are supposing to freeze code by this Friday for next major release, and I want to land the bugfix by then. So I sent a patch for this issue. Sorry for the duplicated work.\r\n\r\nThere are still some [issues](https://github.com/tikv/tikv/issues?q=is%3Aopen+is%3Aissue+label%3Astatus%2Fhelp-wanted) that are not urgent you can have a try."
+    }
+  ]
+}

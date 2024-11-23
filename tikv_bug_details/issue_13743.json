@@ -1,0 +1,15 @@
+{
+  "issue_number": 13743,
+  "title": "flashback ddl is hang when some key's last mvcc record is delete",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nRelease Version:   6.4.0\r\nEdition:           Community\r\nGit Commit Hash:   220a263c665b42a43cec3e38f2d9b46ffe074ca9\r\nGit Commit Branch: heads/refs/tags/v6.4.0\r\nUTC Build Time:    2022-11-04 07:20:37\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n[root@localhost bin.old.v6.4.0]# \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nif the latest mvcc record is 'delete', we will skip this key during flashback, but for this reason, this key will not has  flashback commit ts write record, so this key will be processed as not flashback key. so will cause deadlock\r\n\r\n### What did you expect?\r\nflashback successfully\r\n### What did happened?\r\nflashback is hang\r\n",
+  "state": "closed",
+  "created_at": "2022-11-07T05:58:51Z",
+  "updated_at": "2022-11-07T07:09:51Z",
+  "closed_at": "2022-11-07T07:09:51Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.4"
+  ],
+  "comments_data": []
+}

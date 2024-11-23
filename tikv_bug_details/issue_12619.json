@@ -1,0 +1,14 @@
+{
+  "issue_number": 12619,
+  "title": "test_detect_deadlock_basic panics",
+  "body": "## Bug Report\r\n\r\n```\r\ntest server::lock_manager::test_detect_deadlock_basic ... thread '<unnamed>' panicked at 'deadlock { lock_ts: 10 lock_key: 6B deadlock_key_hash: 4425526527735386606 wait_chain { txn: 10 wait_for_txn: 11 key_hash: 4425526527735386606 key: 6B00 resource_group_tag: 74616732 } wait_chain { txn: 11 wait_for_txn: 10 key_hash: 7175591051097142829 key: 6B resource_group_tag: 74616731 } }', tests/integrations/server/lock_manager.rs:35:9\r\n```\r\n\r\nLogs can be found at https://ci.pingcap.net/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/20931/nodes/114/steps/296/log/?start=0",
+  "state": "closed",
+  "created_at": "2022-05-23T19:09:24Z",
+  "updated_at": "2022-05-25T06:40:47Z",
+  "closed_at": "2022-05-25T06:40:47Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

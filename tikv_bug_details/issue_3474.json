@@ -1,0 +1,52 @@
+{
+  "issue_number": 3474,
+  "title": "Go client does not correctly insert, and gives no error",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\n1.29.0-nightly\r\n\r\n**What operating system and CPU are you using?**\r\n3 servers:\r\nIntel(R) Xeon(R) CPU E5-2650 v3 @ 2.30GHz (20-core)\r\nUbuntu 16.04.5 LTS\r\n\r\nclient:\r\nIntel(R) Core(TM) i7-7700 CPU @ 3.60GHz (8-core)\r\nUbuntu 16.04.5 LTS\r\n\r\n**What did you do?**\r\nI want to test the performance of TiKV, for this I create a lot of parallel connections and randomly put and get various key-value sizes. For this the RawKVApi Go client is used, and the parallel connections are made by assigning one Go client to each thread.\r\nThere are 3 PDs, one on each server, and 3 TiKV nodes, also one on each server (the same servers on which the PDs are running). Everything is set up using Docker (version 17.03.2-ce).\r\nFor 400 connections and a key-value size of 256 and 128 bytes respectively there is no problem: keys can be inserted for hours, and when getting them, everything checks out.\r\nHowever, for the exact same configuration with a key-value size of 256 and 262144 bytes, and only 100 connections (or even lower), keys would not be inserted anymore, without the Go client returning any errors.\r\n\r\n**What did you expect to see?**\r\nI expected the Go client to simply correctly put the keys, or when a key was not inserted correctly, to return an error, which could be handled.\r\n\r\n**What did you see instead?**\r\nAfter approximately 7000 keys put, the client logging starts showing these messages:\r\n`time=\"2018-08-17T08:33:00+02:00\" level=info msg=\"drop regions that on the store 1(<IP>:20160) due to send request fail, err: rpc error: code = Unavailable desc = transport is closing\" `\r\nThe Go client does not return any errors, but when getting the keys that should be there, they are not (empty values are returned).\r\n\r\nAny help would be great, thank you!",
+  "state": "closed",
+  "created_at": "2018-08-17T08:06:51Z",
+  "updated_at": "2018-08-22T12:57:33Z",
+  "closed_at": "2018-08-22T12:57:33Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "component/build"
+  ],
+  "comments_data": [
+    {
+      "id": 414313649,
+      "user": "breezewish",
+      "created_at": "2018-08-20T13:19:16Z",
+      "body": "Hi, there is currently an issue in our very recent master because one of our new feature is only partially merged and the remaining part is still under review.\r\n\r\nPlease try run this and restart TiDB:\r\n\r\n```bash\r\npd-ctl -d config set cluster-version 2.1.0\r\n```\r\n\r\n@Connor1996 Are there ways to gate our new feature so that users won't fail because of this?"
+    },
+    {
+      "id": 414317015,
+      "user": "Connor1996",
+      "created_at": "2018-08-20T13:30:27Z",
+      "body": "@breeswish seems no, I will merge it as soon as possible."
+    },
+    {
+      "id": 414749729,
+      "user": "thomashlvt",
+      "created_at": "2018-08-21T17:08:15Z",
+      "body": "I tried this.\r\nI also downgraded to a previous release (v2.0.6) of TiDB, but this also didn't help.\r\nWith the RawKVClient in go, I put randomly generated keys (10000) of length 256 bytes, and values equal to these keys, appended with zeros up to 262144 bytes. After each Put, I immediately do a Get and check the value, this is always correct, no empty values are returned.\r\nHowever if I then do a Get for every key (in the same order), the last ~5000 keys (always the exact same amount) consistently return an empty value, even if the Get is sent to only one client, with a single thread. This causes me to believe the values are not present anymore, and there is a data leak."
+    },
+    {
+      "id": 414860329,
+      "user": "siddontang",
+      "created_at": "2018-08-21T23:59:31Z",
+      "body": "hi @thomashlvt \r\n\r\ncan you show us your test program? do you retry insertion when meeting error? "
+    },
+    {
+      "id": 414919350,
+      "user": "breezewish",
+      "created_at": "2018-08-22T05:50:17Z",
+      "body": "@thomashlvt Could you try again with our TiKV previous release (2.0.6), or latest (i.e. today's) master? The fix for the issue has been shipped."
+    },
+    {
+      "id": 415022332,
+      "user": "thomashlvt",
+      "created_at": "2018-08-22T12:57:33Z",
+      "body": "I found the problem, it was in the client code. My random keys were generated using rand.Intn, but this is also called in the RawKVClient code, making the random numbers not reproducible... (You might consider changing this and using a new rand.Rand struct for generating these numbers so it won't interfere with the code that drives the client. I solved the problem on my side by using this.)\r\n\r\nThank you for your time and the quick responses!\r\n"
+    }
+  ]
+}

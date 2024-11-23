@@ -1,0 +1,22 @@
+{
+  "issue_number": 17791,
+  "title": "Region Approximate Size metrics panel has misleading semantics",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nThe grafana expression of Region Approximate Size is \r\n```\r\nhistogram_quantile(0.9999,(\r\n    sum(rate(\r\n    tikv_raftstore_region_size_bucket\r\n    {k8s_cluster=\"$k8s_cluster\",tidb_cluster=\"$tidb_cluster\",instance=~\"$instance\"}\r\n    [$__rate_interval]\r\n)) by (le, $additional_groupby) \r\n    \r\n    \r\n))  \r\n```\r\nwhere tikv_raftstore_region_size is a histogram metrics and only observer value when the region is plan to generate a split command.\r\nHowever, when the region does not obvious size changes, it does not trigger to generate a split which means no region size is observed for this region.\r\nSo, the region count of the Region Approximate Size may be larger less than the actually region count while the P99 region over size alert can be false positive.\r\n![image](https://github.com/user-attachments/assets/77f4213f-3496-4975-8cdc-afe4c0b0e5d3)\r\n",
+  "state": "open",
+  "created_at": "2024-11-08T07:34:36Z",
+  "updated_at": "2024-11-21T09:40:10Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "report/customer",
+    "affects-8.5"
+  ],
+  "comments_data": []
+}

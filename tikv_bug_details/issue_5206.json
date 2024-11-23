@@ -1,0 +1,26 @@
+{
+  "issue_number": 5206,
+  "title": "test storage::test_raft_storage::test_auto_gc panic ",
+  "body": "## Bug Report\r\n\r\n**What version of TiKV are you using?**\r\n\r\nCommit: 995257ddb1c926cfce638663b66c92809064eedd\r\n\r\n**What operating system and CPU are you using?**\r\n\r\nMacOSX\r\n\r\n**What did you do?**\r\n\r\n```\r\nmake dev\r\n```\r\n\r\n**What did you expect to see?**\r\n\r\nTest passed\r\n\r\n**What did you see instead?**\r\n\r\n```\r\nthread 'storage::test_raft_storage::test_auto_gc' panicked at 'assertion failed: value.is_none()', tests/integrations/storage/test_raft_storage.rs:242:13\r\nstack backtrace:\r\n   0: backtrace::backtrace::libunwind::trace\r\n             at /Users/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/libunwind.rs:88\r\n   1: backtrace::backtrace::trace_unsynchronized\r\n             at /Users/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/mod.rs:66\r\n   2: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:47\r\n   3: std::sys_common::backtrace::print\r\n             at src/libstd/sys_common/backtrace.rs:36\r\n   4: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/panicking.rs:198\r\n   5: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:212\r\n   6: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:475\r\n   7: <alloc::collections::CollectionAllocErr as core::convert::From<core::alloc::AllocErr>>::from\r\n   8: integrations::storage::test_raft_storage::check_data\r\n             at tests/integrations/storage/test_raft_storage.rs:242\r\n   9: integrations::storage::test_raft_storage::test_auto_gc\r\n             at tests/integrations/storage/test_raft_storage.rs:349\r\n  10: integrations::storage::test_raft_storage::test_auto_gc::{{closure}}\r\n             at tests/integrations/storage/test_raft_storage.rs:248\r\n  11: core::ops::function::FnOnce::call_once\r\n             at /rustc/0e4a56b4b04ea98bb16caada30cb2418dd06e250/src/libcore/ops/function.rs:231\r\n  12: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n             at /rustc/0e4a56b4b04ea98bb16caada30cb2418dd06e250/src/liballoc/boxed.rs:746\r\n  13: __rust_maybe_catch_panic\r\n             at src/libpanic_unwind/lib.rs:82\r\n  14: std::panicking::try\r\n             at /rustc/0e4a56b4b04ea98bb16caada30cb2418dd06e250/src/libstd/panicking.rs:273\r\n  15: std::panic::catch_unwind\r\n             at /rustc/0e4a56b4b04ea98bb16caada30cb2418dd06e250/src/libstd/panic.rs:388\r\n  16: test::run_test::run_test_inner::{{closure}}\r\n             at src/libtest/lib.rs:1466\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n```",
+  "state": "closed",
+  "created_at": "2019-08-06T02:24:20Z",
+  "updated_at": "2019-08-08T04:10:32Z",
+  "closed_at": "2019-08-08T04:10:32Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 518474879,
+      "user": "MyonKeminta",
+      "created_at": "2019-08-06T02:43:07Z",
+      "body": "Is there any log?"
+    },
+    {
+      "id": 518527335,
+      "user": "MyonKeminta",
+      "created_at": "2019-08-06T06:39:19Z",
+      "body": "https://github.com/tikv/tikv/pull/5212 is trying to fix this."
+    }
+  ]
+}

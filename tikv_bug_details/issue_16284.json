@@ -1,0 +1,26 @@
+{
+  "issue_number": 16284,
+  "title": "TiKV can't  read and write due to use rawclient and txnclient at the same time",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV 7.1\r\nGO SDK: 2.1.4\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nNo idea,   It worked well for reading and writing Tikv with different clients ago two months\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\nThe scan failed due to the range key not being decoded,  I guess the key range overlaps between raw client keys and txn client keys.\r\n```\r\nerrorVerbose=\"failed to decode region range key, key: \\\"3536306564663538306439663838632F6B762F6769642F74696D657374616D70\\\", err: invalid marker byte, group bytes \\\"b12/b2-86\\\"\\n(1)\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2024-01-03T13:07:02Z",
+  "updated_at": "2024-01-29T18:22:14Z",
+  "closed_at": "2024-01-29T18:22:14Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 1909550293,
+      "user": "mzygQAQ",
+      "created_at": "2024-01-25T07:48:50Z",
+      "body": "if you want use rawclient and txnclient at the same time, i think you should enable APIV2 in tikv, client-go also enable APIV2"
+    },
+    {
+      "id": 1915312917,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T18:22:14Z",
+      "body": "Yes,  API v2 has to be used for supporting using both raw tikv and tx tikv at same time. "
+    }
+  ]
+}

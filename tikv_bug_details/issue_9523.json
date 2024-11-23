@@ -1,0 +1,54 @@
+{
+  "issue_number": 9523,
+  "title": "Resolved TS is not updated with async commit transactions",
+  "body": "### What version of TiKV are you using?\r\n\r\nMaster (35c66d38ff8180f3652643e35575590d9ab57fc1)\r\n\r\n### Steps to reproduce\r\n\r\nEnable failpoints in TiDB (with unmerged https://github.com/pingcap/tidb/pull/22431):\r\n\r\n```\r\ngithub.com/pingcap/tidb/store/tikv/asyncCommitDoNothing=50%return\r\ngithub.com/pingcap/tidb/store/tikv/runTTLManager=return\r\ngithub.com/pingcap/tidb/store/tikv/shortPessimisticLockTTL=return\r\ngithub.com/pingcap/tidb/store/tikv/twoPCShortLockTTL=return\r\n```\r\n\r\nSet the interval of updating PD physical TS to 2s.\r\n\r\nRun tipocket/pbank with async commit and 1PC enabled:\r\n\r\n```\r\n./pbank -case=multi_bank -prepare-sql='set global tidb_enable_async_commit = 1;set global tidb_enable_1pc = 1;'\r\n```\r\n\r\n### What did you expect?\r\n\r\nCDC works well.\r\n\r\n### What did happened?\r\n\r\nFrom the monitor, we see some TiKV failed to update the resolved TS, so CDC didn't work.\r\n\r\n![image](https://user-images.githubusercontent.com/17217495/105005435-4d05e100-5a70-11eb-8199-ff910bbf87de.png)\r\n![image](https://user-images.githubusercontent.com/17217495/105005468-5727df80-5a70-11eb-802a-81fa0e843cd9.png)\r\n",
+  "state": "closed",
+  "created_at": "2021-01-19T08:06:58Z",
+  "updated_at": "2021-01-27T03:15:44Z",
+  "closed_at": "2021-01-27T03:15:44Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "component/CDC",
+    "sig/migrate",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 762673588,
+      "user": "sticnarf",
+      "created_at": "2021-01-19T08:08:19Z",
+      "body": "cc @MyonKeminta @youjiali1995 "
+    },
+    {
+      "id": 763299391,
+      "user": "sticnarf",
+      "created_at": "2021-01-20T03:12:22Z",
+      "body": "When doing an unprotected rollback and there is already a write record with the same commit TS, we don't write any write record:\r\nhttps://github.com/tikv/tikv/blob/7b057aa9bdc0b1c18d4d8a90fd731f461105e62e/src/storage/mvcc/txn.rs#L35\r\n\r\nHowever, CDC now only untracks locks according to writes. So the lock will be never untracked."
+    },
+    {
+      "id": 763333993,
+      "user": "youjiali1995",
+      "created_at": "2021-01-20T05:03:31Z",
+      "body": "Good catch! Can CDC untrack locks according to deleting locks too? I'm afraid the assumption that every lock deletion has a corresponding write can't hold. @overvenus "
+    },
+    {
+      "id": 763364396,
+      "user": "sticnarf",
+      "created_at": "2021-01-20T06:16:11Z",
+      "body": "> Good catch! Can CDC untrack locks according to deleting locks too? I'm afraid the assumption that every lock deletion has a corresponding write can't hold. @overvenus\r\n\r\nI tried but found it not so easy. The locks are managed by start_ts. However, when deleting a lock, we have no information about the deleted lock. So we cannot find the lock by start_ts and untrack it."
+    },
+    {
+      "id": 763369215,
+      "user": "MyonKeminta",
+      "created_at": "2021-01-20T06:26:33Z",
+      "body": "cc @5kbpers "
+    },
+    {
+      "id": 763378570,
+      "user": "sticnarf",
+      "created_at": "2021-01-20T06:46:57Z",
+      "body": "@MyonKeminta  I talked with @5kbpers and conclude there are two solutions.\r\n\r\n1. As a simple fix for this issue, we can remove the optimization. Always write an overlapped rollback no matter if it is protected. Then, CDC can track such a rollback.\r\n\r\n2. If we do not want such a constraint of transactions, we can add another data structure to the resolver to track locks by key. Then, we can let the resolver find the start_ts by key first, then remove the start_ts from the heap. In this solution, we can track locks through lock cf applies.\r\n"
+    }
+  ]
+}

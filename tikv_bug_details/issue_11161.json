@@ -1,0 +1,14 @@
+{
+  "issue_number": 11161,
+  "title": "security issue of dumping heap profile through http api",
+  "body": "## Bug Report\r\n\r\nCurrently `/debug/pprof/heap` allows reading an arbitrary file, which is a severe security issue since most of tidb clusters were deployed by a user with admin permission:\r\n\r\nhttps://github.com/tikv/tikv/blob/36a32504806411b3d620d3abff06166cc7296484/src/server/status_server/mod.rs#L189-L194\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-10-27T14:40:02Z",
+  "updated_at": "2023-08-23T11:08:16Z",
+  "closed_at": "2021-10-28T16:34:49Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

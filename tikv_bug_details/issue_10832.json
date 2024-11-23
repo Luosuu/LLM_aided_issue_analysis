@@ -1,0 +1,123 @@
+{
+  "issue_number": 10832,
+  "title": "rocksdb background error. db: kv, reason: compaction, error: IO error: While appending to file: /var/lib/tikv/data/db/438734.sst: Cannot allocate memory\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV \r\nRelease Version:   5.2.0\r\nEdition:           Community\r\nGit Commit Hash:   dbefa5ec66ccb4cb0cfeef3ad05d5932da2aeb36\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time:    2021-08-23 16:05:41\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\nk8s\r\n2TiDB、3PD、5TIkV（4C、8G mem）\r\n\r\n### Steps to reproduce\r\n1、run TiKVGC001（tpcc load data and drop db）\r\n2、run TiKVGC002（import data and run sysbench update）\r\n3、stop all work load\r\n4、A few hours later，some tikv oom\r\n\r\n### What did you expect?\r\nall tikv are normal\r\n\r\n### What did happened?\r\nsome tikv oom without any workload\r\n[FATAL] [[lib.rs:465](http://lib.rs:465/)] [\"rocksdb background error. db: kv, reason: compaction, error: IO error: While appending to file: /var/lib/tikv/data/db/438734.sst: Cannot allocate memory\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{closure}}\\n             at components/tikv_util/src/[lib.rs:464](http://lib.rs:464/)\\n   1: std::panicking::rust_panic_with_hook\\n             at library/std/src/[panicking.rs:626](http://panicking.rs:626/)\\n   2: std::panicking::begin_panic_han\r\n![Lark20210826-114807](https://user-images.githubusercontent.com/84712107/130897573-eb578844-3e05-4b5b-ba6a-612a9c85f7d3.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2021-08-26T03:49:47Z",
+  "updated_at": "2024-11-01T10:18:05Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.2",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 906071190,
+      "user": "Lily2025",
+      "created_at": "2021-08-26T03:50:20Z",
+      "body": "/assign hicqu"
+    },
+    {
+      "id": 906071247,
+      "user": "Lily2025",
+      "created_at": "2021-08-26T03:50:29Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 906071298,
+      "user": "Lily2025",
+      "created_at": "2021-08-26T03:50:37Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 906081311,
+      "user": "hicqu",
+      "created_at": "2021-08-26T04:17:49Z",
+      "body": "I guess something is wrong in jemalloc:\r\n![图片](https://user-images.githubusercontent.com/8407317/130899707-f9e5c791-f042-4483-b4ca-a2cfb060c471.png)\r\n![图片](https://user-images.githubusercontent.com/8407317/130899739-9eb1091c-2f32-400b-8c1a-e81d9ba5a873.png)\r\nThe process memory usage increases but in the jemalloc view, no things are changed. I doubt that some memory released from jemalloc is not returned to system."
+    },
+    {
+      "id": 912890374,
+      "user": "Lily2025",
+      "created_at": "2021-09-04T02:08:32Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 912890537,
+      "user": "Lily2025",
+      "created_at": "2021-09-04T02:09:40Z",
+      "body": "/remove-severity major"
+    },
+    {
+      "id": 912983727,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-09-04T14:30:15Z",
+      "body": "@hicqu Any finding for this critical issue?"
+    },
+    {
+      "id": 912983867,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-09-04T14:31:14Z",
+      "body": "Is it caused by the similar reason as https://github.com/tikv/tikv/issues/10701?"
+    },
+    {
+      "id": 959118268,
+      "user": "BusyJay",
+      "created_at": "2021-11-03T13:46:29Z",
+      "body": "According to @hicqu, there is no analyze at that time, so it's not the same as #10701.\r\n\r\n@Lily2025 do you reproduced the issue?"
+    },
+    {
+      "id": 960507828,
+      "user": "BusyJay",
+      "created_at": "2021-11-04T07:10:20Z",
+      "body": "Feel free to reopen once reproduce."
+    },
+    {
+      "id": 1125617035,
+      "user": "Lily2025",
+      "created_at": "2022-05-13T03:17:38Z",
+      "body": "/remove-severity critical\r\n/severity major"
+    },
+    {
+      "id": 1125620368,
+      "user": "Lily2025",
+      "created_at": "2022-05-13T03:24:37Z",
+      "body": "/assign ethercflow"
+    },
+    {
+      "id": 1125620378,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-13T03:24:38Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: ethercflow.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/10832#issuecomment-1125620368):\n\n>/assign ethercflow\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1125620849,
+      "user": "Lily2025",
+      "created_at": "2022-05-13T03:25:38Z",
+      "body": "The problem has appeared recently，so reopen again"
+    },
+    {
+      "id": 1125621093,
+      "user": "Lily2025",
+      "created_at": "2022-05-13T03:26:05Z",
+      "body": "/assign tier-cap"
+    }
+  ]
+}

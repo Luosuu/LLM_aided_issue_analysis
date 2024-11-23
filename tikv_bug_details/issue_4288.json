@@ -1,0 +1,36 @@
+{
+  "issue_number": 4288,
+  "title": "Titan is not compatible with DeleteFilesInRanges",
+  "body": "## Bug Report\r\n\r\nAccording to my test, using DeleteFilesInRanges in Titan will lead to inconsistent read. \r\n\r\nIn TiKV, we can simply set `use_delete_files` in https://github.com/tikv/tikv/blob/e1984bcc3c3ed96544eb4012da71137509f7d145/src/raftstore/store/worker/region.rs#L466\r\nto false to solve this issue.\r\n",
+  "state": "closed",
+  "created_at": "2019-02-27T03:45:24Z",
+  "updated_at": "2020-11-03T19:32:42Z",
+  "closed_at": "2020-11-03T19:32:41Z",
+  "labels": [
+    "type/bug",
+    "component/titan",
+    "priority/low",
+    "sig/engine",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 468101194,
+      "user": "siddontang",
+      "created_at": "2019-02-28T01:37:55Z",
+      "body": "how can we solve this problem absolutely? \r\n\r\nAnother thing is that seems Titan doesn't support DeleteRange, right? @DorianZheng "
+    },
+    {
+      "id": 468116944,
+      "user": "DorianZheng",
+      "created_at": "2019-02-28T02:54:44Z",
+      "body": "Titan support DeleteRange and it can totally pass the stress test. I haven't figured out what's wrong with DeleteFilesInRanges yet. I need some time to investigate."
+    },
+    {
+      "id": 721332584,
+      "user": "yiwu-arbug",
+      "created_at": "2020-11-03T19:32:41Z",
+      "body": "This should have have been fixed a while ago."
+    }
+  ]
+}

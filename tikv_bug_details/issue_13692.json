@@ -1,0 +1,45 @@
+{
+  "issue_number": 13692,
+  "title": "commit a4dc37b causes 2%~4% performance regression in different workloads",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster \r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun the following workloads with the commit c74c8ca907632263a0cfcd84b8413e9edc5c19e5 and commit a4dc37b0c07ee1b5bc7c60a5d8360666500ecdb4:\r\n- bank and sysbench oltp_write_only,oltp_update_index,oltp_delete,oltp_read_write \r\n \r\n\r\n### What did you expect?\r\nNo performance regression.\r\n\r\n### What did happened?\r\n\r\nbench_type | bench_sub_type | threads | qps of  commit c74c8ca907632263a0cfcd84b8413e9edc5c19e5 | qps of  commit a4dc37b0c07ee1b5bc7c60a5d8360666500ecdb4 | diff(%)\r\n-- | -- | -- | -- | -- | --\r\nbank | bank-50m | 200 | 70244 | 67615 | -3.74%\r\nsysbench | oltp_write_only | 200 | 56593 | 55497 | -1.94%\r\nsysbench | oltp_update_index  | 200 | 22008 | 21574 | -1.97%\r\nsysbench | oltp_delete | 200 | 84739 | 82265 | -2.92%\r\nsysbench | oltp_read_write | 200 | 83881 | 81762 | -2.53%\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-10-30T10:15:45Z",
+  "updated_at": "2022-11-01T09:42:01Z",
+  "closed_at": "2022-11-01T09:42:01Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1296201453,
+      "user": "Yui-Song",
+      "created_at": "2022-10-30T10:19:22Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign @MyonKeminta\r\n"
+    },
+    {
+      "id": 1296202143,
+      "user": "Yui-Song",
+      "created_at": "2022-10-30T10:21:26Z",
+      "body": "/remove may-affects-4.0"
+    },
+    {
+      "id": 1296202631,
+      "user": "Yui-Song",
+      "created_at": "2022-10-30T10:22:47Z",
+      "body": "/remove-label may-affects-4.0"
+    },
+    {
+      "id": 1296202958,
+      "user": "Yui-Song",
+      "created_at": "2022-10-30T10:23:53Z",
+      "body": "/remove-label may-affects-5.0 may-affects-5.1 may-affects-5.2 may-affects-5.3 may-affects-5.4 may-affects-6.0 may-affects-6.1 may-affects-6.2 may-affects-6.3"
+    },
+    {
+      "id": 1296488612,
+      "user": "Yui-Song",
+      "created_at": "2022-10-31T03:23:55Z",
+      "body": "/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3"
+    }
+  ]
+}

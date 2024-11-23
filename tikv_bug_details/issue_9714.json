@@ -1,0 +1,49 @@
+{
+  "issue_number": 9714,
+  "title": "batch messages can be too large in new raft client implementation",
+  "body": "## Bug Report\r\n\r\nNew raft client implementation tends to batch more messages than before and we found it exceeded the max grpc messages in internal tests.\r\n\r\n```\r\n[2021/02/25 17:42:42.658 +08:00] [ERROR] [raft_client.rs:431] [\"connection aborted\"] [addr=] [receiver_err=\"Some(RpcFailure(RpcStatus { stat\r\nus: 8-RESOURCE_EXHAUSTED, details: Some(\\\"Sent message larger than max (10705556 vs. 10485760)\\\") }))\"] [sink_error=Some(RemoteStopped)] [store_id=7]\r\n```\r\n\r\nCalculating the message size using `Message::compute_size` should make it correct at the cost with extra CPU usage. We may also check what fields can be missed as even max batch size (128) is reached, there was about 1K extra size per message.\r\n",
+  "state": "closed",
+  "created_at": "2021-02-25T10:06:52Z",
+  "updated_at": "2022-01-18T07:57:34Z",
+  "closed_at": "2021-12-01T13:29:53Z",
+  "labels": [
+    "type/bug",
+    "component/gRPC",
+    "severity/major",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3"
+  ],
+  "comments_data": [
+    {
+      "id": 786469380,
+      "user": "hicqu",
+      "created_at": "2021-02-26T07:35:49Z",
+      "body": "How about remove the size limit but only keep the batch count limit? So the total size of a batch won't be too exorbitant and we can save CPU times from `compute_size`."
+    },
+    {
+      "id": 786524176,
+      "user": "BusyJay",
+      "created_at": "2021-02-26T09:27:51Z",
+      "body": "Perhaps we should bench what size is a reasonable good size."
+    },
+    {
+      "id": 931183906,
+      "user": "BusyJay",
+      "created_at": "2021-09-30T10:10:06Z",
+      "body": "I believe https://github.com/tikv/tikv/pull/8926 introduce the regression, /cc @sticnarf.\r\n\r\nRaft client doesn't check for raft messages' context, so it's highly possible a ReadIndex requests that have a lot of ranges exceed the 10MiB limit. Raft client only allows at most 128 requests in a batch, so if there the ranges' sizes exceed 80K per messages, it will trigger the error.\r\n\r\nThis also explains why the error occurs more often than the past since v5.0.0."
+    },
+    {
+      "id": 938282067,
+      "user": "sticnarf",
+      "created_at": "2021-10-08T02:10:28Z",
+      "body": "@BusyJay Does it happen only when there are replica reads? The additional contexts should only exist when using replica reads."
+    },
+    {
+      "id": 979352881,
+      "user": "BusyJay",
+      "created_at": "2021-11-25T16:44:34Z",
+      "body": "I prints the whole messages in a test case that can reproduce the issue frequently. It turns out it's because there are too many entries batch into one messages. A batch with 30 messages can contains about 45199 entries. Each entry has about 11 extra bytes overhead, which means there are at least 497189 extra bytes, which is very close to the default extra buffer 524288.\r\n\r\nGiven now we have collected all bytes length from the pb message, now I feel confident to disable the size hard limit on the connection level to solve the issue for all. We still need a way to monitor the abnormal message size though."
+    }
+  ]
+}

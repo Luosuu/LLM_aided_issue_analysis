@@ -1,0 +1,22 @@
+{
+  "issue_number": 14934,
+  "title": "Import: num-thread is not onlineConfig",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. increase import.num-threads to 16 via SQL.\r\n### What did you expect?\r\nupdate failed and `import.num-threads` still 8. \r\nor update success and the `workpool` of `import.num-threads` is 16.\r\n### What did happened?\r\nupdate success but the `workpool` is not change dynamically.\r\n",
+  "state": "open",
+  "created_at": "2023-06-13T08:51:14Z",
+  "updated_at": "2023-06-13T09:10:34Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/configuration",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1588845427,
+      "user": "3pointer",
+      "created_at": "2023-06-13T08:52:25Z",
+      "body": "https://github.com/tikv/tikv/pull/14408/files#diff-2c566a305169ab6db55b1672484505b87385dfb52ebf01ad55a60bd10d61501eR12 this PR make import config online changable. but actually some config(num-threads) are not able to change online."
+    }
+  ]
+}

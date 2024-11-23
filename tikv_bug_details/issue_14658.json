@@ -1,0 +1,14 @@
+{
+  "issue_number": 14658,
+  "title": "`check_leader` requests are missing in the metrics",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nTiKV\r\nRelease Version:   7.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   5dc8360d9f778ba52e409fcee966a838257d38c2\r\nGit Commit Branch: heads/refs/tags/v7.2.0-alpha\r\nUTC Build Time:    2023-04-25 14:32:51\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRun a multi-tikv cluster with resolved-ts on, there should be `check_leader` requests.\r\n\r\n### What did you expect?\r\n\r\nThere are `check_leader` requests in gRPC panel.\r\n\r\n### What did happened?\r\n\r\n![image](https://user-images.githubusercontent.com/9587680/234483261-9a136062-93d2-4823-bb56-d9fff14170ef.png)\r\n",
+  "state": "closed",
+  "created_at": "2023-04-26T06:03:26Z",
+  "updated_at": "2023-04-27T05:31:54Z",
+  "closed_at": "2023-04-27T05:31:54Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,30 @@
+{
+  "issue_number": 15799,
+  "title": "Change placement rule from 5 replicas to 3 replicas with some tikv down, tpcc report error: [tikv:9005]Region is unavailable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.5\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n![image](https://github.com/tikv/tikv/assets/9443637/d7a1d7d4-62b7-4db9-b207-66b0a5d1d93c)\r\n\r\n\r\n### What did you expect?\r\nNo error was reported by workload.\r\n\r\n### What did happened?\r\nAfter running step 3 , the workload hit the following error. \r\n```\r\n[2023/10/19 11:56:52.130 +08:00] [INFO] [region_request.go:1285] [\"send request on region error failed, err: region unavailable\"] [req-ts=445038019152969738] [req-type=CheckSecondaryLocks] [region=\"{ region id: 411, ver: 72, confVer: 70 }\"] [region-is-valid=true] [retry-times=1] [replica-read-type=leader] [replica-selector-state=tryFollower] [stale-read=false] [replica-status=\"peer: 412, store: 1, isEpochStale: false, attempts: 0, replica-epoch: 1, store-epoch: 1, store-state: resolved, store-liveness-state: unreachable; peer: 567, store: 546, isEpochStale: false, attempts: 1, replica-epoch: 0, store-epoch: 0, store-state: resolved, store-liveness-state: reachable; peer: 644, store: 545, isEpochStale: false, attempts: 0, replica-epoch: 1, store-epoch: 1, store-state: resolved, store-liveness-state: unreachable; peer: 1313, store: 7, isEpochStale: false, attempts: 1, replica-epoch: 0, store-epoch: 0, store-state: resolved, store-liveness-state: reachable\"] [total-backoff-ms=40020] [total-backoff-times=94] [total-region-errors=not_leader:2]\r\n[2023/10/19 11:56:52.130 +08:00] [INFO] [conn.go:1181] [\"command dispatched failed\"] [conn=8710434469334483365] [connInfo=\"id:8710434469334483365, addr:10.200.61.95:38466 status:11, collation:utf8mb4_general_ci, user:root\"] [command=Execute] [status=\"inTxn:1, autocommit:1\"] [sql=\"SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = ? AND c_w_id = w_id AND c_d_id = ? AND c_id = ? [arguments: (7, 2, 2511)]\"] [txn_mode=PESSIMISTIC] [timestamp=445038663293206530] [err=\"[tikv:9005]Region is unavailable\\nSELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = ? AND c_w_id = w_id AND c_d_id = ? AND c_id = ? [arguments: (7, 2, 2511)]\\ngithub.com/pingcap/tidb/server.(*clientConn).executePreparedStmtAndWriteResult\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn_stmt.go:426\\ngithub.com/pingcap/tidb/server.(*clientConn).executePlanCacheStmt\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn_stmt.go:234\\ngithub.com/pingcap/tidb/server.(*clientConn).handleStmtExecute\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn_stmt.go:226\\ngithub.com/pingcap/tidb/server.(*clientConn).dispatch\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn.go:1430\\ngithub.com/pingcap/tidb/server.(*clientConn).Run\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/conn.go:1152\\ngithub.com/pingcap/tidb/server.(*Server).onConn\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/server.go:648\\nruntime.goexit\\n\\t/usr/local/go/src/runtime/asm_amd64.s:1594\"]\r\n```\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-10-19T09:41:26Z",
+  "updated_at": "2024-01-19T18:48:19Z",
+  "closed_at": "2024-01-19T18:48:19Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1770449662,
+      "user": "mayjiang0203",
+      "created_at": "2023-10-19T09:43:16Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1770453755,
+      "user": "mayjiang0203",
+      "created_at": "2023-10-19T09:45:45Z",
+      "body": "tikv logs\r\n```\r\n[2023/10/19 12:08:30.815 +08:00] [WARN] [endpoint.rs:782] [error-response] [err=\"Region error (will back off and retry) message: \\\"peer is not leader for region 411, leader may None\\\" not_leader { region_id: 411 }\"]\r\n[2023/10/19 12:08:32.319 +08:00] [WARN] [endpoint.rs:782] [error-response] [err=\"Region error (will back off and retry) message: \\\"peer is not leader for region 411, leader may None\\\" not_leader { region_id: 411 }\"]\r\n```"
+    }
+  ]
+}

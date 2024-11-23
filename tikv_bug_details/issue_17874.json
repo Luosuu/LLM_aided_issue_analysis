@@ -1,0 +1,28 @@
+{
+  "issue_number": 17874,
+  "title": "br: restore failed on TiDB Cloud",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV\r\nRelease Version:   8.5.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   0023967dcb8d0692132f0a0f17eff72e78a512a6\r\nGit Commit Branch: heads/refs/tags/v8.5.0-prev-rt-tokio\r\nUTC Build Time:    2024-11-21 03:24:53\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nTiDB Cloud \r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. create a v8.1.1 cluster with image of v8.5.0-prev-rt-tokio\r\n2. start a manual backup job \r\n3. restore cluster\r\n4. cluster's status remains recovering\r\n5. after set tikv's config [import] num-threads = 1000, cluster restore succeed\r\n\r\n### What did you expect?\r\nRestore cluster success and cluster's status become available on TiDB Cloud.\r\n### What did happened?\r\nThe cluster's status remains recovering and hang for hours.\r\n",
+  "state": "open",
+  "created_at": "2024-11-21T09:32:57Z",
+  "updated_at": "2024-11-22T08:52:32Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 2490549249,
+      "user": "jolynejo",
+      "created_at": "2024-11-21T09:33:48Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 2490551963,
+      "user": "jolynejo",
+      "created_at": "2024-11-21T09:34:15Z",
+      "body": "/assign @3pointer "
+    }
+  ]
+}

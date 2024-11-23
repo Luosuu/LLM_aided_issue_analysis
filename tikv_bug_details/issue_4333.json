@@ -1,0 +1,14 @@
+{
+  "issue_number": 4333,
+  "title": "TiKV may fail to restart if it fails after writing store ident and before bootstrapping cluster",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\nMake TiKV fails after L149 @ node.rs. In a single node cluster, TiKV can not restart and always return `Err(store x is not empty)`.\r\nhttps://github.com/tikv/tikv/blob/206209fbcc4c45ae50e1a66fc5df3ac39a6570f1/src/server/node.rs#L146-L159\r\n\r\n**What did you expect to see?**\r\n\r\nRestart successfully.\r\n",
+  "state": "closed",
+  "created_at": "2019-03-08T07:52:25Z",
+  "updated_at": "2019-03-13T04:09:49Z",
+  "closed_at": "2019-03-13T04:09:49Z",
+  "labels": [
+    "type/bug",
+    "component/server"
+  ],
+  "comments_data": []
+}

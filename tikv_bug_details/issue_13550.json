@@ -1,0 +1,21 @@
+{
+  "issue_number": 13550,
+  "title": "rawkv: causality violation for atomic commands",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n```bash\r\n❯ tikv-server -V\r\nTiKV\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   a68a44e09dd4ef7de59db22b11593e7abd4e94df\r\nGit Commit Branch: heads/refs/tags/v6.3.0-alpha\r\nUTC Build Time:    2022-09-27 10:22:06\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nCentOS\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRun following test case:\r\n```golang\r\nfunc TestXX(..) {\r\n\tcli := rawkv.NewClient(...)\r\n\tcli.SetAtomicForCAS(true)\r\n\r\n\tTry(cli.Delete(ctx, key))\r\n\r\n\t// nil -> value0 -> value1\r\n\t{\r\n\t\teg, ectx := errgroup.WithContext(ctx)\r\n\t\teg.Go(WithGinkgoRecover(func() {\r\n\t\t\tTry(cli.Put(ectx, key, value0))\r\n\t\t}))\r\n\t\teg.Go(WithGinkgoRecover(func() {\r\n\t\t\tvar (\r\n\t\t\t\terr     error\r\n\t\t\t\tsucceed bool\r\n\t\t\t\tretry   int\r\n\t\t\t)\r\n\t\t\tfor !succeed && retry < CAS_MAX_RETRY {\r\n\t\t\t\t_, succeed, err = cli.CompareAndSwap(ectx, key, value0, value1)\r\n\t\t\t\tExpect(err).To(Succeed())\r\n\t\t\t\tretry += 1\r\n\t\t\t}\r\n\t\t\tExpect(succeed).To(BeTrue())\r\n\t\t}))\r\n\t\tTry(eg.Wait())\r\n\t\tactual := Try(cli.Get(ctx, key)).([]byte)\r\n\t\tExpect(actual).Should(Equal(value1), \"key: %v, value0: %v, value1: %v\", string(key), string(value0), string(value1))\r\n\t}\r\n}\r\n```\r\n\r\n### What did you expect?\r\n\r\nTest pass.\r\n\r\n### What did happened?\r\n\r\nTest failed\r\n```\r\n    key: b410000000000000240, value0: 541944245271235697, value1: 541944245271235698\r\n    Expected\r\n        <[]uint8 | len:18, cap:24>: 541944245271235697\r\n    to equal\r\n        <[]uint8 | len:18, cap:24>: 541944245271235698\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-09-28T03:07:10Z",
+  "updated_at": "2022-10-26T11:12:33Z",
+  "closed_at": "2022-10-26T11:12:33Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1291871485,
+      "user": "pingyu",
+      "created_at": "2022-10-26T11:12:33Z",
+      "body": "Closed by #13520 "
+    }
+  ]
+}

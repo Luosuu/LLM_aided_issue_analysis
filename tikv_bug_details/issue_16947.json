@@ -1,0 +1,21 @@
+{
+  "issue_number": 16947,
+  "title": "in-memory-engine: OLTP-insert has more than 10% regression when in-memory-engine is enabled in a test environment",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster branch [c36886a]\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nenable in-memory-engine and run sysbench oltp-insert \r\nAnd then disable it and restart the tikv,  sysbench oltp-insert again (with same prepared data).\r\n\r\n### What did you expect?\r\nThe insert TPS has less than 5% regression when in-memory-engine is enabled. \r\n### What did happened?\r\nIt shows that with in-memory-engine, the TPS has 10%+ regression. \r\n\r\nclinic: https://clinic.pingcap.com/portal/#/orgs/1372813089196921458/clusters/7361927152612425097?from=1715034298&to=1715041498\r\n\r\n<img width=\"877\" alt=\"Screen Shot 2024-05-06 at 5 44 08 PM\" src=\"https://github.com/tikv/tikv/assets/9442422/7d03a7c2-3175-46b2-b947-07ac2d7141c9\">\r\n<img width=\"905\" alt=\"Screen Shot 2024-05-06 at 5 47 39 PM\" src=\"https://github.com/tikv/tikv/assets/9442422/1f46e381-0f12-498a-b3e7-cb8fd0bb2a4c\">\r\n",
+  "state": "open",
+  "created_at": "2024-05-07T03:46:50Z",
+  "updated_at": "2024-09-26T03:34:35Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 2375786601,
+      "user": "overvenus",
+      "created_at": "2024-09-26T03:34:19Z",
+      "body": "Set a lower severity, because it only occurs after enabling IME which is not released and is disabled by default."
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "issue_number": 10702,
+  "title": "after two tikv restart， The “Max Resolved TS gap” display is unreasonable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nRelease Version:   5.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   d78394cb8dcc3e55a53d34378253a0888d26b438\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time:    2021-08-09 12:08:07\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\nk8s环境\r\n2 tidb，3 pd，4 tikv\r\ntikv：8G、4 cores\r\n\r\n### Steps to reproduce\r\nTiKVFailover001\r\n1、通过br导入tpcc数据：/br restore full --pd \"tc-pd.glh-pv2gn.svc:2379\" --storage \"s3://benchmark/tpcc-1000-new\" --s3.endpoint \"http://minio.pingcap.net:9000\" --send-credentials-to-tikv=true\r\n2、two TiKV OOM（known issue：https://github.com/tikv/tikv/issues/10694）\r\n\r\n### What did you expect?\r\nafter tikv recover，The “Max Resolved TS gap” display normal\r\n\r\n### What did happened?\r\nThe “Max Resolved TS gap” display is unreasonable\r\n![Lark20210811-121608](https://user-images.githubusercontent.com/84712107/128969292-d46675ba-4fd7-43c4-84d3-7fa01cd17999.png)\r\n![Lark20210811-121641](https://user-images.githubusercontent.com/84712107/128969297-1895a00a-28ca-49ca-815e-4e64086c8937.png)\r\n",
+  "state": "closed",
+  "created_at": "2021-08-11T04:23:46Z",
+  "updated_at": "2022-01-07T03:22:54Z",
+  "closed_at": "2022-01-07T03:22:53Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 896490337,
+      "user": "Lily2025",
+      "created_at": "2021-08-11T04:24:32Z",
+      "body": "/assign NingLin-P"
+    },
+    {
+      "id": 898976059,
+      "user": "Lily2025",
+      "created_at": "2021-08-15T00:30:43Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 898976198,
+      "user": "Lily2025",
+      "created_at": "2021-08-15T00:32:02Z",
+      "body": "/severity Minor "
+    },
+    {
+      "id": 1007110773,
+      "user": "NingLin-P",
+      "created_at": "2022-01-07T03:22:53Z",
+      "body": "This issue is likely caused by https://github.com/tikv/tikv/issues/11400, close it since https://github.com/tikv/tikv/pull/11352 had fixed it."
+    }
+  ]
+}

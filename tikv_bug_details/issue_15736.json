@@ -1,0 +1,34 @@
+{
+  "issue_number": 15736,
+  "title": "[Dynamic Regions] Compared with v7.3.0, workloads with insert/update + scan operations have a 32% ~ 77% performance regression in v7.4.0",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n7.3.0 and 7.4.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. deploy clusters with both v7.3.0 and v7.4.0 versions (3 tidb + 3 tikv + 1 pd)\r\n2. cluster configs:\r\n```\r\nTidbConfig:{\"mem-quota-query\":1073741824,\"new_collations_enabled_on_first_bootstrap\":false,\"prepared-plan-cache\":{\"enabled\":true}}; \r\nTikvConfig:{\"coprocessor\":{\"region-max-size\":\"1.5GB\",\"region-split-size\":\"1GB\"},\"import.num-threads\":64,\"storage\":{\"engine\":\"partitioned-raft-kv\"},\"storage.block-cache.capacity\":\"30GB\"}\"\r\n```\r\n3. run ycsb workloade\r\n\r\n### What did you expect?\r\nNo performance regression\r\n### What did happened?\r\nWith https://github.com/tikv/tikv/pull/15678, the default write_buffer_size and write_buffer_limit for lockcf was increased to fix the performance regression in write-heavy workload. However, it significantly impacts the performance of workloads with insert/update + scan operations like ycsb-workloade.\r\n",
+  "state": "open",
+  "created_at": "2023-10-09T09:52:38Z",
+  "updated_at": "2024-08-07T05:32:19Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "affects-7.4",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1752698510,
+      "user": "Yui-Song",
+      "created_at": "2023-10-09T09:53:39Z",
+      "body": "/severity major\r\n/assign @tonyxuqqi "
+    },
+    {
+      "id": 1752699418,
+      "user": "Yui-Song",
+      "created_at": "2023-10-09T09:54:18Z",
+      "body": "/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.5\r\n/remove-label may-affects-7.1\r\n/label affects-7.4"
+    },
+    {
+      "id": 1760649731,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-13T01:55:30Z",
+      "body": "This is because of the lockcf write buffer limit's behavior, that if it's too small, it would hurt the write heavy workload. \r\nBut if it's big, then it would hurt read-write workload with too many MVCC versions. "
+    }
+  ]
+}

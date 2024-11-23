@@ -1,0 +1,27 @@
+{
+  "issue_number": 15031,
+  "title": "[Dynamic Regions] pitr checkpoint ts lag keep increasing after simulate tikv network partition for 50m and recover",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   7.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   bd11fb033e85512f0dd20cffaf1bcefc5e8c0bd6\r\nGit Commit Branch: heads/refs/tags/v7.3.0-alpha\r\nUTC Build Time:    2023-06-27 09:12:24\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-06-28T19:59:01.981+0800\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、start pitr task\r\n2、run tpcc\r\n3、simulate tikv network partition for 50m and recover\r\n\r\n### What did you expect?\r\npitr checkpoint ts lag is less than 5min\r\n\r\n### What did happened?\r\npitr checkpoint ts lag keep increasing after simulate tikv network partition for 50m and recover\r\n![image](https://github.com/tikv/tikv/assets/84712107/ba584fa6-b242-4070-9cf8-4b354abd992a)\r\n",
+  "state": "closed",
+  "created_at": "2023-06-29T02:14:35Z",
+  "updated_at": "2023-07-14T13:14:33Z",
+  "closed_at": "2023-07-14T07:20:16Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1612337830,
+      "user": "Lily2025",
+      "created_at": "2023-06-29T02:15:22Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign 3pointer"
+    },
+    {
+      "id": 1612626386,
+      "user": "3pointer",
+      "created_at": "2023-06-29T08:29:34Z",
+      "body": "Currently, we can see pitr checkpoint lag increased due to resolved ts lag increased. but the reason why resolved ts increased still no clue.\r\n\r\n\r\n![31894e8f-9fbe-477e-b680-4fc0ea6d93bc](https://github.com/tikv/tikv/assets/5906259/a575c387-6792-4030-b158-701715a62157)\r\n"
+    }
+  ]
+}

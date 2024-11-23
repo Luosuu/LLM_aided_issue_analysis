@@ -1,0 +1,13 @@
+{
+  "issue_number": 1262,
+  "title": "Mark tombstone immediately when applying a confchagne",
+  "body": "When a peer is removed, its state should be updated to Tombstone immediately. Otherwise it may have risk to separate the cluster.\r\n\r\nFor example, a region has four peers A, B, C, D, E. Then it removes C and D. If E is isolated during that time, and C, D apply the conf change successfully but failing to save the Tombstone state. When E is recovered, its request vote will recreate C and D as replica peers again. Then E can become Leader. So cluster will be seperated into two parts: (A, B) and (C, D, E).",
+  "state": "closed",
+  "created_at": "2016-11-02T17:36:08Z",
+  "updated_at": "2018-08-07T00:46:16Z",
+  "closed_at": "2016-11-05T14:41:26Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

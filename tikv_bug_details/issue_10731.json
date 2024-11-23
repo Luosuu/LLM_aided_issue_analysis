@@ -1,0 +1,33 @@
+{
+  "issue_number": 10731,
+  "title": "*: Another drop table blocked problem when tikv is disk full",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nV5.2.0 closed disk full feature\r\n\r\n### Steps to reproduce\r\n1. Tiup deploys 3 nodes cluster.\r\n2. Push data until TiKV disk full happens.\r\n3. Exec drop table, then blocked.\r\n\r\n### What did you expect?\r\ncan drop table.\r\n\r\n### What did happened?\r\ndrop table blocked.\r\n\r\n### Other Info\r\nBefore drop table, I have send a sql \"create database test1;\" which should be blocked.\r\nAnd from the tidb log, it shows that, ddl worker runs with \"create database\" logic which should fail, and retry dead loop. \r\nAnd the \"Drop table\" task has been started, but not executed.\r\n\r\nAttachments is the operations and tidb logs:\r\n![image](https://user-images.githubusercontent.com/80742231/129372688-f583c6c7-357e-4011-a76a-7d20c446515d.png)\r\nTiDB Log\r\n![image](https://user-images.githubusercontent.com/80742231/129374750-c8a8e150-34b3-4e4b-b951-528463998f48.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-08-13T14:46:33Z",
+  "updated_at": "2021-11-04T03:54:56Z",
+  "closed_at": "2021-11-04T03:54:55Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 899380816,
+      "user": "Lily2025",
+      "created_at": "2021-08-16T09:56:24Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 899380996,
+      "user": "Lily2025",
+      "created_at": "2021-08-16T09:56:40Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 960434719,
+      "user": "tier-cap",
+      "created_at": "2021-11-04T03:54:55Z",
+      "body": "Closed by https://github.com/tikv/tikv/pull/10833 and https://github.com/pingcap/tidb/pull/27685"
+    }
+  ]
+}

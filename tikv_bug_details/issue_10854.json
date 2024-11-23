@@ -1,0 +1,28 @@
+{
+  "issue_number": 10854,
+  "title": "copr_plugin: should disallow unregistering plugins",
+  "body": "## Bug Report\r\n\r\nCurrently, TiKV loads plugin from `./coprocessors` on startup by default, and if the plugin directory is explicitly defined in the config file, TiKV will additionally watch that folder and load new plugins when file added and remove from TiKV when the corresponding file is removed.\r\n\r\nBut now we've found a [problem](https://github.com/andylokandy/rfcs/blob/plugin/text/0063-coprocessor-plugin.md#auto-loading-1) that prevents us to remove plugins. So we decided to disallow unregistering plugins. In detail:\r\n\r\n1. Don't watch file change / file remove events anymore.\r\n2. Use [fs2](https://crates.io/crates/fs2) to lock the plugin file when the plugin is loaded into TiKV.\r\n",
+  "state": "closed",
+  "created_at": "2021-08-30T08:13:15Z",
+  "updated_at": "2021-09-14T14:52:42Z",
+  "closed_at": "2021-09-14T14:52:42Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 908900178,
+      "user": "peng1999",
+      "created_at": "2021-08-31T05:01:38Z",
+      "body": "/assign"
+    },
+    {
+      "id": 911460805,
+      "user": "Lily2025",
+      "created_at": "2021-09-02T09:39:47Z",
+      "body": "/severity Moderate"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "issue_number": 13497,
+  "title": "br: tikv startup failure when tikv v6.3.0 connect to pd v6.2.0",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nnightly build with older version pd v6.2.0\r\n\r\n### What operating system and CPU are you using?\r\nNA\r\n### Steps to reproduce\r\n1. deploy pd 6.2.v\r\n2. deploy tikv 6.3 or nightly build\r\n3. tikv start up failure\r\n### What did you expect?\r\n\r\n### What did happened?\r\ntikv show the following error:\r\n`2022/09/20 11:29:23.219 +00:00] [ERROR] [util.rs:505] [\"request failed\"] [err_code=KV:Pd:Grpc] [err=\"thread 'Grpc(RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \\\"mainunknown method IsSnapshotRecovering for service pdpb.PD' panicked at '\\\", details: [] }))failed to get recovery mode from PD: Grpc(RpcFailure(RpcStatus { code: 12-UNIMPLEMENTED, message: \"unknown method IsSnapshotRecovering for service pdpb.PD\", details: [] }))\"', ]`",
+  "state": "closed",
+  "created_at": "2022-09-20T11:31:10Z",
+  "updated_at": "2022-09-21T08:40:26Z",
+  "closed_at": "2022-09-21T02:39:02Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "severity/moderate",
+    "affects-6.3"
+  ],
+  "comments_data": []
+}

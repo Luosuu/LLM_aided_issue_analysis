@@ -1,0 +1,45 @@
+{
+  "issue_number": 9990,
+  "title": "Provided config-template.toml is not valid",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nlatest `master` branch.\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux, but shouldn't matter.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nTake the provided `config-template.toml` for TiKV, strip leading `#` from all lines and use it for as a config for TiKV.\r\n\r\n### What did you expect?\r\nIt should \"just work\" and be a valid config. In the ideal case, it would be identical to `TiKvConfig::default()`.\r\n\r\n### What did happened?\r\nSeveral things were wrong:\r\n\r\n 1. after stripping away the leading `#`, the resulting toml was *not parsable*. This was mainly because *some* lines with comments used only a single `#` instead of two `##`. Only a minor issue, but still it's inconsistent.\r\n 2. after fixing (1), the toml was parsable as a `TiKvConfig`, but it did not pass `validate()`.\r\n 3. after fixing (2), the resuling config differed from `TiKvConfig::default()`. Maybe that's intended, but I found it rather unusual. Here is a diff (left: `config-template.toml`, right: `TiKvConfig::default()`): https://www.diffchecker.com/Et8GSSHO\r\n\r\nIf it's okay, I would create a PR with fixes for (1) and (2) and maybe (3) depending on the comments on this issue. I would also add a test to check these issues for the future.",
+  "state": "closed",
+  "created_at": "2021-04-10T08:30:58Z",
+  "updated_at": "2021-04-20T11:01:54Z",
+  "closed_at": "2021-04-20T11:01:54Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 817474712,
+      "user": "skyzh",
+      "created_at": "2021-04-12T04:47:44Z",
+      "body": "Basically the difference could be sorted into two categories: 'value tweaks' and 'default value for None'. For the former one, I think it's okay to modify the toml to match the default values in TiKV. For the latter one, we should check the logic of getting default value if some field is `None`, and see if the final value got by config consumers match the configuration file.\r\n\r\nThe only thing I'm unsure about is `allow_concurrent_memtable_write: true`, which is introduced by https://github.com/tikv/tikv/pull/2054/ 4 years ago. Should this be `true` or `false` for default value?"
+    },
+    {
+      "id": 817476113,
+      "user": "skyzh",
+      "created_at": "2021-04-12T04:51:51Z",
+      "body": "https://docs.pingcap.com/tidb/stable/tikv-configuration-file#raftdb The official docs of TiKV didn't mention this config item `allow_concurrent_memtable_write`. I wonder if this item is stale."
+    },
+    {
+      "id": 817511558,
+      "user": "MyonKeminta",
+      "created_at": "2021-04-12T06:06:24Z",
+      "body": "> https://docs.pingcap.com/tidb/stable/tikv-configuration-file#raftdb The official docs of TiKV didn't mention this config item `allow_concurrent_memtable_write`. I wonder if this item is stale.\r\n\r\nIt's a mistake introduced by https://github.com/tikv/tikv/pull/7460 which modified the default config without updating config-template.toml. And some of the configurations that are unusual to be changed are usually not documented."
+    },
+    {
+      "id": 818555652,
+      "user": "andreas-zimmerer",
+      "created_at": "2021-04-13T08:34:07Z",
+      "body": "Thanks for the comments @skyzh and @MyonKeminta! I opened a PR #10010 where we can further work on this issue :)"
+    },
+    {
+      "id": 820004375,
+      "user": "cosven",
+      "created_at": "2021-04-15T02:15:11Z",
+      "body": "/type bug\r\n/severity minor"
+    }
+  ]
+}

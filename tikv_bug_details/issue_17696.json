@@ -1,0 +1,48 @@
+{
+  "issue_number": 17696,
+  "title": "TiDB latency not stable and TiKV OOM if running cdc changefeed when titan is on and average region size is large",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv8.4.0\r\n31aa015dbe96bc5bcd676d7e32450f0205ceb104\r\n\r\n### What operating system and CPU are you using?\r\nX84, K8S\r\n\r\n### Steps to reproduce\r\n1. Deploy v8.4.0 cluster with 6 TiKV node (16C64G), titan is on.\r\n2. br restore 4000 tables (~10TB)\r\n3. start log backup task\r\n4. create one CDC kafka changefeed to replicate the workload to Kafka\r\n5. run workload\r\n\r\n### What did you expect?\r\nTiDB latency should be stable, when running workload\r\n\r\n### What did happened?\r\nTiDB latency not stable, and TiKV OOM seen.\r\n\r\n![image](https://github.com/user-attachments/assets/28718d80-cdcd-43b1-8c45-2503735089c5)\r\n![image](https://github.com/user-attachments/assets/5fcdc076-9a75-44a4-835b-6db078a786c2)\r\n\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-10-22T08:20:19Z",
+  "updated_at": "2024-11-15T03:30:59Z",
+  "closed_at": "2024-11-06T06:42:58Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "impact/oom",
+    "affects-8.4",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2428587883,
+      "user": "fubinzh",
+      "created_at": "2024-10-22T08:20:58Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 2428593013,
+      "user": "fubinzh",
+      "created_at": "2024-10-22T08:22:43Z",
+      "body": "/label affects-8.4\r\n"
+    },
+    {
+      "id": 2434484919,
+      "user": "overvenus",
+      "created_at": "2024-10-24T07:16:31Z",
+      "body": "The direct cause of this OOM is that CDC tasks piles up in the channel, from \"apply\" to \"cdc,\" because the processing of `old_value_cb` is slowing down the CDC thread. Additionally, `old_value_cb` holds a snapshot, which can quickly result in millions of live snapshot counts.\r\n\r\n![{601CC9E3-F873-407E-9811-006B7BF08D07}](https://github.com/user-attachments/assets/093983ce-2c15-4a6a-927e-c29814346125)\r\n\r\nhttps://github.com/tikv/tikv/blob/5a703ad8412d687e18efbe14c419967c323360a5/components/cdc/src/observer.rs#L124-L136\r\n\r\n---\r\n\r\nTo resolve this issue, we can tracking pending CDC tasks memory usage and stops observe if a region exceeds memory quota.\r\n"
+    },
+    {
+      "id": 2461234665,
+      "user": "fubinzh",
+      "created_at": "2024-11-07T03:15:32Z",
+      "body": "https://github.com/tikv/tikv/pull/17724 partly fixed this issue, by taking cdc tasks into memory quota to prevent the TiKV OOM caused by too many pending tasks. \r\nWith this fix, TiKV will not OOM, and TiDB latency can be relatively stable. But we still have the issue that CDC replication capability is greatly impacted due to \"slow processing of old_value_cb\", this is tracked in another issue: https://github.com/tikv/tikv/issues/17781\r\n\r\nTest results with fix (TiKV Commit: https://github.com/tikv/tikv/commit/22bbfeb958936ab75dda1f60ca6bdc1cc0bb5231)\r\n![image](https://github.com/user-attachments/assets/18c2e458-ff1e-461a-aa9a-117540e7c731)\r\n![image](https://github.com/user-attachments/assets/03c9678c-bb89-4eb4-9eb5-c2c306852904)\r\n![image](https://github.com/user-attachments/assets/20ca87da-32d6-4ccc-ab3e-b91233b533ad)\r\n![image](https://github.com/user-attachments/assets/3f02719a-724f-4bd6-b33e-177a42a69be8)\r\n![image](https://github.com/user-attachments/assets/2180fbe9-0a10-4646-a1b7-d1eb2b20fd5f)\r\n![image](https://github.com/user-attachments/assets/957013e9-7a9d-4bf2-af67-0264286f124a)"
+    },
+    {
+      "id": 2477882504,
+      "user": "fubinzh",
+      "created_at": "2024-11-15T03:30:58Z",
+      "body": "Tested the scenario with v8.1.1 build.\r\n- This issue is NOT reproducible with v8.1.1 release when tikv region-split-size = \"256MiB\" and pd region-split-size = \"128MiB\" (Actual avg region size: ~120MB)\r\n![image](https://github.com/user-attachments/assets/17a73341-953c-4bab-be72-d8eb92b1e525)\r\n![image](https://github.com/user-attachments/assets/ad4ebd98-4859-4e4a-bd97-6abd09c9be02)\r\n\r\n\r\n- This issue is reproducible with v8.1.1 release when tikv region-split-size = \"512MiB\" and pd  region-split-size = \"256MiB\" (Actual avg region size: ~320MB)\r\n\r\n\r\n```\r\n# tikv\r\n[rocksdb]\r\n  max-open-files = 10240\r\n  [rocksdb.titan]\r\n    enabled = true\r\n  [rocksdb.defaultcf.titan]\r\n    blob-cache-size = \"24GB\"\r\n    min-blob-size = \"4KB\"\r\n    discardable-ratio = 0.4\r\n\r\n[coprocessor]\r\n  region-split-size = \"256MiB\"\r\n  region-split-keys = 2560000\r\n  region-max-size = \"384MiB\"\r\n  region-max-keys = 3840000\r\n\r\n#pd\r\n[schedule]\r\n  max-merge-region-size = 256\r\n  max-merge-region-keys = 2560000\r\n```\r\n\r\n![image](https://github.com/user-attachments/assets/a92fa778-d43c-4d7f-abf4-dd7f892fb2d0)\r\n![image](https://github.com/user-attachments/assets/a85c0249-ecf8-4917-9a40-e7bd7877b866)\r\n"
+    }
+  ]
+}

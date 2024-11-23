@@ -1,0 +1,33 @@
+{
+  "issue_number": 16069,
+  "title": "raftstore: linearibilizy is broken when follower read is used",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nReference https://github.com/pingcap/tidb/issues/48802.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nThe master & release-7.5\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nIt dos not matter\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRun Jepsen test monotonic workload\r\n\r\n### What did you expect?\r\nIt finishes ok.\r\n\r\n### What did happened?\r\n```\r\nINFO [2023-11-21 07:34:08,613] jepsen test runner - jepsen.core {:perf\r\n {:latency-graph {:valid? true},\r\n  :rate-graph {:valid? true},\r\n  :valid? true},\r\n :workload\r\n {:cycle\r\n  {:valid? false,\r\n   :scc-count 1,\r\n   :cycles\r\n   [\"Let:\\n  T1 = {:type :ok, :f :read, :value {0 1889, 1 1875, 2 1892, 3 1814, 4 1794, 5 1912, 6 1909, 7 1719}, :process 69, :time 241358622457, :txn-info {:start_ts 445789485148667916}, :index 59501}\\n  T2 = {:type :ok, :f :read, :value {0 1889, 1 1875, 2 1893, 3 1813, 4 1794, 5 1912, 6 1909, 7 1719}, :process 111, :time 241400793624, :txn-info {:start_ts 445789485135560758}, :index 59523}\\n\\nThen:\\n  - T1 < T2, because T1 observed 2 = 1892, and T2 observed a higher value 1893.\\n  - However, T2 < T1, because T2 observed 3 = 1813, and T1 observed a higher value 1814: a contradiction!\"]},\r\n  :timeline {:valid? true},\r\n  :valid? false},\r\n :valid? false}\r\n\r\n\r\nAnalysis invalid! (ﾉಥ益ಥ）ﾉ ┻━┻\r\n```\r\n\r\nFrom the logs:\r\n\r\n[2023/11/10 11:52:07.340 +00:00] [INFO] [apply.rs:1694] [\"execute admin command\"] [command=\"cmd_type: ChangePeerV2 change_peer_v2 { changes { change_type: RemoveNode peer { id: 80802 store_id: 7 role: Learner } } }\"] [**index=1708**] [term=21] [peer_id=80802] [region_id=72298] [thread_id=0x5]\r\n\r\n[2023/11/10 11:52:07.340 +00:00] [INFO] [peer.rs:3703] [\"**delays destroy**\"] [reason=UnFlushLogGc] [merged_by_target=false] [peer_id=80802] [region_id=72298] [thread_id=0x5]\r\n\r\n[2023/11/10 11:52:07.340 +00:00] [INFO] [peer.rs:3185] [\">>> handle read index\"] [tag=\"[region 72298] 80802\"] **[idx=1708**] [replica_read=1] [cmd=\"[Snap]@445544432214736938\"] [thread_id=0x5]\r\n\r\nThe removing peer is executed at index 1708, however, the applied index get from the snapshot is 1700:\r\n[2023/11/10 11:52:07.340 +00:00] [INFO] [mod.rs:714] [\">>> async snapshot ok\"] [ts=445544432214736938] [**data_ver=1700**] [ranges=\"[]\"] [thread_id=0x5]\r\n[2023/11/10 11:52:07.340 +00:00] [INFO] [endpoint.rs:457] [\">>> copr use cached handler\"] [ts=445544432214736938] [**data_ver=1700**] \r\n\r\nThen the peer is destroyed\r\n[2023/11/10 11:52:07.341 +00:00] [INFO] [peer.rs:1301] [\"peer destroy itself\"] [keep_data=false] [clean=true] [takes=320.949µs] [peer_id=80802] [region_id=72298] [thread_id=0x5]\r\n[2023/11/10 11:52:07.341 +00:00] [INFO] [router.rs:283] [\"shutdown mailbox\"] [region_id=72298] [thread_id=0x5]\r\n[2023/11/10 11:52:07.341 +00:00] [INFO] [region.rs:624] [\"register deleting data in range\"] [end_key=7A7800000000000000FB] [start_key=7A7200000100000000FB] [region_id=72298] [thread_id=0x5]\r\n\r\n\r\nThe cause of this issue is\r\n```\r\nWhen a peer is removed, its apply state is not updated. While a simultaneous snap request caused by follower read is processed in the same raft poller loop. An outdated apply state is used when checking the snapshot applied index version, will invalidate the coprocessor cache assumption and potentially lead to a violation of linearizability (returning stale cache).\r\n```",
+  "state": "closed",
+  "created_at": "2023-11-27T01:22:52Z",
+  "updated_at": "2023-11-27T08:19:44Z",
+  "closed_at": "2023-11-27T06:37:16Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

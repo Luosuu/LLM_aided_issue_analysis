@@ -1,0 +1,32 @@
+{
+  "issue_number": 921,
+  "title": "Investigate the 'multiTransfer' CI failure.",
+  "body": "There may be some bugs in current transaction implementation.\n",
+  "state": "closed",
+  "created_at": "2016-08-08T03:27:39Z",
+  "updated_at": "2016-08-23T03:00:11Z",
+  "closed_at": "2016-08-23T03:00:11Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 240617199,
+      "user": "disksing",
+      "created_at": "2016-08-18T03:51:43Z",
+      "body": "We have found a bug which maybe related to this issue.\nIn current txn's implementation, _Prewrite_(1st phase of txn commit) leaves a lock on the key and when the key is rolled back, we simply drop the lock and leaves nothing. This could cause inconsistent data if _Prewrite_ is re-sent because of lock resolving or some network issue.\n\nConsider transaction _T1_ wants to write 2 keys _K1, K2_ which belongs to 2 different regions _R1, R2_. After R1 receives _Prewrite_, we will have a _Lock(T1)_ on _K1_.\nThen a new transaction _T2_ wants to read K1 and meets the _Lock_. After backing off, _T2_ will send a _Rollback_ to clean the _Lock_ and record _T1_ as a 'Rollbacked txn'.\n\nWhen _T1_ resends the _Prewrite_, tikv-server will not know it is already rolled back, the _Prewrite_ will be accepted.\nAfter _Prewrite_, _T1_ will load a new timestamp and start to _Commit_(2nd phase of txn commit), after _K1_ is committed, _K2_(on _R2_) may still be a _Lock_.\nNow we start a new transaction _T3_(start_ts > _T1_'s commit_ts) to read _K2_. When _T3_ meets the _Lock_ on _K2_, it will consider the _Lock_ should be cleaned up but in fact it need to be committed.\n"
+    },
+    {
+      "id": 241305799,
+      "user": "disksing",
+      "created_at": "2016-08-22T03:07:49Z",
+      "body": "We have located another txn bug during testing.\nThe bug is similar to the previous. When we commit a 'read-only' key, which is generally created by a 'SELECT FOR UPDATE' statement, we drops the lock without appending write cf. If the commit command is re-sent, server will failed in finding the lock or commit log and report a 'TxnNotFound' error, which is totally unnecessary.\nHowever, this bug will not break data consistency.\n"
+    },
+    {
+      "id": 241306190,
+      "user": "disksing",
+      "created_at": "2016-08-22T03:12:11Z",
+      "body": "We have found a bug in testing code.\nBefore do money transfer, we use a 'SELECT FOR UPDATE' statement to query 2 accounts' money:\n\n```\namount := rand.Intn(*maxTransfer)\nrows, err := tx.Query(fmt.Sprintf(\"SELECT id, balance FROM accounts WHERE id IN (%d, %d) FOR UPDATE\", from, to))\nif err != nil {\n        log.Print(err)\n        if err = tx.Rollback(); err != nil {\n                log.Print(err)\n        }\n        return\n}\nvar fromBalance, toBalance int\nfor rows.Next() {\n        var id, balance int\n        if err = rows.Scan(&id, &balance); err != nil {\n                log.Fatal(err)\n        }\n        switch id {\n        case from:\n                fromBalance = balance\n        case to:\n                toBalance = balance\n        default:\n                panic(fmt.Sprintf(\"got unexpected account %d\", id))\n        }\n}\n```\n\nThe problem is that `rows.Next()` may encounter error and return false. Without checking error, one of the 2 accounts' money would be 0, then it will result in total money shortage.\nHowever, it seems that this bug will not cause money overage.\n"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "issue_number": 12627,
+  "title": " Handle unapplied commit merges in unavailable regions during unsafe recovery.",
+  "body": "## Development Task\r\nThis is part of #10483 \r\n\r\n\r\n|| store 1 | store 2| store 3|\r\n|---|---|---|---|\r\n| Initial | A=[a,c) B=[c,z) | A=[a,c) B=[c,z) | A=[a,c) B=[c,z) |\r\n| PrepareMerge | un-replicated | A=[a,c)->target B=[c,z)->source | A=[a,c)->target B=[c,z)->source |\r\n|CommitMerge | replicated uncommitted | A=[a,z) | A=[a,z) |\r\n\r\nIf the source region enters force leader state before the target, data loss may happen, we need to handle this correctly.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-24T06:59:37Z",
+  "updated_at": "2022-05-30T04:22:29Z",
+  "closed_at": "2022-05-30T04:22:29Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1137074382,
+      "user": "Lily2025",
+      "created_at": "2022-05-25T10:32:01Z",
+      "body": "/severity Critical "
+    },
+    {
+      "id": 1137074853,
+      "user": "Lily2025",
+      "created_at": "2022-05-25T10:32:30Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/label affects-6.1"
+    }
+  ]
+}

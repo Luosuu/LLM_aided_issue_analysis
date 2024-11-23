@@ -1,0 +1,34 @@
+{
+  "issue_number": 10803,
+  "title": "truncate table during running sysbench insert，one tikv panic four times",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV \r\nRelease Version:   5.2.0\r\nEdition:           Community\r\nGit Commit Hash:   dbefa5ec66ccb4cb0cfeef3ad05d5932da2aeb36\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time:    2021-08-23 16:05:41\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\nk8s\r\n2TiDB、3PD、4TiKV（4core、8G mem）\r\n\r\n### Steps to reproduce\r\nTiKVWorkloadStress004\r\n1、import data (32 tables)\r\n    /br restore full --pd tc-pd.glh-hqgsq.svc:2379 --storage s3://benchmark/sysbench-32-300G-release-4.0 --s3.endpoint http://minio.pingcap.net:9000 --send-credentials-to-tikv=true\r\n2、run sysbench prepare\r\n     tabNum=512\r\n     threads=8\r\n3、after 5min, truncate table which step1 created (32 tables)\r\n\r\n### What did you expect?\r\ntikv is normal\r\n\r\n### What did happened?\r\none tikv（tikv0） panic four times（from monitor，the memory usage is not high）\r\n<img width=\"460\" alt=\"无标题\" src=\"https://user-images.githubusercontent.com/84712107/130575325-00494a28-93ee-4baf-b006-e4b1cab426d1.png\">\r\n<img width=\"450\" alt=\"无标题1\" src=\"https://user-images.githubusercontent.com/84712107/130575345-036861b8-50e6-425e-9c15-867472d17321.png\">\r\n\r\nlogs:\r\n [FATAL] [lib.rs:465] [\"rocksdb background error. db: kv, reason: compaction, error: IO error: While appending to file: /var/lib/tikv/data/db/438720.sst: Cannot allocate memory\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{closure}}\\n             at components/tikv_util/src/lib.rs:464\\n   1: std::panicking::rust_panic_with_hook\\n             at library/std/src/panicking.rs:626\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at library/std/src/panicking.rs:519\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at library/std/src/sys_common/backtrace.rs:141\\n   4: rust_begin_unwind\\n             at library/std/src/panicking.rs:515\\n   5: std::panicking::begin_panic_fmt\\n             at library/std/src/panicking.rs:457\\n   6: <engine_rocks::event_listener::RocksEventListener as rocksdb::event_listener::EventListener>::on_background_error\\n   7: rocksdb::event_listener::on_background_error\\n             at rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/4e912a8/src/event_listener.rs:340\\n   8: _ZN24crocksdb_eventlistener_t17OnBackgroundErrorEN7rocksdb21BackgroundErrorReasonEPNS0_6StatusE\\n             at crocksdb/c.cc:2352\\n   9: _ZN7rocksdb12EventHelpers23NotifyOnBackgroundErrorERKSt6vectorISt10shared_ptrINS_13EventListenerEESaIS4_EENS_21BackgroundErrorReasonEPNS_6StatusEPNS_17InstrumentedMutexEPb\\n             at rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/4e912a8/librocksdb_sys/rocksdb/db/event_helpers.cc:53\\n  10: _ZN7rocksdb12ErrorHandler10SetBGErrorERKNS_6StatusENS_21BackgroundErrorReasonE\\n             at rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/4e912a8/librocksdb_sys/rocksdb/db/error_handler.cc:219\\n  11: _ZN7rocksdb6DBImpl20BackgroundCompactionEPbPNS_10JobContextEPNS_9LogBufferEPNS0_19PrepickedCompactionENS_3Env8PriorityE\\n             at rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/4e912a8/librocksdb_sys/rocksdb/db/db_impl/db_impl_compaction_flush.cc:2799\\n  12: _ZN7rocksdb6DBImpl24BackgroundCallCompactionEPNS0_19PrepickedCompactionENS_3Env8PriorityE\\n             at rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/4e912a8/librocksdb_sys/rocksdb/db/db_impl/db_impl_compaction_flush.cc:2319\\n  13: _ZN7rocksdb6DBImpl16BGWorkCompactionEPv\\n             at rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/4e912a8/librocksdb_sys/rocksdb/db/db_impl/db_impl_compaction_flush.cc:2093\\n  14: _ZNKSt8functionIFvvEEclEv\\n             at opt/rh/devtoolset-8/root/usr/include/c++/8/bits/std_function.h:687\\n      _ZN7rocksdb14ThreadPoolImpl4Impl8BGThreadEm\\n             at rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/4e912a8/librocksdb_sys/rocksdb/util/threadpool_imp.cc:266\\n  15: _ZN7rocksdb14ThreadPoolImpl4Impl15BGThreadWrapperEPv\\n             at rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/4e912a8/librocksdb_sys/rocksdb/util/threadpool_imp.cc:307\\n  16: execute_native_thread_routine\\n  17: <unknown>\\n  18: clone\\n\"] [location=components/engine_rocks/src/event_listener.rs:108] [thread_name=<unnamed>]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:80] [\"Welcome to TiKV\"]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:85] [\"Release Version:   5.2.0\"]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:85] [\"Edition:           Community\"]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:85] [\"Git Commit Hash:   dbefa5ec66ccb4cb0cfeef3ad05d5932da2aeb36\"]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:85] [\"Git Commit Branch: heads/refs/tags/v5.2.0\"]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:85] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:85] [\"Rust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\"]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:85] [\"Enable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\"]\r\n[2021/08/24 05:41:39.302 +00:00] [INFO] [lib.rs:85] [\"Profile:           dist_release\"]",
+  "state": "closed",
+  "created_at": "2021-08-24T07:30:54Z",
+  "updated_at": "2021-11-22T09:46:39Z",
+  "closed_at": "2021-11-22T09:46:39Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "won't fix"
+  ],
+  "comments_data": [
+    {
+      "id": 904396547,
+      "user": "Lily2025",
+      "created_at": "2021-08-24T07:32:40Z",
+      "body": "/assign hicqu"
+    },
+    {
+      "id": 906071624,
+      "user": "Lily2025",
+      "created_at": "2021-08-26T03:51:39Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 906071678,
+      "user": "Lily2025",
+      "created_at": "2021-08-26T03:51:50Z",
+      "body": "/severity major"
+    }
+  ]
+}

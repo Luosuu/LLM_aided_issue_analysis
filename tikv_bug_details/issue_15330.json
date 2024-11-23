@@ -1,0 +1,23 @@
+{
+  "issue_number": 15330,
+  "title": "[Dynamic Regions] create table and anlyze is slow ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nGit Commit Hash:   2dd419923c1a3eeef2098248c159fa9d55a49220\r\n \r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. create about 3w tables and insert about 100 rows in every table\r\n2. analyze the table\r\n3. compare the speed\r\n    - multi-rocksdb and tidb split-table true\r\n    - multi-rocksdb and tidb split-table false\r\n    - single rocksdb and tidb split-table true\r\n### What did you expect?\r\n\r\n### What did happened?\r\ncreate table and anlyze is slow \r\n - multi-rocksdb and tidb split-table true\r\n  ![图片](https://github.com/tikv/tikv/assets/10184437/d8b8a0e0-8df2-48e9-a61f-457ef4dfb6cf)\r\n\r\n  - multi-rocksdb and tidb split-table false\r\n![图片](https://github.com/tikv/tikv/assets/10184437/030a709c-063a-414e-a30b-1920cca6862f)\r\n\r\n  - single rocksdb and tidb split-table true\r\n![图片](https://github.com/tikv/tikv/assets/10184437/d3d9c470-8996-41bd-afec-be733c8cf388)\r\n",
+  "state": "open",
+  "created_at": "2023-08-15T03:49:52Z",
+  "updated_at": "2023-08-24T09:12:39Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "feature/developing",
+    "need-doc"
+  ],
+  "comments_data": [
+    {
+      "id": 1691308723,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-24T09:11:11Z",
+      "body": "Make it moderate as it's the known issue and is going to be resolved by document. For multi-rocksdb, we need split-table to be false in scenarios that needs to create lots of tables."
+    }
+  ]
+}

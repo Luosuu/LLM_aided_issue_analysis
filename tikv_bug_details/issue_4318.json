@@ -1,0 +1,32 @@
+{
+  "issue_number": 4318,
+  "title": "test buffer::tests::test_vec_reallocate failed",
+  "body": "## Bug Report\r\n\r\n```\r\ntest buffer::tests::test_vec_reallocate ... thread 'main' panicked at 'realloc test realloc enough', components/codec/src/buffer.rs:465:13\r\n\r\nstack backtrace:\r\n\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n\r\n             at src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:39\r\n\r\n   1: std::sys_common::backtrace::_print\r\n\r\n             at src/libstd/sys_common/backtrace.rs:71\r\n\r\n   2: std::panicking::default_hook::{{closure}}\r\n\r\n             at src/libstd/sys_common/backtrace.rs:59\r\n\r\n             at src/libstd/panicking.rs:197\r\n\r\n   3: std::panicking::default_hook\r\n\r\n             at src/libstd/panicking.rs:211\r\n\r\n   4: std::panicking::rust_panic_with_hook\r\n\r\n             at src/libstd/panicking.rs:474\r\n\r\n   5: std::panicking::begin_panic\r\n\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libstd/panicking.rs:408\r\n\r\n   6: codec::buffer::tests::test_vec_reallocate\r\n\r\n             at components/codec/src/buffer.rs:465\r\n\r\n   7: codec::buffer::tests::test_vec_reallocate::{{closure}}\r\n\r\n             at components/codec/src/buffer.rs:409\r\n\r\n   8: core::ops::function::FnOnce::call_once\r\n\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libcore/ops/function.rs:231\r\n\r\n   9: <F as alloc::boxed::FnBox<A>>::call_box\r\n\r\n             at src/libtest/lib.rs:1513\r\n\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libcore/ops/function.rs:231\r\n\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/liballoc/boxed.rs:749\r\n\r\n  10: __rust_maybe_catch_panic\r\n\r\n             at src/libpanic_unwind/lib.rs:87\r\n\r\n  11: test::run_test::run_test_inner::{{closure}}\r\n\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libstd/panicking.rs:272\r\n\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libstd/panic.rs:388\r\n\r\n             at src/libtest/lib.rs:1468\r\n\r\n  12: test::run_test::run_test_inner\r\n\r\n             at src/libtest/lib.rs:1490\r\n\r\n  13: test::run_test\r\n\r\n             at src/libtest/lib.rs:1509\r\n\r\n  14: test::run_tests_console\r\n\r\n             at src/libtest/lib.rs:1167\r\n\r\n             at src/libtest/lib.rs:972\r\n\r\n  15: test::test_main\r\n\r\n             at src/libtest/lib.rs:293\r\n\r\n  16: test::test_main_static\r\n\r\n             at src/libtest/lib.rs:327\r\n\r\n  17: codec::main\r\n\r\n  18: std::rt::lang_start::{{closure}}\r\n\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libstd/rt.rs:64\r\n\r\n  19: std::panicking::try::do_call\r\n\r\n             at src/libstd/rt.rs:49\r\n\r\n             at src/libstd/panicking.rs:293\r\n\r\n  20: __rust_maybe_catch_panic\r\n\r\n             at src/libpanic_unwind/lib.rs:87\r\n\r\n  21: std::rt::lang_start_internal\r\n\r\n             at src/libstd/panicking.rs:272\r\n\r\n             at src/libstd/panic.rs:388\r\n\r\n             at src/libstd/rt.rs:48\r\n```",
+  "state": "closed",
+  "created_at": "2019-03-06T02:42:35Z",
+  "updated_at": "2019-03-18T07:08:24Z",
+  "closed_at": "2019-03-18T07:08:24Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 470368256,
+      "user": "breezewish",
+      "created_at": "2019-03-07T03:16:26Z",
+      "body": "This test relies on the behaviour that jemalloc realloc the address. Maybe the new member of our team can help us find a solution to reliably letting jemalloc realloc. @siddontang "
+    },
+    {
+      "id": 470789601,
+      "user": "nrc",
+      "created_at": "2019-03-08T03:15:49Z",
+      "body": "See also https://github.com/tikv/tikv/pull/4300#issuecomment-470319267"
+    },
+    {
+      "id": 473794002,
+      "user": "breezewish",
+      "created_at": "2019-03-18T07:08:24Z",
+      "body": "Not occurred for a while. Closing for now."
+    }
+  ]
+}

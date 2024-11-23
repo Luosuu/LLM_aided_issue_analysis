@@ -1,0 +1,22 @@
+{
+  "issue_number": 14551,
+  "title": "Stale pessimistic lock requests in force-lock mode may lead to data corruption or in consistency after resolving lock",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nAllowing locking with conflict introduces more corner cases if we consider the posibility of stale RPC requests.\r\n\r\nTo resolve stale pessimistic locks (mostly caused by pessimistic-rollback failures) of committed transaction, we commit them as `WriteType::Lock` (introduced in https://github.com/tikv/tikv/pull/6353):\r\n\r\nhttps://github.com/tikv/tikv/blob/68298d834be1844eaf254d5237eed4856605833c/src/storage/txn/actions/commit.rs#L44-L59\r\n\r\nBut it seems we don't need to commit it since the key is no longer part of that transaction. I can't remember the reason of committing them as Lock records. Probably it's because it's easier to handle in the `commit` function (doesn't need to introduce rollback operation to the `commit` procedure).\r\n\r\nNow, as locking with conflict is sometimes allowed, we have such a new corner case:\r\n\r\n1. Transaction T starts (start_ts = 10)\r\n2. T locks key k1 with force-locking is enabled, then the key is locked at for_update_ts = 10. Then the lock is `pessimisticRollback`-ed.\r\n3. Transaction T commits (start_ts = 10, commit_ts = 20). It finally doesn't involve key k1.\r\n4. Transaction T2 writes key k1 and committed (start_ts = 15, commit_ts = 20).\r\n5. A stale pessimistic lock request in step-2 arrives at TiKV, and successfully locked k1 anyway (since locking-with-conflict is enabled).\r\n6. Another transaction T3 encounters the lock written in step-5, and starts resovle locking. It then find that transaction T is successfully committed, so it calls `commit` on the stale pessimistic lock.\r\n7. The logic of committing pessimistic lock mentioned above is executed, so a `Lock` record is written to write cf with commit_ts = 20. However, T2 has a commit record at commit_ts = 20 on this key too, so it's overwritten by the `Lock` record of transaction T.\r\n\r\nIn such case, transaction T2 may lost its change to key k1. If k1 is T2's primary, it may also affect the state of T2's secondaries.\r\n\r\nA way to fix it is to rollback the pessimistic lock instead of committing as WriteType::Lock when trying to commit a pessimistic lock.",
+  "state": "closed",
+  "created_at": "2023-04-10T12:44:05Z",
+  "updated_at": "2023-04-17T02:19:18Z",
+  "closed_at": "2023-04-17T02:19:18Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1504893182,
+      "user": "cfzjywxk",
+      "created_at": "2023-04-12T08:44:21Z",
+      "body": "Perceptive @MyonKeminta  has discovered another detailed issue. Thumbs up.   :+1:\r\n"
+    }
+  ]
+}

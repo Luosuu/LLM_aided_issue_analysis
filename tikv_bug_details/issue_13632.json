@@ -1,0 +1,43 @@
+{
+  "issue_number": 13632,
+  "title": "PITR checkpoint not move forward during tikv and tidb advance owner network partition",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.3.0\r\n\r\n### What operating system and CPU are you using?\r\nk8s\r\n\r\n### Steps to reproduce\r\n1. Start log backup tasks\r\n2. Run workloads\r\n3. Inject network partition between one TiKV and one TiDB, the TiDB is PITR checkpoint advance owner.\r\n4. Check PITR checkpoint status\r\n\r\n### What did you expect?\r\nDuring one TiKV and one TiDB network partition, TiDB cluster can still provide services (though downgraded).\r\nPITR checkpoint should move forward normally in this case to meet RPO.\r\n\r\n### What did happened?\r\nPITR checkpoint doesn't move forward in this case.\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/196391474-dac45670-47ed-490a-be2b-f6e9fa18cd11.png)\r\n![image](https://user-images.githubusercontent.com/7403864/196391506-808341b2-92af-4a73-9475-3266543be955.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-10-18T09:24:31Z",
+  "updated_at": "2022-10-18T12:02:41Z",
+  "closed_at": "2022-10-18T12:02:41Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "may-affects-6.2",
+    "may-affects-6.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1282090788,
+      "user": "fubinzh",
+      "created_at": "2022-10-18T09:24:38Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1282091512,
+      "user": "fubinzh",
+      "created_at": "2022-10-18T09:24:57Z",
+      "body": "/severity Major"
+    },
+    {
+      "id": 1282275656,
+      "user": "fubinzh",
+      "created_at": "2022-10-18T12:02:41Z",
+      "body": "close the bug, it will be tracked in https://github.com/pingcap/tidb/issues/38531"
+    }
+  ]
+}

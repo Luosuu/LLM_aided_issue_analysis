@@ -1,0 +1,53 @@
+{
+  "issue_number": 10267,
+  "title": "CDC incremental scan pollutes rocksdb block cache",
+  "body": "## Bug Report\r\n\r\nCDC incremental scanner sets fill caches (the default behavior of a scanner), it pollutes block cache, and slows down online read services.\r\n\r\nhttps://github.com/tikv/tikv/blob/06c3e76eab84482d49a36d634fb2a6c05995f54b/components/cdc/src/endpoint.rs#L1094-L1097\r\n\r\n### What version of TiKV are you using?\r\n\r\n4.0.13 and 5.0.2\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRun TiCDC\r\n\r\n### What did you expect?\r\n\r\nDo not add blocks to block cache.\r\n",
+  "state": "closed",
+  "created_at": "2021-05-30T07:57:35Z",
+  "updated_at": "2021-06-04T06:58:28Z",
+  "closed_at": "2021-06-04T06:58:28Z",
+  "labels": [
+    "type/bug",
+    "difficulty/easy",
+    "component/CDC",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 851103216,
+      "user": "xuhui-lu",
+      "created_at": "2021-05-31T01:07:58Z",
+      "body": "hey @overvenus , is this issue unassigned? If so, I can help to fix it."
+    },
+    {
+      "id": 851106926,
+      "user": "lonng",
+      "created_at": "2021-05-31T01:23:30Z",
+      "body": "@xuhui-lu Yes, this issue have not been assigned to somebody, you can pick this issue. Thanks 👍"
+    },
+    {
+      "id": 851519507,
+      "user": "Rustin170506",
+      "created_at": "2021-05-31T14:14:29Z",
+      "body": "> hey @overvenus , is this issue unassigned? If so, I can help to fix it.\r\n\r\nTry `/assign`. The bot will assign this issue to you."
+    },
+    {
+      "id": 851589215,
+      "user": "xuhui-lu",
+      "created_at": "2021-05-31T16:33:01Z",
+      "body": "/assign"
+    },
+    {
+      "id": 853963690,
+      "user": "overvenus",
+      "created_at": "2021-06-03T15:36:56Z",
+      "body": "@xuhui-lu Hi, do you have time to fix this issue in tomorrow? We plan to release its fix in the next release, and tomorrow we will freeze the code."
+    },
+    {
+      "id": 853978746,
+      "user": "xuhui-lu",
+      "created_at": "2021-06-03T15:55:25Z",
+      "body": "yea, I will do that tomorrow."
+    }
+  ]
+}

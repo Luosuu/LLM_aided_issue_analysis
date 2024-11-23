@@ -1,0 +1,17 @@
+{
+  "issue_number": 16101,
+  "title": "Make TiKV GC support configurable thread count ",
+  "body": "## Development Task\r\nToday TiKV GC thread is hardcoded as 1 and the region gc is done one by one synchronously. \r\nAnd in some cases, one round of GC takes a few hours. We need to have a way to speed up the GC by increasing the GC thread. \r\n\r\n![image](https://github.com/tikv/tikv/assets/9442422/edc81296-cf55-49e0-aafa-42ff341617a5)\r\n",
+  "state": "closed",
+  "created_at": "2023-11-29T23:31:19Z",
+  "updated_at": "2024-03-01T03:38:13Z",
+  "closed_at": "2023-12-12T06:43:50Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

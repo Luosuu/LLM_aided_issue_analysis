@@ -1,0 +1,44 @@
+{
+  "issue_number": 3868,
+  "title": "PD receives stale region info from TiKV",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\nDeploy one TiDB, one TiKV, and one PD on my local machine, all use the default config.\r\nThen use `random-merge-scheduler` to merge region randomly, and now region 2 is merged.\r\nOnce I restart PD, from PD log:\r\n```\r\n2018/12/03 11:52:24.956 cluster_info.go:474: [info] [region 2] Insert new region {id:2 region_epoch:<conf_ver:1 version:1 > peers:<id:3 store_id:1 > } \r\n```\r\nseems that PD recevie a heartbeat including a stale region 2 state (is exactly the bootstrap region info with start_key and end_key both are empty)\r\n\r\nthe log of TiKV then\r\n```\r\n2018/12/03 11:52:37.194 ERRO endpoint.rs:468: Region(message: \"region is not found\" region_not_found {region_id: 2})\r\n```\r\nthe log of TiDB then\r\n```\r\n\r\n2018/12/03 11:52:57.474 backoff.go:249: [warning] backoffer.maxSleep 20000ms is exceeded, errors:\r\nmessage:\"region is not found\" region_not_found:<region_id:2 >  at 2018-12-03T11:52:56.466114+08:00\r\nmessage:\"region is not found\" region_not_found:<region_id:2 >  at 2018-12-03T11:52:56.97086+08:00\r\nmessage:\"region is not found\" region_not_found:<region_id:2 >  at 2018-12-03T11:52:57.474606+08:00\r\n2018/12/03 11:52:58.312 backoff.go:249: [warning] backoffer.maxSleep 20000ms is exceeded, errors:\r\nmessage:\"region is not found\" region_not_found:<region_id:2 >  at 2018-12-03T11:52:57.300941+08:00\r\nmessage:\"region is not found\" region_not_found:<region_id:2 >  at 2018-12-03T11:52:57.807825+08:00\r\nmessage:\"region is not found\" region_not_found:<region_id:2 >  at 2018-12-03T11:52:58.31217+08:00\r\n2018/12/03 11:52:58.312 ddl_worker.go:141: [error] [ddl-worker 4, tp add index] handle DDL job err [tikv:9005]Region is unavailable[try again later]\r\n```\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2018-12-03T04:15:01Z",
+  "updated_at": "2018-12-18T06:31:57Z",
+  "closed_at": "2018-12-18T06:31:57Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 443585285,
+      "user": "BusyJay",
+      "created_at": "2018-12-03T04:25:34Z",
+      "body": "Is there any log that shows the heartbeat is from TiKV? Is it possible that the meta is inserted by PD itself?"
+    },
+    {
+      "id": 443607992,
+      "user": "Connor1996",
+      "created_at": "2018-12-03T06:58:39Z",
+      "body": "the log `cluster_info.go:474: [info] [region 2] Insert new region` only can be printed when receiving a heartbeat. Are there other components sending PD region heartbeat also in some case?"
+    },
+    {
+      "id": 444722133,
+      "user": "zhangjinpeng87",
+      "created_at": "2018-12-06T02:07:49Z",
+      "body": "> Are there other components sending PD region heartbeat also in some case\r\n\r\nI think no."
+    },
+    {
+      "id": 445167574,
+      "user": "Connor1996",
+      "created_at": "2018-12-07T09:04:31Z",
+      "body": "As investigated further,  I find TiKV will send the first heartbeat info after booting once reconnecting to PD. It is confirmed as a pd-client bug, I will create a PR to fix it."
+    },
+    {
+      "id": 448112110,
+      "user": "Connor1996",
+      "created_at": "2018-12-18T06:31:53Z",
+      "body": "Fixed on PD side, the stale region info will be ignored."
+    }
+  ]
+}

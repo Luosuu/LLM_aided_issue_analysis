@@ -1,0 +1,64 @@
+{
+  "issue_number": 10924,
+  "title": "Analyze table failed due to tikv server timeout error during lighting import",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # ./tikv-server -V\r\nTiKV\r\nRelease Version:   5.2.0\r\nEdition:           Community\r\nGit Commit Hash:   556783c314a9bfca36c818256182eeef364120d7\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time:    2021-08-26 05:47:23\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n\r\n### What operating system and CPU are you using?\r\nTiKV: 8U, 61GB\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1, Create DBaaS Cluster in Dev Env - T5.xlarge, TiKV x 3, 8U 61GB\r\n2, Create CSV Import job, import data from: s3://data-platform-uw2/csv_export_default_10GiB \r\n\r\n### What did you expect?\r\nLightning import succeed\r\n\r\n### What did happened?\r\nLightning import failed.\r\n\r\n\r\n  | 2021-09-09 05:59:06 | [2021/09/09 05:59:06.942 +00:00] [ERROR] [restore.go:154] [-] [table=`aaa`.`bbb`] [status=analyzed] [error=\"analyze table failed: Error 9002: TiKV server timeout\"]\r\n  | 2021-09-09 05:59:06 | [2021/09/09 05:59:06.942 +00:00] [ERROR] [restore.go:152] [\"tables failed to be imported\"] [count=1]\r\n  | 2021-09-09 05:59:06 | [2021/09/09 05:59:06.942 +00:00] [ERROR] [restore.go:431] [\"the whole procedure failed\"] [takeTime=1h52m11.9212808s] [error=\"analyze table failed: Error 9002: TiKV server timeout\"]\r\n   | 2021-09-09 05:59:06 | [2021/09/09 05:59:06.942 +00:00] [ERROR] [restore.go:420] [\"run failed\"] [step=3] [error=\"analyze table failed: Error 9002: TiKV server timeout\"]\r\n  | 2021-09-09 05:59:06 | Error: analyze table failed: Error 9002: TiKV server timeout\r\n  | 2021-09-09 05:59:06 | [2021/09/09 05:59:06.651 +00:00] [INFO] [restore.go:1038] [\"switch to normal mode\"]\r\n\r\nLog:  https://grafana.oauth.dev.shared.aws.tidbcloud.com/explore?orgId=1&left=%5B%22now-3h%22,%22now%22,%22loki%22,%7B%22expr%22:%22%7Bcontainer%3D%5C%22tidb-lightning%5C%22,namespace%3D%5C%22tidb120007%5C%22%7D%22%7D%5D\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-09-09T06:49:56Z",
+  "updated_at": "2021-11-04T07:12:13Z",
+  "closed_at": "2021-11-04T07:12:13Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 915812686,
+      "user": "fubinzh",
+      "created_at": "2021-09-09T06:51:27Z",
+      "body": "/assign Little-Wallace"
+    },
+    {
+      "id": 915816579,
+      "user": "Little-Wallace",
+      "created_at": "2021-09-09T06:58:29Z",
+      "body": "TiKV will kill coprocessor request whose wait duration exceed 60s in https://github.com/tikv/tikv/pull/10189.\r\nIt causes more TiDB SQL fail because of requests to TiKV are killed."
+    },
+    {
+      "id": 915817310,
+      "user": "fubinzh",
+      "created_at": "2021-09-09T06:59:51Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 918766390,
+      "user": "sticnarf",
+      "created_at": "2021-09-14T03:26:10Z",
+      "body": "> TiKV will kill coprocessor request whose wait duration exceed 60s in #10189.\r\n> It causes more TiDB SQL fail because of requests to TiKV are killed.\r\n\r\nI don't think it related. If you are using TiDB for analyzing, the timeout at TiDB is 60s:\r\n\r\nhttps://github.com/pingcap/tidb/blob/v5.2.0/store/copr/coprocessor.go#L725\r\n\r\nSo any response of request running longer than 60s will not be received by TiDB and the resource is wasted."
+    },
+    {
+      "id": 940716422,
+      "user": "Little-Wallace",
+      "created_at": "2021-10-12T06:50:47Z",
+      "body": "I have talk about this issue with @winoros and I found that TiDB has increase the size of sample data by 10 times for every region since 5.1. It means that every analyze request to TiKV will cost ten times longer.  @winoros will reduce the sample size maybe in 5.3.  For 5.1 and 5.2, we shall decrease the configuration `dist_sql_scan_concurrency`."
+    },
+    {
+      "id": 940726511,
+      "user": "sticnarf",
+      "created_at": "2021-10-12T07:07:14Z",
+      "body": "> For 5.1 and 5.2, we shall decrease the configuration `dist_sql_scan_concurrency`.\r\n\r\nI don't think this really helps a lot.\r\n\r\nI am afraid this issue happens when 60 seconds is not enough for dealing with the analyze of a single region. Large scan requests are actually run in serial at TiKV.  Reducing the concurrency cannot accelerate the calculation of one single region."
+    },
+    {
+      "id": 940732341,
+      "user": "Little-Wallace",
+      "created_at": "2021-10-12T07:16:13Z",
+      "body": "Emmm. Maybe we shall also increase the time limit(60s) for coprocessor request."
+    },
+    {
+      "id": 960508668,
+      "user": "BusyJay",
+      "created_at": "2021-11-04T07:12:13Z",
+      "body": "According @winoros, it's fixed in TiDB side."
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "issue_number": 12509,
+  "title": "TiKV OOM after starting log backup when there are lots of log to be scanned",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/05/13 18:43:38.393 +08:00] [INFO] [lib.rs:79] [\"Welcome to TiKV\"]\r\n[2022/05/13 18:43:38.393 +08:00] [INFO] [lib.rs:84] [\"Release Version: 6.1.0-alpha\"]\r\n[2022/05/13 18:43:38.393 +08:00] [INFO] [lib.rs:84] [\"Edition: Community\"]\r\n[2022/05/13 18:43:38.393 +08:00] [INFO] [lib.rs:84] [\"Git Commit Hash: https://github.com/tikv/tikv/commit/684abdbb4cf601236b4f35719c5118659404df1c\"]\r\n[2022/05/13 18:43:38.393 +08:00] [INFO] [lib.rs:84] [\"Git Commit Branch: heads/refs/tags/v6.1.0-alpha\"]\r\n\r\n### What operating system and CPU are you using?\r\nCentOS \r\n\r\n### Steps to reproduce\r\n1. Workload running for the cluster, inserting data.\r\n2. Start a log backup from 1 hours again\r\n```\r\n08:59:20 root@172 ~ → tiup br:v6.1.0-alpha-nightly-20220513 log start --pd 172.16.5.52:2379 --storage 's3://nfs/fubin/pitr/pp_log_4?access-key=minioadmin&secret-access-key=minioadmin&endpoint=http%3a%2f%2\r\nfminio.pingcap.net%3a9000&force-path-style=true'  --task-name test4 --start-ts \"2022-05-13 19:45:00\"\r\nStarting component `br`: /root/.tiup/components/br/v6.1.0-alpha-nightly-20220513/br /root/.tiup/components/br/v6.1.0-alpha-nightly-20220513/br log start --pd 172.16.5.52:2379 --storage s3://nfs/fubin/pitr\r\n/pp_log_4?access-key=minioadmin&secret-access-key=minioadmin&endpoint=http%3a%2f%2fminio.pingcap.net%3a9000&force-path-style=true --task-name test4 --start-ts 2022-05-13 19:45:00\r\nDetail BR log in /tmp/br.log.2022-05-13T20.59.45+0800\r\n[2022/05/13 20:59:45.800 +08:00] [INFO] [collector.go:69] [\"log start\"] [streamTaskInfo=\"{taskName=test4,startTs=433177834291200000,endTS=537708095078400000,tableFilter=*.*}\"] [pausing=false] [rangeCount=\r\n2]\r\n[2022/05/13 20:59:47.398 +08:00] [INFO] [collector.go:69] [\"log start success summary\"] [total-ranges=0] [ranges-succeed=0] [ranges-failed=0] [backup-checksum=759.148µs] [total-take=1.718459467s]\r\n```\r\n\r\n### What did you expect?\r\nLog backup correctly.\r\n\r\n### What did happened?\r\nTiKV OOM. (TiKV memory is 16GiB)\r\n```\r\n[Fri May 13 21:18:38 2022] Memory cgroup out of memory: Kill process 81886 (tso-worker) score 1010 or sacrifice child\r\n[Fri May 13 21:18:38 2022] Killed process 81601 (tikv-server) total-vm:24497176kB, anon-rss:16746352kB, file-rss:192464kB, shmem-rss:0kB\r\n[Fri May 13 21:19:41 2022] background-0 invoked oom-killer: gfp_mask=0xd0, order=0, oom_score_adj=0\r\n[Fri May 13 21:19:41 2022] background-0 cpuset=/ mems_allowed=0-1\r\n[Fri May 13 21:19:41 2022] CPU: 22 PID: 81908 Comm: background-0 Kdump: loaded Not tainted 3.10.0-957.el7.x86_64 #1\r\n[Fri May 13 21:19:41 2022] Hardware name: Dell Inc. PowerEdge R730/072T6D, BIOS 2.7.1 001/22/2018\r\n[Fri May 13 21:19:41 2022] Call Trace:\r\n[Fri May 13 21:19:41 2022]  [<ffffffffafb61dc1>] dump_stack+0x19/0x1b\r\n[Fri May 13 21:19:41 2022]  [<ffffffffafb5c7ea>] dump_header+0x90/0x229\r\n[Fri May 13 21:19:41 2022]  [<ffffffffaf63113d>] ? try_get_mem_cgroup_from_mm+0x4d/0x60\r\n[Fri May 13 21:19:41 2022]  [<ffffffffaf5b9dc6>] ? find_lock_task_mm+0x56/0xc0\r\n[Fri May 13 21:19:41 2022]  [<ffffffffaf631118>] ? try_get_mem_cgroup_from_mm+0x28/0x60\r\n[Fri May 13 21:19:41 2022]  [<ffffffffaf5ba274>] oom_kill_process+0x254/0x3d0\r\n[Fri May 13 21:19:41 2022]  [<ffffffffaf634f16>] mem_cgroup_oom_synchronize+0x546/0x570\r\n[Fri May 13 21:19:41 2022]  [<ffffffffaf634390>] ? mem_cgroup_charge_common+0xc0/0xc0\r\n[Fri May 13 21:19:41 2022]  [<ffffffffaf5bab04>] pagefault_out_of_memory+0x14/0x90\r\n[Fri May 13 21:19:41 2022]  [<ffffffffafb5acf2>] mm_fault_error+0x6a/0x157\r\n[Fri May 13 21:19:41 2022]  [<ffffffffafb6f7a8>] __do_page_fault+0x3c8/0x500\r\n[Fri May 13 21:19:41 2022]  [<ffffffffafb6f915>] do_page_fault+0x35/0x90\r\n[Fri May 13 21:19:41 2022]  [<ffffffffafb6b758>] page_fault+0x28/0x30\r\n[Fri May 13 21:19:41 2022] Task in /system.slice/tikv-31161.service killed as a result of limit of /system.slice/tikv-31161.service\r\n[Fri May 13 21:19:41 2022] memory: usage 16777216kB, limit 16777216kB, failcnt 633665\r\n[Fri May 13 21:19:41 2022] memory+swap: usage 18872544kB, limit 9007199254740988kB, failcnt 0\r\n[Fri May 13 21:19:41 2022] kmem: usage 0kB, limit 9007199254740988kB, failcnt 0\r\n[Fri May 13 21:19:41 2022] Memory cgroup stats for /system.slice/tikv-31161.service: cache:448KB rss:16776768KB rss_huge:6950912KB mapped_file:0KB swap:2095328KB inactive_anon:1815500KB active_anon:149583\r\n12KB inactive_file:448KB active_file:0KB unevictable:0KB\r\n[Fri May 13 21:19:41 2022] [ pid ]   uid  tgid total_vm      rss nr_ptes swapents oom_score_adj name\r\n[Fri May 13 21:19:41 2022] [81888]  1000 81888  6093829  4239930   10419   524472             0 tikv-server\r\n[Fri May 13 21:19:41 2022] Memory cgroup out of memory: Kill process 82163 (grpc_global_tim) score 1011 or sacrifice child\r\n[Fri May 13 21:19:41 2022] Killed process 81888 (tikv-server) total-vm:24375316kB, anon-rss:16767712kB, file-rss:192008kB, shmem-rss:0kB\r\n```\r\n```\r\n[root@localhost log]# systemctl status tikv-31161.service\r\n● tikv-31161.service - tikv service\r\n   Loaded: loaded (/etc/systemd/system/tikv-31161.service; enabled; vendor preset: disabled)\r\n   Active: active (running) since Fri 2022-05-13 21:20:07 CST; 16min ago\r\n Main PID: 82165 (tikv-server)\r\n   Memory: 14.5G (limit: 16.0G)\r\n   CGroup: /system.slice/tikv-31161.service\r\n           └─82165 bin/tikv-server --addr 0.0.0.0:31161 --advertise-addr 172.16.5.52:31161 --status-addr 0.0.0.0:31181 --advertise-status-addr 172.16.5.52:31181 --pd 172.16.5.52:2379,172.16.5.74:2379,1.\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-05-13T13:47:27Z",
+  "updated_at": "2022-05-17T08:32:01Z",
+  "closed_at": "2022-05-17T08:31:51Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1126077070,
+      "user": "fubinzh",
+      "created_at": "2022-05-13T13:48:36Z",
+      "body": "/type bug\r\n/severity Critical"
+    },
+    {
+      "id": 1126079004,
+      "user": "3pointer",
+      "created_at": "2022-05-13T13:50:39Z",
+      "body": "fix it in https://github.com/tikv/tikv/pull/12469 "
+    },
+    {
+      "id": 1126626282,
+      "user": "fubinzh",
+      "created_at": "2022-05-14T03:26:33Z",
+      "body": "/label feature/developing"
+    },
+    {
+      "id": 1126626289,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-14T03:26:34Z",
+      "body": "@fubinzh: The label(s) `feature/developing` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12509#issuecomment-1126626282):\n\n>/label feature/developing\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1128578687,
+      "user": "3pointer",
+      "created_at": "2022-05-17T08:31:51Z",
+      "body": "close since https://github.com/tikv/tikv/pull/12469 merged"
+    }
+  ]
+}

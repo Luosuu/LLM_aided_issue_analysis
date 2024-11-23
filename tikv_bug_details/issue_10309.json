@@ -1,0 +1,34 @@
+{
+  "issue_number": 10309,
+  "title": "test_leader_demoted_when_hibernated failed",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\ndoesn't master\r\n\r\n### Steps to reproduce\r\nrun test_leader_demoted_when_hibernated\r\n\r\n### What did you expect?\r\ntest succeed\r\n\r\n### What did happened?\r\nThis test fails frequently.\r\n> thread 'raftstore::test_hibernate::test_leader_demoted_when_hibernated' panicked at 'peer 4 is still not leader after 5 seconds.', tests/integrations/raftstore/test_hibernate.rs:462:13\r\nstack backtrace:\r\n   0: std::panicking::begin_panic\r\n             at /Users/gengliqi/.rustup/toolchains/nightly-2021-04-15-x86_64-apple-darwin/lib/rustlib/src/rust/library/std/src/panicking.rs:519:12\r\n   1: integrations::raftstore::test_hibernate::test_leader_demoted_when_hibernated\r\n             at ./integrations/raftstore/test_hibernate.rs:462:13\r\n   2: integrations::raftstore::test_hibernate::test_leader_demoted_when_hibernated::{{closure}}\r\n             at ./integrations/raftstore/test_hibernate.rs:406:1\r\n   3: core::ops::function::FnOnce::call_once\r\n             at /Users/gengliqi/.rustup/toolchains/nightly-2021-04-15-x86_64-apple-darwin/lib/rustlib/src/rust/library/core/src/ops/function.rs:227:5\r\n   4: test_util::runner::run_test_with_hook::{{closure}}::{{closure}}\r\n             at /Users/gengliqi/myrepo/tikv/components/test_util/src/runner.rs:64:21\r\n   5: core::ops::function::FnOnce::call_once{{vtable.shim}}\r\n             at /Users/gengliqi/.rustup/toolchains/nightly-2021-04-15-x86_64-apple-darwin/lib/rustlib/src/rust/library/core/src/ops/function.rs:227:5\r\n   6: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\r\n             at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/alloc/src/boxed.rs:1546:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\ntest raftstore::test_hibernate::test_leader_demoted_when_hibernated ... FAILED",
+  "state": "closed",
+  "created_at": "2021-06-07T02:44:23Z",
+  "updated_at": "2021-12-29T13:19:45Z",
+  "closed_at": "2021-12-29T13:19:45Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 855536816,
+      "user": "gengliqi",
+      "created_at": "2021-06-07T02:45:03Z",
+      "body": "/cc @BusyJay "
+    },
+    {
+      "id": 1002538485,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T11:03:01Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002591242,
+      "user": "BusyJay",
+      "created_at": "2021-12-29T13:19:45Z",
+      "body": "Should be fixed by #10403."
+    }
+  ]
+}

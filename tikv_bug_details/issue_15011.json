@@ -1,0 +1,58 @@
+{
+  "issue_number": 15011,
+  "title": "[Dynamic Region] Write hot can't be scheduled with the tpcc preapre insert",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nRelease Version:   7.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   de3d6655c3bb0eceac068207fe7ec8be30bdbcc7\r\nGit Commit Branch: heads/refs/tags/v7.3.0-alpha\r\nUTC Build Time:    2023-06-26 11:13:06\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ntpcc 100k warehouse prepare, 20 tikv and 6 tiflash.\r\n![image](https://github.com/tikv/tikv/assets/7677963/b1d2ed92-989f-47dc-8d21-ef15b91b5af1)\r\n\r\n### What did you expect?\r\ntikv store size balance\r\nwrite flow balance\r\n### What did happened?\r\nnot balance as above",
+  "state": "closed",
+  "created_at": "2023-06-27T04:49:59Z",
+  "updated_at": "2023-07-18T06:58:25Z",
+  "closed_at": "2023-07-18T06:58:25Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1614031529,
+      "user": "LykxSassinator",
+      "created_at": "2023-06-30T02:34:47Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1614032723,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-30T02:36:11Z",
+      "body": "@LykxSassinator: The label(s) `minor` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.2, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, needs-cherry-pick-release-6.6, needs-cherry-pick-release-7.0, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.2, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, affects-6.6, affects-7.0, affects-7.1, affects-7.2, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5, may-affects-6.6, may-affects-7.0, may-affects-7.1, may-affects-7.2`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15011#issuecomment-1614032710):\n\n>/label minor\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1614032778,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-30T02:36:18Z",
+      "body": "@LykxSassinator: The label(s) `minor` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.2, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, needs-cherry-pick-release-6.6, needs-cherry-pick-release-7.0, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.2, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, affects-6.6, affects-7.0, affects-7.1, affects-7.2, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5, may-affects-6.6, may-affects-7.0, may-affects-7.1, may-affects-7.2`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15011#issuecomment-1614032710):\n\n>/label minor\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1614033919,
+      "user": "LykxSassinator",
+      "created_at": "2023-06-30T02:37:59Z",
+      "body": "/label affects-7.2"
+    },
+    {
+      "id": 1614034505,
+      "user": "LykxSassinator",
+      "created_at": "2023-06-30T02:38:55Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1614038283,
+      "user": "LykxSassinator",
+      "created_at": "2023-06-30T02:46:07Z",
+      "body": "/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2 \r\n/remove-label may-affects-5.3 \r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.5\r\n/remove-label may-affects-7.1"
+    },
+    {
+      "id": 1614038325,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-30T02:46:13Z",
+      "body": "@LykxSassinator: The label(s) `may-affects-5.1` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.2, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, needs-cherry-pick-release-6.6, needs-cherry-pick-release-7.0, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.2, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, affects-6.6, affects-7.0, affects-7.1, affects-7.2, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5, may-affects-6.6, may-affects-7.0, may-affects-7.1, may-affects-7.2`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15011#issuecomment-1614038283):\n\n>/remove-label may-affects-5.1\r\n>/remove-label may-affects-5.2 \r\n>/remove-label may-affects-5.3 \r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-6.1\r\n>/remove-label may-affects-6.5\r\n>/remove-label may-affects-7.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

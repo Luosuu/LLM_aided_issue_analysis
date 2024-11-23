@@ -1,0 +1,39 @@
+{
+  "issue_number": 11470,
+  "title": "Big/Fast increase of empty regions after import of tpcc 5000 warehouses",
+  "body": "## Bug Report\r\n### What version of TiKV are you using?\r\n[2021/11/24 12:33:07.940 +00:00] [INFO] [lib.rs:85] [\"Release Version:   5.3.0\"]\r\n[2021/11/24 12:33:07.940 +00:00] [INFO] [lib.rs:85] [\"Edition:           Community\"]\r\n[2021/11/24 12:33:07.940 +00:00] [INFO] [lib.rs:85] [\"Git Commit Hash:   6c1424706f3d5885faa668233f34c9f178302f36\"]\r\n[2021/11/24 12:33:07.940 +00:00] [INFO] [lib.rs:85] [\"Git Commit Branch: heads/refs/tags/v5.3.0\"]\r\n\r\n### What operating system and CPU are you using?\r\nK8S, 3 TiKV nodes\r\n\r\n### Steps to reproduce\r\n1. Use lightning to import tpcc 5000 warehouses.\r\n2. After lightning import finishes, wait and check region status\r\n\r\n### What did you expect?\r\nThere should not be lots of empty regions after lighting import.\r\n\r\n### What did happened?\r\nLightning import:  from 2021/11/24 12:43:19.874 +00:00 to 2021/11/24 14:33:17.926 +00:00\r\nThere are only few empty regions after lightning import finishes ( see 14:33 in below snapshot), then there is a big / fast increase of empty regions, while nothing is done. The empty regions are merged after about 1 hour at 15:30. \r\n![20211125-133858](https://user-images.githubusercontent.com/7403864/143385834-00647e02-40af-479c-9372-d96ed90e6c16.png)\r\n\r\nLogs: \r\nhttp://172.16.5.66:9000/nfs/logs/empty_region_after_lightning/empty_region_after_lightning.tar.gz?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=65WJAIERRPA8CF8D7JUB%2F20211125%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20211125T054759Z&X-Amz-Expires=604792&X-Amz-Security-Token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NLZXkiOiI2NVdKQUlFUlJQQThDRjhEN0pVQiIsImV4cCI6MTYzNzgyMjg2MSwicG9saWN5IjoiY29uc29sZUFkbWluIn0.gb-VFKctyk7qu0Mtu9kwF3xVXhM9ZW__XvaPVayr6bAlSHqqya-XaP6HvRyYOaPO-ldSPMtGqGmliSdjduN_JQ&X-Amz-SignedHeaders=host&versionId=null&X-Amz-Signature=1a4810bc34f4e99c78be8804047910e6ef13c4960e1d862e17b4035fd3ff0779",
+  "state": "closed",
+  "created_at": "2021-11-25T05:48:30Z",
+  "updated_at": "2022-01-07T06:49:14Z",
+  "closed_at": "2022-01-07T06:49:14Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 978860714,
+      "user": "fubinzh",
+      "created_at": "2021-11-25T05:51:07Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 978861600,
+      "user": "fubinzh",
+      "created_at": "2021-11-25T05:52:01Z",
+      "body": "/severity Moderate"
+    },
+    {
+      "id": 978862015,
+      "user": "fubinzh",
+      "created_at": "2021-11-25T05:53:17Z",
+      "body": "/assign Little-Wallace"
+    },
+    {
+      "id": 1007179957,
+      "user": "Little-Wallace",
+      "created_at": "2022-01-07T06:49:14Z",
+      "body": "TiKV will check split when all import instance finished their jobs. It may split some region which is just a little larger than split-limit-size, and it cause a little empty region.(Because TiKV will split into a small region and a large region) It is not a bug.\r\nI have succeed to reproduce this problem although it only produce a little number of empty-regions."
+    }
+  ]
+}

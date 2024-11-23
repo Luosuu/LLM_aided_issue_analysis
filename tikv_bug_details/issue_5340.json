@@ -1,0 +1,27 @@
+{
+  "issue_number": 5340,
+  "title": "Metrics page not using HTTPS after TLS enabled",
+  "body": "## Bug Report\r\nWhen creating a TiDB cluster with TLS support enabled (on server side), the metrics page of TiKV still uses plain HTTP to serve connections, while TiDB and PD are using HTTPS, so Prometheus can't scrape metrics in an unique way.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nRelease Version:   3.0.2\r\nGit Commit Hash:   a65d10c6f5fb62d3aafcab6cfdcd5b36c2b33d35\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2019-08-07 02:31:51\r\nRust Version:      rustc 1.37.0-nightly (0e4a56b4b 2019-06-13)\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nRunning in a Kubernetes cluster, but that doesn't matter.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nCreate a cluster with TLS enabled, and try to access each node's `/metrics` page.\r\n\r\nTiDB:\r\n```\r\n# curl -Ik --cacert ./ca.crt --cert ./client.crt --key ./client.key https://10.233.48.147:10080/metrics\r\nHTTP/1.1 200 OK\r\nContent-Length: 244902\r\nContent-Type: text/plain; version=0.0.4; charset=utf-8\r\nDate: Tue, 27 Aug 2019 03:59:56 GMT\r\n```\r\n\r\nPD:\r\n```\r\n# curl -Ik --cacert ./ca.crt --cert ./client.crt --key ./client.key https://10.233.61.189:2379/metrics\r\nHTTP/1.1 200 OK\r\nAccess-Control-Allow-Headers: accept, content-type, authorization\r\nAccess-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 252488\r\nContent-Type: text/plain; version=0.0.4; charset=utf-8\r\nDate: Tue, 27 Aug 2019 04:00:33 GMT\r\n```\r\n\r\nTiKV:\r\n```\r\n# curl -kv --cacert ./ca.crt --cert ./client.crt --key ./client.key https://10.233.77.255:20180/metrics\r\n* About to connect() to 10.233.77.255 port 20180 (#0)\r\n*   Trying 10.233.77.255...\r\n* Connected to 10.233.77.255 (10.233.77.255) port 20180 (#0)\r\n* Initializing NSS with certpath: sql:/etc/pki/nssdb\r\n* NSS error -12263 (SSL_ERROR_RX_RECORD_TOO_LONG)\r\n* SSL received a record that exceeded the maximum permissible length.\r\n* Closing connection 0\r\ncurl: (35) SSL received a record that exceeded the maximum permissible length.\r\n```\r\n\r\nTiKV with HTTP:\r\n```\r\n# curl -v http://10.233.77.255:20180/metrics\r\n* About to connect() to 10.233.77.255 port 20180 (#0)\r\n*   Trying 10.233.77.255...\r\n* Connected to 10.233.77.255 (10.233.77.255) port 20180 (#0)\r\n> GET /metrics HTTP/1.1\r\n> User-Agent: curl/7.29.0\r\n> Host: 10.233.77.255:20180\r\n> Accept: */*\r\n> \r\n< HTTP/1.1 200 OK\r\n< content-length: 291021\r\n< date: Tue, 27 Aug 2019 04:06:42 GMT\r\n< \r\n{ [data not shown]\r\n# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.\r\n# TYPE process_cpu_seconds_total counter\r\nprocess_cpu_seconds_total 521.56\r\n# HELP process_max_fds Maximum number of open file descriptors.\r\n# TYPE process_max_fds gauge\r\nprocess_max_fds 1048576\r\n....\r\n```\r\n\r\n### What did you expect?\r\nAll requests are served as HTTPS when TLS is enabled, and client certificate should be validated, the same as TiDB/PD's behavior.\r\n\r\n### What did happened?\r\nTiKV doesn't use HTTPS for metrics page on TLS cluster.",
+  "state": "closed",
+  "created_at": "2019-08-27T04:12:40Z",
+  "updated_at": "2020-03-17T09:13:15Z",
+  "closed_at": "2020-03-17T09:13:15Z",
+  "labels": [
+    "type/bug",
+    "component/server"
+  ],
+  "comments_data": [
+    {
+      "id": 525136332,
+      "user": "breezewish",
+      "created_at": "2019-08-27T04:52:40Z",
+      "body": "Thanks for your report. This is indeed a missing part."
+    },
+    {
+      "id": 525137256,
+      "user": "breezewish",
+      "created_at": "2019-08-27T04:57:13Z",
+      "body": "@rleungx Considering that only this metric page is not TLS, this unimplemented feature can be also regarded as a bug. Would you like to fix it (and cherry pick to 3.0 and 2.1)?"
+    }
+  ]
+}

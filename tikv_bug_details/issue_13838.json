@@ -1,0 +1,103 @@
+{
+  "issue_number": 13838,
+  "title": "TiKV Max Resolved TS stop to advance when restore / import data into tikv",
+  "body": "## Bug Report\r\n\r\n\r\n### What version of TiKV are you using?\r\nnightly build-2022, 11, 23\r\n\r\n### What operating system and CPU are you using?\r\ncentos\r\n\r\n### Steps to reproduce\r\n1. create a tidb cluster\r\n2. restore data into cluster\r\n\r\n### What did you expect?\r\nmax resolved ts shall advance as resolved_ts did\r\n\r\n### What did happened?\r\nmax resolved ts stop to advance\r\n<img width=\"688\" alt=\"image\" src=\"https://user-images.githubusercontent.com/85682690/203497837-472a540a-503d-4795-aa8f-4a269c834255.png\">\r\n\r\nit impact backup and restore, auto_dr_sync etc, those using max resolved ts function.\r\n",
+  "state": "closed",
+  "created_at": "2022-11-23T08:10:11Z",
+  "updated_at": "2024-04-08T06:24:02Z",
+  "closed_at": "2024-04-08T06:24:02Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "may-affects-6.2",
+    "may-affects-6.3",
+    "may-affects-6.4",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1332997769,
+      "user": "fengou1",
+      "created_at": "2022-12-01T01:06:18Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1334790704,
+      "user": "jebter",
+      "created_at": "2022-12-02T05:48:21Z",
+      "body": "by disign：https://docs.pingcap.com/tidb/dev/tidb-lightning-physical-import-mode#tips-for-using-with-other-components"
+    },
+    {
+      "id": 1334887949,
+      "user": "fubinzh",
+      "created_at": "2022-12-02T08:10:54Z",
+      "body": "/severity Major"
+    },
+    {
+      "id": 1334890769,
+      "user": "fubinzh",
+      "created_at": "2022-12-02T08:14:05Z",
+      "body": "After the error happens, new created cdc changefeed  is not able to advance. Escalate it to major."
+    },
+    {
+      "id": 1334891140,
+      "user": "fubinzh",
+      "created_at": "2022-12-02T08:14:32Z",
+      "body": "/remove-severity moderate"
+    },
+    {
+      "id": 1736669514,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-27T04:43:04Z",
+      "body": "cc @BornChanger"
+    },
+    {
+      "id": 1951949066,
+      "user": "BornChanger",
+      "created_at": "2024-02-19T08:38:15Z",
+      "body": "@fubinzh is the problem still there now?"
+    },
+    {
+      "id": 1953407263,
+      "user": "fubinzh",
+      "created_at": "2024-02-20T02:58:59Z",
+      "body": "@BornChanger I didn't see this issue recently."
+    },
+    {
+      "id": 2041941521,
+      "user": "BornChanger",
+      "created_at": "2024-04-08T06:14:45Z",
+      "body": "/close"
+    },
+    {
+      "id": 2041941563,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-08T06:14:47Z",
+      "body": "@BornChanger: You can't close an active issue/PR unless you authored it or you are a collaborator.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13838#issuecomment-2041941521):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2041947353,
+      "user": "fubinzh",
+      "created_at": "2024-04-08T06:19:49Z",
+      "body": "/close"
+    },
+    {
+      "id": 2041947402,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-08T06:19:51Z",
+      "body": "@fubinzh: You can't close an active issue/PR unless you authored it or you are a collaborator.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13838#issuecomment-2041947353):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "issue_number": 11581,
+  "title": "v5.2.2: 2 tikvs oom and can't start after 1 hours ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```bash\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   5.2.2\r\nEdition:           Community\r\nGit Commit Hash:   7acaec5d9c809439b9b0017711f114b44ffd9a49\r\nGit Commit Branch: heads/refs/tags/v5.2.2\r\nUTC Build Time:    2021-10-25 12:03:38\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nk8s config.\r\n```yaml\r\n  tikv:\r\n    baseImage: registry-mirror.pingcap.net/pingcap/tikv\r\n    config: |\r\n      log-file = \"/var/lib/tikv/log/tikv.log\"\r\n\r\n      [storage]\r\n        reserve-space = \"0MB\"\r\n    dataSubDir: data\r\n    image: pingcap/tikv:nightly\r\n    limits:\r\n      cpu: \"8\"\r\n      memory: 16Gi\r\n    maxFailoverCount: 3\r\n    replicas: 4\r\n    requests:\r\n      cpu: \"8\"\r\n      memory: 16Gi\r\n      storage: 40Gi\r\n    storageVolumes:\r\n    - mountPath: /var/lib/tikv/log\r\n      name: log\r\n      storageClassName: local-path\r\n      storageSize: 10Gi\r\n```\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n```bash\r\nginkgo -focus \"oltp_fun_001\" -- TiDB-OLTP -workloadType sysbench_bulk_insert -sysbenchThreads 32\r\n```\r\n\r\n### What did you expect?\r\nEverything works fine.\r\n\r\n### What did happened?\r\n```\r\n# tikv 0 and tikv 3 restarts more than 10 times.\r\n\r\n k8 get pod\r\nNAME                            READY   STATUS             RESTARTS   AGE\r\nbenchtoolset-0                  1/1     Running            0          27h\r\nbr-0                            1/1     Running            0          27h\r\ntc-discovery-7444c69cf5-5g5nq   1/1     Running            0          27h\r\ntc-monitor-0                    3/3     Running            0          27h\r\ntc-pd-0                         1/1     Running            0          27h\r\ntc-tidb-0                       1/1     Running            0          27h\r\ntc-tidb-1                       1/1     Running            0          27h\r\ntc-tikv-0                       0/1     CrashLoopBackOff   16         27h\r\ntc-tikv-1                       1/1     Running            0          27h\r\ntc-tikv-2                       1/1     Running            0          27h\r\ntc-tikv-3                       0/1     CrashLoopBackOff   15         27h\r\n```\r\n![image](https://user-images.githubusercontent.com/9443637/144806506-65f6b7c5-d3b3-4e4d-b3e3-9bf9419bf293.png)\r\n\r\nLogs can be got using this testbed in loki and minio:\r\ntestbed-oltp-hm-kk9jg",
+  "state": "closed",
+  "created_at": "2021-12-06T07:42:19Z",
+  "updated_at": "2022-06-14T06:51:37Z",
+  "closed_at": "2022-05-12T02:46:42Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/automation",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 986516932,
+      "user": "mayjiang0203",
+      "created_at": "2021-12-06T07:45:53Z",
+      "body": "/assign @tier-cap\r\n/severity critical"
+    },
+    {
+      "id": 986554561,
+      "user": "Lily2025",
+      "created_at": "2021-12-06T08:40:44Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 996583078,
+      "user": "mayjiang0203",
+      "created_at": "2021-12-17T09:53:40Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1003361570,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-12-31T12:14:22Z",
+      "body": "Any update for this issue? @tier-cap "
+    },
+    {
+      "id": 1118175059,
+      "user": "Lily2025",
+      "created_at": "2022-05-05T05:01:49Z",
+      "body": "/label affects-5.1"
+    },
+    {
+      "id": 1118175092,
+      "user": "Lily2025",
+      "created_at": "2022-05-05T05:01:56Z",
+      "body": "/label affects-5.3"
+    },
+    {
+      "id": 1118175223,
+      "user": "Lily2025",
+      "created_at": "2022-05-05T05:02:19Z",
+      "body": "/label affects-5.4\r\n/label affects-6.0"
+    },
+    {
+      "id": 1124473805,
+      "user": "mayjiang0203",
+      "created_at": "2022-05-12T02:46:42Z",
+      "body": "fix in master,  has been verified in test plan endless-oltp-stability-sysbench-bulk-insert."
+    },
+    {
+      "id": 1154786407,
+      "user": "mayjiang0203",
+      "created_at": "2022-06-14T06:51:37Z",
+      "body": "Close by pr https://github.com/tikv/tikv/pull/12247, but there also has a small change occur oom when run sysbench bulk insert workload, will try to fix it in following two pr.\r\n https://github.com/tikv/tikv/pull/12363\r\nhttps://github.com/tikv/tikv/pull/12443\r\n"
+    }
+  ]
+}

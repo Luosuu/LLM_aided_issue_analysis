@@ -1,0 +1,45 @@
+{
+  "issue_number": 13095,
+  "title": "commit b558d0 causing 7%~14% performance degradation for sysbench oltp_update_index workload",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ncompare sysbench oltp_update_index workload with https://github.com/tikv/tikv/commit/b558d0bffc554c4c0094a483c65d95a50a4141cf\r\n and https://github.com/tikv/tikv/commit/126da29086da78bad3171975d4269ba283d133bd\r\n\r\n### What did you expect?\r\nno performance degradation\r\n\r\n### What did happened?\r\ncommit b558d0 cause 7% ~ 14% performance degradation.\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/180250567-14cc2748-69f0-4ba2-b3a2-9acda4c7ef75.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-07-21T15:17:58Z",
+  "updated_at": "2022-09-09T11:50:57Z",
+  "closed_at": "2022-09-09T11:50:57Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1191618930,
+      "user": "dbsid",
+      "created_at": "2022-07-21T15:19:01Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1192032651,
+      "user": "dbsid",
+      "created_at": "2022-07-21T23:43:15Z",
+      "body": "/assign tabokie"
+    },
+    {
+      "id": 1219637429,
+      "user": "tabokie",
+      "created_at": "2022-08-18T15:31:32Z",
+      "body": "It is caused by https://github.com/facebook/rocksdb/pull/8357, data from RocksDB 6.4 will trigger bottommost compactions in RocksDB 6.29. Will revert it later."
+    },
+    {
+      "id": 1221713969,
+      "user": "jebter",
+      "created_at": "2022-08-22T02:19:36Z",
+      "body": "can it be closed？"
+    },
+    {
+      "id": 1221735373,
+      "user": "tabokie",
+      "created_at": "2022-08-22T03:01:02Z",
+      "body": "It doesn't affect 6.2 anymore, I removed the tag."
+    }
+  ]
+}

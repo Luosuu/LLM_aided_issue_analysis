@@ -1,0 +1,58 @@
+{
+  "issue_number": 15386,
+  "title": "[Dynamic Regions] resolved ts blocked after region merge",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n[2023/08/15 03:03:02.893 +00:00] [INFO] [lib.rs:93] [\"Git Commit Hash:   09239a7ca87b592f01454686bad1a084bd067546\"]\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nexecute flashback during pitr\r\n### What did you expect?\r\npitr run normally ,flashback run normally\r\n### What did happened?\r\n```\r\n2023-08-15T06:41:35.501Z        FATAL   ./main.go:119   Br PiTR FLASHBACK DDL Comp failed       {\"error\": \"Error 1105: cannot set flashback\r\n timestamp after min-resolved-ts(2023-08-15 04:20:59.992 +0000 UTC)\", \"errorVerbose\": \"Error 1105: cannot set flashback timestamp after min\r\n-resolved-ts(2023-08-15 04:20:59.992 +0000 UTC)\\ngithub.com/pingcap/errors.AddStack\\n\\tgithub.com/pingcap/errors@v0.11.5-0.20211224045212-9\r\n687c2b0f87c/errors.go:174\\ngithub.com/pingcap/errors.Trace\\n\\tgithub.com/pingcap/errors@v0.11.5-0.20211224045212-9687c2b0f87c/juju_adaptor.\r\ngo:15\\ngithub.com/pingcap/test-infra/caselib/pkg/steps.(*executeSqlStatements).Execute\\n\\tgithub.com/pingcap/test-infra/caselib/pkg/steps/d\r\natabase.go:367\\ngithub.com/pingcap/test-infra/caselib/pkg/steps.(*Serial).Execute\\n\\tgithub.com/pingcap/test-infra/caselib/pkg/steps/step.g\r\no:31\\nmain.main\\n\\t./main.go:118\\nruntime.main\\n\\truntime/proc.go:250\\nruntime.goexit\\n\\truntime/asm_amd64.s:1594\"}\r\nmain.main\r\n```",
+  "state": "closed",
+  "created_at": "2023-08-22T05:08:16Z",
+  "updated_at": "2023-08-29T05:23:18Z",
+  "closed_at": "2023-08-29T05:23:18Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1687442002,
+      "user": "seiya-annie",
+      "created_at": "2023-08-22T05:14:20Z",
+      "body": "[tikv0.log.gz](https://github.com/tikv/tikv/files/12404992/tikv0.log.gz)\r\n"
+    },
+    {
+      "id": 1687442473,
+      "user": "seiya-annie",
+      "created_at": "2023-08-22T05:14:56Z",
+      "body": "[tikv1.log.gz](https://github.com/tikv/tikv/files/12405004/tikv1.log.gz)\r\n"
+    },
+    {
+      "id": 1687443377,
+      "user": "seiya-annie",
+      "created_at": "2023-08-22T05:15:55Z",
+      "body": "[tikv2.log.gz](https://github.com/tikv/tikv/files/12405007/tikv2.log.gz)\r\n"
+    },
+    {
+      "id": 1691700505,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-24T13:40:51Z",
+      "body": "It's likely dup with https://github.com/tikv/tikv/issues/15198"
+    },
+    {
+      "id": 1691702316,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-24T13:41:46Z",
+      "body": "@seiya-annie  Please use latest master to verify. The merge issue should be fixed. "
+    },
+    {
+      "id": 1696786182,
+      "user": "overvenus",
+      "created_at": "2023-08-29T05:23:18Z",
+      "body": "Duplicate of #15258"
+    }
+  ]
+}

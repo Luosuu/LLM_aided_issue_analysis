@@ -1,0 +1,18 @@
+{
+  "issue_number": 14699,
+  "title": "[Dynamic Regions] Response read without checking epoch",
+  "body": "## Bug Report\r\n\r\nRaftstore v2 responses read requests without checking epoch, it is possible to read out of range after region split.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n7.0.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nN/A\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nWe can do follower read and split region concurrently.\r\n\r\n### What did you expect?\r\n\r\nEvery read requests checks epoch before response.\r\n\r\n### What did happened?\r\n\r\nSkips checking epoch.\r\n",
+  "state": "closed",
+  "created_at": "2023-05-06T11:31:48Z",
+  "updated_at": "2023-07-05T21:51:45Z",
+  "closed_at": "2023-07-04T06:59:16Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2"
+  ],
+  "comments_data": []
+}

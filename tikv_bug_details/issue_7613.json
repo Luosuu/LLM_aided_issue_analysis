@@ -1,0 +1,32 @@
+{
+  "issue_number": 7613,
+  "title": "Undefined behavior in tidb_query_datatype's RowSlice",
+  "body": "## Bug Report\r\n\r\n`RowSlice` does an unsafe pointer cast that is often unaligned. This is undefined behavior, which could potentially lead to miscompilation.\r\n\r\nHere is the source: https://github.com/tikv/tikv/blob/7565efc9af7be6ef0f1adb6b51152c2c455a0f9c/components/tidb_query_datatype/src/codec/row/v2/row_slice.rs#L149\r\n\r\nThe fix isn't simple, so I'm just filing a bug cc @breeswish.\r\n\r\nPotential fixes are to accumulate the casted items into a new buffer instead of slicing the original buffer, but that costs an allocation. Another fix would be to change the serialization such that the cast always ends up aligned, while adding an assertion here that the alignment is correct.\r\n\r\nTested against commit adf3a9408c4ec20cb8b19676d79c9087c3e72b40\r\n\r\nFound with miri (cc @oli-obk 👍 ).\r\n",
+  "state": "closed",
+  "created_at": "2020-04-22T04:56:26Z",
+  "updated_at": "2020-05-02T07:21:51Z",
+  "closed_at": "2020-05-02T07:21:51Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 617550171,
+      "user": "breezewish",
+      "created_at": "2020-04-22T04:58:04Z",
+      "body": "Maybe we can drop the usage of slice at all. The slice is constructed to reuse the binary search method from std. We can write our own binary search using explicitly unaligned memory access."
+    },
+    {
+      "id": 617550198,
+      "user": "breezewish",
+      "created_at": "2020-04-22T04:58:11Z",
+      "body": "@zhongzc PTAL"
+    },
+    {
+      "id": 617558285,
+      "user": "zhongzc",
+      "created_at": "2020-04-22T05:25:18Z",
+      "body": "> Maybe we can drop the usage of slice at all. The slice is constructed to reuse the binary search method from std. We can write our own binary search using explicitly unaligned memory access.\r\n\r\nWriting our own binary search has to deal with the endian at every comparison. Or any other good idea?"
+    }
+  ]
+}

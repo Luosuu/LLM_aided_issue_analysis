@@ -1,0 +1,70 @@
+{
+  "issue_number": 16469,
+  "title": "pitr checkpoint ts lag reached more than 8h after inject network partition between one of tikv and pd leader",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   8.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   43d0e061159100092d89147480a94b51b6a158b4\r\nGit Commit Branch: heads/refs/tags/v8.0.0-alpha\r\nUTC Build Time:    2024-01-26 11:47:08\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、start pitr\r\n2、run workload\r\ngo-tpc tpcc run -D tpcc20000 --host tc-tidb.endless-ha-test-oltp-pitr-tps-6570032-1-702 -P4000 --warehouses 20000 -T 32 --ignore-error '2013,1213,1105,1205,8022,8028,9004,9007,1062' --user root --password '' --interval '10s'\r\n3、inject network partition between one of tikv and pd leader\r\n\r\n![image](https://github.com/tikv/tikv/assets/84712107/f9a5b8d4-6571-41fa-9eee-22d3df0a580d)\r\n\r\n\r\n### What did you expect?\r\npitr checkpoint ts lag less than 10mins after fault recover\r\n\r\n### What did happened?\r\npitr checkpoint ts lag reached more than 8h after inject network partition between one of tikv and pd leader\r\n![image](https://github.com/tikv/tikv/assets/84712107/c0850497-7d38-4e79-9b93-a28e6aa35906)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-01-31T03:40:43Z",
+  "updated_at": "2024-02-26T03:45:30Z",
+  "closed_at": "2024-02-26T03:45:30Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1918325708,
+      "user": "Lily2025",
+      "created_at": "2024-01-31T03:41:15Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1918326567,
+      "user": "Lily2025",
+      "created_at": "2024-01-31T03:42:23Z",
+      "body": "/assign BornChanger"
+    },
+    {
+      "id": 1918326592,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-01-31T03:42:26Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: BornChanger.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16469#issuecomment-1918326567):\n\n>/assign BornChanger\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1918331103,
+      "user": "BornChanger",
+      "created_at": "2024-01-31T03:48:28Z",
+      "body": "/component br"
+    },
+    {
+      "id": 1918331136,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-01-31T03:48:30Z",
+      "body": "@BornChanger: The label(s) `component/br` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16469#issuecomment-1918331103):\n\n>/component br\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1918331362,
+      "user": "BornChanger",
+      "created_at": "2024-01-31T03:48:47Z",
+      "body": "/component backup-restore"
+    },
+    {
+      "id": 1920587022,
+      "user": "Lily2025",
+      "created_at": "2024-02-01T06:15:44Z",
+      "body": "/assign YuJuncen"
+    },
+    {
+      "id": 1920880182,
+      "user": "YuJuncen",
+      "created_at": "2024-02-01T09:25:59Z",
+      "body": "This should be a mistake in https://github.com/tikv/tikv/pull/16008, which added a stale checking to every `Start` command. \r\n\r\nThe time line is:\r\n\r\n**Region R become leader** -> **`StartObserve(R)` sent** -> **Region epoch of R changed** -> **`StartObserve(R)` received but dropped**\r\n\r\nThen, the `RefreshObserver` will be dropped because there isn't any subscription record before.\r\n\r\nThe solution is to always add a phantom record in the subscription tracer if there isn't one while we are starting."
+    },
+    {
+      "id": 1920883722,
+      "user": "YuJuncen",
+      "created_at": "2024-02-01T09:27:58Z",
+      "body": "This will only affect `master` because #16008 haven't been brought to any release version. I think once we are going to pick that PR, we can (and we should) also pick this."
+    }
+  ]
+}

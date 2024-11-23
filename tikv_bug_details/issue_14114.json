@@ -1,0 +1,27 @@
+{
+  "issue_number": 14114,
+  "title": "[Dynamic Regions] TiKV OOM in tpcc 25K import data ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nIn 8C32Core M5.2xlarge, run tpcc 25K warehouse data prepare with 128 threads. \r\n### What did you expect?\r\nRun successfully without crash\r\n### What did happened?\r\nTiKV OOM. \r\n\r\n[134_heap_5.pdf](https://github.com/tikv/tikv/files/10551624/134_heap_5.pdf)\r\n[134_heap_4.pdf](https://github.com/tikv/tikv/files/10551625/134_heap_4.pdf)\r\n<img width=\"902\" alt=\"Screen Shot 2023-01-31 at 2 32 50 PM\" src=\"https://user-images.githubusercontent.com/9442422/215898897-b984a67f-2cfb-4058-953f-090b42a8a3cd.png\">\r\n<img width=\"901\" alt=\"Screen Shot 2023-01-31 at 2 33 12 PM\" src=\"https://user-images.githubusercontent.com/9442422/215898899-2f131842-1223-4812-aa09-483cb5478480.png\">\r\n\r\nGrafana: http://54.189.73.225:33762/d/RDVQiEzZz/tpcc-tikv-details?orgId=1&from=1675200847691&to=1675204064867&var-k8s_cluster=&var-tidb_cluster=&var-db=All&var-command=All&var-instance=172.31.15.134:20180&var-titan_db=All\r\n",
+  "state": "closed",
+  "created_at": "2023-01-31T22:34:47Z",
+  "updated_at": "2023-02-04T00:10:47Z",
+  "closed_at": "2023-02-04T00:10:47Z",
+  "labels": [
+    "type/bug",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1411458027,
+      "user": "tonyxuqqi",
+      "created_at": "2023-02-01T04:47:44Z",
+      "body": "Even when tablet gc is not blocked, tikv still OOMs. So it's likely not related to tablet gc. \r\n<img width=\"1784\" alt=\"Screen Shot 2023-01-31 at 8 45 46 PM\" src=\"https://user-images.githubusercontent.com/9442422/215953126-33302c9a-7ae4-4d6a-91d0-ae2cbd61fd23.png\">\r\n[134_61_heap.pdf](https://github.com/tikv/tikv/files/10553415/134_61_heap.pdf)\r\n\r\n"
+    },
+    {
+      "id": 1416547107,
+      "user": "tonyxuqqi",
+      "created_at": "2023-02-04T00:08:44Z",
+      "body": "With tablet flow control enabled, the issue is mitigated. \r\nThe root cause is that the memory flush cannot catch up the write speed and data are queued in memtable. So the memtable grows above the quota.  With flow control enabled, the pending L0 files will slow down the region's speed automatically and thus reduce the memtable's write volume. Now it can run tpcc 25K for 6hours with memory stable\r\n<img width=\"914\" alt=\"Screen Shot 2023-02-03 at 4 09 14 PM\" src=\"https://user-images.githubusercontent.com/9442422/216733411-418d776d-334f-49e5-9afc-9d3c5b8b7f99.png\">\r\n"
+    }
+  ]
+}

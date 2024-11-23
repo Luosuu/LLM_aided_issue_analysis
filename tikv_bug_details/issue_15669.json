@@ -1,0 +1,18 @@
+{
+  "issue_number": 15669,
+  "title": "[Dynamic Regions] Leader keeps sending GcPeerRequests to peers on tombstone store",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nAs title, instead, leader should remove such peers directly.\r\n\r\n### What version of TiKV are you using?\r\n\r\nv7.3.0\r\n\r\n### Steps to reproduce\r\n\r\n```rust\r\n#[test_case(test_raftstore_v2::new_server_cluster)]\r\nfn test_gc_peer_on_tombstone_store() {\r\n    let mut cluster = new_cluster(0, 3);\r\n    configure_for_merge(&mut cluster.cfg);\r\n    cluster.cfg.raft_store.gc_peer_check_interval = ReadableDuration::millis(500);\r\n    let pd_client = Arc::clone(&cluster.pd_client);\r\n    pd_client.disable_default_operator();\r\n    cluster.run();\r\n    cluster.must_put(b\"k1\", b\"v1\");\r\n\r\n    let region = cluster.get_region(b\"k1\");\r\n\r\n    let peer_on_store1 = find_peer(&region, 1).unwrap().clone();\r\n    let peer_on_store3 = find_peer(&region, 3).unwrap().clone();\r\n    cluster.must_transfer_leader(region.get_id(), peer_on_store1);\r\n    cluster.add_send_filter(IsolationFilterFactory::new(3));\r\n    pd_client.must_remove_peer(region.get_id(), peer_on_store3.clone());\r\n\r\n    // Immediately invalidate store address cache.\r\n    fail::cfg(\"mock_store_refresh_interval_secs\", \"return(0)\").unwrap();\r\n\r\n    // Shutdown store 3 and wait for gc peer ticks.\r\n    cluster.stop_node(3);\r\n    cluster.clear_send_filters();\r\n    sleep_ms(3 * cluster.cfg.raft_store.gc_peer_check_interval.as_millis());\r\n\r\n    cluster.must_empty_region_removed_records(region.get_id());\r\n}\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-09-22T08:48:03Z",
+  "updated_at": "2023-09-28T09:40:52Z",
+  "closed_at": "2023-09-28T09:40:52Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,39 @@
+{
+  "issue_number": 10367,
+  "title": "upgrade from v4.0.3 to v5.1.0 fail for tikv timeout,report critical config check failed: can't enable ttl on a non-ttl instance",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\nuse tiup to upgrade, init config has been passed, but report \"critical config check failed: can't enable ttl on a non-ttl instance\" during UpgradeCluster\r\n\r\n+ [ Serial ] - InitConfig: cluster=218, user=tidb, host=172.16.6.218, path=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache/alertmanager-9093.service, deploy_dir=/home/tidb/deploy/alertmanager-9093, data_dir=[/home/tidb/deploy/alertmanager-9093/data], log_dir=/home/tidb/deploy/alertmanager-9093/log, cache_dir=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache\r\n+ [ Serial ] - InitConfig: cluster=218, user=tidb, host=172.16.6.218, path=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache/pd-2379.service, deploy_dir=/home/tidb/deploy/pd-2379, data_dir=[/home/tidb/deploy/pd-2379/data], log_dir=/home/tidb/deploy/pd-2379/log, cache_dir=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache\r\n+ [ Serial ] - InitConfig: cluster=218, user=tidb, host=172.16.6.218, path=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache/prometheus-9090.service, deploy_dir=/home/tidb/deploy/prometheus-9090, data_dir=[/home/tidb/deploy/prometheus-9090/data], log_dir=/home/tidb/deploy/prometheus-9090/log, cache_dir=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache\r\n+ [ Serial ] - InitConfig: cluster=218, user=tidb, host=172.16.6.218, path=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache/tidb-4000.service, deploy_dir=/home/tidb/deploy/tidb-4000, data_dir=[], log_dir=/home/tidb/deploy/tidb-4000/log, cache_dir=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache\r\n+ [ Serial ] - InitConfig: cluster=218, user=tidb, host=172.16.6.218, path=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache/grafana-3000.service, deploy_dir=/home/tidb/deploy/grafana-3000, data_dir=[], log_dir=/home/tidb/deploy/grafana-3000/log, cache_dir=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache\r\n+ [ Serial ] - InitConfig: cluster=218, user=tidb, host=172.16.6.218, path=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache/tikv-20160.service, deploy_dir=/home/tidb/deploy/tikv-20160, data_dir=[/home/tidb/deploy/tikv-20160/data], log_dir=/home/tidb/deploy/tikv-20160/log, cache_dir=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache\r\n+ [ Serial ] - InitConfig: cluster=218, user=tidb, host=172.16.6.218, path=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache/tiflash-9000.service, deploy_dir=/home/tidb/deploy/tiflash-9000, data_dir=[/home/tidb/deploy/tiflash-9000/data], log_dir=/home/tidb/deploy/tiflash-9000/log, cache_dir=/home/tidb/.tiup/storage/cluster/clusters/218/config-cache\r\n+ [ Serial ] - UpgradeCluster\r\nUpgrading component tiflash\r\n\tRestarting instance 172.16.6.218\r\n\tRestart 172.16.6.218 success\r\nUpgrading component pd\r\n\tRestarting instance 172.16.6.218\r\n\tRestart 172.16.6.218 success\r\nUpgrading component tikv\r\n\tRestarting instance 172.16.6.218\r\n\r\nError: failed to restart: tikv 172.16.6.218:20160, please check the instance's log(/home/tidb/deploy/tikv-20160/log) for more detail.: timed out waiting for port 20160 to be started after 2m0s\r\n\r\nVerbose debug logs has been written to /home/tidb/.tiup/logs/tiup-cluster-debug-2021-06-16-11-38-17.log.\r\nError: run `/home/tidb/.tiup/components/cluster/v1.4.0/tiup-cluster` (wd:/home/tidb/.tiup/data/SaSuHva) failed: exit status 1\r\n[2021/06/16 11:50:09.328 +08:00] [WARN] [config.rs:2669] [\"deprecated configuration, rocksdb.auto_tuned is no longer used and ignored, please use rocksdb.rate_limiter_auto_tuned.\"]\r\n[2021/06/16 11:50:09.329 +08:00] [INFO] [config.rs:1953] [\"readpool.storage.use-unified-pool is not set, set to true by default\"]\r\n[2021/06/16 11:50:09.329 +08:00] [INFO] [config.rs:1976] [\"readpool.coprocessor.use-unified-pool is not set, set to true by default\"]\r\n[2021/06/16 11:50:09.345 +08:00] [WARN] [config.rs:2663] [\"deprecated configuration, raft_store.clean_stale_peer_delay is no longer used and ignored.\"]\r\n[2021/06/16 11:50:09.345 +08:00] [WARN] [config.rs:2669] [\"deprecated configuration, rocksdb.auto_tuned is no longer used and ignored, please use rocksdb.rate_limiter_auto_tuned.\"]\r\n[2021/06/16 11:50:09.346 +08:00] [FATAL] [setup.rs:282] [\"critical config check failed: can't enable ttl on a non-ttl instance\"]\r\n                                                                                                                                      \r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2021-06-16T03:53:59Z",
+  "updated_at": "2021-07-02T13:51:03Z",
+  "closed_at": "2021-07-02T13:51:03Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 862017412,
+      "user": "seiya-annie",
+      "created_at": "2021-06-16T03:54:30Z",
+      "body": "  tikv:\r\n    rocksdb.auto-tuned: false\r\n    rocksdb.raftcf.titan.level-merge: true\r\n    rocksdb.rate-bytes-per-sec: 0KiB\r\n    storage.enable-ttl: true\r\n  pd:"
+    },
+    {
+      "id": 862214731,
+      "user": "BusyJay",
+      "created_at": "2021-06-16T09:44:56Z",
+      "body": "@Connor1996 PTAL"
+    },
+    {
+      "id": 862303109,
+      "user": "Connor1996",
+      "created_at": "2021-06-16T11:32:17Z",
+      "body": "It's expected, you shouldn't set the `enable-ttl` field for an existing cluster @seiya-annie "
+    },
+    {
+      "id": 873014341,
+      "user": "BusyJay",
+      "created_at": "2021-07-02T13:51:03Z",
+      "body": "Close as it's expected, feel free to reopen if have any questions."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "issue_number": 15672,
+  "title": "[Dynamic Regions] resolved ts can't advance in big cluster scenario",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nRelease Version:   7.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   bbfedd409b5965c04b9edcb34f0a0907c75d6dd2\r\nGit Commit Branch: heads/refs/tags/v7.4.0-alpha\r\nUTC Build Time:    2023-09-22 11:51:22\r\nRust Version:      rustc 1.73.0-nightly (180dffba1 2023-08-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nThe cluster contains about 50 tikv with dynamic region enabled, each tikv contains 2.5TB data, a table contains about 6billion rows with each row size about 10kb. insert, large delete and select workload.\r\n![3e0abebe-ee21-4dee-acfc-c42fc423bfc0](https://github.com/tikv/tikv/assets/7677963/81d178db-8e2e-4eba-8699-b9fe38e85f25)\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-09-25T02:34:03Z",
+  "updated_at": "2023-09-27T07:34:48Z",
+  "closed_at": "2023-09-27T07:34:48Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1735106584,
+      "user": "overvenus",
+      "created_at": "2023-09-26T08:51:03Z",
+      "body": "Resolved ts is blocked by an orphan peer, which its peers are all merged by a target region. The target region does not register GcPeer tick after CommitMerge, so the orphan peer is left behind for a very long time.\r\n"
+    }
+  ]
+}

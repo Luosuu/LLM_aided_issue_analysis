@@ -1,0 +1,50 @@
+{
+  "issue_number": 6540,
+  "title": "When sync-log=false, fsync raftdb before kvdb persists data",
+  "body": "There are value in using sync-log=false when small data loss on edge case can be tolerate, and bare metal performance is desired. However, current a TiKV node may not be able to recovery from power off, if kvdb have newer data than raftdb. This can be fixed by fsync raftdb before every time kvdb persists it's data (e.g. flush memtable). This can be done in rocksdb `OnFlushBegin` callback.",
+  "state": "closed",
+  "created_at": "2020-02-06T20:30:47Z",
+  "updated_at": "2020-11-05T06:12:21Z",
+  "closed_at": "2020-11-05T06:12:21Z",
+  "labels": [
+    "type/bug",
+    "status/discussion",
+    "component/rocksdb",
+    "difficulty/medium",
+    "priority/low",
+    "sig/engine",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 583799826,
+      "user": "Rustin170506",
+      "created_at": "2020-02-09T03:09:01Z",
+      "body": "I am working on it."
+    },
+    {
+      "id": 583877558,
+      "user": "yiwu-arbug",
+      "created_at": "2020-02-09T18:32:47Z",
+      "body": "Thanks for offer to help. Do you mind joining tikv slack (tikv-wg.slack.com) and join the #engine-sig channel for discussion? Thanks."
+    },
+    {
+      "id": 586101243,
+      "user": "BusyJay",
+      "created_at": "2020-02-14T05:12:15Z",
+      "body": "I don't think this is going to solve the issue as expected. KV db persists data by writing to WAL, it doesn't matter whether memtable is flushed."
+    },
+    {
+      "id": 586447213,
+      "user": "yiwu-arbug",
+      "created_at": "2020-02-14T19:50:03Z",
+      "body": "@BusyJay great thanks for chime in. I don't know why I totally forget WAL. Looks like the fix is only useful after we remove kvdb WAL. Otherwise, together with the fix, a WAL filter can be implemented to avoid replaying those data newer than raft log. I would prefer we wait till kvdb WAL is removed to get this fix."
+    },
+    {
+      "id": 722165736,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-11-05T06:12:21Z",
+      "body": "https://github.com/tikv/tikv/pull/8631 has removed the sync-log parameter."
+    }
+  ]
+}

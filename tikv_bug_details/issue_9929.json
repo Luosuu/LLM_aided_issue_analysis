@@ -1,0 +1,36 @@
+{
+  "issue_number": 9929,
+  "title": "raft_client: drop connect when receive raft message with mismatch store id",
+  "body": "## Feature Request\r\n\r\n### Is your feature request related to a problem? Please describe:\r\n<!-- A description of what the problem is. -->\r\n\r\nCurrently, a connection in raft client will not be dropped unless the connection itself is broken, but if the connection is misconnect to a wrong store, tikv will keep sending raft message for store A to store B. Currently, in this case, store B will simply drop the message but it won't help the situation since the connection is health more mismatched store id message will send to store B.\r\n\r\n### Describe the feature you'd like:\r\n<!-- A description of what you want to happen. -->\r\n\r\nIn this case, store B should drop the connection and letting the sender resolve a correct address and establish a correct connection to store A.\r\n",
+  "state": "closed",
+  "created_at": "2021-03-30T12:31:13Z",
+  "updated_at": "2021-04-19T05:21:52Z",
+  "closed_at": "2021-04-19T05:21:52Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/raft",
+    "difficulty/medium",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 810183923,
+      "user": "NingLin-P",
+      "created_at": "2021-03-30T12:31:33Z",
+      "body": "/cc @BusyJay "
+    },
+    {
+      "id": 810185967,
+      "user": "BusyJay",
+      "created_at": "2021-03-30T12:33:44Z",
+      "body": "Indeed. This can be implemented by metadata validations."
+    },
+    {
+      "id": 814816036,
+      "user": "Yisaer",
+      "created_at": "2021-04-07T10:55:53Z",
+      "body": "/assign"
+    }
+  ]
+}

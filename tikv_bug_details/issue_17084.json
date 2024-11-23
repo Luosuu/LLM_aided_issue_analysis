@@ -1,0 +1,40 @@
+{
+  "issue_number": 17084,
+  "title": "(dr-autosync)merge region hang for 28min after replication mode change from sync_recover to sync",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ncluster topo:\r\n```\r\n12 tikv, 6 in primary dc and 6 backup\r\nprimary dc: zone1: tikv1-peer and tikv7-peer zone2: tikv2-peer and tikv8-peer, zone3: tikv3peer and tikv9-peer\r\nBackup dc: zone4: tikv4-peer/tikv10 zone5: tikv5/tikv11, zone7: tikv6/tikv12\r\nCluster data: 39G, 58 region\r\n```\r\n\r\n```\r\nstep 1. 2024/05/25 19:03:35 set max-store-down-time 5m\r\nstep 2. 2024/05/25 19:36:29 down tikv4/tikv5, make cluster switch to async mode\r\nstep 3. 2024/05/25 20:06:48 up tikv4/tikv5, yes cluster switch to sync_recovery mode\r\nstep 4. 2024/05/25 20:06:58 down tikv5\r\nstep 5. 2024/05/25 20:29:14 check down peer = 6\r\n```\r\n\r\n### What did you expect?\r\ndown peer should return to 0 at step 6.\r\n\r\n### What did happened?\r\nOne region hang at merge region for 28min， that's why it can't be added peer.\r\nCheck tikv (tikv8-peer) log, found the merge was skipped for the following reason.\r\n```\r\n[2024/05/25 20:30:59.605 +08:00] [WARN] [peer.rs:4519] [\"skip proposal\"] [error_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/peer.rs:4213]: log gap too large, skip merge: matched: 0, committed: 0, last index: 71, last_snapshot: 68\\\")\"] [peer_id=606] [region_id=163] [thread_id=83]\r\n```\r\n\r\nhere is the pd log:\r\n```\r\n[2024/05/25 20:06:54.688 +08:00] [INFO] [operator_controller.go:510] [\"add operator\"] [region-id=163] [operator=\"\\\"merge-region {merge: region 163 to 167} \r\n```\r\n",
+  "state": "open",
+  "created_at": "2024-05-31T01:27:07Z",
+  "updated_at": "2024-11-14T03:42:10Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2141082920,
+      "user": "mayjiang0203",
+      "created_at": "2024-05-31T01:28:13Z",
+      "body": "/assign @Connor1996 \r\n/severity major"
+    },
+    {
+      "id": 2471404164,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-11-12T19:35:17Z",
+      "body": "cc @BornChanger "
+    },
+    {
+      "id": 2475349949,
+      "user": "LykxSassinator",
+      "created_at": "2024-11-14T03:42:09Z",
+      "body": "The issue has not been reproduced recently. We need to collect more metrics and logs in details that could provide insights into the root causes."
+    }
+  ]
+}

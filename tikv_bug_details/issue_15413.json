@@ -1,0 +1,23 @@
+{
+  "issue_number": 15413,
+  "title": "No data in Thread Voluntary/Nonvoluntary Context Switches panel",
+  "body": "## Bug Report\r\n\r\n![image](https://github.com/tikv/tikv/assets/71589810/cf72a0a6-fe0b-4c23-8f08-4b79ac4890e4)\r\n",
+  "state": "closed",
+  "created_at": "2023-08-23T10:32:03Z",
+  "updated_at": "2023-08-23T12:26:06Z",
+  "closed_at": "2023-08-23T12:26:06Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1689720315,
+      "user": "SpadeA-Tang",
+      "created_at": "2023-08-23T10:36:04Z",
+      "body": "Add log at relevant places, it reports this\r\n\r\n[error=\"Custom { kind: InvalidInput, error: \\\"unable to parse whole input, remaining: Ok(\\\\\\\"SpeculationIndirectBranch:\\\\\\\\tconditional enabled\\\\\\\\nCpus_allowed:\\\\\\\\tffff\\\\\\\\nCpus_allowed_list:\\\\\\\\t0-15\\\\\\\\nMems_allowed:\\\\\\\\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\\\\\\\\nMems_allowed_list:\\\\\\\\t0\\\\\\\\nvoluntary_ctxt_switches:\\\\\\\\t595\\\\\\\\nnonvoluntary_ctxt_switches:\\\\\\\\t2\\\\\\\\n\\\\\\\")\\\" }\"]\r\n\r\nSo, a new item is added in status task file and procinfo package is not able to parse."
+    }
+  ]
+}

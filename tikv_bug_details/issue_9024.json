@@ -1,0 +1,45 @@
+{
+  "issue_number": 9024,
+  "title": "PD worker is blocked by `get_region_approximate_size`",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nPD worker is blocked by `get_region_approximate_size` for a long time if there are some huge regions. We have met a cluster with a few huge regions (around 50~60 GB), the cluster is not functioning normally to PD schedule (add peers/transfer leader) due to PD worker is blocked.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv4.0.7\r\n\r\nFlamegraph\r\n\r\nhttps://gist.github.com/overvenus/87185107dc291d397021706b013d5ad4",
+  "state": "closed",
+  "created_at": "2020-11-12T05:10:21Z",
+  "updated_at": "2020-12-08T14:40:21Z",
+  "closed_at": "2020-12-08T14:40:21Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 725944027,
+      "user": "Connor1996",
+      "created_at": "2020-11-12T09:05:15Z",
+      "body": "I have encountered it before. Maybe it's not blocked totally, but just costs too much time on every `GetTableProperty`? With this, you can see that there are a lot of pending tasks in pd worker from metrics."
+    },
+    {
+      "id": 725944313,
+      "user": "Little-Wallace",
+      "created_at": "2020-11-12T09:05:49Z",
+      "body": "OK. I will move it to another thread."
+    },
+    {
+      "id": 726696314,
+      "user": "hicqu",
+      "created_at": "2020-11-13T10:51:55Z",
+      "body": "Is it better to change the property block from `4k` to `512k`?"
+    },
+    {
+      "id": 727696901,
+      "user": "Connor1996",
+      "created_at": "2020-11-16T02:33:12Z",
+      "body": "> Is it better to change the property block from `4k` to `512k`?\r\n\r\nSeems the metadata blocks are not partitioned(not for sure), so it would not follow the block size. And I don't think it's the reason for this problem. I suspect it's due to some slow path from the kernel level."
+    },
+    {
+      "id": 740659386,
+      "user": "Little-Wallace",
+      "created_at": "2020-12-08T14:40:21Z",
+      "body": "This problem has been solved by #9081 "
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "issue_number": 1325,
+  "title": "server: drop message when socket is still connecting ",
+  "body": "When we want to send message to the remote store, the flow is:\r\n\r\n1. Resolve the store address in another thread \r\n2. After resolving, connect the remote the store\r\n3. Append the message to the send buffer and register Writable in epoll. \r\n4. Send data when the socket is writable\r\n5. Remove the connection when error\r\n\r\nWe drop the message in stage 1, but we should also drop it in stage 2. \r\nThe socket is asynchronous, when we call `connect`, we can get the socket quickly but the socket is still connecting and we can't send data until the socket become connected. \r\n\r\nIf the connect timeout is 3s, if we send data to a down store, we can get the socket directly, but after 3s later, we can know that we can't connect the remote store. During this time, we may append lots of message and let the send buffer increase hugely.",
+  "state": "closed",
+  "created_at": "2016-11-21T01:21:44Z",
+  "updated_at": "2018-08-07T00:46:19Z",
+  "closed_at": "2017-06-30T08:54:41Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 261837850,
+      "user": "BusyJay",
+      "created_at": "2016-11-21T04:06:51Z",
+      "body": "I don't think it's a good idea to detect stage 2.\r\n\r\nFirst, there is no good way to detect if the connection is being built. Second it doesn't solve the problem entirely. A slow connection or a lost connection can also make the send buffer huge."
+    },
+    {
+      "id": 263552958,
+      "user": "siddontang",
+      "created_at": "2016-11-29T12:03:06Z",
+      "body": "Maybe we will use MaxSendBufferSize to check later. "
+    }
+  ]
+}

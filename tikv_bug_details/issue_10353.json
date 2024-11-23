@@ -1,0 +1,45 @@
+{
+  "issue_number": 10353,
+  "title": "response from raftstore is not deterministic",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv4.0.11, but every version after v3.0.0 is affected.\r\n\r\n### What operating system and CPU are you using?\r\nDoesn't matter.\r\n\r\n### Steps to reproduce\r\nProduce highly conflict requests and slow down the shutdown process\r\n\r\n### What did you expect?\r\nIt shutdown successfully, and ACID is still hold.\r\n\r\n### What did happened?\r\nTransaction is corrupted by either missing data from default CF or some part of transaction are rollback.\r\n\r\nWhen a node is shutdown without evicting leader, then leader can't know whether a log is committed or not, so to clear callback, it will respond with a stale response to hint the client to retry. StaleCommand error doesn't mean the request will fail eventually or not, it just mean the leader can't handle the request at the moment.\r\n\r\nBut latch assumes all responses from raftstore are deterministic that if an error is returned, then the write should never be written unless retry. Hence during shutdown, if there are more than two requests in latch queue, then the first two requests will be processed one by one. If the first request is to commit a transaction and the second is to rollback, then the key can be both committed and rollback. If data is large enough to be stored in default cf, error like `DefaultNotFound` will be reported; in all conditions, ACID is broken.\r\n\r\n`StaleCommand` can also be called when a peer is about to be destroyed. But we don't allow to remove leader eagerly, so when the error is reported, the leader should either be removed by leader at last term and it won't process any read before being destroy. If the leader is paused, and then being destroyed by a new leader, all following commands won't be committed as it's not leader anymore.\r\n\r\nSo to fix the problem, we can either make raftstore's response deterministic or make latch to handle undeterministic error.\r\n\r\nFor the former, an easy fix is to stop invoking any callbacks during shutdown, this can have the side effects raw kv may not know the requests are stopped, instead, it may timeout before next try.\r\n\r\nFor the latter, latch should not release slot when an undeterministic error is returned. I think it is also necessary after implementing timeout inside raftstore.\r\n\r\nThere is a similar discussion in #9113, which is discussing deterministic of transaction.",
+  "state": "closed",
+  "created_at": "2021-06-11T14:18:18Z",
+  "updated_at": "2021-06-18T08:14:38Z",
+  "closed_at": "2021-06-18T08:14:38Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 859616851,
+      "user": "BusyJay",
+      "created_at": "2021-06-11T14:21:30Z",
+      "body": "For existing versions, the get around is always waiting for evicting leaders before restarting a node or use kill -9 to stop tikv service."
+    },
+    {
+      "id": 859631729,
+      "user": "siddontang",
+      "created_at": "2021-06-11T14:43:38Z",
+      "body": "oh, I am so surprised that how do we find this bug..."
+    },
+    {
+      "id": 861593984,
+      "user": "BusyJay",
+      "created_at": "2021-06-15T15:23:31Z",
+      "body": "@lucklove Is it possible to change tiup to turn off TiKV by `kill -9` when transfer leader is not finished?"
+    },
+    {
+      "id": 863727696,
+      "user": "NingLin-P",
+      "created_at": "2021-06-18T03:28:37Z",
+      "body": "A more easy fix would be to ensure the server layer and txn layer (namely the grpc service and `TxnScheduler` thread group) stopped before `raftstore`, so that invoking the callback when `raftstore` shutdown will become a no-op, it is also more elegant to stop from the outer layer to inner layer."
+    },
+    {
+      "id": 863735661,
+      "user": "BusyJay",
+      "created_at": "2021-06-18T03:55:20Z",
+      "body": "Deterministic is the fundamental problem of raftstore's callback handling. Even it's fixed for txn, it can still cause problem for any future design. Correctness should not rely on the shutdown order."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "issue_number": 14093,
+  "title": "When azblob is used, retry for http code 500 error",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.0\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. use the azblob as external storage to backup\r\n### What did you expect?\r\nsuccess to finish\r\n### What did happened?\r\nfailed to backup\r\n\r\n```\r\n[2023/01/27 00:34:01.761 +00:00] [ERROR] [endpoint.rs:239] [\"backup save file failed\"] [err_code=KV:Unknown] [err=\"Io(Custom { kind: InvalidInput, error: \\\"upload block failed: HTTP error status (status: 500, body: \\\\\\\"\r\n...\r\n<?xml version=\\\\\\\\\\\\\\\"1.0\\\\\\\\\\\\\\\" encoding=\\\\\\\\\\\\\\\"utf-8\\\\\\\\\\\\\\\"?><Error><Code>OperationTimedOut</Code><Message>Operation could not be completed within the specified time.\\\\\\\\nRequestId:...\\\\\\\\nTime:2023-01-27T00:34:01.7621045Z</Message></Error>\\\\\\\")\\\" })\"]\r\n```",
+  "state": "closed",
+  "created_at": "2023-01-29T10:49:25Z",
+  "updated_at": "2023-02-03T11:17:58Z",
+  "closed_at": "2023-02-03T11:17:58Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/minor",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

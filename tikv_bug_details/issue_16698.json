@@ -1,0 +1,52 @@
+{
+  "issue_number": 16698,
+  "title": "TiKV min resolved ts lag up to 30s during tikv rolling restart, resulting in cdc lag increase",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n8.0.0-alpha, 1c7b34419feaf8901046df335d4da55ad3ca9b5d\r\n\r\n### What operating system and CPU are you using?\r\nX86, K8S\r\n\r\n### Steps to reproduce\r\n1. TiDB cluster with titan on,  cluster with 30 TiKV nodes, cluster size: 70TB, througtput ~40MB/s\r\n2. 3 CDC changefeed running to sync 4000 tables.\r\n3. Rolling restart TiKV\r\n\r\n### What did you expect?\r\nCDC lag should be < 10s\r\n\r\n### What did happened?\r\nTiKV min resolved ts lag up to 30s during tikv rolling restart, resulting in cdc lag increase to ~30s as well.\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/b94ca873-f90d-4c22-ba90-ecca0fe94ee4)\r\n![image](https://github.com/tikv/tikv/assets/7403864/4108bc29-3a1f-43c9-914d-88d1e542bec6)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-03-26T08:02:36Z",
+  "updated_at": "2024-08-06T09:20:07Z",
+  "closed_at": "2024-08-06T09:20:07Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.0",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2019766870,
+      "user": "fubinzh",
+      "created_at": "2024-03-26T08:05:36Z",
+      "body": "cluster tikv configuration:\r\n```\r\n       [cdc]\r\n        min-ts-interval = \"100ms\"\r\n\r\n      [coprocessor]\r\n        region-max-keys = 6400000\r\n        region-max-size = \"640MiB\"\r\n        region-split-keys = 5120000\r\n        region-split-size = \"512MiB\"\r\n\r\n      [gc]\r\n        enable-compaction-filter = false\r\n\r\n      [import]\r\n        num-threads = 18\r\n\r\n      [quota]\r\n        foreground-write-bandwidth = \"40MB\"\r\n        max-delay-duration = \"1s\"\r\n\r\n      [raft-engine]\r\n        dir = \"/var/lib/raft/raft-engine\"\r\n        enable = true\r\n\r\n      [raftdb]\r\n        max-open-files = 10240\r\n        wal-dir = \"/var/lib/wal/raftdb\"\r\n\r\n      [raftstore]\r\n        max-leader-missing-duration = \"20m\"\r\n        raftdb-path = \"/var/lib/raft/raftdb\"\r\n        region-compact-tombstones-percent = 10\r\n        store-io-pool-size = 2\r\n\r\n      [readpool]\r\n        [readpool.unified]\r\n          max-tasks-per-worker = 20000\r\n          max-thread-count = 80\r\n\r\n      [resolved-ts]\r\n        advance-ts-interval = \"1s\"\r\n\r\n      [rocksdb]\r\n        max-open-files = 10240\r\n        wal-dir = \"/var/lib/wal/rocksdb\"\r\n        [rocksdb.defaultcf]\r\n          level0-stop-writes-trigger = 50\r\n          [rocksdb.defaultcf.titan]\r\n            blob-cache-size = \"24GB\"\r\n            discardable-ratio = 0.4\r\n            min-blob-size = \"4KB\"\r\n        [rocksdb.titan]\r\n          enabled = true\r\n[server]\r\n        grpc-concurrent-stream = 65535\r\n\r\n      [storage]\r\n        reserve-space = \"300GB\"\r\n        scheduler-worker-pool-size = 16\r\n        [storage.block-cache]\r\n          capacity = \"12GB\"\r\n          num-shard-bits = 4\r\n        [storage.flow-control]\r\n          l0-files-threshold = 45\r\n        [storage.io-rate-limit]\r\n          max-bytes-per-sec = \"700MB\"\r\n\r\n```"
+    },
+    {
+      "id": 2075336194,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-24T16:14:58Z",
+      "body": "From the \"scan task\" metrics, I think the lag has something to do with CDC's incremental scan after leaders transfer to other TiKV nodes."
+    },
+    {
+      "id": 2111649078,
+      "user": "cfzjywxk",
+      "created_at": "2024-05-15T06:03:11Z",
+      "body": "One of the reason causing the resolved-ts lag is the regression [issue](https://github.com/pingcap/tidb/issues/53222) in kv-client."
+    },
+    {
+      "id": 2154156552,
+      "user": "MyonKeminta",
+      "created_at": "2024-06-07T06:16:39Z",
+      "body": "The issue may be caused by the three problems:\r\n\r\n* https://github.com/pingcap/tidb/issues/53222 : A regression introduced by https://github.com/tikv/client-go/pull/1098 . A fix is given in https://github.com/tikv/client-go/pull/1339 , but it only works when `MaxConcurrencyRequestLimit` is not enabled.\r\n* When a TiKV node is gracefully shutdown after evicting leader, there can still be some regions not updated in the region cache, and when the TiDB tries to send request to the region, it might still try to send to the offline TiKV first, and then takes some time to realize that the connection cannot be established.\r\n* During restarting, the duration of check_leader (performed in resolved-ts module) can take a long time (as long as the configured timeout) trying to access the stopped TiKV node. This PR (https://github.com/tikv/tikv/pull/16943) is an optimization  that uses the `advance-ts-interval` configuration to limit the timeout, but it didin't cover all entrances of  check_leader (CDC and log-backup). In the test, CDC is used and `advance-ts-interval` is set to 1s, but when check_leader is called in CDC, it still uses the default timeout which is 5s. After a patch that passes `advance-ts-interval` to CDC module and uses it as the timeout of check_leader, the lagging mentioned in this issue is significantly reduced. This problem is recorded in issue: https://github.com/tikv/tikv/issues/17107"
+    },
+    {
+      "id": 2270783033,
+      "user": "fubinzh",
+      "created_at": "2024-08-06T09:11:14Z",
+      "body": "Verified this issue with v8.2.0 clustser, CDC lag is below 10s during TiKV rolling restart.\r\n\r\nCluster Details:\r\n- Cluster size: 24TB+\r\n- TiKV 16c64g * 12, total regions: 100k\r\n![image](https://github.com/user-attachments/assets/f315c2a5-3ffd-435c-bf8c-9f4413f224f8)\r\n\r\n- Cluster with 5 schemas and 5.2K+ tables, table details as below.\r\n![image](https://github.com/user-attachments/assets/286f52db-e8b1-427d-ba82-b0928e958163)\r\n- There are 14 changfeeds (kafka simple protocol) created for the 5.2k tables.\r\n    - for the 5k, 100k, 500k, 2m schemas, each schema is synced by one changefeed. i.e. 4 changefeed in total, each replicating 1000, 250, 10 2 tables respectively.\r\n    - for  the 1k schemas ( 4000 tables), 10 changefeed created, and each changefeed replicating 400 tables.\r\n- Workload: throughtput ranges from ~40MB/s to ~80MB/s for different testings.\r\n![image](https://github.com/user-attachments/assets/5e5b200a-069c-4ecd-87a6-a8f9fa69a95e)\r\n\r\n\r\n![image](https://github.com/user-attachments/assets/4bbc99e4-40cd-4f89-9a08-f6f0c4d324ba)\r\n![image](https://github.com/user-attachments/assets/58c048d5-6008-47b8-98ac-342350baf604)\r\n\r\n![image](https://github.com/user-attachments/assets/9e929852-3933-4eb8-82d8-49e842be8bfb)\r\n![image](https://github.com/user-attachments/assets/7873c355-4ee9-419c-bee8-3d29d138987d)\r\n\r\n\r\n```\r\n[root@upstream-ticdc-0 /]# /cdc version\r\nRelease Version: v8.2.0\r\nGit Commit Hash: 498e3d3fd1cda4817e70ea50d27dcb157956349d\r\nGit Branch: HEAD\r\nUTC Build Time: 2024-07-03 02:52:36\r\nGo Version: go version go1.21.10 linux/amd64\r\nFailpoint Build: false\r\n\r\n[root@upstream-tikv-0 /]# /tikv-server -V\r\nTiKV \r\nRelease Version:   8.2.0\r\nEdition:           Community\r\nGit Commit Hash:   6e50b27980d7d2795c2d662c7a11d03d81d4b64d\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2024-07-09 08:09:03\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n```\r\n\r\n"
+    }
+  ]
+}

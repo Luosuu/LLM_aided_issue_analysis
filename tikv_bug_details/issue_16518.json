@@ -1,0 +1,18 @@
+{
+  "issue_number": 16518,
+  "title": "disk_snapshot_backup: The lag between taking snapshot will slow down the restoration",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.5, but this problem applies to master.\r\n\r\n### What operating system and CPU are you using?\r\nN/A\r\n\r\n### Steps to reproduce\r\nBackup with EBS snapshot, but delay taking snapshot of some regions about 30 secs ~ 1 min.\r\nThen restore the backup.\r\n\r\n### What did you expect?\r\nThere shouldn't be some regression for restoring.\r\n\r\n### What did happened?\r\nThe restoration is significantly slow down.\r\n",
+  "state": "closed",
+  "created_at": "2024-02-09T01:32:12Z",
+  "updated_at": "2024-02-20T02:41:04Z",
+  "closed_at": "2024-02-09T19:20:47Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

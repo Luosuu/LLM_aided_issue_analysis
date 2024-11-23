@@ -1,0 +1,54 @@
+{
+  "issue_number": 15480,
+  "title": "[Dynamic Regions] raftstore v2: TiKV has inconsistent index",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nIgnore index\r\n```\r\nmysql> select /*+ read_from_storage(tikv[db12.other_handle7]) ignore_index(db12.other_handle7,PRIMARY) */ count(*) from db12.other_handle7 as of timestamp '2023/08/28 04:15:21';\r\n+----------+\r\n| count(*) |\r\n+----------+\r\n| 12100000 |\r\n+----------+\r\n1 row in set (0.57 sec)\r\n```\r\n\r\nUsing index, the result fluctuates, not equal to table scan\r\n```\r\nmysql> select /*+ read_from_storage(tikv[db12.other_handle7]) use_index(db12.other_handle7,PRIMARY) */ count(*) from db12.other_handle7 as of timestamp '2023/08/28 04:15:21';\r\n+----------+\r\n| count(*) |\r\n+----------+\r\n| 12099999 |\r\n+----------+\r\n1 row in set (0.78 sec)\r\nmysql> select /*+ read_from_storage(tikv[db12.other_handle7]) use_index(db12.other_handle7,PRIMARY) */ count(*) from db12.other_handle7 as of timestamp '2023/08/28 04:15:21';\r\n+----------+\r\n| count(*) |\r\n+----------+\r\n| 11870175 |\r\n+----------+\r\n1 row in set (0.83 sec)\r\nmysql> select /*+ read_from_storage(tikv[db12.other_handle7]) use_index(db12.other_handle7,PRIMARY) */ count(*) from db12.other_handle7 as of timestamp '2023/08/28 04:15:21';\r\n+----------+\r\n| count(*) |\r\n+----------+\r\n| 11805905 |\r\n+----------+\r\n1 row in set (0.76 sec)\r\n```\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nconsistent index and table scan\r\n### What did happened?\r\ninconsistent index and table scan",
+  "state": "closed",
+  "created_at": "2023-08-30T08:22:06Z",
+  "updated_at": "2024-04-23T02:34:58Z",
+  "closed_at": "2024-04-23T02:34:58Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.4",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1700277971,
+      "user": "overvenus",
+      "created_at": "2023-08-31T02:22:02Z",
+      "body": "`AS OF TIMESTAMP clause` enables stale read and you may retrieve \"stale\" data, leading to potential inconsistencies in the results.\r\n\r\nSee https://docs.pingcap.com/tidb/stable/stale-read"
+    },
+    {
+      "id": 1704796544,
+      "user": "CalvinNeo",
+      "created_at": "2023-09-04T08:01:11Z",
+      "body": "> `AS OF TIMESTAMP clause` enables stale read and you may retrieve \"stale\" data, leading to potential inconsistencies in the results.\r\n> \r\n> See https://docs.pingcap.com/tidb/stable/stale-read\r\n\r\nThe document says\r\n\r\n> Specifying an exact point in time (recommended): If you need TiDB to read data that is globally consistent from a specific point in time without violating the isolation level, you can specify the corresponding timestamp of that point in time in the query statement.\r\n\r\nSo, IMO stale read by `AS OF TIMESTAMP clause` won't do harm to consistency issue.\r\n\r\nMeanwhile, the system is not even eventual consistent, since the result from index is not consistent after a long time the wordload ends."
+    },
+    {
+      "id": 1734592142,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-25T23:18:48Z",
+      "body": "What are the steps for repro @CalvinNeo  Is TiFlash involved?"
+    },
+    {
+      "id": 1751736104,
+      "user": "CalvinNeo",
+      "created_at": "2023-10-07T15:15:41Z",
+      "body": "> What are the steps for repro @CalvinNeo Is TiFlash involved?\r\n\r\nThis problem can be reproduced by a certain consistency test of TiFlash. We force the consistency test to read from tikv without index in order to make it run further.\r\n\r\nI think it is some problem relate to index.  "
+    },
+    {
+      "id": 2071299617,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-23T02:34:58Z",
+      "body": "Close this issue temporarily since Dynamic Regions project is paused."
+    }
+  ]
+}

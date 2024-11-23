@@ -1,0 +1,14 @@
+{
+  "issue_number": 4392,
+  "title": "tikv-server doesn't do data-dir check on startup if using the default data-dir value",
+  "body": "## Bug Report\r\n\r\n**What operating system and CPU are you using?**\r\n\r\nLinux\r\n\r\n**What did you do?**\r\n\r\nCreated a new tikv.toml, only setting pd.endpoints, leaving storage.data-dir to be defaulted.\r\n\r\n`cargo run --release --bin tikv-server -- --config=tikv.toml`\r\n\r\n**What did you expect to see?**\r\n\r\nIn the logs:\r\n\r\n```\r\n[INFO] [config.rs:886] [\"check data dir\"] [mount_fs=\"FsInfo { tp: \\\"ext4\\\", opts: \\\"rw,relatime,discard,data=ordered\\\", mnt_dir: \\\"/\\\", fsname: \\\"/de\r\nv/xvda1\\\" }\"] [data_path=./]\r\n```\r\n\r\n**What did you see instead?**\r\n\r\n```\r\n[WARN] [tikv-server.rs:89] [\"rocksdb check data dir\"] [err=\"config fs: data-dir.check: path: \\\"\\\" canonicalize failed: Os { code: 2, kind: NotFound,\r\nmessage: \\\"No such file or directory\\\" }\"]\r\n```\r\n\r\n---\r\n\r\nThis happens because the startup code is passing \"\" to config::check_data_dir.",
+  "state": "closed",
+  "created_at": "2019-03-18T03:12:24Z",
+  "updated_at": "2019-03-27T02:22:40Z",
+  "closed_at": "2019-03-27T02:22:40Z",
+  "labels": [
+    "type/bug",
+    "component/server"
+  ],
+  "comments_data": []
+}

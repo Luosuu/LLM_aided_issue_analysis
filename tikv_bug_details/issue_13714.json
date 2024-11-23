@@ -1,0 +1,28 @@
+{
+  "issue_number": 13714,
+  "title": "PITR lag increase during br restore",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. Run workload\r\n2. Start PITR log backup task\r\n3. Do a BR restore\r\n4. Check checkpoint lag\r\n\r\n### What did you expect?\r\n1. PITR lag should not be impacted during br restore.\r\n\r\n### What did happened?\r\n1. PITR lag increases during br restore.\r\n![f279941f-bc1d-4d72-89a3-cfd3a5f3ead5](https://user-images.githubusercontent.com/7403864/199378015-fb76b4a3-877c-4db5-b8ef-562ab6d74a52.jpeg)\r\n",
+  "state": "open",
+  "created_at": "2022-11-02T02:06:45Z",
+  "updated_at": "2024-01-30T00:13:42Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1299460545,
+      "user": "fubinzh",
+      "created_at": "2022-11-02T02:07:10Z",
+      "body": "/severity Moderate"
+    },
+    {
+      "id": 1299460645,
+      "user": "fubinzh",
+      "created_at": "2022-11-02T02:07:18Z",
+      "body": "/type bug"
+    }
+  ]
+}

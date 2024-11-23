@@ -1,0 +1,47 @@
+{
+  "issue_number": 14487,
+  "title": "[Dynamic Regions] raft-engine with v2 is slower than baseline due to append flow on GCP pd-ssd disk",
+  "body": "## Feature Request\r\n\r\n### Is your feature request related to a problem? Please describe:\r\n<!-- A description of what the problem is. -->\r\nAppend flow impact the write duration\r\n\r\n### Describe the feature you'd like:\r\n<!-- A description of what you want to happen. -->\r\nWe need to enhance raft-engine, to eliminate or at least mitigate the performance penalty from the append flow.\r\nRaft-engine should use an alternative approach to handle redo logs by requesting N static log files of M GB each to be continuously reused in a circular fashion. The completion of applying a log to a certain file can be safely identified and overwritten by indexing.\r\n\r\n### Describe alternatives you've considered:\r\n<!-- A description of any alternative solutions or features you've considered. -->\r\nno workaround \r\n\r\n### Teachability, Documentation, Adoption, Migration Strategy:\r\n<!-- If you can, explain some scenarios how users might use this, or situations in which it would be helpful. Any API designs, mockups, or diagrams are also helpful. -->\r\n\r\n![pE9iW3ieYA](https://user-images.githubusercontent.com/2316425/228696148-3d43693c-64bb-423a-beea-0e39e47b9e36.jpg)\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/228696092-4114106d-f1b1-4081-9310-04105ceec09a.png)\r\n\r\n\r\nTiKV Config on GCP\r\n```\r\n      tikv:\r\n        nodeSelector:\r\n          node.kubernetes.io/instance-type: n2-standard-32\r\n        storageClassName: premium-rwo\r\n        requests:\r\n          storage: 4096Gi\r\n          cpu: 31000m\r\n          # memory: 116Gi\r\n        limits:\r\n          cpu: 32000m\r\n          memory: 64Gi\r\n        replicas: 3\r\n        baseImage: us-west1-docker.pkg.dev/qa-infra-dev/qa/tikv\r\n        storageVolumes:\r\n          - name: log\r\n            storageClassName: local-path\r\n            storageSize: 10Gi\r\n            mountPath: /var/lib/tikv/log\r\n          - name: raft-pv-ssd\r\n            storageClassName: premium-rwo\r\n            storageSize: 500Gi\r\n            mountPath: /var/lib/raft-pv-ssd\r\n        topologySpreadConstraints:\r\n          - topologyKey: topology.kubernetes.io/zone\r\n        config: |\r\n          # FIXME\r\n          # Baseline\r\n          # [cdc]\r\n          #   min-ts-interval = \"2s\"\r\n          # [coprocessor]\r\n          #   region-split-size = \"256MB\"\r\n          # [raft-engine]\r\n          #   dir = \"/var/lib/raft-pv-ssd/raft-engine\"\r\n          #   enable = true\r\n          #   enable-log-recycle = true\r\n          #   purge-threshold = \"10GB\"\r\n          # [raftstore]\r\n          #   pd-heartbeat-tick-interval = \"180s\"\r\n          #   raft-max-inflight-msgs = 1024\r\n          #   store-io-pool-size = 1\r\n          #   store-pool-size = 3\r\n          # [resolved-ts]\r\n          #   advance-ts-interval = \"10s\"\r\n          # [rocksdb]\r\n          #   max-background-jobs = 12\r\n          # [rocksdb.defaultcf]\r\n          #   compression-per-level = [\"zstd\", \"zstd\", \"zstd\", \"zstd\", \"zstd\", \"zstd\", \"zstd\"]\r\n          # [server]\r\n          #   grpc-concurrency = 8\r\n          # V2\r\n          [raft-engine]\r\n            dir = \"/var/lib/raft-pv-ssd/raft-engine\"\r\n            purge-threshold = \"200GB\"\r\n            prefill-for-recycle = true\r\n            enable-log-recycle = true\r\n          [raftstore]\r\n            store-io-pool-size = 4\r\n          [rocksdb]\r\n            write-buffer-limit = \"8GiB\"\r\n            [rocksdb.defaultcf]\r\n              compression-per-level = [\"lz4\", \"lz4\", \"lz4\", \"lz4\", \"lz4\", \"zstd\", \"zstd\"]\r\n            [rocksdb.writecf]\r\n              compression-per-level = [\"lz4\", \"lz4\", \"lz4\", \"lz4\", \"lz4\", \"zstd\", \"zstd\"]\r\n          [server]\r\n            snap-io-max-bytes-per-sec = \"50MiB\"\r\n          [storage]\r\n            engine = \"partitioned-raft-kv\"\r\n            reserve-space = \"0MB\"\r\n```",
+  "state": "closed",
+  "created_at": "2023-03-30T00:15:59Z",
+  "updated_at": "2023-06-29T22:03:20Z",
+  "closed_at": "2023-06-29T22:03:20Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1489511845,
+      "user": "dbsid",
+      "created_at": "2023-03-30T00:17:53Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1489606846,
+      "user": "dbsid",
+      "created_at": "2023-03-30T02:49:25Z",
+      "body": "ON GCP pd-ssd 500GB, the IOPS limit is 50 K/s. \r\n\r\n```\r\nwrite_iops: (g=0): rw=randwrite, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=64\r\nfio-3.27\r\nStarting 1 process\r\nwrite_iops: Laying out IO file (1 file / 10240MiB)\r\n\r\nwrite_iops: (groupid=0, jobs=1): err= 0: pid=516: Wed Mar 29 03:35:17 2023\r\n  write: IOPS=50.3k, BW=197MiB/s (206MB/s)(11.5GiB/60001msec); 0 zone resets\r\n    slat (usec): min=2, max=13477, avg=16.76, stdev=16.59\r\n    clat (usec): min=387, max=23794, avg=1253.67, stdev=376.72\r\n     lat (usec): min=398, max=23806, avg=1270.54, stdev=379.98\r\n    clat percentiles (usec):\r\n     |  1.00th=[  717],  5.00th=[  848], 10.00th=[  938], 20.00th=[ 1045],\r\n     | 30.00th=[ 1123], 40.00th=[ 1172], 50.00th=[ 1237], 60.00th=[ 1287],\r\n     | 70.00th=[ 1352], 80.00th=[ 1418], 90.00th=[ 1532], 95.00th=[ 1663],\r\n     | 99.00th=[ 2212], 99.50th=[ 2638], 99.90th=[ 4621], 99.95th=[ 5932],\r\n     | 99.99th=[14877]\r\n   bw (  KiB/s): min=160697, max=256929, per=100.00%, avg=201545.38, stdev=23677.66, samples=120\r\n   iops        : min=40174, max=64232, avg=50386.19, stdev=5919.43, samples=120\r\n  lat (usec)   : 500=0.01%, 750=1.67%, 1000=13.77%\r\n  lat (msec)   : 2=83.01%, 4=1.39%, 10=0.14%, 20=0.02%, 50=0.01%\r\n  cpu          : usr=7.96%, sys=83.88%, ctx=57782, majf=0, minf=58\r\n  IO depths    : 1=0.0%, 2=0.0%, 4=0.0%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=100.0%\r\n     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%\r\n     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.1%, >=64=0.0%\r\n     issued rwts: total=0,3020986,0,0 short=0,0,0,0 dropped=0,0,0,0\r\n     latency   : target=0, window=0, percentile=100.00%, depth=64\r\n\r\nRun status group 0 (all jobs):\r\n  WRITE: bw=197MiB/s (206MB/s), 197MiB/s-197MiB/s (206MB/s-206MB/s), io=11.5GiB (12.4GB), run=60001-60001msec\r\n```"
+    },
+    {
+      "id": 1496729835,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-04T23:44:37Z",
+      "body": "Once the memtable change is done, let's see if it will help to reduce the rewrite traffic and ultimately help raft-engine performance"
+    },
+    {
+      "id": 1510565504,
+      "user": "dbsid",
+      "created_at": "2023-04-17T01:23:24Z",
+      "body": "we also see the performance impact on IDC using nvme disk when the `rewrite rewrite` and `rewrite append` flow kick in.\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/232356087-5199485d-c659-4887-962c-a3cc4217ea6e.png)\r\n![image](https://user-images.githubusercontent.com/2316425/232356108-9b23d054-10fd-4330-9263-101977c8e160.png)\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/232356134-552d32fc-93f7-4395-9ef6-50879d3e2002.png)\r\n"
+    }
+  ]
+}

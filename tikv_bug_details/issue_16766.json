@@ -1,0 +1,14 @@
+{
+  "issue_number": 16766,
+  "title": "h2 vulnerability issue",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nmaster with git hash 2f73366be325f4bb7c0be5cf5d4add91cb98a79f\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nmake dev\r\n\r\n### What did you expect?\r\n\r\nno error\r\n\r\n### What did happened?\r\n\r\n```\r\nerror[vulnerability]: Degradation of service in h2 servers with CONTINUATION Flood\r\n    ┌─ /Users/jinpengzhang/works/me/tikv/Cargo.lock:165:1\r\n    │\r\n165 │ h2 0.3.24 registry+https://github.com/rust-lang/crates.io-index\r\n    │ --------------------------------------------------------------- security vulnerability detected\r\n    │\r\n    = ID: RUSTSEC-2024-0332\r\n    = Advisory: https://rustsec.org/advisories/RUSTSEC-2024-0332\r\n    = An attacker can send a flood of CONTINUATION frames, causing `h2` to process them indefinitely.\r\n      This results in an increase in CPU usage.\r\n\r\n      Tokio task budget helps prevent this from a complete denial-of-service, as the server can still\r\n      respond to legitimate requests, albeit with increased latency.\r\n\r\n      More details at \"https://seanmonstar.com/blog/hyper-http2-continuation-flood/.\r\n\r\n      Patches available for 0.4.x and 0.3.x versions.\r\n    = Solution: Upgrade to ^0.3.26 OR >=0.4.4 (try `cargo update -p h2`)\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2024-04-03T21:47:42Z",
+  "updated_at": "2024-04-07T07:06:21Z",
+  "closed_at": "2024-04-07T07:06:21Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

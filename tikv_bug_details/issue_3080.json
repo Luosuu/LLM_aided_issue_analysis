@@ -1,0 +1,24 @@
+{
+  "issue_number": 3080,
+  "title": "'raftstore_cases::test_split_region::test_node_base_split_region_left_derive' panicked",
+  "body": "```\r\nthread 'raftstore_cases::test_split_region::test_node_base_split_region_left_derive' panicked at 'called `Result::unwrap()` on an `Err` value: Other(StringError(\"[tests/raftstore/cluster.rs:262]: can\\'t get leader of region 1000\"))', libcore/result.rs:945:5\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:207\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:223\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:402\r\n   5: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:349\r\n   6: rust_begin_unwind\r\n             at libstd/panicking.rs:325\r\n   7: core::panicking::panic_fmt\r\n             at libcore/panicking.rs:72\r\n   8: core::result::unwrap_failed\r\n             at /checkout/src/libcore/macros.rs:26\r\n   9: <core::result::Result<T, E>>::unwrap\r\n             at /checkout/src/libcore/result.rs:782\r\n  10: <integrations::raftstore::cluster::Cluster<T>>::request\r\n             at tests/raftstore/cluster.rs:564\r\n  11: <integrations::raftstore::cluster::Cluster<T>>::get_impl\r\n             at tests/raftstore/cluster.rs:628\r\n  12: <integrations::raftstore::cluster::Cluster<T>>::get\r\n             at tests/raftstore/cluster.rs:616\r\n  13: integrations::raftstore_cases::test_split_region::test_base_split_region\r\n             at tests/raftstore_cases/test_split_region.rs:82\r\n  14: integrations::raftstore_cases::test_split_region::test_node_base_split_region_left_derive\r\n             at tests/raftstore_cases/test_split_region.rs:111\r\n  15: integrations::__test::TESTS::{{closure}}\r\n             at tests/raftstore_cases/test_split_region.rs:108\r\n  16: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n  17: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1453\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:635\r\n  18: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:102\r\n```",
+  "state": "closed",
+  "created_at": "2018-05-16T02:23:02Z",
+  "updated_at": "2020-11-04T05:49:59Z",
+  "closed_at": "2020-11-04T05:49:59Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 721525863,
+      "user": "Connor1996",
+      "created_at": "2020-11-04T05:49:59Z",
+      "body": "This info is stale, not sure if it is still unstable. Let's close it and reopen it if encounter again."
+    }
+  ]
+}

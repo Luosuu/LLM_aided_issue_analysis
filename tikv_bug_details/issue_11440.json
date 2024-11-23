@@ -1,0 +1,26 @@
+{
+  "issue_number": 11440,
+  "title": "Reverse scan can't detect memory locks",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n`Storage::scan()` always uses range [start_key, end_key) to check memory locks\r\n\r\nhttps://github.com/tikv/tikv/blob/0b3655275712b0dd04de5fd83cddc408034f4b8b/src/storage/mod.rs#L843\r\n\r\nbut reverse scan's start_key is greater than end_key\r\nhttps://github.com/pingcap/kvproto/blob/03abd340988f539630450c78ead7b13dcf5e056d/proto/kvrpcpb.proto#L56-L58. It results in that reverse scan can't detect memory locks and may read old data.",
+  "state": "closed",
+  "created_at": "2021-11-22T12:42:55Z",
+  "updated_at": "2021-11-26T03:09:59Z",
+  "closed_at": "2021-11-23T08:22:43Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3"
+  ],
+  "comments_data": [
+    {
+      "id": 976177046,
+      "user": "sticnarf",
+      "created_at": "2021-11-23T05:23:05Z",
+      "body": "For TiDB, the only use of reverse kv_scan is https://github.com/pingcap/tidb/blob/d15ca2a869b95a03d80c780400af211ff6940aa5/ddl/backfilling.go#L456\r\n\r\nNot being blocked by the memory lock will not affect the correctness of backfilling because DDL reorg happens after all async commit txns with previous schema commit successfully.\r\n\r\nTiSpark does not use reverse scan.\r\n\r\nOther client-go users may be affected but I don't know their use cases."
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "issue_number": 12453,
+  "title": "TiKV automatic restart, non-oom",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nTiKV \r\nRelease Version:   6.0.0\r\nEdition:           Community\r\nGit Commit Hash:   79c94ccb0b35f238665a199d9ab4c472a4de257c\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2022-04-30 05:33:04\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n\r\n\r\n`20091990016 May  3 21:55 core-grpc_global_tim-85856-1651586111`\r\n\r\n\r\n![origin_img_v2_c6f19cc1-0bf5-4478-8b68-268df22a5a2g](https://user-images.githubusercontent.com/11624213/166867869-b33b4888-0cfa-4a77-b0dc-68241aa2f4da.jpg)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-05T05:31:24Z",
+  "updated_at": "2022-05-23T06:19:05Z",
+  "closed_at": "2022-05-23T06:19:05Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1119364415,
+      "user": "tabokie",
+      "created_at": "2022-05-06T08:09:51Z",
+      "body": "~What's the error message? It should be \"Futex operation failed with error xxx\".~\r\nThe error message is `Futex operation failed with error -9`, EBADF."
+    },
+    {
+      "id": 1120137891,
+      "user": "buggithubs",
+      "created_at": "2022-05-07T05:24:48Z",
+      "body": "`CentOS Linux release 7.6.1810 (Core)`\r\n `3.10.0-957.el7.x86_64 #1 SMP Thu Nov 8 23:39:32 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux`"
+    },
+    {
+      "id": 1120181738,
+      "user": "Lily2025",
+      "created_at": "2022-05-07T10:17:37Z",
+      "body": "/type bug\r\n/severity Moderate\r\n/assign tabokie"
+    },
+    {
+      "id": 1129524757,
+      "user": "dbsid",
+      "created_at": "2022-05-18T03:20:52Z",
+      "body": "observed on ARM64, latest master version\r\n\r\n```\r\n[root@tikv-1-0 ~]# uname -a\r\nLinux tikv-1-0 4.14.0-115.el7a.0.1.aarch64 #1 SMP Sun Nov 25 20:54:21 UTC 2018 aarch64 aarch64 aarch64 GNU/Linux\r\n```\r\n```\r\n[root@tikv-1-0 log]# cat tikv_stderr.log\r\n[waiter.cc : 102] RAW: Futex operation failed with error -9\r\n```\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/168950439-09330a4c-5c47-4847-9b42-f0e5a0bb73d8.png)\r\n"
+    },
+    {
+      "id": 1129541394,
+      "user": "dbsid",
+      "created_at": "2022-05-18T04:02:26Z",
+      "body": "should we raise the severity?"
+    },
+    {
+      "id": 1129773587,
+      "user": "Lily2025",
+      "created_at": "2022-05-18T09:19:06Z",
+      "body": "/remove-severity Moderate\r\n/severity Critical"
+    },
+    {
+      "id": 1129808735,
+      "user": "Lily2025",
+      "created_at": "2022-05-18T09:54:11Z",
+      "body": "The test environment appears several times"
+    },
+    {
+      "id": 1129831309,
+      "user": "mornyx",
+      "created_at": "2022-05-18T10:17:24Z",
+      "body": "> The test environment appears several times\r\n\r\nHi @Lily2025, what is your TiKV branch and commit id?"
+    },
+    {
+      "id": 1129859433,
+      "user": "Lily2025",
+      "created_at": "2022-05-18T10:50:11Z",
+      "body": "> > The test environment appears several times\r\n> \r\n> Hi @Lily2025, what is your TiKV branch and commit id?\r\n\r\ncc @buggithubs "
+    },
+    {
+      "id": 1130611688,
+      "user": "BusyJay",
+      "created_at": "2022-05-18T22:14:11Z",
+      "body": "May be fixed by https://github.com/tikv/pprof-rs/pull/128"
+    },
+    {
+      "id": 1131171095,
+      "user": "mornyx",
+      "created_at": "2022-05-19T03:49:29Z",
+      "body": "Should be resolved as https://github.com/tikv/pprof-rs/pull/128 and https://github.com/tikv/tikv/pull/12480 have been merged."
+    },
+    {
+      "id": 1134138256,
+      "user": "zhangjinpeng87",
+      "created_at": "2022-05-23T03:37:33Z",
+      "body": "@mornyx can we close this issue now?"
+    },
+    {
+      "id": 1134141163,
+      "user": "mornyx",
+      "created_at": "2022-05-23T03:44:35Z",
+      "body": "> @mornyx can we close this issue now?\r\n\r\nYes, can be closed."
+    }
+  ]
+}

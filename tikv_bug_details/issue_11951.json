@@ -1,0 +1,46 @@
+{
+  "issue_number": 11951,
+  "title": "one tikv panic after inject network-loss",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n[2022/02/10 10:20:38.539 +08:00] [INFO] [oltp_test.go:94] [\"Current version\"] [tidb=5.5.0-nightly]\r\n[2022/02/10 10:20:38.607 +08:00] [INFO] [oltp_test.go:94] [\"Current version\"] [tikv=5.4.0-alpha]\r\n[2022/02/10 10:20:38.671 +08:00] [INFO] [oltp_test.go:94] [\"Current version\"] [pd=5.5.0-nightly]\r\n\r\n### What operating system and CPU are you using?\r\n8 core 16G\r\n\r\n### Steps to reproduce\r\n[2022/02/10 10:20:38.749 +08:00] [INFO] [cmd.go:124] [\"Start remote command\"] [cmd=\"sysbench --mysql-user=root --db-driver=mysql --time=0 --report-interval=10 --mysql-db=test --mysql-host=tc-tidb.endless-oltp-tps-603190-1-257 --mysql-port=4000 --threads=64 --tables=32 --table-size=10000000 --mysql-ignore-errors=2013,1213,1105,1205,8022,8027,8028,9004,9007,1062 --rand-type=gaussian oltp_write_only run\"] [nodename=benchtoolset]\r\n\r\n[2022/02/10 10:31:38.775 +08:00] [INFO] [chaos.go:358] [\"fault will last for\"] [duration=9m0s]\r\n[2022/02/10 10:31:38.780 +08:00] [INFO] [chaos.go:86] [\"Run chaos\"] [name=network-loss] [selectors=\"[endless-oltp-tps-603190-1-257/tc-tikv-3]\"] [experiment=\"{\\\"Duration\\\":\\\"\\\",\\\"Scheduler\\\":null,\\\"Loss\\\":\\\"82\\\",\\\"Correlation\\\":\\\"25\\\"}\"]\r\n\r\n[2022/02/10 10:40:38.805 +08:00] [INFO] [chaos.go:151] [\"Clean chaos\"] [name=network-loss] [chaosId=\"ns=endless-oltp-tps-603190-1-257,kind=network-loss,name=network-loss-kjhnmgyn,spec=&k8s.ChaosIdentifier{Namespace:\\\"endless-oltp-tps-603190-1-257\\\", Name:\\\"network-loss-kjhnmgyn\\\", Spec:NetworkLossSpec{Duration: \\\"\\\", Scheduler: <nil>, Loss: \\\"82\\\", Correlation: \\\"25\\\"}}\"]\r\n\r\n### What did you expect?\r\nall tikv are normal\r\n\r\n### What did happened?\r\ntikv1 panic\r\n\r\n[2022/02/10 02:43:01.566 +00:00] [FATAL] [[lib.rs:466](http://lib.rs:466/)] [\"called `Option::unwrap()` on a `None` value\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at home/jenkins/agent/workspace/build-common/go/src/[github.com/pingcap/tikv/components/tikv_util/src/lib.rs:465:18\\n](http://github.com/pingcap/tikv/components/tikv_util/src/lib.rs:465:18/n)   1: std::panicking::rust_panic_with_hook\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/[panicking.rs:610](http://panicking.rs:610/):17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/[panicking.rs:500](http://panicking.rs:500/):13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/sys_common/[backtrace.rs:139](http://backtrace.rs:139/):18\\n   4: rust_begin_unwind\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/[panicking.rs:498](http://panicking.rs:498/):5\\n   5: core::panicking::panic_fmt\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/core/src/[panicking.rs:107](http://panicking.rs:107/):14\\n   6: core::panicking::panic\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/core/src/[panicking.rs:48](http://panicking.rs:48/):5\\n   7: core::option::Option<T>::unwrap\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/core/src/[option.rs:729](http://option.rs:729/):21\\n      raft::raft::Raft<T>::send_append_aggressively\\n             at rust/git/checkouts/raft-rs-42b8049ef2e3af07/f1f95f8/src/[raft.rs:877](http://raft.rs:877/):18\\n      raft::raw_node::RawNode<T>::on_entries_fetched\\n             at rust/git/checkouts/raft-rs-42b8049ef2e3af07/f1f95f8/src/[raw_node.rs:424](http://raw_node.rs:424/):21\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_significant_msg\\n             at home/jenkins/agent/workspace/build-common/go/src/[github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:1198:17\\n](http://github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:1198:17/n)      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::handle_msgs\\n             at home/jenkins/agent/workspace/build-common/go/src/[github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:639:49\\n](http://github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:639:49/n)   8: <raftstore::store::fsm::store::RaftPoller<EK,ER,T> as batch_system::batch::PollHandler<raftstore::store::fsm::peer::PeerFsm<EK,ER>,raftstore::store::fsm::store::StoreFsm<EK>>>::handle_normal\\n             at home/jenkins/agent/workspace/build-common/go/src/[github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:789:9\\n](http://github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:789:9/n)   9: batch_system::batch::Poller<N,C,Handler>::poll\\n             at home/jenkins/agent/workspace/build-common/go/src/[github.com/pingcap/tikv/components/batch-system/src/batch.rs:406:27\\n](http://github.com/pingcap/tikv/components/batch-system/src/batch.rs:406:27/n)  10: batch_system::batch::BatchSystem<N,C>::start_poller::{{closure}}\\n             at home/jenkins/agent/workspace/build-common/go/src/[github.com/pingcap/tikv/components/batch-system/src/batch.rs:572:17\\n](http://github.com/pingcap/tikv/components/batch-system/src/batch.rs:572:17/n)      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/sys_common/[backtrace.rs:123](http://backtrace.rs:123/):18\\n  11: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}}\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/thread/[mod.rs:477](http://mod.rs:477/):17\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/core/src/panic/[unwind_safe.rs:271](http://unwind_safe.rs:271/):9\\n      std::panicking::try::do_call\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/[panicking.rs:406](http://panicking.rs:406/):40\\n      std::panicking::try\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/[panicking.rs:370](http://panicking.rs:370/):19\\n      std::panic::catch_unwind\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/[panic.rs:133](http://panic.rs:133/):14\\n      std::thread::Builder::spawn_unchecked::{{closure}}\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/thread/[mod.rs:476](http://mod.rs:476/):30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/core/src/ops/[function.rs:227](http://function.rs:227/):5\\n  12: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/alloc/src/[boxed.rs:1854](http://boxed.rs:1854/):9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/alloc/src/[boxed.rs:1854](http://boxed.rs:1854/):9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at rustc/cfa4ac66c194046f631ce076c75516ecfdeb77ee/library/std/src/sys/unix/[thread.rs:108](http://thread.rs:108/):17\\n  13: <unknown>\\n  14: clone\\n\"] [location=/rust/git/checkouts/raft-rs-42b8049ef2e3af07/f1f95f8/src/[raft.rs:877](http://raft.rs:877/)] [thread_name=raftstore-4-0]\r\n[2022/02/10 02:43:04.092 +00:00] [INFO] [[lib.rs:80](http://lib.rs/)] [\"Welcome to TiKV\"]",
+  "state": "closed",
+  "created_at": "2022-02-10T05:24:47Z",
+  "updated_at": "2022-02-11T10:01:38Z",
+  "closed_at": "2022-02-11T10:01:38Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/automation"
+  ],
+  "comments_data": [
+    {
+      "id": 1034506859,
+      "user": "Lily2025",
+      "created_at": "2022-02-10T05:25:45Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1034506957,
+      "user": "Lily2025",
+      "created_at": "2022-02-10T05:25:57Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1034507160,
+      "user": "Lily2025",
+      "created_at": "2022-02-10T05:26:24Z",
+      "body": "/assign Connor1996"
+    },
+    {
+      "id": 1035938189,
+      "user": "Lily2025",
+      "created_at": "2022-02-11T07:20:37Z",
+      "body": " /found automation"
+    },
+    {
+      "id": 1035954662,
+      "user": "Lily2025",
+      "created_at": "2022-02-11T07:51:47Z",
+      "body": "/found automation"
+    }
+  ]
+}

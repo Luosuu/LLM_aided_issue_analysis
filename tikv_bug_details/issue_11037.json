@@ -1,0 +1,20 @@
+{
+  "issue_number": 11037,
+  "title": "TiKV panic when startup",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv5.2.1\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nAli cloud OS, 32 CPU\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nDeploy the cluster, and tikv can't start \r\n### What did you expect?\r\nthe cluster running normal \r\n### What did happened?\r\nTiKV panic with error:\r\n![微信图片_20211012143555](https://user-images.githubusercontent.com/17038907/136904454-2f124a7a-ad57-42bd-9823-eaea237f9280.jpg)\r\n\r\n/proc/self/mountinfo:\r\n![20211012-143923](https://user-images.githubusercontent.com/17038907/136904741-36200402-04be-42ba-b0b3-8dfe9c2b8a3d.jpeg)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-10-12T06:38:28Z",
+  "updated_at": "2021-10-13T06:57:27Z",
+  "closed_at": "2021-10-13T06:57:27Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 940711740,
+      "user": "hicqu",
+      "created_at": "2021-10-12T06:42:16Z",
+      "body": "Panic info:\r\n![图片](https://user-images.githubusercontent.com/8407317/136904957-7ba04f35-33d5-4334-b31b-3164c24853db.png)\r\n"
+    }
+  ]
+}

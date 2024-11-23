@@ -1,0 +1,15 @@
+{
+  "issue_number": 11055,
+  "title": "cdc: Init event should be sent after all observed events have been sent",
+  "body": "## Development Task\r\nWe need to solve https://github.com/pingcap/ticdc/issues/2989.\r\n\r\nThis problem is caused by an unexpected order of sending events, in which real-time events that has occurred before the delta scan snapshot is taken are sent after the delta scan has finished.\r\n\r\nTo solve the problem, we need to\r\n\r\n- [ ] delegate sending `init` event to the main `endpoint` in the cdc component.\r\n- [ ] wait for a barrier in `unbounded_send` before we send the `init` event.\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-10-13T10:27:25Z",
+  "updated_at": "2021-10-20T05:23:55Z",
+  "closed_at": "2021-10-20T05:23:55Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "component/CDC"
+  ],
+  "comments_data": []
+}

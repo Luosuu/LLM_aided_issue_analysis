@@ -1,0 +1,29 @@
+{
+  "issue_number": 12711,
+  "title": "*: `cargo test` cannot compile ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nMaster\r\n\r\n### What operating system and CPU are you using?\r\nLinux\r\n\r\n### Steps to reproduce\r\nRun test for a subcrate requires `security` but not `backup-stream`.\r\n\r\n### What did you expect?\r\nTest can run successfully.\r\n\r\n### What did happened?\r\nCompile failed: \r\n```console\r\nuse tonic::transport::{channel::ClientTlsConfig, Certificate, Identity};\r\n   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ no `ClientTlsConfig` in `transport::channel`\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-06-01T03:11:55Z",
+  "updated_at": "2022-08-19T09:05:03Z",
+  "closed_at": "2022-06-01T10:36:28Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "severity/minor",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1143071487,
+      "user": "YuJuncen",
+      "created_at": "2022-06-01T03:12:50Z",
+      "body": "/type enhancement \r\n\r\n(This is a bug for developing only, and would be fixed soon.)"
+    },
+    {
+      "id": 1143072001,
+      "user": "YuJuncen",
+      "created_at": "2022-06-01T03:14:08Z",
+      "body": "/severity minor\r\n/type bug\r\n"
+    }
+  ]
+}

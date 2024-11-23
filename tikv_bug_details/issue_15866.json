@@ -1,0 +1,18 @@
+{
+  "issue_number": 15866,
+  "title": "cdc incremental scan tasks can't be canceld by region split or merge correctly",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nMaster.\r\n\r\n### What operating system and CPU are you using?\r\nDoesn't matter.\r\n\r\n### Steps to reproduce\r\nSend lots of cdc incremental scan tasks to a TiKV instance, which has lots of region split or merge events.\r\n\r\n### What did you expect?\r\n\r\nIncremental scan tasks can be canceld by region split or merge quickly in all situations.\r\n\r\n### What did happened?\r\n\r\nSome incremental scan tasks can't be canceld quickly, because they are blocking on `concurrency_semaphore_.acquire().await`.\r\n",
+  "state": "closed",
+  "created_at": "2023-10-30T05:17:40Z",
+  "updated_at": "2023-11-23T02:27:52Z",
+  "closed_at": "2023-11-02T06:24:38Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/minor",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

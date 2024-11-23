@@ -1,0 +1,27 @@
+{
+  "issue_number": 17072,
+  "title": "TiKV may OOM if too many regions on a TiKV server ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nWe run a test on a small cluster, 1 TiDB with 8C16G, and 3 TiKV with 8C16G.\r\nThe test is about trying to create 1000, 000 tables.\r\nAfter creating 300, 000 tables, all TiKV start to OOM.\r\nIt seems that 300, 000 regions will consume 16G memory, which is higher than we expected.\r\n \r\n\r\n### What did you expect?\r\nTiKV doesn't OOM.\r\n\r\n### What did happened?\r\nTiKV OOM.",
+  "state": "closed",
+  "created_at": "2024-05-27T13:29:30Z",
+  "updated_at": "2024-05-28T10:13:21Z",
+  "closed_at": "2024-05-28T10:03:21Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2134828786,
+      "user": "overvenus",
+      "created_at": "2024-05-28T10:03:21Z",
+      "body": "Duplicate of https://github.com/tikv/tikv/issues/16229"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "issue_number": 17018,
+  "title": "In-memory engine: wrong-total in jepsen test",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nMaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nJepsen pass\r\n\r\n### What did happened?\r\n```\r\n{:latency-graph {:valid? true},\r\n  :rate-graph {:valid? true},\r\n  :valid? true},\r\n :workload\r\n {:SI\r\n  {:valid? false,\r\n   :read-count 142404,\r\n   :error-count 1,\r\n   :first-error\r\n   {:type :wrong-total,\r\n    :total 61,\r\n    :op\r\n    {:type :ok,\r\n     :f :read,\r\n     :process 1,\r\n     :time 38284047629,\r\n     :value {0 12, 1 25, 2 10, 3 7, 6 5, 7 2},\r\n     :txn-info {:start_ts 449754326792667154},\r\n     :index 33719}},\r\n   :errors\r\n   {:wrong-total\r\n    {:count 1,\r\n     :first\r\n     {:type :wrong-total,\r\n      :total 61,\r\n      :op\r\n      {:type :ok,\r\n       :f :read,\r\n       :process 1,\r\n       :time 38284047629,\r\n       :value {0 12, 1 25, 2 10, 3 7, 6 5, 7 2},\r\n       :txn-info {:start_ts 449754326792667154},\r\n       :index 33719}},\r\n     :worst\r\n     {:type :wrong-total,\r\n      :total 61,\r\n      :op\r\n      {:type :ok,\r\n       :f :read,\r\n       :process 1,\r\n       :time 38284047629,\r\n       :value {0 12, 1 25, 2 10, 3 7, 6 5, 7 2},\r\n       :txn-info {:start_ts 449754326792667154},\r\n       :index 33719}},\r\n     :last\r\n     {:type :wrong-total,\r\n      :total 61,\r\n      :op\r\n      {:type :ok,\r\n       :f :read,\r\n       :process 1,\r\n       :time 38284047629,\r\n       :value {0 12, 1 25, 2 10, 3 7, 6 5, 7 2},\r\n       :txn-info {:start_ts 449754326792667154},\r\n       :index 33719}},\r\n     :lowest\r\n     {:type :wrong-total,\r\n      :total 61,\r\n      :op\r\n      {:type :ok,\r\n       :f :read,\r\n       :process 1,\r\n       :time 38284047629,\r\n       :value {0 12, 1 25, 2 10, 3 7, 6 5, 7 2},\r\n       :txn-info {:start_ts 449754326792667154},\r\n       :index 33719}},\r\n     :highest\r\n     {:type :wrong-total,\r\n      :total 61,\r\n      :op\r\n      {:type :ok,\r\n       :f :read,\r\n       :process 1,\r\n       :time 38284047629,\r\n       :value {0 12, 1 25, 2 10, 3 7, 6 5, 7 2},\r\n       :txn-info {:start_ts 449754326792667154},\r\n       :index 33719}}}}},\r\n  :plot {:valid? true},\r\n  :valid? false},\r\n :valid? false}\r\n```",
+  "state": "open",
+  "created_at": "2024-05-15T06:06:14Z",
+  "updated_at": "2024-06-12T06:39:09Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "jepsen"
+  ],
+  "comments_data": [
+    {
+      "id": 2117050361,
+      "user": "SpadeA-Tang",
+      "created_at": "2024-05-17T08:43:19Z",
+      "body": "I have found some bugs or missing part leading to this error:\r\n1. Delete lock directly violates the write atomicity. We can make the write complete then delete the lock. https://github.com/tikv/tikv/issues/17127\r\n2. Missing handles in remove peers, merge, apply snapshot: all theses cases should evict the relevant regions."
+    },
+    {
+      "id": 2124471349,
+      "user": "SpadeA-Tang",
+      "created_at": "2024-05-22T10:38:03Z",
+      "body": "In addition, using same seqno for the whole batch also leads to this type of error. If there's a put lock and delete lock in the same batch with the same user key, the delete will be hidden by the put. https://github.com/tikv/tikv/issues/17114 \r\nWe use increment the seqno for each key just like what does in rocksdb. "
+    }
+  ]
+}

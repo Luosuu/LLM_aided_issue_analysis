@@ -1,0 +1,33 @@
+{
+  "issue_number": 10407,
+  "title": "TiKV panic during go-tpc prepare",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nv5.0.2\r\n\r\n### What operating system and CPU are you using?\r\nDBaaS T3.standard\r\n\r\n### Steps to reproduce\r\n1. deploy a T3.standard cluster with 2db 6kv\r\n2. run `go-tpc tpcc prepare -T 64 --warehouses 1000`\r\n\r\n### What did you expect?\r\nno panic\r\n\r\n### What did happened?\r\nTiKV panic with followering log\r\n```\r\n[2021/06/18 09:37:26.917 +00:00] [FATAL] [lib.rs:465] [\"unexpected error: Store(Other(\\\"[components/raftstore/src/store/peer_storage.rs:980]: failed to get snapshot after 5 times\\\")), raft_id: 2652, region_id: 2650\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{closure}}\\n             at home/jenkins/agent/workspace/optimization-build-tidb-linux-amd/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:464\\n   1: std::panicking::rust_panic_with_hook\\n             at rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/panicking.rs:595\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/panicking.rs:497\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/sys_common/backtrace.rs:141\\n   4: rust_begin_unwind\\n             at rustc/bc39d4d9c514e5fdb40a5782e6ca08924f979c35//library/std/src/panicking.rs:493\\n   5: std::panicking::begin_panic_fmt\r\n```\r\n\r\nSome metrics\r\n![image](https://user-images.githubusercontent.com/4962134/122579917-ff75ba80-d087-11eb-99f4-5246724000cd.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-06-18T14:53:55Z",
+  "updated_at": "2021-07-01T09:37:27Z",
+  "closed_at": "2021-07-01T09:37:26Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 864096627,
+      "user": "cosven",
+      "created_at": "2021-06-18T14:54:34Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign @gengliqi "
+    },
+    {
+      "id": 864815582,
+      "user": "cosven",
+      "created_at": "2021-06-21T07:58:32Z",
+      "body": "/assign @gengliqi"
+    },
+    {
+      "id": 872091004,
+      "user": "gengliqi",
+      "created_at": "2021-07-01T09:37:26Z",
+      "body": "It's fixed by https://github.com/tikv/tikv/pull/10454."
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "issue_number": 4422,
+  "title": "protoc required by build but not included in Dockerfile",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\n<!-- You can run `rustc --version` -->\r\n\r\nbuild in docker\r\n\r\n**What operating system and CPU are you using?**\r\n<!-- You can run `cat /proc/cpuinfo` -->\r\n\r\nbuild in docker\r\n\r\n**What did you do?**\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\ncd tikv\r\ndocker build -t tikv:v1 .\r\n```\r\n```\r\n   Compiling cop_datatype v0.0.1 (/go/src/github.com/pingcap/tikv/components/cop_datatype)\r\nerror: failed to run custom build command for `kvproto v0.0.1 (https://github.com/pingcap/kvproto.git#84f2c621)`\r\nprocess didn't exit successfully: `/go/src/github.com/pingcap/tikv/target/release/build/kvproto-20e0446f3572c4d0/build-script-build` (exit code: 101)\r\n--- stderr\r\nthread 'main' panicked at 'Invalid version of protoc (required 3.1.x), or protoc not installed\r\n\r\nstdout:\r\n\r\n', /root/.cargo/git/checkouts/kvproto-e694950bee90bc86/84f2c62/build.rs:65:9\r\nnote: Run with `RUST_BACKTRACE=1` environment variable to display a backtrace.\r\n\r\nwarning: build failed, waiting for other jobs to finish...\r\nerror: build failed\r\nmake: *** [release] Error 101\r\n```\r\n\r\n**What did you expect to see?**\r\n\r\nAll required tools are included in Dockerfile, so it builds without any dependency from host.\r\n\r\n**What did you see instead?**\r\n\r\nprotoc missed resulted in build failure",
+  "state": "closed",
+  "created_at": "2019-03-22T06:53:59Z",
+  "updated_at": "2020-08-28T11:17:27Z",
+  "closed_at": "2020-08-28T11:17:27Z",
+  "labels": [
+    "type/bug",
+    "component/build"
+  ],
+  "comments_data": [
+    {
+      "id": 475543088,
+      "user": "breezewish",
+      "created_at": "2019-03-22T09:03:12Z",
+      "body": "Thanks for your report! We have recently updated our build requirement but docker image is not updated. We will fix it soon."
+    },
+    {
+      "id": 477808384,
+      "user": "Hoverbear",
+      "created_at": "2019-03-28T23:31:27Z",
+      "body": "I'm working on a fix here."
+    },
+    {
+      "id": 481175373,
+      "user": "CrazyNash",
+      "created_at": "2019-04-09T09:28:01Z",
+      "body": "any update?"
+    },
+    {
+      "id": 481912472,
+      "user": "Hoverbear",
+      "created_at": "2019-04-10T23:45:07Z",
+      "body": "@CrazyNash I have a testing branch here I'm just trying to get integrated with our release process. Could you try `make docker` with https://github.com/Hoverbear/tikv/tree/test-docker-hub ?"
+    },
+    {
+      "id": 482001319,
+      "user": "CrazyNash",
+      "created_at": "2019-04-11T07:31:54Z",
+      "body": "I hit network issue, will try to fix that first"
+    },
+    {
+      "id": 487464779,
+      "user": "CrazyNash",
+      "created_at": "2019-04-29T06:34:04Z",
+      "body": "@Hoverbear sorry for late response, but it failed in this way\r\n\r\n![image](https://user-images.githubusercontent.com/39256431/56879532-b7e8da80-6a8b-11e9-8173-c0e3dd838f46.png)\r\n"
+    },
+    {
+      "id": 488352273,
+      "user": "Hoverbear",
+      "created_at": "2019-05-01T17:34:10Z",
+      "body": "@CrazyNash I tried to reproduce on Windows 10 and Arch Linux and didn't experience the same problem. :( I did update the branch today, but I don't think anything I did relates to this problem. I'm puzzled how this is happening.\r\n\r\nWhat OS and Docker version were you using?\r\n\r\n"
+    },
+    {
+      "id": 489410706,
+      "user": "CrazyNash",
+      "created_at": "2019-05-05T09:59:01Z",
+      "body": "@Hoverbear CentOS 7.5 +Docker 18.09.2+ Go 1.12"
+    },
+    {
+      "id": 489687276,
+      "user": "Hoverbear",
+      "created_at": "2019-05-06T16:39:14Z",
+      "body": "@CrazyNash I'm also running Docker 18.09. This is very odd. It seems it's actually finding a syntax error in some example of a upstream dependency.. 😵\r\n\r\nAre you able to `make release` on your local machine?\r\n\r\nCan you build https://github.com/bitflags/bitflags/releases/tag/1.0.1 on your local machine?"
+    },
+    {
+      "id": 682470040,
+      "user": "BusyJay",
+      "created_at": "2020-08-28T11:17:27Z",
+      "body": "Now protoc is not required anymore."
+    }
+  ]
+}

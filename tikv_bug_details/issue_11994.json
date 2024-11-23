@@ -1,0 +1,95 @@
+{
+  "issue_number": 11994,
+  "title": "TiKV copr resp size may exceed 4GB",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nCreate a table with lots of fields of `VARCHAR`, and insert 50w records with these fields filling with null.\r\nThen execute\r\n```\r\nmysql> update table set multi_tenancy_id = '1';\r\n```\r\n\r\n### What did you expect?\r\n```\r\nQuery OK\r\n```\r\n### What did happened?\r\n```\r\nERROR 1105 (HY000): other error: [src/coprocessor/dag/[mod.rs:143](http://mod.rs:143/)]: IoError(Custom { kind: Other, error: \"given slice is too small to serialize the message\" })\r\n```",
+  "state": "closed",
+  "created_at": "2022-02-21T06:30:19Z",
+  "updated_at": "2024-04-01T03:57:22Z",
+  "closed_at": "2024-04-01T03:57:22Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1046564347,
+      "user": "Connor1996",
+      "created_at": "2022-02-21T07:48:41Z",
+      "body": "This error is due to the copr resp size exceeds 4GB.  https://github.com/tikv/tikv/issues/9012\r\n\r\nIt's confirmed as the chunk codec(arrow codec) would reserve space for the fixed-length field even if the value is null. So when there are lots of fixed-length fields filling with null, the size of copr resp would be amplified by multiple times and exceed 4GB."
+    },
+    {
+      "id": 1055383962,
+      "user": "Lily2025",
+      "created_at": "2022-03-01T12:16:43Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1055384143,
+      "user": "Lily2025",
+      "created_at": "2022-03-01T12:16:59Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1055389538,
+      "user": "Lily2025",
+      "created_at": "2022-03-01T12:23:45Z",
+      "body": "/remove-type severity"
+    },
+    {
+      "id": 1055389544,
+      "user": "ti-chi-bot",
+      "created_at": "2022-03-01T12:23:46Z",
+      "body": "@Lily2025: These labels are not set on the issue: `type/severity`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/11994#issuecomment-1055389538):\n\n>/remove-type severity\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1055390087,
+      "user": "Lily2025",
+      "created_at": "2022-03-01T12:24:29Z",
+      "body": "/remove-severity major\r\n/severity Critical"
+    },
+    {
+      "id": 1055391070,
+      "user": "Connor1996",
+      "created_at": "2022-03-01T12:25:45Z",
+      "body": "set `tidb_enable_chunk_rpc` to off can workaround this problem."
+    },
+    {
+      "id": 1055393579,
+      "user": "Lily2025",
+      "created_at": "2022-03-01T12:28:48Z",
+      "body": "/remove-severity Critical\r\n/severity major"
+    },
+    {
+      "id": 1134218544,
+      "user": "zhangjinpeng87",
+      "created_at": "2022-05-23T06:05:17Z",
+      "body": "> set `tidb_enable_chunk_rpc` to off can workaround this problem.\r\n\r\nIs there any side effect for this change? @Connor1996 "
+    },
+    {
+      "id": 1134228623,
+      "user": "Connor1996",
+      "created_at": "2022-05-23T06:18:25Z",
+      "body": "The situation is rare and likely impossible in a real workload. So @zanmato1984 decided not to fix it at that time."
+    },
+    {
+      "id": 1182117745,
+      "user": "tonyxuqqi",
+      "created_at": "2022-07-12T17:50:56Z",
+      "body": "/close"
+    },
+    {
+      "id": 1182117876,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-12T17:50:59Z",
+      "body": "@tonyxuqqi: Closing this issue.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/11994#issuecomment-1182117745):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2029115981,
+      "user": "AndreMouche",
+      "created_at": "2024-04-01T03:57:22Z",
+      "body": "fixed by https://github.com/tikv/tikv/pull/10993"
+    }
+  ]
+}

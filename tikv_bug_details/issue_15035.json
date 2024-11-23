@@ -1,0 +1,55 @@
+{
+  "issue_number": 15035,
+  "title": "Leader holds an invalid lease if one node is isolated and one node restarts",
+  "body": "## Bug Report\r\n\r\nSuppose there are three peers, A, B, C and A is the leader. Linearizability may be violated by following steps:\r\n\r\n1. B is isolated from A.\r\n2. A renews its lease.\r\n3. C restarts right after step 2.\r\n4. B starts election right after step 3.\r\n5. B becomes leader before A lease expire.\r\n\r\nNow we get two leaders, and both of them think they hold a valid lease.\r\n\r\nA possible solution: Peers delay respond request vote after restart, within one election timeout.\r\n\r\n```rust\r\n#[test]\r\nfn test_node_lease_restart_during_isolation() {\r\n    let mut cluster = new_node_cluster(0, 3);\r\n    configure_for_lease_read(&mut cluster.cfg, Some(1000), Some(3));\r\n    cluster.run();\r\n\r\n    let key = b\"k\";\r\n\r\n    let region = cluster.get_region(key);\r\n    let region_id = region.get_id();\r\n    let peer1 = find_peer(&region, 1).unwrap();\r\n    let peer2 = find_peer(&region, 2).unwrap();\r\n\r\n    cluster.must_put(key, b\"v0\");\r\n    cluster.must_transfer_leader(region_id, peer1.clone());\r\n    must_read_on_peer(&mut cluster, peer1.clone(), region.clone(), key, b\"v0\");\r\n    cluster.must_transfer_leader(region_id, peer2.clone());\r\n    must_read_on_peer(&mut cluster, peer2.clone(), region.clone(), key, b\"v0\");\r\n\r\n    cluster.add_send_filter(IsolationFilterFactory::new(2));\r\n\r\n    // Restart node 3.\r\n    cluster.stop_node(3);\r\n    cluster.run_node(3).unwrap();\r\n\r\n    // Let peer1 start election.\r\n    let mut timeout = RaftMessage::default();\r\n    timeout.mut_message().set_to(peer1.get_id());\r\n    timeout\r\n        .mut_message()\r\n        .set_msg_type(MessageType::MsgTimeoutNow);\r\n    timeout\r\n        .mut_message()\r\n        .set_msg_type(MessageType::MsgTimeoutNow);\r\n    timeout.set_region_id(region.get_id());\r\n    timeout.set_from_peer(peer2.clone());\r\n    timeout.set_to_peer(peer1.clone());\r\n    timeout.set_region_epoch(region.get_region_epoch().clone());\r\n    cluster.send_raft_msg(timeout).unwrap();\r\n\r\n    let (tx, rx) = mpsc::channel();\r\n    let append_resp_notifier = Box::new(MessageTypeNotifier::new(\r\n        MessageType::MsgAppendResponse,\r\n        tx,\r\n        Arc::from(AtomicBool::new(true)),\r\n    ));\r\n    cluster.sim.wl().add_send_filter(3, append_resp_notifier);\r\n    rx.recv_timeout(Duration::from_secs(5)).unwrap();\r\n\r\n    let mut put = new_request(\r\n        region.get_id(),\r\n        region.get_region_epoch().clone(),\r\n        vec![new_put_cmd(key, b\"v1\")],\r\n        false,\r\n    );\r\n    put.mut_header().set_peer(peer1.clone());\r\n    let resp = cluster.call_command(put, Duration::from_secs(5)).unwrap();\r\n    assert!(!resp.get_header().has_error(), \"{:?}\", resp);\r\n    must_read_on_peer(&mut cluster, peer2.clone(), region.clone(), key, b\"v0\");\r\n    must_read_on_peer(&mut cluster, peer1.clone(), region.clone(), key, b\"v1\");\r\n}\r\n```\r\n\r\n### What did you expect?\r\n\r\nNo stale read.\r\n\r\n### What did happened?\r\n\r\nStale read.",
+  "state": "closed",
+  "created_at": "2023-06-29T09:24:54Z",
+  "updated_at": "2023-07-17T01:54:47Z",
+  "closed_at": "2023-07-17T01:54:47Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1613792725,
+      "user": "Connor1996",
+      "created_at": "2023-06-29T20:49:56Z",
+      "body": "The case sends a `MsgTimeoutNow` directly to trigger the election without prevote which bypasses the logic in raftstore to invalidate leader lease when sending `MsgTimeoutNow`. But in a normal scenario, B would start the election by election timeout which it's with prevote, then C wouldn't vote for B cause C already voted for A in the same term. And even if there is a transfer leader, the leader must already invalidate the lease before sending `MsgTimeoutNow` to the target peer."
+    },
+    {
+      "id": 1614121670,
+      "user": "tonyxuqqi",
+      "created_at": "2023-06-30T04:49:38Z",
+      "body": "C should not vote for B after the restart. Because it will reset the timeout elapsed and think the lease is not expired and so it will reject B's prevote request. \r\n\r\n pub fn step(&mut self, m: Message) -> Result<()> {\r\n        // Handle the message term, which may result in our stepping down to a follower.\r\n        if m.term == 0 {\r\n            // local message\r\n        } else if m.term > self.term {\r\n            if m.get_msg_type() == MessageType::MsgRequestVote\r\n                || m.get_msg_type() == MessageType::MsgRequestPreVote\r\n            {\r\n                let force = m.context == CAMPAIGN_TRANSFER;\r\n                **let in_lease: bool = self.check_quorum\r\n                    && self.leader_id != INVALID_ID\r\n                    && self.election_elapsed < self.election_timeout;**"
+    },
+    {
+      "id": 1614193079,
+      "user": "tonyxuqqi",
+      "created_at": "2023-06-30T06:31:59Z",
+      "body": "/cc @BusyJay "
+    },
+    {
+      "id": 1614202508,
+      "user": "BusyJay",
+      "created_at": "2023-06-30T06:42:57Z",
+      "body": "> But in a normal scenario, B would start the election by election timeout which it's with prevote, then C wouldn't vote for B cause C already voted for A in the same term.\r\n\r\nNot true. B's prevote request will use a larger term than C's.\r\n\r\n> Because it will reset the timeout elapsed and think the lease is not expired and so it will reject B's prevote request.\r\n\r\nYes, but `leader_id` become `INVALID_ID` after being restarted, so in_lease is false."
+    }
+  ]
+}

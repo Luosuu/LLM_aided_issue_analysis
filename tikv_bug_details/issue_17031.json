@@ -1,0 +1,21 @@
+{
+  "issue_number": 17031,
+  "title": "Build failure: Undefined symbols for architecture arm64: \"snappy::RawCompress\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nFrom head: a1a8672e93c4da9c2dc5704151314d92e1bc4c04\r\n\r\n### What operating system and CPU are you using?\r\nMacBook Pro\r\n16-inch, Nov 2023\r\nApple M3 Max\r\n\r\n### Steps to reproduce\r\nmake build\r\n\r\nDetailed steps:\r\n- git clone git@github.com:tikv/kitv.git\r\n- source \"$HOME/.cargo/env\"\r\n- rustup self update && rustup set profile minimal && rustup default $(cat \"rust-toolchain\")\\n\r\n- rustup component add rustfmt\r\n- rustup component add clippy\r\n- cd tikv\r\n- rustup\r\n- rustup component add rustfmt\r\n- rustup component add clippy\r\n- make build\r\n\r\n### What did you expect?\r\nBuild succeeds\r\n\r\n### What did happened?\r\nBuild fails with error:\r\n\r\n\r\n```\r\n  = note: ld: warning: ignoring duplicate libraries: '-lc++'\r\n          ld: warning: search path '/Users/jeff_jolma/public_repos/tikv/target/aarch64-apple-darwin/debug/build/libz-sys-6edfb38afa7c13bc/out/build' not found\r\n          Undefined symbols for architecture arm64:\r\n            \"snappy::RawCompress(char const*, unsigned long, char*, unsigned long*, snappy::CompressionOptions)\", referenced from:\r\n                rocksdb::CompressData(rocksdb::Slice const&, rocksdb::CompressionInfo const&, unsigned int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) in liblibrocksdb_sys-79e2de192cd9caa6.rlib[14](blob_file_builder.cc.o)\r\n          ld: symbol(s) not found for architecture arm64\r\n          clang: error: linker command failed with exit code 1 (use -v to see invocation)\r\n          \r\n\r\nerror: could not compile `tikv-ctl` (bin \"tikv-ctl\") due to 1 previous error\r\n```\r\n\r\nOther information of my system in case it helps:\r\n\r\n% git --version\r\ngit version 2.45.0\r\n\r\n% rustup --version\r\nrustup 1.27.1 (2024-04-24)\r\ninfo: This is the version for the rustup toolchain manager, not the rustc compiler.\r\ninfo: The currently active `rustc` version is `rustc 1.67.0-nightly (96ddd32c4 2022-11-14)`\r\n\r\n% make --version\r\nGNU Make 3.81\r\nCopyright (C) 2006  Free Software Foundation, Inc.\r\nThis is free software; see the source for copying conditions.\r\nThere is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A\r\nPARTICULAR PURPOSE.\r\n\r\nThis program built for i386-apple-darwin11.3.0\r\n\r\n% cmake --version\r\ncmake version 3.29.3\r\n\r\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\r\n\r\n% awk --version\r\nawk version 20200816\r\n\r\n% protoc --version\r\nlibprotoc 26.1",
+  "state": "open",
+  "created_at": "2024-05-17T19:45:14Z",
+  "updated_at": "2024-11-13T03:49:16Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": []
+}

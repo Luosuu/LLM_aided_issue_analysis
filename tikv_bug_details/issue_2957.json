@@ -1,0 +1,20 @@
+{
+  "issue_number": 2957,
+  "title": "test: test failpoints_cases::test_snap::test_generate_snapshot failed ",
+  "body": "```\r\nt ... thread 'failpoints_cases::test_snap::test_generate_snapshot' panicked at 'the directory \"/tmp/test_cluster.rpD6cOfGOSRM\" should be empty', tests/failpoints_cases/test_snap.rs:242:5\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:68\r\n             at libstd/sys_common/backtrace.rs:57\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:380\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:396\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:576\r\n   5: std::panicking::begin_panic\r\n             at libstd/panicking.rs:537\r\n   6: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:521\r\n   7: failpoints::failpoints_cases::test_snap::must_empty_dir\r\n             at tests/failpoints_cases/test_snap.rs:242\r\n   8: failpoints::failpoints_cases::test_snap::test_generate_snapshot\r\n             at tests/failpoints_cases/test_snap.rs:220\r\n   9: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1440\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:817\r\n  10: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:102\r\n```",
+  "state": "closed",
+  "created_at": "2018-04-16T14:18:36Z",
+  "updated_at": "2018-08-07T00:47:40Z",
+  "closed_at": "2018-06-05T07:08:55Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 381617827,
+      "user": "hicqu",
+      "created_at": "2018-04-16T14:26:06Z",
+      "body": "Seems max wait 1 seconds is not enough here. I will try to increase it to fix this."
+    }
+  ]
+}

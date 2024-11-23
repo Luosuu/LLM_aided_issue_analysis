@@ -1,0 +1,60 @@
+{
+  "issue_number": 11157,
+  "title": "Incorrect snapshot state count if an error occurs on receiving snapshot",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nv5.0.1. Later TiKV until at lease v5.3 should also be affected.\r\n\r\n### What operating system and CPU are you using?\r\n\r\nNot related.\r\n\r\n### Steps to reproduce\r\n\r\nInject network abnormity to one TiKV instance in the cluster while some snapshots are sending.\r\n\r\n### What did you expect?\r\n\r\nThe other TiKV instances with no network issues will work well.\r\n\r\n### What did happened?\r\n\r\nPD will not produce operators to these normal nodes because of too many \"receiving\" snapshot.\r\n\r\nHere is the snapshot metrics of a node without network issues. Its snapshot count in \"receiving\" state is incorrect.\r\n\r\n![image](https://user-images.githubusercontent.com/17217495/139039461-079bb8ba-c0c9-48ef-8c21-67329f52090d.png)",
+  "state": "closed",
+  "created_at": "2021-10-27T09:33:45Z",
+  "updated_at": "2022-01-18T11:18:30Z",
+  "closed_at": "2021-11-12T08:39:00Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/automation",
+    "affects-5.1",
+    "affects-5.2"
+  ],
+  "comments_data": [
+    {
+      "id": 952729904,
+      "user": "sticnarf",
+      "created_at": "2021-10-27T09:36:13Z",
+      "body": "I notice there are some \"failed to recv snapshot\" logs when the issue happens.\r\n\r\n```\r\n[2021/10/23 12:21:22.115 +00:00] [ERROR] [snap.rs:367] [\"failed to recv snapshot\"] [err=RemoteStopped]\r\n```\r\n\r\nAfter reading the related code, I think the problem is at https://github.com/tikv/tikv/blob/ef08f38d32428d149123dd525c004a700c030ed3/src/server/snap.rs#L267-L295\r\n\r\n`SnapEntry::Receiving` is registered at the beginning and it is deregistered at the end. But if a network error occurs during the process, the deregistration will be missed. I think that's why the snapshot state count is incorrect."
+    },
+    {
+      "id": 960859701,
+      "user": "Lily2025",
+      "created_at": "2021-11-04T12:55:21Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 964000206,
+      "user": "Lily2025",
+      "created_at": "2021-11-09T10:09:07Z",
+      "body": "/severity Critical "
+    },
+    {
+      "id": 964000538,
+      "user": "Lily2025",
+      "created_at": "2021-11-09T10:09:29Z",
+      "body": "/remove-severity major"
+    },
+    {
+      "id": 964003992,
+      "user": "Lily2025",
+      "created_at": "2021-11-09T10:13:38Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 966122852,
+      "user": "sticnarf",
+      "created_at": "2021-11-11T09:13:26Z",
+      "body": "Should also be closed by https://github.com/tikv/tikv/pull/11342"
+    },
+    {
+      "id": 966921548,
+      "user": "nolouch",
+      "created_at": "2021-11-12T08:39:00Z",
+      "body": "resolved by #11342"
+    }
+  ]
+}

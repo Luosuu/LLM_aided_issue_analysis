@@ -1,0 +1,32 @@
+{
+  "issue_number": 3721,
+  "title": "tikv does not handle ambiguous time zones correctly",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\n\r\nN/A.  Using a binary.\r\n\r\n**What operating system and CPU are you using?**\r\n\r\nDebian / Intel\r\n\r\n**What did you do?**\r\n\r\nUsing the [bikeshare sample database](https://pingcap.com/docs/bikeshare-example-database/) for TiDB:\r\n```\r\nmysql> delete from trips where start_date < '2017-01-01 00:00:00';\r\nERROR 1105 (HY000): other error: unknown error StringError(\"[src/coprocessor/dag/executor/mod.rs:239]: unknown error StringError(\\\"[src/coprocessor/codec/mysql/time/mod.rs:95]: \\\\\\'2010-11-7 1:0:8.000000000\\\\\\' is not a valid datetime\\\")\")\r\n```\r\n\r\n**What did you expect to see?**\r\n\r\nSuccess.\r\n\r\n**What did you see instead?**\r\n\r\nIn https://github.com/pingcap/tidb/issues/7768 @breeswish confirmed that this issue is related to time zones.  I see it as a common issue, since anyone with a system time that has DST could experience it at some point.\r\n",
+  "state": "closed",
+  "created_at": "2018-10-28T19:39:53Z",
+  "updated_at": "2018-11-16T11:23:21Z",
+  "closed_at": "2018-11-16T11:23:21Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 433781436,
+      "user": "breezewish",
+      "created_at": "2018-10-29T03:57:50Z",
+      "body": "Thanks a lot for reporting. This is a known issue and we don't have a near plan to fix it. Let's keep this issue open so that others will know."
+    },
+    {
+      "id": 435086734,
+      "user": "morgo",
+      "created_at": "2018-11-01T15:52:27Z",
+      "body": "Thanks @breeswish.  For TiDB, we will have to consider how to document it.  It might be worth putting it on the [MySQL Compatibility](https://www.pingcap.com/docs/sql/mysql-compatibility/) page."
+    },
+    {
+      "id": 435306245,
+      "user": "breezewish",
+      "created_at": "2018-11-02T08:28:39Z",
+      "body": "@morgo Right. I planned to do it but forgot it 🤣 Thanks a lot for your issue!"
+    }
+  ]
+}

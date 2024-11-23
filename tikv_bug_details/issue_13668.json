@@ -1,0 +1,36 @@
+{
+  "issue_number": 13668,
+  "title": "tikv panic due to corrupted raft message",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv5.4.1\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n![image](https://user-images.githubusercontent.com/5196885/197696618-5b36b871-5c47-4fac-9826-b7236ca0978c.png)\r\n\r\nAfter the first panic, tikv panic consistantly and can't recovery by itself.\r\n\r\nA similar issue in asktug:\r\n\r\nhttps://asktug.com/t/topic/842878\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2022-10-25T06:18:46Z",
+  "updated_at": "2023-11-28T09:04:10Z",
+  "closed_at": "2023-11-28T09:04:09Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1717102803,
+      "user": "glorv",
+      "created_at": "2023-09-13T07:35:38Z",
+      "body": "downgrade to minor because it is not recur. And it's more likely to be a hardware issue."
+    },
+    {
+      "id": 1829381303,
+      "user": "glorv",
+      "created_at": "2023-11-28T09:04:09Z",
+      "body": "After meeting this issue several times, we found the root cause were all corrupted data caused by memory bit flip. So this should be a hardware issue instead of a bug. So I'm going to close this issue and feel free to reopen it if needed."
+    }
+  ]
+}

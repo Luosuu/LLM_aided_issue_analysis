@@ -1,0 +1,45 @@
+{
+  "issue_number": 4005,
+  "title": "Gabage outputs in tests",
+  "body": "## Bug Report\r\n\r\nDuring test, the following messages are outputed:\r\n\r\n```\r\nthread 0: no corresponding DEFAULT record for LOCK, key: k1\\000\\000\\000\\000\\000\\000\\371, lock_ts: 100\r\nthread 0: LOCK ts is less than WRITE ts, key: k5\\000\\000\\000\\000\\000\\000\\371, lock_ts: 100, commit_ts: 101\r\nthread 0: orphan DEFAULT record, key: k6\\000\\000\\000\\000\\000\\000\\371, start_ts: 96\r\nthread 0: no corresponding DEFAULT record for WRITE, key: k6\\000\\000\\000\\000\\000\\000\\371, start_ts: 92, commit_ts: 93\r\nthread 0: orphan DEFAULT record, key: k6\\000\\000\\000\\000\\000\\000\\371, start_ts: 90\r\nthread 0: orphan DEFAULT record, key: k6\\000\\000\\000\\000\\000\\000\\371, start_ts: 88\r\nthread 0: LOCK ts is less than WRITE ts, key: k7\\000\\000\\000\\000\\000\\000\\371, lock_ts: 100, commit_ts: 100\r\nthread 0: no corresponding DEFAULT record for WRITE, key: k7\\000\\000\\000\\000\\000\\000\\371, start_ts: 99, commit_ts: 100\r\nthread 0: orphan DEFAULT record, key: k7\\000\\000\\000\\000\\000\\000\\371, start_ts: 98\r\nthread 0: orphan DEFAULT record, key: k7\\000\\000\\000\\000\\000\\000\\371, start_ts: 90\r\n```",
+  "state": "closed",
+  "created_at": "2019-01-02T14:16:18Z",
+  "updated_at": "2019-01-14T01:05:53Z",
+  "closed_at": "2019-01-14T01:05:52Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench"
+  ],
+  "comments_data": [
+    {
+      "id": 451035491,
+      "user": "zhangjinpeng87",
+      "created_at": "2019-01-03T01:28:24Z",
+      "body": "@MyonKeminta seems you add `println!` in test code? Please clean up them."
+    },
+    {
+      "id": 451040713,
+      "user": "MyonKeminta",
+      "created_at": "2019-01-03T02:12:40Z",
+      "body": "It's tikv-ctl's output messages. It seems I need to add a switch to control whether these messages should be printed out."
+    },
+    {
+      "id": 451087247,
+      "user": "breezewish",
+      "created_at": "2019-01-03T09:08:11Z",
+      "body": "@MyonKeminta How about making everything printed by log?"
+    },
+    {
+      "id": 451087922,
+      "user": "MyonKeminta",
+      "created_at": "2019-01-03T09:11:47Z",
+      "body": "@breeswish After unifying log format, I'm afraid tikv-ctl's output message won't be very friendly to human if so..."
+    },
+    {
+      "id": 451088111,
+      "user": "breezewish",
+      "created_at": "2019-01-03T09:12:49Z",
+      "body": "Looks like it should be printed as unified *key* format 🤔?"
+    }
+  ]
+}

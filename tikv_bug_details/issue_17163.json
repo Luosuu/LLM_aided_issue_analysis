@@ -1,0 +1,20 @@
+{
+  "issue_number": 17163,
+  "title": "In-memory Engine: SELECT command denied to user 'root'@'%",
+  "body": "## Bug Report\r\n\r\nThe root user cannot log in to TiDB during benchmarking of the In-Memory Engine (IME).\r\n\r\nIt appears that IME loads system tables into the cache and somehow discards records, causing TiDB to be unable to read the root user's record.\r\n\r\nAfter restart TiDB and TiKV, the issue is gone.\r\n\r\nLogs from TiDB:\r\n\r\n```log\r\n[2024/06/17 21:38:32.654 +00:00] [WARN] [pd.go:168] [\"get timestamp too slow\"] [conn=3234035662] [session_alias=] [\"cost time\"=47.319333ms]\r\n[2024/06/17 21:38:32.761 +00:00] [INFO] [executor.go:1416] [\"limit executor close takes a long time\"] [elapsed=1.012343ms]\r\n[2024/06/17 21:38:34.397 +00:00] [INFO] [executor.go:1416] [\"limit executor close takes a long time\"] [elapsed=7.453043ms]\r\n[2024/06/17 21:38:34.813 +00:00] [WARN] [session.go:2116] [\"compile SQL failed\"] [conn=3234037214] [session_alias=] [error=\"[planner:1142]SELECT command denied to user 'root'@'%' for table 'stock'\"] [SQL=\"UPDATE stock SET s_quantity = ?, s_ytd = s_ytd + ?, s_order_cnt = s_order_cnt + 1, s_remote_cnt = s_remote_cnt + ? WHERE s_i_id = ? AND s_w_id = ?\"]\r\n[2024/06/17 21:38:34.813 +00:00] [WARN] [session.go:2116] [\"compile SQL failed\"] [conn=3234036294] [session_alias=] [error=\"[planner:1142]INSERT command denied to user 'root'@'%' for table 'order_line'\"] [SQL=\"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)\"]\r\n[2024/06/17 21:38:34.813 +00:00] [WARN] [session.go:2116] [\"compile SQL failed\"] [conn=3234036388] [session_alias=] [error=\"[planner:1142]SELECT command denied to user 'root'@'%' for table 'customer'\"] [SQL=\"SELECT c_id FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ? ORDER BY c_first\"]\r\n[2024/06/17 21:38:34.813 +00:00] [WARN] [session.go:2116] [\"compile SQL failed\"] [conn=3234037070] [session_alias=] [error=\"[planner:1142]SELECT command denied to user 'root'@'%' for table 'stock'\"] [SQL=\"UPDATE stock SET s_quantity = ?, s_ytd = s_ytd + ?, s_order_cnt = s_order_cnt + 1, s_remote_cnt = s_remote_cnt + ? WHERE s_i_id = ? AND s_w_id = ?\"]\r\n...\r\n[2024/06/17 21:40:01.121 +00:00] [WARN] [gc_worker.go:274] [\"check leader\"] [category=\"gc worker\"] [error=\"[kv:1062]Duplicate entry 'tikv_gc_leader_uuid' for key 'tidb.PRIMARY'\"]\r\n...\r\n[2024/06/17 21:42:16.098 +00:00] [INFO] [refresher.go:120] [\"No table to analyze\"] [category=stats]\r\n```\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nNightly, built on https://github.com/tikv/tikv/pull/16868 https://github.com/tikv/tikv/commit/83a419d956cf808ee84c29c37c3e39de627e43b0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nTiKV Config\r\n\r\n```toml\r\n[range-cache-engine]\r\n  enabled = true\r\n  hard-limit-threshold = \"8GB\"\r\n  soft-limit-threshold = \"5GB\"\r\n```\r\n\r\nTPCC commands\r\n\r\n```bash\r\n/root/.tiup/components/bench/v1.12.0/go-tpc \\\r\n    tpcc prepare \\\r\n    -H $HOST -P $PORT \\\r\n    -D tpcc50 --warehouses 50 -T 100\r\n```\r\n\r\n\r\n### What did you expect?\r\n\r\nNo such error.\r\n",
+  "state": "closed",
+  "created_at": "2024-06-18T07:26:48Z",
+  "updated_at": "2024-09-04T06:28:49Z",
+  "closed_at": "2024-09-04T06:28:49Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2328020816,
+      "user": "overvenus",
+      "created_at": "2024-09-04T06:28:49Z",
+      "body": "In the past month, we've run extensive TPCC tests, and the bug has not reoccurred. It’s likely been fixed by #17261 and #17288."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "issue_number": 8661,
+  "title": "UnsafeDestroyRange may cause panic for a concurrent generating snap when Titan enabled",
+  "body": "When Titan enabled, after doing deletefiles(deleteblobfiles), iterating on the deleted range may encounter `MissingBlobFile` error. So we set a special `key_only` for Titan when doing the scan-delete.\r\n\r\nWhereas, if there is a concurrent generating snap process, it will encounter the `MissingBlobFile` error and panic in final after trying 5 times. So it's better to delete blob files in the range after TiKV finishing scan-delete on that range.",
+  "state": "closed",
+  "created_at": "2020-09-14T07:09:17Z",
+  "updated_at": "2020-09-21T10:13:29Z",
+  "closed_at": "2020-09-21T10:13:29Z",
+  "labels": [
+    "type/bug",
+    "status/discussion",
+    "sig/engine",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 692259686,
+      "user": "yiwu-arbug",
+      "created_at": "2020-09-14T19:18:13Z",
+      "body": "How could it have concurrent snapshoting, after delete range issued?"
+    },
+    {
+      "id": 692479171,
+      "user": "Connor1996",
+      "created_at": "2020-09-15T05:46:08Z",
+      "body": "Cause `UnsafeDestroyRange` doesn't go through the Raft, whereas it is called by TiDB directly. So it's possible that there is a concurrent snapshot generation issued by Raft."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "issue_number": 15142,
+  "title": "rawkv: `ttl-check-poll-interval` does not take effect on RawKV API v2",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster (c27b43018ca83bd4103abf627c50293b841396bd)\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1. Set [`storage.ttl-check-poll-interval`](https://docs.pingcap.com/tidb/stable/tikv-configuration-file#ttl-check-poll-interval) to `24h`.\r\n2. Put RawKV data with TTL of 7 days and incremental keys. Data size is generally similar everyday.\r\n\r\n### What did you expect?\r\n\r\nSize of storage is approximately equal for every 7 days.\r\n\r\n### What did happened?\r\n\r\nSize of storage keeps increasing.",
+  "state": "closed",
+  "created_at": "2023-07-17T10:28:50Z",
+  "updated_at": "2023-07-28T06:40:05Z",
+  "closed_at": "2023-07-18T11:38:17Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

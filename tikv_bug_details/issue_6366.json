@@ -1,0 +1,14 @@
+{
+  "issue_number": 6366,
+  "title": "Two overlapped snapshot may be applied together which may cause panic or loss of data",
+  "body": "Theoretically, the pending_snapshot_region and region_ranges in StoreMeta should prevent overlapped snapshots.\r\nBut it is problematic sometimes.\r\n\r\nAt each end of raftstore's batch, the received snapshot region ids in this batch are removed from pending_snapshot_regions.\r\nMost of the time, this removed region will be updated to region_ranges, so it can still prevent overlapped snapshots.\r\n\r\nHowever, a pending snapshot may not be handled for some reason. e.g. waiting for its source region to destroy.\r\nIn this case, this snapshot's region range is larger than the original range and is not updated to region_ranges.\r\n\r\nAfter its source region is destroyed, another overlapped snapshot B is received. (overlap with its source region and maybe from a new peer)\r\nTwo overlapped snapshot will be applied together and break the data in this range.\r\nIt may cause some serious problems. e.g. panic, loss of data.\r\n\r\nThe simple fix method is just remove handled snapshot region id not all received snapshot region id in this batch.",
+  "state": "closed",
+  "created_at": "2019-12-29T09:56:51Z",
+  "updated_at": "2020-06-09T07:50:17Z",
+  "closed_at": "2020-06-09T07:50:17Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": []
+}

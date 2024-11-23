@@ -1,0 +1,106 @@
+{
+  "issue_number": 11960,
+  "title": "report “9005: Region is unavailable” while inject network loss fault for one tikv or down one of tikv or tikv rolling restart",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/02/11 10:00:30.685 +08:00] [INFO] [client.go:338] [\"Cluster version information\"] [type=tidb] [version=5.5.0-nightly] [git_hash=fe0f1eadc27d0419fccb0350e197153fce66aa30]\r\n[2022/02/11 10:00:30.685 +08:00] [INFO] [client.go:338] [\"Cluster version information\"] [type=tikv] [version=5.4.0-alpha] [git_hash=51b310c97127fbb739bd3668b88618a48e625d67]\r\n[2022/02/11 10:00:30.685 +08:00] [INFO] [client.go:338] [\"Cluster version information\"] [type=pd] [version=5.5.0-nightly] [git_hash=ea69785a9fcf8322c6d76fe6b53362858db6c2b4]\r\n\r\n### What operating system and CPU are you using?\r\n8core 16G\r\n3PD、4 TiKV、2TiDB\r\n\r\n### Steps to reproduce\r\n1、[2022/02/11 10:00:30.758 +08:00] [INFO] [cmd.go:124] [\"Start remote command\"] [cmd=\"sysbench --mysql-user=root --db-driver=mysql --time=0 --report-interval=10 --mysql-db=test --mysql-host=tc-tidb.endless-oltp-tps-632503-1-16 --mysql-port=4000 --threads=512 --tables=32 --table-size=10000000 --mysql-ignore-errors=2013,1213,1105,1205,8022,8027,8028,9004,9007,1062 --rand-type=pareto oltp_insert run\"]\r\n2、[2022/02/11 10:11:30.785 +08:00] [INFO] [chaos.go:358] [\"fault will last for\"] [duration=8m0s]\r\n[2022/02/11 10:11:30.788 +08:00] [INFO] [chaos.go:86] [\"Run chaos\"] [name=network-loss] [selectors=\"[endless-oltp-tps-632503-1-16/tc-tikv-0]\"] [experiment=\"{\\\"Duration\\\":\\\"\\\",\\\"Scheduler\\\":null,\\\"Loss\\\":\\\"98\\\",\\\"Correlation\\\":\\\"25\\\"}\"]\r\n\r\n### What did you expect?\r\nworkload run normally\r\n\r\n### What did happened?\r\n[2022/02/11 10:13:09.219 +08:00] [INFO] [workload.go:471] [\"FATAL: mysql_drv_query() returned error 9005 (Region is unavailable) for query 'INSERT INTO sbtest21 (id, k, c, pad) VALUES (0, 3465004, '06904708476-21731958734-49342599875-60666203622-28210608406-10230894816-49543325076-22302034518-72011945624-31380545861', '36173358168-86330353660-84574631422-11763429180-21879847611')'\\r\\n\"]\r\n\r\n\r\nns：endless-oltp-tps-632503-1-16\r\nlogs：http://minio.pingcap.net:42041/buckets/test-infra-testground/browse/YXJjaGl2ZS9lbmRsZXNzLW9sdHAtdHBzLTYzMjUwMy0xLTE2",
+  "state": "open",
+  "created_at": "2022-02-11T07:46:08Z",
+  "updated_at": "2024-11-01T10:02:15Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1035951786,
+      "user": "Lily2025",
+      "created_at": "2022-02-11T07:46:22Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1035951839,
+      "user": "Lily2025",
+      "created_at": "2022-02-11T07:46:28Z",
+      "body": " /found automation"
+    },
+    {
+      "id": 1035952062,
+      "user": "Lily2025",
+      "created_at": "2022-02-11T07:46:51Z",
+      "body": "/assign NingLin-P"
+    },
+    {
+      "id": 1035952203,
+      "user": "Lily2025",
+      "created_at": "2022-02-11T07:47:08Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1035953635,
+      "user": "Lily2025",
+      "created_at": "2022-02-11T07:49:51Z",
+      "body": " /found automation"
+    },
+    {
+      "id": 1035954300,
+      "user": "Lily2025",
+      "created_at": "2022-02-11T07:51:03Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1035965983,
+      "user": "NingLin-P",
+      "created_at": "2022-02-11T08:12:57Z",
+      "body": "From the log of region 13521, the store of the original leader is possibly the one that had injected network error, because other peers can't receive its message. \r\n\r\nPeer 13522 have triggered election a few time but never get the vote from peer 13535, peer 13535 rejected vote request because `lease is not expired` even though the interval between vote request already exceeds the min-election timeout 10s. \r\n\r\nWe can also notice that peer 13535 is applying snapshot when it receives the vote request, and only after it finishes applying snapshot, it begin response vote request (even start election) and vote for peer 13522 in the next election help 13522 become the new leader.\r\n\r\nThe case is likely caused by the following code:\r\nhttps://github.com/tikv/tikv/blob/17402e0c3a8d59fea5335de9738b2100e45f314d/components/raftstore/src/store/fsm/peer.rs#L1399-L1413\r\n\r\nwhere peer applying snapshot will skip `raft_group.tick()`, thus it will not start election itself but also may not vote for other peers due to `lease is not expired` and namely making the peer unvailable. /cc @BusyJay @gengliqi "
+    },
+    {
+      "id": 1036028797,
+      "user": "BusyJay",
+      "created_at": "2022-02-11T09:44:27Z",
+      "body": "This is somewhat expected to me. When a node is applying snapshot, then it should be considered in an unhealthy state. If another peer is isolated from the group, then there will be only one healthy peer in the 3 members, so it should be unavailable.\r\n\r\nOf course, we can make it respond to vote requests and elect a leader in this case. But the new leader can't make further progress because there is no healthy majority."
+    },
+    {
+      "id": 1038615221,
+      "user": "cfzjywxk",
+      "created_at": "2022-02-14T04:09:07Z",
+      "body": "If the returned error is `NotLeader`, the kv client will retry until the max bacoff time is exceeded and the `Region is unavailable` error is returnd to the user. For example the prewrite max backoff time is `40s` by default.\r\nIt will be different if the leader is elected but it could not serve the request immediately, the kv client could not get the response in time and the request sender will keep retrying. The user may think the query is slow but would not get an error response quickly."
+    },
+    {
+      "id": 1038795602,
+      "user": "BusyJay",
+      "created_at": "2022-02-14T08:30:23Z",
+      "body": "> ..the kv client could not get the response in time and the request sender will keep retrying..\r\n\r\nI don't get it. For example, the new leader returns error TooBusy, what's the behavior of client?"
+    },
+    {
+      "id": 1038819323,
+      "user": "cfzjywxk",
+      "created_at": "2022-02-14T08:57:34Z",
+      "body": "> > ..the kv client could not get the response in time and the request sender will keep retrying..\r\n> \r\n> I don't get it. For example, the new leader returns error TooBusy, what's the behavior of client?\r\n\r\n@BusyJay \r\nIf the returned error is `TooBusy`, the backoff time will be [excluded](https://github.com/tikv/client-go/pull/271) counting `maxBackoffTime`. The kv client will regard it as a recoverable error.  The `NoLeader` error will be [counted](https://github.com/tikv/client-go/blob/master/internal/locate/region_request.go#L801) thus the user will get an error response after `maxBackoff` time. There are some differences in processing different error types."
+    },
+    {
+      "id": 1271994109,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T19:03:14Z",
+      "body": "/cc cosven"
+    },
+    {
+      "id": 1272210526,
+      "user": "cosven",
+      "created_at": "2022-10-08T03:14:25Z",
+      "body": "/assign @cosven "
+    }
+  ]
+}

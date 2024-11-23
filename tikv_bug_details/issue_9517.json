@@ -1,0 +1,22 @@
+{
+  "issue_number": 9517,
+  "title": "Local reader delegate keeps stale ID",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nNightly 95951d04e6e8c0bb267c6a5591fb336ed5483b41\r\n\r\n### Steps to reproduce\r\nDeploy a cluster with at least four TiKV nodes and enable shuffle scheduling.\r\nKill a node randomly and check if all tables can be accessed and then restart it.\r\n\r\n### What did you expect?\r\nThe operation can be repeated infinitely.\r\n\r\n### What did happened?\r\nTiDB keeps failing with error region unavailable.\r\n\r\nThe detail error is \"mismatch peer id 4519007 != 4513038\". From the code we can see that 4513038 is the delegate id.\r\n\r\nhttps://github.com/tikv/tikv/blob/d9405c71878f70a315ee7550764ccfcaf324d0ef/components/raftstore/src/store/util.rs#L334-L345\r\n\r\nAnd from the TiKV log, 4513038 is removed and then 4519007 is readded on the same node. So there should be bugs that delegate ID is not updated correctly.\r\n",
+  "state": "closed",
+  "created_at": "2021-01-18T07:35:54Z",
+  "updated_at": "2021-01-20T15:53:43Z",
+  "closed_at": "2021-01-20T15:53:43Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 762068824,
+      "user": "BusyJay",
+      "created_at": "2021-01-18T08:14:27Z",
+      "body": "From logs, 4513038 has applied snapshot twice. It's possible that after first snapshot, read delegate is initialized and saved into local readers. The second snapshot creates a new read delegate and replace the first one directly without any notification. If there is no read requests until configuration changes, local readers have no chance to detect the delegate is stale, hence no chance to clean it up.\r\n\r\n```\r\n[2021/01/17 11:00:24.423 +08:00] [INFO] [raft_log.rs:531] [\"log [committed=0, persisted=0, applied=0, unstable.offset=1, unstable.entries.len()=0] starts to restore snapshot [index: 3635738, term: 5114]\"] [snapshot_term=5114] [snapshot_index=3635738] [log=\"committed=0, persisted=0, applied=0, unstable.offset=1, unstable.entries.len()=0\"] [raft_id=4513038] [region_id=596]\r\n[2021/01/17 11:01:42.787 +08:00] [INFO] [raft_log.rs:531] [\"log [committed=3635776, persisted=3635776, applied=3635776, unstable.offset=3635777, unstable.entries.len()=0] starts to restore snapshot [index: 3635990, term: 5115]\"] [snapshot_term=5115] [snapshot_index=3635990] [log=\"committed=3635776, persisted=3635776, applied=3635776, unstable.offset=3635777, unstable.entries.len()=0\"] [raft_id=4513038] [region_id=596]\r\n```"
+    }
+  ]
+}

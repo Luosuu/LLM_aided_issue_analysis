@@ -1,0 +1,36 @@
+{
+  "issue_number": 17270,
+  "title": "tikv stability: qps drop 67% when one of tiflash recovers from failure due to high cpu of raftstore",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   8.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   0b97a39d520afcd82a02d0f5c0966d6ccab2cd74\r\nGit Commit Branch: heads/refs/tags/v8.2.0-alpha\r\nUTC Build Time:    2024-07-09 11:37:31\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n2024-07-12T02:21:55.707+0800\t\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run ch\r\n2、simulate one of tiflash failure last for 50mins\r\n\r\n### What did you expect?\r\nqps jitter should not be obvious\r\n\r\n### What did happened?\r\nqps drop 67% when one of tiflash recovers from failure\r\n![img_v3_02cn_2ecf43d3-d6d5-45cd-a67f-8359d2b6d56g](https://github.com/user-attachments/assets/77c6ad2a-f25f-4303-9eef-2242729c5284)\r\n\r\n![img_v3_02cn_96588e4d-43bd-4dcf-b341-cc49d6a146bg](https://github.com/user-attachments/assets/6ff9453d-543e-4214-994f-fe34db07161a)\r\n![img_v3_02cn_d6fdaf33-cbc2-4cf6-bb0f-2af6eb88b35g](https://github.com/user-attachments/assets/92493483-fc84-4efc-a002-957f55287c0c)\r\n![img_v3_02cn_9fbea9bd-8a88-492c-a40e-79060d1f9fcg](https://github.com/user-attachments/assets/139d7d18-bfb6-43b0-aed3-7a3125205aad)\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-07-12T08:07:07Z",
+  "updated_at": "2024-11-12T08:15:32Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "severity/moderate",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "impact/perf-jitter",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2225051104,
+      "user": "Lily2025",
+      "created_at": "2024-07-12T08:08:14Z",
+      "body": "/type enhancement"
+    },
+    {
+      "id": 2225055414,
+      "user": "Lily2025",
+      "created_at": "2024-07-12T08:10:52Z",
+      "body": "/impact perf-jitter"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "issue_number": 9733,
+  "title": "Random crashes with \"Uniform::sample_single called with low >= high\" after update to 4.0.11",
+  "body": "## Bug Report\r\n\r\nWe have occasional (happens every couple of hours) and random Tikv crashes after updating to 4.0.11. It happens to all our nodes, but it seems like they just restart and continue working. \r\n\r\nThis seems to be the line were Tikv crashes:\r\n\r\n```\r\nMar 02 07:23:23 tikv-server[44670]: [2021/03/02 07:23:16.734 +00:00] [FATAL] [lib.rs:482] [\"Uniform::sample_single called with low >= high\"] [backtrace=\"stack backtrace:\\n\r\n   0: tikv_util::set_panic_hook::{{closure}}\\n\r\n             at components/tikv_util/src/lib.rs:481\\n\r\n   1: std::panicking::rust_panic_with_hook\\n\r\n             at src/libstd/panicking.rs:475\\n\r\n   2: std::panicking::begin_panic\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panicking.rs:404\\n\r\n   3: <rand::distributions::uniform::UniformInt<usize> as rand::distributions::uniform::UniformSampler>::sample_single\\n\r\n             at /home/jenkins/agent/workspace/build_tikv_multi_branch_v4.0.11/tikv/<::std::macros::panic macros>:3\\n\r\n      rand::Rng::gen_range\\n\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/rand-0.6.5/src/lib.rs:245\\n\r\n   4: raftstore::store::worker::split_controller::sample\\n\r\n             at components/raftstore/src/store/worker/split_controller.rs:86\\n\r\n      raftstore::store::worker::split_controller::AutoSplitController::flush\\n\r\n             at components/raftstore/src/store/worker/split_controller.rs:375\\n\r\n   5: raftstore::store::worker::pd::StatsMonitor::start::{{closure}}\\n\r\n             at components/raftstore/src/store/worker/pd.rs:342\\n\r\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/sys_common/backtrace.rs:136\\n\r\n   6: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}}\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/thread/mod.rs:469\\n\r\n      <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panic.rs:318\\n\r\n      std::panicking::try::do_call\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panicking.rs:292\\n\r\n      std::panicking::try\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8//src/libpanic_unwind/lib.rs:78\\n\r\n      std::panic::catch_unwind\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panic.rs:394\\n\r\n      std::thread::Builder::spawn_unchecked::{{closure}}\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/thread/mod.rs:468\\n\r\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libcore/ops/function.rs:232\\n\r\n   7: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/liballoc/boxed.rs:1022\\n\r\n   8: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\\n\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/liballoc/boxed.rs:1022\\n\r\n      std::sys_common::thread::start_thread\\n\r\n             at src/libstd/sys_common/thread.rs:13\\n\r\n      std::sys::unix::thread::Thread::new::thread_start\r\n```\r\n\r\n### What version of TiKV are you using?\r\n```\r\n$ tikv-server --version\r\nTiKV\r\nRelease Version:   4.0.11\r\nEdition:           Community\r\nGit Commit Hash:   4ac5e7ea1839d63163e911e2e1164d663f49592b\r\nGit Commit Branch: heads/refs/tags/v4.0.11\r\nUTC Build Time:    2021-02-26 07:44:32\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec\r\nProfile:           dist_release\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-03-02T08:40:06Z",
+  "updated_at": "2021-03-12T14:47:15Z",
+  "closed_at": "2021-03-12T14:47:15Z",
+  "labels": [
+    "type/bug",
+    "priority/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 788854175,
+      "user": "cosven",
+      "created_at": "2021-03-02T11:52:54Z",
+      "body": "This should be fixed by https://github.com/tikv/tikv/pull/9720. cc @lhy1024 "
+    },
+    {
+      "id": 789391465,
+      "user": "youjiali1995",
+      "created_at": "2021-03-03T03:03:59Z",
+      "body": "Is it a critical bug? How often does it happen?"
+    },
+    {
+      "id": 789648697,
+      "user": "nolouch",
+      "created_at": "2021-03-03T11:31:40Z",
+      "body": "cc @cosven , should the severity  same as https://github.com/pingcap/tidb/issues/22963?"
+    },
+    {
+      "id": 789686784,
+      "user": "fschoell",
+      "created_at": "2021-03-03T12:40:34Z",
+      "body": "> Is it a critical bug? How often does it happen?\r\n\r\nIt is not critically affecting our infrastructure at the moment. There's maybe one store crashing every 5 hours, but it gets automatically restarted on failure and always works after the restart again. But of course I don't know how other infrastructures might be impacted and whether those crashes could increase "
+    },
+    {
+      "id": 789687954,
+      "user": "lhy1024",
+      "created_at": "2021-03-03T12:42:45Z",
+      "body": "> > Is it a critical bug? How often does it happen?\r\n> \r\n> It is not critically affecting our infrastructure at the moment. There's maybe one store crashing every 5 hours, but it gets automatically restarted on failure and always works after the restart again. But of course I don't know how other infrastructures might be impacted and whether those crashes could increase\r\n\r\nI am very sorry for it. You may skip it by `set config tikv split.qps-threshold=100000;`"
+    },
+    {
+      "id": 797534716,
+      "user": "nolouch",
+      "created_at": "2021-03-12T14:46:04Z",
+      "body": "We plan to release v4.0.12 recently, thanks for your report."
+    }
+  ]
+}

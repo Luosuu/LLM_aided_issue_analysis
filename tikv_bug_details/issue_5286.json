@@ -1,0 +1,104 @@
+{
+  "issue_number": 5286,
+  "title": "unknown field `import-dir`, expected `num-threads` or `stream-channel-window` for key `import`",
+  "body": "## Bug Report\r\nwhen upgrade 2.14 to master there are errors in tikv's log\r\n**What did you expect to see?**\r\nupgrade success\r\n**What did you see instead?**\r\n",
+  "state": "closed",
+  "created_at": "2019-08-15T08:29:48Z",
+  "updated_at": "2019-08-29T04:10:57Z",
+  "closed_at": "2019-08-29T04:10:57Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 521566428,
+      "user": "kennytm",
+      "created_at": "2019-08-15T08:50:55Z",
+      "body": "On 4.0 all unrecognized settings will cause failure to catch typo. All config not related to TiKV should be removed. In particular, in the `[import]` key **only** the following two keys are acceptable:\r\n\r\n```toml\r\n[import]\r\nnum-threads = 8\r\nstream-channel-window = 128\r\n```\r\n\r\nIf there are any other keys (probably due to mixing with TiKV Importer config), please remove them before upgrading."
+    },
+    {
+      "id": 522187981,
+      "user": "zhangjinpeng87",
+      "created_at": "2019-08-17T00:29:19Z",
+      "body": "@kennytm But the error shows stream-channel-window is unknown field, please investigate the root cause."
+    },
+    {
+      "id": 522207841,
+      "user": "kennytm",
+      "created_at": "2019-08-17T05:49:44Z",
+      "body": "@zhangjinpeng1987 The title isn't the real error message. Only zhouqiang knows the full error message but he didn't give it to me 😒 \r\n\r\n![IMG_2031](https://user-images.githubusercontent.com/103023/63207278-b8b68280-c0f5-11e9-9a75-26da06a6fcdc.JPG)\r\n\r\n"
+    },
+    {
+      "id": 522209563,
+      "user": "zhouqiang-cl",
+      "created_at": "2019-08-17T06:23:31Z",
+      "body": "@kennytm well, I did not have the message too,  I will try to reproduce it and then post it here"
+    },
+    {
+      "id": 522440774,
+      "user": "mahjonp",
+      "created_at": "2019-08-19T07:04:07Z",
+      "body": "The TiKV panicked when I tried to reproduce this issue. And I wonder why TiKV read last_tikv.toml when rolling update.\r\n\r\n```bash\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nthread 'main' panicked at 'invalid auto generated configuration file /data1/jenkins/deploy/data/last_tikv.toml, err unknown field `import-dir`, expected `num-threads` or `st\r\nream-channel-window` for key `import`', src/config.rs:1462:13\r\nstack backtrace:\r\n   0: backtrace::backtrace::libunwind::trace\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/libunwind.rs:88\r\n   1: backtrace::backtrace::trace_unsynchronized\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/mod.rs:66\r\n   2: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:47\r\n   3: std::sys_common::backtrace::print\r\n             at src/libstd/sys_common/backtrace.rs:36\r\n   4: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/panicking.rs:200\r\n   5: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:214\r\n   6: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:477\r\n   7: std::panicking::continue_panic_fmt\r\n             at src/libstd/panicking.rs:384\r\n   8: std::panicking::begin_panic_fmt\r\n             at src/libstd/panicking.rs:339\r\n   9: tikv::config::TiKvConfig::from_file::{{closure}}\r\n             at src/config.rs:1462\r\n  10: cmd::server::run_tikv\r\n             at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/libcore/result.rs:818\r\n  11: tikv_server::main\r\n             at cmd/src/bin/tikv-server.rs:143\r\n  12: std::rt::lang_start::{{closure}}\r\n             at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/libstd/rt.rs:64\r\n  13: main\r\n  14: __libc_start_main\r\n  15: <unknown>\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n```\r\n\r\n"
+    },
+    {
+      "id": 522445735,
+      "user": "mahjonp",
+      "created_at": "2019-08-19T07:21:04Z",
+      "body": "I find that check_and_persist_critical_config read last_tikv.toml and the panic may come from here. @kennytm "
+    },
+    {
+      "id": 522534642,
+      "user": "zhouqiang-cl",
+      "created_at": "2019-08-19T11:45:43Z",
+      "body": "@zhangjinpeng1987 already reproduce. It is beacuse screenshot not full. @cwen , we also need to verify the last_tikv.toml"
+    },
+    {
+      "id": 523667158,
+      "user": "kennytm",
+      "created_at": "2019-08-21T22:03:39Z",
+      "body": "On TiDB an unknown field will cause *warning* by default, unless a \"strict mode\" flag is enabled. \r\n\r\nThis \"strict mode\" toggle cannot be implemented in TiKV yet, since `#[serde(deny_unknown_fields)]` is a compile-time attribute which will drop the entire parsed value on error.  We'll see something like serde-rs/serde#1609 to reach parity with TiDB."
+    },
+    {
+      "id": 524180357,
+      "user": "breezewish",
+      "created_at": "2019-08-23T05:42:34Z",
+      "body": "@BusyJay @kennytm Do we need to revert commit https://github.com/tikv/tikv/commit/034379605e8805c2ce2016903e21e3bd0521f64e ? We have last_tikv configuration, which definitely may contain deleted fields. This will cause upgrade failure."
+    },
+    {
+      "id": 524376575,
+      "user": "kennytm",
+      "created_at": "2019-08-23T16:20:52Z",
+      "body": "(We didn't backport #5190 to 3.0, so we have plenty of time to decide 😉)"
+    },
+    {
+      "id": 524554228,
+      "user": "breezewish",
+      "created_at": "2019-08-24T14:25:56Z",
+      "body": "@kennytm Yup, that's why I bring the discussion in this issue, instead of in our ONCALL channel :)"
+    },
+    {
+      "id": 525260159,
+      "user": "breezewish",
+      "created_at": "2019-08-27T11:30:24Z",
+      "body": "@BusyJay @overvenus PTAL"
+    },
+    {
+      "id": 525262483,
+      "user": "overvenus",
+      "created_at": "2019-08-27T11:38:19Z",
+      "body": "I think the ideal solution should be printing a warning and then continue to deserialize when it meets an unknown field."
+    },
+    {
+      "id": 525262589,
+      "user": "BusyJay",
+      "created_at": "2019-08-27T11:38:39Z",
+      "body": "I agree that we should revert it until serde-rs/serde#1609 is fixed."
+    },
+    {
+      "id": 525550658,
+      "user": "zhouqiang-cl",
+      "created_at": "2019-08-28T01:53:54Z",
+      "body": "ping  @kennytm "
+    }
+  ]
+}

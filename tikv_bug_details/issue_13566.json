@@ -1,0 +1,14 @@
+{
+  "issue_number": 13566,
+  "title": "Sql mode constants are not consistent with TiDB",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/1f0b9bf70f2b91f85deb4a298ee74d06d1da0e9d/components/tidb_query_datatype/src/expr/ctx.rs#L13-L20\r\n\r\nThe sql mode constants here are not consistent with TiDB's definition https://github.com/pingcap/tidb/blob/df5f05ff9bf49add2f08fffa00fe8336e7ffb73a/parser/mysql/const.go#L431-L436.\r\n\r\nIn fact, any value of the sql mode constant in TiKV is exactly twice as big as the one in TiDB.\r\n\r\nFortunately, due to another bug that TiDB doesn't set sql mode in `DAGRequest`(https://github.com/pingcap/tidb/issues/38266), this bug was not triggered before.\r\n",
+  "state": "closed",
+  "created_at": "2022-09-30T03:26:29Z",
+  "updated_at": "2022-10-06T01:57:48Z",
+  "closed_at": "2022-10-06T01:57:48Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

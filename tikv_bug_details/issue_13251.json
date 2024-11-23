@@ -1,0 +1,28 @@
+{
+  "issue_number": 13251,
+  "title": "PiTR log backup checkpoint doesn't move foward",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@localhost bin]# ./tikv-server -V\r\nTiKV\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   8a4c8b3828fe689e977c671796381d2e9b16bc07\r\nGit Commit Branch: heads/refs/tags/v6.2.0\r\nUTC Build Time:    2022-08-02 12:18:20\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n\r\n### What operating system and CPU are you using?\r\nCent OS, 8C 64GB\r\n\r\n### Steps to reproduce\r\n1. There is a br log backup task running for 15 days.\r\n\r\n### What did you expect?\r\nCheckpoint should move forward correctly\r\n\r\n### What did happened?\r\nCheckpoint not move forward somehow.\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/183635716-7e9790a4-7e30-40d2-8731-99a4eb258a6b.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-08-09T11:23:27Z",
+  "updated_at": "2022-08-11T08:50:50Z",
+  "closed_at": "2022-08-11T08:50:50Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1209254358,
+      "user": "fubinzh",
+      "created_at": "2022-08-09T11:24:03Z",
+      "body": "/type bug\r\n/severity Major\r\n/feature developing"
+    },
+    {
+      "id": 1210513817,
+      "user": "fubinzh",
+      "created_at": "2022-08-10T10:59:57Z",
+      "body": "Escalate it to critical, as it happens 2 times during testing (on 8/9, 8/10 separately), and has to restart tikv to work around it when it happens, which impact customer business.\r\n/severity Critical"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "issue_number": 14311,
+  "title": "Replayed pessimistic lock requests using `WakeUpModeForceLock` may lead to correctness issue",
+  "body": "## Bug Report\r\n\r\nWhen `WakeUpModeForceLock` is used, if a replayed pessimistic lock request (maybe caused by network issue) arrives after a lock is missing (maybe caused by pipelined locking or in-memory pessimistic lock), it's possible to cause correctness issue. The complete procedure to cause the problem is:\r\n\r\n1. A pessimistic lock of transaction `T1` succeeded with `WakeUpModeForceLock` enabled, then it returns to TiDB and TiDB continues its execution.\r\n2. The lock is lost due to some reason such as pipelined locking or in-memory pessimistic lock.\r\n3. Another transaction `T2` writes the key and committed.\r\n4. The key then receives a stale pessimistic lock request of `T1` that has been received in step 1 (maybe because of retrying due to network issue in step 1). Since it allows locking with conflict, though there's a newer version that's later than the request's `for_update_ts`, the request can still acquire the lock. However no one will check the result of the request.\r\n5. The transaction `T1` commits. When it prewrites it checks if each key is pessimistic-locked as expected. It won't notice anything wrong since the key does have a pessimistic lock of the same transaction. Therefore `T1` commits successfully. However, one of the key is locked on a different version. The conflict between transaction `T1` and `T2` is missed.\r\n\r\nA possible fix would be: record the `for_update_ts` of each locked key in membuffer in client-go, then carry them in prewrite requests. When TiKV handles pessimistic prewrite requests, check if the `for_update_ts` in the lock in TiKV matches that in the prewrite request. This needs changing the membuffer to store the `for_update_ts` per key, and comsumes 8 bytes memory in addition for each key. It also needs to add a new field in prewrite requests.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-01T04:54:09Z",
+  "updated_at": "2023-04-18T12:21:22Z",
+  "closed_at": "2023-04-18T12:21:22Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/major",
+    "affects-7.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1488469611,
+      "user": "MyonKeminta",
+      "created_at": "2023-03-29T12:00:11Z",
+      "body": "A possible solution:\r\n\r\nWe assume that for a transaction from TiDB, the amount of keys locked in fair locking mode won't be too large (so that our memory usage is acceptable). Then:\r\n\r\nclient-go:\r\n* (After finishing pessimistic lock RPC) For keys that are locked in ForceLock mode, we store them in a map that maps keys to a timestamp named *expectedForUpdateTS*, during `LockKeys` invocation.\r\n    * Where: `expectedForUpdateTS` is `lockedWithConflictTS` if any, or the `forUpdateTS` of the current `LockKeys` invocation otherwise. Therefore, it equals to the `for_update_ts` field written to the pessimistic lock in TiKV.\r\n* When prewriting, carry those information in prewrite requests and send them to TiKV.\r\n* When TiKV handling prewrite request, if a key has a corresponding `expected_for_update_ts`, check whether the pessimistic lock on it have `for_update_ts` <= `expected_for_update_ts`. If it's violated, we come to a conclusion that the pessimistic lock on it is lost, then another transaction wrote the key, and then a stale pessimistic lock request (ForceLock mode) was sent to it. Return `PessimisticLockNotFound` error in this case.\r\n* In kvproto, add such a field to PrewriteRequest:\r\n\r\n```proto\r\nmessage ForUpdateTSConstraint {\r\n    uint32 index = 0;\r\n    uint64 expected_for_update_ts = 1;\r\n}\r\n\r\nmessage PrewriteRequest {\r\n    // ...\r\n    repeated ForUpdateTSConstraint for_update_ts_constraints = ...;\r\n}\r\n```\r\n\r\nFor each item in `check_for_update_ts`, it means that the `item.index`-th key in the request is expected to be pessimistic-locked with `locked.for_update_ts` <= `item.expected_for_update_ts`\r\n\r\n---\r\n\r\n**Update:**\r\n\r\nThe constraint will be defined as  `for_update_ts == expected_for_update_ts` instead of `<=` for simplicity. "
+    },
+    {
+      "id": 1488471711,
+      "user": "MyonKeminta",
+      "created_at": "2023-03-29T12:01:30Z",
+      "body": "cc @cfzjywxk @ekexium  PTAL if the solution is fine."
+    },
+    {
+      "id": 1488592587,
+      "user": "cfzjywxk",
+      "created_at": "2023-03-29T13:16:11Z",
+      "body": "> check whether the pessimistic lock on it have for_update_ts <= expected_for_update_ts\r\n\r\nWhen could `lock.for_update_ts < expected_for_update_ts` happen? Should error be reported as it looks like an unexpected situation?"
+    },
+    {
+      "id": 1489693864,
+      "user": "MyonKeminta",
+      "created_at": "2023-03-30T04:58:36Z",
+      "body": "I think this can be allowed since that we can only say there is unexpected write conflict (thus there might be data consistency issue) when `lock.for_update_ts > expected_for_update_ts`. \r\nThough the `<` case is very unlikely to happen and we may never ecounter it, I think the possibility exists theoretically, like:\r\n\r\n1. A transaction locks key `k` with `for_update_ts = 10`\r\n2. The transaction performs pessimistic rollback on it.\r\n3. The transaction updates `for_update_ts` and performs pessimistic lock again on key `k` with `for_update_ts = 20`, in ForceLock mode. There's no conflict.\r\n4. The pessimistic lock on `k` is lost\r\n5. A stale pessimistic lock request produce in step 1 arrived, and then the key is locked with `for_update_ts = 10`.\r\n6. Prewrite. The `expected_for_update_ts` is 20 while the lock have `for_update_ts = 10`."
+    },
+    {
+      "id": 1489733260,
+      "user": "cfzjywxk",
+      "created_at": "2023-03-30T05:46:22Z",
+      "body": "@MyonKeminta \r\nIn the above case, the meaning of two pessimistic lock requests could be different. For example, the first request does not require `existence check` while the second one does, though the stale one derived from the first request succeeds. "
+    },
+    {
+      "id": 1489737578,
+      "user": "MyonKeminta",
+      "created_at": "2023-03-30T05:52:50Z",
+      "body": "Sorry I didn't get it. It seems to me that, if the second one performs existence check or returns value, then the lock is lost and a stale request of step 1 succeeded, it can be said that value returned or checked by the second pessimistic lock request is still valid since no write conflict occurs."
+    },
+    {
+      "id": 1489749395,
+      "user": "cfzjywxk",
+      "created_at": "2023-03-30T06:08:17Z",
+      "body": "Consider this case:\r\n1. A transaction txn1 locks key `k` with `for_update_ts = 10`.\r\n2. The transaction updates `for_update_ts` and performs pessimistic lock again on key `k` with `for_update_ts = 20`, in ForceLock mode. There's no conflict. `need_check_existence` is set to true.\r\n3. The `lock with for_update_ts = 20` is lost.\r\n4. Transaction txn2 adds a `put` to `k` with `commit_ts = 10`.\r\n5. The stale request from step 1 could still succeed, say `commit_ts == for_update_ts == 10`.\r\n\r\nThe pessimistic lock request in step 5 should fail in normal path, as the `need_check_existence` is true and there does exist an `PUT` record with `commit_ts = 10`."
+    },
+    {
+      "id": 1489755658,
+      "user": "MyonKeminta",
+      "created_at": "2023-03-30T06:16:29Z",
+      "body": "If a pessimisitc lock request have read the value or checked existence with `for_update_ts = 20`, there should never be any later commit with `commit_ts <= 20`."
+    }
+  ]
+}

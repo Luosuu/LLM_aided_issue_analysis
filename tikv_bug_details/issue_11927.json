@@ -1,0 +1,68 @@
+{
+  "issue_number": 11927,
+  "title": "Slow to handle Raft messages but no obvious latency source",
+  "body": "## Bug Report\r\n\r\n\r\n### What version of TiKV are you using?\r\n\r\nv4.0.14\r\n\r\nThe raftstore got stuck printing these logs:\r\n\r\n```\r\n[2022/01/27 14:20:50.487 +08:00] [WARN] [store.rs:645] [\"[store 21694] handle 1 pending peers include 1 ready, 1 entries, 1 messages and 0 snapshots\"] [takes=7669]\r\n[2022/01/27 14:20:50.488 +08:00] [WARN] [store.rs:645] [\"[store 21694] handle 83 pending peers include 83 ready, 1 entries, 162 messages and 0 snapshots\"] [takes=7657]\r\n```\r\n\r\nBut unlike https://github.com/tikv/tikv/issues/10210 , the time used for clearing peer meta is short. RocksDB durations all look normal.\r\n![图片](https://user-images.githubusercontent.com/17217495/151508212-cf4b4df8-2600-497e-b065-faca355f5776.png)\r\n![图片](https://user-images.githubusercontent.com/17217495/151508234-c4c79213-59d7-4c5c-ba98-27c8433f8a6f.png)\r\n\r\n\r\nRelated logs: [tikv.log](https://github.com/tikv/tikv/files/7956783/tikv.log)\r\n",
+  "state": "closed",
+  "created_at": "2022-01-28T07:53:48Z",
+  "updated_at": "2024-05-22T08:39:03Z",
+  "closed_at": "2024-05-22T08:39:03Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1023968941,
+      "user": "sticnarf",
+      "created_at": "2022-01-28T07:53:57Z",
+      "body": "cc @5kbpers "
+    },
+    {
+      "id": 1032353381,
+      "user": "Lily2025",
+      "created_at": "2022-02-08T08:43:33Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1032354267,
+      "user": "Lily2025",
+      "created_at": "2022-02-08T08:44:40Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1034548395,
+      "user": "5kbpers",
+      "created_at": "2022-02-10T06:36:45Z",
+      "body": "![image](https://user-images.githubusercontent.com/20279863/153350008-73894dbb-be2c-4390-953a-7bc5f62c212c.png)\r\n\r\nThrough our investigation, the only related outlier is that there are some pages swapping at that time."
+    },
+    {
+      "id": 1034562673,
+      "user": "Connor1996",
+      "created_at": "2022-02-10T07:01:08Z",
+      "body": "Encounter same problem, can you reproduce it?"
+    },
+    {
+      "id": 1034564920,
+      "user": "sticnarf",
+      "created_at": "2022-02-10T07:04:52Z",
+      "body": "> Encounter same problem, can you reproduce it?\r\n\r\nI cannot. The issue is from some user and they only encountered the problem once."
+    },
+    {
+      "id": 1034851037,
+      "user": "Connor1996",
+      "created_at": "2022-02-10T12:13:11Z",
+      "body": "> > Encounter same problem, can you reproduce it?\r\n> \r\n> I cannot. The issue is from some user and they only encountered the problem once.\r\n\r\nIn my case, it is confirmed as a memory alloc stall "
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "issue_number": 13968,
+  "title": "raftstore-v2: exists compilation errors",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux kernel version: \r\n> Linux version 3.10.0-957.el7.x86_64 (mockbuild@kbuilder.bsys.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-36) (GCC) ) #1 SMP Thu Nov 8 23:39:32 UTC 2018\r\n\r\nCPU info:\r\n> Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nFailed to compile the whole repo on master branch.\r\n\r\n### What did you expect?\r\nCompile successfully.\r\n\r\n### What did happened?\r\n```Cmake\r\nCompiling raftstore-v2 v0.1.0 (/nvme1n1/lucasliang/workspace/tikv/components/raftstore-v2)\r\n\r\nerror[E0412]: cannot find type `FlushChannel` in this scope\r\n   --> components/raftstore-v2/src/router/response_channel.rs:606:16\r\n    |\r\n239 | pub struct BaseChannel<Res> {\r\n    | --------------------------- similarly named struct `BaseChannel` defined here\r\n...\r\n606 | impl Debug for FlushChannel {\r\n    |                ^^^^^^^^^^^^ help: a struct with a similar name exists: `BaseChannel`\r\n```",
+  "state": "closed",
+  "created_at": "2022-12-20T09:43:11Z",
+  "updated_at": "2022-12-20T10:06:44Z",
+  "closed_at": "2022-12-20T10:06:44Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "may-affects-6.2",
+    "may-affects-6.3",
+    "may-affects-6.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1359093035,
+      "user": "LykxSassinator",
+      "created_at": "2022-12-20T09:48:28Z",
+      "body": "/label affects-master"
+    },
+    {
+      "id": 1359097292,
+      "user": "ti-chi-bot",
+      "created_at": "2022-12-20T09:52:14Z",
+      "body": "@LykxSassinator: The label(s) `affects-master` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-2.1, needs-cherry-pick-release-3.0, needs-cherry-pick-release-3.1, needs-cherry-pick-release-4.0, needs-cherry-pick-release-5.0, needs-cherry-pick-release-5.1, needs-cherry-pick-release-5.2, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13968#issuecomment-1359093035):\n\n>/label affects-master\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1359098340,
+      "user": "LykxSassinator",
+      "created_at": "2022-12-20T09:53:07Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1359100197,
+      "user": "ti-chi-bot",
+      "created_at": "2022-12-20T09:54:45Z",
+      "body": "@LykxSassinator: The label(s) `type/severity/critical` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13968#issuecomment-1359099696):\n\n>/type bug severity/critical\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1359101256,
+      "user": "ti-chi-bot",
+      "created_at": "2022-12-20T09:55:35Z",
+      "body": "@LykxSassinator: The label(s) `type/severity/critical` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13968#issuecomment-1359099696):\n\n>/type bug severity/critical\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1359110541,
+      "user": "LykxSassinator",
+      "created_at": "2022-12-20T10:03:14Z",
+      "body": "/remove-label severity/major"
+    },
+    {
+      "id": 1359110585,
+      "user": "ti-chi-bot",
+      "created_at": "2022-12-20T10:03:16Z",
+      "body": "@LykxSassinator: The label(s) `severity/major` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-2.1, needs-cherry-pick-release-3.0, needs-cherry-pick-release-3.1, needs-cherry-pick-release-4.0, needs-cherry-pick-release-5.0, needs-cherry-pick-release-5.1, needs-cherry-pick-release-5.2, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13968#issuecomment-1359110541):\n\n>/remove-label severity/major\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1359113571,
+      "user": "LykxSassinator",
+      "created_at": "2022-12-20T10:05:18Z",
+      "body": "/severity minor"
+    },
+    {
+      "id": 1359114498,
+      "user": "LykxSassinator",
+      "created_at": "2022-12-20T10:05:53Z",
+      "body": "/run-check-issue-triage-complete"
+    }
+  ]
+}

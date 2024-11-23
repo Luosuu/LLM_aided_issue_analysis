@@ -1,0 +1,31 @@
+{
+  "issue_number": 12329,
+  "title": "tikv-ctl: error string match in `bad-ssts` tool",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nDon't care\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\njust modify a normal sst file to bad file and execute `bad-ssts` to verify and cannot get info as expected because the sst file name is not recognized.\r\n",
+  "state": "closed",
+  "created_at": "2022-04-06T12:44:01Z",
+  "updated_at": "2022-06-21T04:32:30Z",
+  "closed_at": "2022-04-06T12:45:08Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1090226711,
+      "user": "hunterlxt",
+      "created_at": "2022-04-06T12:45:07Z",
+      "body": "https://github.com/tikv/tikv/pull/12049 is merged"
+    },
+    {
+      "id": 1161255589,
+      "user": "MimeLyc",
+      "created_at": "2022-06-21T04:32:30Z",
+      "body": "refresh pr relation."
+    }
+  ]
+}

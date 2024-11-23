@@ -1,0 +1,44 @@
+{
+  "issue_number": 17708,
+  "title": "resolved_ts doesn't push forward, it's stuck, which will cause ebs backup failed [restore for 15520]",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n1. create cluster\r\n2. do volumebackup\r\n\r\n### What did you expect?\r\n1. volumebackup success\r\n\r\n### What did happened?\r\n1. volumebackup failed, \r\n![img_v2_b6cecace-1769-4f2d-9424-c4180ec68b3g](https://github.com/tikv/tikv/assets/81375082/f00c8325-5f3a-4163-9490-e625011479bb)\r\n[2023/06/15 02:57:43.947 +00:00] [INFO] [[raft.rs:384](http://raft.rs:384/)] [newRaft] [peers=\"Configuration { incoming: Configuration { voters: {} }, outgoing: Configuration { voters: {} } }\"] [\"last term\"=0] [\"last index\"=0] [applied=0] [commit=0] [term=0] [raft_id=426644] [region_id=242469]\r\n[2023/06/15 02:57:43.947 +00:00] [INFO] [[raw_node.rs:315](http://raw_node.rs:315/)] [\"RawNode created with id 426644.\"] [id=426644] [raft_id=426644] [region_id=242469]\r\n[2023/06/15 02:57:43.947 +00:00] [INFO] [[raft.rs:1364](http://raft.rs:1364/)] [\"received a message with higher term from 415815\"] [\"msg type\"=MsgHeartbeat] [message_term=18] [term=0] [from=415815] [raft_id=426644] [region_id=242469]\r\n[2023/06/15 02:57:43.947 +00:00] [INFO] [[raft.rs:1120](http://raft.rs:1120/)] [\"became follower at term 18\"] [term=18] [raft_id=426644] [region_id=242469]\r\n[2023/06/15 05:17:43.969 +00:00] [WARN] [[peer.rs:6108](http://peer.rs:6108/)] [\"leader missing longer than max_leader_missing_duration. To check with pd and other peers whether it's still valid\"] [expect=2h] [peer_id=426644] [region_id=242469]\r\n![img_v2_336b9719-95ca-4c2a-bac8-9aac6a02fd1g](https://github.com/tikv/tikv/assets/81375082/1266c383-9412-480c-8e06-93ce950bc338)\r\n![img_v2_64d62082-afe0-400d-a239-92511e89bb8g](https://github.com/tikv/tikv/assets/81375082/73d5a7a2-b8d3-4d09-931f-07f636dd6467)\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-10-25T10:17:01Z",
+  "updated_at": "2024-10-25T10:22:15Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2437416130,
+      "user": "ti-chi-bot",
+      "created_at": "2024-10-25T10:17:04Z",
+      "body": "This issue is restored for #15520, it originally created at 2023-09-05 07:48:09."
+    },
+    {
+      "id": 2437420574,
+      "user": "wuhuizuo",
+      "created_at": "2024-10-25T10:19:32Z",
+      "body": "/assign @BornChanger"
+    },
+    {
+      "id": 2437420641,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-10-25T10:19:35Z",
+      "body": "@wuhuizuo: GitHub didn't allow me to assign the following users: BornChanger.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/17708#issuecomment-2437420574):\n\n>/assign @BornChanger\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2437425486,
+      "user": "ti-chi-bot",
+      "created_at": "2024-10-25T10:22:10Z",
+      "body": "/assign @BornChanger"
+    },
+    {
+      "id": 2437425582,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-10-25T10:22:13Z",
+      "body": "@ti-chi-bot: GitHub didn't allow me to assign the following users: BornChanger.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/17708#issuecomment-2437425486):\n\n>/assign @BornChanger\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

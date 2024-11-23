@@ -1,0 +1,22 @@
+{
+  "issue_number": 12990,
+  "title": "[PiTR] br log status doesn't show checkpoint info for few minutes after starting a log backup task ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   c018653c4c2f973e6079dc6770c67f85d79c0deb\r\nGit Commit Branch: 6.1.0-pitr-dev\r\nUTC Build Time:    2022-06-13 03:03:45\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           release\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. start a log backup task and check log status immediately\r\n\r\n\r\n\r\n### What did you expect?\r\nbr log status should display checkpoint info.\r\n\r\n\r\n### What did happened?\r\nFor a few minutes after starting log backup, /br log status doesn't print the checkpoint info, while /br log status --json will display checkpoint info.\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/178232428-107540bb-f167-4891-843e-7954895318a8.png)\r\n![image](https://user-images.githubusercontent.com/7403864/178232525-194ee797-4683-4ba5-ba05-23f98be1ec74.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-07-11T09:24:33Z",
+  "updated_at": "2022-07-11T09:40:02Z",
+  "closed_at": "2022-07-11T09:40:02Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1180167990,
+      "user": "fubinzh",
+      "created_at": "2022-07-11T09:25:32Z",
+      "body": "/type bug\r\n/severity Moderate\r\n/feature developing"
+    }
+  ]
+}

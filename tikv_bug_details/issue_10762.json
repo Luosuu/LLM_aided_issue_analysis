@@ -1,0 +1,53 @@
+{
+  "issue_number": 10762,
+  "title": "Insert data into single table， after running for a period of time, large region are generated",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV\r\nRelease Version: 5.1.0-alpha\r\nEdition: Community\r\nGit Commit Hash: f67aa380277b333a5b879f7837af51a9bd4ee0b8\r\nGit Commit Branch: slow-store-fix-5.2\r\nUTC Build Time: 2021-08-06 06:39:43\r\nRust Version: rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features: jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile: release\r\n\r\n### What operating system and CPU are you using?\r\ntiup ：\r\n1PD\r\n1TiDB\r\n3TiKV\r\nall node：500G NVME、4 cores、8G mem\r\n\r\n### Steps to reproduce\r\n1、sysbench --config-file=/root/config oltp_point_select --tables=1 --table-size=10000000000 --auto_inc=true prepare\r\nthreads=1\r\n\r\n### What did you expect?\r\ndo not generate barge region\r\n\r\n### What did happened?\r\nafter running for a period of time, large region are generated within a period of time\r\n![Lark20210817-203631](https://user-images.githubusercontent.com/84712107/129726681-1dcde593-2fbe-4c7f-ba33-e6fd2253cdd5.png)",
+  "state": "closed",
+  "created_at": "2021-08-17T12:37:31Z",
+  "updated_at": "2022-07-12T06:48:11Z",
+  "closed_at": "2022-07-12T06:48:10Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 900260807,
+      "user": "Lily2025",
+      "created_at": "2021-08-17T12:37:56Z",
+      "body": "/assign BusyJay"
+    },
+    {
+      "id": 900273505,
+      "user": "BusyJay",
+      "created_at": "2021-08-17T12:55:42Z",
+      "body": "@hicqu can you take a look to check if it's a fixed issue?"
+    },
+    {
+      "id": 901070362,
+      "user": "hicqu",
+      "created_at": "2021-08-18T12:26:16Z",
+      "body": "There is a bug about calculating approximate keys and size for a region:\r\n```\r\n[2021/08/17 19:01:15.927 +08:00] [INFO] [size.rs:168] [\"approximate size over threshold, need to do split check\"] [threshold=150994944] [size=907068400] [region_id=54685]\r\n[2021/08/17 19:01:15.928 +08:00] [INFO] [keys.rs:154] [\"approximate keys over threshold, need to do split check\"] [threshold=1440000] [keys=3702320] [region_id=54685]\r\n[2021/08/17 19:01:23.157 +08:00] [INFO] [split_check.rs:289] [\"update approximate size and keys with accurate value\"] [keys=0] [size=0] [region_id=54685]\r\n[2021/08/17 19:02:11.186 +08:00] [INFO] [pd.rs:1146] [\"try to merge\"] [merge=\"target { id: 55377 start_key: 7480000000000004FF0B00000000000000F8 end_key: 7480000000000004FF0F00000000000000F8 region_epoch { conf_ver: 5 version: 5782 } peers { id: 55378 store_id: 1 } peers { id: 55379 store_id: 5 } peers { id: 55380 store_id: 4 } }\"] [region_id=54685]\r\n```\r\n\r\nI will fix it later."
+    },
+    {
+      "id": 905362145,
+      "user": "hicqu",
+      "created_at": "2021-08-25T10:05:24Z",
+      "body": "The PR #10776 is trying to fix a unexist problem.\r\nSo back to the issue, seems it can only be the range is cleaned by `delete_files_in_range` after `add_checker` checks."
+    },
+    {
+      "id": 1181381985,
+      "user": "tonyxuqqi",
+      "created_at": "2022-07-12T06:48:08Z",
+      "body": "/close"
+    },
+    {
+      "id": 1181382015,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-12T06:48:11Z",
+      "body": "@tonyxuqqi: Closing this issue.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/10762#issuecomment-1181381985):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

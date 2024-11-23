@@ -1,0 +1,40 @@
+{
+  "issue_number": 12512,
+  "title": "Clean log-backup.temp-path after a log backup task is stopped",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/05/14 12:50:49.208 +08:00] [INFO] [lib.rs:84] [\"Release Version:   6.1.0-alpha\"]\r\n[2022/05/14 12:50:49.208 +08:00] [INFO] [lib.rs:84] [\"Edition:           Community\"]\r\n[2022/05/14 12:50:49.208 +08:00] [INFO] [lib.rs:84] [\"Git Commit Hash:   de208b5b4e97b134bc8b7daff7a4b304c618e9e8\"]\r\n\r\n\r\n### What operating system and CPU are you using?\r\nCentOS 16U\r\n\r\n### Steps to reproduce\r\n1. Start a log backup when there is workload running\r\n2. Wait some time, and stop the log backup task.\r\n\r\n### What did you expect?\r\nTiKV temp folder for log backup should be cleaned.\r\n\r\n### What did happened?\r\nTiKV temp folder is not cleaned\r\nThis could be a problem if a task is stopped, and sometime later a task with same name is started? \r\nThis could be an issue if there are some problem to flush the backup to S3, this folder could keep increasing.\r\n\r\nIn below example, folder test, test2, 3, 4, are temp folder for tasks already stopped.\r\n```\r\nroot@localhost data]# cd /data1/pp1/tikv-31161/data/log-backup-tmp\r\n[root@localhost log-backup-tmp]# ls\r\ntest  test2  test3  test4  test5\r\n[root@localhost log-backup-tmp]# du -shl *\r\n16G     test\r\n303M    test2\r\n12K     test3\r\n141G    test4\r\n42M     test5\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-05-14T06:34:23Z",
+  "updated_at": "2022-07-28T09:21:52Z",
+  "closed_at": "2022-07-28T09:21:52Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1126654733,
+      "user": "fubinzh",
+      "created_at": "2022-05-14T06:34:55Z",
+      "body": "/type bug\r\n/severity Moderate\r\n/feature developing"
+    },
+    {
+      "id": 1197887444,
+      "user": "joccau",
+      "created_at": "2022-07-28T09:20:31Z",
+      "body": "/close"
+    },
+    {
+      "id": 1197887479,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-28T09:20:33Z",
+      "body": "@joccau: You can't close an active issue/PR unless you authored it or you are a collaborator.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12512#issuecomment-1197887444):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1197888844,
+      "user": "fubinzh",
+      "created_at": "2022-07-28T09:21:52Z",
+      "body": "already fixed, close it."
+    }
+  ]
+}

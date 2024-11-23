@@ -1,0 +1,39 @@
+{
+  "issue_number": 7853,
+  "title": "Encounter region unavailable when selecting data",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nCommit Hash: 2be16853e00681f858e3902328ee44a7037ed8c1\r\n\r\n### What operating system and CPU are you using?\r\nLinux/x86_64\r\n\r\n### Steps to reproduce\r\nrun [follower read workflow](https://github.com/pingcap/tipocket/blob/master/argo/workflow/follower-read.yaml) up to 24h\r\n\r\n### What did you expect?\r\nThe case doesn't fail until the time slice is exhausted.\r\n### What did happened?\r\ncase failed and [here](https://github.com/pingcap/tipocket/blob/master/tests/follower/follower.go#L300) log: `region unavailable`\r\n\r\nNOTE: I cannot get more log about tikv or tidb because tipocket does not support this behavior.",
+  "state": "closed",
+  "created_at": "2020-05-15T09:09:17Z",
+  "updated_at": "2020-06-02T07:57:04Z",
+  "closed_at": "2020-06-02T07:57:04Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 634367233,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-05-27T01:20:30Z",
+      "body": "What is 4.67 cluster? Can you provide the deployed topology?"
+    },
+    {
+      "id": 636351504,
+      "user": "hunterlxt",
+      "created_at": "2020-05-30T16:07:32Z",
+      "body": "The test scenario is that while split table, `insert` and `select count(*)` are performed simultaneously from different clients. "
+    },
+    {
+      "id": 636352990,
+      "user": "hunterlxt",
+      "created_at": "2020-05-30T16:19:33Z",
+      "body": "## Reason Investigation\r\nThe `region unavailable` is the error message printed by the client. The log of tidb shows that the backoffer exceed 40s, along with some specific error messages. The error message prints out the last three messages, all of which are region epoch not match.\r\n\r\nSelect a region and track its error message in tikv and find that its epoch has changed after on split, but tidb still uses the old epoch to request tikv. The corresponding warn information was also reported in tikv, that is, epoch not match.\r\n\r\nAfter the failure caused by region miss, tidb will update the region cache information from PD. According to the log time, the PD has received the updated epoch information of the tikv leader before the timeout error is reported in tidb.\r\n\r\nAfter analyzing the tidb code, the problem is in the backoffer mechanism. The backoffer of the `boRegionMiss` has a backoff mechanism with a starting time of 2ms and a maximum of 500ms. After log verification, a SQL command will share the same backoffer, that is, if multiple regions return `epoch not match` error, then the backoffer will quickly rise to 500ms. It is easy to exceed the preset time limit of 40s, causing SQL errors on the client."
+    },
+    {
+      "id": 636353674,
+      "user": "hunterlxt",
+      "created_at": "2020-05-30T16:25:28Z",
+      "body": "## Solution Validation\r\nModified the tidb code to change the backoffer in coptask to generate a independent backoffer for each task.  I did not encounter the region unavailable error in the tipocket follower read test with this Tidb docker image\r\n\r\nBut this almost caused the backoffer to fail, because each time an error is encountered, a new task will be generated, so a new backoffer will be used. However, I want to associate a backoffer with a specific region.\r\n\r\nMy job now is to study a good way to modify the backoffer in coptask code to bind the region information to one backoffer. For example, create a HashMap."
+    }
+  ]
+}

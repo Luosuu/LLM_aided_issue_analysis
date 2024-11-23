@@ -1,0 +1,57 @@
+{
+  "issue_number": 15992,
+  "title": "TiKV OOM",
+  "body": "TiKV 7.1.1在开始事务后缺失commit会导致内存膨胀最终OOM，限制memory-usage-limit、storage.block-cache.capacity均无法阻止内存扩张。\r\n\r\n\r\n大量并发：\r\ntxnKVClient.begin();\r\ntxnKVClient.put(key, value);\r\n// txnKVClient.commit(); // 遗忘提交事务",
+  "state": "closed",
+  "created_at": "2023-11-15T07:37:13Z",
+  "updated_at": "2023-12-07T10:37:03Z",
+  "closed_at": "2023-12-07T10:37:03Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1813583844,
+      "user": "tonyxuqqi",
+      "created_at": "2023-11-16T01:24:16Z",
+      "body": "@overvenus Will the recent change in TiKV OOM mitigation solve this issue?"
+    },
+    {
+      "id": 1813693798,
+      "user": "vzong",
+      "created_at": "2023-11-16T02:30:22Z",
+      "body": "Machine:\r\nCentOS 7.6\r\ncpu_logical_number:40\r\nmemory:256G\r\n\r\n\r\n\r\nTiKV conf:\r\nmemory-usage-limit = \"120G\"\r\n\r\n[raftstore]\r\nraft-base-tick-interval = \"2s\"\r\n\r\n[resolved-ts]\r\nadvance-ts-interval = \"20s\"\r\nscan-lock-pool-size = 8\r\n\r\n[rocksdb]\r\nwal-recovery-mode = 0\r\n[rocksdb.defaultcf]\r\nsoft-pending-compaction-bytes-limit = \"256G\"\r\n\r\n[server]\r\ngrpc-concurrency = 20\r\n\r\n[storage]\r\napi-version = 2\r\nenable-ttl = true\r\n[storage.block-cache]\r\ncapacity = \"60G\"\r\n"
+    },
+    {
+      "id": 1813740369,
+      "user": "vzong",
+      "created_at": "2023-11-16T03:38:22Z",
+      "body": "resolved-ts.enable设置为false后内存占用明显减少。\r\n\r\n[resolved-ts]\r\nenable = false"
+    },
+    {
+      "id": 1813746159,
+      "user": "vzong",
+      "created_at": "2023-11-16T03:48:12Z",
+      "body": "![resolved-ts cpu match with oom](https://github.com/tikv/tikv/assets/7782693/ceb3c25d-85e7-49fb-b45c-09e4cc32ec2c)\r\n![OOM](https://github.com/tikv/tikv/assets/7782693/2c1a42b4-7049-4d24-8a61-705886f6b5c8)\r\n\r\nResolved TS Worker CPU match with OOM。"
+    },
+    {
+      "id": 1813873678,
+      "user": "overvenus",
+      "created_at": "2023-11-16T06:42:42Z",
+      "body": "@vzong Thank you for your feedback! We have fixed a similar OOM issue that is caused by resolved ts. Could you test v7.4.0 or the nightly release? Also, could you share your test client (many prewrite, no commit)?\r\n\r\n* https://github.com/tikv/tikv/issues/14864  \r\n* https://docs.pingcap.com/tidb/dev/release-7.4.0"
+    },
+    {
+      "id": 1845098556,
+      "user": "overvenus",
+      "created_at": "2023-12-07T10:37:03Z",
+      "body": "I believe it has been fixed. Feel free to reopen if it happens again."
+    }
+  ]
+}

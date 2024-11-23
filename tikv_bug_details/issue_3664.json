@@ -1,0 +1,57 @@
+{
+  "issue_number": 3664,
+  "title": "#[should_panic] unit tests cannot pass CI",
+  "body": "## Bug Report\r\n\r\nAs title describes, `#[should_panic]` tests, or tests using `catch_unwind` cannot pass CI, even if they succeeded actually.\r\n\r\nPreviously found in https://github.com/tikv/tikv/pull/3629#issuecomment-424557383",
+  "state": "closed",
+  "created_at": "2018-10-11T08:13:56Z",
+  "updated_at": "2020-08-28T11:42:00Z",
+  "closed_at": "2020-08-28T11:40:41Z",
+  "labels": [
+    "type/bug",
+    "component/build"
+  ],
+  "comments_data": [
+    {
+      "id": 428863428,
+      "user": "breezewish",
+      "created_at": "2018-10-11T08:16:24Z",
+      "body": "Currently it blocks #3629 because there are panic tests in that PR."
+    },
+    {
+      "id": 428908061,
+      "user": "BusyJay",
+      "created_at": "2018-10-11T10:41:08Z",
+      "body": "You can use `recover_safe` instead of `#[should_panic]` or `catch_unwind`, so panic trace won't be printed out. "
+    },
+    {
+      "id": 428913421,
+      "user": "breezewish",
+      "created_at": "2018-10-11T11:02:34Z",
+      "body": "@BusyJay Good idea! So this issue won't block #3629 but still nice to be fixed some day."
+    },
+    {
+      "id": 429027776,
+      "user": "Hoverbear",
+      "created_at": "2018-10-11T16:39:17Z",
+      "body": "I think this is a bug with how TiKV does CI. `#[should_panic]` tests don't cause `cargo test` to return non-zero. This doesn't change when you enable backtraces or logs.\r\n\r\n```\r\nhoverbear@nomad:~/temp ‹master*›$ cargo test\r\n    Finished dev [unoptimized + debuginfo] target(s) in 0.01s                                                                                                                                \r\n     Running target/debug/deps/temp-7c021f9e90acc06f\r\n\r\nrunning 1 test\r\ntest panic_stuff ... ok\r\n\r\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out\r\n\r\n   Doc-tests temp\r\n\r\nrunning 0 tests\r\n\r\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out\r\n\r\nhoverbear@nomad:~/temp ‹master*›$ echo $?\r\n0\r\nhoverbear@nomad:~/temp ‹master*›$ cat src/lib.rs \r\nfn stuff() {\r\n    panic!(\"Hello, world!\");\r\n}\r\n\r\n#[test]\r\n#[should_panic]\r\nfn panic_stuff() {\r\n    stuff();\r\n}\r\n```"
+    },
+    {
+      "id": 429032425,
+      "user": "breezewish",
+      "created_at": "2018-10-11T16:51:37Z",
+      "body": "@Hoverbear Yeah.. The problem is that our CI script tried to parse panic messages from output.. so even if it returned with exit code 0, it is still treated as failures :("
+    },
+    {
+      "id": 429035358,
+      "user": "Hoverbear",
+      "created_at": "2018-10-11T16:58:54Z",
+      "body": "Oh no."
+    },
+    {
+      "id": 682479362,
+      "user": "BusyJay",
+      "created_at": "2020-08-28T11:42:00Z",
+      "body": "We don't use `should_panic`, we can do `catch_unwind` if necessary."
+    }
+  ]
+}

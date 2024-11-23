@@ -1,0 +1,21 @@
+{
+  "issue_number": 15648,
+  "title": "information_schema.tikv_store_status  bug",
+  "body": "tidb version:5.4.2\r\n\r\nproblem:\r\n   Delete \"inst\" key from config file  and reload cluster.but the \"label\" column also has the key!\r\n\r\nmysql> select store_id,label from information_schema.tikv_store_status;\r\n+----------+----------------------------------------------------------------------+\r\n| store_id | label                                                                |\r\n+----------+----------------------------------------------------------------------+\r\n|       10 | [{\"key\": \"host\", \"value\": \"tikv02\"}, {\"key\": \"inst\", \"value\": \"h5\"}] |\r\n|       11 | [{\"key\": \"host\", \"value\": \"tikv01\"}, {\"key\": \"inst\", \"value\": \"h4\"}] |\r\n|       12 | [{\"key\": \"host\", \"value\": \"tikv01\"}, {\"key\": \"inst\", \"value\": \"h1\"}] |\r\n|        1 | [{\"key\": \"host\", \"value\": \"tikv03\"}, {\"key\": \"inst\", \"value\": \"h3\"}] |\r\n|        4 | [{\"key\": \"host\", \"value\": \"tikv02\"}, {\"key\": \"inst\", \"value\": \"h2\"}] |\r\n|        5 | [{\"key\": \"host\", \"value\": \"tikv03\"}, {\"key\": \"inst\", \"value\": \"h6\"}] |\r\n+----------+----------------------------------------------------------------------+\r\n6 rows in set (0.01 sec)\r\n\r\nmysql> show config where type='tikv' and name like '%label%';\r\n+------+---------------------+--------------------+--------+\r\n| Type | Instance            | Name               | Value  |\r\n+------+---------------------+--------------------+--------+\r\n| tikv | 172.20.84.138:20161 | server.labels.host | tikv03 |\r\n| tikv | 172.20.84.241:20161 | server.labels.host | tikv02 |\r\n| tikv | 172.20.84.84:20161  | server.labels.host | tikv01 |\r\n| tikv | 172.20.84.84:20160  | server.labels.host | tikv01 |\r\n| tikv | 172.20.84.138:20160 | server.labels.host | tikv03 |\r\n| tikv | 172.20.84.241:20160 | server.labels.host | tikv02 |\r\n+------+---------------------+--------------------+--------+\r\n\r\n\r\n6 rows in set (0.05 sec)",
+  "state": "open",
+  "created_at": "2023-09-20T07:52:36Z",
+  "updated_at": "2023-09-21T01:22:22Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1728625895,
+      "user": "jebter",
+      "created_at": "2023-09-21T01:22:20Z",
+      "body": "/severity moderate"
+    }
+  ]
+}

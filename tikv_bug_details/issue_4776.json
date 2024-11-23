@@ -1,0 +1,27 @@
+{
+  "issue_number": 4776,
+  "title": "test: test_local_read_cache failed",
+  "body": "https://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/4923/pipeline\r\n\r\n```\r\nthread 'raftstore::test_lease_read::test_local_read_cache' panicked at 'response header { error { message: \"region is not found\" region_not_found { region_id: 1 } } } has error', components/test_raftstore/src/cluster.rs:681:13\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:39\r\n   1: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:71\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/sys_common/backtrace.rs:59\r\n             at src/libstd/panicking.rs:197\r\n   3: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:211\r\n   4: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:474\r\n   5: std::panicking::continue_panic_fmt\r\n             at src/libstd/panicking.rs:381\r\n   6: std::panicking::begin_panic_fmt\r\n             at src/libstd/panicking.rs:336\r\n   7: test_raftstore::cluster::Cluster<T>::must_put_cf\r\n             at ./<::std::macros::panic macros>:8\r\n   8: test_raftstore::cluster::Cluster<T>::must_put\r\n             at ./components/test_raftstore/src/cluster.rs:670\r\n   9: integrations::raftstore::test_lease_read::test_local_read_cache\r\n             at tests/integrations/raftstore/test_lease_read.rs:429\r\n  10: integrations::raftstore::test_lease_read::test_local_read_cache::{{closure}}\r\n             at tests/integrations/raftstore/test_lease_read.rs:408\r\n  11: core::ops::function::FnOnce::call_once\r\n             at /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/libcore/ops/function.rs:231\r\n  12: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n             at /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/liballoc/boxed.rs:704\r\n  13: __rust_maybe_catch_panic\r\n             at src/libpanic_unwind/lib.rs:85\r\n  14: test::run_test::run_test_inner::{{closure}}\r\n             at /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/libstd/panicking.rs:272\r\n             at /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/libstd/panic.rs:388\r\n             at src/libtest/lib.rs:1468\r\ntest raftstore::test_lease_read::test_local_read_cache ... FAILED\r\n```\r\n\r\n```\r\n2019/05/26 19:19:41.665 pd.rs:544: [DEBG] [region 1] schedule AddPeer { peer: Left(id: 10000 store_id: 2), policy: TillSuccess } to id: 2 store_id: 2, region: id: 1 region_epoch { conf_ver: 2 version: 1 } peers { id: 1 store_id: 1 } peers { id: 3 store_id: 3 }\r\n2019/05/26 19:19:41.666 pd.rs:551: [INFO] try to change peer, peer: id: 10000 store_id: 2, change_type: AddNode, region_id: 1\r\n2019/05/26 19:19:41.666 pd.rs:821: [ERRO] send request failed, err: \"Disconnected(..)\", cmd_type: ChangePeer, region_id: 1\r\n2019/05/26 19:19:42.166 pd.rs:544: [DEBG] [region 1] schedule AddPeer { peer: Left(id: 10000 store_id: 2), policy: TillSuccess } to id: 2 store_id: 2, region: id: 1 region_epoch { conf_ver: 2 version: 1 } peers { id: 1 store_id: 1 } peers { id: 3 store_id: 3 }\r\n2019/05/26 19:19:42.167 pd.rs:551: [INFO] try to change peer, peer: id: 10000 store_id: 2, change_type: AddNode, region_id: 1\r\n2019/05/26 19:19:42.167 pd.rs:821: [ERRO] send request failed, err: \"Disconnected(..)\", cmd_type: ChangePeer, region_id: 1\r\n```",
+  "state": "closed",
+  "created_at": "2019-05-26T14:56:25Z",
+  "updated_at": "2020-08-28T11:04:00Z",
+  "closed_at": "2020-08-28T11:04:00Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench"
+  ],
+  "comments_data": [
+    {
+      "id": 496109270,
+      "user": "breezewish",
+      "created_at": "2019-05-27T07:28:25Z",
+      "body": "Meet the same error as well:\r\n\r\nhttps://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/4948/pipeline"
+    },
+    {
+      "id": 496260351,
+      "user": "kennytm",
+      "created_at": "2019-05-27T16:25:20Z",
+      "body": "Test case is modified in #4789. Will close next week if no longer reproducible."
+    }
+  ]
+}

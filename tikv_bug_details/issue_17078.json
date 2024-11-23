@@ -1,0 +1,51 @@
+{
+  "issue_number": 17078,
+  "title": "Region is applying snapshot for a long time",
+  "body": "## Bug Report\r\n\r\n```\r\n[2024/05/11 13:47:50.839 +00:00] [INFO] [peer_storage.rs:605] [\"begin to apply snapshot\"] [peer_id=849059931] [region_id=849059930]\r\n[2024/05/11 13:47:50.839 +00:00] [INFO] [peer_storage.rs:1046] [\"finish clear peer meta\"] [takes=1.958碌s] [raft_key=1] [apply_key=1] [meta_key=1] [region_id=849059930]\r\n[2024/05/11 13:47:50.839 +00:00] [INFO] [peer_storage.rs:688] [\"apply snapshot with state ok\"] [for_witness=false] [state=\"applied_index: 186704 commit_index: 2818 commit_term: 6 truncated_state { index: 186704 term: 6 }\"] [...] [peer_id=849059931] [region_id=849059930]\r\n[2024/05/11 13:47:50.840 +00:00] [INFO] [apply.rs:3918] [\"re-register to apply delegates\"] [term=6] [peer_id=849059931] [region_id=849059930]\r\n[2024/05/11 13:47:50.840 +00:00] [INFO] [peer.rs:4847] [\"snapshot is persisted\"] [...] [peer_id=849059931] [region_id=849059930]\r\n[2024/05/11 13:47:50.840 +00:00] [INFO] [region_info_accessor.rs:313] [\"trying to create region but it already exists, try to update it\"] [region_id=849059930]\r\n[2024/05/11 13:47:50.840 +00:00] [INFO] [peer.rs:4906] [\"region changed after persisting snapshot\"] [...] [peer_id=849059931] [region_id=849059930]\r\n[2024/05/11 14:36:21.032 +00:00] [INFO] [region.rs:444] [\"begin apply snap data\"] [peer_id=849059931] [region_id=849059930]\r\n[2024/05/11 14:36:22.180 +00:00] [INFO] [region.rs:491] [\"apply new data\"] [time_takes=95.05161ms] [region_id=849059930]\r\n```\r\nFrom the log, you can see that region 849059930 begins to apply snapshot at 13:47, but it finally begins to apply snap data in region worker at 14:36, which costs 50mins. \r\n\r\nThe region worker isn't overloaded during that time. The number of L0 files is kept at a high level, so it's highly possible that it prevents the snapshot from being ingested for a long time. \r\n![img_v3_02bb_942b4a10-400b-4220-9153-6dddc3ef0beg](https://github.com/tikv/tikv/assets/13497871/06a3ef8a-de7b-4f88-9d8a-63bbbcb6a994)\r\n",
+  "state": "open",
+  "created_at": "2024-05-29T07:46:32Z",
+  "updated_at": "2024-11-13T03:34:26Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2136763097,
+      "user": "Connor1996",
+      "created_at": "2024-05-29T07:47:20Z",
+      "body": "It is better to add metrics to know the pending ingested snapshot count"
+    },
+    {
+      "id": 2136765321,
+      "user": "Connor1996",
+      "created_at": "2024-05-29T07:48:36Z",
+      "body": "/assign @hbisheng "
+    },
+    {
+      "id": 2136765381,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-05-29T07:48:38Z",
+      "body": "@Connor1996: GitHub didn't allow me to assign the following users: hbisheng.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/17078#issuecomment-2136765321):\n\n>/assign @hbisheng \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2172588418,
+      "user": "LykxSassinator",
+      "created_at": "2024-06-17T08:11:24Z",
+      "body": "Should we mark this issue with `may-affects` ? It's clear that this issue will occur when there exists plenty of L0 when applying snapshots. It will block the related pr.\r\n\r\n/cc @Connor1996 "
+    },
+    {
+      "id": 2472302292,
+      "user": "LykxSassinator",
+      "created_at": "2024-11-13T03:34:25Z",
+      "body": "FYI, https://github.com/tikv/tikv/pull/17408 can mitigate this issue.\r\n\r\nHowever, this issue should still be actively tracked. We need to explore and identify effective methods to address it."
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "issue_number": 17332,
+  "title": "copr: the behavior of `like` is not correct for string with characters equal with space",
+  "body": "## Bug Report\r\n\r\nThe following test case will fail if it's added to the `test_like()`:\r\n\r\n```rust\r\n            (\r\n                r#\"a　a\"#,\r\n                r#\"a a\"#,\r\n                '\\\\',\r\n                Collation::Utf8Mb4UnicodeCi,\r\n                Some(1),\r\n            ),\r\n```",
+  "state": "closed",
+  "created_at": "2024-07-31T04:56:27Z",
+  "updated_at": "2024-08-21T08:30:15Z",
+  "closed_at": "2024-08-21T08:30:15Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor",
+    "severity/moderate",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2260033178,
+      "user": "YangKeao",
+      "created_at": "2024-07-31T09:10:40Z",
+      "body": "/label affects-8.1"
+    },
+    {
+      "id": 2260036273,
+      "user": "YangKeao",
+      "created_at": "2024-07-31T09:11:27Z",
+      "body": "/label affects-7.5\r\n/label affects-7.1\r\n/label affects-6.5\r\n/label affects-6.1"
+    },
+    {
+      "id": 2260037854,
+      "user": "YangKeao",
+      "created_at": "2024-07-31T09:11:58Z",
+      "body": "/label severity/major"
+    },
+    {
+      "id": 2260037944,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-07-31T09:12:01Z",
+      "body": "@YangKeao: The label(s) `severity/major` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.5, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.5, needs-cherry-pick-release-8.1, needs-cherry-pick-release-8.2, affects-5.4, affects-6.1, affects-6.5, affects-7.1, affects-7.5, affects-8.1, affects-8.2, may-affects-5.4, may-affects-6.1, may-affects-6.5, may-affects-7.1, may-affects-7.5, may-affects-8.1`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/17332#issuecomment-2260037854):\n\n>/label severity/major\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2260054179,
+      "user": "bb7133",
+      "created_at": "2024-07-31T09:18:59Z",
+      "body": "Ref https://github.com/pingcap/tidb/issues/55045"
+    }
+  ]
+}

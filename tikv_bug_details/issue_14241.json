@@ -1,0 +1,62 @@
+{
+  "issue_number": 14241,
+  "title": "pitr rpo is more than 5m last for 9min after inject pdleader network partition which trigger pd changed leader",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.6.0\r\nEdition:           Community\r\nGit Commit Hash:   d7847d1be1a5176652dda0f182527615b5c22016\r\nGit Commit Branch: heads/refs/tags/v6.6.0\r\nUTC Build Time:    2023-02-12 08:08:03\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-02-17T03:25:41.195Z\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1562736\r\nha-pdleader-to-all-network-partition-last-for-10m\r\nthe time of pd leader changed :  2023-02-17 13:06\r\n\r\n### What did you expect?\r\npitr rpo should be less than 5m\r\n\r\n### What did happened?\r\npitr rpo is more than 5m last for 9min after inject pdleader network partition which trigger pd changed leader\r\n![072042a8-a98b-4310-a5b5-4c5b860f74ec](https://user-images.githubusercontent.com/84712107/219590334-c5d8a860-6114-4c29-8d44-8e975f5b7f8b.jpeg)\r\n\r\n![img_v2_8ef80107-4eac-48f4-b1ac-6eb894a0388g](https://user-images.githubusercontent.com/84712107/219590373-ba1dd71a-16cf-4e59-997d-80cc09d7afb7.jpg)\r\n",
+  "state": "closed",
+  "created_at": "2023-02-17T08:19:45Z",
+  "updated_at": "2024-04-30T06:53:26Z",
+  "closed_at": "2024-04-30T06:53:26Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1434284262,
+      "user": "Lily2025",
+      "created_at": "2023-02-17T08:20:39Z",
+      "body": "/type bug\r\n/severity major\r\n/assign joccau"
+    },
+    {
+      "id": 1434284297,
+      "user": "ti-chi-bot",
+      "created_at": "2023-02-17T08:20:41Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: joccau.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14241#issuecomment-1434284262):\n\n>/type bug\r\n>/severity major\r\n>/assign joccau\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1434284479,
+      "user": "Lily2025",
+      "created_at": "2023-02-17T08:20:53Z",
+      "body": "cc @joccau"
+    },
+    {
+      "id": 1434285920,
+      "user": "joccau",
+      "created_at": "2023-02-17T08:22:36Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1736706732,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-27T05:02:08Z",
+      "body": "@3pointer  PTAL"
+    },
+    {
+      "id": 2084491045,
+      "user": "BornChanger",
+      "created_at": "2024-04-30T06:40:59Z",
+      "body": "@Lily2025 confirmed that that issue does not occur now. The fixing PR should be https://github.com/tikv/tikv/pull/14278."
+    },
+    {
+      "id": 2084512754,
+      "user": "Lily2025",
+      "created_at": "2024-04-30T06:53:26Z",
+      "body": "fixed"
+    }
+  ]
+}

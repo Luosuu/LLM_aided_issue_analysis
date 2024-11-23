@@ -1,0 +1,56 @@
+{
+  "issue_number": 5239,
+  "title": "util::tests::test_delete_all_files_in_range can fail",
+  "body": "I once ran `make dev` and saw this test failed.\r\n\r\nI rerun the test a few times but cannot see the error again. However, I think such a test shouldn't be unstable like the raftstore tests. Perhaps we should be cautious about it because it's possibly a bug in the engine.\r\n\r\nLog:\r\n\r\n```\r\n     Running target/debug/deps/engine-dbc05506e3da2e40\r\n\r\nrunning 24 tests\r\ntest rocks::util::config::compaction_style_serde::tests::test_serde ... ok\r\ntest rocks::util::config::compaction_pri_serde::tests::test_serde ... ok\r\ntest rocks::util::config::rate_limiter_mode_serde::tests::test_serde ... ok\r\ntest rocks::util::config::recovery_mode_serde::tests::test_serde ... ok\r\ntest rocks::util::config::tests::test_parse_compression_type ... ok\r\ntest rocks::util::io_limiter::tests::test_io_limiter ... ok\r\ntest rocks::sst::tests::test_smoke ... ok\r\ntest rocks::tests::test_scan ... ok\r\ntest rocks::util::security::tests::test_encrypted_env_from_cipher_file ... ok\r\ntest rocks::util::tests::test_cfs_diff ... ok\r\ntest rocks::tests::test_peekable ... ok\r\ntest rocks::tests::test_base ... ok\r\ntest rocks::util::tests::test_compression_ratio ... ok\r\ntest rocks::util::engine_metrics::tests::test_flush ... ok\r\ntest rocks::util::tests::test_prepare_sst_for_ingestion ... ok\r\ntest rocks::util::tests::test_prepare_sst_for_ingestion_titan ... ok\r\ntest rocks::util::tests::test_compact_files_in_range ... ok\r\nthread 'util::tests::test_delete_all_files_in_range' panicked at 'assertion failed: `(left == right)`\r\n  left: `[107, 52]`,\r\n right: `[107, 50]`', components/engine/src/util.rs:141:17\r\nstack backtrace:\r\ntest rocks::util::io_limiter::tests::test_limit_writer ... ok\r\ntest rocks::util::metrics_flusher::tests::test_metrics_flusher ... ok\r\ntest util::tests::test_delete_range_prefix_bloom_case ... ok\r\ntest rocks::util::tests::test_new_engine_opt ... ok\r\ntest util::tests::test_delete_all_in_range_not_use_delete_range ... ok\r\ntest util::tests::test_delete_all_in_range_use_delete_range ... ok\r\n   0: backtrace::backtrace::libunwind::trace\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/libunwind.rs:88\r\n   1: backtrace::backtrace::trace_unsynchronized\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/mod.rs:66\r\n   2: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:47\r\n   3: std::sys_common::backtrace::print\r\n             at src/libstd/sys_common/backtrace.rs:36\r\n   4: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/panicking.rs:200\r\n   5: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:214\r\n   6: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:477\r\n   7: std::panicking::continue_panic_fmt\r\n             at src/libstd/panicking.rs:384\r\n   8: std::panicking::begin_panic_fmt\r\n             at src/libstd/panicking.rs:339\r\n   9: engine::util::tests::check_data\r\n             at components/engine/src/util.rs:141\r\n  10: engine::util::tests::test_delete_all_files_in_range\r\n             at components/engine/src/util.rs:243\r\n  11: engine::util::tests::test_delete_all_files_in_range::{{closure}}\r\n             at components/engine/src/util.rs:209\r\n  12: core::ops::function::FnOnce::call_once\r\n             at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/libcore/ops/function.rs:231\r\n  13: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n             at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/liballoc/boxed.rs:766\r\n  14: __rust_maybe_catch_panic\r\n             at src/libpanic_unwind/lib.rs:82\r\n  15: std::panicking::try\r\n             at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/libstd/panicking.rs:275\r\n  16: std::panic::catch_unwind\r\n             at /rustc/311376d30dc1cfa622142a9f50317b1e0cb4608a/src/libstd/panic.rs:394\r\n  17: test::run_test::run_test_inner::{{closure}}\r\n             at src/libtest/lib.rs:1472\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\ntest util::tests::test_delete_all_files_in_range ... FAILED\r\n\r\nfailures:\r\n\r\nfailures:\r\n    util::tests::test_delete_all_files_in_range\r\n\r\ntest result: FAILED. 23 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out\r\n```\r\n\r\n",
+  "state": "closed",
+  "created_at": "2019-08-09T05:27:12Z",
+  "updated_at": "2020-12-14T04:32:23Z",
+  "closed_at": "2020-12-14T04:32:23Z",
+  "labels": [
+    "type/bug",
+    "status/discussion",
+    "component/test-bench",
+    "component/rocksdb",
+    "priority/low",
+    "sig/engine",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 722189143,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-11-05T07:11:09Z",
+      "body": "Is this issue still exist?"
+    },
+    {
+      "id": 722213272,
+      "user": "sticnarf",
+      "created_at": "2020-11-05T08:05:53Z",
+      "body": "It's quite an old issue and I have no way to reproduce it. I'm not sure if it still exists."
+    },
+    {
+      "id": 725930106,
+      "user": "Little-Wallace",
+      "created_at": "2020-11-12T08:39:36Z",
+      "body": "I think you can not reproduce it because RocksDB has refactor the code of DeleteRange..."
+    },
+    {
+      "id": 725948704,
+      "user": "Connor1996",
+      "created_at": "2020-11-12T09:13:24Z",
+      "body": "> I think you can not reproduce it because RocksDB has refactor the code of DeleteRange...\r\n\r\nIt failed on `delete_files_in_range` not `delete_range`"
+    },
+    {
+      "id": 744150802,
+      "user": "yiwu-arbug",
+      "created_at": "2020-12-14T04:02:10Z",
+      "body": "Shall we close if this is not reproducible?"
+    },
+    {
+      "id": 744158661,
+      "user": "Connor1996",
+      "created_at": "2020-12-14T04:32:20Z",
+      "body": "The stack is stale and duplicated with https://github.com/tikv/tikv/issues/7694"
+    }
+  ]
+}

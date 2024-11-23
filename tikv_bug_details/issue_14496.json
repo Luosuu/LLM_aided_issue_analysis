@@ -1,0 +1,23 @@
+{
+  "issue_number": 14496,
+  "title": "[Dynamic Regions] When the TiKV has a large data size, filter and index block can be too big",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nEnable with partitioned-raft-kv and run a heavy write workload (like sysbench prepare) under a large TiKV node (4TB data size), the block cache may be overwhelming by frequent filter insert. \r\n### What did you expect?\r\n\r\n### What did happened?\r\n<img width=\"812\" alt=\"Screen Shot 2023-03-30 at 3 09 28 PM\" src=\"https://user-images.githubusercontent.com/9442422/228975067-c78fd322-51ca-481f-a2b3-719f79b8e1ff.png\">\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-03-30T22:10:46Z",
+  "updated_at": "2023-07-17T01:16:20Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "feature/developing",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1637259355,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-17T01:16:10Z",
+      "body": "We can disable bloom filter when necessary. Reducing this bug to minor as we have workaround and it did not happen in normal size tikv. "
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "issue_number": 8285,
+  "title": "cases::test_replica_read::test_duplicate_read_index_ctx not work",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n655c5058d806eaa5b149872cc757cd1aa127c826\r\n\r\n### What operating system and CPU are you using?\r\nubuntu 2004\r\n\r\n### Steps to reproduce\r\ncargo test --package tests --test failpoints -- cases::test_replica_read::test_duplicate_read_index_ctx --exact --nocapture\r\n\r\n### What did you expect?\r\nfailpoint config correctly",
+  "state": "closed",
+  "created_at": "2020-07-20T07:07:33Z",
+  "updated_at": "2020-12-17T06:12:37Z",
+  "closed_at": "2020-12-17T06:12:37Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/low",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 679909922,
+      "user": "BusyJay",
+      "created_at": "2020-08-25T09:19:35Z",
+      "body": "Is it still a problem in master?"
+    },
+    {
+      "id": 681313932,
+      "user": "hunterlxt",
+      "created_at": "2020-08-27T02:57:53Z",
+      "body": "@5kbpers PTAL"
+    },
+    {
+      "id": 747232339,
+      "user": "5kbpers",
+      "created_at": "2020-12-17T06:12:34Z",
+      "body": "The failpoint `pause_on_peer_collect_message` was used for ensuring all messages were put into the same batch.\r\nIf the messages were sent very fast, this failpoint will be removed before it was executed.\r\nSo this behavior is expected, will close this issue."
+    }
+  ]
+}

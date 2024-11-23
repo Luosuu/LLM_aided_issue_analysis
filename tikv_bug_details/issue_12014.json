@@ -1,0 +1,51 @@
+{
+  "issue_number": 12014,
+  "title": "The creation of ReadStats should take into account the user configuration of sample_num",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nhttps://github.com/tikv/tikv/commit/a7d1595f5486616be34e0cf2bbf372edb5f0e85a\r\n\r\n### What did you expect?\r\n\r\nThe `sample_num` of `ReadStats` should be updated along with the user config. However, in the current implementation, TiKV uses `ReadStats::default()` to create each `ReadStats` without considering the actual `sample_num` config.\r\n\r\nhttps://github.com/tikv/tikv/blob/a7d1595f5486616be34e0cf2bbf372edb5f0e85a/components/raftstore/src/store/worker/split_controller.rs#L397-L404\r\n\r\nhttps://github.com/tikv/tikv/blob/a7d1595f5486616be34e0cf2bbf372edb5f0e85a/src/storage/metrics.rs#L26-L34\r\n\r\n### What did happened?\r\n\r\nIf the user adjusts the default config and sets a large `sample_num`, the Load Base Split may not work due to the insufficient number of the sampled key range.\r\n",
+  "state": "closed",
+  "created_at": "2022-02-24T05:11:36Z",
+  "updated_at": "2022-03-30T06:18:29Z",
+  "closed_at": "2022-03-30T06:18:29Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1067496830,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T02:29:52Z",
+      "body": "/type bug\r\n/severity Moderate\r\n"
+    },
+    {
+      "id": 1067498286,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T02:32:42Z",
+      "body": "/assign JmPotato"
+    },
+    {
+      "id": 1067611789,
+      "user": "JayiceZ",
+      "created_at": "2022-03-15T06:29:32Z",
+      "body": "can I try to fix it?"
+    },
+    {
+      "id": 1067616698,
+      "user": "JmPotato",
+      "created_at": "2022-03-15T06:33:32Z",
+      "body": "> can I try to fix it?\r\n\r\n@JayiceZ Of course! However, I don't have any idea how to fix this currently. The problem here is that we don't have a good place to pass the config to `local_read_stats`. Maybe you can take a explore here 🤔."
+    },
+    {
+      "id": 1067624216,
+      "user": "JayiceZ",
+      "created_at": "2022-03-15T06:44:52Z",
+      "body": "> > can I try to fix it?\r\n> \r\n> @JayiceZ Of course! However, I don't have any idea how to fix this currently. The problem here is that we don't have a good place to pass the config to `local_read_stats`. Maybe you can take a explore here 🤔.\r\n\r\nIn my opinion.\r\nSplitConfig Change happened here.https://github.com/tikv/tikv/blob/1047b51285456e702b66253da26c7f14d582ff0c/components/raftstore/src/store/worker/split_config.rs#L83\r\n\r\nand maybe we can add a static var to replace DEFAULT_SAMPLE_NUM,like:\r\n`\r\nlazy_static! {\r\n    static ref SAMPLE_NUM ......\r\n}\r\n`\r\n\r\nand it will be updated when ConfigChange in dispatch() contains \"sample_num\"\r\n\r\n\r\n\r\nhow's that?🤔"
+    },
+    {
+      "id": 1067639186,
+      "user": "JmPotato",
+      "created_at": "2022-03-15T07:04:03Z",
+      "body": "> > > can I try to fix it?\r\n> > \r\n> > \r\n> > @JayiceZ Of course! However, I don't have any idea how to fix this currently. The problem here is that we don't have a good place to pass the config to `local_read_stats`. Maybe you can take a explore here 🤔.\r\n> \r\n> In my opinion. SplitConfig Change happened here.\r\n> \r\n> https://github.com/tikv/tikv/blob/1047b51285456e702b66253da26c7f14d582ff0c/components/raftstore/src/store/worker/split_config.rs#L83\r\n> \r\n> and maybe we can add a static var to replace DEFAULT_SAMPLE_NUM,like: `lazy_static! { static ref SAMPLE_NUM ...... }`\r\n> \r\n> and it will be updated when ConfigChange in dispatch() contains \"sample_num\"\r\n> \r\n> how's that?🤔\r\n\r\nLGTM. One suggestion is that in order to keep everything tidy, you may want to make `SplitConfigManager` static rather than one of its fields and change all of its usages to the static variable."
+    }
+  ]
+}

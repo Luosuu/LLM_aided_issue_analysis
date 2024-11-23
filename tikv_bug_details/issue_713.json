@@ -1,0 +1,20 @@
+{
+  "issue_number": 713,
+  "title": "Coprocessor Bug",
+  "body": "Run TiDB on TiKV:\ndrop table if exists t1, t2, t3;\ncreate table t1 (c1 int, c2 int);\ncreate table t2 (c1 int, c2 int);\ncreate table t3 (c1 int, c2 int);\ninsert into t1 values (1,1), (2,2), (3,3);\ninsert into t2 values (1,1), (3,3), (5,5);\ninsert into t3 values (1,1), (5,5), (9,9);\nselect \\* from t1 left join t2 on t1.c1 = t2.c1 right join t3 on t2.c1 = t3.c1 order by t1.c1, t1.c2, t2.c1, t2.c2, t3.c1, t3.c2;\n\nWe will get: unknown error StringError(\"column meta of 5546 is missing\")\n",
+  "state": "closed",
+  "created_at": "2016-06-17T04:26:40Z",
+  "updated_at": "2018-08-07T00:45:52Z",
+  "closed_at": "2016-06-28T03:34:43Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 228939493,
+      "user": "BusyJay",
+      "created_at": "2016-06-28T03:34:43Z",
+      "body": "fixed via #737 \n"
+    }
+  ]
+}

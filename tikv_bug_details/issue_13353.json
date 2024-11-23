@@ -1,0 +1,48 @@
+{
+  "issue_number": 13353,
+  "title": "resolved_ts:  IngestSST do not update the tracked_index",
+  "body": "## Feature Request\r\n\r\n### Is your feature request related to a problem? Please describe:\r\n<!-- A description of what the problem is. -->\r\nIn [`group_row_changes`](https://github.com/tikv/tikv/blob/0030aeb90a840140a935fbb0181b6a62b5e680b3/components/resolved_ts/src/cmd.rs#L193), only update tracked_index of the `CmdType::Put `and `CmdType::Delete`, tracked_index not updated in IngestSST and [1PC](https://github.com/tikv/tikv/blob/6dcd0b3d66945583a133e60838533a5d12b3a487/components/resolved_ts/src/endpoint.rs#L193) scenarios.\r\n\r\nTiFlash needs to use safe_ts to determine whether the peer's data synchronization progress is far behind the leader, so if the tracked_index is not updated in IngestSST scenario, the result is inaccurate. (ref: https://github.com/pingcap/tiflash/issues/4902)\r\n\r\n### Describe the feature you'd like:\r\n<!-- A description of what you want to happen. -->\r\nUpdate tracked_index in `IngestSST` and 1PC scenarios.\r\n### Describe alternatives you've considered:\r\n<!-- A description of any alternative solutions or features you've considered. -->\r\n\r\n### Teachability, Documentation, Adoption, Migration Strategy:\r\n<!-- If you can, explain some scenarios how users might use this, or situations in which it would be helpful. Any API designs, mockups, or diagrams are also helpful. -->\r\n",
+  "state": "closed",
+  "created_at": "2022-08-26T02:53:57Z",
+  "updated_at": "2022-10-18T08:47:55Z",
+  "closed_at": "2022-10-18T08:47:55Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1245274102,
+      "user": "NingLin-P",
+      "created_at": "2022-09-13T11:26:22Z",
+      "body": "It may be okay to ignore `IngestSST` because only followers will apply this command (maybe leader that not yet apply to its term also do), and `tracked_index` & `resolved_ts` is only meaningful for the leader and the leader will initialize them after it has applied to its term.\r\n\r\nThe 1PC case may indeed be a problem. As if there are only 1PC write commands, the `resolved_ts` will ever increase but the `tracked_index` does not which means peers that do not apply any new command can still handle read requests with newer ts. \r\n\r\nAlthough 1PC does not have any locks thus `resolved_ts` can be updated with or without 1PC being tracked, just updating the `tracked_index` for 1PC will be enough, because the ts used for update `resolved_ts` is bounded by `cm.global_min_lock_ts` and the following code ensures 1PC is being tracked before its lock in the concurrency manager is released (which may affect `cm.global_min_lock_ts`): \r\nhttps://github.com/tikv/tikv/blob/8c93b91fea7396b9261551297d1bfa037c82e605/components/raftstore/src/store/fsm/apply.rs#L564-L575\r\n\r\nNot quite sure if this case exists but if it does better add some test case for it, in case incoming change breaks the assumption here.\r\n\r\n"
+    },
+    {
+      "id": 1246169530,
+      "user": "hehechen",
+      "created_at": "2022-09-14T02:58:50Z",
+      "body": "> It may be okay to ignore `IngestSST` because only followers will apply this command (maybe leader that not yet apply to its term also do), and `tracked_index` & `resolved_ts` is only meaningful for the leader and the leader will initialize them after it has applied to its term.\r\n> \r\n> The 1PC case may indeed be a problem. As if there are only 1PC write commands, the `resolved_ts` will ever increase but the `tracked_index` does not which means peers that do not apply any new command can still handle read requests with newer ts.\r\n> \r\n> Although 1PC does not have any locks thus `resolved_ts` can be updated with or without 1PC being tracked, just updating the `tracked_index` for 1PC will be enough, because the ts used for update `resolved_ts` is bounded by `cm.global_min_lock_ts` and the following code ensures 1PC is being tracked before its lock in the concurrency manager is released (which may affect `cm.global_min_lock_ts`):\r\n> \r\n> https://github.com/tikv/tikv/blob/8c93b91fea7396b9261551297d1bfa037c82e605/components/raftstore/src/store/fsm/apply.rs#L564-L575\r\n> \r\n> Not quite sure if this case exists but if it does better add some test case for it, in case incoming change breaks the assumption here.\r\n\r\nIt's OK to ignore `IngestSST` in existing scenarios, but for the [new TiFlash feature](https://github.com/pingcap/tiflash/issues/4902), TiFlash needs to use safe_ts to determine whether the peer's data synchronization progress is far behind the leader, so if the tracked_index is not updated in IngestSST scenario, the result is inaccurate.\r\nTracking `IngestSST` has little effect on TiKV, but is helpful for TiFlash, so I think adding tracking for `IngestSST` is OK."
+    },
+    {
+      "id": 1246385048,
+      "user": "NingLin-P",
+      "created_at": "2022-09-14T07:55:13Z",
+      "body": "I didn't have a detailed look at the new TiFlash feature thus not sure if this change is necessary but just mentioning that `tracked_index` is only meaningful for the leader and only maintained by the leader, what other peers use to determine their `safe_ts` is their own `apply_index`\r\n"
+    },
+    {
+      "id": 1246425365,
+      "user": "NingLin-P",
+      "created_at": "2022-09-14T08:31:42Z",
+      "body": "> It may be okay to ignore IngestSST because only followers will apply this command (maybe leader that not yet apply to its term also do)\r\n\r\nOh, perhaps I do have confused with `IngestSST`, leader may also apply this command thus indeed need to track it."
+    },
+    {
+      "id": 1246604999,
+      "user": "hehechen",
+      "created_at": "2022-09-14T11:06:58Z",
+      "body": "> I didn't have a detailed look at the new TiFlash feature thus not sure if this change is necessary but just mentioning that `tracked_index` is only meaningful for the leader and only maintained by the leader, what other peers use to determine their `safe_ts` is their own `apply_index`\r\n\r\nLeader will send <tracked_index, safe_ts> to follower/learner. If the tracked_index not be updated in `IngestSST` scenario, learner will update `safe_ts` (because leader will update safe_ts from PD) even the data synchronization progress is far behind the leader."
+    }
+  ]
+}

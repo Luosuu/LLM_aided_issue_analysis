@@ -1,0 +1,88 @@
+{
+  "issue_number": 15805,
+  "title": "tikv oom when running large-row-values workload",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nRelease Version:   7.5.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   b4e0bf7bab6ad395b74c0be938119d82ded4cd2a\r\nGit Commit Branch: heads/refs/tags/v7.5.0-alpha\r\nUTC Build Time:    2023-10-13 11:50:39\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nlinux amd64\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. running large-row-values workload and tps=3000, rowsize=1M\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\ntikv oom",
+  "state": "closed",
+  "created_at": "2023-10-20T03:27:22Z",
+  "updated_at": "2024-01-09T04:58:14Z",
+  "closed_at": "2024-01-05T02:37:05Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1772019493,
+      "user": "AkiraXie",
+      "created_at": "2023-10-20T03:27:46Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1776136452,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T22:42:31Z",
+      "body": "@AkiraXie What's the workload to repro it? Is it sysbench prepare or insert?"
+    },
+    {
+      "id": 1776225794,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T23:43:59Z",
+      "body": "/cc @afeinberg"
+    },
+    {
+      "id": 1776228413,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T23:46:35Z",
+      "body": "@AkiraXie Please specify the TiKV's available memory in this case. "
+    },
+    {
+      "id": 1776236919,
+      "user": "afeinberg",
+      "created_at": "2023-10-23T23:55:51Z",
+      "body": "@AkiraXie can you paste the sysbench commands you used to trigger this? also please let us know the amount of memory available to tikv. "
+    },
+    {
+      "id": 1778413622,
+      "user": "overvenus",
+      "created_at": "2023-10-25T02:43:11Z",
+      "body": "From profile, the major memory consumption is from PiTR components:\r\n\r\n1. `backup_stream::event_loader::EventLoader::fill_entries` takes about 36%, it creates too many iterators, same as https://github.com/tikv/tikv/issues/10114 .\r\n2. `backup_stream::router::RouterInner::on_events` uses `zstd_safe::CCtx::try_create` which takes about 47.4%.\r\n\r\n| Zstd | RocksDB Iterator |\r\n|--------|--------|\r\n| ![image](https://github.com/tikv/tikv/assets/2150711/15aa7af6-23d1-4fe6-8732-935827e3dfc8) | ![image](https://github.com/tikv/tikv/assets/2150711/3cb103d5-8122-40db-b504-c79094027e2e)| \r\n\r\nFull profile: [profile-3-10-24-02-13-04.zip](https://github.com/tikv/tikv/files/13160751/profile-3-10-24-02-13-04.zip)\r\n\r\n"
+    },
+    {
+      "id": 1778419874,
+      "user": "AkiraXie",
+      "created_at": "2023-10-25T02:51:12Z",
+      "body": "> @AkiraXie can you paste the sysbench commands you used to trigger this? also please let us know the amount of memory available to tikv.\r\n\r\nemm,this workload is not sysbench command ; tikv memory available is 32G\r\n"
+    },
+    {
+      "id": 1780718803,
+      "user": "AkiraXie",
+      "created_at": "2023-10-26T09:10:57Z",
+      "body": "/affects 7.5\r\n"
+    },
+    {
+      "id": 1780723032,
+      "user": "AkiraXie",
+      "created_at": "2023-10-26T09:13:31Z",
+      "body": "/severity critical\r\n/remove-severity major"
+    },
+    {
+      "id": 1788290550,
+      "user": "BornChanger",
+      "created_at": "2023-11-01T02:12:09Z",
+      "body": "/component backup-restore"
+    },
+    {
+      "id": 1878043299,
+      "user": "AkiraXie",
+      "created_at": "2024-01-05T02:37:05Z",
+      "body": "after #15714 closed, the situation was not seen"
+    }
+  ]
+}

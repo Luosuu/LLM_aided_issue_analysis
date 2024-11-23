@@ -1,0 +1,27 @@
+{
+  "issue_number": 15198,
+  "title": "[Dynamic Regions] br: pitr task in error \"retry time exceeds: error failed to get initial snapshot\"",
+  "body": "## Bug Report\r\nSee https://github.com/pingcap/tidb/issues/45517\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. open pitr task in partitioned raft kv cluster\r\n### What did you expect?\r\n\r\n### What did happened?\r\ntask error failed to get the snapshot (region_id = 1538): Error during requesting raftstore: message: \"read index not ready, reason can not read index due to merge, region 1538\r\n",
+  "state": "closed",
+  "created_at": "2023-07-25T07:22:12Z",
+  "updated_at": "2023-09-05T05:50:54Z",
+  "closed_at": "2023-09-05T05:50:54Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1705983050,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-05T05:50:54Z",
+      "body": "It's not reproed anymore after merge fix. However region unavailable could still lead to BR failure. "
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "issue_number": 11290,
+  "title": "Panic in rocksdb compaction job",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\ndoesn't matter\r\n\r\n### Steps to reproduce\r\nrun TPCC\r\n\r\n### What did you expect?\r\nno panic\r\n\r\n### What did happened?\r\n```\r\n[2021/11/08 17:44:37.778 +08:00] [FATAL] [lib.rs:465] [\"invalid data key 0101\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n   1: std::panicking::rust_panic_with_hook\\n             at /rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:626:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at /rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:519:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at /rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/sys_common/backtrace.rs:141:18\\n   4: rust_begin_unwind\\n             at /rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:515:5\\n   5: std::panicking::begin_panic_fmt\\n             at /rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:457:5\\n   6: rocksdb::sst_partitioner::sst_partitioner_should_partition\\n   7: _ZN31crocksdb_sst_partitioner_impl_t15ShouldPartitionERKN7rocksdb18PartitionerRequestE\\n   8: _ZN7rocksdb13CompactionJob25ProcessKeyValueCompactionEPNS0_18SubcompactionStateE\\n   9: _ZN7rocksdb13CompactionJob3RunEv\\n  10: _ZN7rocksdb6DBImpl20BackgroundCompactionEPbPNS_10JobContextEPNS_9LogBufferEPNS0_19PrepickedCompactionENS_3Env8PriorityE\\n  11: _ZN7rocksdb6DBImpl24BackgroundCallCompactionEPNS0_19PrepickedCompactionENS_3Env8PriorityE\\n  12: _ZN7rocksdb6DBImpl16BGWorkCompactionEPv\\n  13: _ZN7rocksdb14ThreadPoolImpl4Impl8BGThreadEm\\n  14: _ZN7rocksdb14ThreadPoolImpl4Impl15BGThreadWrapperEPv\\n  15: execute_native_thread_routine\\n             at /data1/liucong/misc/gcc-9.2.0/build/x86_64-pc-linux-gnu/libstdc++-v3/src/c++11/../../../../../libstdc++-v3/src/c++11/thread.cc:80:18\\n  16: start_thread\\n  17: __clone\\n\"] [location=components/keys/src/lib.rs:220] [thread_name=<unnamed>]\r\n```",
+  "state": "closed",
+  "created_at": "2021-11-08T09:55:52Z",
+  "updated_at": "2022-01-18T12:04:13Z",
+  "closed_at": "2021-11-09T06:27:04Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3"
+  ],
+  "comments_data": [
+    {
+      "id": 963745590,
+      "user": "Lily2025",
+      "created_at": "2021-11-09T02:05:34Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 963773275,
+      "user": "Lily2025",
+      "created_at": "2021-11-09T03:09:07Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 963773506,
+      "user": "Lily2025",
+      "created_at": "2021-11-09T03:09:34Z",
+      "body": "/remove-severity major"
+    }
+  ]
+}

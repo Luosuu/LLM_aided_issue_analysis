@@ -1,0 +1,40 @@
+{
+  "issue_number": 15696,
+  "title": "After spliting regions, the size of the new regions are not updated to zero but None.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nSee title\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-09-27T06:00:09Z",
+  "updated_at": "2024-05-22T08:47:14Z",
+  "closed_at": "2024-05-22T08:47:14Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1736756140,
+      "user": "CabinfeverB",
+      "created_at": "2023-09-27T06:03:42Z",
+      "body": "/assgin @bufferflies "
+    },
+    {
+      "id": 1915369546,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T18:59:37Z",
+      "body": "It may be related to https://github.com/tikv/tikv/pull/15456"
+    },
+    {
+      "id": 1915951537,
+      "user": "bufferflies",
+      "created_at": "2024-01-30T02:29:07Z",
+      "body": "> It may be related to #15456\r\n\r\nno, only the region size checker is busy. It can be closed by designed. "
+    }
+  ]
+}

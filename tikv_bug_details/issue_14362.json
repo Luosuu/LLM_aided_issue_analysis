@@ -1,0 +1,29 @@
+{
+  "issue_number": 14362,
+  "title": "[Dynamic Regions] all tidbs can not start after restart all tidbs、tikvs、pds",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV\r\nRelease Version:   6.7.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   8bfa12dea2d5bd0918b35e5ae041676aeeee77ab\r\nGit Commit Branch: heads/refs/tags/v6.7.0-alpha\r\nUTC Build Time:    2023-03-05 11:40:05\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\nrestart all tidbs、tikvs、pds\r\n\r\n### What did you expect?\r\nall pods can start normally\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1655167\r\nrun ha-all-comp-restart\r\n\r\n### What did happened?\r\nall tidbs can not start with FATAL error\r\n\r\n\"[terror.go:300] [\\\"unexpected error\\\"] [error=\\\"[tikv:9002]TiKV server timeout\\\"] [stack=\\\"github.com/pingcap/tidb/parser/terror.MustNil\\\\n\\\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/parser/terror/terror.go:300\\\\nmain.createStoreAndDomain\\\\n\\\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:347\\\\nmain.main\\\\n\\\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:243\\\\nruntime.main\\\\n\\\\t/usr/local/go/src/runtime/proc.go:250\\\"] [stack=\\\"github.com/pingcap/tidb/parser/terror.MustNil\\\\n\\\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/parser/terror/terror.go:300\\\\nmain.createStoreAndDomain\\\\n\\\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:347\\\\nmain.main\\\\n\\\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:243\\\\nruntime.main\\\\n\\\\t/usr/local/go/src/runtime/proc.go:250\\\"]\"\r\n\r\n![7bbc50b1-f143-433f-86a3-c057004672be](https://user-images.githubusercontent.com/84712107/223604062-1467d8a7-bb14-4639-881d-0b143c4b4580.jpeg)\r\n\r\nlogs: http://minio.pingcap.net:38888/buckets/test-infra-testground/browse/YXJjaGl2ZS9lbmRsZXNzLWhhLXRlc3QtbXVsdGktcm9ja3MtdHBzLTE2NTUxNjctMS01MDU=\r\nclinc:  https://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7207690969345647578?from=1678202605&to=1678204457",
+  "state": "closed",
+  "created_at": "2023-03-08T02:31:00Z",
+  "updated_at": "2023-09-27T05:02:53Z",
+  "closed_at": "2023-07-06T18:15:49Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1459190687,
+      "user": "Lily2025",
+      "created_at": "2023-03-08T02:31:31Z",
+      "body": "/type bug\r\n/severity major\r\n/assign tonyxuqqi"
+    },
+    {
+      "id": 1624121252,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-06T18:15:49Z",
+      "body": "It's fixed by #14917"
+    }
+  ]
+}

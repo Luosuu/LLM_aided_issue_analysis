@@ -1,0 +1,30 @@
+{
+  "issue_number": 16465,
+  "title": "(dr-autosync) v6.5.8 scale in one node from primary datacenter failed during async mode",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.8\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. deploy one tidb cluster with 12 stores, and config it with 5 replicas in dr-auto-sync mode.\r\n2. down two tikvs in the backup center, make replication mode switch to async.\r\n3. Try to scale-in one node in the primary center.\r\n\r\n### What did you expect?\r\nScale in succeeded.\r\n\r\n\r\n### What did happened?\r\nScale in hung.\r\n\r\nDidn't hit it before https://github.com/tikv/tikv/pull/16174. \r\n",
+  "state": "closed",
+  "created_at": "2024-01-30T09:52:24Z",
+  "updated_at": "2024-01-31T05:10:54Z",
+  "closed_at": "2024-01-31T05:10:54Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1916462777,
+      "user": "mayjiang0203",
+      "created_at": "2024-01-30T09:52:40Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1917995721,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-30T22:18:34Z",
+      "body": "In this case, does the back-up site have two learners for each region?\r\n If that's the case, it would be blocked by today's check as we likely run into 3 healthy peers and 3 unhealthy peers. And if the remove peer happens on the healthy peer, it would be blocked. \r\nThe argument here is that if the unhealthy peer is learner, then it should not be counted. Then we will have only 3 healthy peers plus one unhealthy learner.  By demoting a healthy peer, we will still have 2 healthy voter which can achieve majority. "
+    }
+  ]
+}

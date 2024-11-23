@@ -1,0 +1,14 @@
+{
+  "issue_number": 14548,
+  "title": "[Dynamic Regions] raft tick may be missing",
+  "body": "## Bug Report\r\n\r\nIn raftstore-v2, when a raft node starts, if there's a noticable gap between commit index and apply index, we deplay scheduling raft tick in order to avoid it being a leader and thus block the raft activities during apply catching up.\r\nIn this case, the tick is scheduled when the apply index catches up the commit index in `on_apply_res`.  However, the peer may apply a snapshot so that it will not apply any raft logs until new raft logs are appended. But before that time, there's no raft tick in this peer which could lead some problems\r\nFor instance, say we have 3 nodes and node 1 falls in this situation, and network partition occurs leading to [1, 2], [3].\r\nThe region will be unavailable during the whole network partition. Just like https://github.com/tikv/tikv/issues/14532.\r\n",
+  "state": "closed",
+  "created_at": "2023-04-10T09:20:30Z",
+  "updated_at": "2023-04-18T06:51:20Z",
+  "closed_at": "2023-04-18T06:51:20Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,35 @@
+{
+  "issue_number": 14828,
+  "title": "Multiple SST files snapshot may trigger flow control",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.2\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNot related\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nDo not trigger flow control\r\n\r\n### What did happened?\r\nWhen there is a big region formed for some reason, multiple sst files snapshot may ingest a lot of SSTs in L0 while it only check `ingest_maybe_stall` based on the premise of ingesting only one SST. Then it could be cause too many L0 files and trigger flow control.\r\n\r\n![img_v2_eef732cd-8a61-4d54-83e1-260433fcc54g](https://github.com/tikv/tikv/assets/13497871/29cb26c4-99ff-4fc0-9b58-5167302e5ccf)\r\n![img_v2_b19399c4-a552-42e2-ba3e-5121c915e83g](https://github.com/tikv/tikv/assets/13497871/c4628d3e-9ba4-4632-a144-5318925ab9aa)\r\n![img_v2_c56df2db-8cbd-442a-95e8-56e6a10584cg](https://github.com/tikv/tikv/assets/13497871/30a1e22a-10e4-4454-b652-0cbe845c7a7d)\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-05-25T05:26:47Z",
+  "updated_at": "2024-01-29T23:42:19Z",
+  "closed_at": "2024-01-29T21:59:01Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1915647468,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T21:59:01Z",
+      "body": "To ensure atomic ingest of a snapshot, these SSTs must be ingested as a whole. So basically, it's a trade-off between single large SST and L0 file count. "
+    },
+    {
+      "id": 1915769225,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T23:42:18Z",
+      "body": "The real fix is to avoid such big region which is fixed in https://github.com/tikv/tikv/pull/15900"
+    }
+  ]
+}

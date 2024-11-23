@@ -1,0 +1,17 @@
+{
+  "issue_number": 16616,
+  "title": "TiKV will panic if cast a temporary binary to json",
+  "body": "Ref https://github.com/pingcap/tidb/issues/51547\r\n\r\nRun the following SQL will trigger this issue:\r\n\r\n```sql\r\nCREATE TABLE t1 (c1 decimal);\r\nINSERT INTO t1 VALUE (1);\r\nSELECT c1 FROM t1 WHERE 1 MEMBER OF (BINARY c1);\r\n```",
+  "state": "closed",
+  "created_at": "2024-03-07T08:21:48Z",
+  "updated_at": "2024-03-12T07:09:40Z",
+  "closed_at": "2024-03-12T07:09:40Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

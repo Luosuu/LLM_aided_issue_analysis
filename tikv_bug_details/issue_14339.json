@@ -1,0 +1,28 @@
+{
+  "issue_number": 14339,
+  "title": "[Dynamic Regions] GC did not work properly with partitioned-raft-kv",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nnightly \r\ngit_hash:142e4b4a49109b83b4e034345622f02808415a6e\r\n\r\n### Steps to reproduce\r\ngo-tpc 1k warehouses 6h \r\n\r\n### What did you expect?\r\ngc work properly\r\nno error during tpcc running\r\n### What did happened?\r\nThe workload started at 3:42 AM on March 3rd. The metrics showed that gc did not work from 4:08 AM.\r\n![image](https://user-images.githubusercontent.com/85105033/222700661-991636a5-b0a1-40f3-98fd-124a20959aa9.png)\r\nAnd from the log we can also identify the GC didn't work properly from 4:08 AM.\r\n![img_v2_4f338562-1bc9-4872-b8ea-9bf9d491351g](https://user-images.githubusercontent.com/85105033/222701296-79fcc530-a556-4801-8222-2d15d9da06fc.jpg)\r\nThe load lasted for 6 hours, starting from 3:42 AM and should have ended around 9:42 AM. However, according to the monitoring data, the load ended at 8:46 AM . According to the output from the TPCC client, errors began to occur at 8:46 AM.\r\n![image](https://user-images.githubusercontent.com/85105033/222703908-617b93be-63e2-43c1-a69f-5d706f2982f0.png)\r\n![img_v2_6f28f6a6-0fbb-4fbe-941a-e4ad13a7438g](https://user-images.githubusercontent.com/85105033/222703982-73392025-cae5-477a-94d0-a082b734058c.jpg)\r\n",
+  "state": "closed",
+  "created_at": "2023-03-03T11:06:15Z",
+  "updated_at": "2023-09-27T05:09:50Z",
+  "closed_at": "2023-07-07T03:58:42Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1496761436,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-05T00:21:51Z",
+      "body": "/cc @SpadeA-Tang "
+    },
+    {
+      "id": 1624650852,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-07T03:58:42Z",
+      "body": "Fixed"
+    }
+  ]
+}

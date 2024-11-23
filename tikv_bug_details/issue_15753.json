@@ -1,0 +1,29 @@
+{
+  "issue_number": 15753,
+  "title": "dropped raft message metrics on disk_full type is misleading",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n7.4 or older\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ncreate a large file on the tikv data disk to make very little free space on it.\r\nRun sysbench prepare\r\n### What did you expect?\r\nA lots of message_dropped.disk_full in metrics\r\n### What did happened?\r\nmessage_dropped.disk_full  is almost flat. \r\n<img width=\"819\" alt=\"Screen Shot 2023-10-11 at 2 26 03 PM\" src=\"https://github.com/tikv/tikv/assets/9442422/ece50830-ac3d-4d60-9c94-5dbcaae11db5\">\r\n\r\nThe point is that this counter only happens when MsgTimeoutNOw == msg_type, which itself is quite rare. ",
+  "state": "open",
+  "created_at": "2023-10-11T21:29:39Z",
+  "updated_at": "2024-01-29T18:49:26Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1781990247,
+      "user": "mohatagarvit",
+      "created_at": "2023-10-26T22:43:35Z",
+      "body": "Hi, \r\n\r\nHope you are doing well! \r\n\r\nI am [Garvit Mohata](https://github.com/mohatagarvit), a MS CS student at UT Austin. My teammate ([Kulin Shah](https://github.com/kulinshah98)) and I are taking the graduate [Distributed Systems](https://github.com/vijay03/cs380d-f23/tree/master) course and as a part of the course project, we are exploring the opportunity of contributing to the **tikv** open source repository. \r\n\r\nThis issue seems closely related to the content of the course so we were wondering if we can contribute to solve this issue. \r\n\r\nJust to confirm, is the expected behavior that the raft (in its metrics) is not capturing (and should begin to capture) messages that are known/shown to be dropped simply because the metrics only update/capture on a condition that occurs rarely.\r\nThank you!\r\n\r\nRegards,\r\nGarvit"
+    },
+    {
+      "id": 1915354195,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T18:49:25Z",
+      "body": "@mohatagarvit  Correct.  You're welcome to make contribution. Thanks. "
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "issue_number": 15994,
+  "title": "release 7.5.0 Compared with the previous commit, oltp_read_write has a 3.65% regression under 200 concurrency and oltp_insert has a 1.5+% regression under 100 concurrency",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n7.1.2 tidb + 7.1.2 pd + patch 7.5.0 tikv\r\n\r\n### What operating system and CPU are you using?\r\nksyun-rocky-16c\r\n\r\n### Steps to reproduce\r\ncluster deploy\r\n7.1.2 tidb + 7.1.2 pd + patch 7.5.0 tikv(commit id 9bece34a3b3e3eb2fb5d8296cdbd8a459eeddbd6)\r\n7.1.2 tidb + 7.1.2 pd + patch 7.5.0 tikv(commit id 076b79c54b9e7656f9119865d4ed75bec3bd58d6)\r\n\r\nworkload\r\nsysbench oltp_read_write /oltp_insert\r\nthreads=100/200\r\n\r\n### What did you expect?\r\nCompared with 7.1.2 under 200 concurrency, qps should also be similar.\r\n\r\n### What did happened?\r\nCompared with the tikv 7.1.2, tikv 7.5.0  has a 5.82% regression under 200 concurrency in oltp_read_write.\r\n![image](https://github.com/tikv/tikv/assets/85105033/1519cdcc-706a-4305-9b8c-058679c0de2a)\r\nCompared with the commit 9bece34a3b3e3eb2fb5d8296cdbd8a459eeddbd6 the commit 076b79c54b9e7656f9119865d4ed75bec3bd58d6  lead oltp_read_write has a 3.65% regression under 200 concurrency and oltp_insert has a 1.5+% regression under 100 concurrency\r\n![image](https://github.com/tikv/tikv/assets/85105033/ea82bd57-10f4-4ee3-8834-74315d61a7ab)\r\n![image](https://github.com/tikv/tikv/assets/85105033/239e1ebb-11ed-4b3d-bfc2-8b5f563bfba6)\r\n\r\nThe corresponding pr is https://github.com/tikv/tikv/pull/15966\r\n",
+  "state": "closed",
+  "created_at": "2023-11-15T10:09:17Z",
+  "updated_at": "2023-11-16T04:53:18Z",
+  "closed_at": "2023-11-16T04:53:17Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1812156562,
+      "user": "shaoxiqian",
+      "created_at": "2023-11-15T10:10:20Z",
+      "body": "/type performance\r\n"
+    },
+    {
+      "id": 1812156645,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-11-15T10:10:22Z",
+      "body": "@shaoxiqian: The label(s) `type/performance` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15994#issuecomment-1812156562):\n\n>/type performance\r\n>\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1812157164,
+      "user": "shaoxiqian",
+      "created_at": "2023-11-15T10:10:39Z",
+      "body": "/type regression"
+    },
+    {
+      "id": 1812157223,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-11-15T10:10:41Z",
+      "body": "@shaoxiqian: The label(s) `type/regression` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15994#issuecomment-1812157164):\n\n>/type regression\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1812157689,
+      "user": "shaoxiqian",
+      "created_at": "2023-11-15T10:11:01Z",
+      "body": "/label affects-7.5"
+    },
+    {
+      "id": 1812158894,
+      "user": "shaoxiqian",
+      "created_at": "2023-11-15T10:11:49Z",
+      "body": "/assign @glorv "
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "issue_number": 13898,
+  "title": "PITR checkpoint not advance if tikv fails to connect to PD at start",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\n # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.5.0\r\nEdition:           Community\r\nGit Commit Hash:   fd2904a7ac9ff395ff7f908a3c2a961a95551484\r\nGit Commit Branch: heads/refs/tags/v6.5.0\r\nUTC Build Time:    2022-12-02 09:08:26\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\n```\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. Create TiDB cluster cross 3 AZs\r\n2. Create PITR task\r\n3. inject single AZ failure for 10min\r\n4. Check PITR lag\r\n\r\n### What did you expect?\r\nPITR lag should be less than 5min during single AZ failure. Or at least it should be recoverable after tikv/pd network restored, before https://github.com/tikv/tikv/issues/13637 is fixed\r\n\r\n### What did happened?\r\nPITR checkpoint not advance when the single AZ failure ends and tikv restart, at which time TiKV fails to connect to PD.\r\n```\r\n[2022/12/05 13:41:20.532 +08:00] [WARN] [[errors.rs:155](http://errors.rs:155/)] [\"backup stream meet error\"] [verbose_err=\"Etcd(GRpcStatus(Status { code: Unknown, message: \\\"buffered service failed: load balancer discovery error: transp\r\nort error: transport error\\\", source: Some(ServiceError { inner: Discover(TransportError(tonic::transport::Error(Transport, hyper::Error(Connect, ConnectError(\\\"tcp connect error\\\", Os { code: 111, kind: Connecti\r\nonRefused, message: \\\"Connection refused\\\" }))))) }) }))\"] [err=\"Etcd meet error grpc request error: status: Unknown, message: \\\"buffered service failed: load balancer discovery error: transport error: transport \r\nerror\\\", details: [], metadata: MetadataMap { headers: {} }\"] [context=\"failed to start watch tasks\"]\r\n```\r\n\r\n![3f23163f-1508-43e8-86b8-871f23208311](https://user-images.githubusercontent.com/7403864/205913893-d8d45363-7977-47aa-970f-aef16954d52f.jpeg)\r\n\r\n![4f924943-143f-442c-84c2-2c9644f4f767](https://user-images.githubusercontent.com/7403864/205913604-730fba4a-ad20-45ca-af6f-2d6f409d722a.jpeg)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-12-06T12:35:02Z",
+  "updated_at": "2022-12-08T14:26:06Z",
+  "closed_at": "2022-12-08T14:26:06Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "affects-6.4",
+    "affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1339259104,
+      "user": "fubinzh",
+      "created_at": "2022-12-06T12:35:29Z",
+      "body": "refer to: http://perf.pingcap.net:3000/d/dkZqxvG4k/ha-test-plan-summary?orgId=1&var-plan_tag=All&var-tag_id=1050107&var-case_id=All&refresh=10s"
+    },
+    {
+      "id": 1339260508,
+      "user": "ti-chi-bot",
+      "created_at": "2022-12-06T12:36:10Z",
+      "body": "@fubinzh: The label(s) `component/br` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13898#issuecomment-1339260483):\n\n>/component br\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1339260720,
+      "user": "ti-chi-bot",
+      "created_at": "2022-12-06T12:36:22Z",
+      "body": "@fubinzh: The label(s) `component/br` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13898#issuecomment-1339260483):\n\n>/component br\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1339260858,
+      "user": "fubinzh",
+      "created_at": "2022-12-06T12:36:30Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1339458878,
+      "user": "joccau",
+      "created_at": "2022-12-06T14:19:03Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1339460299,
+      "user": "joccau",
+      "created_at": "2022-12-06T14:20:07Z",
+      "body": "/label affects-6.4"
+    },
+    {
+      "id": 1339473247,
+      "user": "fubinzh",
+      "created_at": "2022-12-06T14:29:47Z",
+      "body": "/label affects-6.5"
+    },
+    {
+      "id": 1340375542,
+      "user": "joccau",
+      "created_at": "2022-12-07T05:00:48Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1340375833,
+      "user": "joccau",
+      "created_at": "2022-12-07T05:01:17Z",
+      "body": "/label may-affects-6.3"
+    },
+    {
+      "id": 1342143776,
+      "user": "joccau",
+      "created_at": "2022-12-08T06:38:18Z",
+      "body": "/remove-label may-affects-6.3"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "issue_number": 10694,
+  "title": "After upgrading from 5.1.0 to the 5.2.0 master, run sysbench insert and query，some tikv crash repeatedly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n| Release Version: v5.2.0-alpha-545-g30cf15a59\r\nEdition: Community\r\nGit Commit Hash: 30cf15a59db11c34ffe05fc926152a43327eaa61\r\nGit Branch: HEAD\r\nUTC Build Time: 2021-08-08 18:30:45\r\nGoVersion: go1.16.4\r\nRace Enabled: false\r\nTiKV Min Version: v3.0.0-60965b006877ca7234adaced7890d7b029ed1306\r\nCheck Table Before Drop: false |\r\n\r\n### What operating system and CPU are you using?\r\n2 tidb，3 pd，4 tikv\r\nk8s环境\r\ntikv：8G、4 cores\r\n\r\n### Steps to reproduce\r\ncase：TiKVWorkloadStress003\r\n1、upgrading from 5.1.0 to the 5.2.0 master\r\n2、run sysbench insert and query\r\ntabNum：512\r\ntableSize：1000000000\r\nthreads：512\r\n3、query\r\nselect * from sbtest1 limit 1,100\r\n\r\n### What did you expect?\r\ntikv is normal\r\n\r\n### What did happened?\r\nsome tikv crash（oom） repeatedly\r\n<img width=\"576\" alt=\"stress003\" src=\"https://user-images.githubusercontent.com/84712107/128792645-0272d099-e9c4-43b6-9fcd-7c219309290f.png\">\r\n<img width=\"576\" alt=\"stress003_mem\" src=\"https://user-images.githubusercontent.com/84712107/128793556-87b9aa57-db15-4877-aa69-0f2e3d7a8753.png\">\r\n",
+  "state": "closed",
+  "created_at": "2021-08-10T01:08:20Z",
+  "updated_at": "2021-08-12T10:25:17Z",
+  "closed_at": "2021-08-12T10:25:17Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 895653384,
+      "user": "Lily2025",
+      "created_at": "2021-08-10T01:08:33Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 895653465,
+      "user": "Lily2025",
+      "created_at": "2021-08-10T01:08:44Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 895704961,
+      "user": "Lily2025",
+      "created_at": "2021-08-10T03:43:06Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 895705132,
+      "user": "Lily2025",
+      "created_at": "2021-08-10T03:43:39Z",
+      "body": "/remove-severity major"
+    },
+    {
+      "id": 895720387,
+      "user": "hicqu",
+      "created_at": "2021-08-10T04:30:12Z",
+      "body": "Seems `block-cache-size` is not configured correctly:\r\n![图片](https://user-images.githubusercontent.com/8407317/128808430-e39ee1bc-5d05-4ae9-8c3a-06ce988096e0.png)\r\n"
+    },
+    {
+      "id": 895851629,
+      "user": "hicqu",
+      "created_at": "2021-08-10T08:52:32Z",
+      "body": "@Lily2025 thanks for your report! It's a bug. I will fix it later."
+    }
+  ]
+}

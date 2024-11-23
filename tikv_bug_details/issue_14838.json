@@ -1,0 +1,37 @@
+{
+  "issue_number": 14838,
+  "title": "metric: the scheduler and latch duration may not be recorded with the grpc duration",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nrelease-6.5.2\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNot matter\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nWhen write duration is high in TiKV, it may not always be reflected accurately by the metrics. This can cause confusion regarding the slowness of gRPC duration. For instance, when there are conflicts between write commands, the slowest command may hold the latch for several minutes while other commands cannot be processed on time. As a result, a timeout error would be returned to the KV-client but the related `TaskContext` could still be held in memory until the waiting latch is released. This leads to confusion about `kv-grpc-duration`, `scheduler-command-duration`, and `latch-wait-duration`.\r\n\r\n### What did you expect?\r\n\r\nAll the durations should be observed following the write command or task life time.\r\n\r\n### What did happened?\r\n\r\nThe grpc duration is observed but other durations may not be observed in time.",
+  "state": "closed",
+  "created_at": "2023-05-28T13:49:17Z",
+  "updated_at": "2023-12-12T07:27:10Z",
+  "closed_at": "2023-12-12T07:27:10Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "sig/transaction",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1569591930,
+      "user": "cfzjywxk",
+      "created_at": "2023-05-31T06:49:46Z",
+      "body": "As the latch resources are not released with the time out tasks, the tikv node availability would be impacted, raise the severity to critical."
+    },
+    {
+      "id": 1573215905,
+      "user": "cfzjywxk",
+      "created_at": "2023-06-02T06:21:27Z",
+      "body": "It's not the cause of tikv stuck, lower the severity to major."
+    },
+    {
+      "id": 1851436964,
+      "user": "cfzjywxk",
+      "created_at": "2023-12-12T07:27:10Z",
+      "body": "This is a metric related issue or improvement, close the issue by now as the improvement needs to be re-considered."
+    }
+  ]
+}

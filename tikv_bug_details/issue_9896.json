@@ -1,0 +1,63 @@
+{
+  "issue_number": 9896,
+  "title": "Store used size changes a lot after restarting",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nRelease Version:   5.0.0-rc.x\r\nEdition:           Community\r\nGit Commit Hash:   34d72b137a3eeadbcb444613a32763e0cfa5c084\r\nGit Commit Branch: heads/refs/tags/v5.0.0-nightly\r\nUTC Build Time:    2021-03-17 03:10:24\r\nRust Version:      rustc 1.51.0-nightly (1d0d76f8d 2021-01-24)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNot related \r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRun some workload and the used size will increase infinitely. And do a restart, the used size will be normal again.\r\n\r\n### What did you expect?\r\nthe store used size is close to store size\r\n\r\n### What did happened?\r\n<img width=\"928\" alt=\"截屏2021-03-25 下午7 55 10\" src=\"https://user-images.githubusercontent.com/13497871/112469394-66931400-8da4-11eb-9c6f-3aa5b2fbda24.png\">\r\n\r\nFrom PD metrics, store used size changes a lot after restarting which is reported from TiKV side.\r\nTiKV calculates store used size by adding snapshot total size and engine used size.\r\n\r\n<img width=\"1231\" alt=\"截屏2021-03-25 下午7 55 27\" src=\"https://user-images.githubusercontent.com/13497871/112469553-94785880-8da4-11eb-8ba1-86ab49c58ea7.png\">\r\n\r\n![image](https://user-images.githubusercontent.com/13497871/112469753-cab5d800-8da4-11eb-990f-dd2d77231aa2.png)\r\n\r\nFrom metrics, we can know that store size(engine used size) and disk space util doesn't changes a lot, **so it must be something wrong with snpashot total size.**\r\n",
+  "state": "closed",
+  "created_at": "2021-03-25T12:03:40Z",
+  "updated_at": "2021-03-27T17:19:24Z",
+  "closed_at": "2021-03-27T17:19:24Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 806610063,
+      "user": "Connor1996",
+      "created_at": "2021-03-25T12:03:54Z",
+      "body": "/cc @hicqu "
+    },
+    {
+      "id": 806617629,
+      "user": "Connor1996",
+      "created_at": "2021-03-25T12:08:35Z",
+      "body": "This is like https://github.com/tikv/tikv/issues/9429 but not same, whose symptom is store size changes a lot"
+    },
+    {
+      "id": 807936370,
+      "user": "hicqu",
+      "created_at": "2021-03-26T05:01:45Z",
+      "body": "It's not easy to locate what's wrong for `SnapManager.snap_size`. I prefer to calculate the directory size in PD worker thread. @Connor1996 @BusyJay what do you say?"
+    },
+    {
+      "id": 807939316,
+      "user": "Connor1996",
+      "created_at": "2021-03-26T05:09:58Z",
+      "body": "> It's not easy to locate what's wrong for `SnapManager.snap_size`. I prefer to calculate the directory size in PD worker thread. @Connor1996 @BusyJay what do you say?\r\n\r\nI notice that `snap_size` is used in `get_snapshot_for_building` too"
+    },
+    {
+      "id": 807949789,
+      "user": "hicqu",
+      "created_at": "2021-03-26T05:33:33Z",
+      "body": "Bench shows that iterating a directory with 100000 entries and fetching metadata for them all needs about **150ms**:\r\n```\r\nrunning 1 test\r\ntest bench_iter_dir ... bench: 158,881,406 ns/iter (+/- 25,386,574)\r\n\r\ntest result: ok. 0 passed; 0 failed; 0 ignored; 1 measured; 0 filtered out; finished in 48.40s\r\n```\r\n\r\nThe code is like\r\n```rust\r\nfn create_tmpfiles(dir_name: &str) {\r\n    for i in 0..100000 {\r\n        let file_name = format!(\"temp_{:06}\", i);\r\n        let path = Path::new(dir_name).join(file_name);\r\n        println!(\"creating {:?}\", path);\r\n        OpenOptions::new()\r\n            .create(true)\r\n            .write(true)\r\n            .open(&path)\r\n            .unwrap();\r\n    }\r\n}\r\n\r\n#[bench]\r\nfn bench_iter_dir(bench: &mut Bencher) {\r\n    bench.iter(|| {\r\n        for entry in fs::read_dir(\"temp-dir\").unwrap() {\r\n            let x = entry.unwrap().metadata().unwrap();\r\n            drop(x);\r\n        }\r\n    });\r\n}\r\n```"
+    },
+    {
+      "id": 807953498,
+      "user": "BusyJay",
+      "created_at": "2021-03-26T05:42:51Z",
+      "body": "Have you confirmed `snap_size` is the root cause?"
+    },
+    {
+      "id": 807960257,
+      "user": "hicqu",
+      "created_at": "2021-03-26T06:00:46Z",
+      "body": "Both @Connor1996 and me think so based on\r\n\r\n* PD just shows `StoreState.used_size` in metrics, there should be nothing wrong.\r\n* TiKV posts `get_total_snap_size() + engine.get_size()` to PD, and `engine.get_size()` is not wrong."
+    },
+    {
+      "id": 807967301,
+      "user": "BusyJay",
+      "created_at": "2021-03-26T06:16:37Z",
+      "body": "How about adding a log to verify it directly before thinking about fixes?"
+    }
+  ]
+}

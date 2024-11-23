@@ -1,0 +1,27 @@
+{
+  "issue_number": 10752,
+  "title": "Panic in flow controller",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv5.2.0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRun heavy write workload \r\n\r\n### What did you expect?\r\nNo panic\r\n\r\n### What did happened?\r\n```\r\n[2021/08/16 19:31:58.004 +08:00] [FATAL] [lib.rs:465] [\"called `Option::unwrap()` on a `None` value\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{closure}}\\n   1: std::panicking::rust_panic_with_hook\\n             at library/std/src/panicking.rs:626\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at library/std/src/panicking.rs:517\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at library/std/src/sys_common/backtrace.rs:141\\n   4: rust_begin_unwind\\n             at library/std/src/panicking.rs:515\\n   5: core::panicking::panic_fmt\\n             at library/core/src/panicking.rs:92\\n   6: core::panicking::panic\\n             at library/core/src/panicking.rs:50\\n   7: tikv::storage::txn::flow_controller::FlowChecker<E>::tick_l0\\n   8: std::sys_common::backtrace::__rust_begin_short_backtrace\\n   9: std::panicking::try::do_call\\n  10: core::ops::function::FnOnce::call_once{{vtable.shim}}\\n  11: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at library/std/src/sys/unix/thread.rs:91\\n  12: start_thread\\n  13: __clone\\n\"] [location=/data2/minghua/tikv/src/storage/txn/flow_controller.rs:768] [thread_name=flow-checker]\r\n```",
+  "state": "closed",
+  "created_at": "2021-08-17T01:46:06Z",
+  "updated_at": "2021-08-17T08:28:00Z",
+  "closed_at": "2021-08-17T08:28:00Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 899934677,
+      "user": "Lily2025",
+      "created_at": "2021-08-17T01:58:57Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 899934806,
+      "user": "Lily2025",
+      "created_at": "2021-08-17T01:59:21Z",
+      "body": "/assign Connor1996"
+    }
+  ]
+}

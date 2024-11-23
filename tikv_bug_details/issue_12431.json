@@ -1,0 +1,58 @@
+{
+  "issue_number": 12431,
+  "title": "Pending peer may exist for a long time when adding a learner peer",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n1fc68b2abd664e6bf73bdda874399c8db4435cf6\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\ndon't matter\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. create a simple cluster with 3 tikv nodes\r\n2. start tpcc bench prepare\r\n3. add `remove-peer` op for one region\r\n\r\n### What did you expect?\r\ntime to finish operator should be not too loog. \r\n\r\n### What did happened?\r\nop always timeout due to pending peer and after restarting the cluster it remains the same situation.\r\n\r\nNote that this occurs occasionally. Most of the time, the state after the above steps is that each of the 3 nodes has 3 voters, except that the removed peer id has changed.\r\n",
+  "state": "open",
+  "created_at": "2022-04-26T05:10:04Z",
+  "updated_at": "2022-11-16T04:50:22Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1109353559,
+      "user": "hunterlxt",
+      "created_at": "2022-04-26T05:16:02Z",
+      "body": "Investigation I have done:\r\n\r\nIn pd log we can determine that the remove peer step will be completed soon, but later due to the replica checker, an automatic scheduling [add learner peer 8001 on store 1, promote learner peer 8001 on store 1 to voter], where the first step is to add learner, pd finds that the target peer has become a learner when processing the region heartbeat, but also finds that the same peer exists in the pending peers list. This state continues until the op timeout.\r\n\r\nIn tikv leader node, we can determine that \"add learner successfully\" and the config switch is successful in milliseconds after receiving the admin command. And in tikv learner node shows that the snapshot is persisted."
+    },
+    {
+      "id": 1124810345,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T10:10:50Z",
+      "body": "/severity Moderate"
+    },
+    {
+      "id": 1125764875,
+      "user": "nolouch",
+      "created_at": "2022-05-13T07:58:38Z",
+      "body": "This problem seems to have been encountered many times, can we easy to reproduce it?"
+    },
+    {
+      "id": 1125782402,
+      "user": "hunterlxt",
+      "created_at": "2022-05-13T08:19:24Z",
+      "body": "> This problem seems to have been encountered many times, can we easy to reproduce it?\r\n\r\nThe steps to reproduce has been posted"
+    },
+    {
+      "id": 1314726734,
+      "user": "Defined2014",
+      "created_at": "2022-11-15T03:43:08Z",
+      "body": "@hunterlxt Does it have a special operation to reproduce it? I tried it on tiup with 3 tikv nodes and can't reproduce it.\r\n\r\nAnd one more question here, does the learner peer will remain for a long time?"
+    },
+    {
+      "id": 1314728293,
+      "user": "lhy1024",
+      "created_at": "2022-11-15T03:46:39Z",
+      "body": "> @hunterlxt Does it have a special operation to reproduce it? I tried it on tiup with 3 tikv nodes and can't reproduce it.\r\n\r\nI meet a similar problem in the test. #13461"
+    },
+    {
+      "id": 1316339848,
+      "user": "hunterlxt",
+      "created_at": "2022-11-16T04:48:13Z",
+      "body": "> @hunterlxt Does it have a special operation to reproduce it? I tried it on tiup with 3 tikv nodes and can't reproduce it.\r\n> \r\n> And one more question here, does the learner peer will remain for a long time?\r\n\r\nIt's occasional behavior while I was testing other features. Add more information, the whole tidb cluster is deployed on a single machine (IDC).\r\n\r\nI'm not sure if master still has this issue.  cc @Connor1996 "
+    }
+  ]
+}

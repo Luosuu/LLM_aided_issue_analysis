@@ -1,0 +1,52 @@
+{
+  "issue_number": 13617,
+  "title": "PITR lag > 5min after TiDB failure chaos for 10 minutes for 1 of the 3 TiDB pod",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   8b915d3b4894c01c843f452ae5a6a579e4b4b208\r\nGit Commit Branch: heads/refs/tags/v6.3.0\r\nUTC Build Time:    2022-09-22 07:38:02\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\n\r\n\r\n### What operating system and CPU are you using?\r\nk8s\r\n\r\n### Steps to reproduce\r\nstart PITR task\r\nRunning workload\r\nInject TiDB failure chaos for 10 minutes for 1 of the 3 TiDB pod (22:02 : 22: 13) \r\n\r\n### What did you expect?\r\nCheckpoint lag should be normal\r\n\r\n### What did happened?\r\nBefore TiDB pod restart, checkpoint lag is less than 5 minutes stably.\r\nAfter TiDB pod restart, checkpoint lag is over 5 minutes sometimes, and this abnoral checpoint lag is seen for long time (we can see >5min checkpoint lag 12 hours later, until I stopped the workload)\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/196110173-c88e9a46-e785-4d6b-a232-3718efb14a48.png)\r\n![image](https://user-images.githubusercontent.com/7403864/196110506-6f8fde72-02fa-41ba-b326-089686b51930.png)\r\n![image](https://user-images.githubusercontent.com/7403864/196110537-0f95fbc8-f583-4342-989d-26f9d8fdcb32.png)\r\n![image](https://user-images.githubusercontent.com/7403864/196110734-f5b090f1-33ca-4523-8b8a-68226a8bcb29.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-10-17T07:07:39Z",
+  "updated_at": "2024-11-01T10:18:17Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "may-affects-6.2",
+    "may-affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1280388747,
+      "user": "fubinzh",
+      "created_at": "2022-10-17T07:08:52Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1280389097,
+      "user": "fubinzh",
+      "created_at": "2022-10-17T07:09:12Z",
+      "body": "/severity Major"
+    },
+    {
+      "id": 1284864583,
+      "user": "fubinzh",
+      "created_at": "2022-10-20T03:24:12Z",
+      "body": "Similar symptoms seem during rolling restart tidb.  \r\n![image](https://user-images.githubusercontent.com/7403864/196849076-d7e089e1-bf79-44da-8bfc-03229dbb4a1d.png)\r\n![image](https://user-images.githubusercontent.com/7403864/196849095-b909b2f4-78d4-4df5-830e-ab475d84d543.png)\r\n"
+    }
+  ]
+}

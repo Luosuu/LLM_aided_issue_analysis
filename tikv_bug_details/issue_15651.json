@@ -1,0 +1,17 @@
+{
+  "issue_number": 15651,
+  "title": "[Dynamic Regions] merge is blocked if MsgAvailabilityRequest is dropped",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nThe liveness property of merge is broken when `MsgAvailabilityRequest` is dropped.\r\nTiKV should retry sending `MsgAvailabilityRequest`. \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```rust\r\n#[test_case(test_raftstore_v2::new_node_cluster)]\r\nfn test_lost_one_extra_message_during_merge() {\r\n    let mut cluster = new_cluster(0, 3);\r\n    configure_for_merge(&mut cluster.cfg);\r\n    let pd_client = Arc::clone(&cluster.pd_client);\r\n    pd_client.disable_default_operator();\r\n    cluster.run();\r\n\r\n    let region = cluster.get_region(b\"k1\");\r\n    cluster.must_split(&region, b\"k2\");\r\n    let left = cluster.get_region(b\"k1\");\r\n    let right = cluster.get_region(b\"k3\");\r\n\r\n    let left_peer_on_store1 = find_peer(&left, 1).unwrap().clone();\r\n    cluster.must_transfer_leader(left.get_id(), left_peer_on_store1);\r\n    let right_peer_on_store1 = find_peer(&right, 1).unwrap().clone();\r\n    cluster.must_transfer_leader(right.get_id(), right_peer_on_store1);\r\n    // Use DropMessageFilter to drop messages to store 3 without reporting error.\r\n    let lost = AtomicBool::new(false);\r\n    cluster.add_recv_filter_on_node(\r\n        3,\r\n        Box::new(DropMessageFilter::new(Arc::new(move |m| {\r\n            if m.get_extra_msg().get_type() == ExtraMessageType::MsgAvailabilityRequest {\r\n                lost.swap(true, Ordering::Relaxed)\r\n            } else {\r\n                true\r\n            }\r\n        }))),\r\n    );\r\n\r\n    // Merge left to right and remove left peer on store 3.\r\n    pd_client.must_merge(left.get_id(), right.get_id());\r\n    cluster.must_put(b\"k6\", b\"v6\");\r\n    must_get_equal(&cluster.get_engine(1), b\"k6\", b\"v6\");\r\n}\r\n```\r\n\r\n### What did you expect?\r\n\r\nMerge success.\r\n\r\n### What did happened?\r\n\r\nMerge blocked.\r\n",
+  "state": "open",
+  "created_at": "2023-09-20T11:58:16Z",
+  "updated_at": "2023-10-23T22:39:15Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

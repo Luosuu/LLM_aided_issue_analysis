@@ -1,0 +1,24 @@
+{
+  "issue_number": 6165,
+  "title": "GC is always triggered on idle cluster",
+  "body": "one TiKV with one TiDB\r\nGC cause a lot of seek every 10 minutes, whereas no write in the time span.\r\n<img width=\"916\" alt=\"屏幕快照 2019-12-05 下午7 57 03\" src=\"https://user-images.githubusercontent.com/13497871/70233593-df2e2580-1799-11ea-817b-16adc47f6af5.png\">\r\n<img width=\"917\" alt=\"屏幕快照 2019-12-05 下午7 56 39\" src=\"https://user-images.githubusercontent.com/13497871/70233594-df2e2580-1799-11ea-81ba-05194c3cc118.png\">\r\n",
+  "state": "closed",
+  "created_at": "2019-12-05T12:02:02Z",
+  "updated_at": "2020-11-05T06:58:32Z",
+  "closed_at": "2020-11-05T06:58:32Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/transaction",
+    "priority/low",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 722183928,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-11-05T06:58:32Z",
+      "body": "It is caused by the property's deviation, if we want to prevent it we should consider adding some write flow statistics for each region. But after we import the compaction filter feature, this issue will not exist, so close it now."
+    }
+  ]
+}

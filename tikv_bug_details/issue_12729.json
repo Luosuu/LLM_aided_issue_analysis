@@ -1,0 +1,151 @@
+{
+  "issue_number": 12729,
+  "title": "the invisible mvcc versions are not purged by gc",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv5.4.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nThis is a customer's workload which is only \"read\"\r\n### What did you expect?\r\nTiKV will clear the invisible mvcc version automatically when there are a lot of rocksdb  tombstone keys instead of waiting for compaction file GC\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/85105033/171374360-5aaaeeb5-837c-4ef3-aca9-369116276666.png)\r\nQPS is just 49.9 \r\n\r\n![image](https://user-images.githubusercontent.com/85105033/171374582-90268ea6-43f0-4283-bb7d-1dd8ce23a263.png)\r\nIO usage on TiKV is high, avg 571MB/s. CPU usage of TiDB/TiKV is low.\r\n\r\n![origin_img_v2_e4e04cc5-8eb1-438a-a995-40930cc560dg](https://user-images.githubusercontent.com/85105033/171377170-0f007b4f-0f38-48ee-bfef-7579ab480062.jpg)\r\nWe can see the total_keys is almost equal to key_skipped_count. It means during the scan, coprocessor meets a lot of versions.\r\n\r\n![origin_img_v2_0ddcfc1a-9e8c-4fe9-a6b1-c9d7753954eg](https://user-images.githubusercontent.com/85105033/171369591-641dc6d3-b3b7-4135-b8b3-50dc12c3daaf.jpg)\r\nThe iterator calls millions of next but only process tens of keys. It means there are too many invisible mvcc versions in the TiKV. From the flamegraph, the iterator is busy spinning on finding next valid key.\r\n\r\n![origin_img_v2_9d55ad74-e539-48ad-ac7b-887d3d456ceg](https://user-images.githubusercontent.com/85105033/171371962-62baadbf-84e0-4d60-8db5-a88a78c16a1e.jpg)\r\nFrom TiKV metrics, that GC rarely happens in the collected time frame. \r\n\r\n![origin_img_v2_b48c1f30-0b98-4237-a56f-ce0d809bf90g](https://user-images.githubusercontent.com/85105033/171372133-267b7346-5fb4-4612-8d66-7538c888e044.jpg)\r\nThere is no modifications during the time frame, so no gc is executed\r\n\r\nAll above shows there are too many delete versions that have not been compacted into tombstones which affected the performance.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-06-01T09:54:57Z",
+  "updated_at": "2024-03-25T21:14:35Z",
+  "closed_at": "2024-03-25T21:14:35Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "user_report"
+  ],
+  "comments_data": [
+    {
+      "id": 1145627361,
+      "user": "hicqu",
+      "created_at": "2022-06-03T06:23:51Z",
+      "body": "@shaoxiqian thanks for your report! In the current implementation, MVCC-deletions can only be handled at the bottlemost level. https://github.com/tikv/tikv/pull/10545 may be helpful for this case, we will continue on it."
+    },
+    {
+      "id": 1146503929,
+      "user": "dbsid",
+      "created_at": "2022-06-04T02:35:47Z",
+      "body": "/severity critical\r\n"
+    },
+    {
+      "id": 1146503999,
+      "user": "dbsid",
+      "created_at": "2022-06-04T02:36:18Z",
+      "body": "I think this is a critical bug for the default gc. It’s devastating that the old mvcc versions are not purged from the user perspective."
+    },
+    {
+      "id": 1187957557,
+      "user": "tonyxuqqi",
+      "created_at": "2022-07-18T17:57:12Z",
+      "body": "@hicqu would you please move #10545 forward?"
+    },
+    {
+      "id": 1188509225,
+      "user": "dbsid",
+      "created_at": "2022-07-19T01:55:37Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1188510506,
+      "user": "Lily2025",
+      "created_at": "2022-07-19T01:58:07Z",
+      "body": "/remove-severity critical"
+    },
+    {
+      "id": 1188510704,
+      "user": "shaoxiqian",
+      "created_at": "2022-07-19T01:58:32Z",
+      "body": "/remove-severity critical"
+    },
+    {
+      "id": 1188510718,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-19T01:58:33Z",
+      "body": "@shaoxiqian: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12729#issuecomment-1188510704):\n\n>/remove-severity critical\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1202053488,
+      "user": "tonyxuqqi",
+      "created_at": "2022-08-02T06:01:57Z",
+      "body": "/cc jiayang-zheng"
+    },
+    {
+      "id": 1204864719,
+      "user": "BusyJay",
+      "created_at": "2022-08-04T07:19:56Z",
+      "body": "I think an easy fix is to change the function\r\n\r\nhttps://github.com/tikv/tikv/blob/dcb5e2ccd2582fc2f8d3425c27f9891368658154/components/raftstore/src/store/worker/compact.rs#L177-L192\r\n\r\nIf there are too many versions, compaction should be triggered for write cf, otherwise stale versions won't be deleted."
+    },
+    {
+      "id": 1209294601,
+      "user": "cfzjywxk",
+      "created_at": "2022-08-09T12:06:36Z",
+      "body": "Maybe it's needed to consider more about the compaction triggering strategy, before that we could abstract a simpler case to help investigate this issue.\r\n/cc @you06 "
+    },
+    {
+      "id": 1216223309,
+      "user": "tonyxuqqi",
+      "created_at": "2022-08-16T06:56:25Z",
+      "body": "/assign jiayang-zheng\r\n"
+    },
+    {
+      "id": 1216223319,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-16T06:56:26Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: jiayang-zheng.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12729#issuecomment-1216223309):\n\n>/assign jiayang-zheng\r\n>\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1216227202,
+      "user": "cfzjywxk",
+      "created_at": "2022-08-16T07:00:46Z",
+      "body": "@tonyxuqqi \r\n@you06 is already working on this and doing related tests."
+    },
+    {
+      "id": 1216237083,
+      "user": "you06",
+      "created_at": "2022-08-16T07:11:00Z",
+      "body": "@tonyxuqqi I'm currently working on this issue by triggering compaction when there are too many deletes."
+    },
+    {
+      "id": 1226753453,
+      "user": "you06",
+      "created_at": "2022-08-25T04:15:43Z",
+      "body": "We can trigger compaction when MVCC deletes exceed the given count or ratio. But when the deletes are in memtable, [get versions](https://github.com/tikv/tikv/blob/afbacfc4a864080f958497ce9a387df854f62f0f/components/engine_traits/src/misc.rs#L93-L98) from table properties does not contain those deletes. I think the fix would be:\r\n\r\n- Check the count of MVCC deletes in `need_compact` in `CheckAndCompact` task.\r\n- Scan ranges at a long interval, like the old GC style, this handles the situation that `need_compact` can not read the count of deletes in memtable.\r\n\r\n@BusyJay PTAL"
+    },
+    {
+      "id": 1226788327,
+      "user": "BusyJay",
+      "created_at": "2022-08-25T05:19:37Z",
+      "body": "> Scan ranges at a long interval\r\n\r\nInteresting, it may also solve the issue that too many tombstone key in memtable. Note you can hint the rocksdb to only scan keys in memtable by using ReadTier."
+    },
+    {
+      "id": 1226847604,
+      "user": "you06",
+      "created_at": "2022-08-25T06:49:02Z",
+      "body": "> Note you can hint the rocksdb to only scan keys in memtable by using ReadTier.\r\n\r\nThanks for the advice, I'll give a try."
+    },
+    {
+      "id": 1828317366,
+      "user": "afeinberg",
+      "created_at": "2023-11-27T17:39:18Z",
+      "body": "another PR to address this is merged: https://github.com/tikv/tikv/pull/15995 "
+    },
+    {
+      "id": 2018929839,
+      "user": "tonyxuqqi",
+      "created_at": "2024-03-25T21:14:35Z",
+      "body": "Since we already have the enhanced check_compact as well as the periodic full compaction. I think the issue can be closed for now. "
+    }
+  ]
+}

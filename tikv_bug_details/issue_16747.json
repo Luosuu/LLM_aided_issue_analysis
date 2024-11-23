@@ -1,0 +1,15 @@
+{
+  "issue_number": 16747,
+  "title": "PiTR: unstable tests",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nMaster branch with git hash 8af8e5bce90ec2a95163c2232abfb64786da53cd\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nMacOS 14.4.1 with apple silicon m1.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nmake dev\r\n\r\n### What did you expect?\r\n\r\nall tests success\r\n\r\n### What did happened?\r\n\r\n```\r\nfailures:\r\n\r\n---- subscription_manager::test::test_region_split_inflight stdout ----\r\nthread 'subscription_manager::test::test_region_split_inflight' panicked at components/backup-stream/src/subscription_manager.rs:1065:14:\r\ncalled `Result::unwrap()` on an `Err` value: Io(Os { code: 2, kind: NotFound, message: \"No such file or directory\" })\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\n\r\n---- subscription_manager::test::test_on_high_mem stdout ----\r\nthread 'subscription_manager::test::test_on_high_mem' panicked at components/backup-stream/src/subscription_manager.rs:1065:14:\r\ncalled `Result::unwrap()` on an `Err` value: Io(Os { code: 2, kind: NotFound, message: \"No such file or directory\" })\r\n\r\n---- subscription_manager::test::test_basic_retry stdout ----\r\nthread 'subscription_manager::test::test_basic_retry' panicked at components/backup-stream/src/subscription_manager.rs:1065:14:\r\ncalled `Result::unwrap()` on an `Err` value: Io(Os { code: 2, kind: NotFound, message: \"No such file or directory\" })\r\n\r\n\r\nfailures:\r\n    subscription_manager::test::test_basic_retry\r\n    subscription_manager::test::test_on_high_mem\r\n    subscription_manager::test::test_region_split_inflight\r\n```\r\n",
+  "state": "open",
+  "created_at": "2024-04-02T22:59:36Z",
+  "updated_at": "2024-04-03T07:04:46Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

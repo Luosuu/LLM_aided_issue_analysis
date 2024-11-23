@@ -1,0 +1,64 @@
+{
+  "issue_number": 3572,
+  "title": "Potential two different leaders on a same term",
+  "body": "Suppose a region A contains three peers a, b, c at term n. If c is uninitialized, a is stuck for some reason, then b can become leader at term n + 1. If c is restarted before accepting a snapshot, and a is recovered, then a can still start a campaign. Because we don't save hard state of an uninitialized peer, so c's term go back to 0. Hence a can win the campaign and become leader at term n + 1. So both a and b are the leaders of term n + 1, which violate the raft election safety.\r\n\r\nHowever, such cases seems no harm except the violation itself. If no log is committed when b is leader, then the replica of b keeps the same as a. If there are logs committed, then a should be recovered or c has accepted a snapshot, in both cases, a can't become leader at term less than n + 1.\r\n\r\nThe root cause of the problem is that hard state is not saved when a peer is uninitialized, which introduce the risk of stepping back of term on the node.",
+  "state": "open",
+  "created_at": "2018-09-05T07:40:20Z",
+  "updated_at": "2024-11-01T10:18:06Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/low",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 724578471,
+      "user": "gengliqi",
+      "created_at": "2020-11-10T09:26:44Z",
+      "body": "It's the same as https://github.com/tikv/tikv/issues/8381, I think we must add some check before proposing `conf change` to forbid promoting an uninitialized learner to voter. /cc @NingLin-P "
+    },
+    {
+      "id": 764802322,
+      "user": "NingLin-P",
+      "created_at": "2021-01-21T17:13:39Z",
+      "body": "> It's the same as #8381, I think we must add some check before proposing `conf change` to forbid promoting an uninitialized learner to voter. /cc @NingLin-P\r\n\r\nThis forbids is not enough, if PD adds a new peer as voter (it is allowed currently, and use by a lot of tests) this issue can still happen. Maybe an uninitialized voter should just ignore vote request, this is intuitive, since the voter can not persist its vote, it should not vote at all. But this also means a voter won't vote for election and log replication until it is initialized. /cc @gengliqi  @BusyJay "
+    },
+    {
+      "id": 765070448,
+      "user": "gengliqi",
+      "created_at": "2021-01-22T02:27:14Z",
+      "body": "> > It's the same as #8381, I think we must add some check before proposing `conf change` to forbid promoting an uninitialized learner to voter. /cc @NingLin-P\r\n> \r\n> This forbids is not enough, if PD adds a new peer as voter (it is allowed currently, and use by a lot of tests) this issue can still happen. Maybe an uninitialized voter should just ignore vote request, this is intuitive, since the voter can not persist its vote, it should not vote at all. But this also means a voter won't vote for election and log replication until it is initialized. /cc @gengliqi @BusyJay\r\n\r\nIt is enough as long as we can guarantee the initialized peer can not become uninitialized without permission.\r\nIf PD wants to directly add a new peer as a voter, the leader must prevent it.\r\nFor tests, I suggest changing all adding voters to 2 steps, i.e. adding a learner then promoting it to a voter.\r\nIf a voter can ignore vote request, the available issue will happen even when the majority of peers are alive."
+    },
+    {
+      "id": 765185744,
+      "user": "BusyJay",
+      "created_at": "2021-01-22T07:11:14Z",
+      "body": "Force using learner before adding voter LGTM, we have always followed the `learner -> voter` procedure for quite a long time.\r\n\r\n> ..., it should not vote at all.\r\n\r\nIt may not be a good idea. For example, we may choose to unsafe remove all content of a corrupted store, which can make a voter back to uninitialized. I suggest not to add the limitation to allow easier recovery in strange case."
+    },
+    {
+      "id": 765197666,
+      "user": "NingLin-P",
+      "created_at": "2021-01-22T07:30:17Z",
+      "body": "> For example, we may choose to unsafe remove all content of a corrupted store, which can make a voter back to uninitialized.\r\n\r\nLetting uninitialized voter (which not persist its vote) to vote is the problem here, preventing `confchange` add uninitialized voter may prevent this happend, but if it do happen (as the case @BusyJay mentioned) then the problem still exist."
+    },
+    {
+      "id": 765250412,
+      "user": "BusyJay",
+      "created_at": "2021-01-22T09:02:59Z",
+      "body": "Yes, we just need ensure that in all expected cases a voter should not become uninitialized again."
+    }
+  ]
+}

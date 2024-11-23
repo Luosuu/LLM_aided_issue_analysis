@@ -1,0 +1,49 @@
+{
+  "issue_number": 13446,
+  "title": "titan: unexpected increasing empty regions when inserting large records",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nReproduced in v6.2.0 and v6.3.0-alpha-nightly-20220908.\r\n\r\n### What operating system and CPU are you using?\r\n\r\nReproduced in amd64 Centos & amd64 MacOS, I believe CPU is not related to this issue.\r\n\r\n### Steps to reproduce\r\n\r\n1. Start a new cluster with Titan enabled, the easiest way is `playground`:\r\n\r\n```\r\ntiup playground v6.2.0 --kv.config /Users/bb7133/Projects/tikv/etc/config_test.toml\r\n```\r\nIn which, we have `config_test.toml`:\r\n```\r\nrocksdb.titan.enabled = true\r\n```\r\n\r\n2. Keep inserting data into the TiDB cluster with each rows in `100KB`, for example, use the code:\r\n```\r\n  package main\r\n\r\n  import (\r\n      \"database/sql\"\r\n      \"fmt\"\r\n      \"log\"\r\n      \"sync\"\r\n\r\n      _ \"github.com/go-sql-driver/mysql\"\r\n  )\r\n\r\n  const (\r\n      username    = \"root\"\r\n      password    = \"\"\r\n      hostname    = \"127.0.0.1:4000\"\r\n      concurrency = 100\r\n      dbName      = \"test\"\r\n  )\r\n\r\n  func dsn(dbName string) string {\r\n      return fmt.Sprintf(\"%s:%s@tcp(%s)/%s\", username, password, hostname, dbName)\r\n  }\r\n\r\n  func run_insert(wg *sync.WaitGroup) {\r\n      defer wg.Done()\r\n\r\n      db, err := sql.Open(\"mysql\", dsn(\"test\"))\r\n      if err != nil {\r\n          log.Printf(\"Error %s when opening DB\\n\", err)\r\n          return\r\n      }\r\n      i := 0\r\n      for {\r\n          _, err := db.Exec(\"INSERT INTO t(b) VALUES (concat( repeat(md5(rand()), 102400 / 32), left(md5(rand()), 102400 % 32)))\")\r\n          if err != nil {\r\n              log.Println(err)\r\n              return\r\n          }\r\n          i++\r\n          if i%10000 == 0 {\r\n              log.Printf(\"Inserted %d rows in 1 connection.\\n\", i)\r\n          }\r\n      }\r\n  }\r\n\r\n  func main() {\r\n      db, err := sql.Open(\"mysql\", dsn(dbName))\r\n      if err != nil {\r\n          log.Printf(\"Error %s when opening DB\\n\", err)\r\n          return\r\n      }\r\n      _, err = db.Exec(\"DROP TABLE IF EXISTS t\")\r\n      if err != nil {\r\n          log.Println(err)\r\n          return\r\n      }\r\n      _, err = db.Exec(\"CREATE TABLE t(a INT KEY AUTO_INCREMENT, b MEDIUMBLOB)\")\r\n      if err != nil {\r\n          log.Println(err)\r\n          return\r\n      }\r\n\r\n      var wg sync.WaitGroup\r\n      wg.Add(concurrency)\r\n      for i := 1; i < concurrency; i++ {\r\n          go run_insert(&wg)\r\n      }\r\n      wg.Wait()\r\n      db.Close()\r\n  }\r\n```\r\n\r\n3. Watch the metrics, you can see there are increasing number of empty regions while writing the data, which is not expected:\r\n\r\n![image](https://user-images.githubusercontent.com/1174042/189348694-26a9246c-052c-4132-a185-d897360171be.png)\r\n\r\n4. Logs like the following can be found in TiKV log file, not sure if this is related to the issue:\r\n```\r\n  [2022/09/09 20:13:47.461 +08:00] [INFO] [peer.rs:5151] [\"on split\"] [source=\"split checker\"] [split_keys=\"10 keys range from 7480000000000000FF445F728000000000FF0676CE0000000000FAF9F3776B5C43FFEE to 7480000000000000FF445F728000000000F  F06995D0000000000FAF9F3776AAF9FFFDE\"] [peer_id=3] [region_id=2]\r\n  [2022/09/09 20:13:47.481 +08:00] [INFO] [pd.rs:1064] [\"try to batch split region\"] [task=batch_split] [region=\"id: 2 start_key: 7480000000000000FF445F728000000000FF0672F80000000000FA region_epoch { conf_ver: 1 version: 464 } peers { i  d: 3 store_id: 1 }\"] [new_region_ids=\"[new_region_id: 930 new_peer_ids: 931, new_region_id: 932 new_peer_ids: 933, new_region_id: 934 new_peer_ids: 935, new_region_id: 936 new_peer_ids: 937, new_region_id: 938 new_peer_ids: 939, new_r  egion_id: 940 new_peer_ids: 941, new_region_id: 942 new_peer_ids: 943, new_region_id: 944 new_peer_ids: 945, new_region_id: 946 new_peer_ids: 947, new_region_id: 948 new_peer_ids: 949]\"] [region_id=2]\r\n  [2022/09/09 20:13:47.492 +08:00] [INFO] [apply.rs:1442] [\"execute admin command\"] [command=\"cmd_type: BatchSplit splits { requests { split_key: 7480000000000000FF445F728000000000FF0676CE0000000000FA new_region_id: 930 new_peer_ids: 93  1 } requests { split_key: 7480000000000000FF445F728000000000FF067AA50000000000FA new_region_id: 932 new_peer_ids: 933 } requests { split_key: 7480000000000000FF445F728000000000FF067E7C0000000000FA new_region_id: 934 new_peer_ids: 935   } requests { split_key: 7480000000000000FF445F728000000000FF0682530000000000FA new_region_id: 936 new_peer_ids: 937 } requests { split_key: 7480000000000000FF445F728000000000FF06862A0000000000FA new_region_id: 938 new_peer_ids: 939 }   requests { split_key: 7480000000000000FF445F728000000000FF068A010000000000FA new_region_id: 940 new_peer_ids: 941 } requests { split_key: 7480000000000000FF445F728000000000FF068DD80000000000FA new_region_id: 942 new_peer_ids: 943 } re  quests { split_key: 7480000000000000FF445F728000000000FF0691AF0000000000FA new_region_id: 944 new_peer_ids: 945 } requests { split_key: 7480000000000000FF445F728000000000FF0695860000000000FA new_region_id: 946 new_peer_ids: 947 } requ  ests { split_key: 7480000000000000FF445F728000000000FF06995D0000000000FA new_region_id: 948 new_peer_ids: 949 } right_derive: true }\"] [index=51603] [term=6] [peer_id=3] [region_id=2]\r\n  [2022/09/09 20:13:47.492 +08:00] [INFO] [apply.rs:2285] [\"split region\"] [keys=\"10 keys range from 7480000000000000FF445F728000000000FF0676CE0000000000FA to 7480000000000000FF445F728000000000FF06995D0000000000FA\"] [region=\"id: 2 start  _key: 7480000000000000FF445F728000000000FF0672F80000000000FA region_epoch { conf_ver: 1 version: 464 } peers { id: 3 store_id: 1 }\"] [peer_id=3] [region_id=2]\r\n```\r\n\r\nThe full log file: [tikv.log](https://github.com/tikv/tikv/files/9535346/tikv.log)",
+  "state": "closed",
+  "created_at": "2022-09-09T12:24:08Z",
+  "updated_at": "2024-01-30T00:19:10Z",
+  "closed_at": "2024-01-30T00:19:10Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "may-affects-6.2",
+    "affects-6.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1242739867,
+      "user": "Connor1996",
+      "created_at": "2022-09-10T14:20:05Z",
+      "body": "These empty regions are not really empty.\r\n\r\nThe script generates the blob value by `repeat(md5(rand()), 102400 / 32)` which can be compressed greatly for the sake of the repeated pattern. With Titan enabled, the approximate size is calculated based on the blob size compressed by Titan. So the approximate size is small, but after decompression, the real size is quite big."
+    },
+    {
+      "id": 1242740530,
+      "user": "Connor1996",
+      "created_at": "2022-09-10T14:23:04Z",
+      "body": "Value with repeated pattern is not common in production, especially for blob type. But it's better to make it concrete with Titan enabled."
+    },
+    {
+      "id": 1271923822,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T18:25:12Z",
+      "body": "@jebter  Should it be severity/minor as it does not in fact have real impact to customer? "
+    },
+    {
+      "id": 1272233833,
+      "user": "jebter",
+      "created_at": "2022-10-08T05:38:13Z",
+      "body": "We discussed internally and will downgrade this"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "issue_number": 17327,
+  "title": "PiTR log restore is very slow, lots of \"download and apply file failed\" due to \"memory is limited\" and OOM seen.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@downstream-tikv-0 /]# /tikv-server -V\r\nTiKV \r\nRelease Version:   7.5.3\r\nEdition:           Community\r\nGit Commit Hash:   7b111327c4e6f5bb1ebcde84299343a4c13b4e09\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2024-07-19 06:11:18\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n\r\n### What operating system and CPU are you using?\r\nK8Sm X86_64\r\n\r\n### Steps to reproduce\r\n1. 2 TiDB clusters, upstream 3 TiKV; Downstream: 4 TiKV, downstreasm TiKV cofiguration: \r\n```\r\ntikv:\r\n          baseImage: \"{{meta.parameters.tikv_base_image}}\"\r\n          config: |\r\n            import.num-threads = 4\r\n            import.memory-use-ratio = 0.5\r\n            log-backup.file-size-limit = \"512M\"\r\n            log-backup.max-flush-interval = \"3m\"\r\n            gc.enable-compaction-filter = true\r\n            raft-engine.enable = true\r\n            raftstore.store-io-pool-size = 1\r\n            rocksdb.defaultcf.titan.level-merge = false\r\n            rocksdb.titan.disable-gc = false\r\n            rocksdb.titan.enabled = true\r\n            rocksdb.titan.max-background-gc = 2\r\n            storage.io-rate-limit.max-bytes-per-sec = 838860800\r\n            storage.scheduler-pending-write-threshold = \"2GB\"\r\n          limits:\r\n            cpu: 8000m\r\n            memory: 48Gi\r\n            storage: 1000Gi\r\n          maxReplicas: 4\r\n          replicas: 4\r\n```\r\n2. Enable log backup for upstream cluster\r\n3. For upstream, run workload to prepare 350000 rows of data, rowwidth: ~100k\r\n4. Perform full backup for upstream\r\n5. Get current timestamp (TS1) of upstream\r\n6. For upstream, run workload for 1 hour \r\n7. Flash backup upstream to TS1\r\n8. Do a PiTR restore to downstream cluster.\r\n\r\n### What did you expect?\r\nPiTR restore should succeed\r\n\r\n### What did happened?\r\nFull restore succeeded, but log restore is very slow, lots of logs \r\n\r\n```\r\n[root@br-0 /]# grep \"download and apply file failed\" /tmp/br.log.2024-07-29T04.30.05Z | wc -l\r\n15496\r\n[root@br-0 /]# grep \"download and apply file failed\" /tmp/br.log.2024-07-29T04.30.05Z | head -n1\r\n[2024/07/29 04:33:45.499 +00:00] [WARN] [import.go:416] [\"download and apply file failed\"] [startKey=7480000000000000FF695F728000000000FF0155F20000000000FA] [endKey=7480000000000000FF695F728000000000FF03] [error=\"memory is limited\"]\r\n[root@br-0 /]# grep \"download and apply file failed\" /tmp/br.log.2024-07-29T04.30.05Z | tail -n1\r\n[2024/07/29 09:25:58.152 +00:00] [WARN] [import.go:416] [\"download and apply file failed\"] [startKey=7480000000000000FF6F5F728000000000FF0286040000000000FA] [endKey=7480000000000000FF6F5F728000000000FF05] [error=\"memory is limited\"]\r\n```\r\nAlso, TiKV OOM seen\r\n![image](https://github.com/user-attachments/assets/7f733b72-6367-4187-a642-40c22571a576)\r\n\r\nDownstream Metrics\r\n![image](https://github.com/user-attachments/assets/078b54ad-c719-4aa3-b5ca-b83193ad3c93)\r\n![image](https://github.com/user-attachments/assets/44a6ee13-1703-4d9c-9651-83db6aa5d45e)\r\n",
+  "state": "open",
+  "created_at": "2024-07-29T09:48:58Z",
+  "updated_at": "2024-08-07T01:40:29Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/moderate",
+    "affects-7.5",
+    "impact/oom"
+  ],
+  "comments_data": [
+    {
+      "id": 2255486336,
+      "user": "fubinzh",
+      "created_at": "2024-07-29T09:49:17Z",
+      "body": "/label affects-7.5"
+    },
+    {
+      "id": 2255486407,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-07-29T09:49:19Z",
+      "body": "@fubinzh: The label(s) `affects-v7.5` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.5, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.5, needs-cherry-pick-release-8.1, needs-cherry-pick-release-8.2, affects-5.4, affects-6.1, affects-6.5, affects-7.1, affects-7.5, affects-8.1, affects-8.2, may-affects-5.4, may-affects-6.1, may-affects-6.5, may-affects-7.1, may-affects-7.5, may-affects-8.1`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/17327#issuecomment-2255486336):\n\n>/label affects-v7.5\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2255492697,
+      "user": "fubinzh",
+      "created_at": "2024-07-29T09:52:25Z",
+      "body": "Br version:\r\n/br -V\r\nRelease Version: v7.5.3\r\nGit Commit Hash: 6faf15688a69dd32c3edd55dfeabc918b475bfbf\r\nGit Branch: HEAD\r\nGo Version: go1.21.10\r\nUTC Build Time: 2024-07-26 03:52:18\r\nRace Enabled: false\r\n"
+    },
+    {
+      "id": 2260124216,
+      "user": "fubinzh",
+      "created_at": "2024-07-31T09:54:04Z",
+      "body": "/severity moderate"
+    }
+  ]
+}

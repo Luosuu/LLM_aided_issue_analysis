@@ -1,0 +1,22 @@
+{
+  "issue_number": 8373,
+  "title": "pending_snapshot_regions may not cleaned as expected",
+  "body": "## Bug Report\r\n\r\nIt pushs the snapshot region info into `pending_snapshot_regions` when the snapshot passes `check_snapshot`, and removes the region info from `pending_snapshot_regions` when the snapshot is applied.\r\n\r\nBut raft may ignore the snapshot if the index of the snapshot is older than commit index, so the region is left in `pending_snapshot_regions` cause the snapshot would not be applied. Then, the region info left in `pending_snapshot_regions` may block later snapshots due to range overlap.\r\n\r\nHere is a possible case:\r\n1. Consider region A with two peers A1, A2\r\n2. AddPeer A3, A3 is created but uninitialized\r\n3. region A split into region B(B1, B2, B3)\r\n4. B3 can't be split from A3 cause A3 is uninitialized, so B3 is created from B1 message, also uninitialized. Now B3 requests a snapshot\r\n5. A3 apply snapshot, then A3 split into B3 and close uninitialized B3\r\n6. B3 receives the snapshot, but ignored by raft\r\n7. then B3's region info is left in `pending_snapshot_regions` forever",
+  "state": "closed",
+  "created_at": "2020-07-31T04:03:15Z",
+  "updated_at": "2020-08-10T03:17:49Z",
+  "closed_at": "2020-08-06T14:30:22Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 666904249,
+      "user": "Connor1996",
+      "created_at": "2020-07-31T04:05:50Z",
+      "body": "It's the root cause of https://github.com/tikv/tikv/issues/7110"
+    }
+  ]
+}

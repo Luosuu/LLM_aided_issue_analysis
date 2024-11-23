@@ -1,0 +1,54 @@
+{
+  "issue_number": 13054,
+  "title": "Raftstore may broadcast too many messages after one peer store become unreachable",
+  "body": "## Bug Report\r\n\r\nAfter one store disconnected, StoreFsm would broadcast a `StoreUnreachable` message to all regions to mark unreachable peers. https://github.com/tikv/tikv/blob/0dff1be50281c72c55c5464751cd733032115ce4/components/raftstore/src/store/fsm/store.rs#L378\r\n\r\nBut if TiKV has too many regions, handling these `StoreUnreachable` messages could eat raftstore CPU and block all other messages, making TiKV getting stucked.",
+  "state": "closed",
+  "created_at": "2022-07-19T07:23:44Z",
+  "updated_at": "2022-08-01T15:42:06Z",
+  "closed_at": "2022-08-01T15:42:06Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1188694501,
+      "user": "5kbpers",
+      "created_at": "2022-07-19T07:23:57Z",
+      "body": "cc @BusyJay "
+    },
+    {
+      "id": 1188705507,
+      "user": "BusyJay",
+      "created_at": "2022-07-19T07:36:29Z",
+      "body": "Is there any statistics? Like with how many regions will it become a problem?"
+    },
+    {
+      "id": 1188746153,
+      "user": "5kbpers",
+      "created_at": "2022-07-19T08:18:41Z",
+      "body": "> Is there any statistics? Like with how many regions will it become a problem?\r\n\r\nIn about 800k regions, raftstore could eat up to 800% CPU usage after setting 30 threads for store pool."
+    },
+    {
+      "id": 1188760715,
+      "user": "BusyJay",
+      "created_at": "2022-07-19T08:32:46Z",
+      "body": "How many cores? And why setting 30 threads for store pool? Most of resources may probably waste in context switch during broadcast."
+    },
+    {
+      "id": 1189869232,
+      "user": "5kbpers",
+      "created_at": "2022-07-20T06:11:00Z",
+      "body": "> How many cores? And why setting 30 threads for store pool? Most of resources may probably waste in context switch during broadcast.\r\n\r\nAt least 40 cores for one TiKV as I remember, actually we tried to scale it to 4 and 8, but raftstore threads CPU still be eaten up, then finally set it to 30"
+    }
+  ]
+}

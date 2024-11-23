@@ -1,0 +1,22 @@
+{
+  "issue_number": 9391,
+  "title": "TiKV's \"read flow\" statistics are inconsistent with \"store read rate\" statistics of PD",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nTiKV \r\nRelease Version:   4.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   3a02e74293b1a47ed03ec26d47cc31e9eafea673\r\nGit Commit Branch: master\r\nUTC Build Time:    2020-12-26 12:16:11\r\nRust Version:      rustc 1.49.0-nightly (b1496c6e6 2020-10-18)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb\r\nProfile:           release\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nUsing sysbench to load table with large row sizes:\r\nCREATE TABLE `sbtest1` (\r\n  `id` int(11) NOT NULL AUTO_INCREMENT,\r\n  `k` int(11) NOT NULL DEFAULT 0,\r\n  `c` varchar(6342) NOT NULL DEFAULT '',\r\n  `pad` char(8) NOT NULL DEFAULT '',\r\n  PRIMARY KEY (`id`),\r\n  KEY `k_1` (`k`)\r\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin AUTO_INCREMENT=1029168;\r\n\r\nThen execute random point get:\r\nSELECT * FROM sbtest1  WHERE id = ?;\r\n\r\n### What did happened?\r\n\r\nIt is found that PD's \"store read rate\" statistics are inconsistent with TiKV's \"read flow\" statistics: \r\n![image](https://user-images.githubusercontent.com/22238878/103327396-57dfde00-4a8f-11eb-9fd7-a0c0c62b2c9c.png)\r\n![image](https://user-images.githubusercontent.com/22238878/103329596-4bac4e80-4a98-11eb-8b7b-4559f301b1f7.png)\r\nThe problem seems to be that half of the keys are not included (Since gRPC message count is half of the read keys.)\r\n![image](https://user-images.githubusercontent.com/22238878/103329671-bbbad480-4a98-11eb-8c34-0bb3ec992021.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-12-30T04:31:07Z",
+  "updated_at": "2021-01-20T11:17:24Z",
+  "closed_at": "2021-01-20T11:17:24Z",
+  "labels": [
+    "type/bug",
+    "sig/scheduling",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 763533627,
+      "user": "hicqu",
+      "created_at": "2021-01-20T11:17:24Z",
+      "body": "It's expected because `Keys flow` in `RocksDB-kv` contains all CFs. Generally a kv_get command will access `write` CF and `default` CF one time. So It's about double of `kv_get` command count. "
+    }
+  ]
+}

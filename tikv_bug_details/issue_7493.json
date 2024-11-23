@@ -1,0 +1,38 @@
+{
+  "issue_number": 7493,
+  "title": "batch raft call deadlock",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\n$ tikv-server --version\r\nTiKV\r\nRelease Version:   4.0.0-rc\r\nGit Commit Hash:   f45d0c963df3ee4b1011caf5eb146cacd1fbbad8\r\nGit Commit Branch: heads/v4.0.0-rc\r\nUTC Build Time:    2020-04-08 11:18:15\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\nEnable Features:   jemalloc portable protobuf-codec\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\nLinux/PowerPC\r\n\r\n### Steps to reproduce\r\nNot sure how to reproduce\r\n\r\n### What did happened?\r\n90082 and 90078 are deadlock which blocks grpc thread can can prevent messages sent by raftstore hence causing infinite election.\r\n\r\nAttachment is thread stacks caught in different time.\r\n\r\n\r\n[gdb-1.txt](https://github.com/tikv/tikv/files/4486001/gdb-1.txt)\r\n[gdb-2.txt](https://github.com/tikv/tikv/files/4486002/gdb-2.txt)\r\n[gdb-3.txt](https://github.com/tikv/tikv/files/4486004/gdb-3.txt)\r\n",
+  "state": "closed",
+  "created_at": "2020-04-16T09:10:03Z",
+  "updated_at": "2020-04-19T11:49:54Z",
+  "closed_at": "2020-04-19T11:49:54Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 614544317,
+      "user": "BusyJay",
+      "created_at": "2020-04-16T09:55:42Z",
+      "body": "The lock maybe acquired by thread other than 90082 and 90078."
+    },
+    {
+      "id": 615065199,
+      "user": "siddontang",
+      "created_at": "2020-04-17T06:19:16Z",
+      "body": "have we found the problem yet? "
+    },
+    {
+      "id": 615332513,
+      "user": "hunterlxt",
+      "created_at": "2020-04-17T16:10:04Z",
+      "body": "Sorry for late respond. The 3 attachment texts show that 2 thread stuck in the acquisition lock. And their thread stack shows that `BatchCommandsNotify::notify` has been called twice. In `notify(id)`, thread try to get the lock. In short, this issue is caused by self-locking.\r\n\r\n`poll_future_notify(notify, id)` want to notify again, because in the related future task, `send_and_notify` will be called and the task will be called by `notify(id)` again. \r\n\r\nrelated code piece: https://github.com/tikv/tikv/blob/master/src/server/service/kv.rs#L1041\r\n\r\nwith help of @BusyJay , I'm trying to add fail test into Tikv and try to fix it."
+    },
+    {
+      "id": 615904198,
+      "user": "BusyJay",
+      "created_at": "2020-04-18T17:02:29Z",
+      "body": "The issue is introduced by https://github.com/tikv/tikv/pull/4473 and https://github.com/tikv/tikv/pull/5001. And https://github.com/pingcap/tidb/pull/14145 sets a 0 delay for empty message cause the dead lock. Asked @lysu that the change is only available in TiDB 4.0 and master, which explains why only 4.0 can have the problem.\r\n\r\nA quick fix is set a non-zero delay for empty request. A permanent fix is avoid recursively notify in `BatchCommandsNotify`."
+    }
+  ]
+}

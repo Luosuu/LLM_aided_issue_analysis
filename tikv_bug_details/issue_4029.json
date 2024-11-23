@@ -1,0 +1,29 @@
+{
+  "issue_number": 4029,
+  "title": "test_prevote_reboot_minority_followers failed",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\nrustc 1.29.0-nightly (4f3c7a472 2018-07-17)\r\n\r\n**What operating system and CPU are you using?**\r\nMacOS\r\n\r\n**What did you do?**\r\nrun `make dev`\r\n\r\n**What did you expect to see?**\r\ntest failed\r\n\r\n**What did you see instead?**\r\n```\r\nthread 'raftstore::test_prevote::test_prevote_reboot_minority_followers' panicked at 'assertion failed: `(left == right)`\r\n  left: `true`,\r\n right: `false`: Sends a PreVote or PreVoteResponse during failure.', tests/integrations/raftstore/test_prevote.rs:90:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:227\r\n   4: <std::panicking::begin_panic::PanicPayload<A> as core::panic::BoxMeUp>::get\r\n             at libstd/panicking.rs:475\r\n   5: std::panicking::continue_panic_fmt\r\n             at libstd/panicking.rs:390\r\n   6: std::panicking::try::do_call\r\n             at libstd/panicking.rs:345\r\n   7: integrations::raftstore::test_prevote::test_prevote\r\n             at tests/integrations/raftstore/test_prevote.rs:90\r\n   8: integrations::raftstore::test_prevote::test_prevote_reboot_minority_followers\r\n             at tests/integrations/raftstore/test_prevote.rs:212\r\n   9: integrations::__test::TESTS::{{closure}}\r\n             at tests/integrations/raftstore/test_prevote.rs:209\r\n  10: core::ops::function::FnOnce::call_once\r\n             at /Users/travis/build/rust-lang/rust/src/libcore/ops/function.rs:223\r\n  11: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1454\r\n             at /Users/travis/build/rust-lang/rust/src/libcore/ops/function.rs:223\r\n             at /Users/travis/build/rust-lang/rust/src/liballoc/boxed.rs:640\r\n  12: panic_unwind::dwarf::eh::read_encoded_pointer\r\n             at libpanic_unwind/lib.rs:106\r\n```",
+  "state": "closed",
+  "created_at": "2019-01-08T04:31:14Z",
+  "updated_at": "2020-11-04T06:09:40Z",
+  "closed_at": "2020-11-04T06:09:40Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 452910392,
+      "user": "Hoverbear",
+      "created_at": "2019-01-09T23:36:04Z",
+      "body": "We've seen this several times, it occurs because we cannot start watching soon enough to see the message sent. 😓\r\n\r\nWe had other tests in the prevote module as well that I couldn't get reliable. Can you recommend a better way to check that a message has been sent? Maybe I can check the raft logs?"
+    },
+    {
+      "id": 721532122,
+      "user": "hicqu",
+      "created_at": "2020-11-04T06:09:40Z",
+      "body": "Closed by #6320."
+    }
+  ]
+}

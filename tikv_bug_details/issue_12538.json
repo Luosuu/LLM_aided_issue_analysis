@@ -1,0 +1,46 @@
+{
+  "issue_number": 12538,
+  "title": "[BR] Data inconsistency after br log restore",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@localhost ~]#  /data2/pp2/deploy/tidb-4001/bin/tidb-server -V\r\nRelease Version: v6.1.0-alpha\r\nEdition: Community\r\nGit Commit Hash: bbfbe137eba05f828a9fb40708a6f6805a3453f0\r\nGit Branch: heads/refs/tags/v6.1.0-alpha\r\nUTC Build Time: 2022-05-13 14:58:01\r\nGoVersion: go1.18\r\nRace Enabled: false\r\nTiKV Min Version: v3.0.0-60965b006877ca7234adaced7890d7b029ed1306\r\nCheck Table Before Drop: false\r\n\r\n\r\n### What operating system and CPU are you using?\r\ncentos7, 16u\r\n```\r\nprocessor       : 39\r\nvendor_id       : GenuineIntel\r\ncpu family      : 6\r\nmodel           : 79\r\nmodel name      : Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\nstepping        : 1\r\nmicrocode       : 0xb00002a\r\ncpu MHz         : 2399.938\r\ncache size      : 25600 KB\r\nphysical id     : 1\r\nsiblings        : 20\r\ncore id         : 12\r\ncpu cores       : 10\r\napicid          : 57\r\ninitial apicid  : 57\r\nfpu             : yes\r\nfpu_exception   : yes\r\ncpuid level     : 20\r\nwp              : yes\r\nflags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb cat_l3 cdp_l3 intel_pt ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a rdseed adx smap xsaveopt cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local dtherm ida arat pln pts spec_ctrl intel_stibp\r\nbogomips        : 4404.48\r\nclflush size    : 64\r\ncache_alignment : 64\r\naddress sizes   : 46 bits physical, 48 bits virtual\r\npower management:\r\n\r\n```\r\n\r\n### Steps to reproduce\r\n1. Start to log backup task in upstream when there is workload running.\r\n2. Do a PiTR restore to  \"2022-05-15 18:15:00.000 +0800\"\r\n\r\n```\r\n./br_retry restore point --pd [172.16.6.46:2379](http://172.16.6.46:2379/) --full-backup-storage 's3://nfs/fubin/pitr/pp2_full_0514?access-key=minioadmin&secret-access-key=minioadmin&endpoint=http%3a%2f%[2fminio.pingcap.net](http://2fminio.pingcap.net/)%3a9000&force-path-style=true' --storage 's3://nfs/fubin/pitr/pp2_log_1?access-key=minioadmin&secret-access-key=minioadmin&endpoint=http%3a%2f%[2fminio.pingcap.net](http://2fminio.pingcap.net/)%3a9000&force-path-style=true' --restore-ts \"2022-05-15 18:15:00.000 +0800\"\r\n```\r\n3. do a log restore from \"2022-05-15 18:15:00.000 +0800\" to  \"2022-05-16 18:00:00.000 +0800\"\r\n```\r\n06:09:49 root@172 ~ → ./br_retry restore point --pd [172.16.6.46:2379](http://172.16.6.46:2379/) --start-ts \"2022-05-15 18:15:00.000 +0800\" --restored-ts \"2022-05-16 18:00:00.000 +0800\"  --storage \"s3://nfs/fubin/pitr/pp2_log_1?access-key=minioadmin&secret-access-key=minioadmin&endpoint=http%3a%2f%[2fminio.pingcap.net](http://2fminio.pingcap.net/)%3a9000&force-path-style=true\"\r\n```\r\n5. Do data consistency check between upstream (snapshot: 433244130508800000) and downstream\r\n```\r\n08:29:34 root@172 fubin → tiup ctl:v6.0.0 pd tso 433244130508800000\r\nStarting component `ctl`: /root/.tiup/components/ctl/v6.0.0/ctl /root/.tiup/components/ctl/v6.0.0/ctl pd tso 433244130508800000\r\nsystem:  2022-05-16 18:00:00 +0800 CST\r\nlogic:   0\r\n\r\n```\r\n### What did you expect?\r\nData consistency check should pass\r\n\r\n### What did happened?\r\nData consistency check fails",
+  "state": "closed",
+  "created_at": "2022-05-16T12:33:43Z",
+  "updated_at": "2022-07-15T10:05:22Z",
+  "closed_at": "2022-05-18T16:28:39Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1127619637,
+      "user": "fubinzh",
+      "created_at": "2022-05-16T12:36:17Z",
+      "body": "/type bug\r\n/severity Critical\r\n/feature developing"
+    },
+    {
+      "id": 1127620469,
+      "user": "fubinzh",
+      "created_at": "2022-05-16T12:37:03Z",
+      "body": "/assign 3pointer"
+    },
+    {
+      "id": 1132623392,
+      "user": "joccau",
+      "created_at": "2022-05-20T08:23:47Z",
+      "body": "/label needs-cherry-pick-6.1.0"
+    },
+    {
+      "id": 1132623439,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-20T08:23:48Z",
+      "body": "@joccau: The label(s) `needs-cherry-pick-6.1.0` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, needs-cherry-pick-6.1, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12538#issuecomment-1132623392):\n\n>/label needs-cherry-pick-6.1.0\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1132623898,
+      "user": "joccau",
+      "created_at": "2022-05-20T08:24:10Z",
+      "body": "/label needs-cherry-pick-6.1"
+    }
+  ]
+}

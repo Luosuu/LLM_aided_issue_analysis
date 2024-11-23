@@ -1,0 +1,27 @@
+{
+  "issue_number": 14675,
+  "title": "[Dynamic Regions] latency spike caused by PessimisticLock when running tpcc stability workload with v2",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nlastest master with pr https://github.com/tikv/tikv/pull/14536\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun tpcc 1k warehouse for 7 days\r\n\r\n### What did you expect?\r\nqps and latency is stable.\r\n\r\n### What did happened?\r\nqps and latency spikes, caused by PessimisticLock kv request latency spike.\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/235303640-d228ea9c-c057-4fb7-aa12-d7a0354996bd.png)\r\n![image](https://user-images.githubusercontent.com/2316425/235303650-3e426d7b-5093-496e-a755-ff44448b434d.png)\r\n![image](https://user-images.githubusercontent.com/2316425/235303663-f16ab8d7-ff3f-4fed-860a-a2950044998a.png)\r\n",
+  "state": "closed",
+  "created_at": "2023-04-29T12:57:57Z",
+  "updated_at": "2023-06-05T05:51:41Z",
+  "closed_at": "2023-06-05T05:51:41Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1528782426,
+      "user": "dbsid",
+      "created_at": "2023-04-29T12:58:26Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1569593103,
+      "user": "cfzjywxk",
+      "created_at": "2023-05-31T06:50:47Z",
+      "body": "The root cause may be https://github.com/tikv/tikv/issues/14838, this issue could be marked as duplicate and closed after verifying that fix."
+    }
+  ]
+}

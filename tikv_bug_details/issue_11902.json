@@ -1,0 +1,50 @@
+{
+  "issue_number": 11902,
+  "title": "GC Keys tasks executes slowly due to millions of seek_tombstone",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   5.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   e8718be24177a7218c317ade7d8055a3a1c4d6b5\r\nGit Commit Branch: heads/refs/tags/v5.5.0-nightly\r\nUTC Build Time:    2022-01-24 06:09:14\r\nRust Version:      rustc 1.59.0-nightly (cfa4ac66c 2022-01-06)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nShould be dropped during serval minutes.\r\n\r\n### What did happened?\r\n280G took 2 hours to drop.\r\n\r\nFrom GC tasks duration, we can see that gc_keys is very slow. Since total size to be dropped only has 280G, the seek-tombstone in GC scan write detail seems abnormal.   \r\n\r\n![image](https://user-images.githubusercontent.com/9443637/150773926-41ac7e0d-b527-4472-9b29-10be6cff21ba.png)\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/150774002-dfda6984-206a-4ae9-9885-ab5141d91c9d.png)\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/150774073-84374c15-9cf8-4e54-9fbd-c1b509336822.png)\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/150774126-b8df4c2b-7ffe-442a-9ce5-1682464cf2e4.png)\r\n\r\nSlow gc_keys tasks may block execution of unsafe_destroy_range tasks and further blocks TiDB's GC procedure (causes #11752)",
+  "state": "closed",
+  "created_at": "2022-01-24T11:22:50Z",
+  "updated_at": "2022-02-08T11:35:35Z",
+  "closed_at": "2022-02-08T11:35:35Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1020010233,
+      "user": "MyonKeminta",
+      "created_at": "2022-01-24T11:42:24Z",
+      "body": "GC keys tasks runs too slowly. It looks to be caused by too many tombstones.\r\n\r\nSince GC keys tasks don't set the range of the rocksdb iterator, it's possible that here are many GC keys tasks that unnecessarily scans many tombstones even they are not in the task's key range. Therefore one of the possible optimization would be setting proper bounds to the iterators in GC keys tasks. cc @Connor1996 "
+    },
+    {
+      "id": 1020017700,
+      "user": "Connor1996",
+      "created_at": "2022-01-24T11:51:40Z",
+      "body": "Agree. A better solution is to avoid triggering verbose gc-keys tasks when the key is already deleted, though hard to realized."
+    },
+    {
+      "id": 1020773753,
+      "user": "mayjiang0203",
+      "created_at": "2022-01-25T03:24:52Z",
+      "body": "/severity major\r\n/type bug\r\n/assign MyonKeminta"
+    },
+    {
+      "id": 1020774353,
+      "user": "Lily2025",
+      "created_at": "2022-01-25T03:26:06Z",
+      "body": "/assign MyonKeminta"
+    },
+    {
+      "id": 1020795951,
+      "user": "mayjiang0203",
+      "created_at": "2022-01-25T04:19:01Z",
+      "body": "logs and granfana can be get from minio by testbed-oltp-hm-rfkks."
+    }
+  ]
+}

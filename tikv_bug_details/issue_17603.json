@@ -1,0 +1,16 @@
+{
+  "issue_number": 17603,
+  "title": "resource_control: txn task may consume and sleep(if reached quota) twice",
+  "body": "## Bug Report\r\n1. priority queue spawn a `LimitedFuture` created by `with_resuorce_limiter` that uses limiter to consume recources\r\n2. handle_task actively uses limiter to consume resources\r\n![image](https://github.com/user-attachments/assets/eaf5e7a0-34d9-426c-9bd4-b7332044f4f6)\r\n\r\n![image](https://github.com/user-attachments/assets/ddd3d3bd-d12b-407e-baf8-ddd57fb5c50a)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-09-29T09:28:46Z",
+  "updated_at": "2024-10-10T03:48:52Z",
+  "closed_at": "2024-10-10T03:48:52Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": []
+}

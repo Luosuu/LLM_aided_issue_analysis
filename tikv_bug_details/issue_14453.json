@@ -1,0 +1,16 @@
+{
+  "issue_number": 14453,
+  "title": "log-backup: verbose log printed even there isn't a log bakcup task",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nCurrent master.\r\n\r\n### What operating system and CPU are you using?\r\nIrrelative.\r\n\r\n### Steps to reproduce\r\nStart a TiKV server.\r\n\r\n### What did you expect?\r\nThere shouldn't be too many logs about log backup because there isn't log backup task.\r\n\r\n### What did happened?\r\n```log\r\n[2023/03/23 09:47:24.397 +00:00] [INFO] [[subscription_manager.rs:480](http://subscription_manager.rs:480/)] [\"getting checkpoint\"] [defined_by_region=None]\r\n[2023/03/23 09:47:34.398 +00:00] [INFO] [[subscription_manager.rs:410](http://subscription_manager.rs:410/)] [\"backup stream: on_modify_observe\"] [op=\"ResolveRegions { min_ts: TimeStamp(440287849189736449), callback: fn { .. } }\"]\r\n[2023/03/23 09:47:34.398 +00:00] [INFO] [[subscription_manager.rs:480](http://subscription_manager.rs:480/)] [\"getting checkpoint\"] [defined_by_region=None]\r\n[2023/03/23 09:47:44.399 +00:00] [INFO] [[subscription_manager.rs:410](http://subscription_manager.rs:410/)] [\"backup stream: on_modify_observe\"] [op=\"ResolveRegions { min_ts: TimeStamp(440287851811438593), callback: fn { .. } }\"]\r\n[2023/03/23 09:47:44.399 +00:00] [INFO] [[subscription_manager.rs:480](http://subscription_manager.rs:480/)] [\"getting checkpoint\"] [defined_by_region=None]\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-03-24T08:01:23Z",
+  "updated_at": "2023-09-12T09:41:07Z",
+  "closed_at": "2023-04-11T03:57:02Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-6.5",
+    "affects-7.0"
+  ],
+  "comments_data": []
+}

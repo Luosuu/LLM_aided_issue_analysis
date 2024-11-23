@@ -1,0 +1,35 @@
+{
+  "issue_number": 7924,
+  "title": "Some metrics about GC doesn't shows properly when GC runs too quickly.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster (and the issue may also exists in 4.0 and 3.x)\r\n\r\n### Steps to reproduce\r\n\r\nIn a new cluster, view GC's metrics\r\n\r\n### What did you expect?\r\n\r\nGC's metrics looks fine\r\n\r\n### What did happened?\r\n\r\nSome of the metrics is  not shown due to GC runs too fast.\r\n![image](https://user-images.githubusercontent.com/9948422/82782662-70e83700-9e8f-11ea-9704-67ac8366a728.png)\r\n\r\nNote: TiKV's metrics is pulled every 15 seconds. If a gauge increases and is reset within 15 seconds, it's possible that the increased value is not captured and can't be shown in grafana.\r\n",
+  "state": "open",
+  "created_at": "2020-05-25T06:02:36Z",
+  "updated_at": "2020-08-27T11:12:59Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "priority/low",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 634388176,
+      "user": "sticnarf",
+      "created_at": "2020-05-27T02:24:52Z",
+      "body": "What will an expected graph look like? Leaving a single point at 100%?"
+    },
+    {
+      "id": 634393777,
+      "user": "youjiali1995",
+      "created_at": "2020-05-27T02:43:33Z",
+      "body": "Does it use `max_over_time`?"
+    },
+    {
+      "id": 634461234,
+      "user": "MyonKeminta",
+      "created_at": "2020-05-27T06:40:54Z",
+      "body": "> What will an expected graph look like?\r\n\r\nThe \"AutoGC Working\" is expected to have value when Auto GC is running. For \"Auto GC Progress\", I think it's ok if it can leave a point at 100%, but actually it sometimes shows nothing.\r\n\r\n> Does it use max_over_time?\r\n\r\nYes but it doesn't work, since the value of the metrics is pulled every 15s and they may have some value between two times of pulling."
+    }
+  ]
+}

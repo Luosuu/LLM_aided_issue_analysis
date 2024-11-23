@@ -1,0 +1,14 @@
+{
+  "issue_number": 17259,
+  "title": "In-memory Engine: delete range task has been scheduled multiple times",
+  "body": "## Bug Report\r\n\r\n## background\r\nCache range can be decoupling with region range due to batch split. When we are to evict a range where it is a sub range of a cached range, we split the cached range so that a sub range will not de-cache a large range.  But we need to clean the data of the evicted range and this can not be done immediately due to ongoing snapshot. So we have `historical_ranges` to record the parent range and `ranges_being_deleted` to record the evicted range.\r\nFor example: \r\n[k1, k10] is a cached range and we evict [k3, k6]\r\nso we have `historical_ranges` [k1, k10] and `ranges_being_deleted` [k3, k6].\r\nWhen we dropped the last snapshot of [k1, k10], we will remove [k1, k10] from `ranges_being_deleted` and schedule delte range tasks for ranges in `ranges_being_deleted` that are not overlapped with any range in `historical_ranges`.\r\nWe cannot use the removed range from `historical_ranges` to select ranges in `ranges_being_deleted` directly as there may be some overlapped ranges in `historical_ranges`.\r\nFor example:\r\ngo further from the above case:\r\n`cached_ranges`: [k1, k3], [k6, k10]\r\n`historical_ranges`: [k1, k10]\r\n`ranges_being_deleted`: [k3, k6],\r\nIf we evict [k6, k8], range mta becomes:\r\n`cached_ranges`: [k1, k3], [k8, k10]\r\n`historical_ranges`: [k1, k10], [k6, k10]\r\n`ranges_being_deleted`: [k3, k6], [k6, k8]\r\nThe last snapshot drop of [k6, k10] cannot make [k6, k8] cleanup due to onging snashot of [k1, k10].\r\n\r\n## what goes wrong\r\nThis process does not consider loading range that has been canceled.\r\n",
+  "state": "closed",
+  "created_at": "2024-07-11T06:27:50Z",
+  "updated_at": "2024-07-24T07:01:36Z",
+  "closed_at": "2024-07-24T07:01:36Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

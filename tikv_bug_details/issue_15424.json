@@ -1,0 +1,14 @@
+{
+  "issue_number": 15424,
+  "title": "can't dynamic adjust rocksdb background_compaction threads",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrocksdb uses `max_background_flushes` and `max_background_compactions` to control the background thread pool size, see:\r\n \r\nhttps://github.com/tikv/rocksdb/blob/fe76937087f81e95a323bbf00fcd109c7b39c649/db/db_impl/db_impl_compaction_flush.cc#L2582-L2605\r\n\r\nWhile in tikv, we only support set `max_background_jobs` and `max_background_flushes`, and then calculate `max_background_compactions` by `max_background_jobs - max_background_flushes`. But in `DBConfigManager`, `max_background_compactions` is not updated when `max_background_jobs` or `max_background_flushes` changes.\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-08-24T06:22:40Z",
+  "updated_at": "2023-08-28T03:30:37Z",
+  "closed_at": "2023-08-28T03:30:37Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

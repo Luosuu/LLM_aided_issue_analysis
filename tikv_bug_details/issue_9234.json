@@ -1,0 +1,15 @@
+{
+  "issue_number": 9234,
+  "title": "security: explicit error message for CN verification error",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n4.0.x, master\r\n\r\n### What operating system and CPU are you using?\r\nN/A\r\n\r\n### Steps to reproduce\r\nwrong string set in `security.cert-allowed-cn`, run TiDB and got the following error in TiDB log:\r\n```\r\n{\"level\":\"INFO\",\"time\":\"2020/12/11 09:33:22.239 +00:00\",\"caller\":\"client_batch.go:347\",\"message\":\"batchRecvLoop fails when receiving, needs to reconnect\", \"error\" :\"rpc error: code = Canceled desc = Cancelled\"}  \r\n```\r\n\r\nand error log in TiKV:\r\n```\r\n[2020/12/11 09:45:35.500 +00:00] [ERROR] [raft_client.rs:431] [\"connection aborted\"]  [receiver_err=\"Some(RpcFailure(RpcStatus { status: 1-CANCELLED, details: Some(\\\"Cancelled\\\") }))\"] [sink_error=\"Some(RpcFinished(Some(RpcStatus { status: 1-CANCELLED, details: Some(\\\"Cancelled\\\") })))\"] [store_id=53502]                                                                                                      │\r\n[2020/12/11 09:45:35.500 +00:00] [ERROR] [raft_client.rs:722] [\"connection abort\"][store_id=53502]    \r\n```\r\nBoth of the error message doesn't clearly indicate it is caused by CN mismatch.\r\n\r\n### What did you expect?\r\nError clearly indicate CN mismatch.\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2020-12-11T22:28:37Z",
+  "updated_at": "2020-12-18T17:28:36Z",
+  "closed_at": "2020-12-18T17:28:36Z",
+  "labels": [
+    "type/bug",
+    "component/security",
+    "severity/major"
+  ],
+  "comments_data": []
+}

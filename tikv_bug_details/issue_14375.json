@@ -1,0 +1,39 @@
+{
+  "issue_number": 14375,
+  "title": "Enabling resource control by default results in 6%- 8% performance regression",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\ncommit bb6f5e84762c63d2092bc4741b13db179423aced\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun sysbench oltp_write_only/oltp_update_index and bank benchmark comparing the performance of commit 38568e46b27878222961f64e600d4be317bf288f and commit bb6f5e84762c63d2092bc4741b13db179423aced\r\n\r\n### What did you expect?\r\nNo performance regression.\r\n\r\n### What did happened?\r\nThe performance sysbench oltp_write_only/oltp_update_index and bank benchmark downgraded 6%- 8%.\r\n![image](https://user-images.githubusercontent.com/84501897/224189971-536a59c2-f153-4d1e-943a-a4a5d43f456d.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-10T00:19:36Z",
+  "updated_at": "2023-03-20T07:13:05Z",
+  "closed_at": "2023-03-17T05:30:41Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1463027132,
+      "user": "Yui-Song",
+      "created_at": "2023-03-10T00:21:21Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign @nolouch "
+    },
+    {
+      "id": 1463027590,
+      "user": "Yui-Song",
+      "created_at": "2023-03-10T00:22:06Z",
+      "body": "/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.5\r\n"
+    },
+    {
+      "id": 1463027895,
+      "user": "Yui-Song",
+      "created_at": "2023-03-10T00:22:35Z",
+      "body": "/remove-label may-affects-4.0"
+    },
+    {
+      "id": 1475730881,
+      "user": "Connor1996",
+      "created_at": "2023-03-20T07:13:05Z",
+      "body": "After reverting some changes, the regression is eliminated.\r\n![img_v2_14b28863-cc24-437d-9835-d2794cce96cg](https://user-images.githubusercontent.com/13497871/226270827-720d2640-3469-499d-8178-5bb34931af3c.jpg)\r\nThough still has some gap compared to baseline(v6.5), but it's not related resource control"
+    }
+  ]
+}

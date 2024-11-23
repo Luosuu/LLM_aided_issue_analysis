@@ -1,0 +1,54 @@
+{
+  "issue_number": 11612,
+  "title": "Sysbench read and write workload hit 9007 Write conflict error",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   5.3.0\r\nEdition:           Community\r\nGit Commit Hash:   6c1424706f3d5885faa668233f34c9f178302f36\r\nGit Commit Branch: heads/refs/tags/v5.3.0\r\nUTC Build Time:    2021-11-22 10:51:38\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun oltp test case oltp_stability_002 failed.\r\n\r\n### What did you expect?\r\nCase run succeeded.\r\n\r\n### What did happened?\r\nHit following error.\r\n2021-12-08T12:03:47.527+0800\tINFO\toltppkg/workload.go:331\tFATAL: mysql_stmt_execute() returned error 9007 (Write conflict, txnStartTS=429637298355962059, conflictStartTS=429637298355962016, conflictCommitTS=429637298382176376, key={tableID=156, indexID=1, indexValues={5025659, 5045579, }} primary={tableID=156, handle=5045579} [try again later]) for query 'COMMIT'\r\n\r\n/var/lib/tidb/log # grep -A5 -B 5 '429637298355962016' *.log\r\ntidb.log-[2021/12/08 04:03:47.090 +00:00] [WARN] [pd.go:152] [\"get timestamp too slow\"] [\"cost time\"=31.14879ms]\r\ntidb.log-[2021/12/08 04:03:47.265 +00:00] [ERROR] [terror.go:307] [\"encountered error\"] [error=EOF] [stack=\"github.com/pingcap/tidb/parser/terror.Log\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/parser/terror/terror.go:307\\ngithub.com/pingcap/tidb/server.(*Server).onConn\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/server/server.go:519\"]\r\ntidb.log-[2021/12/08 04:03:47.523 +00:00] [WARN] [client_batch.go:794] [\"wait response is cancelled\"] [to=tc-tikv-2.tc-tikv-peer.testbed-oltp-hm-k52vt.svc:20160] [cause=\"context canceled\"]\r\ntidb.log-[2021/12/08 04:03:47.524 +00:00] [WARN] [client_batch.go:794] [\"wait response is cancelled\"] [to=tc-tikv-1.tc-tikv-peer.testbed-oltp-hm-k52vt.svc:20160] [cause=\"context canceled\"]\r\ntidb.log-[2021/12/08 04:03:47.524 +00:00] [WARN] [client_batch.go:794] [\"wait response is cancelled\"] [to=tc-tikv-3.tc-tikv-peer.testbed-oltp-hm-k52vt.svc:20160] [cause=\"context canceled\"]\r\ntidb.log:[2021/12/08 04:03:47.524 +00:00] [WARN] [session.go:721] [\"can not retry txn\"] [conn=29083] [label=general] [error=\"[kv:9007]Write conflict, txnStartTS=429637298355962059, conflictStartTS=429637298355962016, conflictCommitTS=429637298382176376, key={tableID=156, indexID=1, indexValues={5025659, 5045579, }} primary={tableID=156, handle=5045579} [try again later]\"] [IsBatchInsert=false] [IsPessimistic=true] [InRestrictedSQL=false] [tidb_retry_limit=10] [tidb_disable_txn_auto_retry=true]\r\ntidb.log:[2021/12/08 04:03:47.524 +00:00] [WARN] [session.go:737] [\"commit failed\"] [conn=29083] [\"finished txn\"=\"Txn{state=invalid}\"] [error=\"[kv:9007]Write conflict, txnStartTS=429637298355962059, conflictStartTS=429637298355962016, conflictCommitTS=429637298382176376, key={tableID=156, indexID=1, indexValues={5025659, 5045579, }} primary={tableID=156, handle=5045579} [try again later]\"]\r\ntidb.log:[2021/12/08 04:03:47.524 +00:00] [INFO] [conn.go:1069] [\"command dispatched failed\"] [conn=29083] [connInfo=\"id:29083, addr:10.233.116.131:46984 status:10, collation:utf8mb4_general_ci, user:root\"] [command=Execute] [status=\"inTxn:0, autocommit:1\"] [sql=COMMIT] [txn_mode=PESSIMISTIC] [err=\"[kv:9007]Write conflict, txnStartTS=429637298355962059, conflictStartTS=429637298355962016, conflictCommitTS=429637298382176376, key={tableID=156, indexID=1, indexValues={5025659, 5045579, }} primary={tableID=156, handle=5045579} [try again later]\\nCOMMIT\"]\r\n\r\n\r\nLogs and monitor can be get from minio via testbed testbed-oltp-hm-k52vt.",
+  "state": "closed",
+  "created_at": "2021-12-08T07:20:58Z",
+  "updated_at": "2022-08-19T01:57:43Z",
+  "closed_at": "2022-05-24T17:34:46Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/minor",
+    "found/automation",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 992322756,
+      "user": "youjiali1995",
+      "created_at": "2021-12-13T10:30:28Z",
+      "body": "Met the same error again:\r\n```\r\n\"FATAL: mysql_stmt_execute() returned error 9007 (Write conflict, txnStartTS=429686608989258006, conflictStartTS=429686608989257901, conflictCommitTS=429686609054793967, key={tableID=111, indexID=1, indexValues={4768979, 1, }} primary={tableID=111, handle=7375652} [try again later]) for query 'COMMIT'\\r\\n\"\r\n```\r\n\r\nThe error happened on the non-unique index key which needn't be locked and check write-conflict in the pessimistic transaction, but if it's a retry request, it will check write-conflict for the safety of CDC and it's the only place that a pessimistic transaction can report a write-conflict error:\r\nhttps://github.com/tikv/tikv/blob/dd7f8d89af67e72148bec7713708eeaa57fa6025/src/storage/txn/actions/prewrite.rs#L415-L425\r\n\r\nThe start_ts `429637298355962059` is around the log time([2021/12/08 04:03:47.524 +00:00]), so it's likely the pessimistic lock on the row key is lost due to pipelined pessimistic locking otherwise the other transaction can't be committed so quickly.\r\n```pd-ctl tso 429637298355962059\r\nsystem:  2021-12-08 12:03:47.249 +0800 CST\r\nlogic:  203\r\n```\r\n\r\nThe log indicates there are some cancelled requests. I'm sure if it's related.\r\n```\r\n[2021/12/08 04:03:47.523 +00:00] [WARN] [client_batch.go:794] [\"wait response is cancelled\"] [to=tc-tikv-2.tc-tikv-peer.testbed-oltp-hm-k52vt.svc:20160] [cause=\"context canceled\"]\r\n[2021/12/08 04:03:47.524 +00:00] [WARN] [client_batch.go:794] [\"wait response is cancelled\"] [to=tc-tikv-1.tc-tikv-peer.testbed-oltp-hm-k52vt.svc:20160] [cause=\"context canceled\"]\r\n[2021/12/08 04:03:47.524 +00:00] [WARN] [client_batch.go:794] [\"wait response is cancelled\"] [to=tc-tikv-3.tc-tikv-peer.testbed-oltp-hm-k52vt.svc:20160] [cause=\"context canceled\"]\r\n[2021/12/08 04:03:47.524 +00:00] [WARN] [session.go:721] [\"can not retry txn\"] [conn=29083] [label=general] [error=\"[kv:9007]Write conflict, txnStartTS=429637298355962059, conflictStartTS=429637298355962016, conflictCommitTS=429637298382176376, key={tableID=156, indexID=1, indexValues={5025659, 5045579, }} primary={tableID=156, handle=5045579} [try again later]\"] [IsBatchInsert=false] [IsPessimistic=true] [InRestrictedSQL=false] [tidb_retry_limit=10] [tidb_disable_txn_auto_retry=true]\r\n```\r\n\r\n"
+    },
+    {
+      "id": 996579726,
+      "user": "mayjiang0203",
+      "created_at": "2021-12-17T09:49:00Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1002498310,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T09:45:08Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002499934,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T09:45:45Z",
+      "body": "/severity Minor "
+    },
+    {
+      "id": 1134426737,
+      "user": "sticnarf",
+      "created_at": "2022-05-23T09:33:22Z",
+      "body": "The pessimistic lock does not necessarily get lost to make this case happen.\r\n\r\n1. Txn1 ts = 20, it locks the row key first.\r\n2. Txn2 ts = 10, it wants to lock the same row key but gets blocked.\r\n3. Txn1 prewrites the row key and the index key, but it only commits the row key, commit ts = 30.\r\n4. Now, txn2 is able to lock the row key and prewrite.\r\n5. Txn2 retries prewriting the index key and find the conflict because its start_ts (10) < commit_ts (30)."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "issue_number": 15748,
+  "title": "[Dynamic Regions] stale read with raft-kv2 returns unexpected region error occasionally",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nclient-go maybe receive following error when send stale-read request.\r\n\r\n```log\r\n[2023/10/11 15:35:54.523 +08:00] [INFO] [region_request.go:1497] [\"send request got region error\"] [conn=3967811628] [session_alias=] [err-message=\"\\\"[components/raftstore-v2/src/operation/query/mod.rs:139]: PeerMsg::RaftQuery should not get stale read requests\\\"\"] [err-string=\"message:\\\"\\\\\\\"[components/raftstore-v2/src/operation/query/mod.rs:139]: PeerMsg::RaftQuery should not get stale read requests\\\\\\\"\\\" \"]\r\n```\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nnightly: 58253e8b7cea59b414511753b75dd7fc980d99af\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-10-11T09:10:51Z",
+  "updated_at": "2024-04-23T02:33:47Z",
+  "closed_at": "2024-04-23T02:33:47Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1761036993,
+      "user": "glorv",
+      "created_at": "2023-10-13T07:26:47Z",
+      "body": "https://github.com/tikv/tikv/blob/b4e0bf7bab6ad395b74c0be938119d82ded4cd2a/components/raftstore-v2/src/operation/query/local.rs#L315-L321\r\n\r\nThe root cause is if `try_get_snapshot` returns Redirect due to `ReadDelegate` is not exist, raft-v2 will always do `try_to_renew_lease` which will triggers a readIndex. This is not true for staleRead.\r\n"
+    },
+    {
+      "id": 2071298653,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-23T02:33:47Z",
+      "body": "Close this issue temporarily since Dynamic Regions project is paused."
+    }
+  ]
+}

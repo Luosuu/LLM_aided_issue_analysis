@@ -1,0 +1,35 @@
+{
+  "issue_number": 9099,
+  "title": "TiKV panic because of ingest failed by importer.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster: 2b983187b8108770f06a684dc5a32629314bf1a8\r\nThis bug may be related to https://github.com/tikv/tikv/pull/8869\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nEnable encryption and import 14K warehouse tpcc data to TiDB. Then tikv was killed by oom-killer. TiKV failed to restart because of ingesting.\r\n\r\n\r\n### What did you expect?\r\nI think tikv did not remove the ingest file from key-manager correctly.\r\n![image](https://user-images.githubusercontent.com/16376959/100086255-22d8de00-2e88-11eb-8e27-e9e5cc409aad.png)\r\n![image](https://user-images.githubusercontent.com/16376959/100086349-4439ca00-2e88-11eb-99fd-cae6ac59a690.png)\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/16376959/100086160-f755f380-2e87-11eb-9568-d879d3ec1288.png)\r\n",
+  "state": "closed",
+  "created_at": "2020-11-24T11:08:23Z",
+  "updated_at": "2020-12-02T05:00:48Z",
+  "closed_at": "2020-12-02T05:00:48Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "component/security",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 733209850,
+      "user": "yiwu-arbug",
+      "created_at": "2020-11-24T20:16:19Z",
+      "body": "There are recent changes in importer that could be related: #8985 #9000 "
+    },
+    {
+      "id": 733211104,
+      "user": "yiwu-arbug",
+      "created_at": "2020-11-24T20:18:24Z",
+      "body": "Do we still have TiKV log? If so, we can check `KeyManager`'s operations on the file."
+    },
+    {
+      "id": 736991178,
+      "user": "yiwu-arbug",
+      "created_at": "2020-12-02T05:00:48Z",
+      "body": "This one should have been fixed by #9105. If not, please reopen."
+    }
+  ]
+}

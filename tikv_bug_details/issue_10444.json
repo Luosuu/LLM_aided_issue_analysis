@@ -1,0 +1,59 @@
+{
+  "issue_number": 10444,
+  "title": "TiKV spend more than 20 minutes to (re)start",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n2ab5b40b2bfdceaeaf61806ffe5e24b57d5c3ebb\r\n```\r\n[root@7b6cbaa65e59 log]# ../bin/tikv-server -V\r\nTiKV\r\nRelease Version:   5.1.0\r\nEdition:           Community\r\nGit Commit Hash:   2ab5b40b2bfdceaeaf61806ffe5e24b57d5c3ebb\r\nGit Commit Branch: heads/refs/tags/v5.1.0\r\nUTC Build Time:    2021-06-22 12:17:22\r\nRust Version:      rustc 1.53.0-nightly (16bf626a3 2021-04-14)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n```\r\n\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nI'm not sure if the following steps can reproduce the problem.\r\n1. Run [write-stress testcase](https://github.com/pingcap/tipocket/pull/410).\r\n   `/tmp/hhhhh/bin/write-stress -tidb-server xxx -case-name append -tables 128 -pad-length 4000000 -run-time 3h -concurrency 100`\r\n2. The TiKV restarts because of OOM.\r\n3. The problem may occur.\r\n\r\n### What did you expect?\r\n\r\nTiKV restart and serve immediatelly.\r\n\r\n### What did happened?\r\n\r\nThe log shows that the store spends **1287.795972388s** to do initialization.\r\n\r\n```\r\n[2021/06/23 17:48:48.309 +08:00] [INFO] [raft.rs:1088] [\"became follower at term 5\"] [term=5] [raft_id=12471] [region_id=12468]\r\n[2021/06/23 17:48:48.309 +08:00] [INFO] [raft.rs:389] [newRaft] [peers=\"Configuration { incoming: Configuration { voters: {12469, 12470, 12471} }, outgoing: Configuration { voters: {} } }\"] [\"last term\"=5] [\"last index\"=5] [applied=5] [commit=5] [term=5] [raft_id=12471] [region_id=12468]\r\n[2021/06/23 17:48:48.309 +08:00] [INFO] [raw_node.rs:315] [\"RawNode created with id 12471.\"] [id=12471] [raft_id=12471] [region_id=12468]\r\n[2021/06/23 17:58:41.793 +08:00] [INFO] [util.rs:536] [\"connecting to PD endpoint\"] [endpoints=http://10.0.2.102:2379]\r\n[2021/06/23 18:08:41.795 +08:00] [INFO] [util.rs:536] [\"connecting to PD endpoint\"] [endpoints=http://10.0.2.102:2379]\r\n[2021/06/23 18:10:14.932 +08:00] [INFO] [store.rs:1030] [\"start store\"] [takes=1287.795972388s] [merge_count=5] [applying_count=0] [tombstone_count=579] [region_count=3018] [store_id=4]\r\n[2021/06/23 18:10:14.936 +08:00] [INFO] [store.rs:1078] [\"cleans up garbage data\"] [takes=3.025005ms] [garbage_range_count=2440] [store_id=4]\r\n[2021/06/23 18:10:14.993 +08:00] [INFO] [future.rs:146] [\"starting working thread\"] [worker=pd-worker]\r\n[2021/06/23 18:10:14.994 +08:00] [WARN] [store.rs:1376] [\"set thread priority for raftstore failed\"] [error=\"Os { code: 13, kind: PermissionDenied, message: \\\"Permission denied\\\" }\"]\r\n```\r\n\r\n![image](https://user-images.githubusercontent.com/4962134/123111428-7d163d80-d46f-11eb-93a3-61197cf56ea6.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2021-06-23T14:24:06Z",
+  "updated_at": "2022-03-29T12:25:10Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/raft",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 866884562,
+      "user": "cosven",
+      "created_at": "2021-06-23T14:24:47Z",
+      "body": "/type bug\r\n/severity major\r\n/assign @hicqu "
+    },
+    {
+      "id": 976179372,
+      "user": "hicqu",
+      "created_at": "2021-11-23T05:30:47Z",
+      "body": "The reason is the instance has lots of tombstone regions. When it's restarted, it will fetch all raft entries for them and delete them one by one. It can be improved. For example,\r\n* introduce raft engine, which is good at clean stale entries;\r\n* use delete-files-in-range to clean stale raft entries."
+    },
+    {
+      "id": 976180068,
+      "user": "hicqu",
+      "created_at": "2021-11-23T05:33:40Z",
+      "body": "Is there anyone can pick it? Thanks a lot!"
+    },
+    {
+      "id": 1051294492,
+      "user": "hihihuhu",
+      "created_at": "2022-02-25T21:45:48Z",
+      "body": "hi @hicqu, i'd like to work on this, though i am completely new and need some guidances"
+    },
+    {
+      "id": 1073274067,
+      "user": "JayiceZ",
+      "created_at": "2022-03-20T15:22:34Z",
+      "body": "> Is there anyone can pick it? Thanks a lot!\r\n\r\nIs the issue still valid? If so, I want to try to work on it.😃"
+    },
+    {
+      "id": 1081669727,
+      "user": "cosven",
+      "created_at": "2022-03-29T09:56:46Z",
+      "body": "> > Is there anyone can pick it? Thanks a lot!\r\n> \r\n> Is the issue still valid? If so, I want to try to work on it.:smiley:\r\n\r\nDoes https://github.com/tikv/tikv/pull/11409 fix this problem? @Connor1996\r\n\r\n"
+    },
+    {
+      "id": 1081806726,
+      "user": "Connor1996",
+      "created_at": "2022-03-29T12:25:10Z",
+      "body": "@cosven It's unrelated. But the raft-engine mentioned above will be enabled by default in 6.0, it should be relieved a lot in this case. /cc @tabokie "
+    }
+  ]
+}

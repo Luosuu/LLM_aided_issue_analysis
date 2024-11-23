@@ -1,0 +1,47 @@
+{
+  "issue_number": 17511,
+  "title": " \"[tikv:9005]Region is unavailable\" seen for ~1.5h after PiTR restore",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV \r\nRelease Version:   8.2.0\r\nEdition:           Community\r\nGit Commit Hash:   6e50b27980d7d2795c2d662c7a11d03d81d4b64d\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2024-07-09 08:09:03\r\n\r\nBr\r\nRelease Version: v8.2.0\r\nGit Commit Hash: 821e491a20fbab36604b36b647b5bae26a2c1418\r\nGit Branch: HEAD\r\nGo Version: go1.21.10\r\nUTC Build Time: 2024-07-05 09:18:40\r\n\r\n\r\n### What operating system and CPU are you using?\r\nOperator Deployed Cluster, X86\r\n\r\n### Steps to reproduce\r\n1. Start PiTR restore\r\nBackup cluster:\r\n9 TiKV (3.6TB Disk), full backup: ~19TB, log backup: ~2.5 days, write throughtput < 30M; insert/udpate ratio: 1.5/100\r\n\r\nRestored Cluster:\r\n15 TiKV, raftengine use dedicated nvme disk\r\n\r\n```\r\nconfig: |\r\n            [cdc]                      \r\n              min-ts-interval = \"200ms\"\r\n            [raftstore]\r\n              store-io-pool-size = 2\r\n              region-compact-tombstones-percent = 10\r\n              max-leader-missing-duration = \"20m\"\r\n            [resolved-ts]\r\n              advance-ts-interval = \"1s\"\r\n            [storage]\r\n              reserve-space = \"300GB\"\r\n              scheduler-worker-pool-size = 16\r\n            [storage.block-cache]\r\n              num-shard-bits = 4\r\n              capacity = \"36GB\"\r\n            [quota]\r\n              foreground-write-bandwidth = \"40MB\"\r\n              max-delay-duration = \"1s\"\r\n            [rocksdb]\r\n              max-open-files = 10240\r\n              [rocksdb.titan]\r\n                enabled = false\r\n              [rocksdb.defaultcf.titan]\r\n                blob-cache-size = \"24GB\"\r\n                min-blob-size = \"4KB\"\r\n                discardable-ratio = 0.4\r\n            [coprocessor]\r\n              region-split-size = \"512MiB\"\r\n              region-split-keys = 5120000\r\n              region-max-size = \"640MiB\"\r\n              region-max-keys = 6400000\r\n              split-region-on-table = true\r\n            [raftdb]\r\n              max-open-files = 10240\r\n            [readpool.unified]\r\n              max-thread-count = 80\r\n              max-tasks-per-worker = 20000\r\n            [server]\r\n              grpc-concurrent-stream = 65535\r\n            [raft-engine]\r\n              enable = true\r\n              dir = \"/var/lib/raft/raft-engine\"\r\n            [storage.flow-control]\r\n              l0-files-threshold = 45\r\n            [rocksdb.defaultcf]\r\n              level0-stop-writes-trigger = 50\r\n            [gc]\r\n              enable-compaction-filter = false\r\n            [import]\r\n              num-threads = 15\r\n            [backup]\r\n              num-threads = 6\r\n          limits:\r\n            cpu: 16000m\r\n            memory: 64Gi\r\n            storage: 3600Gi\r\n          replicas: 15\r\n          requests:\r\n            cpu: 16000m\r\n            memory: 64Gi\r\n            storage: 3600Gi\r\n          storageClassName: fast-disks\r\n          storageVolumes:\r\n            - mountPath: /var/lib/raft\r\n              name: raft\r\n              storageSize: 200Gi\r\n```\r\n2. Run workload on downstream\r\n\r\n### What did you expect?\r\nPiTR restore successful, and I should be able to run workload on restored cluster when restore is finished.\r\n\r\n### What did happened?\r\nPiTR restore successful, however \"[tikv:9005]Region is unavailable\" error seen when trying to run workload on restored cluster.\r\n\r\nLog restored finished at 2024/09/09 24:10:02.381 +08:00, \"[tikv:9005]Region is unavailable\" is seen until 09/10 01:41 +08:00.\r\n\r\n```\r\n[2024/09/09 16:10:02.381 +00:00] [INFO] [collector.go:77] [\"restore log success summary\"] [total-take=2h52m39.850722799s] [source-start-point=452375349333066050] [source-end-point=452430248171799595] [target-end-point=452431142689964050] [source-start=\"2024-09-07 02:10:08.137 +0000\"] [source-end=\"2024-09-09 12:20:30.587 +0000\"] [target-end=\"2024-09-09 13:17:22.903 +0000\"] [total-kv-count=6737540620] [skipped-kv-count-by-checkpoint=0] [total-size=4.697TB] [skipped-size-by-checkpoint=0B] [average-speed=453.4MB/s]\r\n```\r\n<img width=\"1829\" alt=\"image\" src=\"https://github.com/user-attachments/assets/d7758a7d-1151-4e24-9a2e-d39cdbbca8f3\">\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-09-10T04:05:59Z",
+  "updated_at": "2024-11-01T10:01:13Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2345069986,
+      "user": "glorv",
+      "created_at": "2024-09-12T01:23:20Z",
+      "body": "/cc @3pointer @YuJuncen "
+    },
+    {
+      "id": 2347921153,
+      "user": "fubinzh",
+      "created_at": "2024-09-13T02:29:53Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 2437438229,
+      "user": "BornChanger",
+      "created_at": "2024-10-25T10:29:18Z",
+      "body": "it is expected result when there is volume of write events to apply. @fubinzh "
+    },
+    {
+      "id": 2440639381,
+      "user": "fubinzh",
+      "created_at": "2024-10-28T06:12:52Z",
+      "body": "@BornChanger This will result in issue that restored cluster is not able to provide service (i.e. run workload) immediately after PiTR restore, and impact the overall RTO."
+    }
+  ]
+}

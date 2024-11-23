@@ -1,0 +1,71 @@
+{
+  "issue_number": 14641,
+  "title": "br restore fail for \"split region failed\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster nightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nRestore directly from existed backup with 60K tables\r\n\r\n### What did you expect?\r\nbr restore success\r\n### What did happened?\r\n```code\r\n[2023/04/23 22:16:00.980 +00:00] [ERROR] [main.go:59] [\"br failed\"] [error=\"split region failed: err=message:\\\"failed to split: Err(Error(Kv(Error(Other(\\\\\\\"[src/server/raftkv/[raft_extension.rs:128](http://raft_extension.rs:128/)]: oneshot canceled\\\\\\\")))))\\\" : [BR:Restore:ErrRestoreSplitFailed]fail to split region\"] [errorVerbose=\"[BR:Restore:ErrRestoreSplitFailed]fail to split region\\nsplit region failed: err=message:\\\"failed to split: Err(Error(Kv(Error(Other(\\\\\\\"[src/server/raftkv/[raft_extension.rs:128](http://raft_extension.rs:128/)]: oneshot canceled\\\\\\\")))))\\\" \\[ngithub.com/pingcap/tidb/br/pkg/restore/split.sendSplitRegionRequest\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split/client.go:370\\ngithub.com/pingcap/tidb/br/pkg/restore/split.(*pdClient).sendSplitRegionRequest\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split/client.go:315\\ngithub.com/pingcap/tidb/br/pkg/restore/split.(*pdClient).BatchSplitRegionsWithOrigin\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split/client.go:413\\ngithub.com/pingcap/tidb/br/pkg/restore/split.(*pdClient).BatchSplitRegions\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split/client.go:452\\ngithub.com/pingcap/tidb/br/pkg/restore.(*RegionSplitter).splitAndScatterRegions\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split.go:265\\ngithub.com/pingcap/tidb/br/pkg/restore.(*RegionSplitter).Split\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split.go:105\\ngithub.com/pingcap/tidb/br/pkg/restore.SplitRanges\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/util.go:507\\ngithub.com/pingcap/tidb/br/pkg/restore.(*Client).SplitRanges\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/client.go:1295\\ngithub.com/pingcap/tidb/br/pkg/restore.(*tikvSender).splitWorker.func3\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/pipeline_items.go:315\\ngithub.com/pingcap/tidb/br/pkg/utils.(*WorkerPool).ApplyOnErrorGroup.func1\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/utils/worker.go:76\\ngolang.org/x/sync/errgroup.(*Group).Go.func1\\n\\t/go/pkg/mod/golang.org/x/sync@v0.1.0/errgroup/errgroup.go:75\\nruntime.goexit\\n\\t/usr/local/go/src/runtime/asm_amd64.s:1598](http://ngithub.com/pingcap/tidb/br/pkg/restore/split.sendSplitRegionRequest/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split/client.go:370/ngithub.com/pingcap/tidb/br/pkg/restore/split.(*pdClient).sendSplitRegionRequest/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split/client.go:315/ngithub.com/pingcap/tidb/br/pkg/restore/split.(*pdClient).BatchSplitRegionsWithOrigin/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split/client.go:413/ngithub.com/pingcap/tidb/br/pkg/restore/split.(*pdClient).BatchSplitRegions/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split/client.go:452/ngithub.com/pingcap/tidb/br/pkg/restore.(*RegionSplitter).splitAndScatterRegions/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split.go:265/ngithub.com/pingcap/tidb/br/pkg/restore.(*RegionSplitter).Split/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/split.go:105/ngithub.com/pingcap/tidb/br/pkg/restore.SplitRanges/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/util.go:507/ngithub.com/pingcap/tidb/br/pkg/restore.(*Client).SplitRanges/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/client.go:1295/ngithub.com/pingcap/tidb/br/pkg/restore.(*tikvSender).splitWorker.func3/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/restore/pipeline_items.go:315/ngithub.com/pingcap/tidb/br/pkg/utils.(*WorkerPool).ApplyOnErrorGroup.func1/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/utils/worker.go:76/ngolang.org/x/sync/errgroup.(*Group).Go.func1/n/t/go/pkg/mod/golang.org/x/sync@v0.1.0/errgroup/errgroup.go:75/nruntime.goexit/n/t/usr/local/go/src/runtime/asm_amd64.s:1598)\"] [stack=\"main.main\\n\\t/home/jenkins/agent/workspace/build-common/go/src/[github.com/pingcap/br/br/cmd/br/main.go:59\\nruntime.main\\n\\t/usr/local/go/src/runtime/proc.go:250](http://github.com/pingcap/br/br/cmd/br/main.go:59/nruntime.main/n/t/usr/local/go/src/runtime/proc.go:250)\"]\r\n```",
+  "state": "closed",
+  "created_at": "2023-04-24T01:50:46Z",
+  "updated_at": "2023-06-15T06:59:48Z",
+  "closed_at": "2023-06-15T06:59:48Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1519265524,
+      "user": "seiya-annie",
+      "created_at": "2023-04-24T01:51:58Z",
+      "body": "[br.log.2023-04-23T21.24.41Z.gz](https://github.com/tikv/tikv/files/11305670/br.log.2023-04-23T21.24.41Z.gz)\r\n"
+    },
+    {
+      "id": 1519270383,
+      "user": "seiya-annie",
+      "created_at": "2023-04-24T01:56:50Z",
+      "body": "[tikv-2.log.gz](https://github.com/tikv/tikv/files/11305685/tikv-2.log.gz)\r\n[tikv-1.log.gz](https://github.com/tikv/tikv/files/11305686/tikv-1.log.gz)\r\n[tikv-0.log.gz](https://github.com/tikv/tikv/files/11305687/tikv-0.log.gz)\r\n"
+    },
+    {
+      "id": 1521074243,
+      "user": "3pointer",
+      "created_at": "2023-04-25T02:33:11Z",
+      "body": "`[2023/04/23 22:22:27.059 +00:00] [ERROR] [util.rs:682] [\"connect failed\"] [error=\"Grpc(RpcFailure(RpcStatus { code: 4-DEADLINE_EXCEEDED, message: \\\"Deadline Exceeded\\\", details: [] }))\"] [endpoints=http://downstream-pd-0.downstream-pd-peer.brie-acceptance-tps-1667821-1-635.svc:2379]`\r\n\r\ncould you upload PD logs?"
+    },
+    {
+      "id": 1521441294,
+      "user": "seiya-annie",
+      "created_at": "2023-04-25T09:08:36Z",
+      "body": "[pd-2023-04-23T22-30-10.652.log.gz](https://github.com/tikv/tikv/files/11320755/pd-2023-04-23T22-30-10.652.log.gz)\r\n[pd-2023-04-23T22-29-53.042.log.gz](https://github.com/tikv/tikv/files/11320760/pd-2023-04-23T22-29-53.042.log.gz)\r\n[pd-2023-04-23T22-21-11.024.log.gz](https://github.com/tikv/tikv/files/11320761/pd-2023-04-23T22-21-11.024.log.gz)\r\n"
+    },
+    {
+      "id": 1521488850,
+      "user": "3pointer",
+      "created_at": "2023-04-25T09:41:51Z",
+      "body": "from pd metrics: we can see pd is oom at that time and cannot serve.\r\n<img width=\"1290\" alt=\"image\" src=\"https://user-images.githubusercontent.com/5906259/234237966-55fa2ec1-f57d-4c54-9d41-4ae81af94f83.png\">\r\n\r\nBR failed at 22:16 +00:00 correspond to 06:16 +08:00 in metrics.\r\n\r\nThen it should not be a critical bug\r\n"
+    },
+    {
+      "id": 1522770924,
+      "user": "kevin-xianliu",
+      "created_at": "2023-04-26T04:40:15Z",
+      "body": "@nolouch PTAL."
+    },
+    {
+      "id": 1522889768,
+      "user": "nolouch",
+      "created_at": "2023-04-26T07:01:58Z",
+      "body": "it's too many allocs ids for split regions."
+    },
+    {
+      "id": 1592425693,
+      "user": "jebter",
+      "created_at": "2023-06-15T06:09:55Z",
+      "body": "Can it be closed?"
+    },
+    {
+      "id": 1592473671,
+      "user": "YuJuncen",
+      "created_at": "2023-06-15T06:59:48Z",
+      "body": "> Can it be closed?\r\n\r\nYep."
+    }
+  ]
+}

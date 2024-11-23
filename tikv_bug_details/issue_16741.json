@@ -1,0 +1,56 @@
+{
+  "issue_number": 16741,
+  "title": "resolved ts stuck for 10m when TiKV failure restored. ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv8.0\r\ngit_hash: 9f51dfed1f04224a746facfbd919ae8ebec639eb\r\n\r\n### What operating system and CPU are you using?\r\nX86, K8S\r\n\r\n### Steps to reproduce\r\n1. TiDB cluster with titan on, cluster with 30 TiKV nodes, cluster size: 70TB, througtput ~40MB/s\r\n2.  CDC changefeed running to sync 4000 tables.\r\n3.  Inject one TiKV failure for 50m\r\n4. Check cdc lag after TiKV failure restored\r\n\r\n### What did you expect?\r\nCDC lag should not be >10s\r\n\r\n### What did happened?\r\nCDC lag is OK during chaos injection (3/29 22:01 - 22:51), however resolved ts stuck for 10m when TiKV failure restored.\r\n\r\n![img_v3_029h_580a9453-2800-4ccc-aa40-ef08e4b63c6g](https://github.com/tikv/tikv/assets/7403864/efe68925-3c38-4263-897b-4815c080f0a4)\r\n![img_v3_029h_8b25ffbd-86a5-4e5f-84a5-3ee7ef1d8a9g](https://github.com/tikv/tikv/assets/7403864/8c61546b-90c7-45d3-baff-fc04338c19a7)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-04-02T09:02:48Z",
+  "updated_at": "2024-08-06T09:27:20Z",
+  "closed_at": "2024-08-06T09:27:20Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2031472524,
+      "user": "LykxSassinator",
+      "created_at": "2024-04-02T09:11:06Z",
+      "body": "Dup with https://github.com/tikv/tikv/issues/12259"
+    },
+    {
+      "id": 2102274035,
+      "user": "fubinzh",
+      "created_at": "2024-05-09T09:13:36Z",
+      "body": "Retested this scenario with https://github.com/tikv/tikv/pull/16738, this PR worked as expected for mitigating the jitters of QPS when restarting TiKV nodes.\r\nBut CDC lag still up to 5min as too many memory consumption, which triggers log replication rejection. This need further optimization per https://github.com/tikv/tikv/issues/12259#issuecomment-2100194769\r\n\r\nSteps:\r\n1. TiKV hash before chaos inject: 56613f7c3e28c02853cc51d15bc1b77f68b58be8\r\n2. 14:44 - 15:34 Inject TiKV random node failure.\r\n3. TiKV restarted after chaos injection recovered, TiKV hash: befa08ef6af45ff39762f39bb59421b8750f11c4\r\n4. CDC lag up to 5min after chaos restored\r\n![img_v3_02an_5f4d9f3d-72ae-4301-a760-3b2e0640fdbg](https://github.com/tikv/tikv/assets/7403864/4befaad8-2562-4203-b9be-37f78ee12413)\r\n![img_v3_02an_58109672-d753-4a43-9414-0c64928b12cg](https://github.com/tikv/tikv/assets/7403864/0039cd22-e2e4-4153-b35e-f585be1e0297)\r\n![img_v3_02an_ef1775d0-aed4-46e2-97dc-ca2be5c49dag](https://github.com/tikv/tikv/assets/7403864/24d1568b-b529-4083-9107-f67c7389a29f)\r\n![img_v3_02an_f1b7eda2-dbf8-4912-9f38-d9cb375a091g](https://github.com/tikv/tikv/assets/7403864/acdfb7eb-a454-4c9c-9aa8-b128e8308207)\r\n![img_v3_02an_05176f30-cf8a-4861-838a-815d5cfee28g](https://github.com/tikv/tikv/assets/7403864/86beba22-c07f-47ba-8dc5-22c88edee11d)\r\n\r\n\r\n"
+    },
+    {
+      "id": 2111733286,
+      "user": "fubinzh",
+      "created_at": "2024-05-15T07:01:28Z",
+      "body": "/reopen"
+    },
+    {
+      "id": 2111733404,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-05-15T07:01:31Z",
+      "body": "@fubinzh: Reopened this issue.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16741#issuecomment-2111733286):\n\n>/reopen\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2111736388,
+      "user": "fubinzh",
+      "created_at": "2024-05-15T07:03:08Z",
+      "body": "re-open the issue, to make sure it is verified when duplicated issue https://github.com/tikv/tikv/issues/12259 fixed."
+    },
+    {
+      "id": 2270513609,
+      "user": "fubinzh",
+      "created_at": "2024-08-06T06:50:33Z",
+      "body": "Retested this scenario 4 times with v8.2.0 clustser, CDC lag is below 10s during chaos injection in general with very few spikes of ~30s.\r\n\r\n4 TiKV random failures injection details as below:\r\n1. 8/1 11：17 - 12：07 TiKV random failure injection for 50m\r\n2. 8/1  12：55 - 13：45 TiKV random failure injection for 50m\r\n3. 8/1  15：16 - 16：06 TiKV random failure injection for 50m\r\n4. 8/1 17:06 - 17:56 TiKV random failure injection for 50m\r\n\r\n![image](https://github.com/user-attachments/assets/d840513f-b40d-42ec-89f1-a7fc2848f958)\r\n![image](https://github.com/user-attachments/assets/245f8599-3967-47ae-9c13-9b413b8d717d)\r\n\r\n\r\nCluster Details:\r\n- Cluster size: 22TB\r\n- TiKV 16c64g * 9, total regions: 83k\r\n![image](https://github.com/user-attachments/assets/981e2c60-fdd1-416c-8846-7d0d0e64c158)\r\n\r\n- Cluster with 5 schemas and 5.2K+ tables, table details as below.\r\n![image](https://github.com/user-attachments/assets/286f52db-e8b1-427d-ba82-b0928e958163)\r\n- There are 14 changfeeds (kafka simple protocol) created for the 5.2k tables.\r\n    - for the 5k, 100k, 500k, 2m schemas, each schema is synced by one changefeed. i.e. 4 changefeed in total, each replicating 1000, 250, 10 2 tables respectively.\r\n    - for  the 1k schemas ( 4000 tables), 10 changefeed created, and each changefeed replicating 400 tables.\r\n- Workload: throughtput ranges from ~20MB/s to ~80MB/s for different testings.\r\n![image](https://github.com/user-attachments/assets/8e024a67-7f25-4748-92a5-81f9aef18f90)\r\n\r\n```\r\n[root@upstream-ticdc-0 /]# /cdc version\r\nRelease Version: v8.2.0\r\nGit Commit Hash: 498e3d3fd1cda4817e70ea50d27dcb157956349d\r\nGit Branch: HEAD\r\nUTC Build Time: 2024-07-03 02:52:36\r\nGo Version: go version go1.21.10 linux/amd64\r\nFailpoint Build: false\r\n\r\n[root@upstream-tikv-0 /]# /tikv-server -V\r\nTiKV \r\nRelease Version:   8.2.0\r\nEdition:           Community\r\nGit Commit Hash:   6e50b27980d7d2795c2d662c7a11d03d81d4b64d\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2024-07-09 08:09:03\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n```\r\n\r\n"
+    },
+    {
+      "id": 2270534687,
+      "user": "LykxSassinator",
+      "created_at": "2024-08-06T07:04:15Z",
+      "body": "Thx. \r\n\r\nIt's expected. And the jitters of the lag is caused by the leader transferring and it should update the leader info by triggering new `CheckLeader` RPCs."
+    }
+  ]
+}

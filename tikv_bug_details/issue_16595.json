@@ -1,0 +1,65 @@
+{
+  "issue_number": 16595,
+  "title": "(dr-autosync)after switch to backup datacenter in sync mode, tpcc report data inconsistency in table",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv7.1.4\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ncase： [tiup_dr_autosync_func_unplan_switch_001]\r\nstep 1: run cluster in dr-auto-sync mode;\r\nstep 2: down primary data center, run pd-recover and online recover to recover the cluster in backup data center;\r\nstep 3: run admin check to check all tables.\r\n\r\n### What did you expect?\r\nNo error report.\r\n\r\n### What did happened?\r\n```\r\n[2024/03/04 13:16:02.340 +08:00] [INFO] [util.go:74] [\"admin check table order_line;\"]\r\n[2024/03/04 13:16:44.100 +08:00] [ERROR] [util.go:1220] [\"admin check table failed\"] [dbName=tpcc] [tableName=order_line] [error=\"Error 8134 (HY000): data inconsistency in table: order_line, index: PRIMARY, col: ol_w_id, handle: \\\"312104377\\\", index-values:\\\"KindInt64 4\\\" != record-values:\\\"KindInt64 679\\\", compare err:<nil>\"]\r\n```\r\n",
+  "state": "open",
+  "created_at": "2024-03-04T07:45:07Z",
+  "updated_at": "2024-11-01T10:17:25Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "affects-7.1",
+    "may-affects-7.5",
+    "affects-8.0",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1975912377,
+      "user": "mayjiang0203",
+      "created_at": "2024-03-04T07:45:25Z",
+      "body": "/severity critical\r\n/assign @TonsnakeLin "
+    },
+    {
+      "id": 1989955323,
+      "user": "mayjiang0203",
+      "created_at": "2024-03-12T03:05:26Z",
+      "body": "also hit this in tpcc workload output.\r\n```\r\n[2024/03/11 18:49:35.039 +08:00] [INFO] [workload.go:802] [\"[Current] DELIVERY - Takes(s): 10.0, Count: 406, TPM: 2440.1, Sum(ms): 36942.8, Avg(ms): 91.0, 50th(ms): 92.3, 90th(ms): 109.1, 95th(ms): 117.4, 99th(ms): 134.2, 99.9th(ms): 151.0, Max(ms): 151.0\\r\\n\"]\r\n[2024/03/11 18:49:35.039 +08:00] [INFO] [workload.go:802] [\"[Current] NEW_ORDER - Takes(s): 10.0, Count: 4397, TPM: 26384.3, Sum(ms): 157841.8, Avg(ms): 35.9, 50th(ms): 35.7, 90th(ms): 46.1, 95th(ms): 50.3, 99th(ms): 60.8, 99.9th(ms): 79.7, Max(ms): 100.7\\r\\n\"]\r\n[2024/03/11 18:49:35.039 +08:00] [INFO] [workload.go:802] [\"[Current] ORDER_STATUS - Takes(s): 10.0, Count: 415, TPM: 2491.5, Sum(ms): 4987.7, Avg(ms): 12.0, 50th(ms): 11.5, 90th(ms): 16.8, 95th(ms): 19.9, 99th(ms): 24.1, 99.9th(ms): 35.7, Max(ms): 35.7\\r\\n\"]\r\n[2024/03/11 18:49:35.039 +08:00] [INFO] [workload.go:802] [\"[Current] PAYMENT - Takes(s): 10.0, Count: 4145, TPM: 24870.8, Sum(ms): 85900.9, Avg(ms): 20.7, 50th(ms): 19.9, 90th(ms): 28.3, 95th(ms): 31.5, 99th(ms): 41.9, 99.9th(ms): 56.6, Max(ms): 71.3\\r\\n\"]\r\n[2024/03/11 18:49:35.039 +08:00] [INFO] [workload.go:802] [\"[Current] STOCK_LEVEL - Takes(s): 9.9, Count: 439, TPM: 2654.6, Sum(ms): 9652.0, Avg(ms): 22.0, 50th(ms): 21.0, 90th(ms): 28.3, 95th(ms): 30.4, 99th(ms): 41.9, 99.9th(ms): 71.3, Max(ms): 71.3\\r\\n\"]\r\n[2024/03/11 18:49:35.098 +08:00] [INFO] [run.go:369] [\"[%s] SELECT SUM(balance) to verify use tso %d\"] [client=bank2] [tso=448306656068239470]\r\n[2024/03/11 18:49:35.336 +08:00] [INFO] [run.go:412] [\"check succeeded,total equal to expectTotal 2000000\"]\r\n[2024/03/11 18:49:36.830 +08:00] [INFO] [run.go:369] [\"[%s] SELECT SUM(balance) to verify use tso %d\"] [client=bank2] [tso=448306656526991394]\r\n[2024/03/11 18:49:37.046 +08:00] [INFO] [run.go:412] [\"check succeeded,total equal to expectTotal 2000000\"]\r\n[2024/03/11 18:49:37.604 +08:00] [INFO] [workload.go:802] [\"[2024-03-11 10:49:37] execute run failed, err Error 8133: data inconsistency in table: order_line, index: PRIMARY, index-count:186 != record-count:146\\r\\n\"]\r\n[2024/03/11 18:49:37.604 +08:00] [INFO] [workload.go:821] [\"workload run with errors.\"]\r\n```"
+    },
+    {
+      "id": 2062843556,
+      "user": "mayjiang0203",
+      "created_at": "2024-04-18T01:45:08Z",
+      "body": "/remove-severity critcal"
+    },
+    {
+      "id": 2062843593,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-18T01:45:10Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critcal`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16595#issuecomment-2062843556):\n\n>/remove-severity critcal\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2062847196,
+      "user": "mayjiang0203",
+      "created_at": "2024-04-18T01:48:40Z",
+      "body": "/remove-severity critical\r\n/severity major\r\nAfter destroying the primary data center instead of down the network, testing in 7.1.4 passed.\r\nNow it only occur in v6.5.8 tidb with 7.1.4 pd/tikv，so lower the severity from critical to major."
+    },
+    {
+      "id": 2062849941,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-18T01:51:53Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16595#issuecomment-2062847196):\n\n>/remove-severity critical\r\n>After destroying the primary data center instead of down the network, testing in 7.1.4 passed.\r\n>Now it only occur in v6.5.8 tidb with 7.1.4 pd/tikv，so lower the severity from critical to major.\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2062850132,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-18T01:52:13Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16595#issuecomment-2062847196):\n\n>/remove-severity critical\r\n>/severity major\r\n>After destroying the primary data center instead of down the network, testing in 7.1.4 passed.\r\n>Now it only occur in v6.5.8 tidb with 7.1.4 pd/tikv，so lower the severity from critical to major.\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

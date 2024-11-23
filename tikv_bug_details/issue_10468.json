@@ -1,0 +1,29 @@
+{
+  "issue_number": 10468,
+  "title": "Anomaly found by jepsen append workload",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster (7cb899b8acb4a11df65f3f2d02269446d9c10767)\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\non k8s\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRun jepsen append as the following:\r\n```\r\n/usr/bin/java -cp resources:jepsen.jar tidb.core test --username=root --ssh-private-key=/tmp/key --nodes=jepsen-common-1624723200-338335490-0.jepsen-common-1624723200-338335490.user-zyguan,jepsen-common-1624723200-338335490-1.jepsen-common-1624723200-338335490.user-zyguan,jepsen-common-1624723200-338335490-2.jepsen-common-1624723200-338335490.user-zyguan,jepsen-common-1624723200-338335490-3.jepsen-common-1624723200-338335490.user-zyguan,jepsen-common-1624723200-338335490-4.jepsen-common-1624723200-338335490.user-zyguan --os=debian --time-limit=300 --concurrency=2n --version=release-5.0 --tarball-url=http://fileserver.pingcap.net/download/pingcap/qa/archives/jepsen/tidb-release-5.0.tar.gz --workload=append --txn-mode=optimistic --nemesis=schedules,kill,partition-one,partition-pd-leader\r\n```\r\n\r\n### What did you expect?\r\n\r\nNo error reported.\r\n\r\n### What did happened?\r\n\r\nThe test failed.\r\n```\r\nLet:\r\n  T1 = {:type :ok, :f :txn, :value [[:r 714 [1 2 4]]], :process 92, :time 181252435266, :txn-info {:txn_scope \"global\", :start_ts 425913856707002370, :commit_ts 425913857060896770, :txn_commitalse, :one_pc_fallback false}, :index 18861}\r\n  T2 = {:type :ok, :f :txn, :value [[:append 714 5] [:append 715 3] [:r 714 [1 2 4 5]]], :process 92, :time 181268828691, :txn-info {:txn_scope \"global\", :start_ts 425913857060896786, :commit_de \"1pc\", :async_commit_fallback false, :one_pc_fallback false}, :index 18865}\r\n  T3 = {:type :ok, :f :txn, :value [[:r 714 [1 2 4 5]] [:append 712 8]], :process 34, :time 181310235475, :txn-info {:txn_scope \"global\", :start_ts 425913857073741847, :commit_ts 4259138570737_commit_fallback false, :one_pc_fallback false}, :index 18875}\r\n  T4 = {:type :ok, :f :txn, :value [[:append 714 4] [:append 712 9] [:append 712 10] [:append 713 4]], :process 92, :time 181248291719, :txn-info {:txn_scope \"global\", :start_ts 42591385670700:txn_commit_mode \"1pc\", :async_commit_fallback false, :one_pc_fallback false}, :index 18859}\r\n\r\nThen:\r\n  - T1 < T2, because T1 did not observe T2's append of 5 to 714.\r\n  - T2 < T3, because T3 observed T2's append of 5 to key 714.\r\n  - T3 < T4, because T4 appended 9 after T3 appended 8 to 712.\r\n  - However, T4 < T1, because T1 observed T4's append of 4 to key 714: a contradiction!\r\n```\r\nAnd the log can be found [here](https://github.com/tikv/tikv/files/6724686/jepsen-append-nemesis-optimisitc-20210626-182929-183614.tar.gz).\r\n",
+  "state": "closed",
+  "created_at": "2021-06-28T08:27:10Z",
+  "updated_at": "2021-07-01T06:33:19Z",
+  "closed_at": "2021-07-01T06:33:19Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "sig/transaction",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 869491061,
+      "user": "sticnarf",
+      "created_at": "2021-06-28T08:38:32Z",
+      "body": "https://github.com/pingcap/tidb/pull/25120 assumes prewrite is idempotent: if a prewrite returns `Write Conflict`, the transaction must fail. So previous prewrite errors caused by RPC are ignored and the `Write Conflict` can be returned to the user.\r\n\r\nHowever, the current TiKV prewrite implementation cannot guarantee it. If a prewrite succeeds but the client (TiDB) fails to receive the response, the transaction can still finish. For example, it is a 1PC transaction or it is an async-commit transaction which is completed by other clients.\r\n\r\nAnd after the transaction succeeds, a few more transactions may mutate the same keys. After that, when the client retries the failed prewrite, TiKV will return a `Write Conflict` error because it encounters a newer version of the key.\r\n\r\nThis is incorrect because the prewrite succeeded before. It breaks the constraint that prewrite should be idempotent."
+    },
+    {
+      "id": 871964677,
+      "user": "youjiali1995",
+      "created_at": "2021-07-01T06:33:19Z",
+      "body": "Fixed by https://github.com/tikv/client-go/pull/187 and https://github.com/pingcap/tidb/pull/25841"
+    }
+  ]
+}

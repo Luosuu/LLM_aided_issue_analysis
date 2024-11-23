@@ -1,0 +1,45 @@
+{
+  "issue_number": 11117,
+  "title": "auto backup error",
+  "body": "**auto backup always report the following error:**\r\n\r\n\r\n[2021/10/20 18:06:50.873 +00:00] [ERROR] [main.go:59] [\"br failed\"] [error=\"msg:\\\"Io(Custom { kind: Other, error: \\\\\\\"failed to put object Request ID: None Body: <Error><statusCode>400</statusCode><Code>RequestTimeout</Code><Message>Your socket connection to the server was not read from or written to within the timeout period.</Message><Resource>/jddb-tidb-hb/tidb-1lr6p5k3dt-auto/auto-backup/tidb-1lr6p5k3dt-pd.tidb-1lr6p5k3dt-2379-2021-10-20t17-48-00/4_2189_157_f394926546bcc5444ef761962f52561f0c0565dc0758ea35d8e887df55edbfa7_1634752981819_default.sst</Resource><RequestId>9D900E993CCEF79F</RequestId></Error>\\\\\\\" })\\\" : [BR:KV:ErrKVUnknown]unknown tikv error\"] [errorVerbose=\"[BR:KV:ErrKVUnknown]unknown tikv error\\nmsg:\\\"Io(Custom { kind: Other, error: \\\\\\\"failed to put object Request ID: None Body: <Error><statusCode>400</statusCode><Code>RequestTimeout</Code><Message>Your socket connection to the server was not read from or written to within the timeout period.</Message><Resource>/jddb-tidb-hb/tidb-1lr6p5k3dt-auto/auto-backup/tidb-1lr6p5k3dt-pd.tidb-1lr6p5k3dt-2379-2021-10-20t17-48-00/4_2189_157_f394926546bcc5444ef761962f52561f0c0565dc0758ea35d8e887df55edbfa7_1634752981819_default.sst</Resource><RequestId>9D900E993CCEF79F</RequestId></Error>\\\\\\\" })\\\" \\ngithub.com/pingcap/br/pkg/backup.(*pushDown).pushBackup\\n\\tgithub.com/pingcap/br@/pkg/backup/push.go:113\\ngithub.com/pingcap/br/pkg/backup.(*Client).BackupRange\\n\\tgithub.com/pingcap/br@/pkg/backup/client.go:499\\ngithub.com/pingcap/br/pkg/backup.(*Client).BackupRanges.func2.1\\n\\tgithub.com/pingcap/br@/pkg/backup/client.go:434\\ngithub.com/pingcap/br/pkg/utils.(*WorkerPool).ApplyOnErrorGroup.func1\\n\\tgithub.com/pingcap/br@/pkg/utils/worker.go:62\\ngolang.org/x/sync/errgroup.(*Group).Go.func1\\n\\tgolang.org/x/sync@v0.0.0-20200625203802-6e8e738ad208/errgroup/errgroup.go:57\\nruntime.goexit\\n\\truntime/asm_amd64.s:1357\"] [stack=\"main.main\\n\\tgithub.com/pingcap/br@/main.go:59\\nruntime.main\\n\\truntime/proc.go:203\"]\r\n      , err: exit status 1\r\n    reason: BackupDataToRemoteFailed\r\n    status: \"True\"\r\n    type: Failed\r\n  phase: Failed\r\n  timeCompleted: null\r\n  timeStarted: null\r\n\r\nversion：\r\ntidb:v4.0.8\r\nbr:v4.0.8\r\ntidb-backup-manager:v1.1.13\r\n\r\n**Is there a retransmission mechanism in this place after timeout?**\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-10-21T07:56:57Z",
+  "updated_at": "2022-01-07T06:43:34Z",
+  "closed_at": "2022-01-07T06:43:34Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1002530418,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T10:42:27Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002530509,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T10:42:42Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1006186132,
+      "user": "tonyxuqqi",
+      "created_at": "2022-01-06T00:30:13Z",
+      "body": "/close"
+    },
+    {
+      "id": 1006186152,
+      "user": "ti-chi-bot",
+      "created_at": "2022-01-06T00:30:15Z",
+      "body": "@tonyxuqqi: You can't close an active issue/PR unless you authored it or you are a collaborator.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/11117#issuecomment-1006186132):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1007177935,
+      "user": "BusyJay",
+      "created_at": "2022-01-07T06:43:34Z",
+      "body": "Closed due to lack of information."
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "issue_number": 12644,
+  "title": "[Online Recovery] Unsafe online recovery failed with info “unsafe recovery enters exit force leader stage exceeds timeout”",
+  "body": "## Bug Report\r\n\r\n<!-- Please answer these questions before submitting your issue. Thanks! -->\r\n\r\n### What did you do?\r\n1、down two tikv\r\n2、execute online unsafe recovery\r\n\r\n### What did you expect to see?\r\nUnsafe recovery success\r\n\r\n### What did you see instead?\r\n  },\r\n  {\r\n    \"info\": \"Unsafe recovery enters exit force leader stage\",\r\n    \"time\": \"2022-05-25 09:22:54.728\",\r\n    \"details\": [\r\n      \"Exceeds timeout 2022-05-25 09:22:54.399620114 +0000 UTC m=+82128.320209995\"\r\n    ]\r\n  },\r\n  {\r\n    \"info\": \"Collecting reports from alive stores(0/2)\",\r\n    \"time\": \"2022-05-25 09:22:54.728\",\r\n    \"details\": [\r\n      \"Stores that have not dispatched plan: 5136724, 5136696\",\r\n      \"Stores that have reported to PD: \",\r\n      \"Stores that have not reported to PD: \"\r\n    ]\r\n\r\n\r\n### What version of PD are you using (`pd-server -V`)?\r\n/ # ./pd-server -V\r\nRelease Version: v6.1.0\r\nEdition: Community\r\nGit Commit Hash: a6689e0efec71d9b27c6ea45b1f9dd0e0ee11af5\r\nGit Branch: heads/refs/tags/v6.1.0\r\nUTC Build Time:  2022-05-23 01:59:27",
+  "state": "closed",
+  "created_at": "2022-05-25T10:50:16Z",
+  "updated_at": "2022-05-27T05:18:47Z",
+  "closed_at": "2022-05-27T05:18:47Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1137175463,
+      "user": "Lily2025",
+      "created_at": "2022-05-25T10:50:37Z",
+      "body": "/assign Connor1996"
+    },
+    {
+      "id": 1137175467,
+      "user": "Lily2025",
+      "created_at": "2022-05-25T10:51:29Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1137175477,
+      "user": "Lily2025",
+      "created_at": "2022-05-25T10:51:45Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/label affects-6.1"
+    },
+    {
+      "id": 1138098210,
+      "user": "Connor1996",
+      "created_at": "2022-05-26T03:03:12Z",
+      "body": "/assign @v01dstar "
+    },
+    {
+      "id": 1138098228,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-26T03:03:13Z",
+      "body": "@Connor1996: GitHub didn't allow me to assign the following users: v01dstar.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12644#issuecomment-1138098210):\n\n>/assign @v01dstar \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1138164808,
+      "user": "Mini256",
+      "created_at": "2022-05-26T05:21:06Z",
+      "body": "/assign v01dstar"
+    },
+    {
+      "id": 1138164823,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-26T05:21:08Z",
+      "body": "@Mini256: GitHub didn't allow me to assign the following users: v01dstar.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12644#issuecomment-1138164808):\n\n>/assign v01dstar\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

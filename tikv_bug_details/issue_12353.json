@@ -1,0 +1,56 @@
+{
+  "issue_number": 12353,
+  "title": "Many failed query OPM after tikv fault recover and cause QPS falls zero",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/04/12 09:14:40.906 +08:00] [INFO] [client.go:390] [\"Cluster version information\"] [type=tikv] [version=6.0.0-alpha] [git_hash=ed7e1aa945d9ada9dc3ad3bd6420a9879d49ed44]\r\n[2022/04/12 09:14:40.906 +08:00] [INFO] [client.go:390] [\"Cluster version information\"] [type=tidb] [version=6.1.0-nightly] [git_hash=32b9c14779c2a7dd73003667d81bb42f67a33385]\r\n[2022/04/12 09:14:40.906 +08:00] [INFO] [client.go:390] [\"Cluster version information\"] [type=pd] [version=6.1.0-nightly] [git_hash=13c68cf78f5cf4808c817d07a0249ac979c3185b]\r\n\r\n### What operating system and CPU are you using?\r\n8core、16G\r\n\r\n### Steps to reproduce\r\nNS：endless-oltp-tps-781044-1-113\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/781044\r\noltp_rel_001_001 inject one tikv down for 15min\r\noltp_rel_001_002 inject one tikv network loss for 40min\r\noltp_rel_001_005 inject network partition between two tikv for 14min\r\n\r\n### What did you expect?\r\nThe QPS is relatively stable during fault recovery\r\n\r\n### What did happened?\r\nNS：endless-oltp-tps-781044-1-113\r\nMetrics：https://clinic.pingcap.com.cn/portal/#/login?next=/orgs/31/clusters/7085517714035786956\r\nlogs：/home/logs/archive/endless-oltp-tps-781044-1-113-tikv-issue-12353\r\nMany failed query OPM after tikv fault recover and cause QPS falls zero\r\nfirst time：2022/04/12 12:03:00.120 +08:00\r\n![image](https://user-images.githubusercontent.com/84712107/163139205-89d30f2a-4594-4c06-a0e4-ba71526827fb.png)\r\n![image](https://user-images.githubusercontent.com/84712107/163139266-b91862b6-38c9-4843-af7d-151117d8d5d2.png)\r\n",
+  "state": "open",
+  "created_at": "2022-04-13T08:54:55Z",
+  "updated_at": "2024-11-01T10:17:44Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1097737758,
+      "user": "Lily2025",
+      "created_at": "2022-04-13T08:55:32Z",
+      "body": "/type bug\r\n/severity major\r\n/assign sticnarf"
+    },
+    {
+      "id": 1098753662,
+      "user": "Lily2025",
+      "created_at": "2022-04-14T06:26:33Z",
+      "body": "/assign Connor1996"
+    },
+    {
+      "id": 1101060516,
+      "user": "Lily2025",
+      "created_at": "2022-04-18T03:35:58Z",
+      "body": "reproduce ：https://tcms.pingcap.net/dashboard/executions/plan/782209\r\n[2022/04/17 14:17:44.751 +08:00] [INFO] [chaos.go:86] [\"Run chaos\"] [name=network-loss-100] [selectors=\"[endless-oltp-tps-782209-1-640/tc-tikv-1]\"] [experiment=\"{\\\"Duration\\\":\\\"\\\",\\\"Scheduler\\\":null,\\\"Loss\\\":\\\"100\\\",\\\"Correlation\\\":\\\"25\\\"}\"]\r\n[2022/04/17 15:07:44.776 +08:00] [INFO] [chaos.go:151] [\"Clean chaos\"] [name=network-loss-100] [chaosId=\"ns=endless-oltp-tps-782209-1-640,kind=network-loss,name=network-loss-tqnzqoxo,spec=&k8s.ChaosIdentifier{Namespace:\\\"endless-oltp-tps-782209-1-640\\\", Name:\\\"network-loss-tqnzqoxo\\\", Spec:NetworkLossSpec{Duration: \\\"\\\", Scheduler: <nil>, Loss: \\\"100\\\", Correlation: \\\"25\\\"}}\"]\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7087403414657483981\r\n![image](https://user-images.githubusercontent.com/84712107/163750688-92e41350-8259-4b09-b1ba-5798e0bc456d.png)\r\n![image](https://user-images.githubusercontent.com/84712107/163750628-3ed6cc4f-d4e2-4560-95c0-d3e164b44c92.png)\r\n"
+    },
+    {
+      "id": 1271984641,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T18:58:26Z",
+      "body": "@Connor1996 @sticnarf \r\nAny progress?"
+    },
+    {
+      "id": 1272476887,
+      "user": "Connor1996",
+      "created_at": "2022-10-09T07:27:25Z",
+      "body": "I can't recall what the exact problem is. Did I ever investigate it? @Lily2025 "
+    }
+  ]
+}

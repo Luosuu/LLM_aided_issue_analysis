@@ -1,0 +1,45 @@
+{
+  "issue_number": 14619,
+  "title": "TiKV reports error like \"3th column is missing value\" when add `ExtraPhysTblID` in schema",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nuse https://github.com/Defined2014/tidb/tree/removePid to compile a TiDB with nightly TiKV then run SQL below,\r\n\r\n```\r\ncreate table tcommonhash(a int, b int, c int, d int auto_increment, primary key(a, c, d), index idx_bc(b, c)) PARTITION BY HASH (`c`) PARTITIONS 4;\r\ninsert into tcommonhash(a,b,c) values (1, 1, 1);\r\ninsert into tcommonhash(a,b,c) values (2, 2, 2);\r\ninsert into tcommonhash(a,b,c) values (1, 2, 3);\r\nanalyze table tcommonhash;\r\nselect /*+ use_index_merge(tcommonhash, primary, idx_bc) */ * from tcommonhash where a = 1 or b = 2 order by c limit 2;\r\n```\r\n\r\n### What did you expect?\r\n\r\nGet result correct.\r\n\r\n### What did happened?\r\n\r\nReport error like `\"3th column is missing value\"`\r\n",
+  "state": "closed",
+  "created_at": "2023-04-20T07:54:38Z",
+  "updated_at": "2023-04-21T08:05:22Z",
+  "closed_at": "2023-04-21T08:05:21Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1515906896,
+      "user": "Defined2014",
+      "created_at": "2023-04-20T08:09:38Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1515912744,
+      "user": "Defined2014",
+      "created_at": "2023-04-20T08:14:06Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1515913439,
+      "user": "Defined2014",
+      "created_at": "2023-04-20T08:14:36Z",
+      "body": "/remove severity/major"
+    },
+    {
+      "id": 1516023785,
+      "user": "Defined2014",
+      "created_at": "2023-04-20T09:37:02Z",
+      "body": "/severity moderate"
+    },
+    {
+      "id": 1516023871,
+      "user": "Defined2014",
+      "created_at": "2023-04-20T09:37:06Z",
+      "body": "/severity moderate"
+    }
+  ]
+}

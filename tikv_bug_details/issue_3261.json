@@ -1,0 +1,38 @@
+{
+  "issue_number": 3261,
+  "title": "log not outputting source",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\n<!-- You can run `rustc --version` -->\r\n\r\n**What operating system and CPU are you using?**\r\n<!-- You can run `cat /proc/cpuinfo` -->\r\n\r\n**What did you do?**\r\n\r\nRun TiKV\r\n\r\n**What did you expect to see?**\r\n\r\n```\r\n2018/06/22 22:16:24.725 pd.rs:437: [INFO] [region 4128085] try to change peer RemoveNode id: 4604857 store_id: 53\r\n2018/06/22 22:17:23.736 pd.rs:437: [INFO] [region 4128085] try to change peer RemoveNode id: 4604857 store_id: 53\r\n2018/06/22 22:18:22.467 pd.rs:437: [INFO] [region 4128085] try to change peer RemoveNode id: 4604857 store_id: 53\r\n2018/06/22 22:19:20.896 pd.rs:437: [INFO] [region 4128085] try to change peer RemoveNode id: 4604857 store_id: 53\r\n2018/06/22 22:20:19.209 pd.rs:437: [INFO] [region 4128085] try to change peer RemoveNode id: 4604857 store_id: 53\r\n```\r\n\r\n**What did you see instead?**\r\n\r\n```\r\nJun 29 20:00:43.749 INFO [region 2] on split region at key t\\200\\000\\000\\000\\000\\000\\000\\377\\027\\000\\000\\000\\000\\000\\000\\000\\370.\r\nJun 29 20:00:43.749 INFO [region 2] 3 epoch changed conf_ver: 1 version: 10 != conf_ver: 1 version: 9, retry later\r\nJun 29 20:00:43.850 INFO [region 2] on split region at key t\\200\\000\\000\\000\\000\\000\\000\\377\\027\\000\\000\\000\\000\\000\\000\\000\\370.\r\nJun 29 20:00:43.850 DEBG scheduling task ask split region 2 with key t\\200\\000\\000\\000\\000\\000\\000\\377\\027\\000\\000\\000\\000\\000\\000\\000\\370\r\nJun 29 20:00:43.850 DEBG loop poll - 145.552154ms\r\nJun 29 20:00:43.851 DEBG loop time - Instant { t: 415878455685656 }\r\nJun 29 20:00:43.851 DEBG loop process - 1 events, 18.385µs\r\nJun 29 20:00:43.851 DEBG executing task ask split region 2 with key t\\200\\000\\000\\000\\000\\000\\000\\377\\027\\000\\000\\000\\000\\000\\000\\000\\370\r\nJun 29 20:00:43.851 DEBG reconnect remains: 10\r\nJun 29 20:00:43.851 DEBG loop poll - 7.582µs\r\nJun 29 20:00:43.851 DEBG loop time - Instant { t: 415878455772221 }\r\nJun 29 20:00:43.851 DEBG request sent: 1\r\nJun 29 20:00:43.851 DEBG loop process - 1 events, 151.553µs\r\nJun 29 20:00:43.852 DEBG loop poll - 9.057µs\r\nJun 29 20:00:43.852 DEBG loop time - Instant { t: 415878455943688 }\r\nJun 29 20:00:43.852 DEBG loop process - 0 events, 11.349µs\r\nJun 29 20:00:43.852 DEBG loop poll - 221.894µs\r\n```\r\n\r\nNote: source like `pd.rs:437` is missing. This will lead to notable inconvenience when tracing issues.\r\n",
+  "state": "closed",
+  "created_at": "2018-06-29T12:04:36Z",
+  "updated_at": "2018-08-07T00:47:55Z",
+  "closed_at": "2018-06-29T12:08:14Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 401334347,
+      "user": "breezewish",
+      "created_at": "2018-06-29T12:04:54Z",
+      "body": "@overvenus @Hoverbear PTAL"
+    },
+    {
+      "id": 401334782,
+      "user": "breezewish",
+      "created_at": "2018-06-29T12:06:52Z",
+      "body": "Also notice that log date format (`Jun 29 20:00:43.852`) is different from the rest of the system (`2018/06/22 22:16:24.725`) and previous ones, which will also introduce many inconvenience when tracing clients' issues."
+    },
+    {
+      "id": 401334859,
+      "user": "BusyJay",
+      "created_at": "2018-06-29T12:07:14Z",
+      "body": "Duplicated with #3257."
+    },
+    {
+      "id": 401335069,
+      "user": "breezewish",
+      "created_at": "2018-06-29T12:08:14Z",
+      "body": "@BusyJay Oh! Thanks!"
+    }
+  ]
+}

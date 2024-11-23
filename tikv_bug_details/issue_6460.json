@@ -1,0 +1,28 @@
+{
+  "issue_number": 6460,
+  "title": "A failed merge may cause a later success merge lost data",
+  "body": "Suppose region A wants to merge to region B.\r\nBut after executing the PrepareMerge, region B split and change the epoch. So this merge must be rollback.\r\n\r\nThen region A starts the next merge and it succeeds.\r\nUnfortunately, a peer runs slowly and its apply index is smaller than the first PrepareMerge log index.  \r\nAt this time, this peer's corresponding target peer is applying CommitMerge and sends msg to this peer for catching up logs.\r\n\r\nAfter this peer applies the first PrepareMerge log, it mistakenly thinks itself is up to date for the **next** merge. So the target peer will go on applying CommitMerge.\r\n\r\nSome data may be lost because the source peer doesn't apply all of the logs in the process of merging.",
+  "state": "closed",
+  "created_at": "2020-01-10T11:20:01Z",
+  "updated_at": "2020-08-10T05:28:02Z",
+  "closed_at": "2020-02-14T04:48:16Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 573290558,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-01-11T07:17:43Z",
+      "body": "@gengliqi Do you have solution to fix it?"
+    },
+    {
+      "id": 573402000,
+      "user": "gengliqi",
+      "created_at": "2020-01-12T10:39:43Z",
+      "body": "> @gengliqi Do you have solution to fix it?\r\n\r\nYes. The fix PR is almost finished. (needs to add more tests)"
+    }
+  ]
+}

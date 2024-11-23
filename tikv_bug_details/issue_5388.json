@@ -1,0 +1,29 @@
+{
+  "issue_number": 5388,
+  "title": "Lease expire rate increases as thread count increases",
+  "body": "![lease-expire-count](https://user-images.githubusercontent.com/1701473/64146270-ecf8a580-ce4e-11e9-8305-2b35f08910d6.png)\r\n\r\nThe only difference between 4 cases is read pool size. The sizes are 4, 8, 16, 32 respectively. QPS of both 8, 16, 32 are the same however the lease expire count increases when thread count increases.\r\n\r\nhttps://github.com/tikv/tikv/blob/4a828f036fb1c92d2d5e4341089e77edf858bfde/components/raftstore/src/store/peer.rs#L3367\r\n\r\nAbove code expires the lease which cause the remote one expires (dropped) too, so every threads have to renew their leases by fallback to raftstore and get a new lease. Maybe it's better to just drop local one and keep the remote one, so that renewing remote lease only requires an atomic store.\r\n\r\n/cc @overvenus @5kbpers ",
+  "state": "closed",
+  "created_at": "2019-09-03T05:37:37Z",
+  "updated_at": "2022-01-10T04:11:43Z",
+  "closed_at": "2022-01-10T04:11:43Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/low",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 528489091,
+      "user": "5kbpers",
+      "created_at": "2019-09-05T17:32:15Z",
+      "body": "Thx, I will try to l fix it."
+    },
+    {
+      "id": 748888778,
+      "user": "NingLin-P",
+      "created_at": "2020-12-21T10:06:01Z",
+      "body": "I think this happens because every thread in the read thread pool have a `LocalReader` and when the thread count increase, the number of read requests the `LocalReader` handled increase if the leader lease is expired the lease expire rate increase, the QPS did not change because `LocalReader` redirect request to `raftstore` but the store thread number not change. I think the key to handling this problem is to keep the leader lease not expired, maybe https://github.com/tikv/tikv/pull/9307 can improve it."
+    }
+  ]
+}

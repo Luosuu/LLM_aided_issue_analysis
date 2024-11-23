@@ -1,0 +1,21 @@
+{
+  "issue_number": 11810,
+  "title": "RocksDB rate limit takes no effect when pending bytes is high",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nv5.3.0\r\n\r\n### What operating system and CPU are you using?\r\n\r\nN/A\r\n\r\n### Steps to reproduce\r\n\r\nImport data, set rocksdb.rate-bytes-per-sec to a small value.\r\n\r\n### What did you expect?\r\n\r\nCompaction is controlled by rate limit.\r\n\r\n### What did happened?\r\n\r\nCompaction runs wild after pending bytes grows up.\r\n",
+  "state": "closed",
+  "created_at": "2022-01-07T03:29:41Z",
+  "updated_at": "2022-01-14T10:15:48Z",
+  "closed_at": "2022-01-14T10:15:47Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1012986960,
+      "user": "tabokie",
+      "created_at": "2022-01-14T10:15:47Z",
+      "body": "![image](https://user-images.githubusercontent.com/27005812/149498813-91a06c9a-b5f7-4e53-987f-31f89eec488c.png)\r\nCan't reproduce it under similar circumstance, where rate limit is low and pace-up is triggered. I strongly suspect the user didn't configure it right.\r\nClosing this until a new case pops up."
+    }
+  ]
+}

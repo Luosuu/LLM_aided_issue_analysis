@@ -1,0 +1,48 @@
+{
+  "issue_number": 16062,
+  "title": "Manual  compaction raises diskfull when titan is enable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ntitan enable and reserve-space 100GB\r\nwide table read write until the available store size is about 400~500GB\r\nfollows the guide to close titan https://docs.pingcap.com/zh/tidb/stable/titan-configuration#%E5%85%B3%E9%97%AD-titan\r\nwhen execute `tikv-ctl --pd <PD_ADDR> compact-cluster --bottommost force`, the tikv disk full\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "open",
+  "created_at": "2023-11-24T07:05:28Z",
+  "updated_at": "2024-11-01T10:17:03Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-7.6",
+    "affects-8.0",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1879074206,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-05T18:09:53Z",
+      "body": "It's likely due to incorrect document. The disregard-ratio should not be 1. "
+    },
+    {
+      "id": 1882441494,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-09T05:36:43Z",
+      "body": "It will be resolved by the document in 7.6 (https://github.com/pingcap/docs/pull/15986),  the fallback should require enough space before proceeding. \r\nHowever, after 7.6, we should do the check in the code. "
+    },
+    {
+      "id": 1995195121,
+      "user": "tonyxuqqi",
+      "created_at": "2024-03-13T17:58:52Z",
+      "body": "@v01dstar is implementing the Punch hole function in Titan, which can delete unneeded blobs from blob file without the need of blob file compaction.  This feature should help to address this issue. "
+    },
+    {
+      "id": 2087453050,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-30T21:48:00Z",
+      "body": "Correct improper operation in doc. Change it to major issue."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "issue_number": 14975,
+  "title": "[dr-autosync] during sync_recover, workload report error: Region is unavailable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.3\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\na. down backup dc and make cluster work in the async mode for more than 10h with workload running.\r\nb. recover backup dc，restart workload hit error of  \"Region is unavailable\"\r\n\r\n### What did you expect?\r\nno error reported\r\n\r\n### What did happened?\r\n[2023/06/20 10:51:08.959 +08:00] [INFO] [utils.go:55] [\"current status is \"] [curStatus=sync_recover]\r\njava -cp .:lib/mysql-connector-java-5.1.49.jar batch_hy_zd \"tiup-peer.e2e-dr-auto-sync-5r-pref-tps-1809605-1-603:3390\" \"root\" \"\" 30  ecasdb 20\r\njava.sql.SQLException: Region is unavailable\r\n        at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:965)\r\n        at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:3933)\r\n        at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:3869)\r\n        at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2524)\r\n        at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2675)\r\n        at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2465)\r\n        at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2439)\r\n        at com.mysql.jdbc.StatementImpl.executeQuery(StatementImpl.java:1365)\r\n        at batch_hy_zd.getMax(batch_hy_zd.java:193)\r\n        at batch_hy_zd.main(batch_hy_zd.java:69)\r\n\r\ntest cluster id: 7246458230958436285\r\n",
+  "state": "closed",
+  "created_at": "2023-06-20T06:49:57Z",
+  "updated_at": "2023-07-28T02:26:29Z",
+  "closed_at": "2023-07-14T13:38:16Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1600067592,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-21T04:49:57Z",
+      "body": "should set replication-mode.pause-region-split: true in async mode"
+    },
+    {
+      "id": 1606067099,
+      "user": "nolouch",
+      "created_at": "2023-06-25T12:33:05Z",
+      "body": "ref https://github.com/tikv/tikv/issues/7945"
+    }
+  ]
+}

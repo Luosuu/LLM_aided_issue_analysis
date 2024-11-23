@@ -1,0 +1,42 @@
+{
+  "issue_number": 11609,
+  "title": "tikv panicked in parse_proc_cgroup_v2",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` --> 5.3.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nUbuntu 20.04 in systemd-nspawn container (host kernel 5.15.2)\r\nx86_64\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n`tiup cluster deploy tidb-test v5.3.0 ./topology.yaml --user root -i .ssh/id_ed25519`\r\n(using config-templates/simple-mini.yaml)\r\n\r\n### What did you expect?\r\nDeploy successfully\r\n\r\n### What did happened?\r\n```\r\nthread 'main' panicked at 'assertion failed: `(left == right)`\r\n  left: `2`,\r\n right: `1`', components/tikv_util/src/sys/cgroup.rs:167:5\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\n```\r\n\r\ntiup log:\r\n```\r\n{\"task\": \"UserSSH: user=tidb, host=192.168.180.86\\nMkdir: host=192.168.180.86, directories='/tidb-deploy/tikv-20160','/tidb-deploy/tikv-20160/log','/tidb-deploy/tikv-20160/bin','/tidb-deploy/tikv-20160/conf','/tidb-deploy/tikv-20160/scripts'\\nMkdir: host=192.168.180.86, directories='/tidb-data/tikv-20160'\\nCopyComponent: component=tikv, version=v5.3.0, remote=192.168.180.86:/tidb-deploy/tikv-20160 os=linux, arch=amd64\\nInitConfig: cluster=tidb-test, user=tidb, host=192.168.180.86, path=/root/.tiup/storage/cluster/clusters/tidb-test/config-cache/tikv-20160.service, deploy_dir=/tidb-deploy/tikv-20160, data_dir=[/tidb-data/tikv-20160], log_dir=/tidb-deploy/tikv-20160/log, cache_dir=/root/.tiup/storage/cluster/clusters/tidb-test/config-cache\", \"error\": \"init config failed: 192.168.180.86:20160: executor.ssh.execute_failed: Failed to execute command over SSH for 'tidb@192.168.180.86:22' {ssh_stderr: thread 'main' panicked at 'assertion failed: `(left == right)`\\n  left: `2`,\\n right: `1`', components/tikv_util/src/sys/cgroup.rs:167:5\\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\\n, ssh_stdout: , ssh_command: export LANG=C; PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin /tidb-deploy/tikv-20160/bin/tikv-server --config-check --config=/tidb-deploy/tikv-20160/conf/tikv.toml --pd \\\"\\\" --data-dir \\\"/tidb-data/tikv-20160\\\"}, cause: Process exited with status 101: check config failed\", \"errorVerbose\": \"check config failed\\nexecutor.ssh.execute_failed: Failed to execute command over SSH for 'tidb@192.168.180.86:22' {ssh_stderr: thread 'main' panicked at 'assertion failed: `(left == right)`\\n  left: `2`,\\n right: `1`', components/tikv_util/src/sys/cgroup.rs:167:5\\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\\n, ssh_stdout: , ssh_command: export LANG=C; PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin /tidb-deploy/tikv-20160/bin/tikv-server --config-check --config=/tidb-deploy/tikv-20160/conf/tikv.toml --pd \\\"\\\" --data-dir \\\"/tidb-data/tikv-20160\\\"}, cause: Process exited with status 101\\ngithub.com/pingcap/tiup/pkg/cluster/spec.checkConfig\\n\\tgithub.com/pingcap/tiup/pkg/cluster/spec/server_config.go:308\\ngithub.com/pingcap/tiup/pkg/cluster/spec.(*TiKVInstance).InitConfig\\n\\tgithub.com/pingcap/tiup/pkg/cluster/spec/tikv.go:284\\ngithub.com/pingcap/tiup/pkg/cluster/task.(*InitConfig).Execute\\n\\tgithub.com/pingcap/tiup/pkg/cluster/task/init_config.go:51\\ngithub.com/pingcap/tiup/pkg/cluster/task.(*Serial).Execute\\n\\tgithub.com/pingcap/tiup/pkg/cluster/task/task.go:85\\ngithub.com/pingcap/tiup/pkg/cluster/task.(*StepDisplay).Execute\\n\\tgithub.com/pingcap/tiup/pkg/cluster/task/step.go:111\\ngithub.com/pingcap/tiup/pkg/cluster/task.(*Parallel).Execute.func1\\n\\tgithub.com/pingcap/tiup/pkg/cluster/task/task.go:142\\nruntime.goexit\\n\\truntime/asm_amd64.s:1581\\ninit config failed: 192.168.180.86:20160\"}\r\n```\r\n\r\nI noticed my `/proc/self/cgroup` has 2 lines:\r\n```\r\nroot@focal:~# cat /proc/self/cgroup \r\n1:name=systemd:/\r\n0::/user.slice/user-0.slice/session-13.scope\r\n```\r\n\r\n*Edit*: It seems the strange 2-line `/proc/self/cgroup` is a result of running centos 7 in nspawn container (Image from https://hub.nspawn.org/images/). It restored 1-line after a reboot.",
+  "state": "closed",
+  "created_at": "2021-12-07T12:42:14Z",
+  "updated_at": "2022-06-14T06:57:21Z",
+  "closed_at": "2022-01-10T09:33:49Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 988466408,
+      "user": "sticnarf",
+      "created_at": "2021-12-08T03:30:56Z",
+      "body": "From the [cgroup v2 doc](https://www.kernel.org/doc/Documentation/cgroup-v2.txt):\r\n\r\n> \"/proc/$PID/cgroup\" lists a process's cgroup membership.  If legacy cgroup is in use in the system, this file may contain multiple lines, one for each hierarchy.  The entry for cgroup v2 is always in the format \"0::$PATH\"::\r\n\r\nThis two-line cgroup file is definitely not conformant with the spec.\r\n\r\nI'm guessing some systemd bug in the centos 7 (which contains a rather old systemd) breaks the unified hierachy of the cgroup v2..."
+    },
+    {
+      "id": 1002502270,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T09:46:39Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002504444,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T09:47:29Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1002518936,
+      "user": "sticnarf",
+      "created_at": "2021-12-29T10:13:57Z",
+      "body": "I think this should only happen with operating system bugs. Lower severity to minor.\r\n"
+    }
+  ]
+}

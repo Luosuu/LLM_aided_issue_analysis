@@ -1,0 +1,46 @@
+{
+  "issue_number": 14460,
+  "title": "[Dynamic Regions] TPCC 1K 7d stability test: QPS drops dramatically when partitioned-raft-kv is enabled compared to baseline",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\n[root@tikv-6-0 bin]# ./tikv-server --version\r\nTiKV\r\nRelease Version:   7.0.0\r\nEdition:           Community\r\nGit Commit Hash:   38d6d6264e4ce25e3fe780e03b879c04890ca37b\r\nGit Commit Branch: heads/refs/tags/v7.0.0\r\nUTC Build Time:    2023-03-24 09:40:13\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\n» config set region-schedule-limit 0\r\nSuccess!\r\n» config set hot-region-schedule-limit 0\r\nSuccess!\r\n» config set replica-schedule-limit 0\r\nSuccess!\r\n  tikv:\r\n    import.num-threads: 64\r\n    raft-engine:\r\n      purge-threshold: 200GB\r\n    raftstore:\r\n      store-io-pool-size: 4\r\n    rocksdb:\r\n      defaultcf:\r\n        compression-per-level:\r\n        - lz4\r\n        - lz4\r\n        - lz4\r\n        - lz4\r\n        - lz4\r\n        - zstd\r\n        - zstd\r\n      write-buffer-limit: 8GiB\r\n      writecf:\r\n        compression-per-level:\r\n        - lz4\r\n        - lz4\r\n        - lz4\r\n        - lz4\r\n        - lz4\r\n        - zstd\r\n        - zstd\r\n    server:\r\n      snap-io-max-bytes-per-sec: 50MiB\r\n    storage:\r\n      engine: partitioned-raft-kv\r\n    storage.block-cache.capacity: 30GB\r\n```\r\n\r\ngo-tpc command, tpcc 1k warehouse\r\n```\r\ngo-tpc tpcc --host lb.release-perftest-amd64-tpcc-stability-7d-tps-1661283-1-661 -P4000 --warehouses 1000 run -D tpcc -T 200 --time 168h0m0s --ignore-error\r\n```\r\n\r\n### What did you expect?\r\nBaseline QPS trend\r\n![image](https://user-images.githubusercontent.com/2316425/227772580-3f0f925b-dcc6-4d52-b1b5-84d190d29989.png)\r\n\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/2316425/227772876-1356405b-9d69-4e5d-a334-73c6ecab834c.png)\r\n![image](https://user-images.githubusercontent.com/2316425/227772671-445ab00d-5667-443a-83e2-1ad614aa4b78.png)\r\n![image](https://user-images.githubusercontent.com/2316425/227772709-5756ca2c-5abe-4377-a0aa-02a9f26eb575.png)\r\n![image](https://user-images.githubusercontent.com/2316425/227772738-f7aa253d-fb56-47b5-89fe-6aa00b7f2436.png)\r\n",
+  "state": "closed",
+  "created_at": "2023-03-26T11:30:28Z",
+  "updated_at": "2023-05-22T03:31:58Z",
+  "closed_at": "2023-05-22T03:31:26Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1484068073,
+      "user": "dbsid",
+      "created_at": "2023-03-26T11:31:06Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1484425122,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-27T03:21:22Z",
+      "body": "/assign @SpadeA-Tang"
+    },
+    {
+      "id": 1556469092,
+      "user": "tonyxuqqi",
+      "created_at": "2023-05-22T03:31:24Z",
+      "body": "/close"
+    },
+    {
+      "id": 1556469117,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-05-22T03:31:27Z",
+      "body": "@tonyxuqqi: Closing this issue.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14460#issuecomment-1556469092):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1556469396,
+      "user": "dbsid",
+      "created_at": "2023-05-22T03:31:58Z",
+      "body": "fixed by https://github.com/tikv/tikv/pull/14536"
+    }
+  ]
+}

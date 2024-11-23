@@ -1,0 +1,99 @@
+{
+  "issue_number": 16930,
+  "title": "json_array_append pushdown to tikv led tikv crash",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nno panic\r\n\r\n### What did happened?\r\n\r\nhttps://github.com/pingcap/tidb/issues/52906",
+  "state": "closed",
+  "created_at": "2024-04-29T01:37:05Z",
+  "updated_at": "2024-05-10T15:28:11Z",
+  "closed_at": "2024-05-10T15:28:11Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 2081928344,
+      "user": "dbsid",
+      "created_at": "2024-04-29T05:44:00Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 2081933927,
+      "user": "dbsid",
+      "created_at": "2024-04-29T05:50:09Z",
+      "body": "/label may-affects-8.2"
+    },
+    {
+      "id": 2081933981,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-29T05:50:12Z",
+      "body": "@dbsid: The label(s) `may-affects-8.2` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.5, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.5, needs-cherry-pick-release-8.1, affects-5.4, affects-6.1, affects-6.5, affects-7.1, affects-7.5, affects-8.1, may-affects-5.4, may-affects-6.1, may-affects-6.5, may-affects-7.1, may-affects-7.5, may-affects-8.1`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16930#issuecomment-2081933927):\n\n>/label may-affects-8.2\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2081941164,
+      "user": "dbsid",
+      "created_at": "2024-04-29T05:57:58Z",
+      "body": "/remove-label affects-5.4, affects-6.1, affects-6.5, affects-7.1, affects-7.5, affects-8.1, may-affects-5.4, may-affects-6.1, may-affects-6.5, may-affects-7.1, may-affects-7.5, may-affects-8.1"
+    },
+    {
+      "id": 2081941516,
+      "user": "dbsid",
+      "created_at": "2024-04-29T05:58:24Z",
+      "body": "/remove-label affects-5.4"
+    },
+    {
+      "id": 2081941570,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-29T05:58:28Z",
+      "body": "@dbsid: These labels are not set on the issue: `affects-5.4`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16930#issuecomment-2081941516):\n\n>/remove-label affects-5.4\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2081942296,
+      "user": "dbsid",
+      "created_at": "2024-04-29T05:59:18Z",
+      "body": "/remove-label may-affects-5.4,may-affects-6.1,may-affects-6.5,may-affects-7.1,may-affects-7.5,may-affects-8.1"
+    },
+    {
+      "id": 2081942341,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-29T05:59:21Z",
+      "body": "@dbsid: The label(s) `may-affects-5.4,may-affects-6.1,may-affects-6.5,may-affects-7.1,may-affects-7.5,may-affects-8.1` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.5, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.5, needs-cherry-pick-release-8.1, affects-5.4, affects-6.1, affects-6.5, affects-7.1, affects-7.5, affects-8.1, may-affects-5.4, may-affects-6.1, may-affects-6.5, may-affects-7.1, may-affects-7.5, may-affects-8.1`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16930#issuecomment-2081942296):\n\n>/remove-label may-affects-5.4,may-affects-6.1,may-affects-6.5,may-affects-7.1,may-affects-7.5,may-affects-8.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2081942647,
+      "user": "dbsid",
+      "created_at": "2024-04-29T05:59:41Z",
+      "body": "/remove-label may-affects-5.4"
+    },
+    {
+      "id": 2081942894,
+      "user": "dbsid",
+      "created_at": "2024-04-29T06:00:00Z",
+      "body": "/remove-label may-affects-6.1"
+    },
+    {
+      "id": 2081943023,
+      "user": "dbsid",
+      "created_at": "2024-04-29T06:00:09Z",
+      "body": "/remove-label may-affects-6.5"
+    },
+    {
+      "id": 2081943176,
+      "user": "dbsid",
+      "created_at": "2024-04-29T06:00:18Z",
+      "body": "/remove-label may-affects-7.1"
+    },
+    {
+      "id": 2081943277,
+      "user": "dbsid",
+      "created_at": "2024-04-29T06:00:25Z",
+      "body": "/remove-label may-affects-7.5"
+    },
+    {
+      "id": 2081943465,
+      "user": "dbsid",
+      "created_at": "2024-04-29T06:00:36Z",
+      "body": "/remove-label may-affects-8.1"
+    }
+  ]
+}

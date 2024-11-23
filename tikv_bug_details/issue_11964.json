@@ -1,0 +1,96 @@
+{
+  "issue_number": 11964,
+  "title": "5.1.4 tikv restart in many testcases after start cpu profiling",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Release Version:   5.1.3\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Edition:           Community\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Git Commit Hash:   937df38124b977518eb2b932d7ced8be5d4eb163\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Git Commit Branch: heads/refs/tags/v5.1.4\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Rust Version:      rustc 1.53.0-nightly (16bf626a3 2021-04-14)\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Enable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Profile:           dist_release\"]\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ntest plan : 603473\r\ntestbed: endless-oltp-tps-603473-1-940\r\ntestcase: [oltp_rel_008_001] , down one tidb during running sysbench read only workload.\r\n\r\n### What did you expect?\r\nNo tikv restart.\r\n\r\n### What did happened?\r\nTikv restart.\r\n\r\n\r\nLogs before restart: \r\n[2022/02/11 21:57:28.872 +00:00] [INFO] [mod.rs:389] [\"write report successfully\"]\r\n[2022/02/11 22:00:35.945 +00:00] [INFO] [util.rs:544] [\"connecting to PD endpoint\"] [endpoints=http://tc-pd-2.tc-pd-peer.endless-oltp-tps-603511-1-612.svc:2379]\r\n[2022/02/11 22:00:35.947 +00:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f06344b1fb0 for subchannel 0x7f04757b8700\"]\r\n[2022/02/11 22:07:17.775 +00:00] [INFO] [profiler.rs:296] [\"starting cpu profiler\"]\r\n[2022/02/11 22:07:17.775 +00:00] [INFO] [mod.rs:326] [\"start profiling 10 seconds with frequency 99 /s\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:81] [\"Welcome to TiKV\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Release Version:   5.1.3\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Edition:           Community\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Git Commit Hash:   937df38124b977518eb2b932d7ced8be5d4eb163\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Git Commit Branch: heads/refs/tags/v5.1.4\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Rust Version:      rustc 1.53.0-nightly (16bf626a3 2021-04-14)\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Enable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\"]\r\n[2022/02/11 22:07:30.025 +00:00] [INFO] [lib.rs:86] [\"Profile:           dist_release\"]\r\n",
+  "state": "closed",
+  "created_at": "2022-02-14T03:32:39Z",
+  "updated_at": "2022-07-26T08:23:56Z",
+  "closed_at": "2022-07-26T08:23:29Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation",
+    "affects-5.1",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1038598345,
+      "user": "mayjiang0203",
+      "created_at": "2022-02-14T03:33:48Z",
+      "body": "/type bug\r\n/severity critical "
+    },
+    {
+      "id": 1038600162,
+      "user": "mayjiang0203",
+      "created_at": "2022-02-14T03:37:36Z",
+      "body": "/assign sticnarf "
+    },
+    {
+      "id": 1038603971,
+      "user": "sticnarf",
+      "created_at": "2022-02-14T03:46:41Z",
+      "body": "@mayjiang0203 Can you provide the coredump of the crashed TiKV? From the log I cannot confirm the source of the crash."
+    },
+    {
+      "id": 1040095200,
+      "user": "Lily2025",
+      "created_at": "2022-02-15T10:17:34Z",
+      "body": " /found automation"
+    },
+    {
+      "id": 1040095434,
+      "user": "Lily2025",
+      "created_at": "2022-02-15T10:17:47Z",
+      "body": " /found automation"
+    },
+    {
+      "id": 1040096092,
+      "user": "Lily2025",
+      "created_at": "2022-02-15T10:18:25Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1041181501,
+      "user": "mayjiang0203",
+      "created_at": "2022-02-16T07:09:29Z",
+      "body": "Core dump can be get from minio by testbed endless-oltp-tps-604008-1-64/tc-tikv-0  "
+    },
+    {
+      "id": 1041201391,
+      "user": "sticnarf",
+      "created_at": "2022-02-16T07:41:59Z",
+      "body": "![origin_img_v2_d58e2285-c6ca-4994-8cd2-69aa8057b1dg](https://user-images.githubusercontent.com/17217495/154217800-7c494afa-f4b7-4de5-96b3-26d946f1d2fa.png)\r\n\r\nI can read the core dump now. It sigfaults in the `_Unwind_Backtrace` of `libgcc_s.so`.\r\n\r\nThis is probably a result of combining https://github.com/tikv/tikv/issues/10906 and not robust unwind implementation from `libgcc`. \r\n\r\nThere is little we can do to relieve the bug in the v5.1.x. But I hope you can test the master TiKV to see if the issue still exists (master has upgraded the rust toolchain to fix the incorrect debug info bug). @mayjiang0203 "
+    },
+    {
+      "id": 1113108681,
+      "user": "cfzjywxk",
+      "created_at": "2022-04-29T09:31:20Z",
+      "body": "I think the severity could be lowered as it does not affect the main path and it's recorded in the KB already."
+    },
+    {
+      "id": 1113109676,
+      "user": "cfzjywxk",
+      "created_at": "2022-04-29T09:32:40Z",
+      "body": "@mayjiang0203 @sticnarf \r\nWhat do you think we change the severity to `major` instead of `critical`."
+    },
+    {
+      "id": 1114369760,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-01T23:47:07Z",
+      "body": "@cfzjywxk @mayjiang0203 I think this should not be critical."
+    },
+    {
+      "id": 1134295296,
+      "user": "mornyx",
+      "created_at": "2022-05-23T07:36:39Z",
+      "body": "Can be closed because https://github.com/tikv/tikv/pull/12480 has been merged. cc @VelocityLight "
+    }
+  ]
+}

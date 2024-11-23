@@ -1,0 +1,24 @@
+{
+  "issue_number": 15623,
+  "title": "[Dynamic Regions] resolved ts can't  advance for long time",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV\r\nRelease Version:   7.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   e43a157c4a35034dfd705bdd94fac6d958e8a1ff\r\nGit Commit Branch: heads/refs/tags/v7.4.0-alpha\r\nUTC Build Time:    2023-09-14 11:47:25\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nThe cluster contains about 60 tikv with dynamic region enabled, each tikv contains 2.5TB data, a table contains about 6billion rows with each row size about 10kb.\r\n![b8ae02ef-9ddc-4571-aa78-753117c01a19](https://github.com/tikv/tikv/assets/7677963/d3803ef4-1634-4a85-971c-1e9a51014153)\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-09-18T03:40:06Z",
+  "updated_at": "2023-09-22T05:43:45Z",
+  "closed_at": "2023-09-22T05:43:45Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1723172816,
+      "user": "overvenus",
+      "created_at": "2023-09-18T10:53:31Z",
+      "body": "After region merge, TiKV creates a GcPeerRequest with wrong region id. This leads to a misleading GcPeerResponse, causing the target region leader to mistakenly think that the source peers have been garbage collected. As a result, the source peers are left abandoned indefinitely, leading to a stuck resolved ts.\r\n\r\nhttps://github.com/tikv/tikv/blob/4a5fb7321ca2ee2bab0b31f6556c8fb196a590f4/components/raftstore-v2/src/operation/life.rs#L702-L711\r\n\r\nAfter merge, removed peer may come from source region."
+    }
+  ]
+}

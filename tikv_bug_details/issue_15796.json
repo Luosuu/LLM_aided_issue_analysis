@@ -1,0 +1,22 @@
+{
+  "issue_number": 15796,
+  "title": "Avoid false \"GC can not work\" alert when there is only one version of all the data.",
+  "body": "## Bug Report\r\n\r\nAfter TiDB 5.0, compaction filter is the default GC approach. If all data in the cluster only have one version thus no GC is triggered, the GC compaction filter will not be triggered. \r\nhowever, sometimes the compaction on write-cf will still happen due to ttl reson, then we meet the condition: \r\n```\r\nsum(increase(tikv_engine_event_total{db=\"kv\", cf=\"write\", type=\"compaction\"}[1d])) >= 1\r\n```\r\nwhen compaction happens on this situtation, then we will increase  `tikv_gc_compaction_filter_perform `\r\n\r\nhttps://github.com/tikv/tikv/blob/5af8a0db353a4214d9c246de62eaa5ea89a25881/src/server/gc_worker/compaction_filter.rs#L203-L255 \r\n\r\nwhich means we won't meet the second condition now:\r\n\r\n```\r\nsum(increase(tikv_gc_compaction_filter_perform[1d])) < 1\r\n```\r\n\r\nHowever, it was possible that compaction(`tikv_engine_event_total`) was pulled by prometheus first and compaction-filter(`tikv_gc_compaction_filter_perform`) later, then we will meet the alert conditions this time\r\n\r\n### What version of TiKV are you using?\r\nversions after v 5.0 \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\ncreate a table,\r\nonly insert data into the table\r\n\r\n### What did you expect?\r\nno \"GC can not work\"  alert\r\n\r\n### What did happened?\r\n\"GC can not work\" alert\r\n\r\n![qZ9iDzqFli](https://github.com/tikv/tikv/assets/1085697/5bef7e78-7a1d-40c8-abe4-af352b966b36)\r\n I checked at the metrics related to the alarm and it was true that compaction(`tikv_engine_event_total`) was pulled by prometheus first and compaction-filter(`tikv_gc_compaction_filter_perform`) later, so there was an alarm at 6:50\r\n\r\nrelated PR https://github.com/tikv/tikv/pull/10661 \r\n\r\nhttps://github.com/tikv/tikv/blob/5af8a0db353a4214d9c246de62eaa5ea89a25881/metrics/alertmanager/tikv.rules.yml#L16-L26  \r\n",
+  "state": "closed",
+  "created_at": "2023-10-18T09:48:14Z",
+  "updated_at": "2023-11-09T15:18:44Z",
+  "closed_at": "2023-11-09T15:18:44Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/moderate",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "found/gs",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

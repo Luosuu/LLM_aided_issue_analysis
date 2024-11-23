@@ -1,0 +1,33 @@
+{
+  "issue_number": 17568,
+  "title": "PR#17555 may cause 7.4% performance regression in benchmarksql",
+  "body": "## Bug Report\n\n### What version of TiKV are you using?\n\ntikv/tikv@7a8d05ad8088120a2654516c6f6f0079bf677783\n\n### What operating system and CPU are you using?\n\nK8S, x86\n\n### Steps to reproduce\n\n1. Deploy a cluster with 3 TiDB and 3 Tikv.\n2. Run benchmark benchmarksql (benchmarksql-1k).\n\n### What did you expect?\n\nNo performance regression.\n\n### What did happened?\n\n#17555 caused QPS regression 7.45% in benchmark benchmarksql (benchmarksql-1k) compared to baseline 60193.12.\n\n| description       | tidb                                                    | tikv                                                 | pd                                               | QPS                   |\n| ----------------- | ------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------ | ------------------------------------ |\n| last success      | pingcap/tidb@249e88cd5a58aa1d2238797d155bbea88cc818de     | tikv/tikv@5abe1dd188192c37f9759b6ae3be21f23c06fb36     | tikv/pd@23d544f374e00a6c03a86437b57bd26365cb11ef     | 59101.24            |\n| first regression  | pingcap/tidb@249e88cd5a58aa1d2238797d155bbea88cc818de | tikv/tikv@7a8d05ad8088120a2654516c6f6f0079bf677783 | tikv/pd@23d544f374e00a6c03a86437b57bd26365cb11ef | 55710.90        |",
+  "state": "closed",
+  "created_at": "2024-09-21T21:48:09Z",
+  "updated_at": "2024-09-26T09:21:22Z",
+  "closed_at": "2024-09-26T09:21:21Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 2375990913,
+      "user": "LykxSassinator",
+      "created_at": "2024-09-26T05:47:01Z",
+      "body": "This performance regression can be reproduced by re-testing ?"
+    },
+    {
+      "id": 2376279958,
+      "user": "overvenus",
+      "created_at": "2024-09-26T08:23:43Z",
+      "body": "Update: Further testing conducted by @owlsome2501 reveals only a 3.4% regression. Given that the error margin is approximately 4%, and 3.4% is significantly lower than the 7.4% initially reported in this issue, this may be a false alarm. "
+    },
+    {
+      "id": 2376414452,
+      "user": "cfzjywxk",
+      "created_at": "2024-09-26T09:21:21Z",
+      "body": "\r\nIt's a test environemnt issue verified by @owlsome2501 ."
+    }
+  ]
+}

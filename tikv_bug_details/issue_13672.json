@@ -1,0 +1,33 @@
+{
+  "issue_number": 13672,
+  "title": "Data inconsistency after flashback ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@localhost ~]# /data1/tidb-deploy/tikv-2360/bin/tikv-server -V\r\nTiKV \r\nRelease Version:   6.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   ed64ed21cfa1c734191549a0db66986dab04f4bd\r\nGit Commit Branch: master\r\nUTC Build Time:    2022-10-18 09:38:46\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           release\r\n[root@localhost ~]# \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\ninstall a tidb cluster with pitr task started\r\nrun workload for 10 minutes\r\nflashback to 10 minutes ago\r\nduring flashback restart and stop/start tikv/pd/tidb\r\n### What did you expect?\r\n\r\n### What did happened?\r\nMySQL [flashback2]> admin check table user_data1;\r\nERROR 8223 (HY000): data inconsistency in table: user_data1, index: k_1, handle: 22152, index-values:\"\" != record-values:\"handle: 22152, values: [KindMysqlTime 2022-10-25 13:03:13]\"\r\nMySQL [flashback2]> ",
+  "state": "closed",
+  "created_at": "2022-10-25T09:51:25Z",
+  "updated_at": "2022-11-04T02:16:02Z",
+  "closed_at": "2022-11-04T02:16:02Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1290286657,
+      "user": "seiya-annie",
+      "created_at": "2022-10-25T09:51:49Z",
+      "body": "seem issue exist in flashback with cdc task\r\n"
+    },
+    {
+      "id": 1291533736,
+      "user": "JmPotato",
+      "created_at": "2022-10-26T05:44:51Z",
+      "body": "This root cause is similar to https://github.com/tikv/tikv/issues/13643, since the TiKV may apply the split and prepare flashback cmd in the same batch without checking the epoch version, the newly split left region may be missed to execute the flashback. https://github.com/tikv/tikv/pull/13664 should fix this."
+    },
+    {
+      "id": 1294787594,
+      "user": "JmPotato",
+      "created_at": "2022-10-28T09:52:24Z",
+      "body": "A newly found bug will cause data inconsistency. Assume that a second phase procedure contains two batches to flashback. After the first batch is committed, if the region is down, it will retry the flashback from the very first beginning, because the data in the first batch has been written the flashbacked data with the same `commit_ts`, it will return directly due to these lines of code:\r\n\r\nhttps://github.com/tikv/tikv/blob/fe61a03438d91bb1739e8e95db66c9927254d62f/src/storage/txn/actions/flashback_to_version.rs#L72-L78\r\n\r\nThis will leave the data in the second batch untouched to make the data become inconsistent after the flashback."
+    }
+  ]
+}

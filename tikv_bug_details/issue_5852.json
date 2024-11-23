@@ -1,0 +1,22 @@
+{
+  "issue_number": 5852,
+  "title": "Split may leave stale region info",
+  "body": "Consider a region A with three peers. Then region A adds a new learner peer and splits a new region B. So the state of region A  and region B would be:\r\n\r\n-  region A [peer1, peer2, peer3, peer4(learner, uninitialized)]\r\n-  region B [peer5, peer6, peer7, peer8(learner, uninitialized)]\r\n\r\npeer8 applies snapshot before peer4:\r\n\r\n- region A [peer1, peer2, peer3, peer4(learner, uninitialized)]\r\n- region B [peer5, peer6, peer7, peer8(learner)]\r\n\r\nThen region B promotes and then removes the peer8:\r\n\r\n- region A [peer1, peer2, peer3, peer4(learner, uninitialized)]\r\n- region B [peer5, peer6, peer7]\r\n\r\nNow, peer4 may apply a snapshot but not promoted to be a voter\r\n\r\n- region A [peer1, peer2, peer3, peer4(learner)]\r\n- region B [peer5, peer6, peer7]\r\n\r\nthen peer4 catch up the log and performs the split process, that is to say, peer4 splits the peer8 of region B again:\r\n\r\n- region A [peer1, peer2, peer3, peer4(learner)]\r\n- region B [peer5, peer6, peer7] peer8(learner)\r\n\r\nNote that: peer8 is created again with learner state, but it is not in the peer list of peer5, peer6, and peer7. Due to peer8 is learner, it will never send request vote to other peers, so other peers of region B will never know the existence of peer8.\r\n\r\nFurther, peer8's info is left on that store forever, and it can't be deleted automatically even if region B is merged. This may cause other regions with overlapped range can not add their peer successfully to that store (namely down peer), due to TiKV will reject to create a peer which is overlapped with existence peer on itself.\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2019-11-10T07:32:02Z",
+  "updated_at": "2023-01-17T12:03:12Z",
+  "closed_at": "2020-08-28T09:25:08Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 552280228,
+      "user": "Connor1996",
+      "created_at": "2019-11-11T03:35:07Z",
+      "body": "To solve this issue, we should check the region whether is already tombstone before performing splitting. \r\nAlso, after discussion with @BusyJay, we'd better handle merge case where PD has no info about that region https://github.com/tikv/tikv/blob/master/src/raftstore/store/worker/pd.rs#L651. In that case, we can let the peer to send a message to other peers in its peer list to check whether the region is already merged. /cc @gengliqi "
+    }
+  ]
+}

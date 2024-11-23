@@ -1,0 +1,52 @@
+{
+  "issue_number": 9351,
+  "title": "Stale read when using read_index request",
+  "body": "## Bug Report\r\n\r\nSimilar to #9208, ReadIndex request can be given a stale index after just transferring leader. The API doesn't seem to be used anymore, so the best way to solve it is removing the API completely.\r\n\r\n@NingLin-P @gengliqi PTAL\r\n\r\n/cc @solotzg, just make sure tiflash will not use the API in the future.",
+  "state": "closed",
+  "created_at": "2020-12-24T08:39:52Z",
+  "updated_at": "2021-06-28T10:59:25Z",
+  "closed_at": "2021-06-28T10:59:25Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 750809620,
+      "user": "solotzg",
+      "created_at": "2020-12-24T08:45:52Z",
+      "body": "Since 4.0.8, tiflash won't use ReadIndex to get read-index from leader directly."
+    },
+    {
+      "id": 750857022,
+      "user": "BusyJay",
+      "created_at": "2020-12-24T11:35:38Z",
+      "body": "I remember there is a solution to use proxy to do reading across DC, which also use read index. @hicqu Is it still a valid solution? Is the stale read proposal a good alternative to it?"
+    },
+    {
+      "id": 750863083,
+      "user": "hicqu",
+      "created_at": "2020-12-24T12:02:12Z",
+      "body": "@BusyJay that solution is paused and I think the stale read proposal is more useful than that.\r\n\r\nIs it necessary to fix the bug for `TiFlash ^4.0.7`? If so we need to fix it, or we can remove the API directly."
+    },
+    {
+      "id": 750873811,
+      "user": "BusyJay",
+      "created_at": "2020-12-24T12:49:42Z",
+      "body": "The only way to fix for them is using a hotfix. I suggest to ask them to upgrade to v4.0.9 instead."
+    },
+    {
+      "id": 763413223,
+      "user": "hicqu",
+      "created_at": "2021-01-20T08:00:08Z",
+      "body": "Can it be closed now?"
+    },
+    {
+      "id": 763421186,
+      "user": "BusyJay",
+      "created_at": "2021-01-20T08:15:00Z",
+      "body": "Why? The API still exists and it can return wrong result."
+    }
+  ]
+}

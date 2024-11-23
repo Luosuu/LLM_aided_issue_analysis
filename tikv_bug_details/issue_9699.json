@@ -1,0 +1,27 @@
+{
+  "issue_number": 9699,
+  "title": "label format is inconsistent with PD",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv4.0.10\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nN/A\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. prepare to deploy a new cluster with tiup\r\n1. set PD labels as \r\n![image](https://user-images.githubusercontent.com/4352397/108962100-3aa44600-76b3-11eb-8417-382c5568da1c.png)\r\n1. make tikv consistent with PD\r\n![image](https://user-images.githubusercontent.com/4352397/108962160-4f80d980-76b3-11eb-9ab0-6f9ef2cfbc1b.png)\r\n1. deploy it with tiup\r\n\r\n### What did you expect?\r\nSuccessfully deploy the cluster.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/4352397/108962284-7dfeb480-76b3-11eb-83ef-78e867ad17a0.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-02-24T07:18:38Z",
+  "updated_at": "2021-03-04T16:14:54Z",
+  "closed_at": "2021-03-04T16:14:54Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 784853784,
+      "user": "jackysp",
+      "created_at": "2021-02-24T07:21:28Z",
+      "body": "PD allows more characters than TiKV\r\nPD:\r\n```golang\r\n\t// Label key consists of alphanumeric characters, '-', '_', '.' or '/', and must start and end with an\r\n\t// alphanumeric character. If can also contain an extra '$' at the beginning.\r\n\tkeyFormat = \"^[$]?[A-Za-z0-9]([-A-Za-z0-9_./]*[A-Za-z0-9])?$\"\r\n```\r\nTiKV:\r\n```rust\r\nfn validate_label(s: &str, tp: &str) -> Result<()> {\r\n    let report_err = || {\r\n        box_err!(\r\n            \"store label {}: {:?} not match ^[a-zA-Z0-9]([a-zA-Z0-9-._]*[a-zA-Z0-9])?\",\r\n            tp,\r\n            s\r\n        )\r\n    };\r\n    if s.is_empty() {\r\n        return Err(report_err());\r\n    }\r\n    let mut chrs = s.chars();\r\n    let first_char = chrs.next().unwrap();\r\n    if !first_char.is_ascii_alphanumeric() {\r\n        return Err(report_err());\r\n    }\r\n    let last_char = match chrs.next_back() {\r\n        None => return Ok(()),\r\n        Some(c) => c,\r\n    };\r\n    if !last_char.is_ascii_alphanumeric() {\r\n        return Err(report_err());\r\n    }\r\n    for c in chrs {\r\n        if !c.is_ascii_alphanumeric() && !\"-._\".contains(c) {\r\n            return Err(report_err());\r\n        }\r\n    }\r\n    Ok(())\r\n}\r\n```\r\nI think TiKV should be consistent with PD."
+    },
+    {
+      "id": 784854930,
+      "user": "jackysp",
+      "created_at": "2021-02-24T07:23:21Z",
+      "body": "Btw: there is no document to explain the label format."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 3862,
+  "title": "max block cache metrics shows uncorrectly",
+  "body": "## Bug Report\r\n\r\n![image](https://user-images.githubusercontent.com/1080370/49232069-38000b00-f42e-11e8-8c2f-58db7697f3ed.png)\r\n\r\nA user uses different block cache for TiKVs, e.g. for one TiKV, he sets 23 GB for write, but another is less than 15 GB(maybe), but for the metric, we can see the max cache is just 13.8 GB. I can ensure that the all TiKV servers use whole cache.\r\n\r\nI think we need to adjust metrics if TiKV has different configs.\r\n",
+  "state": "closed",
+  "created_at": "2018-11-29T15:29:28Z",
+  "updated_at": "2020-08-28T11:36:54Z",
+  "closed_at": "2020-08-28T11:36:54Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 682477414,
+      "user": "BusyJay",
+      "created_at": "2020-08-28T11:36:54Z",
+      "body": "We now share cache between cf and db."
+    }
+  ]
+}

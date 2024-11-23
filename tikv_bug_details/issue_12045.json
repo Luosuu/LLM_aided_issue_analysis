@@ -1,0 +1,14 @@
+{
+  "issue_number": 12045,
+  "title": "RocksDB and Raft Engine data exist simultaneously due to operational errors",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\n\r\nN/A\r\n\r\n### Steps to reproduce\r\n\r\n1. Start TiKV with nightly version\r\n2. Downgrade TiKV to 5.3.0\r\n3. **Raft Engine reports \"Parse file name error\", TiKV won't start**\r\n4. Start TiKV with nightly version\r\n5. **TiKV panicks with \"log at recorded commit index [19] 102 doesn't exist, may lose data\"**\r\n\r\n### What did you expect?\r\n\r\nStep 5 TiKV can start normally.\r\n\r\n### What did happened?\r\n\r\nTiKV by default disable Raft Engine in v5.3.0. It therefore creates a raftdb directory at step 3.\r\n\r\nIn step 5, TiKV tries to dump the data from raftdb directory into Raft Engine. In that process, Raft Engine data is cleared via this function:\r\nhttps://github.com/tikv/tikv/blob/6170255604aff4a52b365c91d09859e4315045c5/components/server/src/raft_engine_switch.rs#L46-L53\r\n",
+  "state": "closed",
+  "created_at": "2022-02-28T08:39:12Z",
+  "updated_at": "2022-03-10T08:47:13Z",
+  "closed_at": "2022-03-10T08:47:13Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

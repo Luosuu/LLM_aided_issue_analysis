@@ -1,0 +1,14 @@
+{
+  "issue_number": 17578,
+  "title": "In-memory engine: online configuration change does not take effect for some configs",
+  "body": "## Bug Report\r\n\r\n```RUST\r\npub fn new(\r\n      core: Arc<RangeCacheMemoryEngineCore>,\r\n      pd_client: Arc<dyn PdClient>,\r\n      config: Arc<VersionTrack<RangeCacheEngineConfig>>,\r\n      memory_controller: Arc<MemoryController>,\r\n      region_info_provider: Option<Arc<dyn RegionInfoProvider>>,\r\n  ) -> Self {\r\n    let worker = Worker::new(\"ime-bg\");\r\n    let (runner, delete_range_scheduler) = BackgroundRunner::new(\r\n        core.clone(),\r\n        memory_controller,\r\n        region_info_provider.clone(),\r\n        &config,\r\n        pd_client.clone(),\r\n    );\r\n    let config = config.value();\r\n    let scheduler = worker.start_with_timer(\"ime-bg-runner\", runner);\r\n\r\n    let (ticker, tx) = BgWorkManager::start_tick(\r\n        scheduler.clone(),\r\n        pd_client,\r\n        config.gc_interval.0,\r\n        config.load_evict_interval.0,\r\n    );\r\n\r\n    Self {\r\n        worker,\r\n        scheduler,\r\n        delete_region_scheduler: delete_range_scheduler,\r\n        tick_stopper: Some((ticker, tx)),\r\n        core,\r\n        region_info_provider,\r\n    }\r\n}\r\n```\r\n\r\nThe config value is used as raw value, so the config changes cannot be perceived.\r\n",
+  "state": "closed",
+  "created_at": "2024-09-24T03:34:57Z",
+  "updated_at": "2024-09-26T03:33:39Z",
+  "closed_at": "2024-09-26T03:33:39Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

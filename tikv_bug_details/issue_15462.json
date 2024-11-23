@@ -1,0 +1,39 @@
+{
+  "issue_number": 15462,
+  "title": "[Dynamic Regions] periodical performance jitter due to raft-engine log recycle",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\naws ec2 m52xlarge(8c64gb with 4000iops 288MB io-bandwidth)\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nDeploy a tidb cluster with 1 tikv instance and set replica-count = 1 \r\nuse sysbench to  prepare 32 tables with each 10000000 rows of data.\r\nRun sysbench oltp_write_only workload.\r\n\r\nThe sysbench  scripts is customized with a padding field of 3kb:\r\n```\r\n CREATE TABLE `sbtest1` (\r\n  `id` bigint(20) NOT NULL AUTO_INCREMENT,\r\n  `k` bigint(20) NOT NULL DEFAULT '0',\r\n  `c` varchar(300) NOT NULL DEFAULT '',\r\n  `pad` varchar(3000) NOT NULL DEFAULT '',\r\n  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,\r\n  KEY `k_1` (`k`)\r\n)\r\n```\r\n\r\n### What did you expect?\r\nThe performance should be stable when the workload doesn't reach any of the hardware bottleneck.\r\n\r\n### What did happened?\r\nThe qps is unstable and the qps dropped period match the period when raft-engine's `append-recycle` files count is 0.\r\n\r\n![image](https://github.com/tikv/tikv/assets/5196885/08341cf5-f4b7-483a-8e7d-a10ead652586)\r\n\r\n\r\n![852d002f-c109-4aeb-b815-c3d027d238bc](https://github.com/tikv/tikv/assets/5196885/7cab5d95-5fdc-4d1b-9f57-369a3fc222c0)\r\n\r\n![fea554bf-838d-4c72-be66-fe0062a5551c](https://github.com/tikv/tikv/assets/5196885/f95ab7b2-8b46-42c9-8f26-2d7035d39d99)\r\n\r\nFrom the snapshot I can see when the `append-recycle` files count drops to 0 the write duration increases drastically\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-08-29T08:42:13Z",
+  "updated_at": "2023-09-21T06:37:45Z",
+  "closed_at": "2023-09-21T06:37:45Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1697020913,
+      "user": "glorv",
+      "created_at": "2023-08-29T08:44:50Z",
+      "body": "@tabokie @LykxSassinator  Please take a look. When partition-raft-kv is enabled, log compaction may have a longer latency than v1. So maybe we should allow a bigger log file redundancy threshold than the current constant value 2."
+    },
+    {
+      "id": 1698344747,
+      "user": "LykxSassinator",
+      "created_at": "2023-08-30T01:08:18Z",
+      "body": "@glorv FYI, u can have a try by manually opening `raft-engine.prefill-for-recycle` as default when starting. And it will automatically generate the redundant file (recycle logs) as many as possible (count = `raft-engine.purge-threshold` / `raft-engine.target-file-size`), and it will cover this case to avoid the fluctuation when appending if there exists no any more recycle logs.\r\nAnd I think it's enough for your case.\r\n\r\n"
+    },
+    {
+      "id": 1698393443,
+      "user": "glorv",
+      "created_at": "2023-08-30T02:22:54Z",
+      "body": "@LykxSassinator I have tried `raft-engine.prefill-for-recycle` and it did not solve this problem. And the result matches the metrics in the issue desc as the append-recycle files periodically dropped to 0, pre create some files should have no help in this case."
+    },
+    {
+      "id": 1708193122,
+      "user": "glorv",
+      "created_at": "2023-09-06T11:50:48Z",
+      "body": "should be fixed by https://github.com/tikv/raft-engine/pull/331"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "issue_number": 6591,
+  "title": "Can not run fuzzer",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86_x64\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. run `cargo run --package fuzz -- run Afl fuzz_codec_bytes`\r\n2. see\r\n```\r\n12T08:58:49.336Z] error[E0599]: no method named `generate_files` found for type `&Builder` in the current scope\r\n[2020-02-12T08:58:49.336Z]   --> /rust/git/checkouts/protobuf-build-174b08b051947a10/42e52b9/src/lib.rs:56:14\r\n[2020-02-12T08:58:49.336Z]    |\r\n[2020-02-12T08:58:49.336Z] 56 |         self.generate_files();\r\n[2020-02-12T08:58:49.336Z]    |              ^^^^^^^^^^^^^^ method not found in `&Builder`\r\n[2020-02-12T08:58:49.336Z] \r\n[2020-02-12T08:58:49.336Z] error: aborting due to previous error\r\n[2020-02-12T08:58:49.336Z] \r\n[2020-02-12T08:58:49.336Z] For more information about this error, try `rustc --explain E0599`.\r\n[2020-02-12T08:58:49.336Z] error: could not compile `protobuf-build`.\r\n[2020-02-12T08:58:49.336Z] warning: build failed, waiting for other jobs to finish...\r\n[2020-02-12T08:59:16.192Z] error: build failed\r\n[2020-02-12T08:59:16.192Z] Running fuzzer failed: error building afl instrumented binary, exit code Some(101)\r\n[2020-02-12T08:59:16.192Z] Error: 1\r\n```\r\n\r\n### What did you expect?\r\nNo error and start fuzz\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2020-02-12T09:06:28Z",
+  "updated_at": "2020-08-10T05:29:35Z",
+  "closed_at": "2020-02-19T01:01:21Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 585103907,
+      "user": "zhouqiang-cl",
+      "created_at": "2020-02-12T09:07:07Z",
+      "body": "As @nrc 's advice run \r\n`RUSTFLAGS='--cfg feature=\"protobuf-codec\"' cargo run --package fuzz --features protobuf-codec -- run Honggfuzz fuzz_codec_bytes` \r\n\r\nStill have the same problem."
+    },
+    {
+      "id": 585104174,
+      "user": "zhouqiang-cl",
+      "created_at": "2020-02-12T09:07:46Z",
+      "body": "@breeswish @nrc can you help to take a look"
+    }
+  ]
+}

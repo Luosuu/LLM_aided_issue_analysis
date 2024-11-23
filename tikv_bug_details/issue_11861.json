@@ -1,0 +1,21 @@
+{
+  "issue_number": 11861,
+  "title": "downgrade from nightly to v5.2.x will fail",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\ndoesn't matter\r\n\r\n### Steps to reproduce\r\n1. Deploy a cluster v5.2.x\r\n2. Upgrade to nightly\r\n3. Downgrade to v5.2.x\r\n\r\n### What did you expect?\r\nSucceed.\r\n\r\n### What did happened?\r\nIt fails to start as nightly change the value of `heavy_load_wait_duration` to `50us`, which is only supported after v5.3.0. It should be changed to an `Option` value instead.",
+  "state": "closed",
+  "created_at": "2022-01-12T14:13:07Z",
+  "updated_at": "2022-01-13T10:29:43Z",
+  "closed_at": "2022-01-13T10:29:43Z",
+  "labels": [
+    "type/bug",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1011087299,
+      "user": "BusyJay",
+      "created_at": "2022-01-12T14:14:10Z",
+      "body": "/assign"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "issue_number": 15324,
+  "title": "3GB memory spike caused by RocksDB compaction",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\nBased on the memory profile, it has been observed that RocksDB compaction could\r\nconsume approximately 3 gigabytes of memory, and in some cases, even more. This \r\nexcessive memory usage poses a risk of Out of Memory (OOM) errors, especially \r\nwhen TiKV is operating close to its memory capacity limit.\r\n\r\nThis issue was discovered while investigating #15240, and it is possible that\r\nthe excessive memory consumption is the underlying cause of the OOM problem.\r\n\r\nWe need to control compaction memory usage.\r\n\r\nMemory usage metrics:\r\n<img width=\"920\" alt=\"image\" src=\"https://github.com/tikv/tikv/assets/2150711/5e11cfe6-7a20-4c4d-8ac1-b6348e22adb6\">\r\n\r\nMemory profile: [mem3g.pdf](https://github.com/tikv/tikv/files/12333295/mem3g.pdf)\r\n\r\nMemory is allocated at https://github.com/tikv/rocksdb/blob/de47e8ece9abf001af74a9e60f66b9c8494240e1/util/ribbon_impl.h#L487 \r\n\r\nSome noticeable logs from RocksDB\r\n\r\n```\r\n[2023/08/14 03:53:42.806 +00:00][5][INFO] [9961_5][db/compaction/compaction_job.cc:1967] [write] [JOB 2155] Generated table #628: 14260441 keys, 147502991 bytes\r\n[2023/08/14 03:54:30.299 +00:00][5][INFO] [564_2957504][db/compaction/compaction_job.cc:1967] [write] [JOB 671] Generated table #593: 30768026 keys, 87447630 bytes\r\n[2023/08/14 03:54:32.787 +00:00][5][INFO] [564_2957504][db/compaction/compaction_job.cc:1967] [write] [JOB 671] Generated table #594: 33021180 keys, 93885016 bytes\r\n[2023/08/14 03:54:39.401 +00:00][5][INFO] [8829_2158547][db/compaction/compaction_job.cc:1967] [write] [JOB 671] Generated table #820: 53800409 keys, 153101175 bytes\r\n[2023/08/14 03:55:02.066 +00:00][5][INFO] [1920_199878][db/compaction/compaction_job.cc:1967] [write] [JOB 634] Generated table #738: 14059897 keys, 54255450 bytes\r\n```\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv7.3.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRun the test case in #15240\r\n\r\n### What did you expect?\r\n\r\nNo memory surge.\r\n\r\n### What did happened?\r\n\r\nMemory surge\r\n",
+  "state": "closed",
+  "created_at": "2023-08-14T09:19:47Z",
+  "updated_at": "2023-08-16T02:33:32Z",
+  "closed_at": "2023-08-16T02:33:32Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1678267705,
+      "user": "overvenus",
+      "created_at": "2023-08-15T00:32:59Z",
+      "body": "After disabling Ribbon filter (by removing the following two lines), the memory surge is gone, and TiKV runs much more stable.\r\n\r\nhttps://github.com/tikv/tikv/blob/09239a7ca87b592f01454686bad1a084bd067546/src/config/mod.rs#L1370-L1373\r\n![T163sdqboP](https://github.com/tikv/tikv/assets/2150711/f0e5ae2c-960a-41ce-86f6-de757301b660)\r\n\r\n"
+    }
+  ]
+}

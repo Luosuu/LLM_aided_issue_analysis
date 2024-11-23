@@ -1,0 +1,20 @@
+{
+  "issue_number": 5389,
+  "title": "LibreSSL can not find a valid cert file",
+  "body": "## Bug Report\r\n\r\nLibreSSL always read an invalid cert file, like `/home/xxx/tikv/target/debug/build/openssl-sys-4e08c83cb3f270e4/out/openssl-build/install/ssl/cert.pem`. For now the bug does not affect tikv's TLS feature, but it will fails requests from tikv to other HTTPS websites and raise the error:\r\n\r\n```\r\nIo(Custom { kind: Other, error: \"failed to create bucket an error occurred trying to connect: error:14007086:SSL routines:CONNECT_CR_CERT:certificate verify failed:/rust/git/checkouts/libressl-src-df2f639f2f727162/1e3a34a/libressl/ssl/ssl_clnt.c:1121: (unable to get local issuer certificate)\" })\r\n```\r\n\r\nOpenSSL solves this by reading an env var `SSL_CERT_FILE` @ https://github.com/openssl/openssl/blob/bcc0025d0b5d231ee3662cf7f3c522ba43079858/crypto/x509/by_file.c#L49\r\n\r\nAnd golang solves this by hardcoding https://github.com/coreos/bugs/issues/2262#issuecomment-346161278\r\n",
+  "state": "closed",
+  "created_at": "2019-09-03T05:38:24Z",
+  "updated_at": "2019-09-10T15:09:08Z",
+  "closed_at": "2019-09-10T15:09:07Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 529981688,
+      "user": "overvenus",
+      "created_at": "2019-09-10T15:09:07Z",
+      "body": "Fixed via #5384 ."
+    }
+  ]
+}

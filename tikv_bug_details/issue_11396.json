@@ -1,0 +1,46 @@
+{
+  "issue_number": 11396,
+  "title": "two tikv crash repeatly after run some stress workload",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # ./tikv-server -V\r\nTiKV \r\nRelease Version:   5.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   e6081e301433da2679025e2f943de89f1331bf94\r\nGit Commit Branch: heads/refs/tags/v5.3.0\r\nUTC Build Time:    2021-11-15 13:01:10\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8core 16G memory\r\n\r\n### Steps to reproduce\r\nTiKV_Workload_stress_001\r\nTiKV_Workload_stress_002\r\nTiKV_Workload_stress_003\r\nTiKV_Workload_stress_004\r\n\r\n### What did you expect?\r\nall pod is normal\r\n\r\n### What did happened?\r\ntwo tikv crash repeatly\r\n[2021/11/17 03:00:50.975 +00:00] [FATAL] [lib.rs:465] [\"[region 42511] 42513 commit state jump backward (3198, 6) -> (2636, 6)\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:464:18\\n   1: std::panicking::rust_panic_with_hook\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:626:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:519:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys_common/backtrace.rs:141:18\\n   4: rust_begin_unwind\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:515:5\\n   5: std::panicking::begin_panic_fmt\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:457:5\\n   6: raftstore::store::fsm::apply::ApplyFsm<EK>::handle_apply\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:3263:17\\n   7: raftstore::store::fsm::apply::ApplyFsm<EK>::handle_tasks\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:3571:25\\n   8: <raftstore::store::fsm::apply::ApplyPoller<EK,W> as batch_system::batch::PollHandler<raftstore::store::fsm::apply::ApplyFsm<EK>,raftstore::store::fsm::apply::ControlFsm>>::handle_normal\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:3818:9\\n   9: batch_system::batch::Poller<N,C,Handler>::poll\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/batch-system/src/batch.rs:328:27\\n      batch_system::batch::BatchSystem<N,C>::start_poller::{{closure}}\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/batch-system/src/batch.rs:442:17\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys_common/backtrace.rs:125:18\\n  10: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}}\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/thread/mod.rs:476:17\\n      <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panic.rs:347:9\\n      std::panicking::try::do_call\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:401:40\\n      std::panicking::try\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:365:19\\n      std::panic::catch_unwind\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panic.rs:434:14\\n      std::thread::Builder::spawn_unchecked::{{closure}}\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/thread/mod.rs:475:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/ops/function.rs:227:5\\n  11: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys/unix/thread.rs:91:17\\n  12: <unknown>\\n  13: clone\\n\"] [location=/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:3263] [thread_name=apply-0]\r\n![image](https://user-images.githubusercontent.com/84712107/142129030-45c636db-5467-43e9-906d-ee4870f0a0f0.png)\r\n",
+  "state": "closed",
+  "created_at": "2021-11-17T03:25:12Z",
+  "updated_at": "2022-05-17T04:51:59Z",
+  "closed_at": "2021-11-17T12:11:48Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/automation"
+  ],
+  "comments_data": [
+    {
+      "id": 971140697,
+      "user": "Lily2025",
+      "created_at": "2021-11-17T03:25:43Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 971140780,
+      "user": "Lily2025",
+      "created_at": "2021-11-17T03:25:54Z",
+      "body": "/severity Critical\r\n"
+    },
+    {
+      "id": 971141227,
+      "user": "Lily2025",
+      "created_at": "2021-11-17T03:27:09Z",
+      "body": "/assign gengliqi"
+    },
+    {
+      "id": 971141879,
+      "user": "Lily2025",
+      "created_at": "2021-11-17T03:28:56Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1128409024,
+      "user": "MimeLyc",
+      "created_at": "2022-05-17T04:51:59Z",
+      "body": "refresh"
+    }
+  ]
+}

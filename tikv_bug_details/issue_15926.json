@@ -1,0 +1,46 @@
+{
+  "issue_number": 15926,
+  "title": "cb27f2 causes 6%- 10% QPS regression in CH benchmark on ARM64",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nhttps://github.com/tikv/tikv/pull/15726 \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n```\r\n[root@172 ~]# lscpu\r\nArchitecture:          aarch64\r\nByte Order:            Little Endian\r\nCPU(s):                64\r\nOn-line CPU(s) list:   0-63\r\nThread(s) per core:    1\r\nCore(s) per socket:    32\r\nSocket(s):             2\r\nNUMA node(s):          4\r\nModel:                 0\r\nCPU max MHz:           2600.0000\r\nCPU min MHz:           200.0000\r\nBogoMIPS:              200.00\r\nL1d cache:             64K\r\nL1i cache:             64K\r\nL2 cache:              512K\r\nL3 cache:              32768K\r\nNUMA node0 CPU(s):     0-15\r\nNUMA node1 CPU(s):     16-31\r\nNUMA node2 CPU(s):     32-47\r\nNUMA node3 CPU(s):     48-63\r\nFlags:                 fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma dcpop\r\n\r\n\r\n[root@172 ~]# cat /proc/cpuinfo\r\nprocessor\t: 0\r\nBogoMIPS\t: 200.00\r\nFeatures\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma dcpop\r\nCPU implementer\t: 0x48\r\nCPU architecture: 8\r\nCPU variant\t: 0x1\r\nCPU part\t: 0xd01\r\nCPU revision\t: 0\r\n\r\nprocessor\t: 1\r\nBogoMIPS\t: 200.00\r\nFeatures\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma dcpop\r\nCPU implementer\t: 0x48\r\nCPU architecture: 8\r\nCPU variant\t: 0x1\r\nCPU part\t: 0xd01\r\nCPU revision\t: 0\r\n```\r\n\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. deploy a tidb cluster with 3 tidb + 3tikv + 2tiflash with baseline (v7.1.0) and commit cb27f24b89c8107c9ead57be5016ee779996ac25.\r\n2. run ch-benchmark. \r\n\r\n\r\n### What did you expect?\r\nNo performance regression.\r\n\r\n### What did happened?\r\nThere was a 6%- 10% QPS regression in CH benchmark on ARM64.\r\n![image](https://github.com/tikv/tikv/assets/84501897/39548890-9e3c-4b9a-b663-b637f4ddae2b)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-11-06T05:37:23Z",
+  "updated_at": "2023-11-09T02:43:54Z",
+  "closed_at": "2023-11-09T02:43:53Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1794122113,
+      "user": "Yui-Song",
+      "created_at": "2023-11-06T05:40:37Z",
+      "body": "/severity critical\r\n/assign @cfzjywxk \r\n/sig transaction\r\n/label affects-7.5"
+    },
+    {
+      "id": 1794122880,
+      "user": "Yui-Song",
+      "created_at": "2023-11-06T05:41:41Z",
+      "body": "/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.5\r\n/remove-label may-affects-7.1"
+    },
+    {
+      "id": 1794328588,
+      "user": "cfzjywxk",
+      "created_at": "2023-11-06T08:45:29Z",
+      "body": "From the code the https://github.com/tikv/tikv/pull/15726 should not have effect on normal read writes but only stale read included workloads.  I think the regression is unrelated to the https://github.com/tikv/tikv/pull/15726 but because of some other reasones."
+    },
+    {
+      "id": 1803076297,
+      "user": "Yui-Song",
+      "created_at": "2023-11-09T02:43:50Z",
+      "body": "Reproducing the regression with v7.1.0. It seems that the regression is caused by environmental issues. Close this issue.\r\n/close"
+    },
+    {
+      "id": 1803076335,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-11-09T02:43:54Z",
+      "body": "@Yui-Song: Closing this issue.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15926#issuecomment-1803076297):\n\n>Reproducing the regression with v7.1.0. It seems that the regression is caused by environmental issues. Close this issue.\r\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

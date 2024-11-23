@@ -1,0 +1,46 @@
+{
+  "issue_number": 12423,
+  "title": "【Dynamic Regions】QPS dropped to zero while sysbench load data",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   95c4d0ed36369c254b1bee36eb007004ee834948\r\nGit Commit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time:    2022-04-21 10:58:55\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2022-04-24T10:07:55.070+0800\tINFO\tk8s/client.go:107\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./pd-server -V\r\n Release Version: v6.1.0-alpha-40-g1d8eba0\r\nEdition: Community\r\nGit Commit Hash: 1d8eba08d9907ef1a6fdebd1ebf6b218b9338d91\r\nGit Branch: feature/region_monitor\r\nUTC Build Time:  2022-04-22 12:21:42\r\n2022-04-24T10:07:55.245+0800\tINFO\tk8s/client.go:107\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./tidb-server -V\r\n Release Version: v6.1.0-nightly\r\nEdition: Community\r\nGit Commit Hash: 571d97bb16f6f69fcbcf74648380da3c2e80a3fb\r\nGit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time: 2022-04-20 23:02:41\r\nGoVersion: go1.18\r\nRace Enabled: false\r\nTiKV Min Version: v3.0.0-60965b006877ca7234adaced7890d7b029ed1306\r\nCheck Table Before Drop: false\r\n2022-04-24T10:07:55.385+0800\tINFO\tk8s/client.go:107\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./br -V\r\n Release Version: v6.1.0-nightly\r\nGit Commit Hash: 571d97bb16f6f69fcbcf74648380da3c2e80a3fb\r\nGit Branch: heads/refs/tags/v6.1.0-nightly\r\nGo Version: go1.18\r\nUTC Build Time: 2022-04-20 22:56:57\r\nRace Enabled: false\r\n\r\n### What operating system and CPU are you using?\r\n8core、16G\r\nenable-region-bucket = true\r\nregion-bucket-size = \"128M\"\r\nregion-max-keys = 1440000000000\r\nregion-max-size = \"15GB\"\r\nregion-split-keys = 960000000000\r\nregion-split-size = \"10GB\"\r\n\r\n### Steps to reproduce\r\n[2022/04/24 10:07:56.481 +08:00] [INFO] [cmd.go:124] [\"Start remote command\"] [cmd=\"sysbench --mysql-user=root --db-driver=mysql --time=0 --report-interval=10 --mysql-db=sysbenchprepare_1650766075958 --mysql-host=tc-tidb.glh-dynamic-regions-jw8pv --mysql-port=4000 --threads=256 --tables=512 --table-size=70000000 --mysql-ignore-errors=2013,1213,1105,1205,8022,8027,8028,9004,9007 oltp_insert prepare\"] [nodename=benchtoolset]\r\n\r\n### What did you expect?\r\nQPS is stable\r\n\r\n### What did happened?\r\nQPS dropped to zero\r\n![Q04z3UZt86](https://user-images.githubusercontent.com/84712107/164965565-37b0a41b-d185-4ac8-8ecd-7729b46d010d.png)\r\n![lffgsCVf9P](https://user-images.githubusercontent.com/84712107/164965568-f65e0cc1-9198-4c3e-82f7-5805d1d55eda.jpg)\r\n![qYhWLOY4JU](https://user-images.githubusercontent.com/84712107/164965573-7002a9c6-a96d-4060-832e-6ed8b06c3c7a.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-04-24T07:36:28Z",
+  "updated_at": "2022-05-19T18:02:43Z",
+  "closed_at": "2022-05-19T18:02:43Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1107780974,
+      "user": "Lily2025",
+      "created_at": "2022-04-24T07:37:23Z",
+      "body": "/type bug\r\n/severity major\r\n/assign busyjay"
+    },
+    {
+      "id": 1110891192,
+      "user": "BusyJay",
+      "created_at": "2022-04-27T11:30:30Z",
+      "body": "Insertion is too fast and triggers flow control. It should be solved once hotspot scheduling is enhanced for large regions."
+    },
+    {
+      "id": 1120920724,
+      "user": "Lily2025",
+      "created_at": "2022-05-09T10:24:29Z",
+      "body": "/type bug\r\n/severity major\r\n/remove-type enhancement"
+    },
+    {
+      "id": 1124808030,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T10:08:18Z",
+      "body": "/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n"
+    },
+    {
+      "id": 1130694013,
+      "user": "BusyJay",
+      "created_at": "2022-05-18T23:06:22Z",
+      "body": "Should be fixed by https://github.com/tikv/pd/pull/4948"
+    }
+  ]
+}

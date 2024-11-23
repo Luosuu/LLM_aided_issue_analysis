@@ -1,0 +1,33 @@
+{
+  "issue_number": 13620,
+  "title": "after flashback, gc work normal but storage available size is not freed",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@10 ~]# /home/tidb/tidb-deploy/tikv-2360/bin/tikv-server -V\r\nTiKV \r\nRelease Version:   6.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   5f978e518901cb92affaa6d2a64b776e3943a27b\r\nGit Commit Branch: flashback_2pc\r\nUTC Build Time:    2022-10-12 11:50:41\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           release\r\n[root@10 ~]# \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n1. run update workload for about 1 hour with 1.5k tps\r\n2. set gc life time to 2h\r\n3. execute flashback\r\n4. change gc life time to 10 minutes\r\n\r\n### What did you expect?\r\nstorage available size is freed normally\r\n\r\n### What did happened?\r\nstorage available size is not freed\r\n",
+  "state": "closed",
+  "created_at": "2022-10-17T10:12:00Z",
+  "updated_at": "2023-10-13T02:20:07Z",
+  "closed_at": "2023-10-13T02:20:07Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1736697551,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-27T04:49:57Z",
+      "body": "cc @JmPotato"
+    },
+    {
+      "id": 1760665596,
+      "user": "JmPotato",
+      "created_at": "2023-10-13T02:20:07Z",
+      "body": "After some verification, we found that the data during this test was already in an inconsistent state before running the flashback. Will close this issue and then start a new one.\r\n\r\n![](https://github.com/tikv/tikv/assets/1446531/58a54bed-1b4b-4233-ac36-f8d4c61630cd)"
+    }
+  ]
+}

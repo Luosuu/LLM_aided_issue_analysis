@@ -1,0 +1,83 @@
+{
+  "issue_number": 8449,
+  "title": "Status port not binded on the first start when TLS is enabled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\n# bin/tikv-server -V\r\nTiKV \r\nRelease Version:   4.0.4\r\nEdition:           Community\r\nGit Commit Hash:   28e3d44b00700137de4fa933066ab83e5f8306cf\r\nGit Commit Branch: release-4.0\r\nUTC Build Time:    2020-07-29 05:58:16\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\nEnable Features:   jemalloc portable sse protobuf-codec\r\nProfile:           dist_release\r\n```\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNot related\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nAssume the `tikv-server` is deployed on `172.16.5.163`.\r\n\r\n1. Starting a tikv server **without** TLS configured and `--status-addr \"172.16.5.163:20180\"`, everything works normally and the `tikv-server` is listening on `172.16.5.163:20180`.\r\n\r\n2. Starting a tikv server with TLS configured (set cert and key in the config file) and `--status-addr \"172.16.5.163:20180\"`, only the main 20160 port is listened, there is nothing bind on port 20180.\r\n\r\n3. Starting a tikv server with TLS configured and `--status-addr \"0.0.0.0:20180\"`, the `tikv-server` is listening on `0.0.0.0:20180` and working.\r\n\r\n4. Starting a tikv server with TLS configured and `--status-addr \"0.0.0.0:20180\" --advertise-status-addr \"172.16.5.163:20180\"`, the port 20180 is not listened by anything, same as 2.\r\n\r\nAll tests are make with `--addr \"0.0.0.0:20160\" --advertise-addr \"172.16.5.163:20160\"` set, and the 20160 port is listened and working normally on all 4 tests described above.\r\n\r\nI didn't find anything suspicious in the log, no errors about `status_address` nor port `20180`.\r\n\r\n### What did you expect?\r\nThe status port is binded by tikv server with HTTPS when TLS is configured in the config file and working.\r\n\r\n### What did happened?\r\nThe port is not bind by tikv when:\r\n1. TLS is configured in config file, and\r\n2. The status address is set to `IP:Port` instead of `0.0.0.0:Port`\r\n",
+  "state": "closed",
+  "created_at": "2020-08-13T09:34:31Z",
+  "updated_at": "2020-11-20T02:19:49Z",
+  "closed_at": "2020-11-20T02:19:49Z",
+  "labels": [
+    "type/bug",
+    "component/gRPC",
+    "priority/low",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 673389532,
+      "user": "AstroProfundis",
+      "created_at": "2020-08-13T10:09:04Z",
+      "body": "It's working on v3.0.16, v3.1.2 and v4.0.1, not working since v4.0.2.\r\n\r\nAnd I've narrowed the reproduce condition to:\r\n - TLS is configured in config file, and\r\n - The status address is set to an IP address different from that set in `--addr` (maybe only for the first start)\r\n\r\nAnd it seems that, if the status address is set to the same as in `--addr`, it still not listening on the first start, but works normal after a restart of the `tikv-server`.\r\n\r\nI suspect it might be introduced in #8101 (#7944)."
+    },
+    {
+      "id": 673860591,
+      "user": "AstroProfundis",
+      "created_at": "2020-08-14T03:19:03Z",
+      "body": "I've made few more tests and it looks like for v4.0.2-v4.0.4, the status port is always not binding on the first start if TLS is enabled, and it is working normally after a restart of tikv-server."
+    },
+    {
+      "id": 673868706,
+      "user": "hunterlxt",
+      "created_at": "2020-08-14T03:53:26Z",
+      "body": "Can you give complete steps to reproduce the problem? I cannot reproduce the issue in my environment and here is my config:\r\n\r\npd.toml:\r\n```\r\nname = \"pd\"\r\ndata-dir = \"data.pd\"\r\nclient-urls = \"https://127.0.0.1:10000\"\r\npeer-urls = \"https://127.0.0.1:10001\"\r\ninitial-cluster = \"pd=https://127.0.0.1:10001\"\r\n\r\n\r\n[security]\r\ncacert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/root.crt\"\r\ncert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.crt\"\r\nkey-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.key\"\r\n```\r\n\r\ntikv.toml:\r\n```\r\n[pd]\r\nendpoints = [\"127.0.0.1:10000\"]\r\n\r\n[server]\r\naddr = \"127.0.0.1:10002\"\r\nstatus-addr = \"127.0.0.1:10003\"\r\n\r\n[storage]\r\ndata-dir = \"data.tikv\"\r\n\r\n[security]\r\nca-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/root.crt\"\r\ncert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.crt\"\r\nkey-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.key\"\r\n```\r\n\r\n"
+    },
+    {
+      "id": 673890053,
+      "user": "AstroProfundis",
+      "created_at": "2020-08-14T05:21:19Z",
+      "body": "Umm, I can only reproduce it with 3 or more PD nodes, and not using \"127.0.0.1\"."
+    },
+    {
+      "id": 673936743,
+      "user": "hunterlxt",
+      "created_at": "2020-08-14T07:39:16Z",
+      "body": "Here is my modified config(`cat *.toml`):\r\n```toml\r\nname = \"pd1\"\r\ndata-dir = \"data.pd1\"\r\nclient-urls = \"https://172.16.111.10:10000\"\r\npeer-urls = \"https://172.16.111.10:10001\"\r\ninitial-cluster = \"pd1=https://172.16.111.10:10001,pd2=https://172.16.111.10:10005,pd3=https://172.16.111.10:10009\"\r\n\r\n\r\n[security]\r\ncacert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/root.crt\"\r\ncert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.crt\"\r\nkey-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.key\"\r\n\r\nname = \"pd2\"\r\ndata-dir = \"data.pd2\"\r\nclient-urls = \"https://172.16.111.10:10004\"\r\npeer-urls = \"https://172.16.111.10:10005\"\r\ninitial-cluster = \"pd1=https://172.16.111.10:10001,pd2=https://172.16.111.10:10005,pd3=https://172.16.111.10:10009\"\r\n\r\n\r\n[security]\r\ncacert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/root.crt\"\r\ncert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.crt\"\r\nkey-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.key\"\r\n\r\nname = \"pd3\"\r\ndata-dir = \"data.pd3\"\r\nclient-urls = \"https://172.16.111.10:10008\"\r\npeer-urls = \"https://172.16.111.10:10009\"\r\ninitial-cluster = \"pd1=https://172.16.111.10:10001,pd2=https://172.16.111.10:10005,pd3=https://172.16.111.10:10009\"\r\n\r\n\r\n[security]\r\ncacert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/root.crt\"\r\ncert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.crt\"\r\nkey-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.key\"\r\n\r\n[pd]\r\nendpoints = [\"172.16.111.10:10000\"]\r\n\r\n[server]\r\naddr = \"172.16.111.10:10002\"\r\nstatus-addr = \"172.16.111.10:10003\"\r\n\r\n[storage]\r\ndata-dir = \"data.tikv\"\r\n\r\n[security]\r\nca-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/root.crt\"\r\ncert-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.crt\"\r\nkey-path = \"/home/lxt/util/tidb-v4.0.4-linux-amd64/cert/server.key\"\r\n```"
+    },
+    {
+      "id": 673940496,
+      "user": "hunterlxt",
+      "created_at": "2020-08-14T07:48:46Z",
+      "body": "Can you extract the operations in tiup and directly reproduce them with binary? \r\nIf you can, post config here and if cannot, maybe this is an issue related to tiup cluster."
+    },
+    {
+      "id": 674020196,
+      "user": "AstroProfundis",
+      "created_at": "2020-08-14T11:02:21Z",
+      "body": "It's not a 100% chance to reproduce, I can only reproduce it with 3 or 4 out of 10 times of deploying a new cluster.\r\n\r\nI haven't reproduced this issue with these conditions, but I'm not sure if it was just I didn't run into that particular possibility:\r\n - with less than 3 PD nodes\r\n - with all PD processes run on the same host\r\n - without a tidb node"
+    },
+    {
+      "id": 679908905,
+      "user": "BusyJay",
+      "created_at": "2020-08-25T09:17:41Z",
+      "body": "Any progress? @hunterlxt @AstroProfundis"
+    },
+    {
+      "id": 680537469,
+      "user": "hunterlxt",
+      "created_at": "2020-08-26T03:55:05Z",
+      "body": "@BusyJay  Never reproduced in my environment."
+    },
+    {
+      "id": 700309782,
+      "user": "yiwu-arbug",
+      "created_at": "2020-09-28T22:07:31Z",
+      "body": "Is this fixed?"
+    },
+    {
+      "id": 730800707,
+      "user": "hunterlxt",
+      "created_at": "2020-11-20T02:13:25Z",
+      "body": "This issue is staled for a while and never reproduced. Temporarily closed."
+    }
+  ]
+}

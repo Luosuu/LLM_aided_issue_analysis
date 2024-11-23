@@ -1,0 +1,14 @@
+{
+  "issue_number": 10542,
+  "title": "load-base-split may split regions with unencoded keys",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n[v5.0.0, v5.0.3], v5.1.0, master\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nNot important.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nTiKV collects query statistics and key ranges for load-base-split, but the key range is raw key in `batch_get_command()` which should be memcomparable encoded. It results in TiKV splits regions with the key that TiDB can't recognize and TiDB can't access such a region until it's merged into its siblings.\r\nhttps://github.com/tikv/tikv/blob/03044f20bd499f99ff2a556aaf78fc941019e95d/src/storage/mod.rs#L435-L442\r\n\r\n### What did you expect?\r\n\r\nTiDB works normally.\r\n\r\n### What did happened?\r\n\r\nTiDB reports\r\n```\r\n[2021/07/09 15:43:11.899 +08:00] [WARN] [backoff.go:331] [\"pdRPC backoffer.maxSleep 40000ms is exceeded, errors:\\nloadRegion from PD failed, key: \\\"mBootstra\\\\xffpKey\\\\x00\\\\x00\\\\x00\\\\x00\\\\xfb\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00s\\\", err: invalid marker byte, group bytes \\\"t\\\\x80\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x0f\\\" at 2021-07-09T15:43:07.061309853+08:00\\nloadRegion from PD failed, key: \\\"mBootstra\\\\xffpKey\\\\x00\\\\x00\\\\x00\\\\x00\\\\xfb\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00s\\\", err: invalid marker byte, group bytes \\\"t\\\\x80\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x0f\\\" at 2021-07-09T15:43:09.483357169+08:00\\nloadRegion from PD failed, key: \\\"mBootstra\\\\xffpKey\\\\x00\\\\x00\\\\x00\\\\x00\\\\xfb\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00s\\\", err: invalid marker byte, group bytes \\\"t\\\\x80\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x00\\\\x0f\\\" at 2021-07-09T15:43:11.899411987+08:00\"]\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-07-09T11:45:27Z",
+  "updated_at": "2021-07-14T06:37:33Z",
+  "closed_at": "2021-07-14T06:37:33Z",
+  "labels": [
+    "type/bug",
+    "component/storage"
+  ],
+  "comments_data": []
+}

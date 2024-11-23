@@ -1,0 +1,25 @@
+{
+  "issue_number": 13879,
+  "title": "Flashback may miss the last region",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nhttps://github.com/tikv/tikv/commit/4b4fc4390d90e72eb87e49a223e756e6ba1e2688\r\n\r\n### What happened?\r\n\r\n`end_key` in a flashback request will be encoded directly without checking whether it's empty.\r\n\r\nhttps://github.com/tikv/tikv/blob/4b4fc4390d90e72eb87e49a223e756e6ba1e2688/src/storage/txn/commands/mod.rs#L369-L379\r\n\r\nInside the flashback progress, if the `end_key` is empty, it will be less than all other keys, which will cause `scan_latest_user_keys` to return immediately without flashbacking any keys.\r\n\r\nhttps://github.com/tikv/tikv/blob/4b4fc4390d90e72eb87e49a223e756e6ba1e2688/src/storage/mvcc/reader/reader.rs#L611-L616\r\n\r\nLuckily, this won't be a problem for the Flashback SQL since it will use the table prefix key as the `end_key`.\r\n\r\nhttps://github.com/pingcap/tidb/blob/0b1096eac5a500f8c624f08f384d0194da5386f4/ddl/cluster.go#L255-L258",
+  "state": "closed",
+  "created_at": "2022-12-04T13:14:01Z",
+  "updated_at": "2022-12-05T05:50:04Z",
+  "closed_at": "2022-12-05T05:50:04Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "feature/developing",
+    "affects-6.4",
+    "affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1336415047,
+      "user": "JmPotato",
+      "created_at": "2022-12-04T13:42:38Z",
+      "body": "Change severity to critical since the EBS snapshot restoring will be affected by this bug."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "issue_number": 6994,
+  "title": "tests resource leak",
+  "body": "## Bug Report\r\n\r\nAfter `make test`, there are `last_tikv.toml` in both the project root directory and tests directory. There apparently resource leak during tests. It's probably due to configuration are not generated in temporary directory during tests. I can confirm `test_update_raftstore_config` is one of the source that produces file in tests directory.\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\nLinux\r\n\r\n### Steps to reproduce\r\nmake test\r\n\r\n### What did you expect?\r\nA clean workspace.\r\n\r\n### What did happened?\r\ngit status shows there are dirty untrack files. The stale file in root directory is ignored accidentally by tikv/tikv#5377.",
+  "state": "closed",
+  "created_at": "2020-03-04T09:16:29Z",
+  "updated_at": "2020-03-18T13:19:24Z",
+  "closed_at": "2020-03-18T13:19:24Z",
+  "labels": [
+    "type/bug",
+    "component/configuration"
+  ],
+  "comments_data": []
+}

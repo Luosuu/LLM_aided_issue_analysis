@@ -1,0 +1,71 @@
+{
+  "issue_number": 11752,
+  "title": "GcKeys tasks in GC worker block UnsafeDestroyRange requests and make GC stuck",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   5.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   28bf633141e05fa9ce1e04444bc7865da258ef02\r\nGit Commit Branch: heads/refs/tags/v5.4.0-nightly\r\nUTC Build Time:    2021-12-30 00:11:41\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\noltp_rel_008, drop one database, inject tikv instance down some times, after tikv recover, check the gc safepoint.\r\n\r\n### What did you expect?\r\ngc safepoint should push ahead after recover from tikv failure.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/9443637/147719955-aa51057c-7ece-4c7d-b508-6e33f200d780.png)\r\n",
+  "state": "closed",
+  "created_at": "2021-12-30T03:42:49Z",
+  "updated_at": "2022-02-08T11:35:36Z",
+  "closed_at": "2022-02-08T11:35:36Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1002860244,
+      "user": "mayjiang0203",
+      "created_at": "2021-12-30T03:46:18Z",
+      "body": "Logs can be get from minio via testbed-oltp-hm-67jfl.\r\n/type bug\r\n/severity moderate"
+    },
+    {
+      "id": 1002864642,
+      "user": "mayjiang0203",
+      "created_at": "2021-12-30T04:11:39Z",
+      "body": "/assign MyonKeminta"
+    },
+    {
+      "id": 1002867024,
+      "user": "MyonKeminta",
+      "created_at": "2021-12-30T04:23:20Z",
+      "body": "![origin_img_v2_80e091b1-6684-4b42-99ef-dab6cb056feg](https://user-images.githubusercontent.com/9948422/147721285-4548fbdb-b499-4498-9325-df976a2efbd8.png)\r\n\r\nIn this case the `GcKeys` tasks in GC worker are relatively slow. There seems to be queueing tasks in GC worker so that `UnsafeDestroyRange` requests takes minutes in gRPC duration.\r\n\r\nWe may consider:\r\n1. Optimize `GcKeys` tasks\r\n2. Make `UnsafeDestroyRange` executes with higher priority to avoid being blocked by `GcKeys` for too long (but in the other way `GcKeys` might be blocked by `UnsafeDestroyRange`).\r\n\r\ncc @hicqu "
+    },
+    {
+      "id": 1016259670,
+      "user": "mayjiang0203",
+      "created_at": "2022-01-19T09:45:58Z",
+      "body": "Also hit it when try to drop 1T data without any failure inject, there are about 10 database, one database has 100 tables, one table has 5000,000 rows, gc stuck for more than 1 hours .\r\n/severity major"
+    },
+    {
+      "id": 1016262086,
+      "user": "mayjiang0203",
+      "created_at": "2022-01-19T09:48:48Z",
+      "body": "/remove-severity moderate\r\n/found automation"
+    },
+    {
+      "id": 1016265668,
+      "user": "ti-chi-bot",
+      "created_at": "2022-01-19T09:53:23Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/moderate`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/11752#issuecomment-1016262086):\n\n>/remove-severity moderate\r\n>/found automation\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1016285740,
+      "user": "MyonKeminta",
+      "created_at": "2022-01-19T10:16:21Z",
+      "body": "![origin_img_v2_9d24302f-d87a-4d63-abaf-58d946cf9b3g](https://user-images.githubusercontent.com/9948422/150110463-d5524059-c999-4434-b121-5e8d794ed388.png)\r\nFrom @mayjiang0203 : A new case on 2022-01-19, GC resumes after being stuck for about 2 hours."
+    },
+    {
+      "id": 1032418646,
+      "user": "hicqu",
+      "created_at": "2022-02-08T09:55:02Z",
+      "body": "https://github.com/tikv/tikv/pull/11922 should close this."
+    },
+    {
+      "id": 1032502432,
+      "user": "MyonKeminta",
+      "created_at": "2022-02-08T11:24:39Z",
+      "body": "#11922 Optimizes gc_keys tasks in some scenarios. But if there's other cases that gc_keys costs too much time, we may still encounter this problem. Maybe we can close this issue by #11922 for now, and reopen if we found another case someday."
+    }
+  ]
+}

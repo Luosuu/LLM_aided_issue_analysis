@@ -1,0 +1,104 @@
+{
+  "issue_number": 4367,
+  "title": "error: ./target/debug/tikv-server does not enable sse4.2",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\n<!-- You can run `rustc --version` -->\r\nrustc 1.35.0-nightly (a9da8fc9c 2019-03-04)\r\n\r\n**What operating system and CPU are you using?**\r\n<!-- You can run `cat /proc/cpuinfo` -->\r\nUbuntu 18.04.2 LTS\r\nIntel(R) Core(TM) i7-7700 CPU @ 3.60GHz\r\n\r\n**What did you do?**\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun \"make dev\"\r\n\r\n**What did you expect to see?**\r\nSuccessful building and testing\r\n\r\n**What did you see instead?**\r\nWhen \"checking binary ./target/debug/tikv-server for sse4.2\",\r\nI met an error:\r\nerror: ./target/debug/tikv-server does not enable sse4.2",
+  "state": "closed",
+  "created_at": "2019-03-13T09:57:35Z",
+  "updated_at": "2020-08-28T11:18:38Z",
+  "closed_at": "2020-08-28T11:18:37Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 472364830,
+      "user": "siddontang",
+      "created_at": "2019-03-13T10:26:04Z",
+      "body": "PTAL @overvenus "
+    },
+    {
+      "id": 472366003,
+      "user": "overvenus",
+      "created_at": "2019-03-13T10:29:25Z",
+      "body": "Hi @jaltabike Have you installed gdb? "
+    },
+    {
+      "id": 472366224,
+      "user": "jaltabike",
+      "created_at": "2019-03-13T10:30:04Z",
+      "body": "Hi, @overvenus \r\nYes.\r\n\r\n$ gdb --version\r\nGNU gdb (Ubuntu 8.1-0ubuntu3) 8.1.0.20180409-git\r\nCopyright (C) 2018 Free Software Foundation, Inc.\r\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\r\nThis is free software: you are free to change and redistribute it.\r\nThere is NO WARRANTY, to the extent permitted by law.  Type \"show copying\"\r\nand \"show warranty\" for details.\r\nThis GDB was configured as \"x86_64-linux-gnu\".\r\nType \"show configuration\" for configuration details.\r\nFor bug reporting instructions, please see:\r\n<http://www.gnu.org/software/gdb/bugs/>.\r\nFind the GDB manual and other documentation resources online at:\r\n<http://www.gnu.org/software/gdb/documentation/>.\r\nFor help, type \"help\".\r\nType \"apropos word\" to search for commands related to \"word\"."
+    },
+    {
+      "id": 472366286,
+      "user": "siddontang",
+      "created_at": "2019-03-13T10:30:14Z",
+      "body": "oh, it is very strange to let user install gdb....\r\n\r\nBtw, how about Windows."
+    },
+    {
+      "id": 472708213,
+      "user": "overvenus",
+      "created_at": "2019-03-14T05:20:40Z",
+      "body": "Could you `cat /proc/cpuinfo` ? @jaltabike \r\n\r\n------------------\r\n\r\nI will remove sse4.2 check for `make dev`. @siddontang "
+    },
+    {
+      "id": 472716010,
+      "user": "jaltabike",
+      "created_at": "2019-03-14T06:04:00Z",
+      "body": "```$ cat /proc/cpuinfo```\r\n```\r\nprocessor\t: 0\r\nvendor_id\t: GenuineIntel\r\ncpu family\t: 6\r\nmodel\t\t: 158\r\nmodel name\t: Intel(R) Core(TM) i7-7700 CPU @ 3.60GHz\r\nstepping\t: 9\r\nmicrocode\t: 0x8e\r\ncpu MHz\t\t: 900.062\r\ncache size\t: 8192 KB\r\nphysical id\t: 0\r\nsiblings\t: 8\r\ncore id\t\t: 0\r\ncpu cores\t: 4\r\napicid\t\t: 0\r\ninitial apicid\t: 0\r\nfpu\t\t: yes\r\nfpu_exception\t: yes\r\ncpuid level\t: 22\r\nwp\t\t: yes\r\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp flush_l1d\r\nbugs\t\t: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf\r\nbogomips\t: 7200.00\r\nclflush size\t: 64\r\ncache_alignment\t: 64\r\naddress sizes\t: 39 bits physical, 48 bits virtual\r\npower management:\r\n...\r\n```"
+    },
+    {
+      "id": 473509815,
+      "user": "sticnarf",
+      "created_at": "2019-03-16T07:58:04Z",
+      "body": "I find that the mangled function name `_ZN7rocksdb6crc32c10ExtendImplIXadL_ZNS0_L10Fast_CRC32EPmPPKhEEEEjjPKcm` is not found since GDB 8.0. I have submitted a workaround pr using the function address.\r\n\r\nBy the way, I try to gdb a C++ binary linked to rocksdb and this function can be found. So I'm wondering whether this is a rust bug or GDB bug..."
+    },
+    {
+      "id": 476926784,
+      "user": "jaltabike",
+      "created_at": "2019-03-27T01:36:08Z",
+      "body": "Now, \"make dev\" runs successfully."
+    },
+    {
+      "id": 503332664,
+      "user": "brson",
+      "created_at": "2019-06-18T22:16:58Z",
+      "body": "cc @shafreeck I'm finding that the new objdump-based check doesn't work here:\r\n\r\n```\r\nobjdump --disassemble=_ZN7rocksdb6crc32c10ExtendImplIXadL_ZNS0_L10Fast_CRC32\r\nEPmPPKhEEEEjjPKcm ./target/release/tikv-importer\r\nobjdump: option '--disassemble' doesn't allow an argument\r\n```\r\n\r\n```\r\nobjdump --version\r\nGNU objdump (GNU Binutils for Ubuntu) 2.30\r\nCopyright (C) 2018 Free Software Foundation, Inc.\r\nThis program is free software; you may redistribute it under the terms of\r\nthe GNU General Public License version 3 or (at your option) any later version.\r\nThis program has absolutely no warranty.\r\n```"
+    },
+    {
+      "id": 503333407,
+      "user": "brson",
+      "created_at": "2019-06-18T22:19:59Z",
+      "body": "I can get the script to work if I remove the `=symbol` part of the command, but it is very slow since it's disassembling everything."
+    },
+    {
+      "id": 503388030,
+      "user": "shafreeck",
+      "created_at": "2019-06-19T03:07:35Z",
+      "body": "@brson \r\nI found that the `=symbol` feature first appeared on the newest version 2.32. https://sourceware.org/binutils/docs-2.32/binutils/objdump.html#objdump\r\n\r\nWe can not get a reliable result if disassemble all the binary other than the symbol. "
+    },
+    {
+      "id": 503389013,
+      "user": "shafreeck",
+      "created_at": "2019-06-19T03:13:23Z",
+      "body": "Maybe we should use a common way to achieve this..."
+    },
+    {
+      "id": 503391052,
+      "user": "shafreeck",
+      "created_at": "2019-06-19T03:25:03Z",
+      "body": "There is a complex solution\r\n\r\nFind the addresses of the symbol first\r\n\r\n```sh\r\n> nm target/release/tikv-server | grep -A1 \" _.*Fast_CRC32.*\"\r\n0000000000f64db0 t _ZN7rocksdb6crc32c10ExtendImplIXadL_ZNS0_L10Fast_CRC32EPmPPKhEEEEjjPKcm\r\n0000000000f64e60 t _ZN7rocksdb6crc32c10ExtendImplIXadL_ZNS0_L10Slow_CRC32EPmPPKhEEEEjjPKcm\r\n```\r\n\r\nDisassemble using `--start-address` and `--stop-address`\r\n\r\n```sh\r\n> objdump --start-address 0x0000000000f64db0 --stop-address 0x0000000000f64e60 -d target/release/tikv-server | grep \".*f2.*0f 38.*crc32\"\r\n  f64df0:       f2 48 0f 38 f1 06       crc32q (%rsi),%rax\r\n  f64dfa:       f2 48 0f 38 f1 46 f8    crc32q -0x8(%rsi),%rax\r\n  f64e18:       f2 48 0f 38 f1 06       crc32q (%rsi),%rax\r\n```\r\n\r\nHowever, it still does not work on Mac OS which uses `llvm-nm` and `llvm-objectdump`"
+    },
+    {
+      "id": 503613678,
+      "user": "shafreeck",
+      "created_at": "2019-06-19T15:36:46Z",
+      "body": "@brson I fixed the bug with the solution mentioned above. Review this PR if you like: https://github.com/tikv/tikv/pull/4934"
+    },
+    {
+      "id": 682470485,
+      "user": "BusyJay",
+      "created_at": "2020-08-28T11:18:37Z",
+      "body": "Thanks @shafreeck "
+    }
+  ]
+}

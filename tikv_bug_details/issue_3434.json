@@ -1,0 +1,13 @@
+{
+  "issue_number": 3434,
+  "title": "test: test_batch_snapshot failed ",
+  "body": "test storage_cases::test_raftkv::test_batch_snapshot ... thread 'storage_cases::test_raftkv::test_batch_snapshot' panicked at 'assertion failed: s.is_some()', tests/storage_cases/test_raftkv.rs:99:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:227\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:475\r\n   5: std::panicking::begin_panic\r\n             at /checkout/src/libstd/panicking.rs:409\r\n   6: integrations::storage_cases::test_raftkv::test_batch_snapshot\r\n             at tests/storage_cases/test_raftkv.rs:99\r\n   7: integrations::__test::TESTS::{{closure}}\r\n             at tests/storage_cases/test_raftkv.rs:76\r\n   8: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n   9: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1454\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:640\r\n  10: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:106",
+  "state": "closed",
+  "created_at": "2018-08-11T14:12:32Z",
+  "updated_at": "2018-08-30T08:06:16Z",
+  "closed_at": "2018-08-30T08:06:16Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

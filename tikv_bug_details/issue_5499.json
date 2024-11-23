@@ -1,0 +1,29 @@
+{
+  "issue_number": 5499,
+  "title": "storage::test_raft_storage::test_auto_gc, panicked at 'called `Result::unwrap()` on an `Err` value: Txn(Engine(Request(message: \"stale command\")))', src/libcore/result.rs:1165:5",
+  "body": "The log is here \r\nhttps://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/9145/pipeline/142/\r\n",
+  "state": "closed",
+  "created_at": "2019-09-23T06:43:33Z",
+  "updated_at": "2020-11-04T05:08:05Z",
+  "closed_at": "2020-11-04T05:08:05Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 542067107,
+      "user": "tabokie",
+      "created_at": "2019-10-15T06:54:30Z",
+      "body": "[Another failure](https://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/10196/pipeline/145):\r\n```\r\n[2019-10-15T06:37:24.788Z] thread 'storage::test_raft_storage::test_auto_gc' panicked at 'called `Result::unwrap()` on an `Err` value: Txn(Engine(Request(message: \"stale command\")))', src/libcore/result.rs:1165:5\r\n[2019-10-15T06:37:24.788Z] stack backtrace:\r\n[2019-10-15T06:37:25.718Z]    0: backtrace::backtrace::libunwind::trace\r\n[2019-10-15T06:37:25.718Z]              at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.35/src/backtrace/libunwind.rs:88\r\n[2019-10-15T06:37:25.718Z]    1: backtrace::backtrace::trace_unsynchronized\r\n[2019-10-15T06:37:25.718Z]              at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.35/src/backtrace/mod.rs:66\r\n[2019-10-15T06:37:25.718Z]    2: std::sys_common::backtrace::_print\r\n[2019-10-15T06:37:25.718Z]              at src/libstd/sys_common/backtrace.rs:47\r\n[2019-10-15T06:37:25.718Z]    3: std::sys_common::backtrace::print\r\n[2019-10-15T06:37:25.718Z]              at src/libstd/sys_common/backtrace.rs:36\r\n[2019-10-15T06:37:25.718Z]    4: std::panicking::default_hook::{{closure}}\r\n[2019-10-15T06:37:25.718Z]              at src/libstd/panicking.rs:200\r\n[2019-10-15T06:37:25.718Z]    5: std::panicking::default_hook\r\n[2019-10-15T06:37:25.718Z]              at src/libstd/panicking.rs:214\r\n[2019-10-15T06:37:25.718Z]    6: std::panicking::rust_panic_with_hook\r\n[2019-10-15T06:37:25.718Z]              at src/libstd/panicking.rs:477\r\n[2019-10-15T06:37:25.718Z]    7: std::panicking::continue_panic_fmt\r\n[2019-10-15T06:37:25.718Z]              at src/libstd/panicking.rs:384\r\n[2019-10-15T06:37:25.718Z]    8: rust_begin_unwind\r\n[2019-10-15T06:37:25.718Z]              at src/libstd/panicking.rs:311\r\n[2019-10-15T06:37:25.718Z]    9: core::panicking::panic_fmt\r\n[2019-10-15T06:37:25.718Z]              at src/libcore/panicking.rs:85\r\n[2019-10-15T06:37:25.718Z]   10: core::result::unwrap_failed\r\n[2019-10-15T06:37:25.718Z]              at src/libcore/result.rs:1165\r\n[2019-10-15T06:37:25.718Z]   11: core::result::Result<T,E>::unwrap\r\n[2019-10-15T06:37:25.718Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libcore/result.rs:933\r\n[2019-10-15T06:37:25.718Z]   12: integrations::storage::test_raft_storage::check_data\r\n[2019-10-15T06:37:25.718Z]              at tests/integrations/storage/test_raft_storage.rs:236\r\n[2019-10-15T06:37:25.718Z]   13: integrations::storage::test_raft_storage::test_auto_gc\r\n[2019-10-15T06:37:25.718Z]              at tests/integrations/storage/test_raft_storage.rs:336\r\n[2019-10-15T06:37:25.718Z]   14: integrations::storage::test_raft_storage::test_auto_gc::{{closure}}\r\n[2019-10-15T06:37:25.718Z]              at tests/integrations/storage/test_raft_storage.rs:248\r\n[2019-10-15T06:37:25.718Z]   15: core::ops::function::FnOnce::call_once\r\n[2019-10-15T06:37:25.718Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libcore/ops/function.rs:227\r\n[2019-10-15T06:37:25.718Z]   16: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n[2019-10-15T06:37:25.718Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/liballoc/boxed.rs:922\r\n[2019-10-15T06:37:25.718Z]   17: __rust_maybe_catch_panic\r\n[2019-10-15T06:37:25.718Z]              at src/libpanic_unwind/lib.rs:80\r\n[2019-10-15T06:37:25.718Z]   18: std::panicking::try\r\n[2019-10-15T06:37:25.718Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libstd/panicking.rs:275\r\n[2019-10-15T06:37:25.718Z]   19: std::panic::catch_unwind\r\n[2019-10-15T06:37:25.718Z]              at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libstd/panic.rs:394\r\n[2019-10-15T06:37:25.718Z]   20: test::run_test::run_test_inner::{{closure}}\r\n[2019-10-15T06:37:25.718Z]              at src/libtest/lib.rs:1413\r\n[2019-10-15T06:37:25.718Z] note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n[2019-10-15T06:37:32.278Z] test storage::test_raft_storage::test_auto_gc ... FAILED\r\n```"
+    },
+    {
+      "id": 721514564,
+      "user": "tabokie",
+      "created_at": "2020-11-04T05:08:05Z",
+      "body": "duplicate with #6400, closing it now."
+    }
+  ]
+}

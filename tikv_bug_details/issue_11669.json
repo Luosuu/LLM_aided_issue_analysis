@@ -1,0 +1,76 @@
+{
+  "issue_number": 11669,
+  "title": "table_storage_stats.TABLE_KEYS is much higher than actual rows causing analyze wrong sample ratio ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nlatest master \r\n```\r\nMySQL [test]> select distinct type,version,git_hash from information_schema.cluster_info;\r\n+------+--------------------------+------------------------------------------+\r\n| type | version                  | git_hash                                 |\r\n+------+--------------------------+------------------------------------------+\r\n| tidb | 5.4.0-alpha              | c3efa75d8ae993b1f43683a123c438df8cc30543 |\r\n| tikv | 5.4.0-alpha              | 7eeff52ec2f9494a24c712479720bbcf5e9d85dd |\r\n| pd   | 5.4.0-alpha-49-geba75c30 | eba75c3080a0db2d5edda7a2a8628e3a08c1af87 |\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86 64 linux\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrestore tpch 50g and 100g then query table_storage_stats\r\n\r\n### What did you expect?\r\n\r\nthe table_keys matches the actual rows.\r\n\r\n### What did happened?\r\n\r\n```\r\nMySQL [tpch100]> select count(*) from test.region;\r\n+----------+\r\n| count(*) |\r\n+----------+\r\n|        5 |\r\n+----------+\r\n1 row in set (0.003 sec)\r\n\r\nMySQL [tpch100]> select count(*) from tpch100.region;\r\n+----------+\r\n| count(*) |\r\n+----------+\r\n|        5 |\r\n+----------+\r\n1 row in set (0.006 sec)\r\n\r\nMySQL [tpch100]> select * from information_schema.table_storage_stats where table_schema='tpch100' and  table_name = 'region';\r\n+--------------+------------+----------+------------+--------------+--------------------+------------+------------+\r\n| TABLE_SCHEMA | TABLE_NAME | TABLE_ID | PEER_COUNT | REGION_COUNT | EMPTY_REGION_COUNT | TABLE_SIZE | TABLE_KEYS |\r\n+--------------+------------+----------+------------+--------------+--------------------+------------+------------+\r\n| tpch100      | region     |       88 |          3 |            2 |                  0 |        187 |    1008566 |\r\n+--------------+------------+----------+------------+--------------+--------------------+------------+------------+\r\n1 row in set (0.002 sec)\r\n\r\nMySQL [tpch100]> select * from information_schema.table_storage_stats where table_schema='test' and  table_name = 'region';\r\n+--------------+------------+----------+------------+--------------+--------------------+------------+------------+\r\n| TABLE_SCHEMA | TABLE_NAME | TABLE_ID | PEER_COUNT | REGION_COUNT | EMPTY_REGION_COUNT | TABLE_SIZE | TABLE_KEYS |\r\n+--------------+------------+----------+------------+--------------+--------------------+------------+------------+\r\n| test         | region     |       59 |          3 |            1 |                  0 |        131 |     738722 |\r\n+--------------+------------+----------+------------+--------------+--------------------+------------+------------+\r\n1 row in set (0.003 sec)\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-12-16T04:18:19Z",
+  "updated_at": "2022-01-07T06:41:14Z",
+  "closed_at": "2022-01-07T06:41:14Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "found/automation"
+  ],
+  "comments_data": [
+    {
+      "id": 995425506,
+      "user": "dbsid",
+      "created_at": "2021-12-16T04:18:30Z",
+      "body": "/assign Little-Wallace"
+    },
+    {
+      "id": 995425561,
+      "user": "dbsid",
+      "created_at": "2021-12-16T04:18:40Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1000680923,
+      "user": "dbsid",
+      "created_at": "2021-12-24T06:34:13Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1000681254,
+      "user": "dbsid",
+      "created_at": "2021-12-24T06:35:25Z",
+      "body": "Since this issue cause tpch q5 failure and tpch daily run failed, and might block v5.4.0 release, adjust the severity to Critical"
+    },
+    {
+      "id": 1002476882,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T09:18:55Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1003359903,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-12-31T12:07:27Z",
+      "body": "The `approximate keys in a region` in TiKV is an approximate number of keys in a region, why it is used as `TALBE_KEYS`? What is the exact meaning of `TABLE_KEYS`?"
+    },
+    {
+      "id": 1003361028,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-12-31T12:12:03Z",
+      "body": "Why this issue is a `Critical`? IMO, `table_storage_stats` is a statistic table, its information allows an error range? @Lily2025 "
+    },
+    {
+      "id": 1004168815,
+      "user": "dbsid",
+      "created_at": "2022-01-03T15:27:47Z",
+      "body": "/severity minor"
+    },
+    {
+      "id": 1004169652,
+      "user": "dbsid",
+      "created_at": "2022-01-03T15:29:03Z",
+      "body": "adjust the severity because tidb adjust the method not to rely on the `approximate keys` and fix the wrong plan issue"
+    },
+    {
+      "id": 1007177126,
+      "user": "Little-Wallace",
+      "created_at": "2022-01-07T06:41:14Z",
+      "body": "I tried to reproduce this problem on my own cluster but I could not reproduce it. There is some workaround method for TiDB to avoid this problem. We will calculate the real count of table when we find that this table is only contains a small number of regions."
+    }
+  ]
+}

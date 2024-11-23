@@ -1,0 +1,63 @@
+{
+  "issue_number": 10533,
+  "title": "destroy uninitialized peer can make it possible to recreate old peer",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv5.0.3\r\n\r\n### What operating system and CPU are you using?\r\nLinux\r\n\r\n### Steps to reproduce\r\nSupposing there are 4 stores 1, 2, 3, 4. And we schedule a region to add peer a, b, c on store 1, 2, 3 respectively. Since then a is isolated, b is leader. b decides to remove c and add d on store 4. It can succeed as quorum remains connected during the whole time. After that, 2 adds a new learner e on store 3, but remove it immediately before sending any snapshot to it. So e is uninitialized. After 2 hours, e will ask PD and find itself deleted, so will mark itself as tombstone with an **empty region**. If a is recovered and send vote requests to c, the messages can pass the peer id check and epoch check as region is uninitialized. So c will be recreated as an uninitialized peer and vote for a. Then a will become leader. There will be two leaders a and b for the region.\r\n\r\n### What did you expect?\r\nOnly one leader at a term and the cluster work correctly.\r\n\r\n### What did happened?\r\nCorrectness is broken.",
+  "state": "closed",
+  "created_at": "2021-07-08T08:54:19Z",
+  "updated_at": "2021-12-10T08:55:58Z",
+  "closed_at": "2021-12-10T08:55:58Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3"
+  ],
+  "comments_data": [
+    {
+      "id": 876267082,
+      "user": "BusyJay",
+      "created_at": "2021-07-08T09:04:30Z",
+      "body": "One possible solution is adding the current peer into peer list when writing tombstone. So the peer id check will not pass. Note epoch should remain unchanged, which should be 0, to avoid wrong mapping between epoch and peer lists.\r\n\r\nThe long term solution is introducing a new uninitialized state explicitly instead of relying on the peer lists. Introducing uninitialized state should also solve other problems caused by uninitialized peer like #9579, #3572."
+    },
+    {
+      "id": 879094431,
+      "user": "NingLin-P",
+      "created_at": "2021-07-13T13:36:21Z",
+      "body": "Perhaps a more easy solution for this case would be don't mark an uninitialized peer as tombstone when it is destroyed, just like how we don't persist any data for an uninitialized peer when it is not destroyed.\r\n\r\nSince the region is empty, having and haven't the tombstone state is the same for the epoch check and the peer id check, \r\n except that having the tombstone state has the damage of overwriting the previous peer state. \r\n\r\nBut we do need a long term solution to fix #9579 and #3572 though."
+    },
+    {
+      "id": 883259898,
+      "user": "Lily2025",
+      "created_at": "2021-07-20T09:52:07Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 943186375,
+      "user": "w41ter",
+      "created_at": "2021-10-14T09:36:02Z",
+      "body": "Our previous experience is that after deleting a peer, we need to save its ID. When trying to create a peer, we need to check whether it has been deleted before. Can we adopt this solution?\r\n@BusyJay @NingLin-P \r\n\r\n"
+    },
+    {
+      "id": 962409130,
+      "user": "BusyJay",
+      "created_at": "2021-11-06T07:02:39Z",
+      "body": "> ...we need to save its ID.\r\n\r\nIt's already saved, the problem is an empty region state corrupts the record.\r\n\r\n> Since the region is empty, having and haven't the tombstone state is the same for the epoch check and the peer id check\r\n\r\nIt's not true, an uninitialized peer can also vote, not persisting tombstone state doesn't solve the problem.\r\n\r\n@PatrickNicholas do you want to have a try on this? \"adding the current peer into peer list when writing tombstone\" should solve the problem."
+    },
+    {
+      "id": 962758934,
+      "user": "w41ter",
+      "created_at": "2021-11-08T02:31:07Z",
+      "body": "> @PatrickNicholas do you want to have a try on this? \"adding the current peer into peer list when writing tombstone\" should solve the problem.\r\n\r\nOk, I will try to fix this problem."
+    },
+    {
+      "id": 981511342,
+      "user": "w41ter",
+      "created_at": "2021-11-29T10:40:29Z",
+      "body": "> It's already saved, the problem is an empty region state corrupts the record.\r\n\r\nMaybe I didn't make it clear, once a peer is deleted(data is erased), it should never be added back. The most intuitive way is to save the tombstone state with peer's id rather than region id."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "issue_number": 5130,
+  "title": "error: crate `librocksdb_sys` required to be available in rlib format, but was not found in this form",
+  "body": "Per @BusyJay:\r\n\r\n> I occasionally run into error when make dev:\r\n\r\n> > error: crate `librocksdb_sys` required to be available in rlib format, but was not found in this form\r\n\r\n> @Brian Anderson  Do you have any ideas?\r\n\r\nMy first guess is that this is a cargo pipelining bug, as it has only shown up recently and specifically happens with `make` (where pipelining is turned on). Reportedly the problem goes away by running `make` again, which also makes me think its likely a pipelining-related concurrency bug.\r\n\r\ncc @nrc \r\n\r\nSimilar report https://github.com/rust-lang/cargo/issues/6993, closed as unreproducible.\r\n\r\nOur current toolchain is nightly-2019-06-14. Probably worth doing an upgrade just as a stab-in-the-dark.\r\n\r\ncc @alexcrichton\r\n",
+  "state": "closed",
+  "created_at": "2019-07-24T20:10:23Z",
+  "updated_at": "2020-08-28T11:03:16Z",
+  "closed_at": "2020-08-28T11:03:16Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 514793680,
+      "user": "ehuss",
+      "created_at": "2019-07-24T20:46:42Z",
+      "body": "> Our current toolchain is nightly-2019-06-14.\r\n\r\nYes, there was a fix (https://github.com/rust-lang/cargo/pull/7008) which landed somewhere around 2019-06-18.\r\n"
+    },
+    {
+      "id": 514800727,
+      "user": "brson",
+      "created_at": "2019-07-24T21:08:03Z",
+      "body": "Thanks for the scoop @ehuss !"
+    },
+    {
+      "id": 515183716,
+      "user": "brson",
+      "created_at": "2019-07-25T19:33:42Z",
+      "body": "I'm working on a rustup."
+    },
+    {
+      "id": 577365516,
+      "user": "Roundtree-Larry",
+      "created_at": "2020-01-22T20:14:27Z",
+      "body": "Any solution please ? I get the same error"
+    }
+  ]
+}

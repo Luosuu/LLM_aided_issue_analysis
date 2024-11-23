@@ -1,0 +1,23 @@
+{
+  "issue_number": 12506,
+  "title": "PD client keeps reconnecting on error StoreTombstone",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNo matter\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nExecute pd-ctl unsafe remove-failed-stores, and find \r\n\r\n### What did you expect?\r\nNo PD reconnection\r\n\r\n### What did happened?\\\r\nPD client reconnects a lot of times\r\n![image](https://user-images.githubusercontent.com/13497871/168270102-e940fd3b-2682-4207-8974-338ab7c44ef5.png)\r\n![image](https://user-images.githubusercontent.com/13497871/168270164-4f71b319-f112-4867-9a62-ccfdb4c191f0.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-13T11:01:53Z",
+  "updated_at": "2024-04-12T14:13:37Z",
+  "closed_at": "2022-05-26T07:32:47Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-5.4",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1127362908,
+      "user": "Lily2025",
+      "created_at": "2022-05-16T08:10:10Z",
+      "body": "/severity Moderate"
+    }
+  ]
+}

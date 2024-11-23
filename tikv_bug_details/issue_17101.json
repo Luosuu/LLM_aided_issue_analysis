@@ -1,0 +1,51 @@
+{
+  "issue_number": 17101,
+  "title": "Commit log duration is high when hibernate regions are awake",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n![b57e15ae-443b-47de-867e-033bfeb70713](https://github.com/tikv/tikv/assets/13497871/64cc79ca-904d-483b-b399-46779fb66c3f)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-06-06T07:23:57Z",
+  "updated_at": "2024-11-20T03:08:49Z",
+  "closed_at": "2024-11-20T03:08:49Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2151624585,
+      "user": "rleungx",
+      "created_at": "2024-06-06T07:47:59Z",
+      "body": "I also encounter this issue in a large cluster. It could cause the leader to drop after restarting PD."
+    },
+    {
+      "id": 2151641682,
+      "user": "Connor1996",
+      "created_at": "2024-06-06T07:54:34Z",
+      "body": "@rleungx It's due to too many messages sent by these regions when they want to be hibernated again which blocks heartbeat/append messages being sent in time.\r\n\r\nBut why restarting PD would cause leader drop?"
+    },
+    {
+      "id": 2151651607,
+      "user": "rleungx",
+      "created_at": "2024-06-06T08:00:17Z",
+      "body": "I have a large number of regions in one TiKV. When PD restarts, all regions will be awaked and maybe the heartbeat message is not sent in time?"
+    },
+    {
+      "id": 2219874630,
+      "user": "Connor1996",
+      "created_at": "2024-07-10T08:26:23Z",
+      "body": "walkaround: enlarge `server.grpc-raft-conn-num`, default value of this is `1`."
+    },
+    {
+      "id": 2475451703,
+      "user": "hhwyt",
+      "created_at": "2024-11-14T05:30:10Z",
+      "body": "/assign @hhwyt "
+    }
+  ]
+}

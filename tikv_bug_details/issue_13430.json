@@ -1,0 +1,37 @@
+{
+  "issue_number": 13430,
+  "title": "The QPS almost dropped to 0 when leader of PD is killed",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv6.2.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nLinux, amd64\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1. Setup a cluster with TiKV API v2 enabled.\r\n```\r\nstorage.api-version: 2\r\nstorage.enable-ttl: true\r\ncausal-ts.renew-batch-min-size: 10000\r\ncausal-ts.renew-interval: 6s\r\n```\r\n\r\n2. Run a workload of combination with `raw_get` and `raw_put` by `client-java`.\r\n3. Kill leader of PD by `kill -9`.\r\n\r\n\r\n### What did you expect?\r\nThe QPS is slightly affected by the killing of PD leader, as the 6 seconds of TSO cache should be enough for `raw_put` even TSO service is down.\r\nBesides, `raw_get` should not be affected by killing of PD leader.\r\n\r\n### What did happened?\r\nBoth QPS of `raw_get` and `raw_put` almost dropped to 0.\r\n\r\n### Reason\r\n1. The periodical invoke of `causal_ts_provider.flush()` in `cdc::Endpoint::register_min_ts_event()` drop the TSO cache, and cause failure of `raw_put` with error `TsoBatchUsedUp` (refer to [here](https://github.com/tikv/tikv/blob/v6.2.0/components/cdc/src/endpoint.rs#L1170)).\r\n2. Client-java clear region cache on receiving `TsoBatchUsedUp`, try to refresh region information but PD leader is down, and finally can not send any read or write request (refer to https://github.com/tikv/client-java/issues/651).\r\n\r\n### Solution\r\n1. Replace `causal_ts_provider.flush()` with `causal_ts_provider.get_ts()` in `cdc::Endpoint::register_min_ts_event()`.\r\n2. Handle `TsoBatchUsedUp` error properly in client.",
+  "state": "open",
+  "created_at": "2022-09-07T13:24:31Z",
+  "updated_at": "2024-11-01T10:17:44Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1239389588,
+      "user": "pingyu",
+      "created_at": "2022-09-07T13:26:57Z",
+      "body": "cc @iosmanthus @haojinming "
+    },
+    {
+      "id": 1279934381,
+      "user": "pingyu",
+      "created_at": "2022-10-16T09:48:23Z",
+      "body": "> 1. Replace `causal_ts_provider.flush()` with `causal_ts_provider.get_ts()` in `cdc::Endpoint::register_min_ts_event()`.\r\n\r\nThis was fixed by #13326. See [here](https://github.com/tikv/tikv/pull/13326/files#diff-d7efa126ecc8210469f19d8da441c7380b2481f5b167e0f9c44f4260cfaf4680R1155)."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "issue_number": 14667,
+  "title": "[dbaas] The performance of version 7.1.0-rc has regressed by 13% in the sysbench insert scenario,compared with version 7.0.0",
+  "body": "## Bug Report\r\n![image](https://user-images.githubusercontent.com/85105033/234532681-5b9d23cc-b4d1-43e9-8774-65fb2a7f7459.png)\r\nThe performance of version 7.1.0-rc has regressed by 13% in the sysbench insert scenario,compared with version 7.0.0\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n7.1.0           tikv_commit_hash: [38d6d6264e4ce25e3fe780e03b879c04890ca37b]\r\n7.1.0-rc      tikv_commit_hash: [dd7df4df154de66d5c27c64483f5ddc2ab17376d]\r\n### What operating system and CPU are you using?\r\ntidb 8c16g\r\ntikv 8c32g 1000g\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nI hope the performance of 7.1.0-rc matches that of 7.0.0\r\n### What did happened?\r\nThe performance of version 7.1.0-rc has regressed by 13% in the sysbench insert scenario,compared with version 7.0.0\r\nI have observed the following phenomena from the monitoring:\r\n\r\n[**tikv-detail/raft-engine panle**]\r\n7.1.0 avg write duration ~= 2.0 * 7.0.0 avg write duration\r\n7.1.0 P999 write duration ~= 3.x * 7.0.0 avg write duration\r\n7.0.0\r\navg write duration = 1.27ms\r\nP999  write duration = 5.55ms\r\n![image](https://user-images.githubusercontent.com/85105033/234540344-b752212a-83c2-4c51-8928-b918d46d213c.png)\r\n7.1.0-rc\r\navg write duration = 2.23ms\r\nP999  write duration = 15.7ms\r\n![image](https://user-images.githubusercontent.com/85105033/234540973-ffb8802d-d3cf-4768-beba-6b610de2e0f4.png)\r\n\r\n[**TiKV-FastTune**]\r\n7.0.0   2 tikv is faster and 1 tikv is slower\r\n![image](https://user-images.githubusercontent.com/85105033/234555882-03b93b94-5c81-42a4-91c1-ca27c32e2fda.png)\r\n7.1.0-rc 2 tikv is slower and 1 tikv is faster\r\n![image](https://user-images.githubusercontent.com/85105033/234556682-c521929e-4a48-4e5b-b7b9-e00a97002b50.png)\r\n\r\nFurthermore, we have conducted additional tests.\r\n**cluster versionis 7.1.0-rc**\r\n1. 7.0 tidb instesd of 7.1.0-rc tidb      QPS is 10075.23 (version of other component is still 7.1.0-rc )\r\n2. 7.0 tikv instesd of 7.1.0-rc tikv      QPS is  11111.90  (version of other component is still 7.1.0-rc )\r\n\r\n**cluster versionis 7.0.0**\r\n1. 7.1.0-rc tidb instesd of 7.0.0 tidb       QPS is 12317.31 (version of other component is still 7.0.0)\r\n2. 7.1.0-rc tikv instesd of 7.0.0 tikv       QPS is 12597.29 (version of other component is still 7.0.0)\r\n4. 7.1.0-rc pd instesd of 7.0.0 pd          QPS is 12500+  (version of other component is still 7.0.0)\r\n5. version of all component is 7.0.0, but the configuration being accessed pertains to version 7.1.0. QPS is 10496.01 （7.0.0 baseline is 12278）\r\n\r\nWe believe that based on the above analysis, the reason for the performance regression in the insert scenario for version 7.1.0 could be attributed to the parameter configuration of 7.1.0.\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-04-26T11:21:03Z",
+  "updated_at": "2023-05-08T05:18:14Z",
+  "closed_at": "2023-05-08T05:18:14Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

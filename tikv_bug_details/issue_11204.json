@@ -1,0 +1,33 @@
+{
+  "issue_number": 11204,
+  "title": "Possible memory fragmentation risk when using external storage",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster.\r\n\r\n### What operating system and CPU are you using?\r\n\r\nStandard linux.\r\n\r\n### Steps to reproduce\r\n\r\nIn https://github.com/tikv/tikv/pull/7306, the memory fragmentation is relaxed by greatly reducing the frequency of reading the thread list.\r\n\r\nHowever, as external storage is calling `block_on_external_io`, which will create new threads each time, the thread list cache trick in #7306 is roughly ineffective, which increases the fragmentation risk.\r\n\r\n> This issue is previously discovered by @sticnarf in https://github.com/tikv/tikv/pull/11196#issuecomment-955961878. I moved it to a new issue for better focused discussion.",
+  "state": "open",
+  "created_at": "2021-11-01T10:44:17Z",
+  "updated_at": "2021-12-31T06:33:01Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1002527435,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T10:34:47Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002527733,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T10:35:25Z",
+      "body": "/severity Minor"
+    },
+    {
+      "id": 1003285160,
+      "user": "kennytm",
+      "created_at": "2021-12-31T06:33:01Z",
+      "body": "`block_on_external_io` should eventually be removed as we should have transitioned the environment to use the `async` environment"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "issue_number": 10772,
+  "title": "region cannot be INTEGRITY_OVER_LABEL in dr-auto-sync",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n5.2 release branch\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. --> \r\nmanually PD leader transfer during async, and then recover the network.\r\n### What did you expect?\r\nasync-> sync-recover -> sync\r\n\r\n### What did happened?\r\nasync-> sync-recover(blocking)\r\nand found some regions blocking with SIMPLE_MAJORITY. such as :\r\n```\r\n{\r\n  \"id\": 18412,\r\n  \"start_key\": \"7480000000000000FF795F698000000000FF0000010380000000FF0007A50503800000FF00004F93B6000000FC\",\r\n  \"end_key\": \"7480000000000000FF795F698000000000FF0000010380000000FF0007A8F703800000FF000036319E000000FC\",\r\n  \"epoch\": {\r\n    \"conf_ver\": 68,\r\n    \"version\": 55\r\n  },\r\n  \"peers\": [\r\n    {\r\n      \"id\": 18413,\r\n      \"store_id\": 82,\r\n      \"role_name\": \"Voter\"\r\n    },\r\n    {\r\n      \"id\": 18414,\r\n      \"store_id\": 5,\r\n      \"role_name\": \"Voter\"\r\n    },\r\n    {\r\n      \"id\": 18415,\r\n      \"store_id\": 81,\r\n      \"role_name\": \"Voter\"\r\n    }\r\n  ],\r\n  \"leader\": {\r\n    \"id\": 18415,\r\n    \"store_id\": 81,\r\n    \"role_name\": \"Voter\"\r\n  },\r\n  \"written_bytes\": 0,\r\n  \"read_bytes\": 0,\r\n  \"written_keys\": 0,\r\n  \"read_keys\": 0,\r\n  \"approximate_size\": 64,\r\n  \"approximate_keys\": 1016577,\r\n  \"replication_status\": {\r\n    \"state\": \"SIMPLE_MAJORITY\",\r\n    \"state_id\": 20243\r\n  }\r\n}\r\n```\r\n\r\n```\r\n{\r\n  \"replication-mode\": \"dr-auto-sync\",\r\n  \"dr-auto-sync\": {\r\n    \"label-key\": \"zone\",\r\n    \"primary\": \"cn-west-1\",\r\n    \"dr\": \"cn-east-1\",\r\n    \"primary-replicas\": 2,\r\n    \"dr-replicas\": 1,\r\n    \"wait-store-timeout\": \"1m0s\",\r\n    \"wait-sync-timeout\": \"1m0s\",\r\n    \"wait-async-timeout\": \"2m0s\"\r\n  }\r\n}\r\n\r\n{\r\n  \"mode\": \"dr-auto-sync\",\r\n  \"dr-auto-sync\": {\r\n    \"label_key\": \"zone\",\r\n    \"state\": \"sync_recover\",\r\n    \"state_id\": 20243,\r\n    \"total_regions\": 566,\r\n    \"synced_regions\": 36,\r\n    \"recover_progress\": 0.9858657\r\n  }\r\n}\r\n\r\n```\r\ndetails log about this region: \r\n[store81_18412.log](https://github.com/tikv/tikv/files/7008643/store81_18412.log)\r\n[stores.log](https://github.com/tikv/tikv/files/7008658/stores.log)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-08-18T16:18:58Z",
+  "updated_at": "2021-08-25T10:48:05Z",
+  "closed_at": "2021-08-25T10:48:05Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 901637424,
+      "user": "mayjiang0203",
+      "created_at": "2021-08-19T06:08:52Z",
+      "body": "/severity major\r\n/assign @nolouch "
+    },
+    {
+      "id": 901638001,
+      "user": "mayjiang0203",
+      "created_at": "2021-08-19T06:09:53Z",
+      "body": "Some of region stay in SIMPLE_MAJORITY even pd work in sync mode.\r\n[2021/08/19 14:04:51.975 +08:00] [INFO] [pdutil.go:254] [\"No need to wait to recover to sync,cur stat:sync\"]\r\n[2021/08/19 14:04:52.154 +08:00] [WARN] [pdutil.go:364] [\"There are 7 regions not in expected status.\"]\r\n[2021/08/19 14:04:52.154 +08:00] [WARN] [pdutil.go:365] [\"Regions stay not in expected status:NTEGRITY_OVER_LABEL|UNKOWN v%!(NOVERB)%!(EXTRA map[int]string=map[188:SIMPLE_MAJORITY 224:SIMPLE_MAJORITY 228:SIMPLE_MAJORITY 232:SIMPLE_MAJORITY 252:SIMPLE_MAJORITY 307:SIMPLE_MAJORITY 319:SIMPLE_MAJORITY])\"]"
+    }
+  ]
+}

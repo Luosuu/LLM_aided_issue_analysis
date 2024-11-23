@@ -1,0 +1,28 @@
+{
+  "issue_number": 9971,
+  "title": "Avoid unnoticeable data loss due to inappropriate handling of checksum",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\nDoesn't matter\r\n\r\n### Steps to reproduce\r\nNone.\r\n\r\n### What did you expect?\r\nTiKV can detect disk corruption and avoid unnoticed data loss.\r\n\r\n### What did happened?\r\nTiKV uses checksum to verify the integrity of snapshots, and rely on rocksdb also uses checksum to check for potential data corruption. But currently there are still two weak points that miss the detection or even cause unnecessary data loss in certain situation.\r\n\r\n1. PointInTime recovery\r\n\r\nWe use `PointInTime` recovery policy to make sure TiKV can recover from being aborted. But unfortunately, any IO error can also cause the WAL being deleted, hence cause data loss. This behavior is fixed in upstream but not picked to tikv's fork yet. Related tracking issue: https://github.com/tikv/rocksdb/issues/142.\r\n\r\nUpstream also tracks synced WAL in MANIFEST to make sure any known synced WAL data won't be deleted accidentally during recovery.\r\n\r\n#9886 is a similar case about recovery and its fix #9938 also meets a similar problem that can be fixed by tracking in MANIFEST.\r\n\r\n2. encryption header is not checksumed\r\n\r\nWhen encryption is enabled, not all data are protected by checksum, it's possible that some bit flipping can introduced unnoticed corruption. \r\n\r\n/cc @hunterlxt  @yiwu-arbug ",
+  "state": "open",
+  "created_at": "2021-04-07T02:36:31Z",
+  "updated_at": "2021-04-07T18:52:40Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/engine",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 814623136,
+      "user": "yiwu-arbug",
+      "created_at": "2021-04-07T05:53:39Z",
+      "body": "@BusyJay \r\n\r\nPicking the fix for https://github.com/tikv/rocksdb/issues/142 is something we missed. Thanks for the reminder.\r\n\r\nPer #9938, since it is likely we aren't able to merge the encryption code back to upstream (upstream having alternative approach), changing MANIFEST to track the file dictionary file size would break compatibility with upstream rocksdb. Other discussion is at https://github.com/tikv/tikv/pull/9963#issuecomment-814355273.\r\n\r\nPer encryption header, I believe we have checksum for mostly for both key dictionary and file dictionary files? Can you be specific which part is not checksumed?"
+    },
+    {
+      "id": 814638385,
+      "user": "hunterlxt",
+      "created_at": "2021-04-07T06:24:40Z",
+      "body": "@yiwu-arbug \r\n\r\nfor example, in `components/encryption/src/encrypted_file/header.rs`, strictly speaking, checksum should be placed in the first order.\r\n\r\nand in `components/encryption/src/file_dict_file.rs`, each record is variable length, so the length information cannot be checkedsum. The solution is to fix length to store the record information"
+    }
+  ]
+}

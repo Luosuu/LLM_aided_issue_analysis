@@ -1,0 +1,74 @@
+{
+  "issue_number": 15639,
+  "title": "[dr-autosync] after do tikv flashback to  min-resolved-ts, admin check table hit  ERROR 8223 (HY000): data inconsistency in table ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.5\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. Set cluster run in dr-autosync mode;\r\n2. Down primary DC when running in sync_recover mode;\r\n3. Do pd recovery and online recovery in backup dc to recover the cluster;\r\n4. Get min-resolved-ts from pd, and then run tikv-ctl flashback to the min-resolved-ts;\r\n5. Do admin check table;\r\n\r\n### What did you expect?\r\nNo error report.\r\n\r\n### What did happened?\r\n\r\n```\r\nMySQL [tpcc]> admin check table history;\r\nERROR 8223 (HY000): data inconsistency in table: history, index: idx_h_w_id, handle: 755404, index-values:\"handle: 755404, values: [KindInt64 1 KindInt64 755404]\" != record-values:\"\"\r\nMySQL [tpcc]> select * from history limit 1;\r\n+--------+----------+----------+--------+--------+---------------------+----------+----------------------+\r\n| h_c_id | h_c_d_id | h_c_w_id | h_d_id | h_w_id | h_date              | h_amount | h_data               |\r\n+--------+----------+----------+--------+--------+---------------------+----------+----------------------+\r\n|      1 |        1 |        1 |      1 |      1 | 2021-01-20 09:47:40 |    10.00 | iwSnYzojbAJVLSikzd8Y |\r\n+--------+----------+----------+--------+--------+---------------------+----------+----------------------+\r\n1 row in set (0.002 sec)\r\n```\r\n",
+  "state": "open",
+  "created_at": "2023-09-20T00:40:23Z",
+  "updated_at": "2024-11-01T10:17:01Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1726721137,
+      "user": "mayjiang0203",
+      "created_at": "2023-09-20T00:41:07Z",
+      "body": "/assign @HuSharp \r\n/severity critical\r\n/label affects-6.5\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1726723140,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-09-20T00:45:01Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `may-affects-5.3`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15639#issuecomment-1726721137):\n\n>/assign @HuSharp \r\n>/severity critical\r\n>/label affects-6.5\r\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-6.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1728652817,
+      "user": "mayjiang0203",
+      "created_at": "2023-09-21T01:57:04Z",
+      "body": "/remove-severity critical\r\n/severity major\r\nThe w/a is use the newest tso in sync mode instead of min-resolved-ts get from pd, so remove critical. "
+    },
+    {
+      "id": 1728653179,
+      "user": "mayjiang0203",
+      "created_at": "2023-09-21T01:57:39Z",
+      "body": "/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1728653423,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-09-21T01:58:01Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `may-affects-5.3`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15639#issuecomment-1728653179):\n\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-6.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1760601805,
+      "user": "mayjiang0203",
+      "created_at": "2023-10-13T00:52:06Z",
+      "body": "This issue should be caused by the wrong min-resolved-ts get from PD, in which time the data is not consistent already.\r\n```\r\n[2023/10/12 21:10:21.408 +08:00] [INFO] [cluster.go:1203] [\"get minResolvedTs\"] [tso=444888562899353618] [minResolvedTsTime=2023/10/12 20:53:04.400 +00:00]\r\n2023-10-12T21:11:21.463+0800    INFO    k8s/client.go:133       it should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n[2023/10/12 21:11:22.431 +08:00] [INFO] [cluster.go:794] [\"set tidb_gc_enable=FALSE here\"]\r\n[2023/10/12 21:11:22.431 +08:00] [INFO] [client.go:680] [\"set global tidb_gc_enable=FALSE\"]\r\n[2023/10/12 21:11:22.604 +08:00] [INFO] [cluster.go:800] [\" tidb_gc_enable \"] [values=\"[OFF]\"]\r\n[2023/10/12 21:11:22.962 +08:00] [INFO] [cluster.go:1120] [setSnapshot] [=\"set @@tidb_snapshot=\\\"2023-10-12 20:53:04\\\"\"]\r\n[2023/10/12 21:11:23.023 +08:00] [INFO] [cluster.go:1127] [\"run query\"] [query=\"select count(1) from tpcc.history\"]\r\n[2023/10/12 21:11:29.776 +08:00] [INFO] [cluster.go:1153] [\"sql output row\"] [query=\"select count(1) from tpcc.history\"]\r\n[2023/10/12 21:11:29.776 +08:00] [INFO] [cluster.go:1159] [\"30506468\\t\"]\r\n[2023/10/12 21:11:29.776 +08:00] [INFO] [cluster.go:1161] [\"[51 48 53 48 54 52 54 56]\\t\"]\r\n[2023/10/12 21:11:29.776 +08:00] [INFO] [cluster.go:1127] [\"run query\"] [query=\"select count(1) from tpcc.history use index(idx_h_w_id)\"]\r\n[2023/10/12 21:11:29.827 +08:00] [INFO] [cluster.go:1153] [\"sql output row\"] [query=\"select count(1) from tpcc.history use index(idx_h_w_id)\"]\r\n[2023/10/12 21:11:29.827 +08:00] [INFO] [cluster.go:1159] [\"30506468\\t\"]\r\n[2023/10/12 21:11:29.827 +08:00] [INFO] [cluster.go:1161] [\"[51 48 53 48 54 52 54 56]\\t\"]\r\n[2023/10/12 21:11:29.827 +08:00] [INFO] [cluster.go:1127] [\"run query\"] [query=\"select count(1) from tpcc.history use index()\"]\r\n[2023/10/12 21:11:37.371 +08:00] [INFO] [cluster.go:1153] [\"sql output row\"] [query=\"select count(1) from tpcc.history use index()\"]\r\n[2023/10/12 21:11:37.371 +08:00] [INFO] [cluster.go:1159] [\"30797446\\t\"]\r\n[2023/10/12 21:11:37.371 +08:00] [INFO] [cluster.go:1161] [\"[51 48 55 57 55 52 52 54]\\t\"]\r\n```\r\n\r\n"
+    },
+    {
+      "id": 1770149047,
+      "user": "mayjiang0203",
+      "created_at": "2023-10-19T06:32:13Z",
+      "body": "may be related to issue https://github.com/tikv/tikv/issues/15506 "
+    },
+    {
+      "id": 1783100383,
+      "user": "overvenus",
+      "created_at": "2023-10-27T15:23:12Z",
+      "body": "Discussed offline, the issue might be caused by advancing resolved ts without considering stores that have no leader. See https://github.com/tikv/pd/pull/7282"
+    },
+    {
+      "id": 2095110484,
+      "user": "mayjiang0203",
+      "created_at": "2024-05-06T02:55:35Z",
+      "body": "The workaround solution involves using external data for recovery in the sync_recover situation, such as data from CDC or PITR backups. By leveraging these external data sources, we can achieve a smaller Recovery Point Objective (RPO), meaning that in the event of a failure, less data will be lost as the system can recover to a more recent point in time. \r\nBased on these considerations, we have decided to lower the priority of fixing this issue."
+    }
+  ]
+}

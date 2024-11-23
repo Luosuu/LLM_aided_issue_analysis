@@ -1,0 +1,69 @@
+{
+  "issue_number": 12983,
+  "title": "one tikv oom after 40 minutes of recovery from network loss",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   07e7cd40dffcd5d7ce1c0f2693bb7ba59a3cd465\r\nGit Commit Branch: heads/refs/tags/v6.2.0-alpha\r\nUTC Build Time:    2022-07-06 11:02:49\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8core、16GB\r\n\r\n### Steps to reproduce\r\nopen titan（test plan：oltp-titan-tpcc.yaml），run tpcc 512 threads\r\ntikv oom after run oltp-tikv-rel-tikv-network-loss\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/871424\r\n\r\n### What did you expect?\r\ntikv should not oom\r\n\r\n### What did happened?\r\ntikv0 oom at 2022/07/08 02:09\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7117438009417001349?from=1657157600&to=1657223102\r\n![image](https://user-images.githubusercontent.com/84712107/178194057-b2d664c7-da6d-49b9-a8da-944acf2845df.png)\r\n![image](https://user-images.githubusercontent.com/84712107/178194302-9419ad14-bddc-4b1f-bb7e-9d8ad7917041.png)\r\n![image](https://user-images.githubusercontent.com/84712107/178195694-82b9d90b-45b2-42f9-b0b2-f321acc83936.png)\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-07-11T05:24:31Z",
+  "updated_at": "2024-11-01T10:17:45Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1179980684,
+      "user": "Lily2025",
+      "created_at": "2022-07-11T05:25:15Z",
+      "body": "/type bug\r\n/severity major\r\n/assign Jtier-cap"
+    },
+    {
+      "id": 1179980697,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-11T05:25:16Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: Jtier-cap.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12983#issuecomment-1179980684):\n\n>/type bug\r\n>/severity major\r\n>/assign Jtier-cap\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1179984526,
+      "user": "Lily2025",
+      "created_at": "2022-07-11T05:32:45Z",
+      "body": "/assign tier-cap"
+    },
+    {
+      "id": 1271959981,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T18:45:44Z",
+      "body": "/assign cosven\r\nPTAL"
+    },
+    {
+      "id": 1271960051,
+      "user": "ti-chi-bot",
+      "created_at": "2022-10-07T18:45:46Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: cosven.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12983#issuecomment-1271959981):\n\n>/assign cosven\r\n>PTAL\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1272207352,
+      "user": "cosven",
+      "created_at": "2022-10-08T02:56:32Z",
+      "body": "/assign @cosven "
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "issue_number": 975,
+  "title": "server panics when restarting after stopped for a few hours",
+  "body": "A 3 nodes cluster, stop a node for a few hours then restart. It panics with following log:\n\n```\n29048 2016-08-25 14:07:35,936 raft.rs:582 - INFO  - [region 15540] 15541 became follower at term 66\n29049 2016-08-25 14:07:35,936 raft.rs:735 - INFO  - [region 2776] 2777 [term: 15] received a MsgHeartbeat message with higher term fr      om 2779 [term: 69]\n29050 2016-08-25 14:07:35,936 raft.rs:582 - INFO  - [region 2776] 2777 became follower at term 69\n29051 2016-08-25 14:07:36,250 snap.rs:199 - ERROR - failed to apply snap: Other(StringError(\"missing snap file /data/test/dianle/data/tikv1/snap/rev_5876_7_2263.snap\"))!!!\n29052 2016-08-25 14:07:36,250 mod.rs:51 - WARN  - handle task Snap apply for 5876 [takes Duration { secs: 1, nanos: 129691607}]\n29053 2016-08-25 14:07:36,274 endpoint.rs:176 - ERROR - failed to get snapshot: Request(message: \"peer is not leader\" not_leader {region_id: 3004 leader {id: 3007 store_id: 6}})\n29054 2016-08-25 14:07:36,274 endpoint.rs:176 - ERROR - failed to get snapshot: Request(message: \"peer is not leader\" not_leader {region_id: 3016 leader {id: 3019 store_id: 6}})\n29055 thread 'raftstore-1' panicked at 'applying snapshot to 5876 failed', src/raftstore/store/store.rs:1199\n29056 stack backtrace:\n29057    1:     0x7fa3e112ef8d - std::sys::backtrace::tracing::imp::write::h29f5fdb9fc0a7395\n29058    2:     0x7fa3e1134fe1 - std::panicking::default_hook::_{{closure}}::h2cc84f0378700526\n29059    3:     0x7fa3e1133f59 - std::panicking::default_hook::hbbe7fa36a995aca0\n29060    4:     0x7fa3e0e7a670 - tikv::util::panic_hook::set_exit_hook::_{{closure}}::hf7e56c7db7debd8a\n29061                         at /home/pingcap/src/github.com/pingcap/tikv/src/util/panic_hook.rs:68\n29062    5:     0x7fa3e1134597 - std::panicking::rust_panic_with_hook::h105c3d42fcd2fb5e\n29063    6:     0x7fa3e1134482 - std::panicking::begin_panic::hbf62ea4a5ff3f9de\n29064    7:     0x7fa3e11343b0 - std::panicking::begin_panic_fmt::h20f5943904e5791d\n29065    8:     0x7fa3e0d07309 - _<tikv..raftstore..store..store..Store<T, C> as mio..handler..Handler>::notify::hbbedf1c7212e20ed\n29066                         at /home/pingcap/src/github.com/pingcap/tikv/src/raftstore/store/store.rs:8\n29067                         at /home/pingcap/src/github.com/pingcap/tikv/src/raftstore/store/store.rs:1266\n29068    9:     0x7fa3e0ceffb0 - _<tikv..raftstore..store..store..Store<T, C>>::run::h07e797b034747ed5\n29069                         at /home/pingcap/.cargo/git/checkouts/mio-e79f285e2377d154/master/src/event_loop.rs:366\n29070                         at /home/pingcap/.cargo/git/checkouts/mio-e79f285e2377d154/master/src/event_loop.rs:313\n29071                         at /home/pingcap/.cargo/git/checkouts/mio-e79f285e2377d154/master/src/event_loop.rs:261\n29072                         at /home/pingcap/src/github.com/pingcap/tikv/src/raftstore/store/store.rs:217\n29073   10:     0x7fa3e0c66a70 - std::panicking::try::call::hb22bd3c1347e6e52\n29074                         at /buildslave/rust-buildbot/slave/nightly-dist-rustc-linux/build/obj/../src/libstd/panic.rs:256\n29075                         at /buildslave/rust-buildbot/slave/nightly-dist-rustc-linux/build/obj/../src/libstd/panicking.rs:282\n29076   11:     0x7fa3e113cae6 - __rust_maybe_catch_panic\n29077   12:     0x7fa3e0cd0f97 - _<F as alloc..boxed..FnBox<A>>::call_box::h23f612000242526e\n29078                         at /buildslave/rust-buildbot/slave/nightly-dist-rustc-linux/build/obj/../src/libstd/thread/local.rs:245\n29079                         at /buildslave/rust-buildbot/slave/nightly-dist-rustc-linux/build/obj/../src/libstd/panicking.rs:245\n29080                         at /buildslave/rust-buildbot/slave/nightly-dist-rustc-linux/build/obj/../src/libstd/panic.rs:312\n29081                         at /buildslave/rust-buildbot/slave/nightly-dist-rustc-linux/build/obj/../src/liballoc/boxed.rs:587\n29082   13:     0x7fa3e11328b2 - std::sys::thread::Thread::new::thread_start::h8f3bd45211e9f5ea\n29083   14:     0x7fa3df888183 - start_thread\n29084   15:     0x7fa3e00a237c - clone\n29085   16:                0x0 - <unknown>\n```\n",
+  "state": "closed",
+  "created_at": "2016-08-25T08:43:08Z",
+  "updated_at": "2018-08-07T00:46:03Z",
+  "closed_at": "2017-06-30T08:55:50Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 242368985,
+      "user": "siddontang",
+      "created_at": "2016-08-25T12:30:50Z",
+      "body": "Hi @hhkbp2, Please help @BusyJay  to solve it. \n"
+    },
+    {
+      "id": 242710003,
+      "user": "hhkbp2",
+      "created_at": "2016-08-26T11:35:34Z",
+      "body": "Still have no clue after tracking the handling of the Applying State and snapshot GC and its conditions(truncated index, etc) in the source code. They looks quite solid and there is no timing issue.\n"
+    },
+    {
+      "id": 242738947,
+      "user": "siddontang",
+      "created_at": "2016-08-26T13:43:10Z",
+      "body": "we should think how to recover from this panic too. \n"
+    },
+    {
+      "id": 242890279,
+      "user": "siddontang",
+      "created_at": "2016-08-27T02:25:52Z",
+      "body": "I think Should add more tests for snapshot applying.\nIf we really meet this bug (region is applying but snapshot file is missing), how can we recover from it? We can't panic after restart. \n\nMaybe we can remove all region data, but this may cause another panic later in raft heartbeat, because the leader may keep a matched index and will send it in heartbeat, but now we have nothing, so a panic will happen in raft log `commit_to`.  \n"
+    },
+    {
+      "id": 243448276,
+      "user": "shenli",
+      "created_at": "2016-08-30T14:01:14Z",
+      "body": "Any update?\n"
+    },
+    {
+      "id": 243469834,
+      "user": "siddontang",
+      "created_at": "2016-08-30T15:02:05Z",
+      "body": "Seem no update.\n"
+    }
+  ]
+}

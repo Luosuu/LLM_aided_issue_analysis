@@ -1,0 +1,22 @@
+{
+  "issue_number": 15971,
+  "title": "Titan store size metric is not accurate",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nRelease Version:   7.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   e0fe14d57136f645457bcf14ee5ae1a478be04b8\r\nGit Commit Branch: heads/refs/tags/v7.6.0-alpha\r\nUTC Build Time:    2023-11-03 11:51:51\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nsysbench wide table read_write workload\r\n![8e3352e1-ec8b-4b79-b5df-a7bfc72ff942](https://github.com/tikv/tikv/assets/7677963/b0e4491a-7bcd-4fa0-94e8-5a786fadaf1f)\r\n```\r\n[root@tc-tikv-2 data]# du -h -d 1\r\n12K\t./import\r\n194M\t./snap\r\n12G\t./raft-engine\r\n3.1T\t./db\r\n3.1T\t.\r\n```\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-11-13T05:08:57Z",
+  "updated_at": "2023-11-19T04:25:32Z",
+  "closed_at": "2023-11-15T06:13:21Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1815663463,
+      "user": "JasonWu0506",
+      "created_at": "2023-11-17T02:44:25Z",
+      "body": "@tonyxuqqi  impacted version information?"
+    }
+  ]
+}

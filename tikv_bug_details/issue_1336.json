@@ -1,0 +1,27 @@
+{
+  "issue_number": 1336,
+  "title": "test: QPS fails to 0 in block writer test ",
+  "body": "```\r\n   27s: 3209.8/sec\r\n   28s:    0.0/sec\r\n   29s:    0.0/sec\r\n   30s:    0.0/sec\r\n   31s: 1429.1/sec\r\n   32s: 2963.0/sec\r\n```\r\n\r\nThe error log in tidb is \r\n\r\n```\r\n2016/11/22 14:55:21 backoff.go:168: [warning] stale_epoch:<> , retry later(totalSleep 100ms, maxSleep 10000ms)\r\n2016/11/22 14:55:21 backoff.go:168: [warning] stale_epoch:<> , retry later(totalSleep 100ms, maxSleep 10000ms)\r\n2016/11/22 15:00:26 kv.go:221: [warning] tikv reports `NotLeader`: region_id:16 leader:<id:18 store_id:5 > , ctx: region_id:16 region_epoch:<conf_ver:3 version:3 > peer:<id:17 store_id:1 > , retry later\r\n2016/11/22 15:00:26 kv.go:221: [warning] tikv reports `NotLeader`: region_id:20 leader:<id:23 store_id:4 > , ctx: region_id:20 region_epoch:<conf_ver:3 version:5 > peer:<id:21 store_id:1 > , retry later\r\n```",
+  "state": "closed",
+  "created_at": "2016-11-22T07:13:34Z",
+  "updated_at": "2018-08-07T00:46:19Z",
+  "closed_at": "2017-06-30T08:54:41Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench"
+  ],
+  "comments_data": [
+    {
+      "id": 262178058,
+      "user": "disksing",
+      "created_at": "2016-11-22T08:31:40Z",
+      "body": "Update:\r\nHave it tested on my machine, QPS never drop down to 0, but sometimes it drops from ~6000/s to less than 1000/s.\r\nAs I can observe, when QPS drops down, tikv thread 'rocksdb:bg*' consumes a lot of CPU, so the rocksdb compaction may be related."
+    },
+    {
+      "id": 262236457,
+      "user": "siddontang",
+      "created_at": "2016-11-22T13:10:41Z",
+      "body": "Update:\r\n\r\nThe IO load in PD test machine is very busy, this may cause getting TSO too slow. I guess this is the reason for QPS 0. I change TSO save interval to 3m, and don't meet 0 QPS again. \r\n\r\nBut:\r\n\r\n+ We still need to improve the QPS when spitting. @disksing \r\n+ If the PD load is high, how can we improve the TSO performance, @huachaohuang ?"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "issue_number": 14472,
+  "title": "[Dynamic Regions] upgrade from v6.6. to v7.0 is slow due to Recovering raft logs",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv7.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nupgrade a cluster with pure_threshhold = 200GB is slow\r\n\r\n### What did you expect?\r\nfast upgrade operation, the elapse time of Recovering raft logs should less than 1 minutes.\r\n\r\n### What did happened?\r\n\r\n```\r\n[2023/03/28 08:11:06.487 +00:00] [INFO] [engine.rs:91] [\"Recovering raft logs takes 252.292317067s\"]\r\n```",
+  "state": "closed",
+  "created_at": "2023-03-28T08:17:29Z",
+  "updated_at": "2023-08-07T06:59:00Z",
+  "closed_at": "2023-08-07T06:59:00Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1486419129,
+      "user": "dbsid",
+      "created_at": "2023-03-28T08:17:46Z",
+      "body": "/severity major\r\n"
+    },
+    {
+      "id": 1486420417,
+      "user": "dbsid",
+      "created_at": "2023-03-28T08:18:46Z",
+      "body": "/assign @LykxSassinator "
+    },
+    {
+      "id": 1486420463,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-28T08:18:47Z",
+      "body": "@dbsid: GitHub didn't allow me to assign the following users: LykxSassinator.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14472#issuecomment-1486420417):\n\n>/assign @LykxSassinator \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1486437654,
+      "user": "dbsid",
+      "created_at": "2023-03-28T08:31:43Z",
+      "body": "need to increase raft-engine.recovery_threads to 16 or 24"
+    },
+    {
+      "id": 1496733801,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-04T23:48:13Z",
+      "body": "dup with #14481"
+    }
+  ]
+}

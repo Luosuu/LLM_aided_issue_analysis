@@ -1,0 +1,52 @@
+{
+  "issue_number": 9469,
+  "title": "raftstore: the invalid read delegates in local reader may not be removed forever",
+  "body": "## Bug Report\r\n\r\nAlthough https://github.com/tikv/tikv/pull/4765 introduce the `invalid` flag to remove the invalid `ReadDelegate`s on `LocalReader`, but the flag only be checked when handling a request to the `ReadDelegate`, if the `ReadDelegate` is marked as invalid and no incoming request to it, the `ReadDelegate` not be removed and consuming memory.\r\n\r\nAlthough `mem::size_of::<ReadDelegate>()` is 122 bytes, but if this case happened the `ReadDelegate` will not be removed forever, and the memory occupied by these invalid `ReadDelegate` will only increase not decrease as TiKV running.",
+  "state": "closed",
+  "created_at": "2021-01-08T15:07:54Z",
+  "updated_at": "2021-01-25T14:11:44Z",
+  "closed_at": "2021-01-25T14:11:44Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 756804556,
+      "user": "NingLin-P",
+      "created_at": "2021-01-08T15:08:34Z",
+      "body": "PTAL @hicqu @BusyJay "
+    },
+    {
+      "id": 756920252,
+      "user": "BusyJay",
+      "created_at": "2021-01-08T18:21:23Z",
+      "body": "Perhaps it can also use `LruCache` instead of `HashMap` to maintain a reasonable size."
+    },
+    {
+      "id": 764675770,
+      "user": "NingLin-P",
+      "created_at": "2021-01-21T14:22:51Z",
+      "body": "> Perhaps it can also use `LruCache` instead of `HashMap` to maintain a reasonable size.\r\n\r\n`LruCache` only remove one item each time when its capacity is full.  As TiKV run long enough, the capacity we set to `LruCache` will full and after that it may bring extract cost when handling request for a delegate not in the cache.\r\n\r\nI think it may better to keep an unlimited `HashMap` and when we need insert new delegate to `LocalReader`, check `delegates.len() > store_meta.readers.len() * 1.5` then remove all `invalid` delegates if it is true."
+    },
+    {
+      "id": 764734856,
+      "user": "BusyJay",
+      "created_at": "2021-01-21T15:46:19Z",
+      "body": "What's the extract cost comparing to a `HashMap` and a for loop?"
+    },
+    {
+      "id": 764792428,
+      "user": "NingLin-P",
+      "created_at": "2021-01-21T16:59:05Z",
+      "body": "A `LruCache`'s capacity is limited, after it is full, every `insert` comes with a `remove`. With the approach mentioned above, we only need to clear invalid `delegate` when we know there has a large amount of invalid `delegate`, it should not be frequent and will be efficient, also prevent the `HashMap` grow unlimitedly."
+    },
+    {
+      "id": 765259793,
+      "user": "BusyJay",
+      "created_at": "2021-01-22T09:17:23Z",
+      "body": "The usage in TiKV usually maintains `LruCache`'s capacity the same as region count. A remove is an `O(1)` operation that only takes several nanoseconds. Removal occurs only when capacity is full and new delegate is inserted. However the time of looping over a HashMap is undetermined. If the count of hashmap exceeds 100000, the time probably can be tens or hundreds of millis."
+    }
+  ]
+}

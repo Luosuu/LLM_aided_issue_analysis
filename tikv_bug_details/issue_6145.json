@@ -1,0 +1,32 @@
+{
+  "issue_number": 6145,
+  "title": "Fail to execute `cargo check` in `components/tikv_util` ",
+  "body": "## Bug Report\r\n\r\n### Steps to reproduce\r\n`cargo check` in `components/tikv_util` \r\n### What did you expect?\r\n`cargo check` exits normally.\r\n\r\n### What did happen?\r\n`cargo check` failed and report: \r\n```\r\nerror[E0599]: no method named `generate_files` found for type `&Builder` in the current scope\r\n  --> /home/iosmanthus/.cargo/registry/src/github.com-1ecc6299db9ec823/protobuf-build-0.10.0/src/lib.rs:56:14\r\n   |\r\n56 |         self.generate_files();\r\n   |              ^^^^^^^^^^^^^^\r\n\r\nerror: aborting due to previous error\r\n\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2019-12-03T07:17:00Z",
+  "updated_at": "2020-02-21T16:51:44Z",
+  "closed_at": "2020-02-21T16:51:44Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 561702043,
+      "user": "cireu",
+      "created_at": "2019-12-04T15:42:49Z",
+      "body": "Can't run `cargo check` in `components/tidb_query` neither."
+    },
+    {
+      "id": 563849611,
+      "user": "breezewish",
+      "created_at": "2019-12-10T05:31:47Z",
+      "body": "@nrc @BusyJay @brson PTAL, thanks! It might not be friendly that general cargo commands doesn't work in our project."
+    },
+    {
+      "id": 564340225,
+      "user": "nrc",
+      "created_at": "2019-12-11T01:48:13Z",
+      "body": "You must specify either `prost-codec` or `protobuf-codec` feature for it to work. It would be better if this was not required, but it is tricky"
+    }
+  ]
+}

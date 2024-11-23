@@ -1,0 +1,39 @@
+{
+  "issue_number": 13772,
+  "title": "v6.3.0 upgrade to v6.4.0 will fail when has causal-ts.available-interval config in v6.3.0",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.4.0-pre\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\ninstall v6.3.0 with  causal-ts.available-interval=3s\r\nupgrade to v6.4.0\r\n### What did you expect?\r\ndelete config item can be ignored when upgrade\r\n### What did happened?\r\n```code\r\nError: init config failed: [172.16.5.52:2360](http://172.16.5.52:2360/): executor.ssh.execute_failed: Failed to execute command over SSH for '[liting@172.16.5.52:22](mailto:liting@172.16.5.52:22)' {ssh_stderr: unknown configuration options: causal-ts.available-interval\r\n, ssh_stdout: , ssh_command: export LANG=C; PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin /home/liting/deploy/tikv-2360/bin/tikv-server --config-check --config=/home/liting/deploy/tikv-2360/conf/tikv.toml --pd \"\" --data-dir \"/data1/liting/data/tikv-2360\"}, cause: Process exited with status 1: check config failed\r\n```",
+  "state": "closed",
+  "created_at": "2022-11-11T06:39:35Z",
+  "updated_at": "2022-11-15T03:54:19Z",
+  "closed_at": "2022-11-15T03:54:19Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1311295324,
+      "user": "seiya-annie",
+      "created_at": "2022-11-11T06:48:32Z",
+      "body": "/type bug "
+    },
+    {
+      "id": 1311295756,
+      "user": "pingyu",
+      "created_at": "2022-11-11T06:49:03Z",
+      "body": "`causal-ts.available-interval` was renamed to `causal-ts.alloc-ahead-buffer` in https://github.com/tikv/tikv/pull/13597.\r\n\r\nAlthough codes for `causal-ts.available-interval` was introduced before `v6.3.0`, but it has never appeared in any document. So we don't expect any user will use this configuration item and face issue on upgrade.\r\n\r\np.s. `causal-ts.alloc-ahead-buffer` will be introduced since `v6.4.0`, see [here](https://docs.pingcap.com/tidb/dev/tikv-configuration-file#alloc-ahead-buffer-new-in-v640)."
+    },
+    {
+      "id": 1311295972,
+      "user": "seiya-annie",
+      "created_at": "2022-11-11T06:49:21Z",
+      "body": "/severity moderate"
+    },
+    {
+      "id": 1314733369,
+      "user": "pingyu",
+      "created_at": "2022-11-15T03:54:19Z",
+      "body": "Won't fix."
+    }
+  ]
+}

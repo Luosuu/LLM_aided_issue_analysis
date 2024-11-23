@@ -1,0 +1,42 @@
+{
+  "issue_number": 12914,
+  "title": "dr-auto-sync: After down tikv in backup cluster, query in primary cluster hit 9002: TiKV timeout",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nsh-4.2# ./tikv-server -V\r\nTiKV\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   a9c3e56552c803642f640e9b3fa8725aa3072400\r\nGit Commit Branch: heads/refs/tags/v6.2.0-alpha\r\nUTC Build Time:    2022-06-24 14:26:53\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1、Config replication mode to dr auto sync mode, 3 stores in primary datacenter,  2 stores in backup datacenter, ;\r\n2、Add evict leader to back stores, waiting leader in backup stores return to 0, run scan tables query;\r\n3、Down all stores in backup datacenter, run scan tables again;\r\n\r\n### What did you expect?\r\nIn step 3 , scan tables succeeded.\r\n\r\n### What did happened?\r\n[2022/06/26 23:22:38.065 +08:00] [INFO] [drautosync.go:113] [\"select count(*) from bank2_accounts;\"]\r\n[2022/06/26 23:23:46.954 +08:00] [INFO] [drautosync.go:125] [\"query failed,retry\"] [\"error mesg\"=\"Error 9002: TiKV server timeout\"]\r\n",
+  "state": "closed",
+  "created_at": "2022-06-27T05:43:03Z",
+  "updated_at": "2023-08-28T10:10:48Z",
+  "closed_at": "2023-08-28T10:10:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1166896966,
+      "user": "mayjiang0203",
+      "created_at": "2022-06-27T05:44:42Z",
+      "body": "/type bug\r\n/severity Major\r\n/assign @disksing "
+    },
+    {
+      "id": 1695415962,
+      "user": "mayjiang0203",
+      "created_at": "2023-08-28T10:10:48Z",
+      "body": "Has been fixed in 6.5.4."
+    }
+  ]
+}

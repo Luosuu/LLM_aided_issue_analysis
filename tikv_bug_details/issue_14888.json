@@ -1,0 +1,16 @@
+{
+  "issue_number": 14888,
+  "title": "compaction-guard-min-output-file-size default value 8MB is too big that could leads to huge compaction",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.1\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. Enable TiDB TTL feature, import 1TB data into 2 tables\r\n2.  Wait 29 days \r\n3. manually compact cluster's data to bottom level\r\n4. insert 100 records in each table.\r\n### What did you expect?\r\nNO huge compaction could happen\r\n### What did happened?\r\nAt 30th day, there's huge compaction that includes majority data of L6.\r\n\r\nThe reason is that 8MB threshold makes compaction guard not effective for many regions. And when TTL is enabled,  the upper level SST could cover a huge range that could lead to huge compaction. ",
+  "state": "closed",
+  "created_at": "2023-06-07T00:02:59Z",
+  "updated_at": "2023-06-08T21:58:48Z",
+  "closed_at": "2023-06-08T21:58:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

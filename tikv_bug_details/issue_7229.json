@@ -1,0 +1,13 @@
+{
+  "issue_number": 7229,
+  "title": "Replication read should be resumed after applying snapshot",
+  "body": "A follower relies on apply result and handle ready to execute replication read. If it's applying snapshot, read will be suspended until snapshot is applied.\r\n\r\nHowever, if the node is isolated during the time, there will be no ready created until next election timeout. If hibernate region is enabled, the node will not be woken up until next twice of stale peer check interval.\r\n\r\nRelated: #7106, #6083.",
+  "state": "closed",
+  "created_at": "2020-03-24T13:05:13Z",
+  "updated_at": "2020-03-25T07:26:41Z",
+  "closed_at": "2020-03-25T07:26:41Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

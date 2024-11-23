@@ -1,0 +1,26 @@
+{
+  "issue_number": 5073,
+  "title": "test: test server::raft_client::test_raft_client_reconnect failed",
+  "body": "https://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/6616/pipeline\r\n\r\n```\r\nthread 'server::raft_client::test_raft_client_reconnect' panicked at 'assertion failed: (0..100).map(|_|\r\n\r\n                 raft_client.send(1, &addr,\r\n\r\n                                  RaftMessage::new())).collect::<Result<(),\r\n\r\n                                                                        _>>().is_err()', tests/integrations/server/raft_client.rs:130:5\r\n\r\nstack backtrace:\r\n\r\ntest raftstore::test_split_region::test_server_base_split_region_left_derive ... ok\r\n\r\n   0: backtrace::backtrace::libunwind::trace\r\n\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/libunwind.rs:88\r\n\r\n   1: backtrace::backtrace::trace_unsynchronized\r\n\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/mod.rs:66\r\n\r\n   2: std::sys_common::backtrace::_print\r\n\r\n             at src/libstd/sys_common/backtrace.rs:47\r\n\r\n   3: std::sys_common::backtrace::print\r\n\r\n             at src/libstd/sys_common/backtrace.rs:36\r\n\r\n   4: std::panicking::default_hook::{{closure}}\r\n\r\n             at src/libstd/panicking.rs:198\r\n\r\n   5: std::panicking::default_hook\r\n\r\n             at src/libstd/panicking.rs:212\r\n\r\n   6: std::panicking::rust_panic_with_hook\r\n\r\n             at src/libstd/panicking.rs:475\r\n\r\n   7: std::panicking::begin_panic\r\n\r\n   8: integrations::server::raft_client::test_raft_client_reconnect\r\n\r\n             at tests/integrations/server/raft_client.rs:130\r\n\r\n   9: integrations::server::raft_client::test_raft_client_reconnect::{{closure}}\r\n\r\n             at tests/integrations/server/raft_client.rs:89\r\n\r\n  10: core::ops::function::FnOnce::call_once\r\n\r\n             at /rustc/0e4a56b4b04ea98bb16caada30cb2418dd06e250/src/libcore/ops/function.rs:231\r\n\r\n  11: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n\r\n             at /rustc/0e4a56b4b04ea98bb16caada30cb2418dd06e250/src/liballoc/boxed.rs:746\r\n\r\n  12: __rust_maybe_catch_panic\r\n\r\n             at src/libpanic_unwind/lib.rs:82\r\n\r\n  13: std::panicking::try\r\n\r\n             at /rustc/0e4a56b4b04ea98bb16caada30cb2418dd06e250/src/libstd/panicking.rs:273\r\n\r\n  14: std::panic::catch_unwind\r\n\r\n             at /rustc/0e4a56b4b04ea98bb16caada30cb2418dd06e250/src/libstd/panic.rs:388\r\n\r\n  15: test::run_test::run_test_inner::{{closure}}\r\n\r\n             at src/libtest/lib.rs:1466\r\n```",
+  "state": "closed",
+  "created_at": "2019-07-11T11:16:44Z",
+  "updated_at": "2019-07-12T07:12:52Z",
+  "closed_at": "2019-07-12T07:12:52Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 510752800,
+      "user": "5kbpers",
+      "created_at": "2019-07-12T05:39:07Z",
+      "body": "@zyh-hust PTAL"
+    },
+    {
+      "id": 510755451,
+      "user": "zyh-hust",
+      "created_at": "2019-07-12T05:50:53Z",
+      "body": "I am modifying"
+    }
+  ]
+}

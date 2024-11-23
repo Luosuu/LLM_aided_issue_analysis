@@ -1,0 +1,23 @@
+{
+  "issue_number": 9444,
+  "title": "make doc is broken",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster\r\n\r\n### Steps to reproduce\r\n\r\n`make doc`\r\n\r\n### What did happened?\r\n\r\n```\r\n$ make doc\r\nthread 'main' panicked at 'activated_features for invalid package: features did not find PackageId { name: \"synstructure\", version: \"0.12.3\", source: \"registry `https://github.com/rust-lang/crates.io-index`\" } false', src/tools/cargo/src/cargo/core/resolver/features.rs:227:14\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\nmake: *** [Makefile:277: doc] Error 101\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-01-06T09:25:50Z",
+  "updated_at": "2021-04-19T08:33:52Z",
+  "closed_at": "2021-04-19T08:33:52Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "component/build",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 813849668,
+      "user": "tisonkun",
+      "created_at": "2021-04-06T06:07:11Z",
+      "body": "with #9858 I think this should be reopened."
+    }
+  ]
+}

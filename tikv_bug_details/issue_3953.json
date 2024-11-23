@@ -1,0 +1,56 @@
+{
+  "issue_number": 3953,
+  "title": "copr/codec/mysql/time: invalid_zero function isn't working as expected.",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\nrustc 1.29.0-nightly (4f3c7a472 2018-07-17)\r\n\r\n**What operating system and CPU are you using?**\r\nOS: Arch Linux \r\nKernel: x86_64 Linux 4.19.8-arch1-1-ARCH\r\nCPU: Intel Core i7-8650U @ 8x 4.2GHz\r\n\r\n**What did you do?**\r\n\r\n```rust\r\n/// In go, time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC) will be adjusted to\r\n/// -0001-11-30 00:00:00 +0000 UTC, whose timestamp is -62169984000.\r\nconst ZERO_TIMESTAMP: i64 = -62169984000;\r\n\r\n#[inline]\r\nfn zero_time(tz: Tz) -> DateTime<Tz> {\r\n    tz.timestamp(ZERO_TIMESTAMP, 0)\r\n}\r\n\r\n#[inline]\r\npub fn zero_datetime(tz: Tz) -> Time {\r\n    Time::new(zero_time(tz), TimeType::DateTime, mysql::DEFAULT_FSP).unwrap()\r\n}\r\n\r\n#[derive(Clone, Debug)]\r\npub struct Time {\r\n    // TimeZone should be loaded from request context.\r\n    time: DateTime<Tz>,\r\n    time_type: TimeType,\r\n    fsp: u8,\r\n}\r\n\r\nimpl Time {\r\n    fn parse_datetime_internal(s: &str, fsp: i8, tz: Tz, is_float: bool) -> Result<Time> {\r\n        ...\r\n        if year == 0 && month == 0 && day == 0 && hour == 0 && minute == 0 && sec == 0 {\r\n                println!(\"zero time: {:?}\", zero_datetime(tz));\r\n                return Ok(zero_datetime(tz));\r\n        }\r\n        ...\r\n    }\r\n\r\n    pub fn parse_datetime(s: &str, fsp: i8, tz: Tz) -> Result<Time> {\r\n        Time::parse_datetime_internal(s, fsp, tz, false)\r\n    }\r\n\r\n    pub fn parse_utc_datetime(s: &str, fsp: i8) -> Result<Time> {\r\n        Time::parse_datetime(s, fsp, Tz::utc())\r\n    }\r\n\r\n    pub fn invalid_zero(&self) -> bool {\r\n        self.time.month() == 0 || self.time.day() == 0\r\n    }\r\n}\r\n```\r\n\r\nWhen I call `let t = Time::parse_utc_datetime(\"0000-00-00\", 0).unwrap();`, it will return  `zero_datetime(Tz::utc())`.\r\nIn function `invalid_zero`, `self.time.month()` and `self.time.day()` are 11 and 30 respectively, so `t.invalid_zero()` will be false instead of true as I expected.\r\n",
+  "state": "closed",
+  "created_at": "2018-12-19T05:28:09Z",
+  "updated_at": "2020-08-28T11:35:54Z",
+  "closed_at": "2020-08-28T11:35:54Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 448591877,
+      "user": "huachaohuang",
+      "created_at": "2018-12-19T13:10:50Z",
+      "body": "Sorry, I don't think I understand the problem, can you give a snippet to demonstrate the problem?"
+    },
+    {
+      "id": 448604314,
+      "user": "koushiro",
+      "created_at": "2018-12-19T13:55:03Z",
+      "body": "```rust\r\n#[test]\r\nfn test_time_is_invalid_zero() {\r\n    let t = Time::parse_utc_datetime(\"0000-00-00\", 0).unwrap();\r\n    // I think the result of t.invalid_zero() should be true.\r\n    assert_eq!(t.invalid_zero(), false); \r\n}\r\n```\r\nAdd the above test case to the coprocessor/codec/mysql/time/mod.rs and then run the command:\r\n`cargo test coprocessor::codec::mysql::time::tests::test_time_is_invalid_zero`"
+    },
+    {
+      "id": 448643349,
+      "user": "huachaohuang",
+      "created_at": "2018-12-19T15:50:19Z",
+      "body": "Oh, interesting, would you like to help to debug it?"
+    },
+    {
+      "id": 448923270,
+      "user": "koushiro",
+      "created_at": "2018-12-20T09:00:18Z",
+      "body": "```rust\r\n/// In go, time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC) will be adjusted to\r\n/// -0001-11-30 00:00:00 +0000 UTC, whose timestamp is -62169984000.\r\nconst ZERO_TIMESTAMP: i64 = -62169984000;\r\n\r\nfn parse_datetime_internal(s: &str, fsp: i8, tz: Tz, is_float: bool) -> Result<Time> {\r\n    ...\r\n    if year == 0 && month == 0 && day == 0 && hour == 0 && minute == 0 && sec == 0 {\r\n        println!(\"zero time: {:?}\", zero_datetime(tz));\r\n        return Ok(zero_datetime(tz));\r\n    }\r\n    ...\r\n}\r\n```\r\nWhen the `parse_utc_datetime('0000-00-00', 6)` is called, \r\nbecause of the value of `ZERO_TIMESTEAMP`, \r\n`Time.DateTime` will be `-0001-11-30T00:00:00NonFixed(UTC)`, \r\nso that `Time.Datetime.month()` is equals to `11` and `Time.Datetime.day()` is equals to `30`.\r\n\r\n`crate chrono` does not seem to construct of a Datetime structure with a month and day value of ZERO, so **I don't have a good idea.**\r\n\r\nMaybe add a flag into Time structure when the result of parsing month or parsing day is ZERO?（only in the case that the the result of parsing datetime is all ZEROs）, just like\r\n\r\n```rust\r\n#[derive(Clone, Debug)]\r\npub struct Time {\r\n    // TimeZone should be loaded from request context.\r\n    time: DateTime<Tz>,\r\n    time_type: TimeType,\r\n    fsp: u8,\r\n    invalid_zero: bool,  // true when the value of month or day is ZERO.\r\n}\r\n\r\nfn parse_datetime_internal(s: &str, fsp: i8, tz: Tz, is_float: bool) -> Result<Time> {\r\n    ...\r\n    if year == 0 && month == 0 && day == 0 && hour == 0 && minute == 0 && sec == 0 {\r\n        if month == 0 || day == 0 {\r\n            self.invalid_zero = true;\r\n        }\r\n        println!(\"zero time: {:?}\", zero_datetime(tz));\r\n        return Ok(zero_datetime(tz));\r\n    }\r\n    ...\r\n}\r\n\r\npub fn invalid_zero(&self) -> bool {\r\n    self.time.month() == 0 || self.time.day() == 0 || self.invalid_zero\r\n}\r\n```\r\n\r\nDoes anybody else has a good idea or has a solution on this problem?\r\n\r\nBTW, why using timestamp of time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC) in golang as ZERO_TIMESTAMP in Tikv？For consistency?"
+    },
+    {
+      "id": 448939412,
+      "user": "huachaohuang",
+      "created_at": "2018-12-20T09:55:13Z",
+      "body": "@koushiro Thanks for your effort, @breeswish PTAL."
+    },
+    {
+      "id": 449225727,
+      "user": "breezewish",
+      "created_at": "2018-12-21T03:03:16Z",
+      "body": "@koushiro Thanks for your report. This is a known issue that TiKV Coprocessor does not support zero month or day (totally). It's fine to just keep the current behaviour, but will be great if we can fix it! Currently, we don't have plans to fix it yet. Maybe we need to introduce the time wrapper as TiDB does."
+    },
+    {
+      "id": 533978819,
+      "user": "iosmanthus",
+      "created_at": "2019-09-23T06:52:02Z",
+      "body": "Will be fixed in https://github.com/tikv/tikv/pull/5473"
+    }
+  ]
+}

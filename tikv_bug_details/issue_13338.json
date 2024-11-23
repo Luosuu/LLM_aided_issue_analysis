@@ -1,0 +1,22 @@
+{
+  "issue_number": 13338,
+  "title": "Manual compaction triggers flow control/write stall",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nN/A\r\n\r\n### What operating system and CPU are you using?\r\nN/A\r\n\r\n### Summary\r\n\r\nRocksDB disallow concurrent scheduling of auto-compaction and manual compaction. ([code](https://github.com/tikv/rocksdb/blob/3cd757c0e829472f53a9ff9b3a09359c2e5ee522/db/db_impl/db_impl_compaction_flush.cc#L2487))\r\n\r\nIn TiKV, we use compact range to cleanup region tombstones (`on_compact_check_tick`). If that compaction is too large, it will block all other auto-compaction and triggers flow-control or write-stall.\r\n\r\nIn practice, the possibility of a hug compaction (>60s) is low. Setting the severity to minor.\r\n\r\nRelated internal link: https://internal.pingcap.net/jira/browse/ONCALL-5294",
+  "state": "closed",
+  "created_at": "2022-08-25T03:07:25Z",
+  "updated_at": "2022-08-29T06:25:08Z",
+  "closed_at": "2022-08-29T06:25:08Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1229832288,
+      "user": "tabokie",
+      "created_at": "2022-08-29T06:25:08Z",
+      "body": "I misread the code, turns out our manual compaction will set `exclusive_manual_compaction` to false.\r\n\r\nThe real reason is user set rocksdb.max-background-jobs to 5, this effectively limits the compaction threads to at most 1."
+    }
+  ]
+}

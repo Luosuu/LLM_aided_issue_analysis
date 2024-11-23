@@ -1,0 +1,13 @@
+{
+  "issue_number": 3833,
+  "title": "test_node_callback_when_destroyed failed",
+  "body": "```\r\nthread 'raftstore_cases::test_lease_read::test_node_callback_when_destroyed' panicked at 'read index should be performed', tests/raftstore_cases/test_lease_read.rs:304:5\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:221\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:475\r\n   5: std::panicking::begin_panic\r\n             at /checkout/src/libstd/panicking.rs:409\r\n   6: integrations::raftstore_cases::test_lease_read::test_node_callback_when_destroyed\r\n             at tests/raftstore_cases/test_lease_read.rs:304\r\n   7: integrations::__test::TESTS::{{closure}}\r\n             at tests/raftstore_cases/test_lease_read.rs:274\r\n   8: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n   9: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1454\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:640\r\n  10: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:106\r\n```\r\n\r\nhttps://circleci.com/gh/tikv/tikv/15242?utm_campaign=vcs-integration-link&utm_medium=referral&utm_source=github-build-link",
+  "state": "closed",
+  "created_at": "2018-11-26T16:18:31Z",
+  "updated_at": "2018-12-03T15:26:17Z",
+  "closed_at": "2018-12-03T15:26:17Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

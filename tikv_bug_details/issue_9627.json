@@ -1,0 +1,16 @@
+{
+  "issue_number": 9627,
+  "title": "Potential deadlock for GC in Compaction Filter",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nMaster. And 5.0-rc also has the defect if GC in Compaction Filter is enabled.\r\n\r\n### Steps to reproduce\r\n* Start a small cluster with 4 TiKV instance, 10GB data for each store.\r\n* Change store limit from 15 (by default) to 100, and enable shuffle region scheduler.\r\n* Enable the feature and run a sysbench client.\r\n\r\n\r\n### What did you expect?\r\nThe sysbench client can finish successful.\r\n\r\n### What did happened?\r\nAfter about a half hour, we can see that all apply threads and RocksDB threads are blocked forever.\r\n\r\n### Analysis\r\nThe attached file is the stack for one TiKV instance.\r\n[stack.txt](https://github.com/tikv/tikv/files/5923415/stack.txt)\r\n\r\nWith the stack we can know how the dead lock occurs:\r\n* In the compaction filter, `DB::write` is called to delete stale versions on default CF.\r\n* In this time write stall occurs, so the call `DB::write` will be blocked.\r\n* To remove the write stall condition, more compactions are necessary. But all compaction threads could be blocking at `DB::write`.\r\n* So it will be a dead lock.\r\n\r\n### Candidate Solutions\r\n#### Don't clean default CF in write CF's compaction filter.\r\nSo that write stall in write CF's compaction filter won't happen again.\r\nAnd for default CF, we can also use a compaction filter to handle stale versions like https://github.com/tikv/tikv/pull/8348.\r\n\r\nPros:\r\n* Resolve the root cause for the problem\r\n\r\nCons:\r\n* Compatibility with Lighting\r\n* If the feature is disabled, GC worker can't handle orphan versions on default CF\r\n\r\n#### Support to bypass write stall checkers in `WriteOptions`\r\nSo that write stall in write CF's compaction filter won't happen again.\r\n\r\nPros:\r\n* Less change in TiKV\r\n* Won't leave orphan versions on default CF\r\n\r\nCons:\r\n* Not easy to implement\r\n\r\n#### Use `WriteOptions::no_slowdown`\r\nIf writting a write batch into RocksDB fails with an `InComplete` error, skip to perform more GC and send the current write batch to another thread to write them.\r\n\r\nPros:\r\n* Easy to implement\r\n* Less change in TiKV\r\n\r\nCons:\r\n* If the TiKV fails after the batch is sent to another thread but not written, orphan versions could be left on the default CF.\r\n\r\n### Progress\r\nAfter some discussions we choose the third solution. Patch PR will comes soon.",
+  "state": "closed",
+  "created_at": "2021-02-04T05:55:39Z",
+  "updated_at": "2021-03-10T10:22:13Z",
+  "closed_at": "2021-03-10T10:22:13Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "sig/engine",
+    "severity/critical"
+  ],
+  "comments_data": []
+}

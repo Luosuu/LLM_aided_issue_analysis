@@ -1,0 +1,17 @@
+{
+  "issue_number": 13445,
+  "title": "TiKV send multi SST to TiFlash",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n\r\nLinux\r\n\r\n### Steps to reproduce\r\n\r\nSee https://github.com/pingcap/tiflash/issues/5813. It happens when TiKV generates snapshots for two peers in short time, while one peer is TiFlash and another one is TiKV.\r\n\r\n### What did you expect?\r\n\r\nTiFlash receives single SST snapshot.\r\n\r\n### What did happened?\r\n\r\nTiFlash receives multi SST snapshot, and causing failures and retry. This wastes CPU and network. \r\n\r\nAdditionally, if TiFlash does not check incoming messages carefully (e.g. in v6.2) then data consistency problems will happen.\r\n",
+  "state": "closed",
+  "created_at": "2022-09-09T09:14:55Z",
+  "updated_at": "2024-01-30T00:19:43Z",
+  "closed_at": "2024-01-30T00:19:43Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,34 @@
+{
+  "issue_number": 8574,
+  "title": "09-01 Performance regression on wide table",
+  "body": "## Bug Report\r\n\r\n```\r\nVersion:\r\ntidb: 1cab3d59471a536b5d3d8dca7b07b209f9e8e363(master) 2020-09-01 13:58:35\r\ntikv: 1c61d3903cd42348e036317124704fc7f60dff55(master) 2020-09-01 08:15:06\r\npd: 68767909a740e0a58cd75bf7b5aa06574a0480e2(master) 2020-09-01 08:24:39\r\n\r\nCompare:\r\ntidb: https://github.com/pingcap/tidb/compare/1cab3d5...1cab3d5\r\ntikv: https://github.com/tikv/tikv/compare/fe3280b...1c61d39\r\npd: https://github.com/pingcap/pd/compare/6876790...6876790\r\n\r\nworkload: <wide_point_select>\r\n\r\ntidb_max_cpu: 9.67, delta: -52.67%\r\ntikv_max_cpu: 0.01, delta: -99.91%\r\ntidb_max_memory: 171.24 MiB, delta: -7.42%\r\n\r\ntps : 17849.15 ± 0.0000% (std=0.00) delta: -62.66%\r\nqps : 17849.15 ± 0.0000% (std=0.00) delta: -62.66%\r\nlat_avg : 14.34 ± 0.0000% (std=0.00) delta: 168.04%\r\nlat_99th : 15.00 ± 0.0000% (std=0.00) delta: 1.83%\r\n\r\nworkload: <wide_range_select>\r\n\r\ntidb_max_cpu: 10.76, delta: -47.23%\r\ntikv_max_cpu: 7.74, delta: -45.38%\r\ntidb_max_memory: 201.93 MiB, delta: 2.19%\r\n\r\ntps : 3455.48 ± 0.0000% (std=0.00) delta: -56.19%\r\nqps : 3455.48 ± 0.0000% (std=0.00) delta: -56.19%\r\nlat_avg : 73.95 ± 0.0000% (std=0.00) delta: 127.89%\r\nlat_99th : 123.28 ± 0.0000% (std=0.00) delta: 9.42%\r\n```\r\n\r\n## What version of TiKV are you using?\r\n\r\n1c61d3903cd42348e036317124704fc7f60dff55",
+  "state": "closed",
+  "created_at": "2020-09-02T08:50:29Z",
+  "updated_at": "2020-09-04T08:20:24Z",
+  "closed_at": "2020-09-03T11:33:41Z",
+  "labels": [
+    "type/bug",
+    "component/performance",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 685523493,
+      "user": "sticnarf",
+      "created_at": "2020-09-02T09:50:35Z",
+      "body": "It's so weird because https://github.com/tikv/tikv/pull/8538 didn't modify the read path"
+    },
+    {
+      "id": 685872037,
+      "user": "hunterlxt",
+      "created_at": "2020-09-02T17:05:53Z",
+      "body": "Maybe I have located the problem. `block_on` cannot directly replace `.wait()`, especially in non-test code. /cc @sticnarf \r\nI'll test more and prepare a fix PR tomorrow."
+    },
+    {
+      "id": 686429084,
+      "user": "hunterlxt",
+      "created_at": "2020-09-03T11:35:32Z",
+      "body": "@mahjonp Please bench again with same configuration, the fixed PR has been merged."
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "issue_number": 10708,
+  "title": "After the disk is full, create table、drop table、truncate table operators are all stuck，and no any prompt message",
+  "body": "## Bug Report\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n### What version of TiKV are you using?\r\n[root@centos76_vm bin]# ./tikv-server -V\r\nTiKV\r\nRelease Version: 5.1.0-alpha\r\nEdition: Community\r\nGit Commit Hash: d78394c\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time: 2021-08-09 12:08:07\r\nRust Version: rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features: jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile: dist_release\r\n\r\n### What operating system and CPU are you using?\r\ntiup部署\r\n1 tidb，1pd，3 tikv\r\ntikv：8G、4 cores\r\n\r\n### Steps to reproduce\r\n1、run sysbench insert\r\nthreads=512\r\ntableNum = 512\r\ntableSize = 10000000000\r\n\r\n### What did you expect?\r\nafter disk is full：\r\n1、the space statistics are normal\r\n2、create table fail，and there is correct prompt message\r\n3、drop table、truncate table can success\r\n\r\n### What did happened?\r\nlogs：\r\n[2021/08/11 17:57:08.933 +08:00] [ERROR] [region_request.go:955] [\"tikv reports `DiskFull` not retry\"] [diskFull=\"store_id:4 reason:\\\"propose failed: disk full\\\" \"] [ctx=\"region ID: 6969, meta: id:6969 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\031_r\\\\200\\\\000\\\\000\\\\000\\\\000\\\\004N\\\\333\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\003x\\\" region_epoch:<conf_ver:5 version:394 > peers:<id:6970 store_id:1 > peers:<id:6971 store_id:4 > peers:<id:6972 store_id:5 > , peer: id:6971 store_id:4 , addr: 172.16.6.194:20160, idx: 0, reqStoreType: TiKvOnly, runStoreType: tikv\"] \r\nafter disk is full：\r\n1、the space statistics are abnormal\r\n<img width=\"912\" alt=\"空间\" src=\"https://user-images.githubusercontent.com/84712107/129135750-8adf375a-2198-497c-8a2f-1b7ee28a9609.png\">\r\n2、create table fail，and there is correct prompt message\r\n<img width=\"489\" alt=\"create tab\" src=\"https://user-images.githubusercontent.com/84712107/129135769-c82fd646-7af5-486e-9f85-682948270f6c.png\">\r\n3、drop table、truncate table can not success\r\n<img width=\"224\" alt=\"drop tab\" src=\"https://user-images.githubusercontent.com/84712107/129135801-bc694d6a-41e6-4c7e-8072-92be8f9a749a.png\">\r\n<img width=\"243\" alt=\"truncate tab\" src=\"https://user-images.githubusercontent.com/84712107/129135938-e9a378b1-a7e8-4ee5-a9c8-19053195b209.png\">\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-08-12T03:48:02Z",
+  "updated_at": "2021-11-08T03:07:00Z",
+  "closed_at": "2021-11-08T03:05:41Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 897326703,
+      "user": "Lily2025",
+      "created_at": "2021-08-12T03:48:17Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 897326821,
+      "user": "Lily2025",
+      "created_at": "2021-08-12T03:48:47Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 897349741,
+      "user": "Lily2025",
+      "created_at": "2021-08-12T05:01:07Z",
+      "body": "/assign tier-cap"
+    },
+    {
+      "id": 897349753,
+      "user": "ti-chi-bot",
+      "created_at": "2021-08-12T05:01:09Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: tier-cap.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/10708#issuecomment-897349741):\n\n>/assign tier-cap\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 897354271,
+      "user": "tier-cap",
+      "created_at": "2021-08-12T05:13:22Z",
+      "body": "1. The latest version will fail to drop table when tikv is disk full.\r\nIt has already been fixed, and pr is reviewing. https://github.com/tikv/tikv/pull/10693\r\nFor Truncate table block problem, reason is the same with drop table, and already fix in this bug-pr.\r\nBut, there may be some other reasons that are not ruled out, and I'm investigating.\r\n2. For create table or other ddl block problem, it's the ddl async design behaviors. Has checked this.\r\n3. Please ignore the Available space so huge problem, because the placeholder file configied so huge, ant the pd store available space seems a little big. It should not happen, just in self-test scenarios."
+    },
+    {
+      "id": 899938515,
+      "user": "tisonkun",
+      "created_at": "2021-08-17T02:08:32Z",
+      "body": "@Lily2025 @tier-cap is this bug related to https://github.com/tikv/tikv/issues/10537?"
+    },
+    {
+      "id": 912983541,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-09-04T14:29:06Z",
+      "body": "@tier-cap Please make sure this issue is updated since it is a critical bug. If this bug will not trigger in master please lower it serverity, I remember that this new feature is close by default now and the user has no way to open it."
+    },
+    {
+      "id": 960436043,
+      "user": "tier-cap",
+      "created_at": "2021-11-04T03:59:35Z",
+      "body": "can close it by https://github.com/tikv/tikv/pull/10833 and https://github.com/pingcap/tidb/pull/27685\r\n@Lily2025"
+    },
+    {
+      "id": 962770955,
+      "user": "VelocityLight",
+      "created_at": "2021-11-08T03:07:00Z",
+      "body": "solved at 11240"
+    }
+  ]
+}

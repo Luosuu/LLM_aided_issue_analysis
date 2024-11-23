@@ -1,0 +1,55 @@
+{
+  "issue_number": 11192,
+  "title": "Panic in analyze sampling",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nhttps://github.com/tikv/tikv/tree/d0c129dde8d3f41bbac26ab786419bb4b5e24878 \r\n\r\n### What operating system and CPU are you using?\r\ndoesn't matter\r\n\r\n### Steps to reproduce\r\nI run tipocket `pipeline` test. I find several TiKV panic and stuck in an infinite crash loop.\r\n\r\n### What did you expect?\r\nNot panic.\r\n\r\n### What did happened?\r\n\r\n```\r\n[FATAL] [lib.rs:465] [\"called `Option::unwrap()` on a `None` value\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at data1/glq/tikv/components/tikv_util/src/lib.rs:464:18\\n   1: std::panicking::rust_panic_with_hook\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:626:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:517:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/sys_common/backtrace.rs:141:18\\n   4: rust_begin_unwind\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:515:5\\n   5: core::panicking::panic_fmt\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/panicking.rs:92:14\\n   6: core::panicking::panic\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/panicking.rs:50:5\\n   7: core::option::Option<T>::unwrap\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/option.rs:722:21\\n      tikv::coprocessor::statistics::analyze::RowSampleCollector::sampling\\n             at data1/glq/tikv/src/coprocessor/statistics/analyze.rs:520:19\\n      tikv::coprocessor::statistics::analyze::RowSampleCollector::collect_column\\n             at data1/glq/tikv/src/coprocessor/statistics/analyze.rs:512:9\\n      tikv::coprocessor::statistics::analyze::RowSampleBuilder<S>::collect_column_stats::{{closure}}\\n             at data1/glq/tikv/src/coprocessor/statistics/analyze.rs:399:17\\n   8: <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/future/mod.rs:80:19\\n      tikv::coprocessor::statistics::analyze::AnalyzeContext<S>::handle_full_sampling::{{closure}}\\n             at data1/glq/tikv/src/coprocessor/statistics/analyze.rs:104:26\\n      <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/future/mod.rs:80:19\\n      <tikv::coprocessor::statistics::analyze::AnalyzeContext<S> as tikv::coprocessor::RequestHandler>::handle_request::__handle_request::{{closure}}\\n             at data1/glq/tikv/src/coprocessor/statistics/analyze.rs:267:27\\n   9: <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/future/mod.rs:80:19\\n  10: <core::pin::Pin<P> as core::future::future::Future>::poll\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/future/future.rs:119:9\\n      <tikv::coprocessor::interceptors::deadline::DeadlineChecker<F> as core::future::future::Future>::poll\\n             at data1/glq/tikv/src/coprocessor/interceptors/deadline.rs:34:9\\n      <tikv::coprocessor::interceptors::tracker::Tracker<F> as core::future::future::Future>::poll\\n             at data1/glq/tikv/src/coprocessor/interceptors/tracker.rs:49:19\\n  11: <tikv::coprocessor::interceptors::concurrency_limiter::ConcurrencyLimiter<PF,F> as core::future::future::Future>::poll\\n             at data1/glq/tikv/src/coprocessor/interceptors/concurrency_limiter.rs:111:15\\n  12: tikv::coprocessor::endpoint::Endpoint<E>::handle_unary_request_impl::{{closure}}\\n             at data1/glq/tikv/src/coprocessor/endpoint.rs:428:13\\n      <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/future/mod.rs:80:19\\n      <resource_metering::InTags<T> as core::future::future::Future>::poll\\n             at data1/glq/tikv/components/resource_metering/src/lib.rs:157:9\\n      tikv::read_pool::ReadPoolHandle::spawn_handle::{{closure}}\\n             at data1/glq/tikv/src/read_pool.rs:145:27\\n      <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/future/mod.rs:80:19\\n  13: tikv::read_pool::ReadPoolHandle::spawn::{{closure}}\\n             at data1/glq/tikv/src/read_pool.rs:121:25\\n      <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/future/mod.rs:80:19\\n  14: <yatp::task::future::Runner as yatp::pool::runner::Runner>::handle\\n             at root/.cargo/git/checkouts/yatp-e704b73c3ee279b6/0c477fb/src/task/future.rs:261:20\\n  15: <tikv_util::yatp_pool::YatpPoolRunner<T> as yatp::pool::runner::Runner>::handle\\n             at data1/glq/tikv/components/tikv_util/src/yatp_pool/mod.rs:104:24\\n      <yatp::queue::multilevel::MultilevelRunner<R> as yatp::pool::runner::Runner>::handle\\n             at root/.cargo/git/checkouts/yatp-e704b73c3ee279b6/0c477fb/src/queue/multilevel.rs:245:19\\n      yatp::pool::worker::WorkerThread<T,R>::run\\n             at root/.cargo/git/checkouts/yatp-e704b73c3ee279b6/0c477fb/src/pool/worker.rs:48:13\\n      yatp::pool::builder::LazyBuilder<T>::build::{{closure}}\\n             at root/.cargo/git/checkouts/yatp-e704b73c3ee279b6/0c477fb/src/pool/builder.rs:91:25\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/sys_common/backtrace.rs:125:18\\n  16: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}}\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/thread/mod.rs:476:17\\n      <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panic.rs:347:9\\n      std::panicking::try::do_call\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:401:40\\n      std::panicking::try\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panicking.rs:365:19\\n      std::panic::catch_unwind\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/panic.rs:434:14\\n      std::thread::Builder::spawn_unchecked::{{closure}}\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/thread/mod.rs:475:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/core/src/ops/function.rs:227:5\\n  17: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/alloc/src/boxed.rs:1572:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/alloc/src/boxed.rs:1572:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at rustc/b70888601af92f6cdc0364abab3446e418b91d36/library/std/src/sys/unix/thread.rs:91:17\\n  18: <unknown>\\n  19: clone\\n\"] [location=src/coprocessor/statistics/analyze.rs:520] [thread_name=unified-read-pool-1]\r\n```\r\nhttps://github.com/tikv/tikv/blob/d0c129dde8d3f41bbac26ab786419bb4b5e24878/src/coprocessor/statistics/analyze.rs#L518-L524\r\nIt seems this panic can be triggered only when `samples` is empty and `max_sample_size` is 0.",
+  "state": "closed",
+  "created_at": "2021-10-30T08:39:03Z",
+  "updated_at": "2022-06-24T05:44:39Z",
+  "closed_at": "2022-06-24T05:44:38Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 955174321,
+      "user": "gengliqi",
+      "created_at": "2021-10-30T08:41:42Z",
+      "body": "/cc @hicqu @winoros"
+    },
+    {
+      "id": 960781002,
+      "user": "bufferflies",
+      "created_at": "2021-11-04T12:17:01Z",
+      "body": "the cause seems that tidb version higher than v5.3 and tikv is less than v5.3. In version 5.3, tidb change the analyze behaviors  using sampling. so you can set analyze version=1 or update tikv to solve it.\r\ntidb pr:  https://github.com/pingcap/tidb/pull/28999"
+    },
+    {
+      "id": 960855800,
+      "user": "Lily2025",
+      "created_at": "2021-11-04T12:53:26Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 963841525,
+      "user": "gengliqi",
+      "created_at": "2021-11-09T05:58:57Z",
+      "body": "> the cause seems that tidb version higher than v5.3 and tikv is less than v5.3. In version 5.3, tidb change the analyze behaviors using sampling. so you can set analyze version=1 or update tikv to solve it. tidb pr: [pingcap/tidb#28999](https://github.com/pingcap/tidb/pull/28999)\r\n\r\nGot it. BTW, I think we can make this code more robust."
+    },
+    {
+      "id": 975247052,
+      "user": "winoros",
+      "created_at": "2021-11-22T08:22:28Z",
+      "body": "/assign winoros"
+    },
+    {
+      "id": 1138121274,
+      "user": "LykxSassinator",
+      "created_at": "2022-05-26T03:46:53Z",
+      "body": "/assign LykxSassinator"
+    }
+  ]
+}

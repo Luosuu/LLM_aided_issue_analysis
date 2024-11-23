@@ -1,0 +1,28 @@
+{
+  "issue_number": 15018,
+  "title": "[Dynamic Regions] the available size is a big gap between tikvs and leading to the capacity of one tikv is insufficient ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   7.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   de3d6655c3bb0eceac068207fe7ec8be30bdbcc7\r\nGit Commit Branch: heads/refs/tags/v7.3.0-alpha\r\nUTC Build Time:    2023-06-26 11:13:06\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-06-27T08:30:36.095+0800\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run tpcc\r\n2、inject network_partition fault between one tikv and others tikv\r\n3、after 10min，recover the fault\r\n\r\n### What did you expect?\r\nthe available size between tikvs is balanced\r\n\r\n### What did happened?\r\nthe available size is a big gap between tikvs and leading to the capacity of one tikv is insufficient \r\n![bc9863ae-668b-4f00-b522-3d572fd780ad](https://github.com/tikv/tikv/assets/84712107/06ba74b7-a02d-4a1e-acf5-6c3562bbf79c)\r\n![d848a265-715b-49dc-a803-ced39bcdbeef](https://github.com/tikv/tikv/assets/84712107/c53e3bc9-3bb6-48ee-9095-4ddb934a5dba)\r\n![2169c5ea-34bc-447b-87a4-ea64e51a388f](https://github.com/tikv/tikv/assets/84712107/a9633636-fb01-40a9-883a-ac202929d384)\r\n![img_v2_1f6911c9-183d-47af-8eac-f4a15304087g](https://github.com/tikv/tikv/assets/84712107/a4af1360-ee51-4a26-a7ce-319978be9e24)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-06-27T09:31:54Z",
+  "updated_at": "2023-07-14T13:14:46Z",
+  "closed_at": "2023-07-11T03:54:44Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1609135566,
+      "user": "Lily2025",
+      "created_at": "2023-06-27T09:32:31Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign bufferflies"
+    },
+    {
+      "id": 1609141044,
+      "user": "bufferflies",
+      "created_at": "2023-06-27T09:36:24Z",
+      "body": "1119's sst: ffff70ce-753b-4b1e-ad92-dad915e0bf19_1119_23_265_write.sst\r\nregion 1119\r\n{\r\n  \"id\": 1119,\r\n  \"start_key\": \"7480000000000000FF675F720380000000FF0000253403800000FF0000000007038000FF0000000000C00000FD\",\r\n  \"end_key\": \"7480000000000000FF675F720380000000FF0000276703800000FF0000000001038000FF000000000A850000FD\",\r\n  \"epoch\": {\r\n    \"conf_ver\": 26,\r\n    \"version\": 265\r\n  },\r\n\r\nsst can be deleted needs to satisfy two condition :\r\n1. sst epoch is stale \r\n2. sst index is outdate of the flush index"
+    }
+  ]
+}

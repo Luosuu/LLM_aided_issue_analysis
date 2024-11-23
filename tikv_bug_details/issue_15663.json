@@ -1,0 +1,14 @@
+{
+  "issue_number": 15663,
+  "title": "Background control cannot get the stats type",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\nanalyze table xxx;\r\n```\r\nadd log and see:\r\n```\r\n[2023/09/18 03:38:25.908 +00:00] [INFO] [endpoint.rs:519] [\"debug handle_unary_request\"] [tag=analyze_full_sampling] [metadata=\"[100, 101, 102, 97\r\n, 117, 108, 116]\"] [resource_limiter=None] [priority=Low] [request_source=]\r\n```\r\n\r\n### What did you expect?\r\n\r\nrequest_source should be `leader_internal_stats` or `xxx_stats`\r\n\r\n### What did happened?\r\n\r\nempty of request_source",
+  "state": "closed",
+  "created_at": "2023-09-21T18:10:13Z",
+  "updated_at": "2023-09-25T05:42:17Z",
+  "closed_at": "2023-09-25T05:42:17Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,51 @@
+{
+  "issue_number": 859,
+  "title": "Add a detecting module to monit system time",
+  "body": "TiKV panic with the following log:\n\nthread 'raftstore-3' panicked at 'other was less than the current instant', ../src/libstd/sys/unix/time.rs:274\n\nI guess system time changed forward. \n",
+  "state": "closed",
+  "created_at": "2016-07-22T02:24:40Z",
+  "updated_at": "2018-08-07T00:45:58Z",
+  "closed_at": "2016-11-03T02:03:39Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement"
+  ],
+  "comments_data": [
+    {
+      "id": 234438666,
+      "user": "siddontang",
+      "created_at": "2016-07-22T02:26:55Z",
+      "body": "Can we use CPU clock time directly ?\n"
+    },
+    {
+      "id": 234438860,
+      "user": "ngaut",
+      "created_at": "2016-07-22T02:28:38Z",
+      "body": "No. We need to use ntpd. Also we can use ticker to detect system time issue.\n"
+    },
+    {
+      "id": 234705002,
+      "user": "siddontang",
+      "created_at": "2016-07-23T07:35:34Z",
+      "body": "I think we can check this in raftstore event loop tick, if time jumps back, log an error. \n"
+    },
+    {
+      "id": 253586740,
+      "user": "wuzhy",
+      "created_at": "2016-10-13T17:49:25Z",
+      "body": "HI, ngaut and siddontang\n\nany solution to fix or workaround this issue? i also hit this issue\n\nRegards,\n\nwuzhy\n"
+    },
+    {
+      "id": 253685084,
+      "user": "siddontang",
+      "created_at": "2016-10-14T01:24:43Z",
+      "body": "Hi @wuzhy \nSorry that we don't have any solution yet.\nIt is very strange that we meet this error. (monotonic clock can't jump back). \n\nThe newest version can output panic backtrace, and we have also filed an [issue](https://github.com/rust-lang/rust/issues/37137) for rust team.\n"
+    },
+    {
+      "id": 258050165,
+      "user": "siddontang",
+      "created_at": "2016-11-03T02:03:39Z",
+      "body": "Hi @wuzhy \n\nWe can ensure that this is the bug for the system, not for Rust and TiKV, so we can close it now. \n"
+    }
+  ]
+}

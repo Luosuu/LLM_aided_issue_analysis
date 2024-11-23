@@ -1,0 +1,35 @@
+{
+  "issue_number": 14217,
+  "title": "【witness】restart one tikv every 20min，tpcc report 9005 at  certain fault",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   ee00d70008562b45bafb0dcd88d70520a18fa742\r\nGit Commit Branch: heads/refs/tags/v6.6.0-alpha\r\nUTC Build Time:    2023-02-08 11:56:04\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-02-09T19:04:48.004+0800\tINFO\tk8s/client.go:132\r\n\r\n### What operating system and CPU are you using?\r\n8core/16G\r\n\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1620181\r\nrestart one tikv every 20min\r\n[2023/02/09 20:36:34.535 +08:00] [INFO] [util.go:729] [\"begin to restart tikv_2.\"]\r\n\r\n### What did you expect?\r\nno 9005 error\r\n\r\n### What did happened?\r\ntpcc report 9005 at  certain fault\r\n\r\n[2023-02-09 12:40:58] execute run failed, err exec SELECT c_id FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ? ORDER BY c_first failed Error 9005: Region is unavailable",
+  "state": "closed",
+  "created_at": "2023-02-14T06:47:26Z",
+  "updated_at": "2023-09-27T05:08:44Z",
+  "closed_at": "2023-07-07T01:43:38Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1429208294,
+      "user": "Lily2025",
+      "created_at": "2023-02-14T06:48:02Z",
+      "body": "/type bug\r\n/severity major\r\n/assign ethercflow"
+    },
+    {
+      "id": 1429212531,
+      "user": "ethercflow",
+      "created_at": "2023-02-14T06:50:51Z",
+      "body": "From log:\r\n\r\nT0 Leader, witness, voter\r\nT1 Leader, witness learner, voter\r\nT2 Leader, non-witness learner, voter\r\nT3 non-witness learner applied snapshot, but during this period, a snapshot is requested again (in order to prevent the first request from failing, it will be retried, and a judgment should be added here to determine whether the snapshot is being applied), and the leader is notified that the snapshot has been applied;\r\nT4 The leader receives the non-witness notification, thinks it is no longer pending, and reports to pd\r\nT5 After receiving the notification from the leader, pd thinks that the switch to non-witness has succeeded, and sends the next op\r\nT6 pd send non-witness learner -> Voter;\r\nT7 The leader executes conf change, thinking that non-witness has become a Voter, but in fact non-witness is still a learner and is executing snapshot;\r\nT8 leader, Voter (actually still learner), witness learner\r\n\r\nResulting in 3 nodes, 2 leaners, re-election, and finally no leader returns 9005"
+    },
+    {
+      "id": 1429241571,
+      "user": "Lily2025",
+      "created_at": "2023-02-14T07:16:00Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5"
+    }
+  ]
+}

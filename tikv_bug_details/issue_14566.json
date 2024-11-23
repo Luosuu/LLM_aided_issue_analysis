@@ -1,0 +1,40 @@
+{
+  "issue_number": 14566,
+  "title": "[Dynamic Regions] batch split cause significant  latency jitter",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun a workload with ttl enable\r\n\r\n### What did you expect?\r\nwhen ttl is running there is no significant latency jitter caused by batch split.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/2316425/231724417-d9c5827a-2be2-4342-8ffb-baf1f0b88fa5.png)\r\n![image](https://user-images.githubusercontent.com/2316425/231724644-abbe175b-0e60-498c-9de6-1f62b8d2ce32.png)\r\n![image](https://user-images.githubusercontent.com/2316425/231724231-bc514a30-e6fc-4958-a348-09eb437cf93a.png)\r\n![image](https://user-images.githubusercontent.com/2316425/231724341-90b56785-2f9a-4918-8546-33c7fde907c4.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-04-13T09:58:21Z",
+  "updated_at": "2023-07-06T18:17:49Z",
+  "closed_at": "2023-07-06T18:17:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1506688084,
+      "user": "dbsid",
+      "created_at": "2023-04-13T09:58:45Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1506688905,
+      "user": "dbsid",
+      "created_at": "2023-04-13T09:59:18Z",
+      "body": "/assign @SpadeA-Tang "
+    },
+    {
+      "id": 1624123495,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-06T18:17:48Z",
+      "body": "It's closed by #14713"
+    }
+  ]
+}

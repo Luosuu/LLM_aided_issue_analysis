@@ -1,0 +1,21 @@
+{
+  "issue_number": 12025,
+  "title": "Approximate Region size in grafana didn't correspond to the actual value",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv5.4.0\r\ngithash : b5262299604df88711d9ed4b84d43e9c507749a2\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nImport some data, and then run workload some times. \r\nThen reset region size to 192M from 96M, after that run workload again. \r\n\r\n### What did you expect?\r\nApproximate region size should not equal to 0.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/9443637/155653691-6d1d5e57-c82b-41a0-abf2-b4874cd3e7c2.png)\r\n![image](https://user-images.githubusercontent.com/9443637/155653731-3b420f2d-47e9-45fc-8ae8-ba44f3bf94ba.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-02-25T04:27:46Z",
+  "updated_at": "2022-02-25T04:37:50Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1050514753,
+      "user": "mayjiang0203",
+      "created_at": "2022-02-25T04:37:48Z",
+      "body": "/type bug\r\n/assign Little-Wallace\r\n/severity moderate"
+    }
+  ]
+}

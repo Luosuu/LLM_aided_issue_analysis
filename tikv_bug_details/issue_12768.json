@@ -1,0 +1,89 @@
+{
+  "issue_number": 12768,
+  "title": "[Dynamic Regions] Some large regions did not split due to split check did not run after update region split config online",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\nTiKV\r\nRelease Version: 6.1.0-alpha\r\nEdition: Community\r\nGit Commit Hash: 5c6018e5711bec3d13f9cdf39d3a84ed9de27809\r\nGit Commit Branch: heads/refs/tags/v6.1.0\r\nUTC Build Time: 2022-06-02 13:53:59\r\nRust Version: rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features: jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile: dist_release\r\n./pd-server -V\r\nRelease Version: v6.1.0\r\nEdition: Community\r\nGit Commit Hash: https://github.com/tikv/pd/commit/d82f4fab6cf37cd1eca9c3574984e12a7ae27c42\r\nGit Branch: heads/refs/tags/v6.1.0\r\nUTC Build Time: 2022-06-01 01:44:08\r\n./tidb-server -V\r\nRelease Version: v6.1.0\r\nEdition: Community\r\nGit Commit Hash: 1a89decdb192cbdce6a7b0020d71128bc964d30f\r\nGit Branch: heads/refs/tags/v6.1.0\r\nUTC Build Time: 2022-06-05 05:15:11\r\nGoVersion: go1.18.2\r\nRace Enabled: false\r\nTiKV Min Version: v3.0.0-60965b006877ca7234adaced7890d7b029ed1306\r\nCheck Table Before Drop: false\r\n\r\n### What operating system and CPU are you using?\r\n8c、16GB\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nmodify the dynamic region region configuration repeatedly（modified every 1 hour）\r\nvar regionSplitSizes = []string{\"128MiB\", \"256MiB\", \"512MiB\", \"1024MiB\", \"5120MiB\", \"10240MiB\"}\r\nfunc getTargetDynamicRegionConfigsValue(regionSplitSize string) (map[string]string, error) {\r\nconfigsValue := make(map[string]string)\r\nsizeStr := regionSplitSize[0 : len(regionSplitSize)-3]\r\nunit := regionSplitSize[len(regionSplitSize)-3:]\r\nsizeValue, _ := strconv.ParseFloat(sizeStr, 64)\r\nif unit != \"MiB\" && unit != \"GiB\" {\r\nreturn configsValue, errors.New(\"unsupported region split size\")\r\n}\r\n// convert it to MiB\r\nif unit == \"GiB\" {\r\nsizeValue = sizeValue * 1024\r\n}\r\nconfigsValue[\"coprocessor.enable-region-bucket\"] = \"true\"\r\nconfigsValue[\"coprocessor.region-bucket-size\"] = \"96MiB\"\r\nconfigsValue[\"coprocessor.region-split-size\"] = regionSplitSize\r\nconfigsValue[\"coprocessor.region-split-keys\"] = strconv.Itoa(int(math.Ceil(sizeValue * 10000)))\r\nconfigsValue[\"coprocessor.region-max-size\"] = strconv.Itoa(int(math.Ceil(sizeValue*1.5))) + \"MiB\"\r\nconfigsValue[\"coprocessor.region-max-keys\"] = strconv.Itoa(int(math.Ceil(sizeValue * 1.5 * 10000)))\r\nconfigsValue[\"schedule.max-merge-region-size\"] = strconv.Itoa(int(math.Ceil(sizeValue * 0.2)))\r\nconfigsValue[\"schedule.max-merge-region-keys\"] = strconv.Itoa(int(math.Ceil(sizeValue * 0.2 * 10000)))\r\nreturn configsValue, nil\r\n}\r\n\r\n### What did happened?\r\nSome large regions did not split due to split check did not run\r\n![image](https://user-images.githubusercontent.com/84712107/172119453-e7111a33-8be3-4921-bb44-30d5d3d646bb.png)\r\n\r\nafter close hibernate and tikv rolling restart，split check can run\r\n![image](https://user-images.githubusercontent.com/84712107/172120866-ca64504e-3d28-437a-ba2d-e7780ae516c9.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-06-06T07:56:29Z",
+  "updated_at": "2023-09-05T08:39:13Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1147160010,
+      "user": "Lily2025",
+      "created_at": "2022-06-06T07:59:20Z",
+      "body": "/type bug\r\n/severity major\r\n/assign tonyxuqqi"
+    },
+    {
+      "id": 1147166380,
+      "user": "Lily2025",
+      "created_at": "2022-06-06T08:05:06Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/label affects-6.1"
+    },
+    {
+      "id": 1149592843,
+      "user": "nolouch",
+      "created_at": "2022-06-08T08:02:14Z",
+      "body": "here is a oversize region:\r\n```\r\n\"regions\": [\r\n    {\r\n      \"id\": 345311,\r\n      \"start_key\": \"7480000000000000FF4B5F7280000000BCFF0563DB0000000000FA\",\r\n      \"end_key\": \"7480000000000000FF4B5F7280000000BCFF3EFE740000000000FA\",\r\n      \"epoch\": {\r\n        \"conf_ver\": 17,\r\n        \"version\": 8955\r\n      },\r\n      \"peers\": [\r\n        {\r\n          \"id\": 345312,\r\n          \"store_id\": 4,\r\n          \"role_name\": \"Voter\"\r\n        },\r\n        {\r\n          \"id\": 345313,\r\n          \"store_id\": 6,\r\n          \"role_name\": \"Voter\"\r\n        },\r\n        {\r\n          \"id\": 345314,\r\n          \"store_id\": 5,\r\n          \"role_name\": \"Voter\"\r\n        }\r\n      ],\r\n      \"leader\": {\r\n        \"id\": 345313,\r\n        \"store_id\": 6,\r\n        \"role_name\": \"Voter\"\r\n      },\r\n      \"written_bytes\": 0,\r\n      \"read_bytes\": 11413,\r\n      \"written_keys\": 0,\r\n      \"read_keys\": 94,\r\n      \"approximate_size\": 440,\r\n      \"approximate_keys\": 3774528,\r\n      \"buckets\": [\r\n        \"7480000000000000FF4B5F7280000000BCFF0563DB0000000000FA\",\r\n        \"7480000000000000FF4B5F7280000000BCFF10E6CA0000000000FA\",\r\n        \"7480000000000000FF4B5F7280000000BCFF1CEFBA0000000000FA\",\r\n        \"7480000000000000FF4B5F7280000000BCFF2872A40000000000FA\",\r\n        \"7480000000000000FF4B5F7280000000BCFF337B8A0000000000FA\",\r\n        \"7480000000000000FF4B5F7280000000BCFF3EFE740000000000FA\"\r\n      ]\r\n    },\r\n```\r\n\r\nand it's logs: \r\n[logs.zip](https://github.com/tikv/tikv/files/8859547/logs.zip)\r\n\r\nwe can see only one log about size check:\r\n![image](https://user-images.githubusercontent.com/6428910/172564297-9415d19a-e545-4560-8741-b379c61dc7f8.png)\r\n\r\nAnd from the test, we can know, that the config is changed by the dynamic setting, and it's not working well.\r\n"
+    },
+    {
+      "id": 1149636635,
+      "user": "Lily2025",
+      "created_at": "2022-06-08T08:46:20Z",
+      "body": "/assign 5kbpers"
+    },
+    {
+      "id": 1149639340,
+      "user": "5kbpers",
+      "created_at": "2022-06-08T08:49:09Z",
+      "body": "@cosven PTAL"
+    },
+    {
+      "id": 1152430540,
+      "user": "zhangjinpeng87",
+      "created_at": "2022-06-10T14:37:02Z",
+      "body": "@5kbpers @cosven any update for this issue?"
+    },
+    {
+      "id": 1152492284,
+      "user": "cosven",
+      "created_at": "2022-06-10T15:38:18Z",
+      "body": "The root cause is that online config updating of `region-split-size` does not trigger region-split-check currently. I'll submit a PR lator."
+    },
+    {
+      "id": 1181393976,
+      "user": "King-Dylan",
+      "created_at": "2022-07-12T07:03:23Z",
+      "body": "Can i try to fix it？"
+    },
+    {
+      "id": 1181432550,
+      "user": "cosven",
+      "created_at": "2022-07-12T07:47:28Z",
+      "body": "/assign @King-Dylan \r\n/unassign @cosven"
+    },
+    {
+      "id": 1486227743,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-28T05:13:22Z",
+      "body": "/cc @bufferflies"
+    },
+    {
+      "id": 1672792482,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-10T08:31:17Z",
+      "body": "It's not about partitioned-raft-kv, but with traditional raft-kv. Since bucket is typically not needed in raft-kv, so downgrade it to moderate. "
+    }
+  ]
+}

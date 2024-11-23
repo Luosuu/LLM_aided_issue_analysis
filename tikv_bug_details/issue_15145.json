@@ -1,0 +1,21 @@
+{
+  "issue_number": 15145,
+  "title": "[Dynamic Region] QPS continues to decrease after inject one tikv network partition for 50m and recover due to flow controller",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   7.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   31a629950d05f893fdd72717938118ad11ed5d3f\r\nGit Commit Branch: heads/refs/tags/v7.3.0-alpha\r\nUTC Build Time:    2023-07-15 11:12:10\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-07-17T15:20:50.746+0800\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run tpcc with 20000 warehouse and 32 threads \r\n2、inject one tikv network partition for 50m\r\ninject fault：2023/07/17 15:30:56.693 +08:00\r\nrecover fault：2023/07/17 16:20:56.760 +08:00\r\n\r\n### What did you expect?\r\nqps can recover to n-1/n after injection fault and can recover after  fault recover\r\n\r\n### What did happened?\r\n QPS continues to decrease after inject and recover fault\r\n![image](https://github.com/tikv/tikv/assets/84712107/347cc7be-e509-417b-bec5-6934f16050c6)\r\n![img_v2_d480c9ed-9c92-48b1-8985-b707e2ce86bg](https://github.com/tikv/tikv/assets/84712107/c3d7ab44-34b4-4fc3-b8c4-d0149ac83734)\r\n![img_v2_da07605a-9de4-4970-a097-49db9dd7a97g](https://github.com/tikv/tikv/assets/84712107/30ef7e06-4445-4022-8662-1654b7d428b0)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-07-18T03:59:54Z",
+  "updated_at": "2023-07-20T04:54:48Z",
+  "closed_at": "2023-07-20T04:54:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1639344408,
+      "user": "Lily2025",
+      "created_at": "2023-07-18T04:00:59Z",
+      "body": "/severity critical \r\n/assign tabokie"
+    }
+  ]
+}

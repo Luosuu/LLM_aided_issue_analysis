@@ -1,0 +1,15 @@
+{
+  "issue_number": 7163,
+  "title": "Restoring a subrange of backed up rawkv data may import keys that are out of range",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nMaster\r\n\r\n### What operating system and CPU are you using?\r\n\r\n(Not related)\r\n\r\n### Steps to reproduce\r\n\r\nThe bug was found in code so the following reproduce steps have not been tested yet.\r\n\r\n1. Write following raw keys to TiKV: \"a\", \"b\", \"c\", \"c\\x00\", \"c\\x00\\x00\", \"d\"\r\n2. backup rawkv range [\"a\", \"e\")\r\n3. Restore subrange [\"b\", \"c\")\r\n4. The result is expected to be: \"b\". However in the current implementation, it may be: \"b\", \"c\", \"c\\x00\", \"c\\x00\\x00\"\r\n\r\n### Some Explaination\r\n\r\n1. When BR restoring a subrange of rawkv data, it sents the whole SSTs that contains the needed data and changes the range in SstMeta to tell TiKV to ignore the data outside the range.\r\n\r\n2. The restoring logic of RawKv in TiKV is the same as restoring table data. The range passed through the SstMeta is inclusive ([start_key, end_key]), and it uses adds 1 to the last byte of endKey to make it exclusive. This way it suits perfectly with TiDB and the rewrite mechanism, However for rawkv and plain transactional kv it may doesn't works properly.",
+  "state": "closed",
+  "created_at": "2020-03-19T18:03:11Z",
+  "updated_at": "2020-05-18T10:11:17Z",
+  "closed_at": "2020-05-18T10:11:17Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "sig/migrate"
+  ],
+  "comments_data": []
+}

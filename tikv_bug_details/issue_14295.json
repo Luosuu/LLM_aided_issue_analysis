@@ -1,0 +1,29 @@
+{
+  "issue_number": 14295,
+  "title": "[Dynamic Regions] Multi-RocksDB's store size is 18% more than single-rocksdb",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nNightly: Git Commit Hash:   3006674805ade2f44971a2fe34dd9550a4778820\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nSetup two clusters, each has 3 TiKV. \r\n\r\nRun SabeTech's insert workload with single-rocksdb and multi-rocksdb respectively. \r\nWith single-rocksdb, 750 million records use 516GB per TiKV.\r\nWith multi-rocksdb, 910 million records use 737GB per TiKV.  The size/records_count ratio is 18% less than single-rocksdb.\r\n### What did you expect?\r\nThe overall  disk_size/records_count ratio should be same.\r\n### What did happened?\r\nMulti-RocksDB used more disk. \r\n\r\nSingle-RocksDB's metrics: http://54.189.73.225:33764/d/RDVQiEzZz/mtk3-tikv-details?orgId=1&from=1677518457555&to=1677519824312\r\ndu db -sh\r\n474G\tdb\r\n\r\nMulti-RocksDB's metrics:  http://54.189.73.225:33765/d/RDVQiEzZz/mtk4-tikv-details?orgId=1&from=1677498692448&to=1677518955717\r\ndu tablets -sh\r\n619G\ttablets\r\n\r\ndu tablet_snap -sh\r\n0\ttablet_snap\r\n\r\nBy du's calculation, Multi-RocksDB used 7% more space than single-rocksdb after normalization of records count. \r\nHowever by the metrics, it used 18% more.  7% is an acceptable value, and 18% is misleading. \r\n\r\n",
+  "state": "open",
+  "created_at": "2023-02-27T18:09:55Z",
+  "updated_at": "2023-10-23T22:40:21Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "feature/developing",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1447467769,
+      "user": "cscetbon",
+      "created_at": "2023-02-28T02:20:34Z",
+      "body": "I guess we're saying the metrics are wrong here, right ?"
+    }
+  ]
+}

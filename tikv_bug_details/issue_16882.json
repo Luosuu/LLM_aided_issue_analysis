@@ -1,0 +1,16 @@
+{
+  "issue_number": 16882,
+  "title": "some results missing when keys of buffer batch get are unsorted",
+  "body": "## Bug Report\r\n\r\nref https://github.com/tikv/tikv/issues/16291\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nb6a029e3c0ddd22d5259efed3861e3f3f489e425\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nBug in TiDB side pingcap/tidb#52692\r\n\r\nCan also run this case\r\n\r\n```rust\r\n#[test_case(test_raftstore::must_new_cluster_and_kv_client)]\r\n#[test_case(test_raftstore_v2::must_new_cluster_and_kv_client)]\r\nfn test_pipelined_dml_buffer_get_unordered_keys() {\r\n    let (_cluster, client, ctx) = new_cluster();\r\n    let keys = vec![\r\n        b\"key1\".to_vec(),\r\n        b\"key2\".to_vec(),\r\n        b\"key3\".to_vec(),\r\n        b\"key4\".to_vec(),\r\n    ];\r\n\r\n    // flushed lock can be observed by another read\r\n    let mut req = FlushRequest::default();\r\n    req.set_mutations(\r\n        keys.iter()\r\n            .map(|key| Mutation {\r\n                op: Op::Put,\r\n                key: key.clone(),\r\n                value: key.clone(),\r\n                ..Default::default()\r\n            })\r\n            .collect::<Vec<_>>()\r\n            .into(),\r\n    );\r\n    req.set_generation(1);\r\n    req.set_context(ctx.clone());\r\n    req.set_start_ts(1);\r\n    req.set_primary_key(keys[0].clone());\r\n    let resp = client.kv_flush(&req).unwrap();\r\n    assert!(!resp.has_region_error());\r\n    assert!(resp.get_errors().is_empty());\r\n\r\n    let mut reversed_keys = keys.clone();\r\n    reversed_keys.reverse();\r\n    let duplicated_keys = keys\r\n        .clone()\r\n        .iter()\r\n        .flat_map(|key| vec![key.clone(), key.clone()])\r\n        .collect();\r\n    let cases = vec![keys.clone(), reversed_keys, duplicated_keys];\r\n    for case in cases {\r\n        let mut req = BufferBatchGetRequest::default();\r\n        req.set_keys(case.into());\r\n        req.set_context(ctx.clone());\r\n        req.set_version(1);\r\n        let resp = client.kv_buffer_batch_get(&req).unwrap();\r\n        let pairs = resp.get_pairs();\r\n        assert_eq!(pairs.len(), 4);\r\n        let pairs_map = pairs\r\n            .iter()\r\n            .map(|pair| (pair.get_key().to_vec(), pair.get_value().to_vec()))\r\n            .collect::<HashMap<_, _>>();\r\n        for key in &keys {\r\n            assert_eq!(pairs_map.get(key).unwrap(), key.as_slice());\r\n        }\r\n    }\r\n}\r\n```\r\n\r\n### What did you expect?\r\n\r\nBoth SQL and KV tests pass.\r\n\r\n### What did happened?\r\n\r\nTest failed\r\n",
+  "state": "closed",
+  "created_at": "2024-04-18T15:20:36Z",
+  "updated_at": "2024-04-29T10:18:16Z",
+  "closed_at": "2024-04-22T07:10:41Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/major",
+    "affects-8.1"
+  ],
+  "comments_data": []
+}

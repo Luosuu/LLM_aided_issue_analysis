@@ -1,0 +1,38 @@
+{
+  "issue_number": 13208,
+  "title": "v6.2.0 dr auto sync: reset-to-version didn't finished after 20min with only 7G data in it",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n[root@tikv1-0 ~]# /tiup/deploy/tikv-20160/bin/tikv-server -V\r\nTiKV\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   8a4c8b3828fe689e977c671796381d2e9b16bc07\r\nGit Commit Branch: heads/refs/tags/v6.2.0\r\nUTC Build Time:    2022-08-01 09:10:03\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_releas\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nShould be finished within 5min\r\n\r\n### What did happened?\r\nreset version in tikv5 at 14:28, didn't find \"done\" at 14:48.\r\n![image](https://user-images.githubusercontent.com/9443637/182312614-18ec62c3-ce5d-4929-9439-c384dcff5c1b.png)\r\n![image](https://user-images.githubusercontent.com/9443637/182312652-1e22fda8-4ded-4c78-968e-141be3b53f0b.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-08-02T07:04:05Z",
+  "updated_at": "2024-11-01T10:17:12Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/major",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1202099335,
+      "user": "mayjiang0203",
+      "created_at": "2022-08-02T07:04:47Z",
+      "body": "/type bug\r\n/severity major\r\n/assign @longfangsong \r\n/label affects-6.2"
+    },
+    {
+      "id": 1202104551,
+      "user": "mayjiang0203",
+      "created_at": "2022-08-02T07:11:00Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1"
+    }
+  ]
+}

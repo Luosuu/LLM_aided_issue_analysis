@@ -1,0 +1,21 @@
+{
+  "issue_number": 10017,
+  "title": "raftstore: down peer collection did not consider hibernate region",
+  "body": "## Bug Report\r\n\r\nWhen the leader heartbeat to PD, it collects down peers by checking whether a peer did not send raft message for `raftstore.max_peer_down_duration`. When hibernate region is in use, inactive regions will go to hibernate and wake up every 5m (config through `raftstore.peer_stale_state_check_interval`) and will be not raft message when the region is hibernated. So when the leader heartbeat to PD, it collects down peers and will take the time of hibernating into count (since the last time received raft message is when the region awake), and may wrongly report normal peers as down peers to PD and this could affect PD's schedule decision\r\n\r\nUsually, the leader won't report to PD frequently, but there are some cases the leader will heartbeat to PD even the leader is hibernated, for example when the region size change due to compaction, the leader will report the region size to PD immediately.",
+  "state": "closed",
+  "created_at": "2021-04-14T07:04:57Z",
+  "updated_at": "2021-06-29T18:53:26Z",
+  "closed_at": "2021-06-29T18:53:26Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 819282579,
+      "user": "NingLin-P",
+      "created_at": "2021-04-14T07:05:09Z",
+      "body": "/cc @BusyJay "
+    }
+  ]
+}

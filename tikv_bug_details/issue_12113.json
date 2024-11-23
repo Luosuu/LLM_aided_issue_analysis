@@ -1,0 +1,13 @@
+{
+  "issue_number": 12113,
+  "title": "Assertion false-positive on non-unique index key in pessimistic transaction that's rolled back by another transaction",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster with assertion supported\r\n\r\n\r\n### Steps to reproduce\r\n\r\nIt would be hard to reproduce manually.\r\nSuppose two transaction t1 and t2, and a row key (pessimistic-locked key) `r1` and an index key (non-pessimistic-locked key) `i1`:\r\n* t1 (start_ts = 10) lock key `r1` and then executes slowly\r\n* t2 found lock on `r1` and rolled it back\r\n* t2 continue and write a new version on both `r1` and `i1` (start_ts = 20, commit_ts = 30)\r\n* t1 continues and two prewrite requests on `r1` and `i1` are sent.\r\n  * Here, we expect to receive a `PessimisticLockNotFound` error raised by the request to `r1`, and nothing will happen on `i1` because it doesn't need pessimistic lock or checking conflicts. However, if `AssertionLevel::Strict` is set here, the prewrite request on `i1` will see the new version written by t2 and possibly raise a false-positive assertion failure.\r\n\r\n### Solution\r\n\r\nIt's not easy to fix it while keeping the check behavior. We are not considering to make assertion failure error less prior to other errors such as `KeyIsLocked`. Both TiKV and client-go need to be updated. The check will be weaken by this change: it's possible that in some cases that real assertion failure occurs but not reported due to meeting other normal errors.\r\n",
+  "state": "closed",
+  "created_at": "2022-03-07T09:08:41Z",
+  "updated_at": "2022-03-11T04:36:20Z",
+  "closed_at": "2022-03-11T04:36:20Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

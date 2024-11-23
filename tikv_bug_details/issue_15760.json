@@ -1,0 +1,16 @@
+{
+  "issue_number": 15760,
+  "title": "Can't perform CPU profiling when heap profiling is activated",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNot related\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n```\r\n$ curl http://127.0.0.1:20180/debug/pprof/heap_activate\r\nactivate heap profile success\r\n$ curl http://127.0.0.1:20180/debug/pprof/profile\r\nAlready in Profiling\r\n```\r\n\r\n### What did you expect?\r\nCan perform CPU profiling when heap profiling is activated\r\n\r\n### What did happened?\r\n`Already in Profiling` is returned for CPU profiling when heap profiling is activated\r\n",
+  "state": "closed",
+  "created_at": "2023-10-12T10:56:42Z",
+  "updated_at": "2023-11-07T09:06:51Z",
+  "closed_at": "2023-10-20T17:54:30Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-7.5",
+    "observability"
+  ],
+  "comments_data": []
+}

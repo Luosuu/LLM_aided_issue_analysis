@@ -1,0 +1,14 @@
+{
+  "issue_number": 4581,
+  "title": "Panic on leader election after `catch_up_log_for_merge`",
+  "body": "## Bug Report\r\n\r\nTiKV panics on leader election if `catch_up_log_for_merge` applies a compact log command. Let's say there is a peer truncated_index = 6, applied_index = 7, commit_index = 8, last_index = 10, and the peer is going to be merged into a target. When the target applies a commit_merge command, it will first send a `CatchupLog` task to the peer, after receiving the task, the peer will load entries [9, lastest_commit_index]  and apply them. If there are some compact log commands in these entries, truncated_index will be updated, however, the peer is going to be merged, so applied_index does not update. \r\n\r\nThere is a chance that applied_index = 7 and truncated_index = 9, this leads to panic on leader election.\r\n\r\nThe fix mentioned in #4560 also resolves this bug.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2019-04-26T05:56:00Z",
+  "updated_at": "2019-07-30T10:25:58Z",
+  "closed_at": "2019-07-30T10:25:58Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,21 @@
+{
+  "issue_number": 2303,
+  "title": "static_unportable_release doesn't enable SSE in RocksDB",
+  "body": "When I use `make static_unportable_release` to build the TiKV server, but find the TiKV server doesn't use RocksDB fast CRC32, but still slow CRC32. \r\n\r\nI find that we only pass `-msse4.2` in the build script make_config.mk, but seem that we must pass `-DHAVE_SSE42` too. ",
+  "state": "closed",
+  "created_at": "2017-09-15T10:15:21Z",
+  "updated_at": "2018-08-07T00:47:08Z",
+  "closed_at": "2017-09-25T07:49:23Z",
+  "labels": [
+    "type/bug",
+    "component/rocksdb"
+  ],
+  "comments_data": [
+    {
+      "id": 329792853,
+      "user": "siddontang",
+      "created_at": "2017-09-15T14:06:54Z",
+      "body": "see https://github.com/facebook/rocksdb/commit/c5f0c6cc660f1f4a8051db2aac3b8afc17818e70"
+    }
+  ]
+}

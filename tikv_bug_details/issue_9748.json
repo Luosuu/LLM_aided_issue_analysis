@@ -1,0 +1,28 @@
+{
+  "issue_number": 9748,
+  "title": "The propose time may be smaller than the real one",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\ndoesn't matter\r\n\r\n### Steps to reproduce\r\ndoesn't matter\r\n\r\n### What did you expect?\r\nright propose time\r\n\r\n### What did happened?\r\nhttps://github.com/tikv/tikv/blob/311515d67331dee4bf1f34ebeb6200bd6061f711/components/raftstore/src/store/peer.rs#L104-L107\r\nIf the `idx` is got from `back.binary_search_by_key(&key, map)`, the `self.queue[idx]` is not the one we want.\r\nThe underlying data structure of `VecDeque` is a ring buffer. So if it's the back slice, the `idx` should add the length of front slice.\r\nAs an alternative, we can use the `VecDeque's binary_search_by_key` function though it's not stable yet.\r\n\r\nLuckily, this bug can not lead to serious consequences because it may only return the smaller `propose time`.\r\nAs a result, it may cause a smaller `commit log duration` and `maybe_renew_leader_lease` will use this smaller one to update lease which doesn't break correctness.\r\n",
+  "state": "closed",
+  "created_at": "2021-03-04T16:23:46Z",
+  "updated_at": "2021-03-08T07:14:55Z",
+  "closed_at": "2021-03-08T07:14:55Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 790742069,
+      "user": "gengliqi",
+      "created_at": "2021-03-04T16:24:05Z",
+      "body": "/cc @NingLin-P "
+    },
+    {
+      "id": 791211137,
+      "user": "NingLin-P",
+      "created_at": "2021-03-05T07:16:59Z",
+      "body": "Thanks! @gengliqi , https://github.com/tikv/tikv/pull/9754 will fix it."
+    }
+  ]
+}

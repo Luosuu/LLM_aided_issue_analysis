@@ -1,0 +1,28 @@
+{
+  "issue_number": 14256,
+  "title": "[dynamic regions] snapshot corruption",
+  "body": "## Bug Report\r\n\r\n```\r\n[2023/02/22 14:11:15.779 +08:00] [ERROR] [engine_factory.rs:211] [\"failed to create tablet\"] [err=\"Engine(Status { code: IoError, sub_code: None, sev: NoError, state: \\\"Corruption: Sst file size mismatch: /data/nvme1n1/tikv-20164/tablets/316_5888504/047887.sst. Size recorded in manifest 8406279, actual size 3145717\\\\n\\\" })\"] [path=/data/nvme1n1/tikv-20164/tablets/316_5888504] [suffix=Some(5888504)] [id=316]\r\n[2023/02/22 14:11:15.799 +08:00] [FATAL] [lib.rs:497] [\"failed to load tablet [error=Engine(Status { code: IoError, sub_code: None, sev: NoError, state: \\\"Corruption: Sst file size mismatch: /data/nvme1n1/tikv-20164/tablets/316_5888504/047887.sst. Size recorded in manifest 8406279, actual size 3145717\\\\n\\\" })] [path=/data/nvme1n1/tikv-20164/tablets/316_5888504] [peer_id=323] [region_id=316]\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n   1: std::panicking::rust_panic_with_hook\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n   4: rust_begin_unwind\\n   5: core::panicking::panic_fmt\\n   6: raftstore_v2::operation::ready::snapshot::<impl raftstore_v2::raft::peer::Peer<EK,ER>>::on_applied_snapshot\\n   7: raftstore_v2::operation::ready::<impl raftstore_v2::raft::peer::Peer<EK,ER>>::on_persisted\\n   8: raftstore_v2::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_msgs\\n   9: <raftstore_v2::batch::store::StorePoller<EK,ER,T> as batch_system::batch::PollHandler<raftstore_v2::fsm::peer::PeerFsm<EK,ER>,raftstore_v2::fsm::store::StoreFsm>>::handle_normal\\n  10: batch_system::batch::Poller<N,C,Handler>::poll\\n  11: std::sys_common::backtrace::__rust_begin_short_backtrace\\n  12: core::ops::function::FnOnce::call_once{{vtable.shim}}\\n  13: std::sys::unix::thread::Thread::new::thread_start\\n  14: start_thread\\n  15: clone3\\n\"] [location=/home/tikv/components/raftstore-v2/src/operation/ready/snapshot.rs:243] [thread_name=rs-2-0]\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2023-02-22T06:48:40Z",
+  "updated_at": "2023-04-06T05:52:05Z",
+  "closed_at": "2023-04-06T05:52:05Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1439520655,
+      "user": "BusyJay",
+      "created_at": "2023-02-22T06:52:08Z",
+      "body": "```\r\n[2023/02/22 14:04:50.600 +08:00] [INFO] [tablet_snap.rs:236] [\"begin to receive tablet snapshot files\"] [file=/data/nvme1n1/tikv-20164/tablet_snap/rev_316_323_6_58885\r\n04.tmp]\r\n[2023/02/22 14:04:52.340 +08:00] [INFO] [tablet_snap.rs:236] [\"begin to receive tablet snapshot files\"] [file=/data/nvme1n1/tikv-20164/tablet_snap/rev_316_323_6_58885\r\n04.tmp]\r\n```\r\n\r\nThe corruption is due to receiver receives the same snapshot concurrently."
+    },
+    {
+      "id": 1439542459,
+      "user": "BusyJay",
+      "created_at": "2023-02-22T07:20:38Z",
+      "body": "There are two problems here:\r\n\r\n1. Now regions size is increased, but sending a snapshot with tens of GBs can take some time. It's very likely the leader will cut logs while the snapshot is being sent. In this case, it's nearly impossible for follower to switch back to catching up logs mode. So it will have to keep receiving logs;\r\n2. Leader will stop sending logs to the follower until snapshot is sent. It thinks a snapshot is sent when:\r\n    a). receives a MsgAppendResponse from follower,\r\n    b). receives ReportSnapshotFinish by the gRPC thread.\r\n    These two can race with each other. If b) hanppens after a) and leader is sending a new snapshot to follower due to 1, then leader will send two same snapshot to follower concurrently.\r\n\r\nTo fix the race, follower needs to ensure only one snapshot file is being received at the same time. And to optimize 1, we need to send incremental snapshot only."
+    }
+  ]
+}

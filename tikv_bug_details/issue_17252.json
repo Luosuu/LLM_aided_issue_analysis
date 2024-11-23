@@ -1,0 +1,20 @@
+{
+  "issue_number": 17252,
+  "title": "In-memory Engine: sysbench oltp_read_write fails with \"assertion failed\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n```log\r\n[ 1260s ] thds: 1000 tps: 3672.80 qps: 66135.79 (r/w/o: 51438.80/14696.30/0.70) lat (ms,95%): 390.30 err/s: 0.20 reconn/s: 0.00\r\n[ 1270s ] thds: 1000 tps: 3205.40 qps: 57609.17 (r/w/o: 44821.78/12787.09/0.30) lat (ms,95%): 450.77 err/s: 0.00 reconn/s: 0.00\r\n[ 1280s ] thds: 1000 tps: 3209.40 qps: 57767.83 (r/w/o: 44928.03/12839.21/0.60) lat (ms,95%): 458.96 err/s: 0.20 reconn/s: 0.00\r\n[ 1290s ] thds: 1000 tps: 3478.40 qps: 62660.73 (r/w/o: 48731.32/13929.31/0.10) lat (ms,95%): 397.39 err/s: 0.10 reconn/s: 0.00\r\n[ 1300s ] thds: 1000 tps: 3507.80 qps: 63581.76 (r/w/o: 49465.57/14043.39/72.80) lat (ms,95%): 434.83 err/s: 25.00 reconn/s: 0.00\r\n[ 1310s ] thds: 1000 tps: 3599.40 qps: 66926.87 (r/w/o: 52164.08/14412.19/350.60) lat (ms,95%): 434.83 err/s: 122.10 reconn/s: 0.00\r\n[ 1320s ] thds: 1000 tps: 3425.52 qps: 63356.70 (r/w/o: 49359.23/13674.96/322.50) lat (ms,95%): 475.79 err/s: 107.10 reconn/s: 0.00\r\nFATAL: mysql_stmt_execute() returned error 8141 (assertion failed: key: 74800000000000006b5f69800000000000000103800000000601a076038000000005f2dc36, assertion: Exist, start_ts: 451004559148712779, existing start ts: 451004087433691943, existing commit ts: 451004087446799677) for query 'DELETE FROM sbtest1 WHERE id=?'\r\nFATAL: `thread_run' function failed: /usr/share/sysbench/oltp_common.lua:497: SQL error, errno = 8141, state = 'HY000': assertion failed: key: 74800000000000006b5f69800000000000000103800000000601a076038000000005f2dc36, assertion: Exist, start_ts: 451004559148712779, existing start ts: 451004087433691943, existing commit ts: 451004087446799677\r\n```\r\n\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv8.1.0-20240621-c57aef1 https://github.com/tikv/tikv/tree/v8.1.0-20240621-c57aef1\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```bash\r\n[mysql] > alter table test.sbtest1 ATTRIBUTES \"cache=always\";\r\n\r\nsysbench \\\r\n  --db-driver=mysql \\\r\n  --mysql-host=$HOST \\\r\n  --mysql-port=$PORT \\\r\n  --mysql-user=root \\\r\n  --mysql-db=sbtest1 \\\r\n  --tables=1 \\\r\n  --table-size=200000000 \\\r\n  --threads=100 \\\r\n  --time=36000000 \\\r\n  --report-interval=3 \\\r\n  --skip-trx=true \\\r\n  --mysql-ignore-errors=1062,2013,8028,9007 \\\r\n  --auto-inc=false \\\r\n  --rand-type=special oltp_read_write run\r\n```\r\n\r\n### What did you expect?\r\n\r\nNo assertion failed.\r\n\r\n### What did happened?\r\n\r\nassertion failed.",
+  "state": "closed",
+  "created_at": "2024-07-09T07:06:44Z",
+  "updated_at": "2024-09-04T06:28:05Z",
+  "closed_at": "2024-09-04T06:25:42Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2328016474,
+      "user": "overvenus",
+      "created_at": "2024-09-04T06:25:42Z",
+      "body": "In the past month, we've run extensive sysbench tests, and the bug has not reoccurred. It’s likely been fixed by #17261 and #17288."
+    }
+  ]
+}

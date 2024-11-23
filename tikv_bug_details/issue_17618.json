@@ -1,0 +1,35 @@
+{
+  "issue_number": 17618,
+  "title": "`encoding failed` when processing queries with GBK/GB18030",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n\r\nnot system related bug\r\n\r\n### Steps to reproduce\r\n\r\n1. start a cluster with pd, tidb and tikv\r\n2. execute the following queries\r\n\r\n```sql\r\ndrop table t1;\r\nCREATE TABLE t1 (c VARCHAR(4) CHARACTER SET gbk);\r\nINSERT INTO t1 VALUES (0x8BF5819AEDC3), (0x99CC), (0x90459958), (0xAA95C0E59E509AED), (0xCCE7), (0x9068), (0x90459958);\r\nSELECT * from t1;\r\nSELECT ANY_VALUE(HEX(c)), COUNT(c) FROM t1 GROUP BY c COLLATE gbk_chinese_ci;\r\n```\r\n\r\n### What did you expect?\r\n\r\nAll statements succeed to execute\r\n\r\n### What did happened?\r\n\r\nEncounter `(1105, 'encoding failed')` for last statement",
+  "state": "open",
+  "created_at": "2024-10-09T03:33:52Z",
+  "updated_at": "2024-11-14T04:15:45Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "component/GBK",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2401200831,
+      "user": "CbcWestwolf",
+      "created_at": "2024-10-09T03:34:04Z",
+      "body": "/assign"
+    },
+    {
+      "id": 2401205028,
+      "user": "CbcWestwolf",
+      "created_at": "2024-10-09T03:39:22Z",
+      "body": "Check the query plan:\r\n```sql\r\nTiDB root@127.0.0.1:test> explain SELECT ANY_VALUE(HEX(c)), COUNT(c) FROM t1 GROUP BY c COLLATE gbk_chinese_ci;\r\n+-------------------------+----------+-----------+---------------+------------------------------------------------------------------------------------------------------------------------------------------------------+\r\n| id                      | estRows  | task      | access object | operator info                                                                                                                                        |\r\n+-------------------------+----------+-----------+---------------+------------------------------------------------------------------------------------------------------------------------------------------------------+\r\n| Projection_4            | 8000.00  | root      |               | any_value(hex(to_binary(test.t1.c)))->Column#4, Column#3                                                                                             |\r\n| └─HashAgg_9             | 8000.00  | root      |               | group by:Column#6, funcs:count(Column#7)->Column#3, funcs:firstrow(Column#8)->test.t1.c                                                              |\r\n|   └─TableReader_10      | 8000.00  | root      |               | data:HashAgg_5                                                                                                                                       |\r\n|     └─HashAgg_5         | 8000.00  | cop[tikv] |               | group by:cast(test.t1.c, varchar(4) CHARACTER SET gbk COLLATE gbk_chinese_ci), funcs:count(test.t1.c)->Column#7, funcs:firstrow(test.t1.c)->Column#8 |\r\n|       └─TableFullScan_8 | 10000.00 | cop[tikv] | table:t1      | keep order:false, stats:pseudo                                                                                                                       |\r\n+-------------------------+----------+-----------+---------------+------------------------------------------------------------------------------------------------------------------------------------------------------+\r\n5 rows in set\r\nTime: 0.013s\r\n```\r\n\r\nThe error happens at https://github.com/tikv/tikv/blob/6f389be835d5b8c4362c4989dca925af077e63f7/components/tidb_query_datatype/src/codec/collation/mod.rs#L216\r\n\r\n\r\nThe cause is that, the length of `inner` is truncated to `4` bytes somewhere, which is not expected. `4` in the `varchar(4)` means '4 chars', not '4 bytes'"
+    }
+  ]
+}

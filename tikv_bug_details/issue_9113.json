@@ -1,0 +1,118 @@
+{
+  "issue_number": 9113,
+  "title": "More fine-grained control on callback for raftstore",
+  "body": "## Bug Report\r\n\r\nWe currently rely on raft to handle callback of requests: a callback will be invoked when the corresponding entry is applied/committed or overwritten.  However, raft doesn't guarantee when will an entry be committed or overwritten, so the time when a callback is invoked is unpredictable. If a leader loses its leadership without rejoining the group or it becomes leader but takes a long time to commit its first log, any accepted requests will stuck. For the transaction layer, pending requests will occupy hash slots and lead to ServerIsBusy eventually due to either real conflict or hash collisions.\r\n\r\nI propose to add timeout check on callbacks. If a command is timeout, it should be invoked early using a `Timeout` error. Client should retry in this situation. When raftstore decides to return `Timeout` error, it should not serve any Read requests until it has applied to the `last_index`.\r\n\r\nAs a simple and quick implementation that just solves the problem of slow election, if a peer becomes follower from candidate, it can clear all the pending commands. Change from candidate to follower means it fails to campaign. If it was leader, its uncommitted logs may be overwritten by new leader. Because we don't allow read before leader applies to current term already, so we don't need to record the last index as described above.",
+  "state": "open",
+  "created_at": "2020-11-25T15:41:03Z",
+  "updated_at": "2021-01-26T14:17:11Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 734157359,
+      "user": "youjiali1995",
+      "created_at": "2020-11-26T08:41:10Z",
+      "body": "@MyonKeminta @sticnarf PTAL. It adds another undetermined error to transaction commit."
+    },
+    {
+      "id": 734162576,
+      "user": "cfzjywxk",
+      "created_at": "2020-11-26T08:51:12Z",
+      "body": "It's reasonable to return `timeout` or `undetermined ` error. Maybe processing of different comman types for `timeout` error should be considered on the client side."
+    },
+    {
+      "id": 734165634,
+      "user": "BusyJay",
+      "created_at": "2020-11-26T08:57:18Z",
+      "body": "/cc @lysu "
+    },
+    {
+      "id": 734199433,
+      "user": "sticnarf",
+      "created_at": "2020-11-26T10:00:05Z",
+      "body": "> If a leader loses its leadership without rejoining the group or it becomes leader but takes a long time to commit its first log, any accepted requests will stuck. For the transaction layer, pending requests will occupy hash slots and lead to ServerIsBusy eventually due to either real conflict or hash collisions.\r\n\r\nWhat could be the cause of \" lose its leadership without rejoining the group or it becomes leader but takes a long time to commit its first log\"? If it's due to a persistent network error, it's unlikely that it could receive more requests until `ServerIsBusy`.\r\n\r\n-------------------------------\r\n\r\nA possible case is when one TiKV is isolated from other TiKVs but is still accessible from some TiDB instances?"
+    },
+    {
+      "id": 734239554,
+      "user": "BusyJay",
+      "created_at": "2020-11-26T11:18:36Z",
+      "body": "Yes. Or a replica is removed without acknowledgement, or one follower is down and another follower is waiting for snapshot. "
+    },
+    {
+      "id": 734271356,
+      "user": "MyonKeminta",
+      "created_at": "2020-11-26T12:30:26Z",
+      "body": "> I have a question. Currently we now release latch in scheduler by letting raftstore call a callback on apply finish. Consider this case:\r\n> \r\n> 1. Request A tries to write k1, acquired the latch, and waiting for apply finish\r\n> 2. Request A timed out.\r\n> 3. Request B acquires tries to write k1 again\r\n> \r\n> What should we do in this case?\r\n> \r\n> 2.a Request A responds timeout error to the client, but still waiting apply finishing. This seems didn't solve the problem in this issue.\r\n> \r\n> 2.b Request A abandoned the callback and released the latch.\r\n> 3.b Request B successfully acquires the latch and got a snapshot (in which request A haven't apply). As an example, request A can be a prewrite operation, and request B is a prewrite operation of another transaction.\r\n> 4.b Request B doesn't see request A's result so it writes down a Lock\r\n> 5.b Later, request A and request B's writes are applied successively. A's Lock is overwritten. Then the transaction that request A belongs to would be broken.\r\n> \r\n> I think both choice is not acceptable.\r\n\r\nAh, sorry I missed the point `it should not serve any Read requests until it has applied to the last_index.`. Nevermind."
+    },
+    {
+      "id": 734275867,
+      "user": "MyonKeminta",
+      "created_at": "2020-11-26T12:40:23Z",
+      "body": "> When raftstore decides to return Timeout error, it should not serve any Read requests until it has applied to the last_index.\r\n\r\nDoes this means the region can't provide snapshots in this case? If so, this seems also makes other keys that's not being written unreadable. Is this ok?"
+    },
+    {
+      "id": 734304418,
+      "user": "BusyJay",
+      "created_at": "2020-11-26T13:40:27Z",
+      "body": "> Does this means the region can't provide snapshots in this case?\r\n\r\nYes, it is.\r\n\r\n> Is this ok?\r\n\r\nI'm afraid it's the trade off between write unavailability for the whole node or read/write unavailability for just one region.\r\n\r\nAn alternative solution to the problem is keep current raft implementation, but split latch into region based. In this case, only write is unavailable for single region as expected and perhaps easier to be implemented correctly. The price is memory."
+    },
+    {
+      "id": 734655468,
+      "user": "youjiali1995",
+      "created_at": "2020-11-27T05:43:34Z",
+      "body": "There is a problem during rolling update. Old version TiDBs will think it fails to commit a transaction when encounters this error. It will clean up all locks but maybe the transaction is committed. @BusyJay "
+    },
+    {
+      "id": 734659654,
+      "user": "sticnarf",
+      "created_at": "2020-11-27T05:58:18Z",
+      "body": "> There is a problem during rolling update. Old version TiDBs will think it fails to commit a transaction when encounters this error. It will clean up all locks but maybe the transaction is committed. @BusyJay\r\n\r\nWe may let TiKV return an RPC error, so we can follow the original undetermined logic."
+    },
+    {
+      "id": 736294441,
+      "user": "BusyJay",
+      "created_at": "2020-12-01T08:00:17Z",
+      "body": "If we really care about undetermined errors, we should use a standard flag to show if it's undetermined. And we still need to polish tikv client to distinguish if an error is deterministic. I'm afraid we don't have any official statements about whether a transaction *really* fails, deterministic error should be a new feature instead of something this issue can break."
+    },
+    {
+      "id": 736343081,
+      "user": "youjiali1995",
+      "created_at": "2020-12-01T09:30:51Z",
+      "body": "Yes. No need to handle compatible issues."
+    },
+    {
+      "id": 753783240,
+      "user": "BusyJay",
+      "created_at": "2021-01-04T06:25:20Z",
+      "body": "We have verify the new latch algorithm is very unlikely to cause conflict, so I  lower the severity of the issue."
+    },
+    {
+      "id": 764195920,
+      "user": "cfzjywxk",
+      "created_at": "2021-01-21T02:47:17Z",
+      "body": "@youjiali1995 @BusyJay \r\nMaybe we should change the severity to `major` as some customer have encountered such issues in which raftstore get stuck and the `pending write bytes` is always at a high value exceeding the rate limit value."
+    },
+    {
+      "id": 764209407,
+      "user": "BusyJay",
+      "created_at": "2021-01-21T03:29:59Z",
+      "body": "What's the TiKV version?"
+    },
+    {
+      "id": 764212105,
+      "user": "cfzjywxk",
+      "created_at": "2021-01-21T03:37:37Z",
+      "body": "> What's the TiKV version?\r\n\r\nv5.0-rc, the deadlock [issue](https://github.com/tikv/tikv/issues/9044) is encoutered. RaftStore threads get stuck because of the deadlock or the lost of the majority of replicas on the stucked tikv nodes, these tikv nodes could not continue to work."
+    },
+    {
+      "id": 767570084,
+      "user": "BusyJay",
+      "created_at": "2021-01-26T14:17:11Z",
+      "body": "I'm afraid raftstore can do nothing when it's block by deadlock. Perhaps additional protections need to be added to scheduler layer."
+    }
+  ]
+}

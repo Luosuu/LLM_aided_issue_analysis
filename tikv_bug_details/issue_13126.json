@@ -1,0 +1,91 @@
+{
+  "issue_number": 13126,
+  "title": "br log backup checkpoint doesn't move forward due to\"read index not ready, reason can not read index due to merge, region 94812\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n6.2.0\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. Run workload \r\n2. Start log backup task \r\n3. run tikv network partition chaos 20 minutes every 50 minutes\r\n\r\n### What did you expect?\r\nLog backup checkpoint should move forward when chaos is restored\r\n\r\n### What did happened?\r\n![origin_img_v2_617d52a6-ac84-4b5c-bb85-8f930549599g](https://user-images.githubusercontent.com/7403864/180954542-ce708876-3da9-4338-8940-f1d11ef881b8.jpg)\r\n![origin_img_v2_617d52a6-ac84-4b5c-bb85-8f930549599g](https://user-images.githubusercontent.com/7403864/180954564-f950bd23-bde0-4446-afa8-f69a00097cfb.jpg)\r\n![origin_img_v2_4210aa87-9727-438a-b240-b1dad11b652g](https://user-images.githubusercontent.com/7403864/180954592-48374384-681a-41e6-b2f1-2e763e2cc167.jpg)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-26T07:59:30Z",
+  "updated_at": "2023-11-13T07:40:09Z",
+  "closed_at": "2023-11-13T07:39:46Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "feature/developing",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1195142472,
+      "user": "fubinzh",
+      "created_at": "2022-07-26T08:01:37Z",
+      "body": "/type bug\r\n/severity Major\r\n/feature developing"
+    },
+    {
+      "id": 1197850507,
+      "user": "joccau",
+      "created_at": "2022-07-28T08:47:34Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1197851068,
+      "user": "joccau",
+      "created_at": "2022-07-28T08:48:03Z",
+      "body": "/assign @YuJuncen "
+    },
+    {
+      "id": 1197851094,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-28T08:48:04Z",
+      "body": "@joccau: GitHub didn't allow me to assign the following users: YuJuncen.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13126#issuecomment-1197851068):\n\n>/assign @YuJuncen \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1197851820,
+      "user": "joccau",
+      "created_at": "2022-07-28T08:48:42Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1198849151,
+      "user": "YuJuncen",
+      "created_at": "2022-07-29T03:45:11Z",
+      "body": "When (somehow) the gap between admin command `PrepareMerge` and `CommitMerge` gets too huge (greater than 30s), this error would be triggered.\r\n\r\nBoth `PrepareMerge` and `CommitMerge` would make the `version` of region epoch get increased, which triggers the `RegionChanged` observer and fires an initial scanning request. However raftstore would reject the initial scanning request when `PrepareMerge` applied but `CommitMerge` not applied, it simply replies `ReadIndexNotReady`. "
+    },
+    {
+      "id": 1198853226,
+      "user": "YuJuncen",
+      "created_at": "2022-07-29T03:54:40Z",
+      "body": "...and the error `ReadIndexNotReady` isn't an ignorable error in the current implementation, which means this would consume the opportunity of retry and finally exceed it then leading to `FatalError`."
+    },
+    {
+      "id": 1198856860,
+      "user": "YuJuncen",
+      "created_at": "2022-07-29T04:02:50Z",
+      "body": "The (possible) solutions:\r\n\r\n- For the exception `ReadIndexNotReady` because region merging, we can trivially ignore it and give up initial scanning, because both the merge get rolled back or committed, the version would be increased too, hence would trigger a new initial scanning request.\r\n- For this type of error, we can make them consume less retry opportunity (or, retry score?) hence we can tolerate a longer gap time."
+    },
+    {
+      "id": 1198863715,
+      "user": "YuJuncen",
+      "created_at": "2022-07-29T04:18:45Z",
+      "body": "...another solution is we don't get split / merge from `RegionChanged` observer but `CmdObserver`, by which we can detect whether it is a `PrepareMerge` or `CommitMerge`. When it is `PrepareMerge`, we can simply ignore it and keep observing. "
+    },
+    {
+      "id": 1790310051,
+      "user": "BornChanger",
+      "created_at": "2023-11-02T08:52:47Z",
+      "body": "/component backup-restore"
+    },
+    {
+      "id": 1807607344,
+      "user": "YuJuncen",
+      "created_at": "2023-11-13T07:39:46Z",
+      "body": "We haven't encountered with this anymore in raftstore V1. Perhaps this has been fixed by https://github.com/tikv/tikv/pull/14403. Close it until this happen again."
+    }
+  ]
+}

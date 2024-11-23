@@ -1,0 +1,93 @@
+{
+  "issue_number": 12525,
+  "title": "TiKV restarts due to segfault",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n [\"Welcome to TiDB.\"] [\"Release Version\"=v6.1.0-alpha] [Edition=Community] [\"Git Commit Hash\"=bbfbe137eba05f828a9fb40708a6f6805a3453f0] [\"Git Branch\"=heads/refs/tags/v6.1.0-alpha] [\"UTC Build Time\"=\"2022-05-13 14:58:01\"] \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nCent OS, 16 CPU\r\n```\r\nprocessor       : 39\r\nvendor_id       : GenuineIntel\r\ncpu family      : 6\r\nmodel           : 79\r\nmodel name      : Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\nstepping        : 1\r\nmicrocode       : 0xb00002a\r\ncpu MHz         : 2399.938\r\ncache size      : 25600 KB\r\nphysical id     : 1\r\nsiblings        : 20\r\ncore id         : 12\r\ncpu cores       : 10\r\napicid          : 57\r\ninitial apicid  : 57\r\nfpu             : yes\r\nfpu_exception   : yes\r\ncpuid level     : 20\r\nwp              : yes\r\nflags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopol\r\nogy nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dno\r\nwprefetch epb cat_l3 cdp_l3 intel_pt ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a rdseed adx smap xsaveopt cqm_llc cqm_occup_llc cqm_mbm_total\r\n cqm_mbm_local dtherm ida arat pln pts spec_ctrl intel_stibp\r\nbogomips        : 4404.48\r\nclflush size    : 64\r\ncache_alignment : 64\r\naddress sizes   : 46 bits physical, 48 bits virtual\r\npower management:\r\n\r\n```\r\n\r\n### Steps to reproduce\r\n1. Start a cluster and keep running workload\r\n2. Start a log backup task, and monitor log backup status\r\n\r\n### What did you expect?\r\nNo tikv restart\r\n\r\n### What did happened?\r\nthere are 2 TiKV restart seen in 2 days for the same reason.\r\n\r\n![middle_img_v2_e64b26b6-14f2-49c6-a632-2951d7d2ec4g](https://user-images.githubusercontent.com/7403864/168549466-48e26db9-a7de-4a76-a2ea-0778d5c41439.jpg)\r\n\r\n```\r\n[六 5月 14 20:17:14 2022] steady-timer[150605]: segfault at 2000 ip 00007f0423a260b8 sp 00007f03bf1c9410 error 4 in libgcc_s-4.8.5-20150702.so.1[7f0423a17000+15000]\r\n[日 5月 15 00:15:14 2022] perf: interrupt took too long (6201 > 6193), lowering kernel.perf_event_max_sample_rate to 32000\r\n[日 5月 15 10:01:54 2022] TCP: request_sock_TCP: Possible SYN flooding on port 4000. Sending cookies.  Check SNMP counters.\r\n[一 5月 16 11:30:15 2022] steady-timer[160415]: segfault at ffffffffffffff92 ip 00007f6e742690b8 sp 00007f6deffc9410 error 5 in libgcc_s-4.8.5-20150702.so.1[7f6e7425a000+15000]\r\n```",
+  "state": "closed",
+  "created_at": "2022-05-16T08:29:41Z",
+  "updated_at": "2022-05-20T08:39:35Z",
+  "closed_at": "2022-05-20T08:39:35Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1127440475,
+      "user": "fubinzh",
+      "created_at": "2022-05-16T09:27:58Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1127440979,
+      "user": "fubinzh",
+      "created_at": "2022-05-16T09:28:28Z",
+      "body": "Another TiKV restart seen:\r\n[Mon May 16 15:45:18 2022] steady-timer[25730]: segfault at ffffffffffffff92 ip 00007f9f6b2910b8 sp 00007f9eec749410 error 5 in libgcc_s-4.8.5-20150702.so.1[7f9f6b282000+15000]\r\n"
+    },
+    {
+      "id": 1128350327,
+      "user": "jebter",
+      "created_at": "2022-05-17T02:51:33Z",
+      "body": "/assign jiayang-zheng"
+    },
+    {
+      "id": 1128350335,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-17T02:51:34Z",
+      "body": "@jebter: GitHub didn't allow me to assign the following users: jiayang-zheng.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12525#issuecomment-1128350327):\n\n>/assign jiayang-zheng\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1128591112,
+      "user": "jiayang-zheng",
+      "created_at": "2022-05-17T08:43:00Z",
+      "body": "Both segfault error 4 and error 5 are about read invalid memory on user space. Could you help to confirm that the limitation of memory usage  (tikv1 + tikv2+ ... tikvN)+(tidb1 + tidb2 + ... tidbN) should be  less than the total memory of the machine?"
+    },
+    {
+      "id": 1128670541,
+      "user": "jiayang-zheng",
+      "created_at": "2022-05-17T10:00:58Z",
+      "body": "By the way, have you specified the block cache  size if you deploy multiple tikv instances in one host?  You may need to config each tikv instance's block cache size in that case, otherwise it may trigger some oom-like issues :("
+    },
+    {
+      "id": 1128801485,
+      "user": "jiayang-zheng",
+      "created_at": "2022-05-17T12:22:04Z",
+      "body": "Could you please turn on the [core dump](https://zhuanlan.zhihu.com/p/41153588) - then we could see more if the segfault  issue occurs again."
+    },
+    {
+      "id": 1129737910,
+      "user": "fubinzh",
+      "created_at": "2022-05-18T08:43:29Z",
+      "body": "> Could you please turn on the [core dump](https://zhuanlan.zhihu.com/p/41153588) - then we could see more if the segfault issue occurs again.\r\n\r\ncore dump is enabled at 5/16 23:00, so far no tikv segfault error seen again."
+    },
+    {
+      "id": 1129760812,
+      "user": "jiayang-zheng",
+      "created_at": "2022-05-18T09:06:19Z",
+      "body": "``` toml\r\n[storage.block-cache]\r\n## To deploy multiple TiKV nodes on a single physical machine, configure this parameter explicitly.\r\n## Otherwise, the OOM problem might occur in TiKV.\r\n##\r\n## If it's not set, 45% of available system memory will be used.\r\n# capacity = \"1GB\"\r\n```\r\n\r\nPlease have a check that `block-cache.capacity` should be set explicitly while deploying multiple TiKV nodes on a single physical machine."
+    },
+    {
+      "id": 1129765516,
+      "user": "fubinzh",
+      "created_at": "2022-05-18T09:10:52Z",
+      "body": "> ```toml\r\n> [storage.block-cache]\r\n> ## To deploy multiple TiKV nodes on a single physical machine, configure this parameter explicitly.\r\n> ## Otherwise, the OOM problem might occur in TiKV.\r\n> ##\r\n> ## If it's not set, 45% of available system memory will be used.\r\n> # capacity = \"1GB\"\r\n> ```\r\n> \r\n> Please have a check that `block-cache.capacity` should be set explicitly while deploying multiple TiKV nodes on a single physical machine.\r\n\r\nOK, will update config and check whether we can reproduce it."
+    },
+    {
+      "id": 1130958534,
+      "user": "fubinzh",
+      "created_at": "2022-05-19T01:39:12Z",
+      "body": "This issue is reproduced.\r\n\r\ndmesg\r\n``` \r\n[Thu May 19 07:35:18 2022] steady-timer[29395]: segfault at ffffffffffffff92 ip 00007f6ea9fe60f8 sp 00007f6e2d8c9410 error 5 in libgcc_s-4.8.5-20150702.so.1[7f6ea9fd7000+15000]\r\n```\r\n\r\ncore dump: 172.16.5.53:/data2/pp2/tikv-31161/deploy/core.29237\r\n```\r\n[New LWP 29353]\r\n[Thread debugging using libthread_db enabled]\r\nUsing host libthread_db library \"/lib64/libthread_db.so.1\".\r\nCore was generated by `bin/tikv-server --addr 0.0.0.0:31161 --advertise-addr 172.16.5.53:31161 --statu'.\r\nProgram terminated with signal 11, Segmentation fault.\r\n#0  0x00007f6ea9fe60f8 in ?? () from /lib64/libgcc_s.so.1\r\nMissing separate debuginfos, use: debuginfo-install glibc-2.17-325.el7_9.x86_64 libgcc-4.8.5-44.el7.x86_64\r\n(gdb) bt\r\n#0  0x00007f6ea9fe60f8 in ?? () from /lib64/libgcc_s.so.1\r\n#1  0x00007f6ea9fe6ff9 in _Unwind_Backtrace () from /lib64/libgcc_s.so.1\r\n#2  0x00005653cde71e17 in perf_signal_handler ()\r\n#3  <signal handler called>\r\n#4  0x00005653ce6d049d in core::ptr::drop_in_place$LT$batch_system..batch..NormalScheduler$LT$raftstore..store..fsm..peer..PeerFsm$LT$engine_rocks..engine..RocksEngine$C$raft_log_engine..engine..RaftLogEngine$GT$$C$raftstore..store..fsm..store..StoreFsm$LT$engine_rocks..engine..RocksEngine$GT$$GT$$GT$::h215323ad03302e84 ()\r\n#5  0xffffffffffffff92 in ?? ()\r\n#6  0x00007f6e2d202000 in ?? ()\r\n#7  0x00007f6e2d201058 in ?? ()\r\n#8  <signal handler called>\r\n#9  _rjem_je_tcache_bin_flush_small (tsd=<optimized out>, tcache=<optimized out>, tbin=0x7f6e2d4084b8, binind=<optimized out>, rem=<optimized out>) at src/tcache.c:223\r\n\r\n```\r\n"
+    },
+    {
+      "id": 1131054228,
+      "user": "jiayang-zheng",
+      "created_at": "2022-05-19T02:42:57Z",
+      "body": "As we look, the segfault thread got a signal and met problem in `perf_signal_handler`.\r\n```\r\n#0  0x00007f6ea9fe60f8 in ?? () from /lib64/libgcc_s.so.1\r\n#1  0x00007f6ea9fe6ff9 in _Unwind_Backtrace () from /lib64/libgcc_s.so.1\r\n#2  0x00005653cde71e17 in perf_signal_handler ()\r\n#3  <signal handler called>\r\n```\r\nThis may be related to ` continue profiling` feature, which has a known issue and should be fixed by the [merging pr](https://github.com/tikv/tikv/pull/12480)."
+    },
+    {
+      "id": 1131170741,
+      "user": "mornyx",
+      "created_at": "2022-05-19T03:48:52Z",
+      "body": "Should be resolved as https://github.com/tikv/tikv/pull/12480 has been merged."
+    }
+  ]
+}

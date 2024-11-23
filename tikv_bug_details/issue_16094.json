@@ -1,0 +1,21 @@
+{
+  "issue_number": 16094,
+  "title": "(encryption) tikv-ctl dump encryption metadata panic without data-dir in config.toml",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n\r\nWithout data-dir in config, add --data-dir option in command line, dump-file panic as following:\r\n```\r\nsh-5.1# /tikv-ctl --config=/etc/tikv/tikv.toml --ca-path /var/lib/tikv-tls/ca.crt --cert-path /var/lib/tikv-tls/tls.crt --key-path /var/lib/tikv-tls/tls.key --data-dir=/var/lib/tikv/data/ --host=127.0.0.1:20160 encryption-meta dump-file\r\nthread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: Io(Os { code: 2, kind: NotFound, message: \"No such file or directory\" })', cmd/tikv-ctl/src/main.rs:211:88\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\n```\r\n\r\nAfter adding data-dir in config.toml as following, command succeeded.\r\n```\r\nsh-5.1# cat /tikv.toml\r\nlog-file = \"/var/lib/tikv/log/tikv.log\"\r\nlog-level = \"info\"\r\n\r\n[security]\r\n  ca-path = \"/var/lib/tikv-tls/ca.crt\"\r\n  cert-path = \"/var/lib/tikv-tls/tls.crt\"\r\n  key-path = \"/var/lib/tikv-tls/tls.key\"\r\n  redact-info-log = true\r\n  [security.encryption]\r\n    data-encryption-method = \"aes128-ctr\"\r\n    data-key-rotation-period = \"1h\"\r\n    [security.encryption.master-key]\r\n      endpoint = \"https://kms.us-west-2.amazonaws.com\"\r\n      key-id = \"b2e2affa-f462-4758-8abc-2e1eed17c907\"\r\n      region = \"us-west-2\"\r\n      type = \"kms\"\r\n\r\n[server]\r\n  [server.labels]\r\n    zone = \"us-west-2a\"\r\n\r\n[storage]\r\n  data-dir = \"/var/lib/tikv/data\"\r\n  reserve-space = \"0MB\"\r\nsh-5.1# /tikv-ctl --config=/tikv.toml --ca-path /var/lib/tikv-tls/ca.crt --cert-path /var/lib/tikv-tls/tls.crt --key-path /var/lib/tikv-tls/tls.key --host=127.0.0.1:20160 encryption-meta dump-file\r\n/var/lib/tikv/data/raft-engine/0000000000000001.rewrite: key_id: 1459426208351074235 iv: 1C08ED0A9EB96397A714301B3CFD2DC2 method: Aes128Ctr\r\n/var/lib/tikv/data/db/OPTIONS-000013: key_id: 1459426208351074235 iv: AD6C990A5C9DC99E9C654D8146AFF488 method: Aes128Ctr\r\n/var/lib/tikv/data/db/OPTIONS-000011: key_id: 1459426208351074235 iv: 144B28145D499859FD277FDA9D72AED2 method: Aes128Ctr\r\n/var/lib/tikv/data/db/MANIFEST-000004: key_id: 1459426208351074235 iv: C5D015987266ACB21B7BCD6A1B2CB8F5 method: Aes128Ctr\r\n/var/lib/tikv/data/db/000005.log: key_id: 1459426208351074235 iv: 0169F5E82CABBA4EEE72974708FF498A method: Aes128Ctr\r\n/var/lib/tikv/data/raft-engine/0000000000000001.raftlog: key_id: 1459426208351074235 iv: 424F67A96780A7FC21A535556E9B4B4B method: Aes128Ctr\r\n/var/lib/tikv/data/db/IDENTITY: key_id: 1459426208351074235 iv: 46520C04ADC926AD0B18ACCFD1DD7DA1 method: Aes128Ctr\r\n```\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-11-29T03:35:28Z",
+  "updated_at": "2023-11-30T09:31:21Z",
+  "closed_at": "2023-11-30T09:31:21Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1831166681,
+      "user": "mayjiang0203",
+      "created_at": "2023-11-29T03:40:01Z",
+      "body": "/severity moderate\r\n/assign @LykxSassinator "
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "issue_number": 10949,
+  "title": "Correct test coverage information in README",
+  "body": "It is currently reported as 10%. According to @sticnarf , it is not true. We'd better try to replace it with real metric.",
+  "state": "closed",
+  "created_at": "2021-09-15T06:29:44Z",
+  "updated_at": "2022-01-18T09:13:36Z",
+  "closed_at": "2022-01-18T09:13:36Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 919739434,
+      "user": "BusyJay",
+      "created_at": "2021-09-15T06:32:39Z",
+      "body": "/cc @yiwu-arbug "
+    },
+    {
+      "id": 919747720,
+      "user": "sticnarf",
+      "created_at": "2021-09-15T06:49:56Z",
+      "body": "Rust supports source-based code coverage provided by LLVM. Here is the guide: https://doc.rust-lang.org/nightly/unstable-book/compiler-flags/instrument-coverage.html\r\n\r\nRaw profiles can be generated using:\r\n\r\n```bash\r\n$ export RUSTFLAGS=\"-Z instrument-coverage\"\r\n$ export LLVM_PROFILE_FILE=\"tikv-%m.profraw\"\r\n$ make test # Due to flaky tests, we can disable failfast and kill timeout tests here\r\n```\r\n\r\nMerge all generated raw profiles into one:\r\n\r\n```bash\r\n$ find -name '*.profraw' | xargs llvm-profdata --merge -sparse -o tikv.profdata\r\n```\r\n\r\nUsing `llvm-cov` to generate report:\r\n\r\n```\r\n$ llvm-cov report \\\r\n    --ignore-filename-regex='/.cargo/registry' \\\r\n    --ignore-filename-regex='/.cargo/git/checkouts' \\\r\n    --instr-profile=tikv.profdata \\\r\n    --object .. \\\r\n    --object .. \\\r\n    --object ..\r\n```\r\n\r\nThis is the way of generating line coverage. I am not familar with the integration of platforms like codecov."
+    },
+    {
+      "id": 919863634,
+      "user": "tisonkun",
+      "created_at": "2021-09-15T09:39:58Z",
+      "body": "@sticnarf @Ray-Eldath I think the problems here are:\r\n\r\n1. Find a way to calculate real test coverage.\r\n2. Display on README.md.\r\n\r\n@sticnarf 's script above can resolve the first part, what about the second part? Where we can send the report and generate a result (daily? per check-in?) to display.\r\n\r\nIf it is hard to achieve, we may just remove the current status first."
+    },
+    {
+      "id": 920067921,
+      "user": "Rustin170506",
+      "created_at": "2021-09-15T14:25:08Z",
+      "body": "I think I can explain why the coverage plummets.\r\n1. first codecov works on the [principle](https://docs.codecov.com/docs/comparing-commits) that it needs a base commit(or parent commit) as a benchmark, then PR runs the test and then compares the diff to determine the coverage change.\r\n2. The reason for our plunge is that https://codecov.io/gh/tikv/tikv/commit/d05d8ae3fe0bc81901550c554de4f37dd4f6cc26/ is a failed statistic, you observe that it doesn't actually find the result on the corresponding master, so the comparison fails and only produces PR coverage.\r\n![image](https://user-images.githubusercontent.com/29879298/133451764-9c319320-d26d-4409-9f12-4889f5a71a70.png)\r\n\r\n3. Since we don't consistently run tests to count coverage after the PR is merged to master, it hasn't been able to count coverage to master correctly. Looking at codecov our last tally on master was 4 months ago.\r\n\r\n\r\nSo I think we can solve the problem by running the test upload results correctly on master."
+    },
+    {
+      "id": 938288532,
+      "user": "Lily2025",
+      "created_at": "2021-10-08T02:28:47Z",
+      "body": "/severity Moderate"
+    },
+    {
+      "id": 1011128703,
+      "user": "BusyJay",
+      "created_at": "2022-01-12T14:56:01Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1014411868,
+      "user": "BusyJay",
+      "created_at": "2022-01-17T11:20:51Z",
+      "body": "Now the coverage information is displayed correctly. A daily run task will be setup once https://github.com/PingCAP-QE/ci/pull/608 is merged."
+    },
+    {
+      "id": 1015211602,
+      "user": "BusyJay",
+      "created_at": "2022-01-18T09:13:36Z",
+      "body": "Daily run task is setup. Close."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "issue_number": 7324,
+  "title": "batchRecvLoop receives a unknown response when testing follower read",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n```\r\n/ # /tidb-server -V\r\nRelease Version: v4.0.0-beta.2-115-g52bf81d65\r\nGit Commit Hash: 52bf81d651188fdd7fc86f3e1de3a7cfffd2cf38\r\nGit Branch: release-4.0\r\nUTC Build Time: 2020-03-31 09:23:29\r\nGoVersion: go1.13\r\nRace Enabled: false\r\nTiKV Min Version: v3.0.0-60965b006877ca7234adaced7890d7b029ed1306\r\nCheck Table Before Drop: false\r\n\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   4.0.0-beta.2\r\nGit Commit Hash:   d80f8d3cad3e30a5dbd2c4d7b7c38839c3a9504b\r\nGit Commit Branch: release-4.0\r\nUTC Build Time:    2020-03-31 02:17:19\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\nEnable Features:   jemalloc portable sse protobuf-codec\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nGCP n1-standard-32\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nrun https://github.com/pingcap/tipocket/tree/master/cmd/bank with\r\n\r\n```\r\n-nemesis=random_kill,kill_pd_leader_5min,partition_one,subcritical_skews,big_skews,shuffle-leader-scheduler,shuffle-region-scheduler,random-merge-scheduler\r\n-tidb-replica-read=leader-and-follower\r\n```\r\n\r\n[main.log](https://github.com/tikv/tikv/files/4412911/main.log)\r\n\r\n### What did you expect?\r\n\r\nEverything is ok.\r\n\r\n### What did happened?\r\n\r\nTiDB Panic",
+  "state": "closed",
+  "created_at": "2020-04-01T05:18:34Z",
+  "updated_at": "2020-11-04T05:18:19Z",
+  "closed_at": "2020-11-04T05:18:19Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/low",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 721517222,
+      "user": "hicqu",
+      "created_at": "2020-11-04T05:18:16Z",
+      "body": "Fixed by https://github.com/pingcap/tidb/pull/17378."
+    }
+  ]
+}

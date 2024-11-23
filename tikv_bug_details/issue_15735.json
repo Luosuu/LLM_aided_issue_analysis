@@ -1,0 +1,46 @@
+{
+  "issue_number": 15735,
+  "title": "[Dynamic Regions] Compared with v7.3.0, TPCC has a 8% ~ 29% performance regression",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv7.3.0 and nightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. deploy clusters with both v7.3.0 and nightly versions (3 tidb + 3 tikv + 1 pd)\r\n2. cluster configs:\r\n```\r\nTidbConfig:{\"mem-quota-query\":1073741824,\"new_collations_enabled_on_first_bootstrap\":false,\"prepared-plan-cache\":{\"enabled\":true}}; \r\nTikvConfig:{\"coprocessor\":{\"region-max-size\":\"1.5GB\",\"region-split-size\":\"1GB\"},\"import.num-threads\":64,\"storage\":{\"engine\":\"partitioned-raft-kv\"},\"storage.block-cache.capacity\":\"30GB\"}\"\r\n```\r\n3. run go-tpc tpcc 1000 warehouses\r\n\r\n### What did you expect?\r\nNo performance regression.\r\n### What did happened?\r\n Compared with v7.3.0 (baseline), TPCC has a 8% ~ 29% performance regression.\r\n![image](https://github.com/tikv/tikv/assets/84501897/b0950aff-374f-48a7-8b59-752baa9e2408)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-10-09T09:33:55Z",
+  "updated_at": "2024-08-07T05:32:42Z",
+  "closed_at": "2024-08-07T05:32:42Z",
+  "labels": [
+    "type/bug",
+    "affects-7.4",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1752651826,
+      "user": "Yui-Song",
+      "created_at": "2023-10-09T09:35:54Z",
+      "body": "/severity major\r\n/assign @bufferflies "
+    },
+    {
+      "id": 1752653815,
+      "user": "Yui-Song",
+      "created_at": "2023-10-09T09:37:16Z",
+      "body": "/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.5\r\n/remove-label may-affects-7.1"
+    },
+    {
+      "id": 1752700324,
+      "user": "Yui-Song",
+      "created_at": "2023-10-09T09:54:57Z",
+      "body": "/label affects-7.4"
+    },
+    {
+      "id": 1760649911,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-13T01:55:44Z",
+      "body": "This is because of the lockcf write buffer limit's behavior, that if it's too small, it would hurt the write heavy workload. \r\nBut if it's big, then it would hurt read-write workload with too many MVCC versions. "
+    },
+    {
+      "id": 1760650181,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-13T01:56:14Z",
+      "body": "Dup with https://github.com/tikv/tikv/issues/15736"
+    }
+  ]
+}

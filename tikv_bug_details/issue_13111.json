@@ -1,0 +1,67 @@
+{
+  "issue_number": 13111,
+  "title": "Load base split don't work in scenario of pure little table scan",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n./tikv-server -V\r\n TiKV\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   b1952dcaf8af9ab218916b26eb5dd3ce72a8d638\r\nGit Commit Branch: heads/refs/tags/v6.2.0-alpha\r\nUTC Build Time:    2022-07-22 05:51:18\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nDisable corpr-cache\r\n1、Use sysbench to prepare 1000 rows tables;\r\n2、Run select count(*） from sbtest1 in parallel;\r\n3、Check region count of table sbtest1;\r\n\r\n### What did you expect?\r\nRegion can split and CPU should be balance in all tikvs.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/9443637/180424115-7ec88f1e-98df-46e9-a418-6c938ab9709e.png)\r\n![image](https://user-images.githubusercontent.com/9443637/180424203-c2a34d9e-fa86-4316-b9c7-652cdbdfdb54.png)\r\n\r\n\r\n\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-07-22T10:48:05Z",
+  "updated_at": "2024-11-01T10:17:13Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/pd-client",
+    "severity/major",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1192446622,
+      "user": "mayjiang0203",
+      "created_at": "2022-07-22T10:52:08Z",
+      "body": "/type bug\r\n/assign @nolouch \r\n/severity Major"
+    },
+    {
+      "id": 1195006742,
+      "user": "nolouch",
+      "created_at": "2022-07-26T05:04:36Z",
+      "body": "This is caused by the `half` split checker with sampling keys with scan in each `region_max_size / 1000` size. this case only 1000 rows in the table, it's too small, so it cannot find a key. Details logic in:\r\nhttps://github.com/tikv/tikv/blob/e278777f97cc71aa60cf21550c5e8f55bfa95b84/components/raftstore/src/coprocessor/split_check/half.rs#L39-L58\r\n\r\n`on_kv` will sample keys, but cannot sample enough keys because the data in the key range  too little， some debug log:\r\n```\r\n[2022/07/26 04:55:46.087 +00:00] [DEBUG] [pool.rs:122] [\"scheduling task [split check worker] Split Check Task for 2, start_key: Some([116, 128, 0, 0, 0, 0, 0, 0, 82, 95, 114, 128, 0, 0, 0, 0, 0, 2, 0]), end_key: Some([116, 128, 0, 0, 0, 0, 0, 0, 82, 95, 114, 255, 255, 255, 255, 255, 255, 255, 255, 0]), auto_split: false\"]\r\n[2022/07/26 04:55:46.088 +00:00] [DEBUG] [half.rs:42] [\"[split check worker ] buckets checker push the key [116, 128, 0, 0, 0, 0, 0, 0, 255, 82, 95, 114, 128, 0, 0, 0, 0, 255, 0, 2, 0, 0, 0, 0, 0, 0, 250, 249, 247, 28, 147, 225, 123, 255, 252]\"]\r\n[2022/07/26 04:55:46.088 +00:00] [DEBUG] [half.rs:52] [\"[split check worker ] buckets checker get the key null, bucket_size 147456, cur_bucket_size 141262 \"]\r\n```\r\n\r\n"
+    },
+    {
+      "id": 1201080672,
+      "user": "nolouch",
+      "created_at": "2022-08-01T11:33:10Z",
+      "body": "It's a not blocking issue, will try to improve it in 6.3."
+    },
+    {
+      "id": 1207764625,
+      "user": "nolouch",
+      "created_at": "2022-08-08T07:26:46Z",
+      "body": "/assign CabinfeverB "
+    },
+    {
+      "id": 1207764641,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-08T07:26:47Z",
+      "body": "@nolouch: GitHub didn't allow me to assign the following users: CabinfeverB.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13111#issuecomment-1207764625):\n\n>/assign CabinfeverB \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1207765012,
+      "user": "nolouch",
+      "created_at": "2022-08-08T07:27:10Z",
+      "body": "/assign @CabinfeverB "
+    },
+    {
+      "id": 1207765039,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-08T07:27:12Z",
+      "body": "@nolouch: GitHub didn't allow me to assign the following users: CabinfeverB.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13111#issuecomment-1207765012):\n\n>/assign @CabinfeverB \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

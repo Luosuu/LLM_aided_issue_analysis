@@ -1,0 +1,26 @@
+{
+  "issue_number": 3894,
+  "title": "Bug: duplicate HTTP response headers",
+  "body": "## Bug Report\r\n\r\nI'm just starting playing around with tikv https://github.com/tikv/tikv/wiki ; followed the QuickStart by https://github.com/tikv/tikv/blob/master/docs/op-guide/deploy-tikv-using-docker-compose.md\r\n\r\ntill the last one `curl :2379/pd/api/v1/stores`\r\n\r\n```console\r\n/ # /tikv-server --version\r\nTiKV \r\nRelease Version:   3.0.0-alpha\r\nGit Commit Hash:   84afc9670f348eb4a28d4662976a2daa3747106e\r\nGit Commit Branch: master\r\nUTC Build Time:    2018-12-05 06:32:07\r\nRust Version:      rustc 1.29.0-nightly (4f3c7a472 2018-07-17)\r\n```\r\n\r\n**What did you see instead?**\r\n\r\nit indeed works, but comes with duplicate response headers, it must be a BUG somewhere, since it's running both `pingcap/tikv` and `pingcap/pd` latest docker images, I am not sure it's TiKV's problem or from the PD ?\r\n\r\n```console\r\n$ curl -v 172.19.0.2:2379/pd/api/v1/stores\r\n*   Trying 172.19.0.2...\r\n* TCP_NODELAY set\r\n* Connected to 172.19.0.2 (172.19.0.2) port 2379 (#0)\r\n> GET /pd/api/v1/stores HTTP/1.1\r\n> Host: 172.19.0.2:2379\r\n> User-Agent: curl/7.61.1\r\n> Accept: */*\r\n> \r\n< HTTP/1.1 200 OK\r\n< Access-Control-Allow-Headers: accept, content-type, authorization\r\n< Access-Control-Allow-Headers: accept, content-type, authorization\r\n< Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\n< Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\n< Access-Control-Allow-Origin: *\r\n< Access-Control-Allow-Origin: *\r\n< Content-Length: 1681\r\n< Content-Type: application/json; charset=UTF-8\r\n< Date: Fri, 07 Dec 2018 08:48:46 GMT\r\n< \r\n{\r\n  \"count\": 3,\r\n  \"stores\": [\r\n    {\r\n      \"store\": {\r\n        \"id\": 2,\r\n        \"address\": \"tikv2:20160\",\r\n        \"version\": \"3.0.0-alpha\",\r\n        \"state_name\": \"Up\"\r\n      },\r\n      \"status\": {\r\n```\r\n\r\n**What did you expect to see?**\r\n\r\nit should not duplicate HTTP response headers:\r\n\r\n```console\r\n< HTTP/1.1 200 OK\r\n< Access-Control-Allow-Headers: accept, content-type, authorization\r\n< Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\n< Access-Control-Allow-Origin: *\r\n< Content-Length: 1681\r\n< Content-Type: application/json; charset=UTF-8\r\n< Date: Fri, 07 Dec 2018 08:48:46 GMT\r\n< \r\n{\r\n```",
+  "state": "closed",
+  "created_at": "2018-12-07T08:56:50Z",
+  "updated_at": "2018-12-10T15:22:51Z",
+  "closed_at": "2018-12-10T15:22:51Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 445168035,
+      "user": "siddontang",
+      "created_at": "2018-12-07T09:06:17Z",
+      "body": "PTAL @rleungx "
+    },
+    {
+      "id": 445178869,
+      "user": "rleungx",
+      "created_at": "2018-12-07T09:48:01Z",
+      "body": "Hi, @c0b. Thanks for your feedback!\r\nIt was just my fault. It can be reproduced actually. I will figure it out ASAP."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "issue_number": 12802,
+  "title": "log-backup: The checkpoint-ts do not keep 24h when the task status become error.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n- create a task. br log start\r\n- make a breakdown for minio storage.\r\n- the log-backup task failed to do_flush and retry for 16 times for 64 minutes. The status of task became error finally.\r\n- The gc safe point keep at checkpoint-ts of task for 30 mins(need keep 24 h).\r\n\r\n\r\n### What did you expect?\r\nWhen the log-backup task met error and status of it become error, it keep keep safe point for 24H.\r\n\r\n### What did happened?\r\nThe checkpoint-ts has been gc after the log-backup task met error.\r\n",
+  "state": "closed",
+  "created_at": "2022-06-11T08:26:51Z",
+  "updated_at": "2023-03-10T16:02:58Z",
+  "closed_at": "2022-07-12T11:00:25Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing",
+    "may-affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1152881568,
+      "user": "joccau",
+      "created_at": "2022-06-11T08:27:28Z",
+      "body": "/assign\r\n/label affects-6.1\r\n/type bug\r\n/feature developing\r\n/component br"
+    },
+    {
+      "id": 1152881573,
+      "user": "ti-chi-bot",
+      "created_at": "2022-06-11T08:27:30Z",
+      "body": "@joccau: The label(s) `component/br` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12802#issuecomment-1152881568):\n\n>/assign\r\n>/label affects-6.1\r\n>/type bug\r\n>/feature developing\r\n>/component br\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1152881597,
+      "user": "joccau",
+      "created_at": "2022-06-11T08:27:44Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1152881689,
+      "user": "joccau",
+      "created_at": "2022-06-11T08:28:28Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "issue_number": 11989,
+  "title": "After a tikv fault (more than 30 minutes) is restored, the raft log lag has been chasing",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/02/16 19:56:48.223 +08:00] [INFO] [client.go:338] [\"Cluster version information\"] [type=pd] [version=5.5.0-nightly] [git_hash=f4b0b3187aa1e044f72b3cbe9048f29d1878c584]\r\n[2022/02/16 19:56:48.223 +08:00] [INFO] [client.go:338] [\"Cluster version information\"] [type=tikv] [version=5.4.0-alpha] [git_hash=8f4f71ea655c5ba794fd2f1780e98e6c3831bc16]\r\n[2022/02/16 19:56:48.223 +08:00] [INFO] [client.go:338] [\"Cluster version information\"] [type=tidb] [version=5.5.0-nightly] [git_hash=9659b93250e7f08e33f76e59844835927e3d39d8]\r\n\r\n### What operating system and CPU are you using?\r\n8 core 16G\r\n\r\n### Steps to reproduce\r\nrun tpcc or sysbenc insert \r\ninject one tikv fault and recover （more than 30min）\r\n\r\n### What did you expect?\r\nraft log lag can becomes smaller\r\n\r\n### What did happened?\r\nraft log lag becomes more and more\r\n![middle_img_v2_bc59e1bf-5726-4bc5-ba67-0f5f8da3597g](https://user-images.githubusercontent.com/84712107/155080295-7f7a3d96-9054-4c39-aafc-32d2091acfb9.png)\r\n![middle_img_v2_0a248809-5e85-4b36-b7c7-55ed955f4eeg](https://user-images.githubusercontent.com/84712107/155080307-783c390c-1096-4264-9475-49767e30faa2.png)\r\n![middle_img_v2_b73c4645-e7a1-4050-9139-bd4546d04f0g](https://user-images.githubusercontent.com/84712107/155080322-483a0655-995e-4ded-9470-9afdef55ae00.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-02-18T09:23:11Z",
+  "updated_at": "2022-02-23T09:42:30Z",
+  "closed_at": "2022-02-23T09:42:30Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation"
+  ],
+  "comments_data": [
+    {
+      "id": 1044203392,
+      "user": "Lily2025",
+      "created_at": "2022-02-18T09:24:22Z",
+      "body": "/assign Connor1996"
+    },
+    {
+      "id": 1044203640,
+      "user": "Lily2025",
+      "created_at": "2022-02-18T09:24:36Z",
+      "body": "/type enhancement"
+    },
+    {
+      "id": 1047370140,
+      "user": "Lily2025",
+      "created_at": "2022-02-22T02:37:46Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1047487902,
+      "user": "Lily2025",
+      "created_at": "2022-02-22T07:08:58Z",
+      "body": "/type bug\r\n/severity major"
+    },
+    {
+      "id": 1047488366,
+      "user": "Lily2025",
+      "created_at": "2022-02-22T07:09:46Z",
+      "body": "/remove-type enhancement"
+    },
+    {
+      "id": 1047715457,
+      "user": "Connor1996",
+      "created_at": "2022-02-22T11:48:25Z",
+      "body": "The problem occurs only when raft-engine is enabled."
+    },
+    {
+      "id": 1047785022,
+      "user": "tabokie",
+      "created_at": "2022-02-22T13:14:44Z",
+      "body": "@Lily2025 Could you test again with this binary?http://fileserver.pingcap.net/download/builds/pingcap/tikv/pr/67be27dc95d92e8babdf57cbe4d0a982f94f1a35/centos7/tikv-server.tar.gz\r\nThanks."
+    }
+  ]
+}

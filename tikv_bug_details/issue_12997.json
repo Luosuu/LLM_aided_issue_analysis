@@ -1,0 +1,66 @@
+{
+  "issue_number": 12997,
+  "title": "RedHat 8.5:  Tikv oom repeatedly after deploy cluster via tiup ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nsh-4.4# /tiup/deploy/tikv-20160/bin/tikv-server -V\r\nTiKV\r\nRelease Version:   6.1.0\r\nEdition:           Community\r\nGit Commit Hash:   080d086832ae5ce2495352dccaf8df5d40f30687\r\nGit Commit Branch: heads/refs/tags/v6.1.0\r\nUTC Build Time:    2022-06-10 11:22:39\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nsh-4.4# cat /proc/version\r\nLinux version 4.18.0-348.7.1.el8_5.x86_64 (mockbuild@kbuilder.bsys.centos.org) (gcc version 8.5.0 20210514 (Red Hat 8.5.0-4) (GCC)) #1 SMP Wed Dec 22 13:25:12 UTC 2021\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nWorks fine.\r\n\r\n### What did happened?\r\ntikv oom again and agin.\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/178269373-c1fa24bf-2784-4a1a-a35e-13ec3eb4493f.png)\r\n\r\n`[2101569.236727] oom_reaper: reaped process 13658 (tikv-server), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB\r\n[2101963.086218] grpc_global_tim invoked oom-killer: gfp_mask=0x6200ca(GFP_HIGHUSER_MOVABLE), order=0, oom_score_adj=-997\r\n[2101963.086241]  oom_kill_process.cold.32+0xb/0x10\r\n[2101963.086377] [  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name\r\n[2101963.086435] oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=cri-containerd-7d31487633a9dece7df1893c2295de4b5245792e345c9f7211f1c3bc18697e3a.scope,mems_allowed=0-1,oom_memcg=/kubepods.slice/kubepods-pod3ec9844b_9663_4f8f_8346_e6a761dabc48.slice/cri-containerd-7d31487633a9dece7df1893c2295de4b5245792e345c9f7211f1c3bc18697e3a.scope/system.slice,task_memcg=/kubepods.slice/kubepods-pod3ec9844b_9663_4f8f_8346_e6a761dabc48.slice/cri-containerd-7d31487633a9dece7df1893c2295de4b5245792e345c9f7211f1c3bc18697e3a.scope/system.slice/tikv-20160.service,task=tikv-server,pid=22577,uid=1000\r\n[2101963.086767] Memory cgroup out of memory: Killed process 22577 (tikv-server) total-vm:37659024kB, anon-rss:32121548kB, file-rss:0kB, shmem-rss:0kB, UID:1000 pgtables:66932kB oom_score_adj:-997\r\n[2101964.914658] oom_reaper: reaped process 22577 (tikv-server), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB\r\n[2102542.661894] node_exporter invoked oom-killer: gfp_mask=0x6000c0(GFP_KERNEL), order=0, oom_score_adj=-997\r\n[2102542.661915]  oom_kill_process.cold.32+0xb/0x10\r\n[2102542.661981] [  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name\r\n[2102542.662015] oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=cri-containerd-7d31487633a9dece7df1893c2295de4b5245792e345c9f7211f1c3bc18697e3a.scope,mems_allowed=0-1,oom_memcg=/kubepods.slice/kubepods-pod3ec9844b_9663_4f8f_8346_e6a761dabc48.slice/cri-containerd-7d31487633a9dece7df1893c2295de4b5245792e345c9f7211f1c3bc18697e3a.scope/system.slice,task_memcg=/kubepods.slice/kubepods-pod3ec9844b_9663_4f8f_8346_e6a761dabc48.slice/cri-containerd-7d31487633a9dece7df1893c2295de4b5245792e345c9f7211f1c3bc18697e3a.scope/system.slice/tikv-20160.service,task=tikv-server,pid=26417,uid=1000\r\n[2102542.662343] Memory cgroup out of memory: Killed process 26417 (tikv-server) total-vm:37824728kB, anon-rss:32127704kB, file-rss:0kB, shmem-rss:0kB, UID:1000 pgtables:67228kB oom_score_adj:-997\r\n[2102544.350914] oom_reaper: reaped process 26417 (tikv-server), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB`\r\n",
+  "state": "closed",
+  "created_at": "2022-07-11T12:58:18Z",
+  "updated_at": "2022-07-15T09:02:08Z",
+  "closed_at": "2022-07-15T09:02:07Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1180379419,
+      "user": "mayjiang0203",
+      "created_at": "2022-07-11T12:59:06Z",
+      "body": "plan/873252\r\nplan/873251\r\n"
+    },
+    {
+      "id": 1180380233,
+      "user": "mayjiang0203",
+      "created_at": "2022-07-11T12:59:56Z",
+      "body": "/type bug\r\n/assign @tier-cap \r\n/found automation\r\n/severity Major"
+    },
+    {
+      "id": 1182639761,
+      "user": "zhangjinpeng87",
+      "created_at": "2022-07-13T00:46:42Z",
+      "body": "@mayjiang0203 Is the transparent huge pages turned on?"
+    },
+    {
+      "id": 1185137298,
+      "user": "mayjiang0203",
+      "created_at": "2022-07-15T03:29:32Z",
+      "body": "@zhangjinpeng1987 \r\nNo, TPH is not turned on.\r\nsh-4.4# cat /sys/kernel/mm/transparent_hugepage/enabled\r\nalways madvise [never]\r\n\r\nThere is something wrong in cgroup.\r\nsh-4.4# cat /sys/fs/cgroup/memory/memory.limit_in_bytes\r\n9223372036854771712\r\n\r\ntier-cap is working on it.\r\n"
+    },
+    {
+      "id": 1185138468,
+      "user": "zhangjinpeng87",
+      "created_at": "2022-07-15T03:32:19Z",
+      "body": "@tier-cap can you update the root cause here if you have found it?"
+    },
+    {
+      "id": 1185327275,
+      "user": "BornChanger",
+      "created_at": "2022-07-15T08:51:52Z",
+      "body": "@tier-cap has ruled out tikv's own problem, and he confirmed that the problem turned out to be caused by systemd mechanism difference of red hat 8.5 and centos 4.x.  "
+    },
+    {
+      "id": 1185336367,
+      "user": "mayjiang0203",
+      "created_at": "2022-07-15T09:02:07Z",
+      "body": "Close it since it is not debug of tikv, it will resolved by fix systemd bug in base image."
+    }
+  ]
+}

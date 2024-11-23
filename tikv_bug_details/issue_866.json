@@ -1,0 +1,13 @@
+{
+  "issue_number": 866,
+  "title": "receiving two overlapped snapshot at same time causes panic",
+  "body": "For example, peers a, b, a is leader, b is follower.\n\na sends b snapshot of region 1 [a, c) , at same time, region 1 [a, c) splits into two regions: 1 [a, c) -> 1 [a, b) + 2 [b, c), and a sends snapshot of region 2 [b, c)  to b too.\n\nb receives [a, c) and [b, c) and b steps [b, c) snapshot before applying [a, c), we may meet a overlapped error. Although we have a overlapped check, we can't actually apply the checking. \n\nWe may keep a pending snapshot range, for above, we keep c -> [a, c) in pending snapshot range, so if we step [b, c), we can check if [b, c) is overlapped and ignore it. \nWe will remove [a, c) from pending snapshot range after [a, c) is applied. \n\n/cc @BusyJay \n",
+  "state": "closed",
+  "created_at": "2016-07-25T01:15:19Z",
+  "updated_at": "2018-08-07T00:45:58Z",
+  "closed_at": "2016-08-01T09:30:50Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

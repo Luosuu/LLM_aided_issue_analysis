@@ -1,0 +1,14 @@
+{
+  "issue_number": 12963,
+  "title": "Can't compile and run individual tests",
+  "body": "## Bug Report\r\n\r\nCannot compile and run tests in sub-packages.\r\n\r\n### What version of TiKV are you using?\r\n\r\nN/A\r\n\r\n### What operating system and CPU are you using?\r\n\r\nAll\r\n\r\n### Steps to reproduce\r\n\r\ncargo test --package tidb_query_executors test_integration_2\r\n\r\n### What did you expect?\r\n\r\nBuild the tidb_query_executors tests and run them.\r\n\r\n### What  happened?\r\n\r\nerror[E0412]: cannot find type `ThreadPoolBuilder` in crate `futures::executor`\r\n   --> components/tikv_util/src/sys/thread.rs:445:48\r\n    |\r\n445 | impl ThreadBuildWrapper for futures::executor::ThreadPoolBuilder {\r\n    |                                                ^^^^^^^^^^^^^^^^^ not found in `futures::executor`",
+  "state": "open",
+  "created_at": "2022-07-05T23:01:41Z",
+  "updated_at": "2022-07-15T21:24:35Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

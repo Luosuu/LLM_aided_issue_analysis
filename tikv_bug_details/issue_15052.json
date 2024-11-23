@@ -1,0 +1,28 @@
+{
+  "issue_number": 15052,
+  "title": "[Dynamic Region] start ticdc changefeed and pitr task, inject one tikv network isolation 10min and recovery, 3 hours later, one tikv panic repeatedly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   7.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   56130211bf21cb3aea9c5ecec4952f6fedb33093\r\nGit Commit Branch: heads/refs/tags/v7.3.0-alpha\r\nUTC Build Time:    2023-06-29 11:14:25\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-06-30T15:02:34.797+0800\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、start pitr and ticdc\r\n2、run tpcc\r\n3、 inject one tikv network isolation 10min and recovery\r\n\r\n### What did you expect?\r\nall tikv are normal after fault recover\r\n\r\n### What did happened?\r\n inject one tikv network isolation 10min and recovery, 3 hours later, one tikv panic repeatedly.\r\n\r\n![image](https://github.com/tikv/tikv/assets/84712107/f35b6d7c-fc54-4660-ac30-51628dd61396)\r\n\r\n[[server2.rs:830](http://server2.rs:830/)] [\\\"failed to start node: Engine(Engine(Status { code: IoError, sub_code: None, sev: NoError, state: \\\\\\\"Corruption: Encryption key manager get file failure: key not found for id 10737154287846016419 in file /var/lib/tikv/data/tablets/2005_10032/MANIFEST-001430\\\\\\\" }))\\\"]\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-07-03T02:03:07Z",
+  "updated_at": "2023-07-07T09:30:44Z",
+  "closed_at": "2023-07-07T09:30:44Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1617111484,
+      "user": "Lily2025",
+      "created_at": "2023-07-03T02:03:29Z",
+      "body": "/type bug\r\n/severity critical "
+    },
+    {
+      "id": 1617460246,
+      "user": "Lily2025",
+      "created_at": "2023-07-03T06:44:18Z",
+      "body": "/assign tabokie"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "issue_number": 1135,
+  "title": "log time is incorrect in docker",
+  "body": "In  docker container, the log time is wrong. and i have used `-v/etc/localtim:/etc/localtime`\n1. What version of Rust are you using (`rustc --version`)?\n   rustc 1.13.0-nightly (3c5a0fa45 2016-08-22)\n2. What did you expect to see?\n   the  log should print  the time same as the date show  in container \n3. What did you see instead?\n\n```\ndocker  run -ti --rm --entrypoint=\"/bin/sh\" -v/etc/localtime:/etc/localtime pingcap/tikv\n\n/ # date\nWed Oct  5 11:38:52 CST 2016\n\n/ # ./tikv-server\n2016-10-05 03:39:03,687 mod.rs:390 - INFO  - Welcome to the TiKV.\n2016-10-05 03:39:03,687 mod.rs:391 - INFO  - Version:\n2016-10-05 03:39:03,687 mod.rs:392 - INFO  - Git Commit Hash: ba65f44eef0ce13f7c4f2f647d5c59955f691cce\n2016-10-05 03:39:03,687 mod.rs:393 - INFO  - UTC Build Time:  2016-10-01 03:37:28\n2016-10-05 03:39:03,687 tikv-server.rs:84 - INFO  - server.addr, use default Some(\"127.0.0.1:20160\")\n2016-10-05 03:39:03,687 tikv-server.rs:866 - INFO  - Start listening on 127.0.0.1:20160...\n2016-10-05 03:39:03,687 tikv-server.rs:84 - INFO  - server.dsn, use default Some(\"rocksdb\")\n```\n",
+  "state": "closed",
+  "created_at": "2016-10-05T04:13:59Z",
+  "updated_at": "2018-08-07T00:46:11Z",
+  "closed_at": "2016-10-17T05:06:23Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 251578928,
+      "user": "siddontang",
+      "created_at": "2016-10-05T04:27:30Z",
+      "body": "what does the `date` output in docker? \n"
+    },
+    {
+      "id": 251579294,
+      "user": "nolouch",
+      "created_at": "2016-10-05T04:31:22Z",
+      "body": "you also can see it in question 3\n\n```\n/ # date\nWed Oct  5 11:38:52 CST 2016\n```\n"
+    },
+    {
+      "id": 251579562,
+      "user": "siddontang",
+      "created_at": "2016-10-05T04:34:10Z",
+      "body": "oh, sorry, I did't note this before, maybe we can leave a blank so we can see `date` and `tikv-server` more clearly. \n"
+    },
+    {
+      "id": 251640572,
+      "user": "BusyJay",
+      "created_at": "2016-10-05T10:39:13Z",
+      "body": "`pingcap/tikv` is built upon alpine, which use musl's libc implementation. This implementation only supports specifying timezone in the POSIX way, which configures it via `TZ` environment. So you need to set `TZ` to `/etc/localtime` explicitly.\n"
+    },
+    {
+      "id": 251869172,
+      "user": "siddontang",
+      "created_at": "2016-10-06T05:17:05Z",
+      "body": "See https://github.com/docker/docker/issues/12084#issuecomment-89726892\nIt seems that we can't mount `/etc/localtime` only, for tikv, we must mount `/etc/timezone` too. \n@iamxy \n"
+    },
+    {
+      "id": 251889111,
+      "user": "siddontang",
+      "created_at": "2016-10-06T07:38:22Z",
+      "body": "@BusyJay \nSetting `TZ` or `/etc/timezone` can't work.\n"
+    },
+    {
+      "id": 251897887,
+      "user": "BusyJay",
+      "created_at": "2016-10-06T08:24:43Z",
+      "body": "What command do you use to start the container? It should be something like\n\n```\ndocker run -e \"TZ=/etc/localtime\" -v/etc/localtime:/etc/localtime pingcap/tikv\n```\n\nor \n\n```\ndocker run -e \"TZ=/path/to/tzfile\" pingcap/tikv\n```\n\nPlease note that, it may not work if you start linux container on OS X host. Maybe we should include tzdata in the image. @iamxy \n"
+    },
+    {
+      "id": 251898783,
+      "user": "siddontang",
+      "created_at": "2016-10-06T08:29:04Z",
+      "body": "Above two ways can't work.\nBtw, we even tried tzdata, and it can't work too.\n"
+    },
+    {
+      "id": 251900393,
+      "user": "siddontang",
+      "created_at": "2016-10-06T08:36:26Z",
+      "body": "My fault, `docker run -e \"TZ=/etc/localtime\" -v/etc/localtime:/etc/localtime pingcap/tikv` can work. \n"
+    },
+    {
+      "id": 251958695,
+      "user": "iamxy",
+      "created_at": "2016-10-06T13:18:23Z",
+      "body": "I added `ENV TZ=/etc/localtime` into Dockerfile, thx for @siddontang and @BusyJay.\n"
+    }
+  ]
+}

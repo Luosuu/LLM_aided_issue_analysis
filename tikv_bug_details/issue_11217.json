@@ -1,0 +1,90 @@
+{
+  "issue_number": 11217,
+  "title": "TiKV GcKeys task doesn't work when called with multiple keys (at least in 5.1 but I think for everything)",
+  "body": "## Bug Report\r\n\r\nIn gc worker, https://github.com/tikv/tikv/blob/master/src/server/gc_worker/gc_worker.rs#L340 the GcKeys GC task when called with multiple keys tries to get the list of regions overlapping the key range for the task and then do a sorted merge of the keys and the space encompassed by the regions. However, it fails to prepend the keys with the data prefix ('z') when passing them to get_regions_in_range, get_regions_in_range doesn't prepend the keys, and so the keys form an invalid range and no regions are ever returned. This makes garbage collection of delete markers not happen.\r\n\r\nTo verify the issue I added some logging statements in a branch: https://github.com/frew/tikv/pull/1/files#diff-fad0fef4b49a4159243096a9212032ae40e8b88cd0deb3c60df42a3dbdc639dfR385 - an example line from the first logging statement showing the issue in our cluster:\r\n```\r\n[2021/11/03 06:46:28.397 +00:00] [INFO] [region_info_accessor.rs:385] [\"gc get_regions_in_range\"] [start_key=\"[116, 128, 0, 0, 0, 0, 0, 0, 255, 159, 95, 114, 128, 0, 0, 12, 81, 255, 152, 74, 144, 0, 0, 0, 0, 0, 250]\"] [first_region=\"Some(([122, 116, 128, 0, 0, 0, 0, 0, 0, 255, 19, 0, 0, 0, 0, 0, 0, 0, 248], 53))\"] [regions_size=126845]\r\n```\r\n\r\n(note the prefix 122 on the first_region but not on the start_key)\r\n\r\nI suggest adding data_key() to https://github.com/tikv/tikv/blob/master/src/server/gc_worker/gc_worker.rs#L338 and the following line, but defer to your expertise.\r\n\r\n### What version of TiKV are you using?\r\n5.1.2\r\n\r\n### What operating system and CPU are you using?\r\nLinux on GCP n2d\r\n",
+  "state": "closed",
+  "created_at": "2021-11-03T07:01:43Z",
+  "updated_at": "2021-11-24T07:10:45Z",
+  "closed_at": "2021-11-08T07:37:04Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2"
+  ],
+  "comments_data": [
+    {
+      "id": 958698761,
+      "user": "frew",
+      "created_at": "2021-11-03T07:09:39Z",
+      "body": "Tagging @hicqu @Connor1996 @MyonKeminta from https://github.com/tikv/tikv/pull/9959"
+    },
+    {
+      "id": 958787417,
+      "user": "Connor1996",
+      "created_at": "2021-11-03T09:42:52Z",
+      "body": "Nice catch! It does have the problem. Would you like to file a PR to fix it?"
+    },
+    {
+      "id": 958834875,
+      "user": "MyonKeminta",
+      "created_at": "2021-11-03T10:21:48Z",
+      "body": "Thanks for your reporting and digging so deep to find the cause.\r\n\r\n> I suggest adding data_key() to https://github.com/tikv/tikv/blob/master/src/server/gc_worker/gc_worker.rs#L338 and the following line, but defer to your expertise.\r\n\r\nYour suggested change should work, but I suggest adding the `data_key` conversion [here](https://github.com/tikv/tikv/blob/master/components/raftstore/src/coprocessor/region_info_accessor.rs#L387) so that all interfaces of the `RegionInfoAccessor` are consistent, which means they all accepts normal encoded keys instead of `'z'`-prefixed keys."
+    },
+    {
+      "id": 959775471,
+      "user": "frew",
+      "created_at": "2021-11-03T17:47:46Z",
+      "body": "Oh, good point in making RegionInfoAccessor consistent. Will cut a PR"
+    },
+    {
+      "id": 959836132,
+      "user": "frew",
+      "created_at": "2021-11-03T19:05:23Z",
+      "body": "Added PR - going to backport to 5.1.2 locally and test on our cluster. Could somebody on the PingCAP side take adding whatever tests you think appropriate?"
+    },
+    {
+      "id": 959875337,
+      "user": "frew",
+      "created_at": "2021-11-03T19:38:43Z",
+      "body": "Posted this as a comment on the PR as well but as-written, doesn't work: Actually this has a problem - get_regions_in_range is also called from CompactionGuardGenerator, where we already have a data key. I think that function is also busted because it then calls data_end_key(&region.end_key) where I think region end_key is already data encoded? This is starting to seem like it really needs an actual implementation in the type system for data encoded keys vs. non data encoded keys or something and I'm not convinced I have enough context to pursue."
+    },
+    {
+      "id": 960320697,
+      "user": "frew",
+      "created_at": "2021-11-04T00:24:21Z",
+      "body": "Okay, here's a version (with logging as well) that's working locally: https://github.com/frew/tikv/pull/1/files\r\n\r\nRan into two additional issues:\r\n1. `get_regions_in_range` isn't really what we want here - we need the regions encompassing the range (i.e. including a region that has an endpoint outside of the range), so added a function to do that (haven't checked the other callsite for get_regions_in_range to see if it's using it effectively\r\n2. There was another encoding issue around data_key, so fixed that"
+    },
+    {
+      "id": 960336258,
+      "user": "yiwu-arbug",
+      "created_at": "2021-11-04T00:38:33Z",
+      "body": "> Posted this as a comment on the PR as well but as-written, doesn't work: Actually this has a problem - get_regions_in_range is also called from CompactionGuardGenerator, where we already have a data key. I think that function is also busted because it then calls data_end_key(&region.end_key) where I think region end_key is already data encoded? This is starting to seem like it really needs an actual implementation in the type system for data encoded keys vs. non data encoded keys or something and I'm not convinced I have enough context to pursue.\r\n\r\n`CompactionGuardGenerator` code looks fine. it is applying `data_end_key` on `region.end_key`, which is unencoded."
+    },
+    {
+      "id": 960364746,
+      "user": "frew",
+      "created_at": "2021-11-04T01:40:42Z",
+      "body": "> \r\n> `CompactionGuardGenerator` code looks fine. it is applying `data_end_key` on `region.end_key`, which is unencoded.\r\n\r\nThe problem is the other way - self.smallest_key and self.largest_key appear to already have the 'z' prefix, so following @MyonKeminta 's suggestion of making the function prepend internally doesn't work."
+    },
+    {
+      "id": 960365881,
+      "user": "Connor1996",
+      "created_at": "2021-11-04T01:44:01Z",
+      "body": "> Added PR - going to backport to 5.1.2 locally and test on our cluster. Could somebody on the PingCAP side take adding whatever tests you think appropriate?\r\n\r\nokay, I’ll add a test and fix it"
+    },
+    {
+      "id": 960368749,
+      "user": "frew",
+      "created_at": "2021-11-04T01:51:14Z",
+      "body": "@Connor1996 okay, the current version (+logging) which seems to be working when applied to our 5.1.2 cluster is at: https://github.com/frew/tikv/pull/1/files\r\n\r\nPlease let me know (+ feel free to ping me in Slack) if you have any questions. The logging is probably more verbose than you'd want to merge into mainline, but I think everything else is reasonable to merge. One thing I haven't checked is whether the other users of `get_regions_in_range` should also be using `get_regions_encompassing_range` or if the logic is right for them"
+    },
+    {
+      "id": 961291274,
+      "user": "frew",
+      "created_at": "2021-11-04T18:05:07Z",
+      "body": "(deleted one comment that misunderstood something)\r\n\r\nOne proposal to make code simpler: https://github.com/Connor1996/tikv/pull/2\r\n\r\nOther than that, looks good to me as far as I understand it."
+    }
+  ]
+}

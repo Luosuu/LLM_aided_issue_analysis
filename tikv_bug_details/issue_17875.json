@@ -1,0 +1,13 @@
+{
+  "issue_number": 17875,
+  "title": "resolving tikv store address return an error \"invalid store ID xxxx, not found\" leading to raft client infinite loop",
+  "body": "## Bug Report\r\n\r\nHi Guys,\r\n\r\nCurrently, we offlined a TiKV node, and then we found that our TiKV cluster reported some error logs simultaneously. The errors were the same:\r\n```\r\n[2024/11/19 18:13:27.752 +08:00] [WARN] [client.rs:138] [\"failed to update PD client\"] [error=\"Other(\\\"[components/pd_client/src/util.rs:306]: cancel reconnection due to too small interval\\\")\"]\r\n[2024/11/19 18:13:27.754 +08:00] [ERROR] [util.rs:460] [\"request failed\"] [err_code=KV:PD:gRPC] [err=\"Grpc(RpcFailure(RpcStatus { status: 2-UNKNOWN, details: Some(\\\"invalid store ID 6365, not found\\\") }))\"]\r\n[2024/11/19 18:13:27.754 +08:00] [ERROR] [util.rs:469] [\"reconnect failed\"] [err_code=KV:PD:Unknown] [err=\"Other(\\\"[components/pd_client/src/util.rs:306]: cancel reconnection due to too small interval\\\")\"]tikv\r\n```\r\n\r\nTiKV wants to resolve another TiKV node from PD, which store ID is 6365. However, 6365 is an offlined store and has already been removed as a tombstone. So PD just returns an error message: \"invalid store ID 6365, not found.\" \r\n\r\nI think these infinite error logs may be caused by the code below.\r\n\r\nhttps://github.com/tikv/tikv/blob/3bd8c24d1a1eb277877557b35d3b175330e7010e/src/server/resolve.rs#L114-L124 \r\n\r\nIf a store ID is not found in PD, PD returns an error message: \"invalid store ID xxxx, not found.\" TiKV's resolve get_address perhaps needs to return an error `Error::StoreTombstone(store_id)` so the raft client could know this store is a tombstone and end the loop.\r\n\r\nhttps://github.com/tikv/tikv/blob/3bd8c24d1a1eb277877557b35d3b175330e7010e/src/server/raft_client.rs#L837-L845 \r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n5.0.6\r\n\r\n### What operating system and CPU are you using?\r\nLinux  Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz\r\n\r\n### Steps to reproduce\r\n1. stop a tombstone tikv service.\r\n2. use pd-ctl remove-tombstone\r\n\r\n\r\n### What did you expect?\r\n\r\nthe error log gone.\r\n\r\n### What did happened?\r\n\r\ntikv report error simultaneously",
+  "state": "open",
+  "created_at": "2024-11-22T01:50:59Z",
+  "updated_at": "2024-11-22T01:50:59Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

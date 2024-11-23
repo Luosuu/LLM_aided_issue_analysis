@@ -1,0 +1,50 @@
+{
+  "issue_number": 13524,
+  "title": "qps recovery after 15min when one tikv io hang",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   b1854926ad92eeedb2cb38dff2dc4bb6b30d49f0\r\nGit Commit Branch: heads/refs/tags/v6.3.0-alpha\r\nUTC Build Time:    2022-09-22 11:03:33\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2022-09-23T14:03:46.213+0800\tINFO\tk8s/client.go:131\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./pd-server -V\r\n Release Version: v6.3.0-alpha\r\nEdition: Community\r\nGit Commit Hash: 3cc82517395deba65bf90fac664927954e8907f6\r\nGit Branch: heads/refs/tags/v6.3.0-alpha\r\nUTC Build Time:  2022-09-20 11:03:03\r\n\r\n### What operating system and CPU are you using?\r\n8c、16G\r\n\r\n### Steps to reproduce\r\ninject one tikv io hang\r\nopen async io and evict-slow-store-scheduler\r\n\r\n    -   name: \"one_tikv_io_delay\"\r\n        faultType: io_delay(volumeName:tikv,delay:60m)\r\n        selector: \"tikv(random)\"\r\n        warmUpTime: 10m\r\n        faultDuration: 120m\r\n        recoveryTime: 10m\r\n\r\n### What did you expect?\r\nqps can recovery in 2min\r\n\r\n### What did happened?\r\nqps recovery after 15min\r\n![BFpsi8VuVc](https://user-images.githubusercontent.com/84712107/191911259-8db288aa-2f8b-4272-bfe1-c0e8605e3103.jpg)\r\n![img_v2_d81eb44c-c0cc-41e7-a398-3a82398225fg](https://user-images.githubusercontent.com/84712107/191911273-7cf33016-ba0f-437b-926c-c147344ec3e9.jpg)\r\n",
+  "state": "closed",
+  "created_at": "2022-09-23T07:30:10Z",
+  "updated_at": "2023-09-27T05:11:33Z",
+  "closed_at": "2023-09-27T05:11:16Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1255883712,
+      "user": "Lily2025",
+      "created_at": "2022-09-23T07:32:00Z",
+      "body": "/type bug\r\n/severity major\r\n/assign tonyxuqqi"
+    },
+    {
+      "id": 1271915308,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T18:20:24Z",
+      "body": "/assign LykxSassinator"
+    },
+    {
+      "id": 1271915371,
+      "user": "ti-chi-bot",
+      "created_at": "2022-10-07T18:20:27Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: LykxSassinator.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13524#issuecomment-1271915308):\n\n>/assign LykxSassinator\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1271915686,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T18:20:37Z",
+      "body": "/cc LykxSassinator"
+    },
+    {
+      "id": 1736714055,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-27T05:11:16Z",
+      "body": "it's fixed by polished slow score/slow trend"
+    }
+  ]
+}

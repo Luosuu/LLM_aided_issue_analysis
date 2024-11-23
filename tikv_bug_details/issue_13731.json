@@ -1,0 +1,63 @@
+{
+  "issue_number": 13731,
+  "title": "tikv oom after this tikv io delay/hang or one of tikv network partition last for 50mins and recover",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   97ab36eb7147cde02c1654595f99104155ac0c21\r\nGit Commit Branch: heads/refs/tags/v6.4.0-alpha\r\nUTC Build Time:    2022-11-02 11:01:58\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c、32GB\r\n\r\n### Steps to reproduce\r\nha-tikv-random-data-io-hang-last-for-20m\r\n(https://tcms.pingcap.net/dashboard/executions/case/2788098)\r\n\r\n### What did you expect?\r\nno om\r\n\r\n### What did happened?\r\ntikv oom \r\n![image](https://user-images.githubusercontent.com/84712107/199673807-2e42fee4-bd90-43d3-b8d4-aa9271df0b89.png)\r\n\r\n![image](https://user-images.githubusercontent.com/84712107/199673965-3f4b33a4-d3ca-4df9-9d76-c62047af5eab.png)\r\n\r\n![image](https://user-images.githubusercontent.com/84712107/199675336-fc4571fa-6572-4be1-9eeb-99f5ba9d8813.png)\r\n\r\nfrom ethercflow\r\nThe initial reason seems to be the stasis of raft messages received. Specifically, this node continues to receive message messages from the leader. After grpc receives the message, it sends it to the store thread through the channel. However, the store thread cannot consume from the channel due to io hang, which leads to the previous grpc rejection of too many raft messages to prevent the logical effectiveness of oom.\r\n\r\n\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-11-03T08:20:35Z",
+  "updated_at": "2024-11-01T10:16:43Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "may-affects-6.2",
+    "may-affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1301771230,
+      "user": "Lily2025",
+      "created_at": "2022-11-03T08:20:53Z",
+      "body": "/type bug\r\n/severity major\r\n/assign ethercflow"
+    },
+    {
+      "id": 1662173539,
+      "user": "Lily2025",
+      "created_at": "2023-08-02T13:02:14Z",
+      "body": "another oom with this scene\r\ninject tikv-0 io hang for 20mins，tikv-0 oom when fault recover\r\n![saPGiIRMZr](https://github.com/tikv/tikv/assets/84712107/ffe261e8-ade8-498f-b395-bd8cd7e3b3f9)\r\n\r\n![image](https://github.com/tikv/tikv/assets/84712107/9bcd9390-fb20-4944-8568-68f3d67480f9)\r\n\r\n"
+    },
+    {
+      "id": 1702295532,
+      "user": "overvenus",
+      "created_at": "2023-09-01T07:26:08Z",
+      "body": "Besides the store channel, every region has its own channel, in this case, messages may be piled up in channel, the total memory usage is about _**O(len(regions) * cap(channel))**_.\r\n\r\nThis suggests that TiKV may need a global memory quota for channel memory usage. If memory quota is full, TiKV should reject new messages. "
+    },
+    {
+      "id": 1774684966,
+      "user": "Lily2025",
+      "created_at": "2023-10-23T08:30:44Z",
+      "body": "another oom scene\r\ninject one of tikv network partition last for 50mins and recover，this tikv oom after fault recover\r\n![image](https://github.com/tikv/tikv/assets/84712107/8d08c25c-c219-4a0a-94e8-eb66ec5c03ae)\r\n![image](https://github.com/tikv/tikv/assets/84712107/8c70d57b-77c0-4074-9b4a-aa829904cf06)\r\n![image](https://github.com/tikv/tikv/assets/84712107/a68399bb-3b00-46d5-a4fa-f571f6525c97)\r\n"
+    },
+    {
+      "id": 1793937201,
+      "user": "Lily2025",
+      "created_at": "2023-11-06T01:22:20Z",
+      "body": "another oom scene\r\ninject one of tikv io delay 500ms or 100ms last for 10mins，this tikv oom when fault recover\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7297268250385940865?from=1699059825&to=1699061064\r\n![image](https://github.com/tikv/tikv/assets/84712107/8a3076c1-bd09-41d6-8962-a8594d637090)\r\n\r\n"
+    }
+  ]
+}

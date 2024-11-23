@@ -1,0 +1,53 @@
+{
+  "issue_number": 11847,
+  "title": "resolved_ts: max resolved ts gap exceed 1 hours  while inject network chaos during run stale read",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   5.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   3f769418ef0f4ab853aad466a40371c6afdc44c8\r\nGit Commit Branch: heads/refs/tags/v5.4.0-nightly\r\nUTC Build Time:    2022-01-11 05:13:56\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun oltp_stale_read_rel_001, inject one tikv network down error while run stale read.\r\n\r\n### What did you expect?\r\nMax gap should not take more than several minutes.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/9443637/149077513-eddfd0c4-dcff-4721-a8d4-1d51109a8193.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-01-12T06:48:53Z",
+  "updated_at": "2023-11-22T07:08:43Z",
+  "closed_at": "2023-11-22T07:08:43Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "found/automation",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1010695883,
+      "user": "mayjiang0203",
+      "created_at": "2022-01-12T06:51:06Z",
+      "body": "/assign NingLin-P\r\n/severity minor"
+    },
+    {
+      "id": 1010699026,
+      "user": "mayjiang0203",
+      "created_at": "2022-01-12T06:55:06Z",
+      "body": "/found automation\r\n"
+    },
+    {
+      "id": 1010717586,
+      "user": "NingLin-P",
+      "created_at": "2022-01-12T07:21:06Z",
+      "body": "This issue is caused by stale peer (see https://github.com/tikv/tikv/issues/10341), around `20:22` there are also injected network error, so that the improvement introduced by https://github.com/tikv/tikv/pull/10352 didn't work, thus the stale peer have to wait until `raftstore.max-leader-missing-duration` timeout (default 2h) then check PD and destroy itself. \r\n\r\nThe stale peer is peers that had been removed from the region but the peer itself didn't know that, thus TiDB won't send requests to it and the most damage is the misleading metric."
+    }
+  ]
+}

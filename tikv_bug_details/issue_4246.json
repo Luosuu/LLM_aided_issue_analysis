@@ -1,0 +1,21 @@
+{
+  "issue_number": 4246,
+  "title": "cases::test_stale_read::test_stale_read_during_merging failed",
+  "body": "## Bug Report\r\n\r\nhttps://internal.pingcap.net/idc-jenkins/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/1607/nodes/109/steps/587/log/?start=0",
+  "state": "closed",
+  "created_at": "2019-02-20T07:57:51Z",
+  "updated_at": "2019-02-21T11:46:59Z",
+  "closed_at": "2019-02-21T11:46:59Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench"
+  ],
+  "comments_data": [
+    {
+      "id": 465876933,
+      "user": "overvenus",
+      "created_at": "2019-02-21T06:21:25Z",
+      "body": "The test failed due to its merge request is rejected by log gap too large.\r\n\r\n> 2019/02/20 15:52:27.574 peer.rs:1678: [WARN] [region 1000] 1001 skip proposal: Other(StringError(\"[src/raftstore/store/peer.rs:1587]: log gap (0, 6] is too large, skip merge\"))\r\n\r\nHowever, the test asserts regions are merged successfully at https://github.com/tikv/tikv/blob/e26ceadcdfe94fb6ff83b5abb614ea3115394bcd/tests/failpoints/cases/test_stale_read.rs#L311-L313"
+    }
+  ]
+}

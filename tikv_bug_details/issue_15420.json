@@ -1,0 +1,41 @@
+{
+  "issue_number": 15420,
+  "title": "[Dynamic Regions]  Jepsen reported contradiction ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. disable merge region in tikv (by temporarily commentting merge)\r\n2. Run Jepsen [jepsen-monotonic-pessimistic@v7.3.0-master-multirocksdb]\r\n### What did you expect?\r\n\r\n### What did happened?\r\nhttps://tcms.pingcap.net/dashboard/releases/1890608\r\n\r\nINFO [2023-08-23 20:12:56,901] jepsen test runner - jepsen.core {:perf\r\n {:latency-graph {:valid? true},\r\n  :rate-graph {:valid? true},\r\n  :valid? true},\r\n :workload\r\n {:cycle\r\n  {:valid? false,\r\n   :scc-count 7,\r\n   :cycles\r\n   [\"Let:\\n  T1 = {:type :ok, :f :inc, :value {4 3107}, :process 4, :time 72373546006, :txn-info {:txn_scope \\\"global\\\", :start_ts 443762935392895012, :commit\r\n_ts 443762935392895044, :txn_commit_mode \\\"async_commit\\\", :async_commit_fallback false, :one_pc_fallback false}, :index 98019}\\n  T2 = {:type :ok, :f :read,\r\n:value {0 3040, 1 3009, 2 3095, 3 3015, 4 3106, 5 2961, 6 3106, 7 3046}, :process 12, :time 72399183135, :txn-info {:start_ts 443762935392895055}, :index 9804\r\n7}\\n\\nThen:\\n  - T1 < T2, because T1's commit-ts 443762935392895044 < T2's start-ts 443762935392895055.\\n  - However, T2 < T1, because T2 observed 4 = 3106, a\r\nnd T1 observed a higher value 3107: a contradiction!\"\r\n    \"Let:\\n  T1 = {:type :ok, :f :inc, :value {1 3169}, :process 97, :time 148512346647, :txn-info {:txn_scope \\\"global\\\", :start_ts 443762955342053545, :comm\r\nit_ts 443762955355160588, :txn_commit_mode \\\"async_commit\\\", :async_commit_fallback false, :one_pc_fallback false}, :index 104103}\\n  T2 = {:type :ok, :f :rea\r\nd, :value {0 3225, 1 3168, 2 3259, 3 3205, 4 3287, 5 3133, 6 3304, 7 3224}, :process 191, :time 148537925007, :txn-info {:start_ts 443762955355160591}, :index\r\n 104123}\\n\\nThen:\\n  - T1 < T2, because T1's commit-ts 443762955355160588 < T2's start-ts 443762955355160591.\\n  - However, T2 < T1, because T2 observed 1 = 3\r\n168, and T1 observed a higher value 3169: a contradiction!\"\r\n    \"Let:\\n  T1 = {:type :ok, :f :read, :value {0 3279, 1 3215, 2 3329, 3 3253, 4 3355, 5 3181, 6 3358, 7 3290}, :process 92, :time 150958605029, :txn-info {:\r\nstart_ts 443762955984306293}, :index 105925}\\n  T2 = {:type :ok, :f :read, :value {0 3279, 1 3215, 2 3328, 3 3253, 4 3355, 5 3181, 6 3359, 7 3290}, :process 1\r\n91, :time 150968011917, :txn-info {:start_ts 443762955984306276}, :index 105931}\\n\\nThen:\\n  - T1 < T2, because T1 observed 6 = 3358, and T2 observed a higher\r\n value 3359.\\n  - However, T2 < T1, because T2 observed 2 = 3328, and T1 observed a higher value 3329: a contradiction!\"\r\n    \"Let:\\n  T1 = {:type :ok, :f :inc, :value {3 3960}, :process 39, :time 174691234585, :txn-info {:txn_scope \\\"global\\\", :start_ts 443762962210226270, :comm\r\nit_ts 443762962210226337, :txn_commit_mode \\\"1pc\\\", :async_commit_fallback false, :one_pc_fallback false}, :index 128845}\\n  T2 = {:type :ok, :f :read, :value\r\n {0 4035, 1 3934, 2 4069, 3 3959, 4 4064, 5 3938, 6 4043, 7 3985}, :process 39, :time 174729758514, :txn-info {:start_ts 443762962210226366}, :index 128875}\\n\r\n\\nThen:\\n  - T1 < T2, because T1 completed at index 128845, 0.000 seconds before the invocation of T2, at index 128846.\\n  - However, T2 < T1, because T2 observed 3 = 3959, and T1 observed a higher value 3960: a contradiction!\"\r\n    \"Let:\\n  T1 = {:type :ok, :f :read, :value {0 4433, 1 4308, 2 4429, 3 4345, 4 4447, 5 4337, 6 4455, 7 4361}, :process 94, :time 244337109056, :txn-info {:\r\nstart_ts 443762980455973035}, :index 141412}\\n  T2 = {:type :ok, :f :inc, :value {2 4430}, :process 346, :time 244294936630, :txn-info {:txn_scope \\\"global\\\",\r\n :start_ts 443762980455972952, :commit_ts 443762980455972987, :txn_commit_mode \\\"2pc\\\", :async_commit_fallback false, :one_pc_fallback false}, :index 141372}\\\r\nn\\nThen:\\n  - T1 < T2, because T1 observed 2 = 4429, and T2 observed a higher value 4430.\\n  - However, T2 < T1, because T2 completed at index 141372, 0.005 s\r\neconds before the invocation of T1, at index 141379: a contradiction!\"\r\n    \"Let:\\n  T1 = {:type :ok, :f :read, :value {0 4610, 1 4442, 2 4578, 3 4477, 4 4601, 5 4489, 6 4602, 7 4539}, :process 100, :time 253533533763, :txn-info {\r\n:start_ts 443762982867697814}, :index 146476}\\n  T2 = {:type :ok, :f :read, :value {0 4610, 1 4442, 2 4578, 3 4477, 4 4601, 5 4488, 6 4603, 7 4539}, :process\r\n110, :time 253544453897, :txn-info {:start_ts 443762982880804888}, :index 146486}\\n\\nThen:\\n  - T1 < T2, because T1 observed 6 = 4602, and T2 observed a highe\r\nr value 4603.\\n  - However, T2 < T1, because T2 observed 5 = 4488, and T1 observed a higher value 4489: a contradiction!\"\r\n    \"Let:\\n  T1 = {:type :ok, :f :inc, :value {7 4565}, :process 114, :time 254369772753, :txn-info {:txn_scope \\\"global\\\", :start_ts 443762983090520269, :com\r\nmit_ts 443762983103627292, :txn_commit_mode \\\"1pc\\\", :async_commit_fallback false, :one_pc_fallback false}, :index 147084}\\n  T2 = {:type :ok, :f :read, :valu\r\ne {0 4623, 1 4464, 2 4600, 3 4491, 4 4625, 5 4511, 6 4616, 7 4564}, :process 177, :time 254418033708, :txn-info {:start_ts 443762983103627382}, :index 147128}\r\n\\n\\nThen:\\n  - T1 < T2, because T1 completed at index 147084, 0.016 seconds before the invocation of T2, at index 147099.\\n  - However, T2 < T1, because T2 ob\r\nserved 7 = 4564, and T1 observed a higher value 4565: a contradiction!\"]},\r\n  :timeline {:valid? true},\r\n  :valid? false},\r\n :valid? false}",
+  "state": "open",
+  "created_at": "2023-08-24T01:20:59Z",
+  "updated_at": "2023-10-23T22:41:03Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "feature/developing",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "jepsen",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1690871898,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-24T01:55:03Z",
+      "body": "[node-1.kv.log.zip](https://github.com/tikv/tikv/files/12424468/node-1.kv.log.zip)\r\n[node-0.kv.log.zip](https://github.com/tikv/tikv/files/12424499/node-0.kv.log.zip)\r\n[node-2.kv.log.zip](https://github.com/tikv/tikv/files/12424606/node-2.kv.log.zip)\r\n"
+    },
+    {
+      "id": 1690887009,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-24T02:15:34Z",
+      "body": "[node-4.kv.log.zip](https://github.com/tikv/tikv/files/12424774/node-4.kv.log.zip)\r\n[node-3.kv.log.zip](https://github.com/tikv/tikv/files/12424816/node-3.kv.log.zip)\r\n"
+    },
+    {
+      "id": 1690896683,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-24T02:30:17Z",
+      "body": "https://github.com/tikv/tikv/pull/14370\r\nThis is the PR that was used for many times to debug, we need the similar one in raftstore-v2 to debug patch. \r\nFor read: read local/read index -> kv db return result -> tikv result\r\nFor write write log commit -> command apply -> response client\r\nstart_ts"
+    }
+  ]
+}

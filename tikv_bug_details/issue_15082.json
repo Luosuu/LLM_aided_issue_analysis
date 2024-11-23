@@ -1,0 +1,17 @@
+{
+  "issue_number": 15082,
+  "title": "Improve observability of resolved-ts and safe_ts",
+  "body": "## Development Task\r\nSometimes we suffer from resolved-ts not making progress. It's not always easy to find out the reason.\r\nMore metrics and logs can be enhanced to diagnose this.\r\n\r\n- tikv-ctl: query these info of any region https://github.com/tikv/tikv/pull/15099\r\n  - RegionReadProgress \r\n    - [x] existence\r\n    - [x] safe_ts\r\n    - [x] applied_index\r\n    - [x] pending_items.front and back\r\n    - [x] paused\r\n    - [x] discard\r\n    - [x] read_state\r\n    - [x] duration to the last invocation of update_safe_ts https://github.com/tikv/tikv/pull/15327\r\n    - [ ] duration to the last invocation of consume_leader_info\r\n  - resolved-ts\r\n    - [x] existence of the resolver\r\n    - [x] tracked_index\r\n    - [x] resolver status\r\n    - [x] stopped\r\n    - [x] number of locks\r\n    - [x] number of transactions\r\n - [x] metrics: for the region with minimum safe_ts in each TiKV https://github.com/tikv/tikv/pull/15118\r\n   - [x] region id\r\n   - [x] safe_ts\r\n   - ~~applied_index, removed, because it cannot solely show useful information to us~~ \r\n   - [ ] duration to the last invocation of update_safe_ts / consume_leader_info \r\n - logging\r\n   - [x] Locks in a region that blocks advancing resolved-ts, can be triggered by tikv-ctl https://github.com/tikv/tikv/pull/15099\r\n- [x] Pick ctl to 6.5\r\n- [x] Pick metrics to 6.5\r\n- [x] Pick ctl to 7.1 https://github.com/tikv/tikv/pull/15281\r\n- [x] Pick metrics to 7.1 https://github.com/tikv/tikv/pull/15315",
+  "state": "closed",
+  "created_at": "2023-07-06T08:38:08Z",
+  "updated_at": "2023-11-28T10:26:17Z",
+  "closed_at": "2023-11-28T10:26:17Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

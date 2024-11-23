@@ -1,0 +1,97 @@
+{
+  "issue_number": 11187,
+  "title": "Stale non-pessimistic lock may be incompatible with CDC and possibly affect data correctness",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nv4.0.11\r\n### Steps to reproduce\r\n\r\nPessimistic transactions may contain keys that don't need pessimistic locks. These locks are prewritten without any contraint checks.\r\n\r\nSo, there is a possible case. After a pessimistic transaction is committed, a non-pessimistic lock of the same transaction can  be also prewritten successfully. The lock TS of such a lock is smaller than the commit TS of the latest write record.\r\n\r\nThis breaks the assumption of the `DeltaScanner`. When a lock is encountered, it needs to find latest write record as the old value. It asserts that the commit TS of the record must be smaller than the lock TS. https://github.com/tikv/tikv/blob/v4.0.11/src/storage/mvcc/reader/scanner/mod.rs#L389-L392\r\n\r\nThis is probably the cause of the panic below.\r\n\r\n### What did you expect?\r\n\r\nCDC can still work in this case.\r\n\r\n### What did happened?\r\n\r\nTiKV panics.\r\n\r\n```\r\nstack backtrace:\r\n   0: tikv_util::set_panic_hook::{{closure}}\r\n             at components/tikv_util/src/lib.rs:481\r\n   1: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:475\r\n   2: rust_begin_unwind\r\n             at src/libstd/panicking.rs:375\r\n   3: std::panicking::begin_panic_fmt\r\n             at src/libstd/panicking.rs:326\r\n   4: tikv::storage::mvcc::reader::scanner::seek_for_valid_write\r\n             at /home/jenkins/agent/workspace/build_tikv_multi_branch_v4.0.11/tikv/<::std::macros::panic macros>:9\r\n      tikv::storage::mvcc::reader::scanner::seek_for_valid_value\r\n             at /home/jenkins/agent/workspace/build_tikv_multi_branch_v4.0.11/tikv/src/storage/mvcc/reader/scanner/mod.rs:418\r\n   5: <tikv::storage::mvcc::reader::scanner::forward::DeltaEntryPolicy as tikv::storage::mvcc::reader::scanner::forward::ScanPolicy<S>>::handle_lock\r\n             at /home/jenkins/agent/workspace/build_tikv_multi_branch_v4.0.11/tikv/src/storage/mvcc/reader/scanner/forward.rs:609\r\n      tikv::storage::mvcc::reader::scanner::forward::ForwardScanner<S,P>::read_next\r\n             at /home/jenkins/agent/workspace/build_tikv_multi_branch_v4.0.11/tikv/src/storage/mvcc/reader/scanner/forward.rs:258\r\n      <tikv::storage::mvcc::reader::scanner::forward::ForwardScanner<S,P> as tikv::storage::txn::store::TxnEntryScanner>::next_entry\r\n             at /home/jenkins/agent/workspace/build_tikv_multi_branch_v4.0.11/tikv/src/storage/mvcc/reader/scanner/forward.rs:744\r\n      cdc::endpoint::Initializer::scan_batch\r\n             at components/cdc/src/endpoint.rs:876\r\n   6: cdc::endpoint::Endpoint<T>::on_register::{{closure}}\r\n             at components/cdc/src/endpoint.rs:827\r\n      <futures::future::then::Then<A,B,F> as futures::future::Future>::poll::{{closure}}\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/future/then.rs:33\r\n      futures::future::chain::Chain<A,B,C>::poll\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/future/chain.rs:39\r\n      <futures::future::then::Then<A,B,F> as futures::future::Future>::poll\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/future/then.rs:32\r\n   7: <alloc::boxed::Box<F> as futures::future::Future>::poll\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/future/mod.rs:113\r\n      futures::task_impl::Spawn<T>::poll_future_notify::{{closure}}\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/task_impl/mod.rs:329\r\n      futures::task_impl::Spawn<T>::enter::{{closure}}\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/task_impl/mod.rs:399\r\n      futures::task_impl::std::set\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/task_impl/std/mod.rs:83\r\n      futures::task_impl::Spawn<T>::enter\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/task_impl/mod.rs:399\r\n      futures::task_impl::Spawn<T>::poll_fn_notify\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/task_impl/mod.rs:291\r\n      futures::task_impl::Spawn<T>::poll_future_notify\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/futures-0.1.29/src/task_impl/mod.rs:329\r\n      tokio_threadpool::task::Task::run::{{closure}}\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/task/mod.rs:145\r\n      core::ops::function::FnOnce::call_once\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libcore/ops/function.rs:232\r\n      <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panic.rs:318\r\n      std::panicking::try::do_call\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panicking.rs:292\r\n      std::panicking::try\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8//src/libpanic_unwind/lib.rs:78\r\n      std::panic::catch_unwind\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panic.rs:394\r\n      tokio_threadpool::task::Task::run\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/task/mod.rs:130\r\n      tokio_threadpool::worker::Worker::run_task2\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/worker/mod.rs:567\r\n      tokio_threadpool::worker::Worker::run_task\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/worker/mod.rs:459\r\n   8: tokio_threadpool::worker::Worker::try_run_owned_task\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/worker/mod.rs:390\r\n      tokio_threadpool::worker::Worker::try_run_task\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/worker/mod.rs:297\r\n      tokio_threadpool::worker::Worker::run\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/worker/mod.rs:241\r\n   9: tokio_threadpool::worker::Worker::do_run::{{closure}}::{{closure}}\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/worker/mod.rs:129\r\n      tokio_executor::global::with_default::{{closure}}\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-executor-0.1.8/src/global.rs:209\r\n      std::thread::local::LocalKey<T>::try_with\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/thread/local.rs:262\r\n      std::thread::local::LocalKey<T>::with\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/thread/local.rs:239\r\n      tokio_executor::global::with_default\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-executor-0.1.8/src/global.rs:178\r\n      tokio_threadpool::worker::Worker::do_run::{{closure}}\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/worker/mod.rs:125\r\n      std::thread::local::LocalKey<T>::try_with\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/thread/local.rs:262\r\n      std::thread::local::LocalKey<T>::with\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/thread/local.rs:239\r\n      tokio_threadpool::worker::Worker::do_run\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/worker/mod.rs:116\r\n      tokio_threadpool::pool::Pool::spawn_thread::{{closure}}\r\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.16/src/pool/mod.rs:345\r\n      std::sys_common::backtrace::__rust_begin_short_backtrace\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/sys_common/backtrace.rs:136\r\n  10: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}}\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/thread/mod.rs:469\r\n      <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panic.rs:318\r\n      std::panicking::try::do_call\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panicking.rs:292\r\n      std::panicking::try\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8//src/libpanic_unwind/lib.rs:78\r\n      std::panic::catch_unwind\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/panic.rs:394\r\n      std::thread::Builder::spawn_unchecked::{{closure}}\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/thread/mod.rs:468\r\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libcore/ops/function.rs:232\r\n  11: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/liballoc/boxed.rs:1022\r\n  12: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n             at /rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/liballoc/boxed.rs:1022\r\n      std::sys_common::thread::start_thread\r\n             at src/libstd/sys_common/thread.rs:13\r\n      std::sys::unix::thread::Thread::new::thread_start\r\n             at src/libstd/sys/unix/thread.rs:80\r\n  13: start_thread\r\n  14: __clone\r\n```",
+  "state": "open",
+  "created_at": "2021-10-29T07:01:49Z",
+  "updated_at": "2024-08-22T02:24:36Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "component/CDC",
+    "severity/moderate",
+    "affects-4.0",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.3",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "user_report"
+  ],
+  "comments_data": [
+    {
+      "id": 954482975,
+      "user": "sticnarf",
+      "created_at": "2021-10-29T07:05:04Z",
+      "body": "It does not completely solve the problem by removing the assertion and set old value to `None`.\r\n\r\nAfter such a stale non-pessimistic lock is resolved, a commit record will be written again. CDC will capture this record. This repeated commit may break the checks at CDC that commit TS > resolved TS."
+    },
+    {
+      "id": 956147172,
+      "user": "Rustin170506",
+      "created_at": "2021-11-01T11:18:16Z",
+      "body": "/assign"
+    },
+    {
+      "id": 962986671,
+      "user": "MyonKeminta",
+      "created_at": "2021-11-08T09:57:58Z",
+      "body": "This bug affects TiKV's resolved_ts module, which is used by both CDC and stale read. CDC can avoid this problem by ignoring index ranges, but stale read doesn't seem so.\r\n\r\nIn addition, this issue has a little chance to affect data correctness in 5.0+ versions where GC bypasses Raft. It has the same problem as that introduced by async commit and solved by adding gc_fence.\r\n\r\nConsider this procedure:\r\n1. A key has two versions: `Put_100`,  `Del_120` (numbers indicates `commit_ts`es)\r\n2. The issue causes `Put_100` to be written again to Write CF\r\n    * For async commit: another transaction who has `start_ts = 100` is rolled back, which is overlapped with the `Put_100` record; therefore add a rollback flag to it (it becomes `Put_100_R`) and write it down.\r\n    * For this issue: the key is a non-locked index key from TiDB. There's a stale prewrite request of writing `Put_100` arrives, and it successfully locked the key bypassing constraint checks. Then a resolve_lock or a stale commit request committed the lock, therefore `Put_100` is written down to the storage again.\r\n3. 10 minutes later, one of the followers of this region didn't catch up with the leader. It currently has `Put_100` and `Del_120`, and GC (bypassing Raft) is performed with `safepoint = 130`. So both these two versions are deleted.\r\n4. The follower received the rewritten `Put_100` (or `Put_100_R` in async commit case) from the leader. and it's written again. on follower.\r\n5. Now, if read at ts=140 on this follower, the `Put` record will be seen while it's not supposed to.\r\n\r\nThough the possibility is very very small, it have chance to affect data correctness. I've submitted a PR #11264 trying to fix it, but it's not a perfect solution. It only reduces the possibility. So I think this issue still can't be closed after that PR is merged.\r\n\r\nBy the way, it seems we need a severity of this bug. cc @cfzjywxk How do you think the severity should be?"
+    },
+    {
+      "id": 963903070,
+      "user": "sticnarf",
+      "created_at": "2021-11-09T08:05:18Z",
+      "body": "We solve the problem by performing an extra check for retries in TiKV 5.0+.\r\n\r\nIn TiKV 4.0, we don't need to use the same approach because GC deletes keys through raft (mostly). So it is enough to only exclude TiDB index from the range that CDC listens to. @hi-rustin Are you going to finish that part?"
+    },
+    {
+      "id": 964144500,
+      "user": "Rustin170506",
+      "created_at": "2021-11-09T13:19:32Z",
+      "body": "> In TiKV 4.0, we don't need to use the same approach because GC deletes keys through raft (mostly). So it is enough to only exclude TiDB index from the range that CDC listens to. @hi-rustin Are you going to finish that part?\r\n\r\nGot it, I will try to filter it.\r\n"
+    },
+    {
+      "id": 1081597292,
+      "user": "ekexium",
+      "created_at": "2022-03-29T08:44:13Z",
+      "body": "Supplementary note: in extreme conditions when the retry request gets handled before the original request, the original request will not check the constraint. The problem still exists."
+    },
+    {
+      "id": 1194933432,
+      "user": "nongfushanquan",
+      "created_at": "2022-07-26T02:53:11Z",
+      "body": "/remove-label affects-6.2"
+    },
+    {
+      "id": 1194934168,
+      "user": "nongfushanquan",
+      "created_at": "2022-07-26T02:54:35Z",
+      "body": "/remove-label affects-6.1\r\n/remove-label affects-5.0\r\n/remove-label affects-5.1\r\n/remove-label affects-5.2"
+    },
+    {
+      "id": 1303188534,
+      "user": "jebter",
+      "created_at": "2022-11-04T09:49:32Z",
+      "body": "/close"
+    },
+    {
+      "id": 1707636553,
+      "user": "MyonKeminta",
+      "created_at": "2023-09-06T04:26:41Z",
+      "body": "The problem is not completely solved due to the complexity. Do not close it for now."
+    },
+    {
+      "id": 1724705512,
+      "user": "nongfushanquan",
+      "created_at": "2023-09-19T01:39:55Z",
+      "body": "/unassign @hi-rustin \r\n/assign @hicqu "
+    },
+    {
+      "id": 2303547472,
+      "user": "AndreMouche",
+      "created_at": "2024-08-22T02:17:41Z",
+      "body": "### Phenomenon:\r\nGC will be blocked since resolve-lock failed.\r\nHere is an example for why GC blocked:\r\nwhen we enable `tidb_enable_async_commit`  and meet network issue,the following issue may happen:\r\n\r\n1.  txn1  prewrite key1,key2,key3, key1 meet network error, retry and success. key1, key2,key3 finished\r\n2. txn2 meet lock key1(txn1), and find all locks(key1,key2,key3) for txn1 exist, so it commit the txn1\r\n3. txn1's first prewrite to lock key1, success. \r\n\r\nThen resolve  step3's lock will failed since this prewrite request (step3) that arrived too late , since async commit was used, It calculated the larger `min_commit_ts` field through the `max_ts` on the `tikv` node, and the original transaction (txn1) had already been It was submitted with a smaller `commit ts`, so when resolving the lock, the `commit ts` checked out a issue and it couldn't be processed\r\n\r\n![image](https://github.com/user-attachments/assets/c39cb53c-1500-4952-9134-1e9fd677f3bb)\r\n\r\n### workaround:\r\n\r\n- use tikv mvcc recover to fix the wrong lock.\r\n- disable syanc-commit to avoid the txn issue\r\n```\r\nset @@global.tidb_enable_async_commit = 0;\r\nset @@global.tidb_enable_1pc = 0;\r\n```\r\n"
+    }
+  ]
+}

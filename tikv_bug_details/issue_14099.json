@@ -1,0 +1,18 @@
+{
+  "issue_number": 14099,
+  "title": "PiTR resolved ts is not reliable and may lost data in extreme cases",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nPiTR advances resolved ts without checking leadership. It may advance resolved ts mistakenly on an old leader whose is partitioned from other peers and there is new leader has elected.\r\nA wrong resolved ts may cause PiTR advance checkpoint wrongly which may lost data.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv6.5.0\r\n",
+  "state": "closed",
+  "created_at": "2023-01-30T09:31:38Z",
+  "updated_at": "2023-02-03T07:59:58Z",
+  "closed_at": "2023-02-03T07:59:58Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

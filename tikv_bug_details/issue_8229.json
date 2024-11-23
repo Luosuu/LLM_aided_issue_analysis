@@ -1,0 +1,19 @@
+{
+  "issue_number": 8229,
+  "title": "MvccTxn can't make use of near_seek",
+  "body": "## Bug Report\r\n\r\n`MvccTxn` always uses `seek` to find write records. The reason is `MvccReader` in it always creates a new write cursor:\r\nhttps://github.com/tikv/tikv/blob/11cbf057ba8dec3a0833a9948b5ae9ec54d6113d/src/storage/mvcc/reader/reader.rs#L129-L145\r\n\r\nIt's better to use `next` to get older versions in some cases. For example, in https://github.com/tikv/tikv/issues/7024, you can see 578k seeks per second. Please be careful with prefix seek in rocksdb, it can't guarantee a total order of all keys, but only keys for the same prefix.",
+  "state": "closed",
+  "created_at": "2020-07-10T07:56:42Z",
+  "updated_at": "2020-10-28T04:26:22Z",
+  "closed_at": "2020-10-28T04:26:22Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "component/storage",
+    "sig/transaction",
+    "difficulty/easy",
+    "priority/low",
+    "severity/major"
+  ],
+  "comments_data": []
+}

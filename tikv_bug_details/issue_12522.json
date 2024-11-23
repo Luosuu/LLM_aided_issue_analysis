@@ -1,0 +1,14 @@
+{
+  "issue_number": 12522,
+  "title": "RawKV Compaction filter report total is aways 0",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   9adb9d2fdae53694ee94ccb4679ea5b7478b9c36\r\nGit Commit Branch: rawkv_gc_metrics\r\nUTC Build Time:    Unknown (env var does not exist when building)\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raf\r\nt-engine cloud-aws cloud-gcp cloud-azure\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nCentOS 7.6\r\nIntel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nTo set api version in tikv.toml as follows:\r\n```\r\nenable-ttl = true\r\napi-version = 2\r\n```\r\nand write data until trigger compaction.\r\n\r\n\r\n\r\n### What did you expect?\r\n It will print log ```RawKV Compaction filter reports```In the log of TiKV server, the ```total```should be updated.\r\n\r\n\r\n### What did happened?\r\n It will print log ```RawKV Compaction filter reports```In the log of TiKV server, But the ```total``` is aways ```0```.\r\n\r\n```\r\n[2022/05/15 14:02:12.106 +08:00] [INFO] [rawkv_compaction_filter.rs:292] [\"RawKV Compaction filter reports\"] [filtered=104] [total=0]\r\n[2022/05/15 14:02:23.114 +08:00] [INFO] [rawkv_compaction_filter.rs:292] [\"RawKV Compaction filter reports\"] [filtered=94] [total=0]\r\n[2022/05/15 14:02:30.116 +08:00] [INFO] [rawkv_compaction_filter.rs:292] [\"RawKV Compaction filter reports\"] [filtered=60] [total=0]\r\n[2022/05/15 14:02:40.151 +08:00] [INFO] [rawkv_compaction_filter.rs:292] [\"RawKV Compaction filter reports\"] [filtered=96] [total=0]\r\n\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-05-16T08:02:06Z",
+  "updated_at": "2022-05-17T01:34:51Z",
+  "closed_at": "2022-05-17T01:34:51Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

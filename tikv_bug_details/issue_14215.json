@@ -1,0 +1,15 @@
+{
+  "issue_number": 14215,
+  "title": "[Dynamic Regions] Scale-in is blocked because one region peer cannot be converted from learner to voter",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nrelease 6.6 + tablet leak fix\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1 Sysbench prepare about 150GB per TiKV\r\n2) Run Sysbench read-write workload \r\n3) During the workload, scale-out a new TiKV node\r\n4) During the workload, scale-in the new tikv node\r\n### What did you expect?\r\nThe new tikv node can be scaled in and become timbstone. \r\n### What did happened?\r\nThe new tikv node is stuck in pending offline. And there's one region cannot be moved out because its learner role in another TiKV cannot be promoted to voter.  \r\nThe error is \"[2023/02/14 07:13:08.485 +08:00] [WARN] [raft.rs:1553] [\"cannot campaign at term 25 since there are still 2 pending configuration changes to apply\"] [pending_changes=2] [term=25] [raft_id=39709568] [peer_id=39709568] [region_id=1834]\r\n\"\r\npd-ctl region 1834 will show in store-id 6 it's still learner. \r\n \"pending_peers\": [\r\n    {\r\n      \"id\": 42421801,\r\n      \"store_id\": 6,\r\n      \"role\": 1,\r\n      \"role_name\": \"Learner\",\r\n      \"is_learner\": true\r\n    }\r\n  ],\r\n\r\nAnd if the TiKV where the learner role lives gets restarted, then the issue is gone. \r\n\r\n[region_1834_store_6.log](https://github.com/tikv/tikv/files/10727086/region_1834_tikv.log)\r\n[region_1834_leader.log](https://github.com/tikv/tikv/files/10727281/region_1834_leader.log)\r\n\r\n<img width=\"804\" alt=\"Screen Shot 2023-02-13 at 12 11 46 PM\" src=\"https://user-images.githubusercontent.com/9442422/218596657-83bed50d-673f-487b-a2bd-a8c77cc5a1fe.png\">\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-02-13T23:22:21Z",
+  "updated_at": "2023-02-16T10:48:04Z",
+  "closed_at": "2023-02-16T10:48:04Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "feature/developing"
+  ],
+  "comments_data": []
+}

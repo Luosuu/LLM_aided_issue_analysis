@@ -1,0 +1,81 @@
+{
+  "issue_number": 12904,
+  "title": "br restore timeout when region size more then 1GB（tested 1GB and 10GB）",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   931c9fb2f14c0624583421a56740179fc4f158ab\r\nGit Commit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time:    2022-06-22 11:03:29\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c、16GB\r\n\r\n### Steps to reproduce\r\n10GB region size\r\n![image](https://user-images.githubusercontent.com/84712107/175466686-16f89dd3-d72e-475b-aa8b-e206c73f909a.png)\r\n\r\n1、[2022/06/23 18:29:00.010 +08:00] [INFO] [cmd.go:124] [\"Start remote command\"] [cmd=\"export AWS_ACCESS_KEY_ID=minioadmin;export AWS_SECRET_ACCESS_KEY=minioadmin;/br restore full --send-credentials-to-tikv=true --pd http://tc-pd.endless-oltp-tps-849094-1-952:2379 --storage s3://benchmark/tpcc10000 --s3.endpoint  http://minio.pingcap.net:9000 --check-requirements=false\"] [nodename=br]\r\nDetail BR log in /tmp/br.log.2022-06-23T10.29.00Z \r\n\r\n### What did you expect?\r\nbr restore success\r\n\r\n### What did happened?\r\nbr restore failed\r\n[2022/06/23 11:48:29.343 +00:00] [INFO] [collector.go:69] [\"Full Restore failed summary\"] [total-ranges=22840] [ranges-succeed=22840] [ranges-failed=0] [split-region=5.773106914s] [restore-ranges=16525]\r\nError: other error: Coprocessor task terminated due to exceeding the deadline\r\n[2022/06/23 19:48:29.378 +08:00] [INFO] [cmd.go:169] [\"Remote command finished\"] [cmd=\"export AWS_ACCESS_KEY_ID=minioadmin;export AWS_SECRET_ACCESS_KEY=minioadmin;/br restore full --send-credentials-to-tikv=true --pd http://tc-pd.endless-oltp-tps-849094-1-952:2379 --storage s3://benchmark/tpcc10000 --s3.endpoint  http://minio.pingcap.net:9000 --check-requirements=false\"] [exitcode=1] [error=\"command terminated with exit code 1\"]\r\n[2022/06/23 19:48:29.378 +08:00] [INFO] [cmd.go:182] [\"All cmd goroutine are finished\"] []\r\n![image](https://user-images.githubusercontent.com/84712107/175466739-60da9a01-eb80-47c6-b768-e10655a612cb.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-06-24T05:12:32Z",
+  "updated_at": "2024-11-01T10:17:08Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1165203262,
+      "user": "Lily2025",
+      "created_at": "2022-06-24T05:13:24Z",
+      "body": "/type bug\r\n/severity major\r\n/assign YuJuncen\r\n"
+    },
+    {
+      "id": 1165203277,
+      "user": "ti-chi-bot",
+      "created_at": "2022-06-24T05:13:25Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: YuJuncen.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12904#issuecomment-1165203262):\n\n>/type bug\r\n>/severity major\r\n>/assign YuJuncen\r\n>\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1177508181,
+      "user": "glorv",
+      "created_at": "2022-07-07T12:09:38Z",
+      "body": "I think lightning can also meet this issue when the region-split-size is large. In this case, w'd better generate multiple SST files. /cc @gozssky "
+    },
+    {
+      "id": 1178479169,
+      "user": "sleepymole",
+      "created_at": "2022-07-08T02:43:58Z",
+      "body": "@glorv Could you explain why large sst files will cause the timeout error? It seems the timeout happened during analyze."
+    },
+    {
+      "id": 1271969884,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T18:50:45Z",
+      "body": "/cc @YuJuncen @gozssky any progress?\r\nTiKV supports generates multiple SST files in snapshot since 6.1, but not sure here if it goes that code path. "
+    },
+    {
+      "id": 1272713440,
+      "user": "YuJuncen",
+      "created_at": "2022-10-10T02:17:25Z",
+      "body": "There is a known issue when the CPU cores number of tikv node is less than 8, there may be keen CPU competition between importing(which needs to generate zstd-compressed files) and checksumming.\r\nOnce we are in that situation, the summary of \"queue time\" and \"execution time\" won't be greater than 60s, however the coprocessor execution time exceeds 60s.\r\n\r\nAnother possibility is that during the restoration some statistic information has been lost, hence buckets cannot be split properly, we can check the bucket count for more information. "
+    },
+    {
+      "id": 1272714411,
+      "user": "YuJuncen",
+      "created_at": "2022-10-10T02:18:59Z",
+      "body": "Generally, a simple workaround is to reduce the `import.num-threads` and increase the timeout for coprocessors(by increasing `server.end-point-request-max-handle-duration`)."
+    },
+    {
+      "id": 1657973132,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-31T09:08:38Z",
+      "body": "Not reproed with Multi-RocksDB"
+    }
+  ]
+}

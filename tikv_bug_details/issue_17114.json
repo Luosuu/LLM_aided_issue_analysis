@@ -1,0 +1,27 @@
+{
+  "issue_number": 17114,
+  "title": "In-memory Engine: cache engine's sequence number may differ from rocksdb ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nhttps://github.com/tikv/tikv/blob/454faa2e16ac2178078c725d8900ecba6f045955/components/region_cache_memory_engine/src/write_batch.rs#L107-L125\r\n\r\nRocksDB assigns a unique sequence number for every modification, whereas the cache engine reuses the same sequence number. This may result in a Put operation being overshadowed by a Delete if they are in the same write batch. If this happens on the lock column family, it can lead to issues like #17074.\r\n\r\n### What version of TiKV are you using?\r\n\r\nNightly, 2024-06-06\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nNo need.\r\n",
+  "state": "closed",
+  "created_at": "2024-06-07T11:10:54Z",
+  "updated_at": "2024-06-19T14:43:32Z",
+  "closed_at": "2024-06-12T03:04:30Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 2178190359,
+      "user": "seiya-annie",
+      "created_at": "2024-06-19T09:21:26Z",
+      "body": "/found customer"
+    },
+    {
+      "id": 2178887122,
+      "user": "seiya-annie",
+      "created_at": "2024-06-19T14:43:29Z",
+      "body": "/remove-found customer"
+    }
+  ]
+}

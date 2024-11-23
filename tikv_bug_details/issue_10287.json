@@ -1,0 +1,22 @@
+{
+  "issue_number": 10287,
+  "title": "Backup should not recycle threads since we set thread number via config",
+  "body": "## Bug Report\r\n\r\nBackup threads are recycled when there is no backup task in the past 30 minutes, it becomes unnecessary since https://github.com/tikv/tikv/pull/8193 sets threads number via config. Keeping a fixed-size threads pool is very cheap.\r\n\r\nAnd for v4.0.x tikv, it leaks threads because we do not shutdown thread pools properly.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n~~v4.0.0-v4.0.13~~\r\nv4.0.0-v4.0.9\r\n\r\nhttps://github.com/tikv/tikv/commit/1bdc5ffef8b8bb308ff3be69643a0d0c89aabc23 fixes the issue.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRun backup.\r\n\r\n### What did you expect?\r\n\r\nDo not recycle or spawn new threads.\r\n",
+  "state": "closed",
+  "created_at": "2021-06-01T15:47:10Z",
+  "updated_at": "2021-06-04T06:41:49Z",
+  "closed_at": "2021-06-04T06:41:49Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 854405877,
+      "user": "overvenus",
+      "created_at": "2021-06-04T06:41:49Z",
+      "body": "It is fixed by https://github.com/tikv/tikv/pull/8974"
+    }
+  ]
+}

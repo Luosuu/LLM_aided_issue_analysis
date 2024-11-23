@@ -1,0 +1,47 @@
+{
+  "issue_number": 7243,
+  "title": "Unknown time zone 'posixrules'",
+  "body": "## Bug Report\r\n\r\nCannot start tidb because of timezone error: unknown timezone 'posixrules'.\r\n\r\n### Steps to reproduce\r\n\r\nStart tidb and tikv on a machine with America/New_York timezone.\r\n\r\nThis was caused by realpath of `America/New_York` will lead to `/usr/share/zoneinfo/posixrules`. But the `chrono_tz` doesn't understand `posixrules` in its implementation of [`from_str`](https://docs.rs/chrono-tz/0.5.1/src/chrono_tz/home/cratesfyi/cratesfyi/debug/build/chrono-tz-81e187c3996d21f6/out/timezones.rs.html#605-1202)\r\n\r\nRelated logic in TiKV is at `/components/tidb_query/src/codec/mysql/time/tz.rs`\r\n\r\n```\r\n    /// Constructs a time zone from the name. If the specified time zone name is `system`,\r\n    /// a local time zone will be constructed.\r\n    pub fn from_tz_name(name: &str) -> Option<Self> {\r\n        if name.to_lowercase() == \"system\" {\r\n            Some(Tz::local())\r\n        } else {\r\n            chrono_tz::Tz::from_str(name).ok().map(Tz::Name)\r\n        }\r\n    }\r\n```",
+  "state": "closed",
+  "created_at": "2020-03-25T09:03:11Z",
+  "updated_at": "2022-01-14T12:29:36Z",
+  "closed_at": "2022-01-14T12:29:36Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor",
+    "priority/low",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 603802021,
+      "user": "BusyJay",
+      "created_at": "2020-03-25T12:03:24Z",
+      "body": "This doesn't seem to be a bug of TiKV. TiKV just translates what is passed by TiDB."
+    },
+    {
+      "id": 797095055,
+      "user": "gregwebs",
+      "created_at": "2021-03-11T22:34:22Z",
+      "body": "@YangKeao what version are you using. This may be fixed in a recent version of TiDB as per: https://github.com/pingcap/tidb/pull/20560/files"
+    },
+    {
+      "id": 797143065,
+      "user": "gregwebs",
+      "created_at": "2021-03-12T00:16:32Z",
+      "body": "There is definitely an error here in TiKV though. `ok()` should almost never be used, and this is no exception. This method should return a `Result`.\r\n\r\nA worse problem is that TiDB seems to write the timezone of the system to TiKV during bootstrap and then does not encounter this error until it is read out from TiKV later: TiDB is then in an unrecoverable crash loop.\r\n\r\nI encountered this when I had an /etc/localtime read out by TiDB as prefixed with 'SystemV/`"
+    },
+    {
+      "id": 797181120,
+      "user": "BusyJay",
+      "created_at": "2021-03-12T02:02:48Z",
+      "body": "TiKV will treat `None` as an error in \r\n\r\nhttps://github.com/tikv/tikv/blob/2a2fa03da53b63f3fc24d7ea53aead40176979b5/components/tidb_query_datatype/src/expr/ctx.rs#L133\r\n\r\n. `ok()` can be used if the actual error is straightforward or doesn't matter."
+    },
+    {
+      "id": 1013077718,
+      "user": "BusyJay",
+      "created_at": "2022-01-14T12:29:36Z",
+      "body": "Close as it seems to be fixed on TiDB side as @gregwebs said."
+    }
+  ]
+}

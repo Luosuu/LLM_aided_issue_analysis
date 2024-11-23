@@ -1,0 +1,20 @@
+{
+  "issue_number": 4584,
+  "title": "infinite \"batchRecvLoop re-create streaming fail\" after sysbench",
+  "body": "## Bug Report\r\n\r\n**What version of TiKV are you using?**\r\n\r\n```\r\n./bin/tidb-server -V\r\nRelease Version: v3.0.0-beta.1-154-gd5afff70c\r\nGit Commit Hash: d5afff70cdd825d5fab125c8e52e686cc5fb9a6e\r\nGit Branch: master\r\nUTC Build Time: 2019-04-24 03:10:00\r\nGoVersion: go version go1.12 linux/amd64\r\nRace Enabled: false\r\nTiKV Min Version: 2.1.0-alpha.1-ff3dd160846b7d1aed9079c389fc188f7f5ea13e\r\nCheck Table Before Drop: false\r\n```\r\n\r\n```\r\nTiKV\r\nRelease Version:   3.0.0-beta.1\r\nGit Commit Hash:   fa032cb1fb34ce8536100befc4158be54501b840\r\nGit Commit Branch: master\r\nUTC Build Time:    2019-04-22 03:29:47\r\nRust Version:      rustc 1.35.0-nightly (a9da8fc9c 2019-03-04)\r\n```\r\n\r\n**What did you do?**\r\n\r\nAfter sysbench, find too many error messages.\r\n\r\n**What did you expect to see?**\r\n\r\nNo error messages\r\n\r\n**What did you see instead?**\r\n\r\n```\r\n[2019/04/27 21:31:31.696 +08:00] [ERROR] [client.go:150] [\"batchRecvLoop re-create streaming fail\"] [error=\"rpc error: code = Canceled desc = grpc: the client connection is closing\"] [stack=\"github.com/pingcap/tidb/store/tikv.(*batchCommandsClient).batchRecvLoop\\n\\t/home/jenkins/workspace/build_tidb_master/go/src/github.com/pingcap/tidb/store/tikv/client.go:150\"]\r\n[2019/04/27 21:31:31.729 +08:00] [ERROR] [client.go:150] [\"batchRecvLoop re-create streaming fail\"] [error=\"rpc error: code = Canceled desc = grpc: the client connection is closing\"] [stack=\"github.com/pingcap/tidb/store/tikv.(*batchCommandsClient).batchRecvLoop\\n\\t/home/jenkins/workspace/build_tidb_master/go/src/github.com/pingcap/tidb/store/tikv/client.go:150\"]\r\n[2019/04/27 21:31:32.218 +08:00] [ERROR] [client.go:150] [\"batchRecvLoop re-create streaming fail\"] [error=\"rpc error: code = Canceled desc = grpc: the client connection is closing\"] [stack=\"github.com/pingcap/tidb/store/tikv.(*batchCommandsClient).batchRecvLoop\\n\\t/home/jenkins/workspace/build_tidb_master/go/src/github.com/pingcap/tidb/store/tikv/client.go:150\"]\r\n```",
+  "state": "closed",
+  "created_at": "2019-04-27T13:35:34Z",
+  "updated_at": "2019-08-19T03:49:47Z",
+  "closed_at": "2019-08-19T03:49:47Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 522401337,
+      "user": "hicqu",
+      "created_at": "2019-08-19T03:49:47Z",
+      "body": "The error log will be print when TiKV stops but TiDB does not. It's expected but the error log level is better to be `warn` instead of `info`. It's already fixed in release 3.0.2."
+    }
+  ]
+}

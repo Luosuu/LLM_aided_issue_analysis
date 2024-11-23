@@ -1,0 +1,14 @@
+{
+  "issue_number": 3298,
+  "title": "test_unbounded fails on MacOS constantly",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\n```\r\nEXTRA_CARGO_ARGS=\"test_unbounded\" make dev\r\n```\r\n\r\n**What did you see instead?**\r\n\r\n```\r\nrunning 1 test\r\nthread 'util::mpsc::tests::test_unbounded' panicked at 'assertion failed: (i64::from(timer.elapsed().subsec_nanos()) - 100000000).abs() < 1000000', src/util/mpsc.rs:301:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:227\r\n   4: <std::panicking::begin_panic::PanicPayload<A> as core::panic::BoxMeUp>::get\r\n             at libstd/panicking.rs:511\r\n   5: <core::alloc::CollectionAllocErr as core::convert::From<core::alloc::AllocErr>>::from\r\n             at /Users/travis/build/rust-lang/rust/src/libstd/panicking.rs:445\r\n   6: tikv::util::mpsc::tests::test_unbounded\r\n             at src/util/mpsc.rs:301\r\n   7: tikv::__test::TESTS::{{closure}}\r\n             at src/util/mpsc.rs:288\r\n   8: core::ops::function::FnOnce::call_once\r\n             at /Users/travis/build/rust-lang/rust/src/libcore/ops/function.rs:223\r\n   9: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1451\r\n             at /Users/travis/build/rust-lang/rust/src/libcore/ops/function.rs:223\r\n             at /Users/travis/build/rust-lang/rust/src/liballoc/boxed.rs:640\r\n  10: panic_unwind::dwarf::eh::read_encoded_pointer\r\n             at libpanic_unwind/lib.rs:105\r\ntest util::mpsc::tests::test_unbounded ... FAILED\r\n\r\nfailures:\r\n\r\nfailures:\r\n    util::mpsc::tests::test_unbounded\r\n\r\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 492 filtered out\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2018-07-10T09:53:00Z",
+  "updated_at": "2018-08-07T00:47:57Z",
+  "closed_at": "2018-07-12T09:38:29Z",
+  "labels": [
+    "type/bug",
+    "component/build"
+  ],
+  "comments_data": []
+}

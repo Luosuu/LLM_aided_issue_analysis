@@ -1,0 +1,54 @@
+{
+  "issue_number": 16443,
+  "title": "TiKV aws storage sdk don't support retrieve instance metadata via IMDSv2",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.6-fips\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nBR back full database to s3， while the tikv pod has access permission to s3，back still report following error\r\n```\r\nError: error happen in store 1 at basic-tikv-2.basic-tikv-peer.tidb-cluster.svc:20160: Io(Custom { kind: Other, error: \"failed to put object rusoto error Couldn't find AWS credentials in sources (Couldn't find AWS credentials in environment, credentials file, or IAM role;No (or empty) AWS_ACCESS_KEY_ID in environment;profile not found;Could not get request from environment: Neither environment variable 'AWS_CONTAINER_CREDENTIALS_FULL_URI' nor 'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI' is set;EOF while parsing a value at line 1 column 0).\" }): [BR:KV:ErrKVStorage]tikv storage occur I/O error\r\n```\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\nCheck in the pod, found that it only support get meta data via IMDSv2\r\n```\r\n[ec2-user@ip-172-31-5-204 ~]$ curl -vvv http://169.254.169.254/latest/meta-data/\r\n*   Trying 169.254.169.254:80...\r\n* Connected to 169.254.169.254 (169.254.169.254) port 80 (#0)\r\n> GET /latest/meta-data/ HTTP/1.1\r\n> Host: 169.254.169.254\r\n> User-Agent: curl/7.76.1\r\n> Accept: */*\r\n>\r\n* Mark bundle as not supporting multiuse\r\n< HTTP/1.1 401 Unauthorized\r\n< Content-Length: 0\r\n< Date: Wed, 24 Jan 2024 13:35:24 GMT\r\n< Server: EC2ws\r\n< Connection: close\r\n< Content-Type: text/plain\r\n<\r\n* Closing connection 0\r\n[ec2-user@ip-172-31-5-204 ~]$ Invoke-RestMethod -Headers @{\"X-aws-ec2-metadata-token\" = $token} -Method GET -Uri http://169.254.169.254/\r\n-bash: Invoke-RestMethod: command not found\r\n[ec2-user@ip-172-31-5-204 ~]$ [string]$token = Invoke-RestMethod -Headers @{\"X-aws-ec2-metadata-token-ttl-seconds\" = \"21600\"} -Method PUT -Uri http://169.254.169.254/latest/api/token\r\n-bash: [string]: command not found\r\n[ec2-user@ip-172-31-5-204 ~]$ TOKEN=`curl -X PUT \"http://169.254.169.254/latest/api/token\" -H \"X-aws-ec2-metadata-token-ttl-seconds: 21600\"` \\\r\n&& curl -H \"X-aws-ec2-metadata-token: $TOKEN\" -v http://169.254.169.254/latest/meta-data/\r\n  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\r\n                                 Dload  Upload   Total   Spent    Left  Speed\r\n100    56  100    56    0     0  56000      0 --:--:-- --:--:-- --:--:-- 56000\r\n*   Trying 169.254.169.254:80...\r\n* Connected to 169.254.169.254 (169.254.169.254) port 80 (#0)\r\n> GET /latest/meta-data/ HTTP/1.1\r\n> Host: 169.254.169.254\r\n> User-Agent: curl/7.76.1\r\n> Accept: */*\r\n> X-aws-ec2-metadata-token: AQAEAFbt_8QR9s8xZq8qhyVsNnSlOiiEtF906h66mWTOjsIgneLNyg==\r\n>\r\n* Mark bundle as not supporting multiuse\r\n< HTTP/1.1 200 OK\r\n< X-Aws-Ec2-Metadata-Token-Ttl-Seconds: 21600\r\n< Content-Type: text/plain\r\n< Accept-Ranges: none\r\n< Last-Modified: Wed, 24 Jan 2024 12:48:28 GMT\r\n< Content-Length: 325\r\n< Date: Wed, 24 Jan 2024 13:41:14 GMT\r\n< Server: EC2ws\r\n< Connection: close\r\n<\r\nami-id\r\nami-launch-index\r\nami-manifest-path\r\nblock-device-mapping/\r\nevents/\r\nhostname\r\niam/\r\nidentity-credentials/\r\ninstance-action\r\ninstance-id\r\ninstance-life-cycle\r\ninstance-type\r\nlocal-hostname\r\nlocal-ipv4\r\nmac\r\nmetrics/\r\nnetwork/\r\nplacement/\r\nprofile\r\npublic-hostname\r\npublic-ipv4\r\npublic-keys/\r\nreservation-id\r\nsecurity-groups\r\nservices/\r\n* Closing connection 0\r\n```\r\n\r\n\r\nw/a is modifying instance meta data option for IMDSv2 from required  to optional\r\n![image](https://github.com/tikv/tikv/assets/9443637/1a8ea902-52df-4227-8a0b-570649bda5d0)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-01-25T02:14:36Z",
+  "updated_at": "2024-08-27T10:03:19Z",
+  "closed_at": "2024-08-27T10:03:19Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-8.1",
+    "report/customer"
+  ],
+  "comments_data": [
+    {
+      "id": 1909232693,
+      "user": "mayjiang0203",
+      "created_at": "2024-01-25T02:15:32Z",
+      "body": "/assign @Leavrth "
+    },
+    {
+      "id": 1909232713,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-01-25T02:15:34Z",
+      "body": "@mayjiang0203: GitHub didn't allow me to assign the following users: Leavrth.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16443#issuecomment-1909232693):\n\n>/assign @Leavrth \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1909238894,
+      "user": "mayjiang0203",
+      "created_at": "2024-01-25T02:23:59Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1909255430,
+      "user": "Leavrth",
+      "created_at": "2024-01-25T02:47:12Z",
+      "body": "need to implement it in https://github.com/tikv/rusoto"
+    },
+    {
+      "id": 1909386398,
+      "user": "overvenus",
+      "created_at": "2024-01-25T05:33:29Z",
+      "body": "AWS announces [AWS SDK for Rust is now generally available ](https://aws.amazon.com/about-aws/whats-new/2023/11/aws-sdk-rust/) few weeks ago, maybe it's time to switch to https://github.com/awslabs/aws-sdk-rust?"
+    },
+    {
+      "id": 2144995228,
+      "user": "seiya-annie",
+      "created_at": "2024-06-03T11:50:15Z",
+      "body": "/found customer"
+    }
+  ]
+}

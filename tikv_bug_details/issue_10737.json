@@ -1,0 +1,45 @@
+{
+  "issue_number": 10737,
+  "title": "After a slow node appears, the alarm that prompts the user to open the slow node processing is not generated",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV\r\nRelease Version: 5.1.0-alpha\r\nEdition: Community\r\nGit Commit Hash: d78394c\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time: 2021-08-09 12:08:07\r\nRust Version: rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features: jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile: dist_release\r\n\r\n### What operating system and CPU are you using?\r\ntiup ：\r\n1PD\r\n1TiDB\r\n3TiKV\r\nall node：500G NVME、4 cores、8G mem\r\n\r\n### Steps to reproduce\r\n1、run sysbench prepare\r\ntableNum = 512\r\ntableSize = 10000000000\r\nthreads=128\r\nsysbench --config-file=/root/config oltp_point_select --tables=512 --table-size=10000000000 --auto_inc=true prepare\r\n2、inject bandwidth limit\r\necho \"8:0 104857600\" > /sys/fs/cgroup/blkio/g1/blkio.throttle.write_bps_device\r\necho $(pgrep tikv-server) > /sys/fs/cgroup/blkio/g1/cgroup.procs\r\n\r\n### What did you expect?\r\nAfter a slow node appears, the alarm that prompts the user to open the slow node processing is not generated\r\n\r\n### What did happened?\r\nthe alarm that prompts the user to open the slow node processing is generated and show how to open the way",
+  "state": "closed",
+  "created_at": "2021-08-16T03:24:38Z",
+  "updated_at": "2021-12-09T03:09:10Z",
+  "closed_at": "2021-12-09T03:05:30Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 899186869,
+      "user": "Lily2025",
+      "created_at": "2021-08-16T03:24:56Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 899186937,
+      "user": "Lily2025",
+      "created_at": "2021-08-16T03:25:09Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 899187087,
+      "user": "Lily2025",
+      "created_at": "2021-08-16T03:25:39Z",
+      "body": "/assign 5kbpers"
+    },
+    {
+      "id": 899482336,
+      "user": "5kbpers",
+      "created_at": "2021-08-16T12:48:35Z",
+      "body": "Should be fixed by https://github.com/tikv/pd/pull/3978"
+    },
+    {
+      "id": 989466479,
+      "user": "5kbpers",
+      "created_at": "2021-12-09T03:09:09Z",
+      "body": "Close fixed issue."
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "issue_number": 10954,
+  "title": "Periodically raft purge tick can cause unnecessary snapshots between rolling update",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv5.1.1.\r\n\r\n### What operating system and CPU are you using?\r\nLinux\r\n\r\n### Steps to reproduce\r\n1. Setting up a cluster\r\n2. Load some data to the system to trigger raft log gc\r\n3. Stopping the load and reload the cluster\r\n\r\n### What did you expect?\r\nThe cluster is restarted without problems.\r\n\r\n### What did happened?\r\nSome regions become pending immediately, and snapshots are triggered. After making compact log from debug level to info level, I can see following logs repeatedly even when there is no workload at all:\r\n```\r\n[2021/09/15 18:44:36.275 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158298\"]\r\n[2021/09/15 18:44:56.274 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158300\"]\r\n[2021/09/15 18:45:16.275 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158302\"]\r\n[2021/09/15 18:45:36.277 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158304\"]\r\n[2021/09/15 18:45:56.279 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158306\"]\r\n[2021/09/15 18:46:16.284 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158308\"]\r\n[2021/09/15 18:46:36.285 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158310\"]\r\n[2021/09/15 18:46:56.298 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158312\"]\r\n[2021/09/15 18:47:16.300 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158314\"]\r\n[2021/09/15 18:47:36.298 +00:00] [INFO] [apply.rs:2888] [\"[region 125] 127 compact log entries to prior to 8158316\"]\r\n```\r\n\r\nAnd after follower is restarted, it has to catch up logs by snapshots.\r\n\r\nGenerally raft log gc will use replicated index, and only when `force_compact` is true or log gap is too large, applied index is used. And I can verify from debug API that follower's matched is 0, and applied index to first index is too small to trigger log gc, the only possible reason is `force_compact` is set to true.\r\n```\r\n% curl 127.0.0.1:21180/region/125\r\n{\"id\":125,\"group_state\":\"Ordered\",\"start_key\":[116,128,0,0,0,0,0,0,255,61,95,114,128,0,0,0,50,255,21,118,235,0,0,0,0,0,250],\"end_key\":[116,128,0,0,0,0,0,0,255,63,0,0,0,0,0,0,0,248],\"epoch\":{\"conf_ver\":35,\"version\":40},\"peers\":[{\"id\":127,\"store_id\":3,\"role\":\"Voter\"},{\"id\":3297,\"store_id\":1,\"role\":\"Voter\"},{\"id\":3500,\"store_id\":2,\"role\":\"Voter\"}],\"merge_state\":null,\"raft_status\":{\"id\":127,\"hard_state\":{\"term\":49,\"vote\":127,\"commit\":8158278},\"soft_state\":{\"leader_id\":127,\"raft_state\":\"Leader\"},\"applied\":8158278,\"voters\":{\"3297\":{\"matched\":0,\"next_idx\":8158238,\"state\":\"Snapshot\",\"paused\":false,\"pending_snapshot\":8158267,\"pending_request_snapshot\":0,\"recent_active\":true},\"127\":{\"matched\":8158278,\"next_idx\":8158279,\"state\":\"Replicate\",\"paused\":false,\"pending_snapshot\":0,\"pending_request_snapshot\":0,\"recent_active\":true},\"3500\":{\"matched\":8158278,\"next_idx\":8158279,\"state\":\"Replicate\",\"paused\":false,\"pending_snapshot\":0,\"pending_request_snapshot\":0,\"recent_active\":true}},\"learners\":{}},\"raft_apply\":{\"applied_index\":8158278,\"commit_index\":8158278,\"commit_term\":49,\"truncated_state\":{\"index\":8158276,\"term\":49}}}\r\n```",
+  "state": "closed",
+  "created_at": "2021-09-15T18:55:31Z",
+  "updated_at": "2021-09-27T05:51:40Z",
+  "closed_at": "2021-09-16T06:38:34Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 920294562,
+      "user": "BusyJay",
+      "created_at": "2021-09-15T18:56:01Z",
+      "body": "/cc @hicqu @tabokie "
+    },
+    {
+      "id": 920579203,
+      "user": "MrCroxx",
+      "created_at": "2021-09-16T05:04:49Z",
+      "body": "@BusyJay Why the applied_index steps forward when there is no workload? Are them empty entries that are used to extend the lease?"
+    },
+    {
+      "id": 920620200,
+      "user": "BusyJay",
+      "created_at": "2021-09-16T06:38:34Z",
+      "body": "No, extending lease only requires heartbeat. The issue may also be related to other changes, close it for now."
+    },
+    {
+      "id": 927464708,
+      "user": "MrCroxx",
+      "created_at": "2021-09-27T02:38:01Z",
+      "body": "> The issue may also be related to other changes, close it for now.\r\n\r\n@BusyJay Sorry to bother. Cloud you please point out what \"changes\" refers to? I think this issue may affect [tikv#10599](https://github.com/tikv/tikv/pull/10599) that if we speed up raft log gc tick."
+    },
+    {
+      "id": 927551733,
+      "user": "BusyJay",
+      "created_at": "2021-09-27T05:51:40Z",
+      "body": "It's related to a local change that calculates an overflow estimated region log gap size, and trigger log gc."
+    }
+  ]
+}

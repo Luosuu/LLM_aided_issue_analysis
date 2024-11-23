@@ -1,0 +1,33 @@
+{
+  "issue_number": 13448,
+  "title": "change gc_life_time from 12h to 10 minutes after flashback, report [errors.rs:409] [\"txn aborts\"] [err_code=KV:Storage:DefaultNotFound]",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@10 bin]# ./tikv-server -V\r\nTiKV \r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   b55ef7215572e675fd6e30ad10e97e7024c3c469\r\nGit Commit Branch: master\r\nUTC Build Time:    2022-09-02 09:11:10\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           release\r\n[root@10 bin]# \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n1. set tidb_gc_life_time =12h\r\n2. tikv config:\r\n  tikv:\r\n    storage.scheduler-pending-write-threshold: 2GB\r\n    raft-engine.enable: true\r\n    raftstore.store-io-pool-size: 1\r\n    storage.io-rate-limit.max-bytes-per-sec: 838860800\r\n    rocksdb.titan.enabled: true\r\n    rocksdb.titan.disable-gc: true\r\n    rocksdb.defaultcf.titan.level-merge: true\r\n3. init flashback data with game_blob_update\r\n4. record time A\r\n5. run update for 2 hours, then flashback to A\r\n6. change GC to 10 minutes\r\n7. run update workload for 2 hours\r\n\r\n### What did you expect?\r\nafter flashback, data is consistent. workload will run normally\r\n\r\n### What did happened?\r\n2022-09-10 17:21:44 (GMT+8)TiKV [10.2.12.15:2360](http://10.2.12.15:2360/)[[errors.rs:409](http://errors.rs:409/)] [\"txn aborts\"] [err_code=KV:Storage:DefaultNotFound] [err=\"Error(Txn(Error(Mvcc(Error(DefaultNotFound { key: [116, 128, 0, 0, 0, 0, 0, 0, 144, 95, 114, 128, 0, 0, 0, 0, 8, 146, 164] })))))\"]\r\n2022-09-10 17:29:15 (GMT+8)TiKV [10.2.12.14:2360](http://10.2.12.14:2360/)[[errors.rs:409](http://errors.rs:409/)] [\"txn aborts\"] [err_code=KV:Storage:DefaultNotFound] [err=\"Error(Txn(Error(Mvcc(Error(DefaultNotFound { key: [116, 128, 0, 0, 0, 0, 0, 0, 132, 95, 114, 128, 0, 0, 0, 0, 6, 162, 19] })))))\"]",
+  "state": "closed",
+  "created_at": "2022-09-10T23:50:24Z",
+  "updated_at": "2022-09-19T07:29:03Z",
+  "closed_at": "2022-09-19T07:29:03Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1242975757,
+      "user": "JmPotato",
+      "created_at": "2022-09-11T14:22:13Z",
+      "body": "/label type/bug"
+    },
+    {
+      "id": 1242975767,
+      "user": "ti-chi-bot",
+      "created_at": "2022-09-11T14:22:15Z",
+      "body": "@JmPotato: The label(s) `type/bug` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, needs-cherry-pick-6.1, needs-cherry-pick-6.2, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13448#issuecomment-1242975757):\n\n>/label type/bug\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1245002268,
+      "user": "Connor1996",
+      "created_at": "2022-09-13T07:20:09Z",
+      "body": "The bug is caused by compaction filter GC. A similar case is:\r\n\r\n![image](https://user-images.githubusercontent.com/13497871/189841890-74f5bdcf-6d38-4357-8094-715fdf03bfa1.png)\r\n\r\nLet's say there is key A has four versions:\r\n- ts=1 insert\r\n- ts=2 insert\r\n- ts=8 insert\r\n- ts=10 delete\r\n\r\nFlashback with ts=5, then the two versions of ts=8 and ts=10 would be deleted(tombstone). \r\n\r\nAfter GC safepoint advances to ts=12, a compaction involving SST1 and SST4 is triggered\r\n- compaction filter gc finds the delete version of ts=10, then it would drop the versions of ts=1,2,8\r\nAs a result, all the versions is dropped but we expect to read out the version of ts=1 and ts=2.\r\n\r\nFor this issue, the root cause is like the above but with an additional ingestion, so the default cf key is deleted, but the write cf key exists due to ingestion.\r\n\r\n`tikv-ctl reset-to-version` suffers from this problem as well\r\n"
+    }
+  ]
+}

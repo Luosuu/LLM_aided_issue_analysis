@@ -1,0 +1,73 @@
+{
+  "issue_number": 15912,
+  "title": "lightning Import sst lost after tikv restart",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```bash\r\n[root@lightning-0 /]# ./tidb-lightning -V\r\nRelease Version: v7.6.0-alpha\r\nGit Commit Hash: a565692dab68be58b12c582470e241e1169f2022\r\nGit Branch: heads/refs/tags/v7.6.0-alpha\r\nGo Version: go1.21.3\r\nUTC Build Time: 2023-10-26 11:39:17\r\nRace Enabled: false\r\n\r\n[root@tc-tikv-1 /]# ./tikv-server  -V\r\nTiKV\r\nRelease Version:   7.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   78d835d91b07fb5c18e1158c21841fd43116bc02\r\nGit Commit Branch: heads/refs/tags/v7.6.0-alpha\r\nUTC Build Time:    2023-11-01 11:54:32\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. lightning Import data using local tikv-importer\r\n2. restart tikv\r\n### What did you expect?\r\nall tikv nodes will restart without ERROR\r\n### What did happened?\r\n1 tikv node can't start beacus lost lightning Import sst file\r\n![图片](https://github.com/tikv/tikv/assets/10184437/57f7cfa6-63f2-475a-888c-1202f116f742)\r\n",
+  "state": "closed",
+  "created_at": "2023-11-03T03:28:49Z",
+  "updated_at": "2024-08-07T07:09:52Z",
+  "closed_at": "2023-11-06T02:47:11Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "component/lightning"
+  ],
+  "comments_data": [
+    {
+      "id": 1791852087,
+      "user": "lance6716",
+      "created_at": "2023-11-03T03:29:29Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1791852252,
+      "user": "lance6716",
+      "created_at": "2023-11-03T03:29:52Z",
+      "body": "/label affects-7.5"
+    },
+    {
+      "id": 1791852377,
+      "user": "lance6716",
+      "created_at": "2023-11-03T03:30:11Z",
+      "body": "/remove-label may-affects-5.3"
+    },
+    {
+      "id": 1791852444,
+      "user": "lance6716",
+      "created_at": "2023-11-03T03:30:20Z",
+      "body": "/remove-label may-affects-5.4"
+    },
+    {
+      "id": 1791852577,
+      "user": "lance6716",
+      "created_at": "2023-11-03T03:30:37Z",
+      "body": "/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1791852601,
+      "user": "lance6716",
+      "created_at": "2023-11-03T03:30:41Z",
+      "body": "/remove-label may-affects-6.5"
+    },
+    {
+      "id": 1791852651,
+      "user": "lance6716",
+      "created_at": "2023-11-03T03:30:46Z",
+      "body": "/remove-label may-affects-7.1"
+    },
+    {
+      "id": 1791854399,
+      "user": "lance6716",
+      "created_at": "2023-11-03T03:34:41Z",
+      "body": "The root cause is we changed the filename pattern in https://github.com/tikv/tikv/pull/15795 . And when old version TiKV generate the file and new version TiKV reads it, the filename is changed so report \"file not found\" error"
+    },
+    {
+      "id": 2272776304,
+      "user": "lance6716",
+      "created_at": "2024-08-07T07:09:49Z",
+      "body": "/label affects-7.1"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "issue_number": 13186,
+  "title": "DoubleLock in components/engine_test and server",
+  "body": "## Bug Report\r\n### Bug 1:\r\nIn components/engine_test/src/lib.rs,\r\n`registry` is a std::sync::Mutex\r\nThe first lock is on L170, `open_tablet_raw` is called on L176, `create_tablet` is called on L205, and the second lock is on L150.\r\nhttps://github.com/tikv/tikv/blob/b22be438650b914231c6ea4b0afb9c72538044c9/components/engine_test/src/lib.rs#L169-L176\r\nhttps://github.com/tikv/tikv/blob/b22be438650b914231c6ea4b0afb9c72538044c9/components/engine_test/src/lib.rs#L205\r\nhttps://github.com/tikv/tikv/blob/b22be438650b914231c6ea4b0afb9c72538044c9/components/engine_test/src/lib.rs#L149-L150\r\n### Bug 2:\r\nSimilar to Bug 1.\r\nIn src/server/engine_factory_v2.rs,\r\nThe first lock is on L52, `open_tablet_raw` is called on L58, `create_table` is called on L89, and the second lock is on L35.\r\n\r\n### What version of TiKV are you using?\r\ncommit: b22be438650b914231c6ea4b0afb9c72538044c9\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nFound by code analysis\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-29T13:52:59Z",
+  "updated_at": "2022-08-11T08:45:05Z",
+  "closed_at": "2022-08-11T08:45:05Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1199501928,
+      "user": "BurtonQin",
+      "created_at": "2022-07-29T15:13:25Z",
+      "body": "I found that Bug 2 is fixed by https://github.com/tikv/tikv/pull/13165"
+    }
+  ]
+}

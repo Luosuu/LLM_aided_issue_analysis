@@ -1,0 +1,105 @@
+{
+  "issue_number": 11940,
+  "title": "TiKV running over 2 years may panic",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n`nightly`(this case also appears on v3.0.5)\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRunning TiKV for 795 days, then some RPC failure may cause panic.\r\n\r\nA simple reproduce using [Chaos Mesh](https://github.com/chaos-mesh/chaos-mesh/):\r\n\r\n```bash\r\ntiup playground --tiflash=0 --monitor=false\r\nsudo kill {pid_of_pd}\r\nsudo ./watchmaker -pid {pid_of_tikv} -sec_delta 68719436 -clk_ids=CLOCK_MONOTONIC\r\n```\r\n\r\n### What did you expect?\r\n\r\nNo fatal error with TiKV.\r\n\r\n### What did happened?\r\n\r\nTiKV quits with fatal error.\r\n\r\n```log\r\n[2022/02/08 20:32:34.418 +08:00] [ERROR] [util.rs:419] [\"request failed, retry\"] [err_code=KV:PD:Unknown] [err=\"Other(\\\"[components/pd_client/src/tso.rs:85]: TimestampRequest channel is closed\\\")\"]\r\n[2022/02/08 20:32:34.418 +08:00] [ERROR] [util.rs:419] [\"request failed, retry\"] [err_code=KV:PD:Unknown] [err=\"Other(\\\"[components/pd_client/src/tso.rs:85]: TimestampRequest channel is closed\\\")\"]\r\n[2022/02/08 20:32:34.418 +08:00] [ERROR] [util.rs:419] [\"request failed, retry\"] [err_code=KV:PD:Unknown] [err=\"Other(\\\"[components/pd_client/src/tso.rs:85]: TimestampRequest channel is closed\\\")\"]\r\n[2022/02/08 20:32:34.418 +08:00] [ERROR] [util.rs:419] [\"request failed, retry\"] [err_code=KV:PD:Unknown] [err=\"Other(\\\"[components/pd_client/src/tso.rs:85]: TimestampRequest channel is closed\\\")\"]\r\n[2022/02/08 20:32:34.421 +08:00] [FATAL] [lib.rs:465] [\"index out of bounds: the len is 6 but the index is 6\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at /home/jenkins/agent/workspace/optimization-build-tidb-linux-amd/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:464:18\\n   1: std::panicking::rust_panic_with_hook\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:626:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:519:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys_common/backtrace.rs:141:18\\n   4: rust_begin_unwind\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:515:5\\n   5: core::panicking::panic_fmt\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/panicking.rs:92:14\\n   6: core::panicking::panic_bounds_check\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/panicking.rs:69:5\\n   7: <usize as core::slice::index::SliceIndex<[T]>>::index_mut\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/slice/index.rs:190:14\\n      core::slice::index::<impl core::ops::index::IndexMut<I> for [T]>::index_mut\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/slice/index.rs:26:9\\n      <alloc::vec::Vec<T,A> as core::ops::index::IndexMut<I>>::index_mut\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/vec/mod.rs:2445:9\\n      tokio_timer::wheel::Wheel<T>::insert\\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-timer-0.2.13/src/wheel/mod.rs:114:9\\n      tokio_timer::timer::Timer<T,N>::add_entry\\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-timer-0.2.13/src/timer/mod.rs:324:15\\n   8: tokio_timer::timer::Timer<T,N>::process_queue\\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-timer-0.2.13/src/timer/mod.rs:301:21\\n   9: <tokio_timer::timer::Timer<T,N> as tokio_executor::park::Park>::park\\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-timer-0.2.13/src/timer/mod.rs:361:9\\n      tokio_timer::timer::Timer<T,N>::turn\\n             at /rust/registry/src/github.com-1ecc6299db9ec823/tokio-timer-0.2.13/src/timer/mod.rs:256:21\\n  10: tikv_util::timer::start_global_timer::{{closure}}\\n             at /home/jenkins/agent/workspace/optimization-build-tidb-linux-amd/go/src/github.com/pingcap/tikv/components/tikv_util/src/timer.rs:98:17\\n  11: std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys_common/backtrace.rs:125:18\\n  12: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}}\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/thread/mod.rs:476:17\\n  13: <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panic.rs:347:9\\n  14: std::panicking::try::do_call\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:401:40\\n      std::panicking::try\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:365:19\\n      std::panic::catch_unwind\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panic.rs:434:14\\n      std::thread::Builder::spawn_unchecked::{{closure}}\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/thread/mod.rs:475:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/ops/function.rs:227:5\\n  15: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys/unix/thread.rs:91:17\\n  16: start_thread\\n  17: __GI___clone\\n\"] [location=/rust/registry/src/github.com-1ecc6299db9ec823/tokio-timer-0.2.13/src/wheel/mod.rs:114] [thread_name=timer]\r\n```",
+  "state": "closed",
+  "created_at": "2022-02-09T04:33:27Z",
+  "updated_at": "2024-03-11T02:32:35Z",
+  "closed_at": "2022-02-28T06:57:44Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1033341370,
+      "user": "you06",
+      "created_at": "2022-02-09T04:40:18Z",
+      "body": "Because all the versions of TiKV use the deprecated tokio-timer, the bug exists in all versions.\r\n\r\nhttps://github.com/tikv/tikv/blob/ddec018650bc47425369b4aaa9e4ba9c1fd68924/Cargo.toml#L152\r\n\r\nThe problem comes [here](https://github.com/tokio-rs/tokio/blob/d6143c956603318baa640a83c8275b5891006766/tokio-util/src/time/wheel/mod.rs#L251-L261)(fixed in the latest tokio).\r\n\r\n```rust\r\n\r\nfn level_for(elapsed: u64, when: u64) -> usize {\r\n    const SLOT_MASK: u64 = (1 << 6) - 1;\r\n\r\n    // Mask in the trailing bits ignored by the level calculation in order to cap\r\n    // the possible leading zeros\r\n    let masked = elapsed ^ when | SLOT_MASK;\r\n\r\n    let leading_zeros = masked.leading_zeros() as usize;\r\n    let significant = 63 - leading_zeros;\r\n    significant / 6\r\n}\r\n```\r\n\r\nIn which, `elapsed` stands for the elapsed time since the process is started, and `when` stands for the expired wake-up time since the process is started. Suppose `elapsed` is `2 ^ 36 - 1` and `when` is `2 ^ 36`, we'll get `masked` with 27 leading zeros, and the result level is 6 which causes the \"index out of bounds\" error.\r\n"
+    },
+    {
+      "id": 1033411989,
+      "user": "Lily2025",
+      "created_at": "2022-02-09T06:58:28Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1033440380,
+      "user": "youjiali1995",
+      "created_at": "2022-02-09T07:44:40Z",
+      "body": "interesting"
+    },
+    {
+      "id": 1033868434,
+      "user": "alex-quan-001",
+      "created_at": "2022-02-09T15:14:56Z",
+      "body": "@you06  Any plans to upgrade to use the replacement module?\r\n\r\nhttps://crates.io/crates/tokio-timer\r\n\r\nNote: This crate is deprecated in tokio 0.2.x and has been moved into [tokio::time](https://docs.rs/tokio/latest/tokio/time/index.html) behind the time [feature flag](https://docs.rs/tokio/latest/tokio/index.html#feature-flags).\r\n\r\nWe have so many third-party library dependencies that have  not updated long time, need to be evaluated for upgrading to a newer stable version. We should schedule a 3rd-party library upgrade  plan in  subsequent sprint.  @zhouqiang-cl \r\n"
+    },
+    {
+      "id": 1034071712,
+      "user": "you06",
+      "created_at": "2022-02-09T18:33:29Z",
+      "body": "> @you06 Any plans to upgrade to use the replacement module?\r\n\r\nAs you mentioned, tokio-timer is now a feature of tokio, I'm afraid there are some differences in the usage, like`tokio::timer` is relied on the tokio's runtime. On the other hand, yatp does not support the time feature, so the fix needs to be discussed."
+    },
+    {
+      "id": 1034552526,
+      "user": "shonge",
+      "created_at": "2022-02-10T06:44:49Z",
+      "body": "Do we have a workaround?"
+    },
+    {
+      "id": 1034709733,
+      "user": "you06",
+      "created_at": "2022-02-10T09:49:19Z",
+      "body": "> Do we have a workaround?\r\n\r\nRolling restarting TiKV cluster every 2 years. "
+    },
+    {
+      "id": 1036150728,
+      "user": "BusyJay",
+      "created_at": "2022-02-11T12:10:25Z",
+      "body": "What we want is a timer with customizable `now` implementation. Perhaps we can just maintain our own crate without depending on specific runtime."
+    },
+    {
+      "id": 1036187346,
+      "user": "you06",
+      "created_at": "2022-02-11T12:58:13Z",
+      "body": "@BusyJay For an easy approach, what about [futures-timer](https://github.com/async-rs/futures-timer)?. CDC is using it, and I'm currently trying to replace tokio-timer with it.\r\n\r\nhttps://github.com/tikv/tikv/blob/3433be962dabf8662181fc1f81c421d95a8b86e5/components/cdc/Cargo.toml#L56\r\n"
+    },
+    {
+      "id": 1036206139,
+      "user": "BusyJay",
+      "created_at": "2022-02-11T13:19:25Z",
+      "body": "No, it doesn't support custom `new`."
+    },
+    {
+      "id": 1038663167,
+      "user": "you06",
+      "created_at": "2022-02-14T05:33:49Z",
+      "body": "@BusyJay Sorry I don't understand the relationship between custom `now` and this issue. Even there is a custom `now` in TiKV, the incorrect time wheel calculation can still lead to panic. Custom `now` looks like an enhancement to me. May you explain what needs to be replaced and how to fix this issue?"
+    },
+    {
+      "id": 1038668203,
+      "user": "BusyJay",
+      "created_at": "2022-02-14T05:44:47Z",
+      "body": "A customized `new` will not fix the issue. What I mean is new implementations should allow customizing `new`, because TiKV needs a steady timer to guarantee correctness."
+    },
+    {
+      "id": 1038764754,
+      "user": "you06",
+      "created_at": "2022-02-14T07:57:03Z",
+      "body": "@BusyJay  Do you think it's necessary to fork `tokio-timer` and fix this bug so that we can do a hotfix? We can replace this when a self-maintained time crate is available in the future."
+    },
+    {
+      "id": 1038789983,
+      "user": "BusyJay",
+      "created_at": "2022-02-14T08:24:14Z",
+      "body": "LGTM"
+    }
+  ]
+}

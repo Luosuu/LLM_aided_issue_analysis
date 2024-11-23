@@ -1,0 +1,74 @@
+{
+  "issue_number": 7857,
+  "title": "Kill a tikv process when backup, br will exit quickly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nTiKV \r\nRelease Version:   4.1.0-alpha\r\nGit Commit Hash:   957655cacab1bd48100bf0b252fa93a9758848dc\r\nGit Commit Branch: master\r\nUTC Build Time:    2020-05-08 02:04:59\r\nRust Version:      rustc 1.44.0-nightly (b2e36e6c2 2020-04-22)\r\nEnable Features:   jemalloc portable sse protobuf-codec\r\nProfile:           dist_release\r\n```\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nrun in container\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n- deploy a cluster\r\n\r\n- restore data from aws bucket `dbaas-hibernate`  prefix `test18`\r\n\r\n- backup data from this cluster\r\n\r\n- randomly kill a tikv , and br will report error.\r\n\r\n### What did you expect?\r\nbr wait for region leader select instead of exit directly\r\n### What did happened?\r\n```\r\nI0515 11:22:27.857826       1 backup.go:92] [2020/05/15 11:22:27.857 +00:00] [INFO] [progress.go:102] [\"Full backup\"] [progress=0.94%!](MISSING)\r\nI0515 11:22:28.058024       1 backup.go:92] [2020/05/15 11:22:28.055 +00:00] [INFO] [progress.go:102] [\"Full backup\"] [progress=0.94%!](MISSING)\r\nI0515 11:22:28.255270       1 backup.go:92] [2020/05/15 11:22:28.255 +00:00] [INFO] [progress.go:102] [\"Full backup\"] [progress=0.94%!](MISSING)\r\nI0515 11:22:28.401146       1 backup.go:92] [2020/05/15 11:22:28.401 +00:00] [INFO] [client.go:740] [\"range backuped\"] [StartKey=\"dIAAAAAAAAA9X2mAAAAAAAAAAQOAAAAAAAAL3gOAAAAAAAAACAOAAAAAAAALWQ==\"] [EndKey=\"dIAAAAAAAAA9X2mAAAAAAAAAAQOAAAAAAAAMbAOAAAAAAAAABAOAAAAAAAAKpA==\"]\r\nI0515 11:22:28.413556       1 backup.go:92] [2020/05/15 11:22:28.413 +00:00] [INFO] [client.go:740] [\"range backuped\"] [StartKey=\"dIAAAAAAAAA9X2mAAAAAAAAAAQOAAAAAAAAAjgOAAAAAAAAABgOAAAAAAAALAw==\"] [EndKey=\"dIAAAAAAAAA9X2mAAAAAAAAAAQOAAAAAAAABHAOAAAAAAAAAAgOAAAAAAAAKTQ==\"]\r\nI0515 11:22:28.455232       1 backup.go:92] [2020/05/15 11:22:28.455 +00:00] [INFO] [progress.go:102] [\"Full backup\"] [progress=0.96%!](MISSING)\r\nI0515 11:22:28.479719       1 backup.go:92] [2020/05/15 11:22:28.479 +00:00] [INFO] [client.go:394] [\"backup range finished\"] [take=4.359177055s]\r\nI0515 11:22:28.485337       1 backup.go:92] [2020/05/15 11:22:28.479 +00:00] [INFO] [client.go:329] [\"Backup Ranges\"] [take=24.424220167s]\r\nI0515 11:22:28.493191       1 backup.go:92] [2020/05/15 11:22:28.490 +00:00] [INFO] [ddl.go:407] [\"[ddl] DDL closed\"] [ID=d8e14c98-5522-472f-932a-67747f83c428] [\"take time\"=11.394411ms]\r\nI0515 11:22:28.493209       1 backup.go:92] [2020/05/15 11:22:28.490 +00:00] [INFO] [ddl.go:301] [\"[ddl] stop DDL\"] [ID=d8e14c98-5522-472f-932a-67747f83c428]\r\nI0515 11:22:28.502183       1 backup.go:92] [2020/05/15 11:22:28.499 +00:00] [INFO] [domain.go:607] [\"domain closed\"] [\"take time\"=20.00603ms]\r\nI0515 11:22:28.502207       1 backup.go:92] [2020/05/15 11:22:28.499 +00:00] [INFO] [collector.go:180] [\"Full backup Failed summary : total backup ranges: 9, total success: 8, total failed: 1\"] [\"backup total regions\"=8117] [unitName=\"range start:74800000000000003d5f69800000000000000100 end:74800000000000003d5f698000000000000001fb\"] [error=\"rpc error: code = Unavailable desc = transport is closing\"] [errorVerbose=\"rpc error: code = Unavailable desc = transport is closing\\ngithub.com/pingcap/errors.AddStack\\n\\t/go/pkg/mod/github.com/pingcap/errors@v0.11.5-0.20190809092503-95897b64e011/errors.go:174\\ngithub.com/pingcap/errors.Trace\\n\\t/go/pkg/mod/github.com/pingcap/errors@v0.11.5-0.20190809092503-95897b64e011/juju_adaptor.go:15\\ngithub.com/pingcap/br/pkg/backup.SendBackup\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/backup/client.go:737\\ngithub.com/pingcap/br/pkg/backup.(*pushDown).pushBackup.func1\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/backup/push.go:61\\nruntime.goexit\\n\\t/usr/local/go/src/runtime/asm_amd64.s:1357\"]\r\nI0515 11:22:28.508981       1 backup.go:92] \r\nI0515 11:22:28.509008       1 backup.go:99] Error: rpc error: code = Unavailable desc = transport is closing\r\nE0515 11:22:28.509523       1 manager.go:210] backup cluster tidb1261193036637933568/test-9 data failed, err: cluster tidb1261193036637933568/test-9, wait pipe message failed, errMsg [2020/05/15 11:22:10.245 +00:00] [ERROR] [push.go:102] [\"backup occur region error\"] [error=\"{\\\"RegionError\\\":{\\\"message\\\":\\\"peer is not leader for region 32588, leader may Some(id: 32590 store_id: 4)\\\",\\\"not_leader\\\":{\\\"region_id\\\":32588,\\\"leader\\\":{\\\"id\\\":32590,\\\"store_id\\\":4}}}}\"] [stack=\"github.com/pingcap/log.Error\\n\\t/go/pkg/mod/github.com/pingcap/log@v0.0.0-20200117041106-d28c14d3b1cd/global.go:42\\ngithub.com/pingcap/br/pkg/backup.(*pushDown).pushBackup\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/backup/push.go:102\\ngithub.com/pingcap/br/pkg/backup.(*Client).BackupRange\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/backup/client.go:424\\ngithub.com/pingcap/br/pkg/backup.(*Client).BackupRanges.func2\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/backup/client.go:337\"]\r\nError: rpc error: code = Unavailable desc = transport is closing\r\n, err: exit status 1\r\n```",
+  "state": "closed",
+  "created_at": "2020-05-15T11:24:45Z",
+  "updated_at": "2023-09-05T03:39:37Z",
+  "closed_at": "2023-09-05T03:39:37Z",
+  "labels": [
+    "type/bug",
+    "priority/high",
+    "component/backup-restore",
+    "sig/migrate",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 629181991,
+      "user": "shuijing198799",
+      "created_at": "2020-05-15T11:24:55Z",
+      "body": "@kennytm "
+    },
+    {
+      "id": 629563117,
+      "user": "yiwu-arbug",
+      "created_at": "2020-05-16T00:47:05Z",
+      "body": "I guess this is expected?"
+    },
+    {
+      "id": 629776439,
+      "user": "shuijing198799",
+      "created_at": "2020-05-17T10:37:13Z",
+      "body": "> I guess this is expected?\r\n\r\nI discuss with kenny, kenny said It should wait for the raft region select leader instead of failed quickly."
+    },
+    {
+      "id": 630641333,
+      "user": "kennytm",
+      "created_at": "2020-05-19T07:33:13Z",
+      "body": "Backup with a follower or re-elected leader is probably not going to work because of `local://` (bruh).\r\n\r\nIn network storage, if we write a file X from source A, and then write the same file X from source B, the last write will overwrite the first (this is also why cloud storages have object versioning). \r\n\r\nFor local storage, however, we may get two files X on both A's and B's disks, one of where A's copy might be corrupted. When manual merge, we can't guarantee that B's copy will overwrite A's copy."
+    },
+    {
+      "id": 1007210496,
+      "user": "5kbpers",
+      "created_at": "2022-01-07T07:59:50Z",
+      "body": "Did this issue be fixed? Or is it expected so we won't fix it. @kennytm "
+    },
+    {
+      "id": 1705902232,
+      "user": "BornChanger",
+      "created_at": "2023-09-05T03:38:23Z",
+      "body": "/close"
+    },
+    {
+      "id": 1705902247,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-09-05T03:38:25Z",
+      "body": "@BornChanger: You can't close an active issue/PR unless you authored it or you are a collaborator.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/7857#issuecomment-1705902232):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1705902825,
+      "user": "YuJuncen",
+      "created_at": "2023-09-05T03:39:37Z",
+      "body": "This should already be fixed. Close it until it happening again."
+    }
+  ]
+}

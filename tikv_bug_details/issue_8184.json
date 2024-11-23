@@ -1,0 +1,93 @@
+{
+  "issue_number": 8184,
+  "title": "Don't allow conf remove until leader has applied to current term",
+  "body": "## Bug Report\r\n\r\nWe allow green gc to scan the store data directly without leader. @youjiali1995 suggested that it can miss data if an old leader is removed before new leader has applied all the logs from last term. To get around the problem, we can prevent proposing any conf change remove until leader is able to read.\r\n\r\n/cc @gengliqi @NingLin-P ",
+  "state": "closed",
+  "created_at": "2020-07-02T07:21:19Z",
+  "updated_at": "2021-12-09T08:49:39Z",
+  "closed_at": "2021-12-09T08:49:38Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 653410638,
+      "user": "youjiali1995",
+      "created_at": "2020-07-03T08:00:37Z",
+      "body": "I failed to write a test for this case because the new leader already rejects conf change before applying all logs from the last term in raft-rs: https://github.com/tikv/raft-rs/blob/5ca2e467cd34a9b104bc9ee6074fb338cbf532e8/src/raft.rs#L1019-L1024. @BusyJay @gengliqi \r\n\r\n/cc @MyonKeminta "
+    },
+    {
+      "id": 653414364,
+      "user": "youjiali1995",
+      "created_at": "2020-07-03T08:08:37Z",
+      "body": "It's a problem in theory. I will add a test to prevent it from code change in the future."
+    },
+    {
+      "id": 653415693,
+      "user": "BusyJay",
+      "created_at": "2020-07-03T08:11:44Z",
+      "body": "Cool! Thanks for the investigation! @youjiali1995."
+    },
+    {
+      "id": 653614579,
+      "user": "NingLin-P",
+      "created_at": "2020-07-03T16:24:21Z",
+      "body": "> if an old leader is removed before new leader has applied all the logs from last term.\r\n\r\nI think this may not happen, to remove the old leader we need to propose a conf change log at current term, and log entries from last term will be applied before this log."
+    },
+    {
+      "id": 653697487,
+      "user": "youjiali1995",
+      "created_at": "2020-07-03T23:54:30Z",
+      "body": "> > if an old leader is removed before new leader has applied all the logs from last term.\r\n> \r\n> I think this may not happen, to remove the old leader we need to propose a conf change log at current term, and log entries from last term will be applied before this log.\r\n\r\nNo. The leader needn't apply the log. As long as the log is committed, the old leader can remove itself."
+    },
+    {
+      "id": 654018416,
+      "user": "BusyJay",
+      "created_at": "2020-07-06T05:12:55Z",
+      "body": "Why close this? I thought you would add a test."
+    },
+    {
+      "id": 654069153,
+      "user": "NingLin-P",
+      "created_at": "2020-07-06T07:37:40Z",
+      "body": "> No. The leader needn't apply the log. As long as the log is committed, the old leader can remove itself.\r\n\r\nThis may be true when joint consensus is in use, but currently, all committed logs need to be applied before taking effect.\r\n\r\n"
+    },
+    {
+      "id": 658650282,
+      "user": "youjiali1995",
+      "created_at": "2020-07-15T09:14:40Z",
+      "body": "https://github.com/tikv/tikv/blob/f17378681dbd2e01fac5dd3a04a5b593270017b7/tests/failpoints/cases/test_gc_worker.rs#L81 covers this case."
+    },
+    {
+      "id": 762739920,
+      "user": "BusyJay",
+      "created_at": "2021-01-19T10:07:48Z",
+      "body": "The problem may not exist.\r\n\r\nBecause we don't allow a leader to remove itself, so the command must be proposed by leaders at previous terms. When a peer finds itself is removed, it will skip applying any further logs.\r\n\r\nhttps://github.com/tikv/tikv/blob/35c66d38ff8180f3652643e35575590d9ab57fc1/components/raftstore/src/store/fsm/apply.rs#L829-L833\r\n\r\nSo it will not apply any proposals even they are committed and will not apply any reads as it can't apply to any logs at current term, whose index should be larger than the admin proposal.\r\n\r\nWe have also introduced transaction pipelines that may not wait for raftstore applying. But they take affect only when a peer has applied to current term, so they will not expose new changes as analyzed above.\r\n\r\nAll mutations from leaders older than the one propose conf remove should be available in the cluster. Because a leader can propose conf change only after it has applied to current term, so all entries from old leaders should be observable.\r\n\r\nIt's still possible that new leader has applied some mutations from old leader, which is committed by new leader, before removing itself. But since read is denied, so the mutations are not observable by the client, which won't affect the correctness of two phase commit.\r\n\r\nAsync commit compatibility is another problem that beyond this issue.\r\n\r\n/cc @youjiali1995 @NingLin-P @gengliqi PTAL"
+    },
+    {
+      "id": 762838157,
+      "user": "NingLin-P",
+      "created_at": "2021-01-19T13:26:56Z",
+      "body": "> Because we don't allow a leader to remove itself, so the command must be proposed by leaders at previous terms\r\n\r\nWhen `raftstore.allow_remove_leader` (default `false`) set to `true`, a leader can propose a `confchane` to remove itself."
+    },
+    {
+      "id": 763421568,
+      "user": "BusyJay",
+      "created_at": "2021-01-20T08:15:46Z",
+      "body": "Indeed, I will send a PR to remove the configuration."
+    },
+    {
+      "id": 763483003,
+      "user": "gengliqi",
+      "created_at": "2021-01-20T09:53:55Z",
+      "body": "I find green gc can miss data in another situation below.\r\n1. a leader applies a raft log and responses to the client\r\n2. TiKV of this leader crashes and restarts, the data may be stale than before because we don't set sync option for applying\r\n3. green gc worker scans all of the peer of this region and misses the data written before\r\n\r\nTiKV relies on the guarantee that a leader of region can be read after it has applied to the current term.\r\nBut green gc worker bypasses the raftstore layer which leads to this problem."
+    },
+    {
+      "id": 989637447,
+      "user": "BusyJay",
+      "created_at": "2021-12-09T08:49:38Z",
+      "body": "We will deprecate hibernate regions in the long term, and green gc will be disabled too. So we may not need to solve the problem at all."
+    }
+  ]
+}

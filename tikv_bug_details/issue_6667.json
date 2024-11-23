@@ -1,0 +1,40 @@
+{
+  "issue_number": 6667,
+  "title": "Broadcast WakeUp message for awakening hibernated regions after node restarts",
+  "body": "## Feature Request\r\n\r\n### Is your feature request related to a problem? Please describe:\r\n<!-- A description of what the problem is. -->\r\nAfter enable `hibernate regions`, the leader may go into `Idle` State. If a region splits during a node is down, after that node restarts, the newly created region will not be created on the node until the leader is awakened.\r\n\r\n### Describe the feature you'd like:\r\n<!-- A description of what you want to happen. -->\r\nIt may hurt the performance of replica read. We could add an **option** for broadcasting `MsgWakeUp` after a node is restarted.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-02-21T11:50:36Z",
+  "updated_at": "2020-12-15T06:52:56Z",
+  "closed_at": "2020-12-15T06:52:56Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 725787274,
+      "user": "BusyJay",
+      "created_at": "2020-11-12T02:26:50Z",
+      "body": "Is it solved?"
+    },
+    {
+      "id": 725903750,
+      "user": "5kbpers",
+      "created_at": "2020-11-12T07:49:32Z",
+      "body": "> Is it solved?\r\n\r\n@BusyJay Not yet. Is it duplicate with https://github.com/tikv/tikv/issues/9022 ?"
+    },
+    {
+      "id": 725919237,
+      "user": "BusyJay",
+      "created_at": "2020-11-12T08:20:10Z",
+      "body": "Perhaps. It depends on which \"leader\" it refers to in sentence:\r\n>  the newly created region will not be created on the node until the leader is awakened.\r\n\r\nAnd \r\n> We could add an option for broadcasting MsgWakeUp after a node is restarted.\r\n\r\nwill not solve the problem as the split learner doesn't exit at all."
+    },
+    {
+      "id": 733666258,
+      "user": "BusyJay",
+      "created_at": "2020-11-25T12:04:09Z",
+      "body": "@5kbpers do you have time to solve this?"
+    }
+  ]
+}

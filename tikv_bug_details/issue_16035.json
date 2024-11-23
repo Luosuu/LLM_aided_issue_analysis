@@ -1,0 +1,45 @@
+{
+  "issue_number": 16035,
+  "title": "TiKV OOM during CDC initial scan",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.5.3\r\nEdition:           Enterprise\r\nGit Commit Hash:   5165943fbffce298b61698a59620f415df239420\r\nGit Commit Branch: heads/refs/tags/v6.5.3-20231116-5165943\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. TiDB cluster with 6 TiKV (16c 40g), 2 TiCDC \r\n2. Create cdc changefeed and pause it\r\n3. Run workload to generate 1TB data for CDC to sync.\r\n4. Resume cdc changefeed\r\n\r\n### What did you expect?\r\nTiKV should not OOM\r\n\r\n### What did happened?\r\nTiKV OOM\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/d3d9511d-f0a2-434e-9051-87f5fc4d9b44)\r\n![image](https://github.com/tikv/tikv/assets/7403864/e082b496-cfdf-4edf-a9dc-7d245c943219)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-11-21T07:43:19Z",
+  "updated_at": "2023-12-04T08:30:12Z",
+  "closed_at": "2023-11-27T04:08:45Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1820390616,
+      "user": "fubinzh",
+      "created_at": "2023-11-21T07:45:10Z",
+      "body": "/assign @hicqu "
+    },
+    {
+      "id": 1820391462,
+      "user": "fubinzh",
+      "created_at": "2023-11-21T07:45:56Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1822020039,
+      "user": "overvenus",
+      "created_at": "2023-11-22T03:10:02Z",
+      "body": "The OOM is caused by initial scan pending task surge. The size of initial scan tasks is roughly 5848 bytes, 1649639 tasks take about 8.9 GB memory.\r\n\r\n| TiKV-2 Pending Tasks | TiKV-2 Memory |\r\n|--------|--------|\r\n| ![image](https://github.com/tikv/tikv/assets/2150711/40f0067b-fb3a-47ff-ad9a-ffe0228896f4) | ![image](https://github.com/tikv/tikv/assets/2150711/7cf1490f-b05d-4aef-9e72-0de90b02b8d1) | \r\n\r\nhttps://github.com/tikv/tikv/blob/5165943fbffce298b61698a59620f415df239420/components/cdc/src/endpoint.rs#L765-L780\r\n\r\n---\r\n\r\nTo fix the issue,\r\n* TiKV needs to limit the total number of pending tasks, it must reject requets from TiCDC when there are too many pending tasks.\r\n* TiCDC need to limit concurrent requests, maybe revert https://github.com/pingcap/tiflow/pull/8860 (which essentially reverts the  effort of https://github.com/pingcap/tiflow/pull/3118 and https://github.com/pingcap/tiflow/pull/853 and results in tikv overload)"
+    },
+    {
+      "id": 1822157147,
+      "user": "hicqu",
+      "created_at": "2023-11-22T05:54:16Z",
+      "body": "On TiCDC instances, there are lots of such logs:\r\n```\r\n[2023/11/19 16:11:13.208 +08:00] [INFO] [client.go:981] [\"stream to store closed\"] [namespace=default] [changefeed=test1] [addr=tc-tikv-2.tc-tikv-peer.webank-cdc-tps-4590005-1-42.svc:20160] [storeID=8]\r\n```\r\nAfter a gRPC stream is re-established, all subscribed regions will be re-sent to TiKV instances. That's why there are only 50K subscribed regions on a TiKV but 15000K pending region tasks.\r\n\r\nLimiting the total number of pending tasks is a good idea. However we still need to resolve the stream-recreation case.\r\n"
+    },
+    {
+      "id": 1822174975,
+      "user": "hicqu",
+      "created_at": "2023-11-22T06:15:33Z",
+      "body": "@overvenus https://github.com/pingcap/tiflow/pull/8860 is expected to reduce changefeed initialization time, and it does works. So I suggest to just limit total number of pending tasks on TiKVs."
+    }
+  ]
+}

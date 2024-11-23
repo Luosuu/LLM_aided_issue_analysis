@@ -1,0 +1,36 @@
+{
+  "issue_number": 12918,
+  "title": "BR log backup data lost if tikv restart followed by tikv network partition",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nRelease Version:   6.1.0\r\nEdition:           Enterprise\r\nGit Commit Hash:   f20a1195ddadf435329a0fbde7326ae9df17c245\r\nGit Commit Branch: heads/refs/tags/v6.1.0-20220622\r\nUTC Build Time:    2022-06-24 13:42:12\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. start log backup\r\n2. do a full backup\r\n3. start a workload\r\n4. restart tikv, and start tikv network partition  (run chaos for 20 minutes for every 30 minutes, partition network between all tikvs)\r\n![image](https://user-images.githubusercontent.com/7403864/175938220-4fc2c710-49c6-4df7-91a8-c6b9d0f5cbc4.png)\r\n![image](https://user-images.githubusercontent.com/7403864/175938249-843533e4-ddc1-43db-a206-5f84c81de445.png)\r\n5. do a PiTR restore and run sync_diff to check data consistency\r\n![image](https://user-images.githubusercontent.com/7403864/175938341-a2ed2b83-339c-4ca2-9762-c78420079025.png)\r\n \r\n\r\n### What did you expect?\r\ndata should be consistent.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/7403864/175938365-857584e5-ee7b-4995-8d34-7969b0cdb8d2.png)\r\n\r\n \r\n![image](https://user-images.githubusercontent.com/7403864/175938452-2e541f8b-493e-468b-8905-85a63d7a5508.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-06-27T12:13:34Z",
+  "updated_at": "2022-07-19T03:30:40Z",
+  "closed_at": "2022-07-19T03:30:39Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1167276643,
+      "user": "fubinzh",
+      "created_at": "2022-06-27T12:13:45Z",
+      "body": "/type bug\r\n/severity Major\r\n/feature developing"
+    },
+    {
+      "id": 1188554923,
+      "user": "3pointer",
+      "created_at": "2022-07-19T03:30:39Z",
+      "body": "After implement new checkpoint model this issue will be fixed. https://github.com/pingcap/tidb/issues/35164"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "issue_number": 9961,
+  "title": "TiCDC old value and incremental scan may hold RocksDB snapshot too long",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRun a changefeed that needs incremental scan a lot of data.\r\n\r\n### What did you expect?\r\n\r\nA reasonable number of snapshots and a reasonable oldest snapshot duration.\r\n\r\n### What did happened?\r\n\r\n![image](https://user-images.githubusercontent.com/2150711/113669137-dfb83280-96e5-11eb-9ba7-2b22941134d3.png)\r\n![image](https://user-images.githubusercontent.com/2150711/113669165-e8106d80-96e5-11eb-9f0b-e45a5c979106.png)\r\n![image](https://user-images.githubusercontent.com/2150711/113669276-1a21cf80-96e6-11eb-959f-6dfd63ca0c32.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-04-06T06:41:12Z",
+  "updated_at": "2021-06-10T15:22:34Z",
+  "closed_at": "2021-06-10T15:22:34Z",
+  "labels": [
+    "type/bug",
+    "difficulty/medium",
+    "component/CDC",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 837985692,
+      "user": "overvenus",
+      "created_at": "2021-05-11T07:27:55Z",
+      "body": "@ben1009 Could you take a look?"
+    },
+    {
+      "id": 858715992,
+      "user": "overvenus",
+      "created_at": "2021-06-10T15:22:34Z",
+      "body": "This issue has been fixed by #10262 "
+    }
+  ]
+}

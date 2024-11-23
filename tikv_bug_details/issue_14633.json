@@ -1,0 +1,66 @@
+{
+  "issue_number": 14633,
+  "title": "[Dynamic Regions] the value of metric tikv_unified_read_pool_running_tasks is wrong causing server is busy error",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun the workload stability test\r\n\r\n### What did you expect?\r\nrunning task tikv_unified_read_pool_running_tasks should be reduced to zero after stopping the workload\r\n\r\n### What did happened?\r\nrunning task is not decreased and causing server is busy error\r\n![image](https://user-images.githubusercontent.com/2316425/233752081-c9e78be6-4dcf-40df-af5b-b9e488096be2.png)\r\n![image](https://user-images.githubusercontent.com/2316425/233752091-951a0f8e-be4d-4208-9380-edafc7b3876e.png)\r\n\r\n> \r\nhttps://docs.pingcap.com/tidb/stable/tidb-troubleshooting-map#43-the-client-reports-the-server-is-busy-error\r\n4.3.4 TiKV coprocessor is in a queue. The number of piled up tasks exceeds coprocessor threads * readpool.coprocessor.max-tasks-per-worker-[normal|low|high]. Too many large queries leads to the tasks piling up in coprocessor. You need to check whether a execution plan change causes a large number of table scan operations.",
+  "state": "closed",
+  "created_at": "2023-04-22T00:30:16Z",
+  "updated_at": "2023-07-05T21:50:07Z",
+  "closed_at": "2023-05-23T07:47:40Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1518443149,
+      "user": "dbsid",
+      "created_at": "2023-04-22T00:30:41Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1518443224,
+      "user": "dbsid",
+      "created_at": "2023-04-22T00:30:59Z",
+      "body": "/assign @glorv"
+    },
+    {
+      "id": 1518443451,
+      "user": "dbsid",
+      "created_at": "2023-04-22T00:31:51Z",
+      "body": "![b572b766-7e2c-4e49-8f4a-8830a6f0580c](https://user-images.githubusercontent.com/2316425/233752168-ae854343-069d-4480-a617-355c53f7c5b6.jpeg)\r\n"
+    },
+    {
+      "id": 1524508748,
+      "user": "dbsid",
+      "created_at": "2023-04-27T02:36:01Z",
+      "body": "/assign @busyjay"
+    },
+    {
+      "id": 1525067208,
+      "user": "dbsid",
+      "created_at": "2023-04-27T08:10:39Z",
+      "body": "\r\n```\r\nsum(tikv_storage_engine_async_request_total{k8s_cluster=\"$k8s_cluster\", tidb_cluster=~\"$tidb_cluster.*\", instance=~\"$instance\", type=\"snapshot\", status=\"all\"}) by (instance) -  sum(tikv_storage_engine_async_request_total{k8s_cluster=\"$k8s_cluster\", tidb_cluster=~\"$tidb_cluster.*\", instance=~\"$instance\", type=\"snapshot\", status!=\"all\"}) by (instance)\r\n```\r\n\r\n![img_v2_67d2f9e3-4e8f-460d-ab37-8441ecffa76g](https://user-images.githubusercontent.com/2316425/234800575-2a95f6de-21ae-4015-8cd9-590bf4722d44.jpg)\r\n"
+    },
+    {
+      "id": 1528595379,
+      "user": "dbsid",
+      "created_at": "2023-04-29T03:28:36Z",
+      "body": "This issue is also observed when running tpcc workload using the latest nightly build\r\n`sum(tikv_storage_engine_async_request_total{k8s_cluster=\"$k8s_cluster\", tidb_cluster=~\"$tidb_cluster.*\", instance=~\"$instance\", type=\"snapshot\", status=\"all\"}) by (instance) -  sum(tikv_storage_engine_async_request_total{k8s_cluster=\"$k8s_cluster\", tidb_cluster=~\"$tidb_cluster.*\", instance=~\"$instance\", type=\"snapshot\", status!=\"all\"}) by (instance)\r\n`\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/235281385-56a6f6ce-e8da-446a-9520-ea22a0c343c9.png)\r\n"
+    },
+    {
+      "id": 1534333209,
+      "user": "overvenus",
+      "created_at": "2023-05-04T08:51:59Z",
+      "body": "`async_snapshot` seems to be stuck by slow read index. Region 116483 is splitting during that time.\r\n\r\n```log\r\ntikv-2023-04-26T19-43-35.048.log:[2023/04/26 19:43:33.719 +08:00] [DEBUG] [lease.rs:106] [\"handle reads with a read index\"] [request_id=71fc422d-b0ff-4b14-9ef0-b5322be59495] [peer_id=116484] [region_id=116483]​\r\ntikv-2023-04-26T19-39-53.129.log:[2023/04/26 19:39:50.628 +08:00] [DEBUG] [lease.rs:70] [\"request to get a read index\"] [request_id=71fc422d-b0ff-4b14-9ef0-b5322be59495] [peer_id=116484] [region_id=116483]​\r\n​\r\ntikv-2023-04-26T19-43-35.048.log:[2023/04/26 19:43:33.720 +08:00] [DEBUG] [lease.rs:106] [\"handle reads with a read index\"] [request_id=2683332a-2557-4bf3-87f8-c148d5ed2a22] [peer_id=116484] [region_id=116483]​\r\ntikv-2023-04-26T19-40-02.016.log:[2023/04/26 19:39:59.695 +08:00] [DEBUG] [lease.rs:70] [\"request to get a read index\"] [request_id=2683332a-2557-4bf3-87f8-c148d5ed2a22] [peer_id=116484] [region_id=116483]​\r\n​\r\ntikv-2023-04-26T19-43-35.048.log:[2023/04/26 19:43:33.720 +08:00] [DEBUG] [lease.rs:106] [\"handle reads with a read index\"] [request_id=716ac40a-795c-47ea-a971-31ff99db9357] [peer_id=116484] [region_id=116483]​\r\ntikv-2023-04-26T19-40-10.813.log:[2023/04/26 19:40:09.011 +08:00] [DEBUG] [lease.rs:70] [\"request to get a read index\"] [request_id=716ac40a-795c-47ea-a971-31ff99db9357] [peer_id=116484] [region_id=116483]​\r\n​\r\ntikv-2023-04-26T19-39-44.710.log:[2023/04/26 19:39:42.865 +08:00] [INFO] [mod.rs:237] [\"Propose split\"] [peer_id=116484] [region_id=116483]​\r\n...​\r\ntikv-2023-04-26T19-43-35.048.log:[2023/04/26 19:43:33.737 +08:00] [INFO] [snapshot.rs:278] [\"init split with snapshot finished\"] [peer_id=188077] [region_id=188076]​​​\r\n```"
+    },
+    {
+      "id": 1537141377,
+      "user": "overvenus",
+      "created_at": "2023-05-06T13:21:02Z",
+      "body": "There are two issues in this case.\r\n\r\n1. Split is slow because flush memtable is blocked by a false positive write stall.\r\n2. Because the slow split, it triggers `tidb_load_based_replica_read_threshold` and TiDB sends follower reads to TiKV, which are not supported in raftstorev2, follower read is blocked forever.\r\n\r\nFalse positive write stall log:\r\n\r\n```log\r\n[2023/04/26 19:39:42.867 +08:00][5][INFO] [116483_5][utilities/checkpoint/checkpoint_impl.cc:97] Started the snapshot process -- creating snapshot in directory /var/lib/tikv/data/tablets/split_1880>[2023/04/26 19:39:42.867 +08:00][5][INFO] [116483_5][utilities/checkpoint/checkpoint_impl.cc:112] Snapshot process -- using temporary directory /var/lib/tikv/data/tablets/split_188076_5.tmp\r\n[2023/04/26 19:39:42.868 +08:00][5][INFO] [116483_5][db/db_impl/db_impl_compaction_flush.cc:2285] [write] WaitUntilFlushWouldNotStallWrites waiting on stall conditions to clear\r\n[2023/04/26 19:43:33.691 +08:00][5][INFO] [116483_5][db/db_filesnapshot.cc:410] Number of log files 0\r\n[2023/04/26 19:43:33.691 +08:00][5][INFO] [116483_5][utilities/checkpoint/checkpoint_impl.cc:127] Hard Linking 002491.sst\r\n... ...\r\n[2023/04/26 19:43:33.692 +08:00][5][INFO] [116483_5][utilities/checkpoint/checkpoint_impl.cc:142] Creating CURRENT\r\n[2023/04/26 19:43:33.692 +08:00][5][INFO] [116483_5][utilities/checkpoint/checkpoint_impl.cc:127] Hard Linking OPTIONS-002434\r\n[2023/04/26 19:43:33.694 +08:00][5][INFO] [116483_5][utilities/checkpoint/checkpoint_impl.cc:178] Snapshot DONE. All is good\r\n[2023/04/26 19:43:33.694 +08:00][5][INFO] [116483_5][utilities/checkpoint/checkpoint_impl.cc:180] Snapshot sequence number: 4773910\r\n```\r\n"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "issue_number": 4361,
+  "title": "slog kvs are missing in CaseTraceLogger ",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\n`make trace_test`\r\n\r\n**What did you expect to see?**\r\n\r\n```\r\n2019/03/12 13:51:49.548 node.rs:203: [INFO] alloc store id\r\n2019/03/12 13:51:49.565 node.rs:218: [INFO] alloc first region id\r\n2019/03/12 13:51:49.565 node.rs:225: [INFO] alloc first peer id for first region\r\n2019/03/12 13:51:49.614 node.rs:136: [INFO] try bootstrap cluster\r\n2019/03/12 13:51:49.771 node.rs:203: [INFO] alloc store id\r\n2019/03/12 13:51:49.790 node.rs:326: [INFO] start raft store thread\r\n```\r\n\r\nThe log is not complete, miss important info, eg, cluster id/store id/region id\r\n\r\n**What did you see instead?**\r\n\r\nAll slog kvs are retained.\r\n",
+  "state": "closed",
+  "created_at": "2019-03-12T05:58:08Z",
+  "updated_at": "2019-03-15T03:36:55Z",
+  "closed_at": "2019-03-15T03:36:55Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "difficulty/easy",
+    "component/util"
+  ],
+  "comments_data": [
+    {
+      "id": 471896566,
+      "user": "breezewish",
+      "created_at": "2019-03-12T08:05:50Z",
+      "body": "For contributors who want to fix this:\r\n\r\nCurrently CaseTraceLogger does not output kv pairs:\r\n\r\nhttps://github.com/tikv/tikv/blob/192cd352667fa52fb0f205a0ad517b12ae9f150e/components/test_util/src/logging.rs#L33\r\n\r\nWe can just refer to slog-term's implementation to output kv pairs:\r\n\r\nhttps://github.com/slog-rs/term/blob/e5518f68b00f088c19aaa8238a23dac3a7aa8843/src/lib.rs#L394"
+    },
+    {
+      "id": 471916908,
+      "user": "overvenus",
+      "created_at": "2019-03-12T09:13:18Z",
+      "body": "It's kind of urgent because we rely on the logger to investigate unstable tests. "
+    }
+  ]
+}

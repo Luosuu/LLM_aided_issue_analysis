@@ -1,0 +1,25 @@
+{
+  "issue_number": 11195,
+  "title": "Label leaking of thread metrics",
+  "body": "## Bug Report\r\n\r\nHere we buffered all labels (thread IDs), then labels can not be dropped even if threads have been exited.\r\n\r\nhttps://github.com/tikv/tikv/blob/13db52e63a746f546cdf6fa3c779378f228d907c/components/tikv_util/src/metrics/threads_linux.rs#L25-L40\r\n",
+  "state": "closed",
+  "created_at": "2021-11-01T05:31:23Z",
+  "updated_at": "2024-10-08T16:00:08Z",
+  "closed_at": "2021-11-01T09:19:24Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.1",
+    "affects-5.2",
+    "report/customer"
+  ],
+  "comments_data": [
+    {
+      "id": 2182137742,
+      "user": "seiya-annie",
+      "created_at": "2024-06-21T07:05:55Z",
+      "body": "/found customer"
+    }
+  ]
+}

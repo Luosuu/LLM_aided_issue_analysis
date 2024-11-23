@@ -1,0 +1,25 @@
+{
+  "issue_number": 15066,
+  "title": "In-memory pessimistic locks are invisible to scan_lock requests",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nWhen handling `scan_lock` requests, it only scans persisted locks from lock_cf. Currently, we also have in-memory pessimistic locks, and by default most pessimistic locks will be in-memory. As a result, if in some cases some pessimistic locks are left in memory for more than 10 minutes, then GC won't see it.\r\n\r\nAs far as I know, apart from tests, GC resolving lock is the only place where `scan_lock` is used. Tell me if you know there are other places using it. Once the problem happens, the left pessimistic lock might block resolved_ts from advancing, but CDC have the ability to actively resolve locks. The exact affect and the severity of the bug still needs investigation.\r\n\r\nIt seems to be that in-memory pessimistic locks don't support scanning in order by design and thus it uses hash tables to store the contents. To keep the current implementation of it, we may need to consider clone the hashmap out when handling `scan_lock`, which needs some tests to verify if the overhead is acceptable.\r\n\r\n- [ ] Confirm the exact affect of the bug\r\n- [ ] Find if there are any more places that are expected to see all locks but missed in-memory pessimistic locks.",
+  "state": "open",
+  "created_at": "2023-07-04T10:13:57Z",
+  "updated_at": "2024-01-29T21:45:00Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/scheduling",
+    "severity/moderate",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2"
+  ],
+  "comments_data": []
+}

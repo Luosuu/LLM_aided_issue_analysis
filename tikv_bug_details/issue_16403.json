@@ -1,0 +1,32 @@
+{
+  "issue_number": 16403,
+  "title": "leader can not balance again after fault recover from one of tikv io delay 100ms which lasts for 10mins with evict-slow-trend-schedule",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   8.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   6bf8b5e2ac8d2f5e8e74c183aafcdeeee6bf9e54\r\nGit Commit Branch: heads/refs/tags/v8.0.0-alpha\r\nUTC Build Time:    2024-01-15 11:43:16\r\nRust Version:      rustc 1.76.0-nightly (06e02d5b2 2023-12-09)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n2024-01-16T04:36:05.039+0800\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、schedule add evict-slow-trend-scheduler\r\n2、go-tpc tpcc run -D tpcc20000 --host tc-tidb.ha-test-evict-slow-trend-scheduler-tps-6090123-1-242 -P4000 --warehouses 20000 -T 32 --ignore-error '2013,1213,1105,1205,8022,8028,9004,9007,1062' --user root --password '' --interval '10s'\r\n3、inject one of tikv io delay 100ms and last for 10mins\r\nchaos start：2024-01-16 04:25:49\r\nchaos end：2024-01-16 04:35:49\r\n\r\n### What did you expect?\r\nafter fault recover，the leader of tikv can  balance again \r\n\r\n### What did happened?\r\n1、tikv oom（known issue）when fault recover\r\n2、leader can not balance again after fault recover\r\n\r\n![img_v3_0276_c12cb96b-95e4-40c8-bbe0-3a5545dccabg](https://github.com/tikv/tikv/assets/84712107/e26138c9-02b8-4655-bd09-75906260ce2c)\r\n![img_v3_0276_9b0b827a-6436-402e-babe-6698c853d1cg](https://github.com/tikv/tikv/assets/84712107/af8b006f-9b04-4ace-9547-b8cdaa63f3db)\r\n![img_v3_0276_ca929f6e-64c3-4991-9ff1-746536a5730g](https://github.com/tikv/tikv/assets/84712107/476028b1-ad9c-4678-b15e-91691f9cfdd3)\r\n\r\nclinic ：\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7324356502423764476?from=1705334573&to=1705372775",
+  "state": "closed",
+  "created_at": "2024-01-18T02:50:35Z",
+  "updated_at": "2024-01-29T18:13:19Z",
+  "closed_at": "2024-01-29T18:13:19Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1897689292,
+      "user": "Lily2025",
+      "created_at": "2024-01-18T02:53:32Z",
+      "body": "/severity major\r\n/assign LykxSassinator"
+    },
+    {
+      "id": 1908077692,
+      "user": "LykxSassinator",
+      "created_at": "2024-01-24T13:00:42Z",
+      "body": "This issue can be paused for tracking, as this case just happened only once and cannot be reproduced again."
+    }
+  ]
+}

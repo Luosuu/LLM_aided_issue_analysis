@@ -1,0 +1,35 @@
+{
+  "issue_number": 5209,
+  "title": "bench raftstore::store::fsm::router::tests::bench_send failed",
+  "body": "## Bug Report\r\n\r\n**What version of TiKV are you using?**\r\n\r\nCommit: 995257ddb1c926cfce638663b66c92809064eedd\r\n\r\n**What operating system and CPU are you using?**\r\n\r\nMacOSX\r\n\r\n**What did you do?**\r\n\r\n```\r\nRUST_BACKTRACE=1 cargo bench --no-default-features --features \" jemalloc sse failpoints\"\r\n```\r\n\r\n**What did you expect to see?**\r\n\r\nBench passed\r\n\r\n**What did you see instead?**\r\n\r\n```\r\nfailures:\r\n\r\n---- raftstore::store::fsm::router::tests::bench_send stdout ----\r\nthread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: \"Full(..)\"', src/libcore/result.rs:999:5\r\nstack backtrace:\r\n   0: std::panicking::default_hook::{{closure}}\r\n   1: std::panicking::default_hook\r\n   2: std::panicking::rust_panic_with_hook\r\n   3: std::panicking::continue_panic_fmt\r\n   4: rust_begin_unwind\r\n   5: core::panicking::panic_fmt\r\n   6: core::result::unwrap_failed\r\n   7: core::ops::function::FnOnce::call_once\r\n   8: std::panicking::try::do_call\r\n   9: __rust_maybe_catch_panic\r\n  10: test::run_test\r\n  11: test::run_tests_console\r\n  12: test::test_main\r\n  13: test::test_main_static\r\n  14: std::rt::lang_start::{{closure}}\r\n  15: std::panicking::try::do_call\r\n  16: __rust_maybe_catch_panic\r\n  17: std::rt::lang_start_internal\r\n  18: main\r\n\r\n\r\nfailures:\r\n    raftstore::store::fsm::router::tests::bench_send\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2019-08-06T05:09:33Z",
+  "updated_at": "2021-01-06T02:15:49Z",
+  "closed_at": "2021-01-06T02:15:49Z",
+  "labels": [
+    "type/bug",
+    "component/util",
+    "priority/low",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 753783263,
+      "user": "yiwu-arbug",
+      "created_at": "2021-01-04T06:25:25Z",
+      "body": "Tested on macos 11.1, clang 12.0.0 with current master 60f3c51fb and the `cargo bench` command succeeded. I added `protobuf-codec`, `test-engines-rocksdb` features due to recent changes. Full command:\r\n```\r\nRUST_BACKTRACE=1 cargo bench --no-default-features --features \" jemalloc sse failpoints protobuf-codec test-engines-rocksdb\"\r\n```\r\nIn particular the `raftstore::store::fsm::router::tests::bench_send` does not exist in current master."
+    },
+    {
+      "id": 753797519,
+      "user": "yiwu-arbug",
+      "created_at": "2021-01-04T07:03:33Z",
+      "body": "The `bench_send` bench is under component/batch-system now. I'll try to run it on Mac."
+    },
+    {
+      "id": 754320002,
+      "user": "yiwu-arbug",
+      "created_at": "2021-01-05T01:04:08Z",
+      "body": "The `bench_send` bench does build and run on Mac with current master. I'll send a PR to fix the build when building the `batch-system` crate alone.\r\n<img width=\"715\" alt=\"WeChatWorkScreenshot_5f9b64de-7086-40ba-aec9-58716d6d1d61\" src=\"https://user-images.githubusercontent.com/2606959/103594906-d59c5300-4eae-11eb-8401-cecbd0db9a23.png\">\r\n"
+    }
+  ]
+}

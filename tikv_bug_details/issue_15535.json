@@ -1,0 +1,33 @@
+{
+  "issue_number": 15535,
+  "title": "[Dynamic Regions] Sysbench prepare fails with error \"schema failed to update in 1 lease\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster: 6b91e4a2284296887c1a0eb32865e5d8ab90ebb7\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun Sysbench prepare 32 tables, each table 100Million records\r\n### What did you expect?\r\nSucceeds\r\n### What did happened?\r\n[2023/09/06 02:22:02.192 +00:00] [WARN] [session.go:946] [\"can not retry txn\"] [conn=1830813770] [session_alias=] [label=general] [error=\"[domain:8027]Information schema is out of date: schema failed to update in 1 lease, please make sure TiDB can connect to TiKV\"] [IsBatchInsert=false] [IsPessimistic=false] [InRestrictedSQL=false] [tidb_retry_limit=10] [tidb_disable_txn_auto_retry=true]\r\n[2023/09/06 02:22:02.192 +00:00] [WARN] [session.go:962] [\"commit failed\"] [conn=1830813770] [session_alias=] [\"finished txn\"=\"Txn{state=invalid}\"] [error=\"[domain:8027]Information schema is out of date: schema failed to update in 1 lease, please make sure TiDB can connect to TiKV\"]\r\n[2023/09/06 02:22:02.193 +00:00] [WARN] [session.go:2281] [\"run statement failed\"] [conn=1830813770] [session_alias=] [schemaVersion=85] [error=\"[domain:8027]Information schema is out of date: schema failed to update in 1 lease, please make sure TiDB can connect to TiKV\"] [session=\"{\\n  \\\"currDBName\\\": \\\"test\\\",\\n  \\\"id\\\": 1830813770,\\n  \\\"status\\\": 2,\\n  \\\"strictMode\\\": true,\\n  \\\"user\\\": {\\n    \\\"Username\\\": \\\"root\\\",\\n    \\\"Hostname\\\": \\\"10.233.98.12\\\",\\n    \\\"CurrentUser\\\": false,\\n    \\\"AuthUsername\\\": \\\"root\\\",\\n    \\\"AuthHostname\\\": \\\"%\\\",\\n    \\\"AuthPlugin\\\": \\\"mysql_native_password\\\"\\n  }\\n}\"]\r\n[2023/09/06 02:22:02.193 +00:00] [INFO] [conn.go:1096] [\"command dispatched failed\"] [conn=1830813770] [session_alias=] [connInfo=\"id:1830813770, addr:10.233.98.12:41928 status:10, collation:latin1_swedish_ci, user:root\"] [command=Query] [status=\"inTxn:0, autocommit:1\"] [sql=\"INSERT INTO sbtest10(id, k, c, pad) VALUES(12816560, 49877573, '31078179579-34465984845-86673687486-40500233641-80888976175-75917951071-14932369203-56024164972-01214704164-85768266033', '44728358819-86796296147-92224581893-66707345599-36103990219'),(12816561, 50354921, '72496182988-36978323106-20042380158-16441417394-77617500269-30332083886-58570081242-11844212285-57959995249-48825386657', '56732092344-52838577862-08798790263-99450116299-79707884968'),(12816562, 50264425, '36786546726-42437273280-57701039746-21984646659-38121526201-78748572458-69294276191-09546433532-44162877963-58527654230', '08209800179-24908865841-37539716957-09349714927-49911109923'),(12816563, 50090413, '81458632442-81163016205-17298151971-00560185134-78911685210-29301891923-67690115309-50071547063-73674514000-69107169406', '03455770521-74525169344-64699735357-57194362511-64657090965'),(12816564, 49952988, '24192009151-25352151440-10749332596-33744369144-53624703261-07727003080-99073129750-37545578300-03772833572-15737481222', '51731626642-32716250040-17772649827-17288353203-79597791807'),(12816565, 50355401, '86471550932-68257600343-33994056583-92990954172-22772535886-59867111454-86985110071-56519498212-60138573042-04220972530', '65723755197-28771940083-38421240551-11086742891-24093531890'),(12816566, 50067666, '28979694500-12313010836-69049932036-04169644110-01237363980-83149731731-77655175973-41365415279-68537190245-62030030307', '90568824279-87889541581-58476000162-5554391406@@@                                                                                                                                               ",
+  "state": "closed",
+  "created_at": "2023-09-06T06:00:07Z",
+  "updated_at": "2023-09-06T09:32:49Z",
+  "closed_at": "2023-09-06T09:32:49Z",
+  "labels": [
+    "type/bug",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1707962352,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-06T09:08:41Z",
+      "body": "<img width=\"1619\" alt=\"Screen Shot 2023-09-06 at 5 06 56 PM\" src=\"https://github.com/tikv/tikv/assets/9442422/134a42c0-6c85-4de4-8873-3584f04d50d4\">\r\n"
+    },
+    {
+      "id": 1707971477,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-06T09:14:54Z",
+      "body": "<img width=\"1262\" alt=\"Screen Shot 2023-09-06 at 5 14 38 PM\" src=\"https://github.com/tikv/tikv/assets/9442422/b26c3573-beb8-46a2-95b7-2329984a4d6a\">\r\n"
+    },
+    {
+      "id": 1707999580,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-06T09:32:49Z",
+      "body": "The reason is due to high latency of kv get (1.67min). And that's because the tikv write is very slow which impact read index.\r\nAnd the write latency is due to the slow disk. "
+    }
+  ]
+}

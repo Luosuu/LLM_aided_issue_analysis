@@ -1,0 +1,33 @@
+{
+  "issue_number": 15986,
+  "title": "Isolate the damaged ssts and regions and avoid tikv panic when block crc mismatches ",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nv5.1.2 \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n\r\nMultiple stores in the cluster are experiencing block CRC mismatches causing most of the tikv nodes panic. The source of most mismatches is suspected to be SST files ingested into the system, while there is suspicion of disk or memory issues with a specific store, causing the problematic SST files to spread to other TiKV nodes, ultimately leading to TiKV panics.\r\n\r\nMaybe optimization could be implemented by modifying the tikv ingestion process: instead of using snapshot-level checksum verification, employ block-level CRC verification on SST files before tikv ingest. In case of a verification failure, take the following action on the affected peer:\r\n- Delete the snapshot by tombstoning it.\r\n- Avoid triggering a panic in the system.\r\n\r\nHere is the panic logs:\r\n```\r\n[2023/11/07 06:09:15.719 +08:00] [FATAL] [server.rs:390] [\"panic_mark_file /chj/app/tidb/data/tikv-20160/panic_mark_file exists, there must be something wrong with th\r\ne db. Do not remove the panic_mark_file and force the TiKV node to restart. Please contact TiKV maintainers to investigate the issue. If needed, use scale in and scal\r\ne out to replace the TiKV node. https://docs.pingcap.com/tidb/stable/scale-tidb-using-tiup\"]\r\n\r\n[2023/11/07 01:53:26.891 +08:00] [FATAL] [lib.rs:463] [\"rocksdb background error. db: kv, reason: compaction, error: Corruption: block checksum mismatch: expected 389\r\n5350849, got 2921698611  in /chj/app/tidb/data/tikv-20160/db/006848.sst offset 189020 size 4449\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{clo\r\nsure}}\\n             at components/tikv_util/src/lib.rs:462\\n   1: std::panicking::rust_panic_with_hook\\n             at library/std/src/panicking.rs:595\\n   2: std::\r\npanicking::begin_panic_handler::{{closure}}\\n             at library/std/src/panicking.rs:497\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n\r\n    at library/std/src/sys_common/backtrace.rs:141\\n   4: rust_begin_unwind\\n             at library/std/src/panicking.rs:493\\n   5: std::panicking::begin_panic_fmt\\n\r\n             at library/std/src/panicking.rs:435\\n   6: <engine_rocks::event_listener::RocksEventListener as rocksdb::event_listener::EventListener>::on_background_er\r\nror\\n             at components/engine_rocks/src/event_listener.rs:105\\n   7: rocksdb::event_listener::on_background_error\\n             at /rust/git/checkouts/rust-r\r\nocksdb-a9a28e74c6ead8ef/53ff7e7/src/event_listener.rs:332\\n   8: _ZN24crocksdb_eventlistener_t17OnBackgroundErrorEN7rocksdb21BackgroundErrorReasonEPNS0_6StatusE\\n\r\n         at crocksdb/c.cc:2330\\n   9: _ZN7rocksdb12EventHelpers23NotifyOnBackgroundErrorERKSt6vectorISt10shared_ptrINS_13EventListenerEESaIS4_EENS_21BackgroundErrorRe\r\nasonEPNS_6StatusEPNS_17InstrumentedMutexEPb\\n             at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/53ff7e7/librocksdb_sys/rocksdb/db/event_helpers.cc:53\\n\r\n  10: _ZN7rocksdb12ErrorHandler10SetBGErrorERKNS_6StatusENS_21BackgroundErrorReasonE\\n             at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/53ff7e7/libroc\r\nksdb_sys/rocksdb/db/error_handler.cc:219\\n  11: _ZN7rocksdb6DBImpl20BackgroundCompactionEPbPNS_10JobContextEPNS_9LogBufferEPNS0_19PrepickedCompactionENS_3Env8Priority\r\nE\\n             at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/53ff7e7/librocksdb_sys/rocksdb/db/db_impl/db_impl_compaction_flush.cc:2797\\n  12: _ZN7rocksdb6DBI\r\nmpl24BackgroundCallCompactionEPNS0_19PrepickedCompactionENS_3Env8PriorityE\\n             at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/53ff7e7/librocksdb_sys/r\r\nocksdb/db/db_impl/db_impl_compaction_flush.cc:2317\\n  13: _ZN7rocksdb6DBImpl16BGWorkCompactionEPv\\n             at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/5\r\n3ff7e7/librocksdb_sys/rocksdb/db/db_impl/db_impl_compaction_flush.cc:2091\\n  14: _ZNKSt8functionIFvvEEclEv\\n             at /opt/rh/devtoolset-8/root/usr/include/c++/\r\n8/bits/std_function.h:687\\n      _ZN7rocksdb14ThreadPoolImpl4Impl8BGThreadEm\\n             at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/53ff7e7/librocksdb_sys\r\n/rocksdb/util/threadpool_imp.cc:266\\n  15: _ZN7rocksdb14ThreadPoolImpl4Impl15BGThreadWrapperEPv\\n             at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/53f\r\nf7e7/librocksdb_sys/rocksdb/util/threadpool_imp.cc:307\\n  16: execute_native_thread_routine\\n  17: start_thread\\n  18: clone\\n\"] [location=components/engine_rocks/src\r\n/event_listener.rs:105] [thread_name=<unnamed>]\r\n```\r\n### What did you expect?\r\nIsolate the damaged sst and regions  to prevent the fault from contaminating the entire cluster, avoiding the escalation of the issue.\r\n\r\n### What did happened?\r\ncluster crash",
+  "state": "closed",
+  "created_at": "2023-11-14T16:09:45Z",
+  "updated_at": "2023-12-04T07:04:23Z",
+  "closed_at": "2023-12-04T07:04:23Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

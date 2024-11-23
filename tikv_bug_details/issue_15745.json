@@ -1,0 +1,47 @@
+{
+  "issue_number": 15745,
+  "title": "[Dynamic Regions] resolved ts and gc safepoint can't advance",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV\r\nRelease Version:   7.5.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   64d2129a0c21bc1e8521c38dd144a327baa88965\r\nGit Commit Branch: heads/refs/tags/v7.5.0\r\nUTC Build Time:    2023-10-10 05:27:03\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nThe cluster contains about 50 tikv with dynamic region enabled, each tikv contains 2.5TB data, a table contains about 6billion rows with each row size about 10kb. insert, large delete and select workload.\r\n![image](https://github.com/tikv/tikv/assets/7677963/c291f2c4-6a12-494b-8c2e-b7eed8749caf)\r\n![image](https://github.com/tikv/tikv/assets/7677963/4ac4b443-0696-4a75-a96c-f9becb6e64e0)\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-10-11T02:40:15Z",
+  "updated_at": "2024-04-23T02:34:10Z",
+  "closed_at": "2024-04-23T02:34:10Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1756661858,
+      "user": "lilinghai",
+      "created_at": "2023-10-11T02:42:29Z",
+      "body": "/severity major\r\n/assign @overvenus"
+    },
+    {
+      "id": 1770185671,
+      "user": "bufferflies",
+      "created_at": "2023-10-19T07:02:56Z",
+      "body": "The root cause is that there are some locks that not release.  `aysnc_write` maybe blocked \r\n![2f314258-409b-4b3e-ade2-d7dd5365d00f](https://github.com/tikv/tikv/assets/23159587/cddd712f-0b4f-4faa-94c9-cca23f33ba14)\r\n\r\n"
+    },
+    {
+      "id": 1771952804,
+      "user": "bufferflies",
+      "created_at": "2023-10-20T01:55:20Z",
+      "body": "The root cause is that the apply thread blocked by deadlock , so it can't notify the txn scheduler to release this lock .\r\nThread 102 (Thread 0x7fd3457bf640 (LWP 128) \"apply-0\"):\r\n```\r\n#0  0x00007fd3c387d39a in __futex_abstimed_wait_common () from /lib64/libc.so.6\r\n#1  0x00007fd3c387fba0 in pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libc.so.6\r\n#2  0x00005565f53ac1d0 in std::condition_variable::wait(std::unique_lock<std::mutex>&) ()\r\n#3  0x00005565f5819d3b in rocksdb::WriteThread::BlockingAwaitState(rocksdb::WriteThread::Writer*, unsigned char) ()\r\n#4  0x00005565f5819e93 in rocksdb::WriteThread::AwaitState(rocksdb::WriteThread::Writer*, unsigned char, rocksdb::WriteThread::AdaptationContext*) ()\r\n#5  0x00005565f581b7ef in rocksdb::WriteThread::EnterUnbatched(rocksdb::WriteThread::Writer*, rocksdb::InstrumentedMutex*) ()\r\n#6  0x00005565f56f8f77 in rocksdb::DBImpl::FlushMemTable(rocksdb::ColumnFamilyData*, rocksdb::FlushOptions const&, rocksdb::FlushReason, bool) ()\r\n#7  0x00005565f56fb7e5 in rocksdb::DBImpl::Flush(rocksdb::FlushOptions const&, rocksdb::ColumnFamilyHandle*) ()\r\n#8  0x00005565f588df2f in rocksdb::WriteBufferManager::MaybeFlushLocked(rocksdb::DB*) ()\r\n#9  0x00005565f56e3e11 in rocksdb::DBImpl::PreprocessWrite(rocksdb::WriteOptions const&, rocksdb::DBImpl::LogContext*, rocksdb::DBImpl::WriteContext*) ()\r\n#10 0x00005565f56ea290 in rocksdb::DBImpl::WriteImpl(rocksdb::WriteOptions const&, rocksdb::WriteBatch*, rocksdb::WriteCallback*, unsigned long*, unsigned long, bool, unsigned long*, unsigned long, rocksdb::PreReleaseCallback*, rocksdb::PostWriteCallback*) ()\r\n#11 0x00005565f56eb617 in rocksdb::DBImpl::Write(rocksdb::WriteOptions const&, rocksdb::WriteBatch*, rocksdb::PostWriteCallback*) ()\r\n#12 0x00005565f55e88ca in crocksdb_write_callback ()\r\n#13 0x00005565f3c039bc in <engine_rocks::write_batch::RocksWriteBatchVec as engine_traits::write_batch::WriteBatch>::write_callback_opt ()\r\n#14 0x00005565f3c74fa0 in raftstore_v2::operation::command::<impl raftstore_v2::raft::apply::Apply<EK,R>>::flush ()\r\n#15 0x00005565f48c71ed in <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll ()\r\n#16 0x00005565f47b67c3 in <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll ()\r\n#17 0x00005565f43581e9 in <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll ()\r\n#18 0x00005565f5391f0b in <yatp::task::future::Runner as yatp::pool::runner::Runner>::handle ()\r\n#19 0x00005565f3ab3a7e in <tikv_util::yatp_pool::YatpPoolRunner<T> as yatp::pool::runner::Runner>::handle ()\r\n\r\n\r\nThread 110 (Thread 0x7fd3447b7640 (LWP 136) \"rocksdb:low\"):\r\n#0  0x00007fd3c387d39a in __futex_abstimed_wait_common () from /lib64/libc.so.6\r\n#1  0x00007fd3c387fba0 in pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libc.so.6\r\n#2  0x00005565f53ac1d0 in std::condition_variable::wait(std::unique_lock<std::mutex>&) ()\r\n#3  0x00005565f5b21289 in rocksdb::ThreadPoolImpl::Impl::BGThread(unsigned long) ()\r\n#4  0x00005565f5b2160e in rocksdb::ThreadPoolImpl::Impl::BGThreadWrapper(void*) ()\r\n#5  0x00005565f53e1c34 in execute_native_thread_routine ()\r\n#6  0x00007fd3c3880802 in start_thread () from /lib64/libc.so.6\r\n#7  0x00007fd3c3820314 in clone () from /lib64/libc.so.6\r\n(gdb) thread apply 111 bt -n 30\r\n\r\nThread 111 (Thread 0x7fd343fb6640 (LWP 137) \"rocksdb:low\"):\r\n#0  0x00007fd3c387d39a in __futex_abstimed_wait_common () from /lib64/libc.so.6\r\n#1  0x00007fd3c387fba0 in pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libc.so.6\r\n#2  0x00005565f53ac1d0 in std::condition_variable::wait(std::unique_lock<std::mutex>&) ()\r\n#3  0x00005565f5b21289 in rocksdb::ThreadPoolImpl::Impl::BGThread(unsigned long) ()\r\n#4  0x00005565f5b2160e in rocksdb::ThreadPoolImpl::Impl::BGThreadWrapper(void*) ()\r\n#5  0x00005565f53e1c34 in execute_native_thread_routine ()\r\n#6  0x00007fd3c3880802 in start_thread () from /lib64/libc.so.6\r\n#7  0x00007fd3c3820314 in clone () from /lib64/libc.so.6\r\n```"
+    },
+    {
+      "id": 2071298951,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-23T02:34:10Z",
+      "body": "Close this issue temporarily since Dynamic Regions project is paused."
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "issue_number": 4740,
+  "title": "MvccProperty should consider delete version",
+  "body": "## Bug Report\r\n\r\nWe decide whether need to gc based on MvccProperty max row version. But if the compaction is not performed on the SSTs after GC, the max row version would still large so that GC is triggered again and again which is unnecessary.\r\n\r\nhttps://github.com/tikv/tikv/blob/master/src/storage/mvcc/reader/reader.rs#L432\r\n\r\nmaybe we can add a delete_version to `MvccProperty`, once delete_version/num_version exceeds a threshold, we can think it is the case that GC is already performed, but just compaction process doesn't touch the SST and skip GC.",
+  "state": "closed",
+  "created_at": "2019-05-21T04:21:39Z",
+  "updated_at": "2020-11-11T06:14:08Z",
+  "closed_at": "2020-11-11T06:14:07Z",
+  "labels": [
+    "type/bug",
+    "priority/high",
+    "sig/engine",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 494318125,
+      "user": "siddontang",
+      "created_at": "2019-05-21T09:39:01Z",
+      "body": "how do you find this problem, through metrics? "
+    },
+    {
+      "id": 494318135,
+      "user": "siddontang",
+      "created_at": "2019-05-21T09:39:02Z",
+      "body": "how do you find this problem, through metrics? "
+    },
+    {
+      "id": 494418007,
+      "user": "Connor1996",
+      "created_at": "2019-05-21T14:34:14Z",
+      "body": "@MyonKeminta tests GC and finds that GC is always working even there is no new write. The log shows that GC is not skipped because the `max_row_version` always exceeds the threshold. Maybe this case is not the actual reason for his test but seems it really exists."
+    },
+    {
+      "id": 494423517,
+      "user": "MyonKeminta",
+      "created_at": "2019-05-21T14:47:15Z",
+      "body": "This happened on my test cluster for ResolveLocks. The symptom is, after normally running without heavy writting and a rebooting, one of the TiKVs stopped skipping GC and scans every region, which can be seen in metrics. Then I added logs to the `need_gc` function and found that nearly all regions has `max_row_versions == 132`. Then this symptom disappeared after a full compaction."
+    },
+    {
+      "id": 502410651,
+      "user": "zhangjinpeng87",
+      "created_at": "2019-06-16T01:03:37Z",
+      "body": "@MyonKeminta Any update for this issue?"
+    },
+    {
+      "id": 725224102,
+      "user": "MyonKeminta",
+      "created_at": "2020-11-11T06:14:07Z",
+      "body": "The GC problem I mentioned is finally confirmed not caused by issue, and that problem doesn't matter much and will no longer exist with compaction filter. Then the deleted version information is already added to MvccProperties before (https://github.com/tikv/tikv/pull/7172). I think this issue can be closed."
+    }
+  ]
+}

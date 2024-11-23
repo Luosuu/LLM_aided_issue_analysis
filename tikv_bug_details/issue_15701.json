@@ -1,0 +1,37 @@
+{
+  "issue_number": 15701,
+  "title": "The total buffer of peers' channels is essentially unlimited and may cause OOM  ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nEvery peer has a dedicated channel to receive requests and messages. While each channel does have a predefined capacity, the number of peers is not limited. As a result, the cumulative channel buffer effectively becomes limitless, thereby potentially leading to OOM errors. Such issues have been observed in #15061, #13731 and #12983.\r\n\r\nTiKV should have a memory quota for channels, skip or abort sending messages if quota exceeded.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv7.3.0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nCreate a cluster with many regions, then pause raftstore threads and run a uniform write workload.\r\n",
+  "state": "open",
+  "created_at": "2023-09-27T08:23:45Z",
+  "updated_at": "2024-11-19T03:02:20Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/moderate",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "impact/oom",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1776154259,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T22:58:25Z",
+      "body": "@overvenus I think the region count limit mechanism should help on this bug. "
+    },
+    {
+      "id": 2199695634,
+      "user": "kennedy8312",
+      "created_at": "2024-07-01T09:41:35Z",
+      "body": "/impact oom"
+    }
+  ]
+}

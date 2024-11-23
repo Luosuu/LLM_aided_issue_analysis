@@ -1,0 +1,49 @@
+{
+  "issue_number": 10942,
+  "title": "evict leader timeout during rolling restart",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv4.0.11\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\ndoesn't matter.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRolling restart the cluster.\r\n\r\n### What did you expect?\r\n\r\nEvict all leaders quickly.\r\n\r\n### What did happened?\r\n\r\nTiUP is waitting for transfering out leader until timeout.\r\n![image](https://user-images.githubusercontent.com/14819777/133080149-c9b39b03-69c1-4c53-8318-43ddf70d658a.png)\r\n\r\nFrom PD and TiKV's log, we found there is no transfer-leader operator since `2021/09/13 08:45:20.436` and the TiKV restarted at `2021/09/13 09:30:02.871`:\r\n```\r\n[2021/09/13 08:45:20.436 +00:00] [INFO] [operator_controller.go:537] [\"operator finish\"] [region-id=46312418] [takes=29.294468ms] [operator=\"\\\"evict-leader {transfer leader: store 1503111 to 349969} (kind:leader, region:46312418(37425,6195), createAt:2021-09-13 08:45:20.407355743 +0000 UTC m=+10109031.298382069, startAt:2021-09-13 08:45:20.407449644 +0000 UTC m=+10109031.298475965, currentStep:1, steps:[transfer leader from store 1503111 to store 349969]) finished\\\"\"] [\"additional info\"=]\r\n\r\n[2021/09/13 08:45:20.419 +00:00] [INFO] [peer.rs:2109] [\"transfer leader\"] [peer=\"id: 46312421 store_id: 349969\"] [peer_id=46312420] [region_id=46312418]\r\n[2021/09/13 08:45:20.419 +00:00] [INFO] [raft.rs:1376] [\"[term 9] starts to transfer leadership to 46312421\"] [lead_transferee=46312421] [term=9] [raft_id=46312420] [region_id=46312418]\r\n\r\n[2021/09/13 09:30:02.871 +00:00] [INFO] [lib.rs:92] [\"Welcome to TiKV\"]\r\n```\r\n\r\nTiUP gets the leader count of TiKV from metrics https://github.com/pingcap/tiup/pull/762 and the metric is calculated by `RegionCollector`: https://github.com/tikv/tikv/blob/b2117e26df80e1d4d85fcedbc7c6249ffda789c2/components/raftstore/src/coprocessor/region_info_accessor.rs#L489-L491\r\n\r\nFrom PD's metrics, there is no leader on this store. I guess `RegionCollector` has bugs.\r\n![image](https://user-images.githubusercontent.com/14819777/133081648-22427584-0591-44b8-8ec8-d77df9de1a5f.png)\r\n",
+  "state": "closed",
+  "created_at": "2021-09-13T12:16:38Z",
+  "updated_at": "2023-10-24T06:37:12Z",
+  "closed_at": "2023-10-24T00:44:24Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 920545848,
+      "user": "Lily2025",
+      "created_at": "2021-09-16T03:24:22Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 927266823,
+      "user": "nolouch",
+      "created_at": "2021-09-26T09:17:46Z",
+      "body": "Why this issue is critical?\r\n\r\nBTW, can I access the environment?"
+    },
+    {
+      "id": 938314020,
+      "user": "youjiali1995",
+      "created_at": "2021-10-08T03:42:38Z",
+      "body": "> Why this issue is critical?\r\n> \r\n> BTW, can I access the environment?\r\n\r\nNo, it's user's environment. I think the best way to find the root cause is reading the code."
+    },
+    {
+      "id": 1776277551,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-24T00:44:24Z",
+      "body": "close it now unless reproed again."
+    }
+  ]
+}

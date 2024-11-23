@@ -1,0 +1,93 @@
+{
+  "issue_number": 12307,
+  "title": "dr-autosync: After switch to backup cluster in sync mode, scan table hit 9005: Region is unavailable ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nsh-4.2# ./tikv-server -V\r\nTiKV\r\nRelease Version:   6.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   f3a230996f4208948cf5e0a3d4e1583e388cdb6f\r\nGit Commit Branch: heads/refs/tags/v6.1.0-alpha\r\nUTC Build Time:    2022-03-26 14:55:51\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nTCMS Test Plan:  722395\r\nEndless Case: oltp_tiup_dr_autosync_001\r\n\r\nSTEP: Prepare TiDB Cluster\r\nSTEP: Step 1: Init cluster\r\nSTEP: Step 1: Run workload\r\nSTEP: Step 2: Down dr cluster to block write\r\nSTEP: Step 3: Read data from primary cluster\r\nSTEP: Step 4: Down primary cluster and startup dr cluster\r\nSTEP: Step 5: Restore dr cluster\r\nSTEP: Step 6: Remove fail stores\r\nSTEP: Step 7: Verify in dr cluster    << scan all tables here hit 9005 error. \r\nSTEP: End One Test,Now delete chaos \r\n\r\n### What did you expect?\r\nShould no error report.\r\n\r\n### What did happened?\r\n```\r\nselect count(*) from sbtest8 hit following error.\r\nTiDB-OLTP\r\n/home/jhm/project/endless_submit/pkg/util/dsl.go:29\r\n  run workload\r\n  /home/jhm/project/endless_submit/testcase/oltp/tiuptest/oltp_tiup_test.go:108\r\n    ACID should be consistent when down primary dc and restore backup cluster #oltp_tiup_dr_autosync_001# [It]\r\n    /home/jhm/project/endless_submit/pkg/util/dsl.go:61\r\n    Expected success, but got an error:\r\n        <*mysql.MySQLError | 0xc0012ffb78>: {\r\n            Number: 9005,\r\n            Message: \"Region is unavailable\",\r\n        }\r\n        Error 9005: Region is unavailable\r\n    /home/jhm/project/endless_submit/testcase/oltp/tiuptest/tiuppkg/tiuputil.go:113\r\n```",
+  "state": "closed",
+  "created_at": "2022-03-30T07:50:30Z",
+  "updated_at": "2023-08-28T10:14:23Z",
+  "closed_at": "2023-08-28T10:14:23Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1082762153,
+      "user": "mayjiang0203",
+      "created_at": "2022-03-30T08:10:12Z",
+      "body": "/severity major\r\n/type bug\r\n/assign @disksing "
+    },
+    {
+      "id": 1082987888,
+      "user": "disksing",
+      "created_at": "2022-03-30T11:01:46Z",
+      "body": "If the primary DC fails while a region is being scheduled and the operator contains the operation of adding peer to the primary DC node. It is possible that the new peer will be created after the recovery from dr center. That is, this region may not be able to elect a leader afterwards.\r\nTo solve this problem, we need to use online recovery (which is not GA yet). Another temporary solution is to stop the cluster and run tikv-ctl unsafe-recover again."
+    },
+    {
+      "id": 1084296867,
+      "user": "jebter",
+      "created_at": "2022-03-31T09:04:50Z",
+      "body": "/label affects-6.0"
+    },
+    {
+      "id": 1084296895,
+      "user": "ti-chi-bot",
+      "created_at": "2022-03-31T09:04:51Z",
+      "body": "@jebter: The label(s) `affects-6.0` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12307#issuecomment-1084296867):\n\n>/label affects-6.0\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1085357074,
+      "user": "jebter",
+      "created_at": "2022-04-01T02:50:09Z",
+      "body": "/label affects-6.0"
+    },
+    {
+      "id": 1085374552,
+      "user": "Mini256",
+      "created_at": "2022-04-01T03:21:44Z",
+      "body": "/label affects-5.2\r\n/label affects-5.3\r\n/label affects-5.4"
+    },
+    {
+      "id": 1103845167,
+      "user": "cfzjywxk",
+      "created_at": "2022-04-20T11:54:17Z",
+      "body": "@disksing\r\nIs this a blocking issue for release versions? v5.4.1 is being triaged."
+    },
+    {
+      "id": 1107779094,
+      "user": "disksing",
+      "created_at": "2022-04-24T07:24:52Z",
+      "body": "Not blocking. The plan is not to fix the issue in tikv-ctl but wait for the `online-recover` feature to GA."
+    },
+    {
+      "id": 1165204331,
+      "user": "Connor1996",
+      "created_at": "2022-06-24T05:15:46Z",
+      "body": "> Not blocking. The plan is not to fix the issue in tikv-ctl but wait for the `online-recover` feature to GA.\r\n\r\nOnline recovery is GA now"
+    },
+    {
+      "id": 1196316978,
+      "user": "nolouch",
+      "created_at": "2022-07-27T06:29:10Z",
+      "body": "So online recovery is GA,  can we close this issue?"
+    },
+    {
+      "id": 1695420937,
+      "user": "mayjiang0203",
+      "created_at": "2023-08-28T10:14:23Z",
+      "body": "Fixed after using online recovery."
+    }
+  ]
+}

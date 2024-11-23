@@ -1,0 +1,41 @@
+{
+  "issue_number": 12782,
+  "title": "br log backup checkpoint doesn't move forward",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   ba391ff506c8b7f4b0cd7c9ef0b9f04ce87c3d7e\r\nGit Commit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time:    2022-06-06 11:05:08\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n\r\n### What operating system and CPU are you using?\r\nK8S 4U\r\n\r\n### Steps to reproduce\r\n1. Start log backup\r\n2. Run full backup\r\n3. Start a workload\r\n4. Stop workload\r\n5. Wait for log backup checkpoint moving foward\r\n\r\n### What did you expect?\r\nLog backup checkpoint move forward correctly.\r\n\r\n### What did happened?\r\nLog backup checkpoint doesn't move forward correctly.\r\n```\r\n/ # tail -n10 /var/lib/tikv/log/tikv.log\r\n[2022/06/08 07:26:38.719 +00:00] [INFO] [kv.rs:1046] [\"kv rpc failed\"] [err=RemoteStopped] [request=batch_commands]\r\n[2022/06/08 07:26:38.719 +00:00] [INFO] [kv.rs:1046] [\"kv rpc failed\"] [err=RemoteStopped] [request=batch_commands]\r\n[2022/06/08 07:27:32.712 +00:00] [INFO] [router.rs:504] [\"backup stream trigger flush task by tick\"] [task=\"StreamTaskInfo { task: \\\"\\\", temp_dir: \\\"/var/lib/tikv/data/log-backup-tmp/task1\\\", min_resolved_ts: TimeStamp(18446744073709551615), total_size: 0, flushing: true }\"]\r\n[2022/06/08 07:27:32.712 +00:00] [WARN] [subscription_track.rs:123] [\"log backup resolver ts advancing too slow\"] [gap=76327.217s] [far_resolver=\"TwoPhaseResolver(None, Resolver(region=28196, far_lock=[\\\"7480000000000000FF515F698000000000FF0000010380000000FF00557B0800000000FB\\\"], far_lock_ts=TimeStamp(433742656436961283)))\"]\r\n[2022/06/08 07:27:32.724 +00:00] [INFO] [router.rs:946] [\"log backup flush done\"] [take=12ms] [total_size=0] [files=0]\r\n[2022/06/08 07:27:32.724 +00:00] [INFO] [endpoint.rs:647] [\"flushing and refreshing checkpoint ts.\"] [task=task1] [checkpoint_ts=433742656436961283]\r\n[2022/06/08 07:31:32.732 +00:00] [INFO] [router.rs:504] [\"backup stream trigger flush task by tick\"] [task=\"StreamTaskInfo { task: \\\"\\\", temp_dir: \\\"/var/lib/tikv/data/log-backup-tmp/task1\\\", min_resolved_ts: TimeStamp(18446744073709551615), total_size: 0, flushing: true }\"]\r\n[2022/06/08 07:31:32.732 +00:00] [WARN] [subscription_track.rs:123] [\"log backup resolver ts advancing too slow\"] [gap=76567.237s] [far_resolver=\"TwoPhaseResolver(None, Resolver(region=28196, far_lock=[\\\"7480000000000000FF515F698000000000FF0000010380000000FF00557B0800000000FB\\\"], far_lock_ts=TimeStamp(433742656436961283)))\"]\r\n[2022/06/08 07:31:32.741 +00:00] [INFO] [router.rs:946] [\"log backup flush done\"] [take=10ms] [total_size=0] [files=0]\r\n[2022/06/08 07:31:32.741 +00:00] [INFO] [endpoint.rs:647] [\"flushing and refreshing checkpoint ts.\"] [task=task1] [checkpoint_ts=433742656436961283]\r\n\r\n```",
+  "state": "closed",
+  "created_at": "2022-06-08T07:32:36Z",
+  "updated_at": "2022-07-12T11:05:51Z",
+  "closed_at": "2022-07-12T11:05:51Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1149566988,
+      "user": "fubinzh",
+      "created_at": "2022-06-08T07:33:52Z",
+      "body": "/type bug\r\n/severity Critical\r\n/feature developing"
+    },
+    {
+      "id": 1149567980,
+      "user": "fubinzh",
+      "created_at": "2022-06-08T07:34:58Z",
+      "body": "/assign YuJuncen"
+    },
+    {
+      "id": 1149568010,
+      "user": "ti-chi-bot",
+      "created_at": "2022-06-08T07:35:00Z",
+      "body": "@fubinzh: GitHub didn't allow me to assign the following users: YuJuncen.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12782#issuecomment-1149567980):\n\n>/assign YuJuncen\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1181624422,
+      "user": "3pointer",
+      "created_at": "2022-07-12T11:05:51Z",
+      "body": "fixed in https://github.com/pingcap/tidb/pull/35685"
+    }
+  ]
+}

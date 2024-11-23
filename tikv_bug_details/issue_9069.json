@@ -1,0 +1,40 @@
+{
+  "issue_number": 9069,
+  "title": "batch_get doesn't return all results when encountering a memory lock",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nMaster\r\n\r\n### What did happened?\r\n\r\nHere we check the lock table and when we meet the first memory lock, we return it back to the client: https://github.com/tikv/tikv/blob/f5409492a862e6ead06b2cbf4b7818fd6dc655e1/src/storage/mod.rs#L493\r\n\r\nHowever, TiDB incrementally gets the locked keys if some keys are locked: https://github.com/pingcap/tidb/blob/aa9f7584f8fbcdb1dec35e3fa520224825000112/store/tikv/snapshot.go#L339\r\n\r\nThe behavior requires TiKV to return all existing KV pairs instead of returning the first lock.",
+  "state": "closed",
+  "created_at": "2020-11-19T08:47:01Z",
+  "updated_at": "2020-11-27T06:47:58Z",
+  "closed_at": "2020-11-27T06:46:36Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 730227702,
+      "user": "sticnarf",
+      "created_at": "2020-11-19T08:57:56Z",
+      "body": "## Solution 1\r\n\r\nSolve it at TiKV side. We keep the semantics of BatchGet. Check all keys in the lock table and query all the unlocked keys. However, there is some trouble to support it in follower read. We need to modify the protocol  to support checking all keys and returning all the locks in the lock table.\r\n\r\n- Advantage: Consistent semantics\r\n- Disadvantage: Lots of changes.\r\n\r\n## Solution 2\r\n\r\nSolve it at TiDB side. Handle async commit locks specially in BatchGet. If the returned lock is an async-commit lock, do not change pending keys and resend the original BatchGet request directly.\r\n\r\n- Advantage: Change is small.\r\n- Disadvantage: Increase a special case in the interface."
+    },
+    {
+      "id": 730227947,
+      "user": "sticnarf",
+      "created_at": "2020-11-19T08:58:22Z",
+      "body": "/cc @youjiali1995 @cfzjywxk @MyonKeminta "
+    },
+    {
+      "id": 730816731,
+      "user": "cfzjywxk",
+      "created_at": "2020-11-20T03:09:38Z",
+      "body": "Maybe solution 2 is better to avoid much extra test works since we already have much work to do."
+    },
+    {
+      "id": 734674869,
+      "user": "sticnarf",
+      "created_at": "2020-11-27T06:47:57Z",
+      "body": "Closed by https://github.com/tikv/tikv/pull/9077 and https://github.com/pingcap/tidb/pull/21157"
+    }
+  ]
+}

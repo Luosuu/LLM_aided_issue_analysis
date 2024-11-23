@@ -1,0 +1,56 @@
+{
+  "issue_number": 11475,
+  "title": "One Tikv panic after upgrade from 5.0.1 to 5.3.0",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   5.3.0\r\nEdition:           Community\r\nGit Commit Hash:   6c1424706f3d5885faa668233f34c9f178302f36\r\nGit Commit Branch: heads/refs/tags/v5.3.0\r\nUTC Build Time:    2021-11-22 10:51:38\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\ntikv 3 hit following fatal and panic.\r\n![image](https://user-images.githubusercontent.com/9443637/143423474-851531fd-980d-4d3a-9fe2-6d878bf4c650.png)\r\n\r\nAfter tikv 3 restart, seem cannot work fine. No region leader has been move in, and upgrade hung.\r\n![image](https://user-images.githubusercontent.com/9443637/143425014-0ce6c8ce-e860-497d-ac10-297aed55da0e.png)\r\n\r\n\r\n[2021/11/25 07:08:09.979 +00:00] [WARN] [peer.rs:3403] [\"min_matched < min_committed, raft progress is inaccurate\"] [min_committed=16] [min_matched=0] [peer_id=31656] [region_id=160]\r\n[2021/11/25 07:08:09.980 +00:00] [WARN] [peer.rs:3558] [\"skip proposal\"] [error_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/peer.rs:3450]: [region 160] 31656 log gap contains conf change, skip merging.\\\")\"] [peer_id=31656] [region_id=160]\r\n[2021/11/25 07:08:10.117 +00:00] [FATAL] [lib.rs:465] [\"[region 248] 32249 unexpected merge result: Some(min_index: 20 target { id: 252 start_key: 7480000000000000FF3700000000000000F8 end_key: 7480000000000000FF375F698000000000FF0000010000000000FA region_epoch { conf_ver: 35 version: 170 } peers { id: 766 store_id: 4 } peers { id: 765 store_id: 5 } peers { id: 764 store_id: 6 } } commit: 20) id: 766 store_id: 4 role: DemotingVoter FromTargetSnapshotStep2\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:464:18\\n   1: std::panicking::rust_panic_with_hook\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:626:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:519:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys_common/backtrace.rs:141:18\\n   4: rust_begin_unwind\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:515:5\\n   5: std::panicking::begin_panic_fmt\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:457:5\\n   6: raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_merge_result\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:3326:13\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_significant_msg\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:1108:17\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::handle_msgs\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:597:49\\n   7: <raftstore::store::fsm::store::RaftPoller<EK,ER,T> as batch_system::batch::PollHandler<raftstore::store::fsm::peer::PeerFsm<EK,ER>,raftstore::store::fsm::store::StoreFsm<EK>>>::handle_normal\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:791:9\\n   8: batch_system::batch::Poller<N,C,Handler>::poll\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/batch-system/src/batch.rs:408:27\\n      batch_system::batch::BatchSystem<N,C>::start_poller::{{closure}}\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/batch-system/src/batch.rs:536:17\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys_common/backtrace.rs:125:18\\n   9: std::thread::Builder::spawn_unchecked::{{closure}}::{{closure}}\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/thread/mod.rs:476:17\\n      <std::panic::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panic.rs:347:9\\n      std::panicking::try::do_call\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:401:40\\n      std::panicking::try\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:365:19\\n      std::panic::catch_unwind\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panic.rs:434:14\\n      std::thread::Builder::spawn_unchecked::{{closure}}\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/thread/mod.rs:475:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/ops/function.rs:227:5\\n  10: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/sys/unix/thread.rs:91:17\\n  11: <unknown>\\n  12: clone\\n\"] [location=/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:3326] [thread_name=raftstore-4-1]\r\n[2021/11/25 07:08:12.628 +00:00] [INFO] [lib.rs:80] [\"Welcome to TiKV\"]\r\n[2021/11/25 07:08:12.628 +00:00] [INFO] [lib.rs:85] [\"Release Version:   5.3.0\"]\r\n[2021/11/25 07:08:12.628 +00:00] [INFO] [lib.rs:85] [\"Edition:           Community\"]",
+  "state": "closed",
+  "created_at": "2021-11-25T10:19:59Z",
+  "updated_at": "2021-11-30T03:53:20Z",
+  "closed_at": "2021-11-29T12:25:52Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3"
+  ],
+  "comments_data": [
+    {
+      "id": 979065139,
+      "user": "mayjiang0203",
+      "created_at": "2021-11-25T10:20:53Z",
+      "body": "/assign @BusyJay "
+    },
+    {
+      "id": 979066854,
+      "user": "Lily2025",
+      "created_at": "2021-11-25T10:23:02Z",
+      "body": "/Severity critical"
+    },
+    {
+      "id": 979067106,
+      "user": "Lily2025",
+      "created_at": "2021-11-25T10:23:21Z",
+      "body": "/assign BusyJay"
+    },
+    {
+      "id": 979067456,
+      "user": "Lily2025",
+      "created_at": "2021-11-25T10:23:48Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 979067760,
+      "user": "Lily2025",
+      "created_at": "2021-11-25T10:24:09Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 979093599,
+      "user": "BusyJay",
+      "created_at": "2021-11-25T10:58:47Z",
+      "body": "If the target peer is catching up logs by snapshot, it's possible that the target peer is not in the same peer state as promised before, which can make following check failed.\r\n\r\nhttps://github.com/tikv/tikv/blob/25109a053e3a93be42452f7d5e2b6e6b913b14f6/components/raftstore/src/store/fsm/peer.rs#L3321-L3332\r\n\r\n/cc @gengliqi \r\n\r\nOnly store id needs to be exact matched, and result target peer id can be not less than the stored target."
+    }
+  ]
+}

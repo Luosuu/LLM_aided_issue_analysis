@@ -1,0 +1,29 @@
+{
+  "issue_number": 15132,
+  "title": "[Dynamic Regions] v2 62% QPS drop compare with v1, ycsb workloade",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nrun ycsb workloade with \r\n```\r\n-p recordcount=100000000 -p operationcount=50000000 -p workload=core -p fieldcount=10 -p fieldlength=100 -p requestdistribution=uniform\r\n```\r\n\r\n### What did you expect?\r\nno performance degradation\r\n\r\n### What did happened?\r\n62% QPS dropped\r\nby using 4mb lock write-buffer-size, it's 20% dropped.\r\n",
+  "state": "closed",
+  "created_at": "2023-07-17T01:55:06Z",
+  "updated_at": "2023-08-29T06:39:23Z",
+  "closed_at": "2023-08-29T06:39:22Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1696856391,
+      "user": "dbsid",
+      "created_at": "2023-08-29T06:39:22Z",
+      "body": "current master it's 15% degradation"
+    }
+  ]
+}

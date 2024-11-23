@@ -1,0 +1,58 @@
+{
+  "issue_number": 9044,
+  "title": "compaction guard: deadlock when creating compaction partitioner",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### Steps to reproduce\r\nenable compaction guard with config `rocksdb.[defaultcf|writecf].enable-compaction-guard = true`.\r\n\r\n### What did you expect?\r\nno deadlock\r\n\r\n### What did happened?\r\nDeadlock when TiKV try to create compaction partitioner instance:\r\n```\r\nThread 63 (Thread 0x7fea467ff700 (LWP 18955)):\r\n#0  0x00007fea4f8d8bf9 in syscall () from /lib64/libc.so.6\r\n#1  0x000056375a11e99a in futex_wait () at library/std/src/sys/unix/futex.rs:18\r\n#2  park () at library/std/src/sys_common/thread_parker/futex.rs:50\r\n#3  park () at library/std/src/thread/mod.rs:881\r\n#4  std::sync::mpsc::blocking::WaitToken::wait::hae3a13d09b5b5f41 () at library/std/src/sync/mpsc/blocking.rs:64\r\n#5  0x000056375a323fc0 in rocksdb::sst_partitioner::sst_partitioner_factory_create_partitioner::ha9a189958e3f3bfd (ctx=0x7fea4f3f8150, context=<optimized out>) at /rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/sync/mpsc/oneshot.rs:140\r\n#6  0x000056375a881b60 in crocksdb_sst_partitioner_factory_impl_t::CreatePartitioner (this=<optimized out>, partitioner_context=...) at crocksdb/c.cc:5917\r\n#7  0x000056375ac410fb in rocksdb::Compaction::CreateSstPartitioner (this=<optimized out>) at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c6b58a4/librocksdb_sys/rocksdb/db/compaction/compaction.cc:554\r\n#8  0x000056375ac567d8 in rocksdb::CompactionJob::ProcessKeyValueCompaction (this=this@entry=0x7fea467d9a40, sub_compact=0x7fea44c72480) at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c6b58a4/librocksdb_sys/rocksdb/db/compaction/compaction_job.cc:906\r\n#9  0x000056375ac57e00 in rocksdb::CompactionJob::Run (this=this@entry=0x7fea467d9a40) at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c6b58a4/librocksdb_sys/rocksdb/db/compaction/compaction_job.cc:591\r\n#10 0x000056375a96ecd1 in rocksdb::DBImpl::BackgroundCompaction (this=this@entry=0x7fea4ecc3c00, made_progress=made_progress@entry=0x7fea467d9eae, job_context=job_context@entry=0x7fea467d9ed0, log_buffer=log_buffer@entry=0x7fea467da0a0, prepicked_compaction=prepicked_compaction@entry=0x7fea49f824a0, thread_pri=thread_pri@entry=rocksdb::Env::LOW) at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c6b58a4/librocksdb_sys/rocksdb/db/db_impl/db_impl_compaction_flush.cc:2759\r\n#11 0x000056375a973762 in rocksdb::DBImpl::BackgroundCallCompaction (this=this@entry=0x7fea4ecc3c00, prepicked_compaction=prepicked_compaction@entry=0x7fea49f824a0, bg_thread_pri=bg_thread_pri@entry=rocksdb::Env::LOW) at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c6b58a4/librocksdb_sys/rocksdb/db/db_impl/db_impl_compaction_flush.cc:2317\r\n#12 0x000056375a973c5a in rocksdb::DBImpl::BGWorkCompaction (arg=<optimized out>) at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c6b58a4/librocksdb_sys/rocksdb/db/db_impl/db_impl_compaction_flush.cc:2092\r\n#13 0x000056375ac868aa in rocksdb::ThreadPoolImpl::Impl::BGThread (this=this@entry=0x7fea4f216ea0, thread_id=thread_id@entry=1) at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c6b58a4/librocksdb_sys/rocksdb/util/threadpool_imp.cc:266\r\n#14 0x000056375ac86a9e in rocksdb::ThreadPoolImpl::Impl::BGThreadWrapper (arg=0x7fea4f23d900) at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/c6b58a4/librocksdb_sys/rocksdb/util/threadpool_imp.cc:307\r\n#15 0x000056375abd2e90 in execute_native_thread_routine ()\r\n#16 0x00007fea504d9ea5 in start_thread () from /lib64/libpthread.so.0\r\n#17 0x00007fea4f8de8dd in clone () from /lib64/libc.so.6\r\n```\r\nfull backtrace: https://gist.github.com/yiwu-arbug/a28d92a05d247b1031325d7259bdff5a\r\n\r\nThe cause:\r\n\r\n0. TiKV server start with only 1 background thread when #cpu < 16. https://github.com/tikv/tikv/blob/73f01599d7dab385b532b94f69f1bac6d18c1198/src/server/config.rs#L132\r\n1. raftstore detects there's too many tombstones in a range, and issue compact range to rocksdb. The compact range call is a synchronous call - it has to wait for the compaction job finish.\r\n2. compaction job (run in rocksdb background thread) try to create a compaction partitioner instance, which use `RegionInfoAccessor` to obtain list of regions in the compaction key range.\r\n3. `RegionInfoAccessor` send message to background worker to fetch region info, which is schedule to run in the background thread yatp pool.\r\n\r\nSince there's only 1 background thread, and the thread is waiting for compaction finish, the scheduled background task to fetch region info is never returned. Both the TiKV background thread and rocksdb compaction thread is hang. It further cause write stall (could be a full stop) since compaction is blocked, and raftstore threads hang.",
+  "state": "closed",
+  "created_at": "2020-11-13T20:54:12Z",
+  "updated_at": "2021-01-27T08:28:24Z",
+  "closed_at": "2021-01-27T08:28:24Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "sig/engine"
+  ],
+  "comments_data": [
+    {
+      "id": 727051650,
+      "user": "yiwu-arbug",
+      "created_at": "2020-11-13T21:48:24Z",
+      "body": "The change to move cleanup runner (which runs compact range) to background thread pool is in #8821. Since compact range is a blocking call, I believe we should move it back to its own thread pool. @Little-Wallace"
+    },
+    {
+      "id": 763500580,
+      "user": "Connor1996",
+      "created_at": "2021-01-20T10:21:34Z",
+      "body": "Encounter again \r\n![image](https://user-images.githubusercontent.com/13497871/105161278-274e0a00-5b4c-11eb-9a2a-f580dc71734d.png)\r\nIt is due to the region worker is running in background pool too which may trigger manual flush by ingest-delete\r\n![image](https://user-images.githubusercontent.com/13497871/105161294-2ddc8180-5b4c-11eb-92c7-e5b9e4c47b21.png)\r\n"
+    },
+    {
+      "id": 764156818,
+      "user": "yiwu-arbug",
+      "created_at": "2021-01-21T01:23:58Z",
+      "body": "I will work on a fix."
+    },
+    {
+      "id": 766482942,
+      "user": "yiwu-arbug",
+      "created_at": "2021-01-25T01:25:43Z",
+      "body": "There are two related issues:\r\n1. RocksDB hold db_mutex when calling user (TiKV) callback to create SST partitioner in `Compaction::IsTrivialMove` in compaction thread, which may block all other compaction and flush threads\r\n2. TiKV region apply and destroy tasks is executed in background_worker pool, and the tasks may wait for flush (in `crocksdb_ingest_external_file_optimized` in rust-rocksdb). Since the compaction and flush threads are blocked, the region task is blocked. It may block the region info accessor task used to create SST partitioner, which creates a deadlock."
+    },
+    {
+      "id": 766602324,
+      "user": "yiwu-arbug",
+      "created_at": "2021-01-25T07:14:31Z",
+      "body": "Found something new. There are actually two threads in the background_worker pool. From the stack the other background worker is stuck on resolve address, which is not related to compaction guard logic. If this worker can finish, then region info access will have a chance to run and deadlock would not happen. Still investigating.\r\n\r\n<img width=\"2556\" alt=\"WeChatWorkScreenshot_794e069a-71a3-48f5-8c07-1c56d132c532\" src=\"https://user-images.githubusercontent.com/2606959/105672791-e16daa80-5e99-11eb-8ad0-b0f4afac5a21.png\">\r\n"
+    },
+    {
+      "id": 767839722,
+      "user": "yiwu-arbug",
+      "created_at": "2021-01-26T21:29:09Z",
+      "body": "It is easy to reproduce when `server.background-thread-count = 1` and reduce RocksDB memtable size (to 128KB) and base level size (to 8KB, a misconfigure by the way, was intended to test with 128KB). RocksDB config change is to trigger compaction and compaction guard creation more often.\r\n\r\nBut with the default value `server.background-thread-count = 2` we are not reproducing the issue so far."
+    },
+    {
+      "id": 768121480,
+      "user": "yiwu-arbug",
+      "created_at": "2021-01-27T08:28:24Z",
+      "body": "Reproduced with `server.background-thread-count = 2`. Both of the background worker calling RocksDB methods, waiting for RocksDB db_mutex, while the compaction thread creating compaction guard waiting in background worker queue, caused deadlock. It is easy to reproduce after running test workload for 2-3 hours. #9552 indeed can fix the case, and we verified with the fix the deadlock does not happen.\r\n\r\nThe fix is cherry-picking to v5.0-rc with #9571. Closing the issue since the issue is root caused and fixed in master"
+    }
+  ]
+}

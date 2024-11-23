@@ -1,0 +1,19 @@
+{
+  "issue_number": 16825,
+  "title": "[flay test] test_rawkv::test_raw_put_key_guard",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster (b1715ea3070d1d0dc8a81e1cd8b5ce13b8129ee3)\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nAMD64\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\n❯ ./scripts/env cargo test -p tests --test failpoints test_rawkv -- --nocapture\r\n```\r\n\r\n### What did you expect?\r\n\r\nTest succeed.\r\n\r\n### What did happened?\r\n\r\nTest failed:\r\n\r\n```\r\n❯ ./scripts/env cargo test -p tests --test failpoints test_rawkv -- --nocapture\r\n    Finished test [unoptimized] target(s) in 0.65s\r\nwarning: the following packages contain code that will be rejected by a future version of Rust: criterion v0.3.5, nom v2.2.1, nom v4.2.3, nom v5.1.0, quick-xml v0.22.0\r\nnote: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 3`\r\n     Running failpoints/mod.rs (target/debug/deps/failpoints-04222e95374eb0c8)\r\n\r\nrunning 3 tests\r\ntest cases::test_rawkv::test_leader_transfer ... ok\r\nthread 'cases::test_rawkv::test_raw_put_key_guard' panicked at tests/failpoints/cases/test_rawkv.rs:318:23:\r\ncalled `Option::unwrap()` on a `None` value\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\ntest cases::test_rawkv::test_raw_put_key_guard ... FAILED\r\ntest cases::test_rawkv::test_region_merge ... ok\r\n\r\nfailures:\r\n\r\nfailures:\r\n    cases::test_rawkv::test_raw_put_key_guard\r\n\r\ntest result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 365 filtered out; finished in 9.00s\r\n\r\nerror: test failed, to rerun pass `-p tests --test failpoints`\r\nmake: *** [scripts/../Makefile:317: run] Error 101\r\n❯\r\n```\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-04-13T08:01:55Z",
+  "updated_at": "2024-07-17T09:37:32Z",
+  "closed_at": "2024-04-16T02:16:39Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "flaky_test",
+    "affects-8.1"
+  ],
+  "comments_data": []
+}

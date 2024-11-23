@@ -1,0 +1,21 @@
+{
+  "issue_number": 13213,
+  "title": "`open_tablet` may cause deadlock",
+  "body": "open_tablet will acquire the lock of registry. When the tablet is not in registry, it will call open_tablet_raw which may call create_tablet which will acquire the lock of registry again.\r\nSo deadlock may happen",
+  "state": "closed",
+  "created_at": "2022-08-03T10:04:55Z",
+  "updated_at": "2022-08-05T08:46:08Z",
+  "closed_at": "2022-08-05T08:46:08Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1203750600,
+      "user": "SpadeA-Tang",
+      "created_at": "2022-08-03T10:10:13Z",
+      "body": "/type bug\r\n/severity moderate"
+    }
+  ]
+}

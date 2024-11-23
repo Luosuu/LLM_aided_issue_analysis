@@ -1,0 +1,22 @@
+{
+  "issue_number": 14017,
+  "title": "tidb-operator volume-snapshot restore failure when tikv request cpu less or equal to 1",
+  "body": "## Bug Report\r\n\r\noperator tikv configuration\r\n\r\n```yaml\r\n    requests:\r\n      cpu: 1\r\n      memory: 4Gi\r\n      storage: 20Gi\r\n```\r\n\r\nfollowing https://docs.pingcap.com/zh/tidb-in-kubernetes/stable/restore-from-aws-s3-by-snapshot to do the volume snapshot restore.\r\n\r\n### What version of TiKV are you using?\r\nv6.5.0\r\n\r\n### What operating system and CPU are you using?\r\ncentos\r\n\r\n### Steps to reproduce\r\n1. perform volume-snapshot backup following https://docs.pingcap.com/zh/tidb-in-kubernetes/stable/backup-to-aws-s3-by-snapshot\r\n2. perform volume-snapshot restore following https://docs.pingcap.com/zh/tidb-in-kubernetes/stable/restore-from-aws-s3-by-snapshot to do the volume snapshot restore. \r\n\r\n### What did you expect?\r\nrestore shall be success\r\n### What did happened?\r\nrestore failure with the following error\r\n`[2023/01/04 10:00:19.751 +00:00] [FATAL] [[setup.rs:309](http://setup.rs:309/)] [\"invalid configuration: max_background_jobs should be greater than 0 and less than or equal to 20\"]`",
+  "state": "closed",
+  "created_at": "2023-01-04T10:34:43Z",
+  "updated_at": "2023-02-07T09:26:00Z",
+  "closed_at": "2023-02-07T09:26:00Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1420133007,
+      "user": "fengou1",
+      "created_at": "2023-02-07T03:09:28Z",
+      "body": "/remove affects-5.4"
+    }
+  ]
+}

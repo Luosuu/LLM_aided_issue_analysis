@@ -1,0 +1,70 @@
+{
+  "issue_number": 4609,
+  "title": "Fuzz test failed for tikv::coprocessor::codec::mysql::Duration",
+  "body": "## Bug Report\r\n\r\n**What version of TiKV are you using?**\r\n\r\n3.0.0-beta.1\r\n\r\n**What operating system and CPU are you using?**\r\n\r\nmacOS 10.14.4\r\n\r\n**What did you do?**\r\n\r\nThe new fuzz tests added by WIP PR #4608 failed. The fuzz test looks like this:\r\n\r\n```rust\r\nfn fuzz_duration(\r\n    t: tikv::coprocessor::codec::mysql::Duration,\r\n    mut cursor: Cursor<&[u8]>,\r\n) -> Result<(), Error> {\r\n    use tikv::coprocessor::codec::mysql::DurationEncoder;\r\n    let _ = t.fsp();\r\n    let _ = t.clone().set_fsp(cursor.read_as_u8()?);\r\n    let _ = t.hours();\r\n    let _ = t.minutes();\r\n    let _ = t.secs();\r\n    let _ = t.micro_secs();\r\n    let _ = t.nano_secs();\r\n    let _ = t.to_secs();\r\n    let _ = t.is_zero();\r\n    let _ = t.to_decimal();\r\n    let _ = t.clone().round_frac(cursor.read_as_i8()?);\r\n    let mut v = Vec::new();\r\n    let _ = v.encode_duration(&t);\r\n    Ok(())\r\n}\r\n\r\npub fn fuzz_coprocessor_codec_duration_from_nanos(data: &[u8]) -> Result<(), Error> {\r\n    use tikv::coprocessor::codec::mysql::Duration;\r\n    let mut cursor = Cursor::new(data);\r\n    let nanos = cursor.read_as_i64()?;\r\n    let fsp = cursor.read_as_i8()?;\r\n    fuzz_duration(Duration::from_nanos(nanos, fsp)?, cursor)\r\n}\r\n```\r\n\r\nThe crash log:\r\n\r\n```\r\nthread '<unnamed>' panicked at 'attempt to negate with overflow', /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/libcore/num/mod.rs:1894:21\r\nnote: Run with `RUST_BACKTRACE=1` environment variable to display a backtrace.\r\n==53535== ERROR: libFuzzer: deadly signal\r\n    #0 0x111779707 in __sanitizer_print_stack_trace (lib__rustc__clang_rt.asan_osx_dynamic.dylib:x86_64+0x68707)\r\n    #1 0x10bc7e87b in fuzzer::Fuzzer::CrashCallback() (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105b7387b)\r\n    #2 0x10bc7e82d in fuzzer::Fuzzer::StaticCrashSignalCallback() (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105b7382d)\r\n    #3 0x10bcbf477 in fuzzer::CrashHandler(int, __siginfo*, void*) (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105bb4477)\r\n    #4 0x7fff590abb5c in _sigtramp (libsystem_platform.dylib:x86_64+0x4b5c)\r\n    #5 0x10c379ddf in anon.1a1ea8a681c65673f54e7ec62d58dbd6.27 (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x10626eddf)\r\n    #6 0x10bcf382e in __rust_maybe_catch_panic (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105be882e)\r\n    #7 0x10bc7d01e in std::panicking::try::hd4964c260fccd748 (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105b7201e)\r\n    #8 0x10bc7cab2 in LLVMFuzzerTestOneInput (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105b71ab2)\r\n    #9 0x10bc7ffda in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105b74fda)\r\n    #10 0x10bc7f9d9 in fuzzer::Fuzzer::RunOne(unsigned char const*, unsigned long, bool, fuzzer::InputInfo*, bool*) (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105b749d9)\r\n    #11 0x10bc81601 in fuzzer::Fuzzer::MutateAndTestOne() (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105b76601)\r\n    #12 0x10bc828b1 in fuzzer::Fuzzer::Loop(std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, fuzzer::fuzzer_allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > > > const&) (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105b778b1)\r\n    #13 0x10bcadaf8 in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105ba2af8)\r\n    #14 0x10bcd01b9 in main (fuzz_coprocessor_codec_duration_from_nanos:x86_64+0x105bc51b9)\r\n    #15 0x7fff58ec63d4 in start (libdyld.dylib:x86_64+0x163d4)\r\n\r\nNOTE: libFuzzer has rudimentary signal handlers.\r\n      Combine libFuzzer with AddressSanitizer or similar for better crash reports.\r\nSUMMARY: libFuzzer: deadly signal\r\nMS: 1 CMP- DE: \"\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\"-; base unit: b9e12e36e3a6480ed8fed7d7a9686e8e063a8857\r\n0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x80,0x5,0x0,\r\n\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x05\\x00\r\nartifact_prefix='./'; Test unit written to ./crash-e51d5a69f4e0a5b60dd0905561f210f8def00109\r\nBase64: AAAAAAAAAIAFAA==\r\nRunning fuzzer failed: Libfuzzer exited with code Some(77)\r\nError: 1\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2019-04-30T00:02:57Z",
+  "updated_at": "2020-08-27T12:33:00Z",
+  "closed_at": "2020-08-27T12:33:00Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor",
+    "priority/high"
+  ],
+  "comments_data": [
+    {
+      "id": 487785441,
+      "user": "ice1000",
+      "created_at": "2019-04-30T00:07:30Z",
+      "body": "> note: Run with `RUST_BACKTRACE=1` environment variable to display a backtrace.\r\n\r\nCould you please rerun with the env var?"
+    },
+    {
+      "id": 487785482,
+      "user": "ice1000",
+      "created_at": "2019-04-30T00:07:43Z",
+      "body": "> note: Run with RUST_BACKTRACE=1 environment variable to display a backtrace.\r\n> \r\n> Could you please rerun with the env var?\r\n\r\n... and show us the printed stacktrace?"
+    },
+    {
+      "id": 487787565,
+      "user": "whoiscc",
+      "created_at": "2019-04-30T00:20:46Z",
+      "body": "```\r\nthread '<unnamed>' panicked at 'attempt to negate with overflow', /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/libcore/num/mod.rs:1894:21\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n   1: std::sys_common::backtrace::_print\r\n   2: std::panicking::default_hook::{{closure}}\r\n   3: std::panicking::default_hook\r\n   4: std::panicking::rust_panic_with_hook\r\n   5: std::panicking::continue_panic_fmt\r\n   6: rust_begin_unwind\r\n   7: core::panicking::panic_fmt\r\n   8: core::panicking::panic\r\n   9: tikv::coprocessor::codec::mysql::duration::Duration::from_nanos\r\n  10: fuzz_targets::fuzz_coprocessor_codec_duration_from_nanos\r\n  11: rust_fuzzer_test_input\r\n  12: __rust_maybe_catch_panic\r\n  13: std::panicking::try\r\n  14: LLVMFuzzerTestOneInput\r\n  15: _ZN6fuzzer6Fuzzer15ExecuteCallbackEPKhm\r\n  16: _ZN6fuzzer6Fuzzer6RunOneEPKhmbPNS_9InputInfoEPb\r\n  17: _ZN6fuzzer6Fuzzer16MutateAndTestOneEv\r\n  18: _ZN6fuzzer6Fuzzer4LoopERKNSt3__16vectorINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS_16fuzzer_allocatorIS8_EEEE\r\n  19: _ZN6fuzzer12FuzzerDriverEPiPPPcPFiPKhmE\r\n  20: main\r\n```"
+    },
+    {
+      "id": 487787933,
+      "user": "whoiscc",
+      "created_at": "2019-04-30T00:22:47Z",
+      "body": "The code there looks like this:\r\n\r\n```rust\r\npub fn from_nanos(nanos: i64, fsp: i8) -> Result<Duration> {\r\n        let neg = nanos < 0;\r\n        let nanos = nanos.abs();\r\n        // ...\r\n```\r\n\r\nThe max negative i64 value is not handled properly, I think."
+    },
+    {
+      "id": 487809227,
+      "user": "breezewish",
+      "created_at": "2019-04-30T03:09:02Z",
+      "body": "Good job! @AndreMouche  PTAL\r\n\r\n@iosmanthus You can also take a look."
+    },
+    {
+      "id": 487934287,
+      "user": "iosmanthus",
+      "created_at": "2019-04-30T12:35:42Z",
+      "body": "> Good job! @AndreMouche PTAL\r\n> \r\n> @iosmanthus You can also take a look.\r\n\r\nOK! Thanks for reminding! 😆.  It seems like a bug I didn't found in `Duration`. I will fix it."
+    },
+    {
+      "id": 487966928,
+      "user": "iosmanthus",
+      "created_at": "2019-04-30T14:09:13Z",
+      "body": "> The code there looks like this:\r\n> \r\n> ```rust\r\n> pub fn from_nanos(nanos: i64, fsp: i8) -> Result<Duration> {\r\n>         let neg = nanos < 0;\r\n>         let nanos = nanos.abs();\r\n>         // ...\r\n> ```\r\n> \r\n> The max negative i64 value is not handled properly, I think.\r\n\r\nYeah! We should use [`i64::check_abs(self) -> Option<i64>`](https://doc.rust-lang.org/std/primitive.i8.html#method.checked_abs) instead."
+    },
+    {
+      "id": 679914232,
+      "user": "BusyJay",
+      "created_at": "2020-08-25T09:28:01Z",
+      "body": "@iosmanthus was it fixed?"
+    },
+    {
+      "id": 681919673,
+      "user": "iosmanthus",
+      "created_at": "2020-08-27T12:32:39Z",
+      "body": "Yes! @BusyJay "
+    }
+  ]
+}

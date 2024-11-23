@@ -1,0 +1,54 @@
+{
+  "issue_number": 3147,
+  "title": "Test test_node_learner_conf_change failed",
+  "body": "Backtrace:\r\n```\r\ntest raftstore_cases::test_conf_change::test_node_learner_conf_change ... thread 'raftstore_cases::test_conf_change::test_node_learner_conf_change' panicked at 'can't get value Some(\"v3\") for key \"k3\"', tests/raftstore/util.rs:66:5\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:207\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:223\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:402\r\n   5: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:349\r\n   6: integrations::raftstore::util::must_get\r\n             at tests/raftstore/util.rs:66\r\n   7: integrations::raftstore::util::must_get_equal\r\n             at tests/raftstore/util.rs:74\r\n   8: integrations::raftstore_cases::test_conf_change::test_learner_conf_change\r\n             at tests/raftstore_cases/test_conf_change.rs:620\r\n   9: integrations::raftstore_cases::test_conf_change::test_node_learner_conf_change\r\n             at tests/raftstore_cases/test_conf_change.rs:687\r\n  10: integrations::__test::TESTS::{{closure}}\r\n             at tests/raftstore_cases/test_conf_change.rs:684\r\n  11: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n  12: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1453\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:635\r\n  13: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:102\r\nFAILED\r\n```\r\n\r\nCI: https://circleci.com/gh/overvenus/tikv/509\r\n\r\nThe line fails the test:  https://github.com/overvenus/tikv/blob/f4e1903/tests/raftstore_cases/test_conf_change.rs#L620\r\n\r\nNote that it has applied #2967 .",
+  "state": "closed",
+  "created_at": "2018-06-05T02:55:57Z",
+  "updated_at": "2020-12-15T12:28:28Z",
+  "closed_at": "2020-12-15T12:28:28Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 394566346,
+      "user": "breezewish",
+      "created_at": "2018-06-05T03:04:05Z",
+      "body": "@Hicqu PTAL"
+    },
+    {
+      "id": 409934731,
+      "user": "yangwenmai",
+      "created_at": "2018-08-02T13:55:44Z",
+      "body": "```shell\r\n$ make test\r\nfailures:\r\n\r\nfailures:\r\n    raftstore_cases::test_conf_change::test_node_learner_conf_change\r\n\r\ntest result: FAILED. 249 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out\r\n\r\nerror: test failed, to rerun pass '--test integrations'\r\nmake[1]: *** [test] Error 101\r\nmake: *** [dev] Error 2\r\n```"
+    },
+    {
+      "id": 409957627,
+      "user": "breezewish",
+      "created_at": "2018-08-02T15:00:29Z",
+      "body": "@yangwenmai You can simply re-run the test. Some tests are just not very stable."
+    },
+    {
+      "id": 410697636,
+      "user": "hicqu",
+      "created_at": "2018-08-06T12:53:05Z",
+      "body": "Fixed by #3321."
+    },
+    {
+      "id": 465883664,
+      "user": "overvenus",
+      "created_at": "2019-02-21T06:53:31Z",
+      "body": "Failed again https://internal.pingcap.net/idc-jenkins/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/1622/nodes/150/steps/1260/log/?start=0"
+    },
+    {
+      "id": 745257445,
+      "user": "5kbpers",
+      "created_at": "2020-12-15T12:28:25Z",
+      "body": "Duplicated with https://github.com/tikv/tikv/issues/7934"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "issue_number": 15257,
+  "title": "[Dynamic Regions] TiKV OOM seen after restore data of 4k tables and run workload",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\n[root@upstream-tikv-0 /]# /tikv-server -V\r\nTiKV\r\nRelease Version:   7.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   284ff3a9ca144619f5efaa357d6c287f1c669982\r\nGit Commit Branch: heads/refs/tags/v7.3.0-alpha\r\nUTC Build Time:    2023-07-31 11:44:07\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-a\r\nzure\r\nProfile:           dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\nK8S deployment, TiKV 8C 16G\r\n\r\n### Steps to reproduce\r\n1. TiDB cluster 3 TiKV (8C 16G, partitioned-raft-kv on), 2 CDC (8C 16G)\r\n2. run br restore full to restore 600GB data, which contains a big table, and 4000 small tables.\r\n```\r\n/br restore  full \"-s\" \"s3://bigcluster/backup?access-key=xxx&secret-access-key=xxx&endpoint=http%3a%2f%2f172.16.6.5%3a9000&force-path-style=true\" \"-u\" \"http://upstream-pd.cdc-kafka-avro-2-workloads-tps-1830435-1-922:2379\" \"--check-requirements=false\"\r\n...\r\n[\"Full Restore success summary\"] [total-ranges=44336] [ranges-succeed=44336] [ranges-failed=0] [split-region=9m39.636390547s] [restore-ranges=30396] [total-take=35m51.661999494s] [total-kv=1423690642] [total-kv-size=666.7GB] [average-speed=309.9MB/s] [restore-data-size(after-compressed)=462.3GB] [Size=462279120463] [BackupTS=442620149300723719] [RestoreTS=443234421570273290]\r\n```\r\n\r\n4. create kafka avro changefeed \r\n```\r\n/cdc  cli  changefeed  create \"--server=127.0.0.1:8301\" \"--sink-uri=kafka://downstream-kafka.cdc-kafka-avro-2-workloads-tps-1830435-1-922:9092/kafka-avro?enable-tidb-extension=true&avro-decimal-handling-mode=string&avro-bigint-unsigned-handling-mode=string&avro-enable-watermark=true&protocol=avro&partition-num=2&replication-factor=2\" \"--changefeed-id=kafka-avro-enable-extension\" \"--config=/tmp/changefeed.toml\" \"--schema-registry=http://schemaregistry.cdc-kafka-avro-2-workloads-tps-1830435-1-922:8081\"\r\n```\r\n5. run workloads\r\n```\r\n/workload --tps=1000 --row-count=10000000000  --table-count=1 --thread=0 --workload-type=ycsb_bigtable --database-host=upstream-tidb.cdc-kafka-avro-2-workloads-tps-1830435-1-922 --database-port=4000 --database-user=root --database-db-name=bigcluster\r\n...\r\n/go-ycsb run mysql -P /workloads/betting -p recordcount=200000000 -p dbnameprefix=betting_ -p tablecount=2000 -p unitnameprefix=unit2_ -p databaseproportions=1.0 -p unitscount=20 -p operationcount=9223362036854775807 -p mysql.host=upstream-tidb.cdc-kafka-avro-2-workloads-tps-1830435-1-922 -p mysql.port=4000 --threads=32\r\n```\r\n\r\n### What did you expect?\r\nTiKV should not OOM\r\n\r\n### What did happened?\r\nTiKV OOM seen after running workload\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/682b8ced-d407-41e0-80bf-9509967d954c)\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/a00245e7-e752-47ff-b87a-837ebff12c28)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-08-01T07:27:23Z",
+  "updated_at": "2023-08-10T08:09:30Z",
+  "closed_at": "2023-08-10T08:09:30Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation",
+    "feature/developing",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1659798382,
+      "user": "fubinzh",
+      "created_at": "2023-08-01T08:13:11Z",
+      "body": "/found automation\r\n/severity major\r\n/feature developing"
+    },
+    {
+      "id": 1670753034,
+      "user": "fubinzh",
+      "created_at": "2023-08-09T06:34:44Z",
+      "body": "Retested this scenario 8C 32GB TiKV, TiKV OOM is still seen (TiKV memory usage upto ~42GB per the metrics), and cdc changefeed stucks.\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/52a060de-eea9-4776-be88-8a5090e56364)\r\n![image](https://github.com/tikv/tikv/assets/7403864/088b21e6-87fd-4497-87de-c99d5c5eee4c)\r\n![image](https://github.com/tikv/tikv/assets/7403864/497eeb07-b86b-46f5-913f-fb86a5006aa1)\r\n\r\n\r\nTiKV configuration\r\n```\r\ntikv:\r\n          baseImage: hub-new.pingcap.net/qa/tikv\r\n          config: |\r\n            storage.engine = \"partitioned-raft-kv\"\r\n          limits:\r\n            cpu: 8000m\r\n            memory: 32Gi\r\n            storage: 3000Gi\r\n          maxReplicas: 3\r\n          replicas: 3\r\n          requests:\r\n            cpu: 8000m\r\n            memory: 32Gi\r\n            storage: 3000Gi\r\n          storageClassName: fast-disks\r\n          version: master\r\n```"
+    },
+    {
+      "id": 1671051594,
+      "user": "overvenus",
+      "created_at": "2023-08-09T10:15:31Z",
+      "body": "There are too many regions (20k+), what's your br version?\r\n\r\nDuplicate of #15269.\r\n"
+    },
+    {
+      "id": 1671114305,
+      "user": "fubinzh",
+      "created_at": "2023-08-09T11:01:23Z",
+      "body": "@overvenus br is  lastest master\r\n```\r\n[release-version=v7.4.0-alpha]\r\n[git-hash=cdeac4c66f728ad60a5166ef7700efa52cbd1384]\r\n[git-branch=heads/refs/tags/v7.4.0-alpha] [go-version=go1.20.7]\r\n[utc-build-time=\"2023-08-08 11:36:14\"]\r\n```"
+    }
+  ]
+}

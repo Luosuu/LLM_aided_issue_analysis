@@ -1,0 +1,47 @@
+{
+  "issue_number": 7124,
+  "title": "TiKV cannot send messages to PD after reconnect",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nRelease Version:   4.1.0-alpha\r\nGit Commit Hash:   18b87012ac3450e8037baaa61ea26a73c40ef33e\r\nGit Commit Branch: master\r\nUTC Build Time:    2020-03-17 08:39:08\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\nEnable Features:   jemalloc portable sse protobuf-codec\r\nProfile:           release\r\n\r\n### What operating system and CPU are you using?\r\nnot related\r\n\r\n### Steps to reproduce\r\n1. run 1pd+1tikv\r\n2. kill pd and restart after 10 seconds\r\n\r\n### What did you expect?\r\nTiKV reconnect to PD and start region heartbeat.\r\n\r\n### What did happened?\r\nno region hearbeats any more\r\nlog:\r\n\r\n<details>\r\n\r\n```\r\n[2020/03/17 16:51:57.975 +08:00] [INFO] [<unknown>] [\"Connect failed: {\\\"created\\\":\\\"@1584435117.975396682\\\",\\\"description\\\":\\\"Failed to connect to remote host: Connection refused\\\",\\\"errno\\\":111,\\\"file\\\":\\\"/home/menglong/.cargo/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.5.0/grpc/src/core/lib/iomgr/tcp_client_posix.cc\\\",\\\"file_line\\\":200,\\\"os_error\\\":\\\"Connection refused\\\",\\\"syscall\\\":\\\"connect\\\",\\\"target_address\\\":\\\"ipv4:127.0.0.1:2379\\\"}\"]\r\n[2020/03/17 16:51:57.976 +08:00] [INFO] [<unknown>] [\"Subchannel 0x7fd84f97f000: Retry in 1000 milliseconds\"]\r\n[2020/03/17 16:51:57.976 +08:00] [ERROR] [util.rs:315] [\"request failed, retry\"] [err=\"Grpc(RpcFailure(RpcStatus { status: 14-UNAVAILABLE, details: Some(\\\"failed to connect to all addresses\\\") }))\"]\r\n[2020/03/17 16:51:57.977 +08:00] [ERROR] [util.rs:315] [\"request failed, retry\"] [err=\"Grpc(RpcFailure(RpcStatus { status: 14-UNAVAILABLE, details: Some(\\\"failed to connect to all addresses\\\") }))\"]\r\n[2020/03/17 16:51:57.977 +08:00] [ERROR] [util.rs:315] [\"request failed, retry\"] [err=\"Grpc(RpcFailure(RpcStatus { status: 14-UNAVAILABLE, details: Some(\\\"failed to connect to all addresses\\\") }))\"]\r\n[2020/03/17 16:51:57.978 +08:00] [INFO] [util.rs:427] [\"connecting to PD endpoint\"] [endpoints=http://127.0.0.1:2379]\r\n[2020/03/17 16:51:58.974 +08:00] [INFO] [<unknown>] [\"Failed to connect to channel, retrying\"]\r\n[2020/03/17 16:52:03.577 +08:00] [INFO] [<unknown>] [\"Connect failed: {\\\"created\\\":\\\"@1584435123.576942607\\\",\\\"description\\\":\\\"Failed to connect to remote host: Connection refused\\\",\\\"errno\\\":111,\\\"file\\\":\\\"/home/menglong/.cargo/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.5.0/grpc/src/core/lib/iomgr/tcp_client_posix.cc\\\",\\\"file_line\\\":200,\\\"os_error\\\":\\\"Connection refused\\\",\\\"syscall\\\":\\\"connect\\\",\\\"target_address\\\":\\\"ipv4:127.0.0.1:2379\\\"}\"]\r\n[2020/03/17 16:52:03.577 +08:00] [INFO] [<unknown>] [\"Subchannel 0x7fd84f97f000: Retry immediately\"]\r\n[2020/03/17 16:52:03.577 +08:00] [INFO] [<unknown>] [\"Failed to connect to channel, retrying\"]\r\n[2020/03/17 16:52:08.577 +08:00] [INFO] [<unknown>] [\"Connect failed: {\\\"created\\\":\\\"@1584435128.576987579\\\",\\\"description\\\":\\\"Failed to connect to remote host: Connection refused\\\",\\\"errno\\\":111,\\\"file\\\":\\\"/home/menglong/.cargo/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.5.0/grpc/src/core/lib/iomgr/tcp_client_posix.cc\\\",\\\"file_line\\\":200,\\\"os_error\\\":\\\"Connection refused\\\",\\\"syscall\\\":\\\"connect\\\",\\\"target_address\\\":\\\"ipv4:127.0.0.1:2379\\\"}\"]\r\n[2020/03/17 16:52:08.578 +08:00] [INFO] [<unknown>] [\"Subchannel 0x7fd84f97f000: Retry immediately\"]\r\n[2020/03/17 16:52:08.578 +08:00] [INFO] [<unknown>] [\"Failed to connect to channel, retrying\"]\r\n[2020/03/17 16:52:13.577 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7fd84bc030f0 for subchannel 0x7fd84f97f000\"]\r\n\r\n```\r\n\r\n</details>\r\n",
+  "state": "closed",
+  "created_at": "2020-03-17T09:17:49Z",
+  "updated_at": "2020-08-10T03:45:29Z",
+  "closed_at": "2020-03-26T06:06:44Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "component/pd-client",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 603004842,
+      "user": "NingLin-P",
+      "created_at": "2020-03-24T04:17:20Z",
+      "body": "This bug may cause by the grpc, after pd had killed, if tikv issue a sync request like `client.get_members_opt` when try to reconnect, it will never return, which blocking the pd worker, even restart pd and the underlying new grpc connect was established, the pd worker still under blocking and can not handle any new task."
+    },
+    {
+      "id": 603005427,
+      "user": "disksing",
+      "created_at": "2020-03-24T04:19:36Z",
+      "body": "@NingLin-P can we downgrade grpc?"
+    },
+    {
+      "id": 603013362,
+      "user": "NingLin-P",
+      "created_at": "2020-03-24T04:49:51Z",
+      "body": "I had try the last used grpc version, but this still happen."
+    },
+    {
+      "id": 603039193,
+      "user": "BusyJay",
+      "created_at": "2020-03-24T06:16:54Z",
+      "body": "Does 3.0 have such issue?"
+    },
+    {
+      "id": 603076731,
+      "user": "NingLin-P",
+      "created_at": "2020-03-24T07:36:04Z",
+      "body": "> Does 3.0 have such issue?\r\n\r\nNo, release-3.0 and release-3.1 does not have such issue."
+    }
+  ]
+}

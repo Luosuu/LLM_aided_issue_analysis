@@ -1,0 +1,40 @@
+{
+  "issue_number": 12367,
+  "title": "too many compactions and even write stalls occur by cleaning range by ingesting SSTs",
+  "body": "## Bug Report\r\n\r\nCurrently TiKV cleans up destroyed ranges for write cf and default cf by [ingesting SSTs](https://github.com/tikv/tikv/blob/45fcb0812a0437cabce2436c5223c96c9de83d5e/components/raftstore/src/store/worker/region.rs#L593).\r\nThose ingested SSTs may introduce too many compactions on L0, make compactions on L1~Ln slower. Then the size of LSM tree grows up continuously, the space of disk may run out in some extreme cases.\r\n",
+  "state": "closed",
+  "created_at": "2022-04-18T06:32:58Z",
+  "updated_at": "2022-05-11T03:27:48Z",
+  "closed_at": "2022-05-09T09:56:06Z",
+  "labels": [
+    "type/bug",
+    "status/mentor",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1109838155,
+      "user": "JayiceZ",
+      "created_at": "2022-04-26T14:02:55Z",
+      "body": "Can we use `DeleteFileInRange` instead?"
+    },
+    {
+      "id": 1118181631,
+      "user": "5kbpers",
+      "created_at": "2022-05-05T05:20:07Z",
+      "body": "> Can we use `DeleteFileInRange` instead?\r\n\r\nUsed already, turns out still some problems with ingesting too many SST here.\r\nhttps://github.com/tikv/tikv/blob/2552144c31b481f8cac04aaef960a1dd3f390496/components/engine_rocks/src/misc.rs#L53"
+    },
+    {
+      "id": 1118185444,
+      "user": "5kbpers",
+      "created_at": "2022-05-05T05:30:40Z",
+      "body": "The purpose of the original optimization (https://github.com/tikv/tikv/pull/7794) is to reduce write amplification, but seems it's not effective when the SST is ingested to L0 and even could cause some bad effects. So I suggest putting delete through a WriteBatch if the SST can only be ingested to L0."
+    },
+    {
+      "id": 1120892765,
+      "user": "5kbpers",
+      "created_at": "2022-05-09T09:56:05Z",
+      "body": "Seems is duplicated with https://github.com/tikv/tikv/issues/10680 and was fixed."
+    }
+  ]
+}

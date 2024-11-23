@@ -1,0 +1,33 @@
+{
+  "issue_number": 15326,
+  "title": "Region approximate size maybe wrong after split",
+  "body": "## Bug Report\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster, v6.5.2\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ntiup playground v6.5.2  --tiflash 0 --kv 4\r\ntiup bench ycsb load mysql  -p mysql.port={PORT}  -p mysql.user=root -P global.conf \r\n\r\n// make the max key(end-key equal empty string) not empty region \r\n// region check empty-region \r\n// region sibling {region_id}\r\n// operator add merge-region {target_reigon} {region_id}\r\n\r\nset global tidb_scatter_region=on;create database split; select now(); create table split.t1(id int,b int) shard_row_id_bits=4 partition by hash(id) partitions 2000; select now();\r\n\r\ntikv log\r\n```\r\n[2023/08/14 18:07:52.371 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.396 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.418 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.440 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.460 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.481 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.499 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.905 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.923 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.943 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.965 +08:00] [INFO] [peer.rs:3920] [\"notify pd with split\"] [estimated_size=2167602] [split_count=2] [peer_id=6] [region_id=5]\r\n\r\n[2023/08/14 18:07:52.481 +08:00] [INFO] [peer.rs:5654] [on_approximate_region_size] [size=4335205] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.499 +08:00] [INFO] [peer.rs:5654] [on_approximate_region_size] [size=4335205] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.906 +08:00] [INFO] [peer.rs:5654] [on_approximate_region_size] [size=4335205] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.923 +08:00] [INFO] [peer.rs:5654] [on_approximate_region_size] [size=4335205] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.943 +08:00] [INFO] [peer.rs:5654] [on_approximate_region_size] [size=4335205] [peer_id=6] [region_id=5]\r\n[2023/08/14 18:07:52.966 +08:00] [INFO] [peer.rs:5654] [on_approximate_region_size] [size=4335205] [peer_id=6] [region_id=5]\r\n```\r\n\r\nthe new region approximate size: let estimated_size = self.fsm.peer.approximate_size.map(|v| v / new_region_count);\r\nand this split request is one by one, so the new_region_count always is two.\r\n\r\nsplit process:\r\nregion A: |\"100\"-------\"\"|, the data distribute in |\"99999999\"-----\"\"|, the size is 4MB\r\nnew region |\"100\"---\"200\"|, A: |\"200\"-------\"\"|  , the  data size of the region's key range is not change, so the size is also 4MB \r\nthen come new request\r\nnew region |\"200\"---\"300\"|, A: |\"300\"-------\"\"|  , the  data size of the region's key range is not change, so the size is also 4MB \r\n\r\n\r\n### What did you expect?\r\nthe new region is empty region \r\n### What did happened?\r\nall the regions are not empty region, scatter them will failed because it will consume store limit",
+  "state": "closed",
+  "created_at": "2023-08-14T10:22:42Z",
+  "updated_at": "2023-09-15T03:17:46Z",
+  "closed_at": "2023-09-15T03:17:45Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1678400329,
+      "user": "rleungx",
+      "created_at": "2023-08-15T04:06:14Z",
+      "body": "The way to reproduce the problem:\r\n1. import some data and wait for them to merge (`pd-ctl set split-merge-interval 1s`)\r\n2. change to config back (`pd-ctl set split-merge-interval 1h`)\r\n3. find the region id of tidb_ddl_job (`select * from TIKV_REGION_STATUS where TABLE_NAME='tidb_ddl_job';`)\r\n4. merge it with the previous region (`pd-ctl region sibling` + `pd-ctl operator add merge-region`)\r\n5. `set global tidb_scatter_region=on;`\r\n6. `create table t(id int,b int) shard_row_id_bits=4 partition by hash(id) partitions 2000;`"
+    },
+    {
+      "id": 1720426482,
+      "user": "bufferflies",
+      "created_at": "2023-09-15T03:17:46Z",
+      "body": "close https://github.com/tikv/tikv/issues/15457"
+    }
+  ]
+}

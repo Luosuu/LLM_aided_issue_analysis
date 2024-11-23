@@ -1,0 +1,21 @@
+{
+  "issue_number": 5032,
+  "title": "Panic on force send commit merge during shutdown ",
+  "body": "## Bug Report\r\n\r\nDuring commit merge, target region sends a `MergeResult` to source region and unwrap the result. It causes a panic during shut down, source region may be stopped before target region sends the message.  \r\n\r\n     \r\nhttps://github.com/tikv/tikv/blob/e17843a7a498c94a1db64b2831c911c46de00359/src/raftstore/store/fsm/peer.rs#L1958-L1967\r\n\r\n```\r\nthread 'raftstore-2-0::test_node_merge_reject_request_snapshot' panicked at 'called `Result::unwrap()` on an `Err` value: \"Disconnected(..)\"', src/libcore/result.rs:999:5\r\nstack backtrace:\r\n   0: backtrace::backtrace::libunwind::trace\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/libunwind.rs:88\r\n   1: backtrace::backtrace::trace_unsynchronized\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.29/src/backtrace/mod.rs:66\r\n   2: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:47\r\n   3: std::sys_common::backtrace::print\r\n             at src/libstd/sys_common/backtrace.rs:36\r\n   4: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/panicking.rs:198\r\n   5: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:212\r\n   6: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:475\r\n   7: std::panicking::continue_panic_fmt\r\n             at src/libstd/panicking.rs:382\r\n   8: rust_begin_unwind\r\n             at src/libstd/panicking.rs:309\r\n   9: core::panicking::panic_fmt\r\n             at src/libcore/panicking.rs:85\r\n  10: core::result::unwrap_failed\r\n  11: core::result::Result<T,E>::unwrap\r\n  12: tikv::raftstore::store::fsm::peer::PeerFsmDelegate<T,C>::on_ready_commit_merge\r\n  13: tikv::raftstore::store::fsm::peer::PeerFsmDelegate<T,C>::on_ready_result\r\n  14: tikv::raftstore::store::fsm::peer::PeerFsmDelegate<T,C>::on_apply_res\r\n  15: tikv::raftstore::store::fsm::peer::PeerFsmDelegate<T,C>::handle_msgs\r\n  16: <tikv::raftstore::store::fsm::store::RaftPoller<T,C> as tikv::raftstore::store::fsm::batch::PollHandler<tikv::raftstore::store::fsm::peer::PeerFsm,tikv::raftstore::store::fsm::store::StoreFsm>>::handle_normal\r\n  17: tikv::raftstore::store::fsm::batch::Poller<N,C,Handler>::poll\r\n  18: tikv::raftstore::store::fsm::batch::BatchSystem<N,C>::spawn::{{closure}}\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n```\r\n\r\nLog: https://internal.pingcap.net/idc-jenkins/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/6390/nodes/110/steps/661/log/?start=0",
+  "state": "closed",
+  "created_at": "2019-07-05T08:14:47Z",
+  "updated_at": "2019-08-06T09:56:32Z",
+  "closed_at": "2019-08-06T09:56:32Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 509161805,
+      "user": "Connor1996",
+      "created_at": "2019-07-08T09:58:45Z",
+      "body": "Fix in https://github.com/tikv/tikv/pull/4595"
+    }
+  ]
+}

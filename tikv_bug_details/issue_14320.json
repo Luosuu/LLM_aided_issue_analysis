@@ -1,0 +1,29 @@
+{
+  "issue_number": 14320,
+  "title": "[Dynamic Regions]  dynamic change on max-compactions, write-buffer-limit  do not work ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nMySQL [(none)]> set config tikv `rocksdb.write-buffer-limit `='20GB';\r\nQuery OK, 0 rows affected, 3 warnings (0.00 sec)\r\n\r\nMySQL [(none)]> set config tikv `rocksdb.writecf.max-compactions`=3;\r\nQuery OK, 0 rows affected, 3 warnings (0.01 sec)\r\n### What did you expect?\r\nThe update succeeds.\r\n### What did happened?\r\nThe update does not pass to TiKV. There's no \"rocksdb config changed\" log.",
+  "state": "closed",
+  "created_at": "2023-03-01T18:21:14Z",
+  "updated_at": "2023-09-19T07:30:17Z",
+  "closed_at": "2023-08-28T03:56:06Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1637280763,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-17T02:00:22Z",
+      "body": "write-buffer-limit is quite critical parameter in performance tuning. It would be great to make it dynamic changeable. \r\n@SpadeA-Tang "
+    },
+    {
+      "id": 1694950436,
+      "user": "SpadeA-Tang",
+      "created_at": "2023-08-28T03:30:08Z",
+      "body": "They have been implemented by https://github.com/tikv/tikv/pull/14565 and https://github.com/tikv/tikv/pull/15425  respectively."
+    }
+  ]
+}

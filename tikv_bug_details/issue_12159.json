@@ -1,0 +1,24 @@
+{
+  "issue_number": 12159,
+  "title": "TiKV OOM under TPCC workload when two tikv down for 10 minutes ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\nTiKV OOM.\r\n\r\n### What version of TiKV are you using?\r\n\r\n```\r\n$ /tikv-server -V \r\nTiKV \r\nRelease Version:  6.0.0-alpha \r\nEdition:          Community \r\nGit Commit Hash:  8954a76e2b87575d80336f502a4d078e5da1508f \r\nGit Commit Branch: heads/refs/tags/v6.0.0-nightly \r\nUTC Build Time:   2022-03-09 18:10:26 \r\nRust Version:     rustc 1.60.0-nightly (1e12aef3f 2022-02-13) \r\nEnable Features:  jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure \r\nProfile:          dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n0. create a cluster with 5 replicas\r\n    ```\r\n    [replication]\r\n    max-replicas = 5\r\n    ```\r\n2. run tpcc workload for 10 minutes (go-tpc)\r\n3. down 2 tikvs for about 10 minutes\r\n\r\nAfter the 2 tikvs were down, the other 3 tikvs's memory kept increasing.\r\n\r\n### What did you expect?\r\nNo OOM.\r\n\r\n### What did happened?\r\nTiKV OOM.\r\n![image](https://user-images.githubusercontent.com/4962134/158303549-ba22803a-158a-427c-9386-3236d19f2567.png)\r\n![image](https://user-images.githubusercontent.com/4962134/158303605-8ece78af-1b54-4b89-b509-935df66b5b8a.png)\r\n\r\nFor more details, see https://pingcap.feishu.cn/docs/doccnTugaMBp2jB62ZDwWX0Vv2c# .\r\n",
+  "state": "closed",
+  "created_at": "2022-03-15T03:59:35Z",
+  "updated_at": "2022-04-15T08:28:43Z",
+  "closed_at": "2022-03-17T10:57:46Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/automation",
+    "affects-5.4",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1067538792,
+      "user": "cosven",
+      "created_at": "2022-03-15T04:01:06Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign @5kbpers \r\n/found automation"
+    }
+  ]
+}

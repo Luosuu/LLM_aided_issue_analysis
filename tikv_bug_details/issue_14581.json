@@ -1,0 +1,34 @@
+{
+  "issue_number": 14581,
+  "title": "[Dynamic Regions] tablet_snap takes 1.4TB and TiKV running out of space",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun the social network simulation for two days\r\n\r\n### What did you expect?\r\nno  running out of space\r\n### What did happened?\r\nrunning out of space, tablets directory takes 1.4 TB\r\n```\r\n[root@tc-tikv-0 data]# pwd\r\n/var/lib/tikv/data\r\n[root@tc-tikv-0 data]# df -h .\r\nFilesystem      Size  Used Avail Use% Mounted on\r\n/dev/nvme4n1    3.6T  3.5T     0 100% /var/lib/tikv\r\n[root@tc-tikv-0 data]# du -sh * | sort -n\r\n0       LOCK\r\n0       raftdb.info\r\n1.4T    tablet_snap\r\n2.1T    tablets\r\n12K     import\r\n20K     last_tikv.toml\r\n29M     rocksdb.info\r\n45G     raft-engine\r\n```",
+  "state": "closed",
+  "created_at": "2023-04-17T00:18:44Z",
+  "updated_at": "2023-04-27T17:24:40Z",
+  "closed_at": "2023-04-19T09:15:21Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1510534803,
+      "user": "dbsid",
+      "created_at": "2023-04-17T00:18:56Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1510654590,
+      "user": "dbsid",
+      "created_at": "2023-04-17T03:52:06Z",
+      "body": "/assign @bufferflies "
+    },
+    {
+      "id": 1510660434,
+      "user": "bufferflies",
+      "created_at": "2023-04-17T04:00:17Z",
+      "body": "there are many remaining snapshot file because the sending file failed. TIKV should clean it if sending failed.\r\n![12de6ebb-9865-4d0e-9401-d7fb329280c7](https://user-images.githubusercontent.com/23159587/232374741-5cef23af-526b-4ef9-b6a9-dcb8d3cbdc4f.jpeg)\r\n"
+    }
+  ]
+}

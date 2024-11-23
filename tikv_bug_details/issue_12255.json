@@ -1,0 +1,87 @@
+{
+  "issue_number": 12255,
+  "title": "two tikv oom after inject tikv network-loss and recovery for some time",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/03/24 04:13:50.851 +08:00] [INFO] [client.go:376] [\"Cluster version information\"] [type=pd] [version=6.1.0-nightly] [git_hash=1ac0ad691260dabb61a25f30359e996a968ed857]\r\n[2022/03/24 04:13:50.851 +08:00] [INFO] [client.go:376] [\"Cluster version information\"] [type=tikv] [version=6.0.0-alpha] [git_hash=869b953e798cabf29872fd17d526a7061437aec2]\r\n[2022/03/24 04:13:50.851 +08:00] [INFO] [client.go:376] [\"Cluster version information\"] [type=tidb] [version=6.1.0-nightly] [git_hash=b9bacad6dafabf5e2dfafee8e50ac66785e911b6]\r\n\r\n### What operating system and CPU are you using?\r\n8core、16GB\r\n2tidb、3pd、5tikv（5replicas）\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/662849\r\ntest data：\r\n {{[tpcc] []} {s3://benchmark/tpcc10000 tpcc10000 10000 64 2013,1213,1105,1205,8022,8027,8028,9004,9007,1062} {s3://benchmark/sysbench_64_7000w sysbench_64_7000w 64 70000000 64 2013,1213,1105,1205,8022,8027,8028,9004,9007,1062} {0} {[]} {false       }} \r\n\r\n1、[2022/03/24 04:13:51.083 +08:00] [INFO] [cmd.go:124] [\"Start remote command\"] [cmd=\"go-tpc tpcc run -D tpcc10000 --host tc-tidb.endless-oltp-tps-662849-1-968 -P4000 --warehouses 10000 -T 64 --time 36000m --ignore-error '2013,1213,1105,1205,8022,8027,8028,9004,9007,1062'\"] [nodename=benchtoolset]\r\n2、inject fault\r\n[2022/03/24 04:24:51.173 +08:00] [INFO] [chaos.go:86] [\"Run chaos\"] [name=network-loss] [selectors=\"[endless-oltp-tps-662849-1-968/tc-tikv-1]\"] [experiment=\"{\\\"Duration\\\":\\\"\\\",\\\"Scheduler\\\":null,\\\"Loss\\\":\\\"84\\\",\\\"Correlation\\\":\\\"25\\\"}\"]\r\n[2022/03/24 04:24:51.175 +08:00] [INFO] [chaos.go:86] [\"Run chaos\"] [name=network-loss] [selectors=\"[endless-oltp-tps-662849-1-968/tc-tikv-0]\"] [experiment=\"{\\\"Duration\\\":\\\"\\\",\\\"Scheduler\\\":null,\\\"Loss\\\":\\\"84\\\",\\\"Correlation\\\":\\\"25\\\"}\"]\r\n3、recovery fault\r\n[2022/03/24 05:06:51.203 +08:00] [INFO] [chaos.go:151] [\"Clean chaos\"] [name=network-loss] [chaosId=\"ns=endless-oltp-tps-662849-1-968,kind=network-loss,name=network-loss-pdhgfxcy,spec=&k8s.ChaosIdentifier{Namespace:\\\"endless-oltp-tps-662849-1-968\\\", Name:\\\"network-loss-pdhgfxcy\\\", Spec:NetworkLossSpec{Duration: \\\"\\\", Scheduler: <nil>, Loss: \\\"84\\\", Correlation: \\\"25\\\"}}\"]\r\n[2022/03/24 05:06:51.203 +08:00] [INFO] [chaos.go:151] [\"Clean chaos\"] [name=network-loss] [chaosId=\"ns=endless-oltp-tps-662849-1-968,kind=network-loss,name=network-loss-zfevalyq,spec=&k8s.ChaosIdentifier{Namespace:\\\"endless-oltp-tps-662849-1-968\\\", Name:\\\"network-loss-zfevalyq\\\", Spec:NetworkLossSpec{Duration: \\\"\\\", Scheduler: <nil>, Loss: \\\"84\\\", Correlation: \\\"25\\\"}}\"]\r\n\r\n### What did you expect?\r\nall tikv are normal\r\n\r\n### What did happened?\r\ntwo tikv oom at 2022/03/24 06:02 and 06:26\r\ntikv0 memory start to rise form 2022/03/24 05:10 and oom at 06:26\r\ntikv1 memory start to rise form 2022/03/24 05:08 and oom at 06:00\r\n![image](https://user-images.githubusercontent.com/84712107/159885457-2e80a947-519f-48d1-850d-71725cfa5701.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159885508-3873321a-03bf-4325-b524-a649eff1585b.png)\r\n\r\n![image](https://user-images.githubusercontent.com/84712107/159883647-aa614375-52c6-446a-a4aa-65375a183c9b.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159830365-d9325969-842a-430e-aee8-1c498e4d2a4b.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159830401-025ed922-cc80-4c7f-bb3c-b563af45473b.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159830450-8656e581-c76c-440e-a49a-23a2fea665e6.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159882801-dcf4d030-e36d-4217-8e2d-49d361afa916.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159883940-1275bf2a-7c0b-4a5b-8753-c27274bfc6b2.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159884919-d1544bf2-8217-417f-8589-e0ce32263fa6.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159895475-65557870-505a-4d8a-9337-c3f8f9154598.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-03-24T02:34:13Z",
+  "updated_at": "2022-05-07T03:26:33Z",
+  "closed_at": "2022-05-07T03:26:33Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1077007091,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T02:35:19Z",
+      "body": "/type bug\r\n/severity Critical\r\n/assign Connor1996\r\n/assign tabokie"
+    },
+    {
+      "id": 1077021088,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T03:06:58Z",
+      "body": "/remove-severity critical\r\n/severity major"
+    },
+    {
+      "id": 1077021196,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T03:07:14Z",
+      "body": " /found automation"
+    },
+    {
+      "id": 1077416512,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T09:28:38Z",
+      "body": "/assign 5kbpers"
+    },
+    {
+      "id": 1077469320,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T10:24:14Z",
+      "body": "/remove-severity critical\r\n/severity Moderate"
+    },
+    {
+      "id": 1077469355,
+      "user": "ti-chi-bot",
+      "created_at": "2022-03-24T10:24:16Z",
+      "body": "@Lily2025: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12255#issuecomment-1077469320):\n\n>/remove-severity critical\r\n>/severity Moderate\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1077475733,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T10:31:06Z",
+      "body": "/remove-severity major\r\n/severity Moderate"
+    },
+    {
+      "id": 1078605265,
+      "user": "tabokie",
+      "created_at": "2022-03-25T02:59:38Z",
+      "body": "![OmNNt9wwvR](https://user-images.githubusercontent.com/27005812/160045582-6a01a05d-809c-4922-a69a-d5306865fcc3.png)\r\n\r\nIt appears that the memory growth matches active Raft entry count. After restart, the baseline memory usage (4.5GB) indicates the memory usage of Raft Engine.\r\n\r\nThis happens because during disconnection, log entries cannot be GC-ed by the leader, and the in-memory index inside Raft Engine accumulates indefinitely.\r\n\r\nNo fix at the moment."
+    },
+    {
+      "id": 1079888539,
+      "user": "Lily2025",
+      "created_at": "2022-03-27T09:12:57Z",
+      "body": "/remove-severity Moderate\r\n/severity major"
+    },
+    {
+      "id": 1081581740,
+      "user": "Lily2025",
+      "created_at": "2022-03-29T08:28:43Z",
+      "body": "/remove-severity major\r\n/severity critical"
+    },
+    {
+      "id": 1082489755,
+      "user": "Lily2025",
+      "created_at": "2022-03-30T00:18:49Z",
+      "body": "/affects-6.0"
+    },
+    {
+      "id": 1085357515,
+      "user": "Lily2025",
+      "created_at": "2022-04-01T02:51:13Z",
+      "body": "/label affects-6.0"
+    }
+  ]
+}

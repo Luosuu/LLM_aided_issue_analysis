@@ -1,0 +1,39 @@
+{
+  "issue_number": 16313,
+  "title": "enable titan, update report error after flashback ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n7.6.0-pre\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n1. config sync data with cdc \r\n2. run sysbench to prepare data \r\n3. run sysbench 10 minutes\r\n4. flashback to after prepare data\r\n5. run sysbench 3 minutes\r\n\r\n### What did you expect?\r\nsysbench run normally\r\n\r\n### What did happened?\r\nmysql> UPDATE user_data2 SET `j` = '{\"number\": 57609613 , \"string\": \"zuVYjDnz1qfow0YJzRk6uh74bUBgkTCvu3EWBh7B9VZlJdTwMUM3QojFU0jLOkjXyKRxSRGgbjK2ugqPqayMywQtZ7EWyyNjRXFyg90PSHu4aIx7IuBc7bbUiq8oSlAGycY2Awa7pXQgARLEvUd46DTSySfH1zr8yPsCxMoqikBWrl2eauLrjFPrfNAKWHUt9CXAqS2g\"}',`j2` = '[60105263,18124809]',`update_time`=CURRENT_TIMESTAMP WHERE `uid` = 747311;\r\nERROR 8141 (HY000): assertion failed: key: 74800000000000006b5f698000000000000001000380000000000b672f, assertion: Exist, start_ts: 446871893884010506, existing start ts: 0, existing commit ts: 0\r\n",
+  "state": "closed",
+  "created_at": "2024-01-08T08:13:38Z",
+  "updated_at": "2024-01-11T07:04:14Z",
+  "closed_at": "2024-01-11T07:04:14Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-7.6"
+  ],
+  "comments_data": [
+    {
+      "id": 1880543713,
+      "user": "seiya-annie",
+      "created_at": "2024-01-08T08:14:42Z",
+      "body": "@JmPotato "
+    },
+    {
+      "id": 1881227725,
+      "user": "JmPotato",
+      "created_at": "2024-01-08T15:27:21Z",
+      "body": "Might related to #16319."
+    },
+    {
+      "id": 1886419973,
+      "user": "seiya-annie",
+      "created_at": "2024-01-11T07:04:14Z",
+      "body": "close for test case has been passed in 01-09 dailyrun"
+    }
+  ]
+}

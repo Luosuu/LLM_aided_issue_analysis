@@ -1,0 +1,40 @@
+{
+  "issue_number": 15531,
+  "title": "The `need_restored_data` for multi value index should return false",
+  "body": "In tidb, `need_restored_data` for multi value index should return false, as the `tp` will become `JSON` when it's marked as an array. I'm not sure whether it's good to modify `get_tp()` to return `json` for every type, but at least we should ignore the `RestoredData` for json, or it will report an error.",
+  "state": "closed",
+  "created_at": "2023-09-05T13:39:27Z",
+  "updated_at": "2023-10-25T06:40:07Z",
+  "closed_at": "2023-10-25T06:40:07Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1707849665,
+      "user": "YangKeao",
+      "created_at": "2023-09-06T07:54:05Z",
+      "body": "This issue also affects 7.1"
+    },
+    {
+      "id": 1776162990,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T23:05:09Z",
+      "body": "cc @Benjamin2037"
+    },
+    {
+      "id": 1778610341,
+      "user": "YangKeao",
+      "created_at": "2023-10-25T06:40:04Z",
+      "body": "This issue should have been closed by https://github.com/pingcap/tidb/pull/46993. TiDB will set the collation of multi-valued index as `binary`. Sorry, I forgot to close it after merging #46993."
+    }
+  ]
+}

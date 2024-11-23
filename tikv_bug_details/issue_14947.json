@@ -1,0 +1,70 @@
+{
+  "issue_number": 14947,
+  "title": "[Dynamic Regions] v2 60% QPS drop compare with v1 with ~5x delete_skipped-index",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun a workload with 2 select, 1 insert and 1 commit\r\n### What did you expect?\r\nno performance degradation.\r\n\r\n### What did happened?\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/24b8162a-e4aa-4f93-8358-9c98c01c5119)\r\n\r\n![image](https://github.com/tikv/tikv/assets/2316425/718dd3e5-8246-4365-950a-75bcfa5c69a4)\r\n",
+  "state": "closed",
+  "created_at": "2023-06-14T03:19:07Z",
+  "updated_at": "2023-08-29T09:38:37Z",
+  "closed_at": "2023-08-29T09:38:37Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1590393816,
+      "user": "dbsid",
+      "created_at": "2023-06-14T03:19:17Z",
+      "body": "/severity critical\r\n"
+    },
+    {
+      "id": 1590394030,
+      "user": "dbsid",
+      "created_at": "2023-06-14T03:19:41Z",
+      "body": "/assign @bufferflies"
+    },
+    {
+      "id": 1590394797,
+      "user": "dbsid",
+      "created_at": "2023-06-14T03:21:07Z",
+      "body": "![img_v2_b9c759ae-c2e8-492f-97c7-43db53b9886g](https://github.com/tikv/tikv/assets/2316425/18464980-fa97-4b3b-b56e-5bc93c9da6b2)\r\n"
+    },
+    {
+      "id": 1597972793,
+      "user": "tonyxuqqi",
+      "created_at": "2023-06-20T01:19:49Z",
+      "body": "Changing the memtable of lockcf to 2MB greatly mitigate this problem. Downgrade it to major. "
+    },
+    {
+      "id": 1598002524,
+      "user": "bufferflies",
+      "created_at": "2023-06-20T01:46:40Z",
+      "body": "This delete skip happened in lock cf. In dynamic regions, every region store the cf data and compact it, so the frequence of compaction is less than v1. User can downsize the lockcf `write-buffer-size` to speed up the frequence of the flush and compaction. Here is the test result of modify the write-buffer-size:\r\n<img width=\"1101\" alt=\"image\" src=\"https://github.com/tikv/tikv/assets/23159587/14ecc897-96a1-4f54-be1b-5f0b09bd27a6\">\r\n"
+    },
+    {
+      "id": 1637245155,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-17T00:55:31Z",
+      "body": "We're doing the benchmark on different workloads on the reduced lock-cf size.  If there's a sweet spot size, then this issue can be closed. "
+    },
+    {
+      "id": 1672777945,
+      "user": "tonyxuqqi",
+      "created_at": "2023-08-10T08:20:22Z",
+      "body": "It should be greatly mitigated by the new 4MB lock-cf size. Changing it as moderate. "
+    },
+    {
+      "id": 1697095361,
+      "user": "bufferflies",
+      "created_at": "2023-08-29T09:34:45Z",
+      "body": "ref #https://github.com/tikv/tikv/pull/15453"
+    },
+    {
+      "id": 1697101805,
+      "user": "bufferflies",
+      "created_at": "2023-08-29T09:38:37Z",
+      "body": "close #15132"
+    }
+  ]
+}

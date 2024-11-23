@@ -1,0 +1,61 @@
+{
+  "issue_number": 16591,
+  "title": "compaction-filter sometimes stably fails to work",
+  "body": "## Bug Report\r\n\r\nI try to use tikv-ctl to compact a region manually, wish to decrease the number of mvcc.num_deletes and writecf.num_delete,\r\n it works on two peers while stably fails on the left peer.\r\n\r\n### What version of TiKV are you using?\r\n v7.5.0\r\n### What operating system and CPU are you using?\r\nubuntu\r\n\r\n### Steps to reproduce\r\n1. create a cluster and run tpcc for a 1 hour.\r\n2. get one region from table 'customer' (from system table: information_schema.tikv_region_status)\r\n3. there are three peers for this region:\r\n```\r\ntiup ctl:v7.5.0 pd -u 127.0.0.1:2379 region 20026\r\n```\r\nget stores with:\r\n```\r\ntiup ctl:v7.5.0 pd -u 127.0.0.1:2379 store\r\n```\r\n4. goto tikv-0, run the following commands twice, both mvcc.num_deletes and writecf.num_deletes come to 0 finally:\r\n4.1 get region-properties: \r\n```\r\ntiup ctl:v7.5.0 tikv --host  \"127.0.0.1:20160\" region-properties -r 20026\r\nStarting component `ctl`: /home/tidb/.tiup/components/ctl/v7.5.0/ctl tikv --host 127.0.0.1:20160 region-properties -r 20026\r\n……\r\nmvcc.num_rows: 2387047\r\nmvcc.num_puts: 2454144\r\nmvcc.num_deletes: 9688\r\nmvcc.num_versions: 2464879\r\nmvcc.max_row_versions: 952\r\nwritecf.num_entries: 2464879\r\nwritecf.num_deletes: 0\r\nwritecf.num_files: 3\r\nwritecf.sst_files: 053145.sst, 061055.sst, 057591.sst\r\n……           \r\n```     \r\n4.2 manually compact it on tikv-0 \r\n\r\n```\r\ntiup ctl:v7.5.0 tikv --host  \"127.0.0.1:20160\" compact --bottommost force -c default -r 20026\r\nStarting component `ctl`: /home/tidb/.tiup/components/ctl/v7.5.0/ctl tikv --host 127.0.0.1:20160 compact --bottommost force -c default -r 20026\r\nstore:\"127.0.0.1:20160\" compact_region db:Kv cf:default range:[[122, 116, 128, 0, 0, 0, 0, 0, 0, 255, 84, 95, 114, 3, 128, 0, 0, 0, 255, 0, 0, 0, 4, 3, 128, 0, 0, 255, 0, 0, 0, 0, 4, 3, 128, 0, 255, 0, 0, 0, 0, 6, 168, 0, 0, 253], [122, 116, 128, 0, 0, 0, 0, 0, 0, 255, 84, 95, 114, 3, 128, 0, 0, 0, 255, 0, 0, 0, 7, 3, 128, 0, 0, 255, 0, 0, 0, 0, 2, 3, 128, 0, 255, 0, 0, 0, 0, 2, 48, 0, 0, 253]) success!\r\n```\r\n\r\n5. try on tikv-1, both mvcc.num_deletes and writecf.num_deletes come to 0 finally too.\r\n6. try on tikv-2, both mvcc.num_deletes and writecf.num_deletes failes to became 0: (I have tried compact manually more than 6 times) \r\n![sRnUwcn8Nf](https://github.com/tikv/tikv/assets/1085697/81995e88-e96b-4386-926f-41c179c82842)\r\n              \r\n\r\n### What did you expect?\r\nthe  value of mvcc.* and writecf.num_deletes from  region-properties of these three peers should keep the same after manually compact several times. \r\n\r\n\r\n### What did happened?\r\non tikv-1 and tikv0, after compact manually several times, the  mvcc.num_deletes and writecf.num_deletes became 0 finally.\r\nwhile the value of mvcc.num_deletes and writecf.num_deletes can not became 0 on tikv-2\r\n\r\nimpact: In some cases, when data is deleted by \"delete from XXX\", physical space cannot be released after gc safepoint and even for a long time . \r\n",
+  "state": "open",
+  "created_at": "2024-03-01T07:48:20Z",
+  "updated_at": "2024-07-10T09:33:26Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "type/question",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5",
+    "affects-7.6",
+    "affects-8.0",
+    "affects-8.1",
+    "affects-8.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1995146921,
+      "user": "tonyxuqqi",
+      "created_at": "2024-03-13T17:44:26Z",
+      "body": "@AndreMouche @jebter It's likely by design.  MVCC.Deletes needs to be GC-ed first by compaction filter. But when compaction filter runs, the GC safe point may not be advanced enough to mark these MVCC deletes tombstones. Only Tombstones can be deleted by the tikv-ctl compact. \r\n\r\nThat summary, to physically delete these data, we need:\r\n1) make sure GC safe point is advanced to be bigger than these mvcc deletes' commit ts\r\n2) trigger one compaction to run the compaction filter so that these records can be marked as tombstone.\r\n3) trigger another compaction to remove these tombstones. "
+    },
+    {
+      "id": 2216884275,
+      "user": "AndreMouche",
+      "created_at": "2024-07-09T08:04:47Z",
+      "body": "related issue:https://github.com/tikv/tikv/issues/17256 "
+    },
+    {
+      "id": 2216901709,
+      "user": "AndreMouche",
+      "created_at": "2024-07-09T08:13:11Z",
+      "body": "With the following steps:\r\n1. make sure GC safe point is advanced to be bigger than these mvcc deletes' commit ts\r\n2. trigger one compaction to run the compaction filter so that these records can be marked as tombstone.\r\n3. trigger another compaction to remove these tombstones.\r\n\r\nsometimes physically delete the `mvcc-delete` keeps stably failed by doing `tikv-ctl` compact write/default CF with bottommost force **repeatly**.\r\n"
+    },
+    {
+      "id": 2220018225,
+      "user": "AndreMouche",
+      "created_at": "2024-07-10T09:33:25Z",
+      "body": "It turns out that `tikv-ctl region-properties` is an estimated value based on the samples in each SST file and there may be some margin of error. Therefore, we cannot use this as the standard to conclude that the `compaction filter` is not effective for `delete` mvccs. ref https://github.com/tikv/tikv/blob/v7.5.0/src/server/debug.rs#L985-L1009 \r\nWe still need more  evidence to prove it, ideally by directly observing the results of `tikv-ctl scan`  to see the residual mvcc-delete after the gc safepoint by  doing tikv-ctl compact write/default CF with bottommost force repeatly."
+    }
+  ]
+}

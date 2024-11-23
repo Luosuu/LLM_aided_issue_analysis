@@ -1,0 +1,23 @@
+{
+  "issue_number": 11434,
+  "title": "ineffective alert rule for low space",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv4.0.x, v5.0, v5.1\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\ndoesn't matter\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nMake TiKV has low spare disk space.\r\n\r\n### What did you expect?\r\n\r\nAlert for low space.\r\n\r\n### What did happened?\r\n\r\nNo alert because apply snapshot counter was disabled in #4066 and removed in #10099, but low_space_and_add_region alert rule still uses it as a condition.",
+  "state": "closed",
+  "created_at": "2021-11-22T08:02:52Z",
+  "updated_at": "2021-11-22T08:03:12Z",
+  "closed_at": "2021-11-22T08:03:12Z",
+  "labels": [
+    "type/bug",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1"
+  ],
+  "comments_data": [
+    {
+      "id": 975223211,
+      "user": "youjiali1995",
+      "created_at": "2021-11-22T08:03:12Z",
+      "body": "fixed by https://github.com/tikv/tikv/pull/10807"
+    }
+  ]
+}

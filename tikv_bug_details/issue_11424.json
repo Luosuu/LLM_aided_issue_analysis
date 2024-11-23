@@ -1,0 +1,44 @@
+{
+  "issue_number": 11424,
+  "title": "QPS dropped severely many times during scale out in DBaaS",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n5.3.0\r\n\r\n### What operating system and CPU are you using?\r\nCluster Tier\r\nT3.standard\r\n\r\n### Steps to reproduce\r\nrun sysbench prepare\r\nsysbench --config-file=config oltp_insert --tables=16 --table-size=100000000 prepare\r\nthreads=8\r\nscale out tikv from 3 to 6\r\n\r\n### What did you expect?\r\nperformance is stable\r\n\r\n### What did happened?\r\n![NYTJMTk7xU](https://user-images.githubusercontent.com/84712107/142590227-d2d79f89-f0b5-49a6-88dd-11d45f4d3cf7.png)\r\n![zYRSkgmqqs](https://user-images.githubusercontent.com/84712107/142590256-24e8a7e6-c407-4552-8023-1a15b801fbee.png)",
+  "state": "closed",
+  "created_at": "2021-11-19T08:10:01Z",
+  "updated_at": "2022-09-15T02:54:36Z",
+  "closed_at": "2022-09-15T02:54:36Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 973863363,
+      "user": "Lily2025",
+      "created_at": "2021-11-19T08:30:52Z",
+      "body": "/assign Connor1996"
+    },
+    {
+      "id": 973865664,
+      "user": "Lily2025",
+      "created_at": "2021-11-19T08:34:24Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 974093350,
+      "user": "Lily2025",
+      "created_at": "2021-11-19T13:55:20Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 981051253,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-11-28T09:18:41Z",
+      "body": "@Connor1996 any update for this issue?"
+    }
+  ]
+}

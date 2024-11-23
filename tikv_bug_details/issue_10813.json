@@ -1,0 +1,34 @@
+{
+  "issue_number": 10813,
+  "title": "corrupted snapshot can prevent snapshot files gc",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv3.0.8\r\n\r\n### What operating system and CPU are you using?\r\nDoesn't matter.\r\n\r\n### Steps to reproduce\r\nSome of snapshot files get deleted after received, so the snapshot is corrupted. And the peer is deleted before applying snapshot.\r\n\r\n### What did you expect?\r\nCorrupted snapshot will be deleted in the end.\r\n\r\n### What did happened?\r\nStore fails to delete the corrupted snapshot files. And all other stale snapshot files are not gc anymore.\r\n\r\nThe problem is it returns early here:\r\n\r\nhttps://github.com/tikv/tikv/blob/master/components/raftstore/src/store/fsm/store.rs#L2129.",
+  "state": "closed",
+  "created_at": "2021-08-25T04:41:28Z",
+  "updated_at": "2021-08-31T11:06:13Z",
+  "closed_at": "2021-08-31T11:06:13Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 905178120,
+      "user": "BusyJay",
+      "created_at": "2021-08-25T04:42:24Z",
+      "body": "/cc @hicqu "
+    },
+    {
+      "id": 905178444,
+      "user": "BusyJay",
+      "created_at": "2021-08-25T04:43:22Z",
+      "body": "/asssign @tonyxuqqi"
+    },
+    {
+      "id": 905207340,
+      "user": "Lily2025",
+      "created_at": "2021-08-25T06:01:31Z",
+      "body": "/severity major"
+    }
+  ]
+}

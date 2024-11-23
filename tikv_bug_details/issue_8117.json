@@ -1,0 +1,28 @@
+{
+  "issue_number": 8117,
+  "title": "raftdb log is printed into tikv log file",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### Steps to reproduce\r\nRun tikv. Look at tikv log (e.g. deploy/log/tikv.log). Raftdb log are mixed with tikv log in the file.\r\n\r\nAfter #7358 we switch to use tikv logger instead of rocksdb native logger to dump logs. By default rocksdb logs (kvdb and raftdb) should be in their respective directories (e.g. deploy/data/db and deploy/data/raft). On master, however, raftdb log is printed into tikv log. kvdb is fine though.\r\n",
+  "state": "closed",
+  "created_at": "2020-06-22T01:08:11Z",
+  "updated_at": "2020-07-28T05:03:43Z",
+  "closed_at": "2020-07-01T18:18:11Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/engine"
+  ],
+  "comments_data": [
+    {
+      "id": 664751277,
+      "user": "breezewish",
+      "created_at": "2020-07-28T03:15:11Z",
+      "body": "Currently RocksDB logs cannot be searched in TiDB Dashboard. Do you think it's necessary to add support?"
+    },
+    {
+      "id": 664778311,
+      "user": "yiwu-arbug",
+      "created_at": "2020-07-28T05:03:42Z",
+      "body": "@breeswish it will be great if we have that."
+    }
+  ]
+}

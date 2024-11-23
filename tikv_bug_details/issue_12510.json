@@ -1,0 +1,39 @@
+{
+  "issue_number": 12510,
+  "title": "Raftstore: tikv does not split regions whose  size is larger than the max region size after restart with config change",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n6.0-alpha\r\n\r\n### What operating system and CPU are you using?\r\nCentOS 7/8\r\n\r\n### Steps to reproduce\r\nSet region max size/ region split size with 1GB and upload about 30GB data.  Waiting for the region count stable and then change the max size/region split size with 200MB, meanwhile enable region bucket and set region bucket size as 100MB. \r\nRestart tikvs.\r\n\r\n### What did you expect?\r\nTiKV'e regions will be splitted after the reboot.\r\n\r\n### What did happened?\r\nTiKV's regions will not be splitted. \r\n\r\nrelated bug: https://github.com/tikv/pd/issues/4926\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-13T20:50:25Z",
+  "updated_at": "2022-05-14T04:54:36Z",
+  "closed_at": "2022-05-14T04:54:36Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1126495124,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-13T20:54:28Z",
+      "body": "/label affect-6.1"
+    },
+    {
+      "id": 1126495136,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-13T20:54:30Z",
+      "body": "@tonyxuqqi: The label(s) `affect-6.1` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12510#issuecomment-1126495124):\n\n>/label affect-6.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1126510666,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-13T21:07:25Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1126510840,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-13T21:07:42Z",
+      "body": "/severity critical"
+    }
+  ]
+}

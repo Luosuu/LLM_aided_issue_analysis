@@ -1,0 +1,63 @@
+{
+  "issue_number": 10841,
+  "title": "*:Logger thread can be bottleneck and slow down the whole TiKV instance",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n4.0.14\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux x86_64\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nSend extreme coprocessor load to a single region to trigger enormous  amount of slow log that can overload slogger thread. Once slogger thread is overloaded, log message can accumulate and fill up pending message queue quickly. All code path that generates log are affected and can't make progress as usual.   \r\n\r\n### What did you expect?\r\nTry to send less slow log to slogger at first to make it less likely to collapse. And having a mechanism to short circuit not critical logs when slogger thread is heavy loaded.      \r\n\r\n### What did happened?\r\nSlogger thread uses 100% CPU and slow down everything. Especially coprocessor.\r\n",
+  "state": "closed",
+  "created_at": "2021-08-27T02:38:30Z",
+  "updated_at": "2021-11-22T09:45:19Z",
+  "closed_at": "2021-11-22T09:45:19Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 908128066,
+      "user": "BusyJay",
+      "created_at": "2021-08-30T07:57:29Z",
+      "body": "I propose to reduce the slow log count and enlarge the log buffer to twice the current. Also @sticnarf suggested to replace mpsc channel in slog-async as crossbeam channel, which should be faster."
+    },
+    {
+      "id": 908147974,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-08-30T08:24:32Z",
+      "body": "The bottleneck is the formatting part of slogger, I prefer\r\n1) using OverflowStrategy::Drop instead of OverflowStrategy::Block for short term solution, since print log become the bottleneck is not a frequently thing. So the first priority is keep the service is OK under any throughput.\r\n2) simplify and reduce the total number of log when the throughput is high, we need to sample the same type logs to guarantee key messages are logged. Also I prefer using OverflowStrategy::Drop when the slogger is overflow."
+    },
+    {
+      "id": 908151799,
+      "user": "sticnarf",
+      "created_at": "2021-08-30T08:30:31Z",
+      "body": "## Short-term solution\r\n\r\nI agree to reduce the slow log count first by changing the `req_lifetime` to `total_process_time`: https://github.com/tikv/tikv/blob/19e4d00ad7965681b5139cd71c7eaf8290cc22ce/src/coprocessor/tracker.rs#L249 \r\n\r\nAnd not all errors need to be logged here https://github.com/tikv/tikv/blob/19e4d00ad7965681b5139cd71c7eaf8290cc22ce/src/coprocessor/endpoint.rs#L635\r\n\r\nI'm afraid it is not useful to enlarge the log buffer. If the bottleneck is the slogger thread, however large the buffer is, the buffer will be finally filled full.\r\n\r\n## Mid-term solution\r\n\r\nWe fork slog project and add `try_log` macros which allows dropping the log when the buffer is full. I think the feature is useful for other users and may be potentially accepted by the upstream.\r\n"
+    },
+    {
+      "id": 908158880,
+      "user": "sunxiaoguang",
+      "created_at": "2021-08-30T08:42:11Z",
+      "body": "> I'm afraid it is not useful to enlarge the log buffer. If the bottleneck is the slogger thread, however large the buffer is, the buffer will be finally filled full.\r\n\r\nAs long as log gets accumulated, it's just a matter of time before queue gets filled up. One workaround can be using a large enough slow log threshold to effectively disable coprocessor slow log. With the not critical warning log filtered, I think it's quite safe for now.  "
+    },
+    {
+      "id": 908159555,
+      "user": "breezewish",
+      "created_at": "2021-08-30T08:43:19Z",
+      "body": "My ideas are separated as short-terms and long-terms, where short-terms are easy to implement, can be effectively backported, while long-terms are more advanced with the complexity cost:\r\n\r\n1. Change `req_lifetime` to `total_process_time`. It is almost always a good change, which reduces direct cause of logging channel full.\r\n\r\n2. Short-term: Just drop logs. Worth to output \"xxx logs dropped due to reaching xxx limit\".\r\n\r\n3. Long-term: More fine-gained control, e.g. limit the rate and drop logs by modules, to avoid missing some other important logs.\r\n\r\n4. Long-term: Collapse similar logs at the output site."
+    },
+    {
+      "id": 908159815,
+      "user": "sunxiaoguang",
+      "created_at": "2021-08-30T08:43:48Z",
+      "body": "> I'm afraid it is not useful to enlarge the log buffer. If the bottleneck is the slogger thread, however large the buffer is, the buffer will be finally filled full.\r\n\r\nAs long as log gets accumulated, it's just a matter of time before queue gets filled up. One workaround can be using a large enough slow log threshold to effectively disable coprocessor slow log. With the not critical warning log filtered, I think it's quite safe for now.  "
+    },
+    {
+      "id": 908302454,
+      "user": "sunxiaoguang",
+      "created_at": "2021-08-30T12:30:22Z",
+      "body": "After a discussion with @zhangjinpeng1987, @breeswish, @sticnarf , @BusyJay and @sunxiaoguang about each of the proposals. In the end the conclusion was dropping message when log queue gets filled up and change coprocessor slow log to use total processing time as metric in short term. After this fix is done, we will try long term way to fix this issue without compromising critical logs."
+    },
+    {
+      "id": 911341374,
+      "user": "Lily2025",
+      "created_at": "2021-09-02T07:56:11Z",
+      "body": "/severity major"
+    }
+  ]
+}

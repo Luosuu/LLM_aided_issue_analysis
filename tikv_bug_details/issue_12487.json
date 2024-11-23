@@ -1,0 +1,15 @@
+{
+  "issue_number": 12487,
+  "title": "Do constraint check before returning an assertion error",
+  "body": "## Development Task\r\nref: \r\nhttps://github.com/tikv/client-go/pull/492\r\nhttps://github.com/pingcap/tidb/issues/33641\r\n\r\nAssertion may be false-positive for a secondary index key.\r\nBriefly the case is :\r\n1. txn-a prewrites key-1\r\n2. txn-b prewrites index-1\r\n3. txn-b prewrites key-1, and encounters lock\r\n4. txn-b rolls back txn-a\r\n5. txn-b prewrites key-1, and successfully commit\r\n6. txn-a prewrites index-1, and succeeds (because there is no constraint check) \r\n\r\n\r\nWe enforce a constraint check before the assertion error is returned. If the constraint check failed, return it instead of the assertion failure.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-11T06:07:25Z",
+  "updated_at": "2022-05-16T05:54:37Z",
+  "closed_at": "2022-05-16T05:54:37Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0"
+  ],
+  "comments_data": []
+}

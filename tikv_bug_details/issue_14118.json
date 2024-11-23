@@ -1,0 +1,39 @@
+{
+  "issue_number": 14118,
+  "title": "【witness】after enable witness，tikv can not balance leader",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2023/02/01 15:14:09.751 +08:00] [INFO] [db.go:158] [\"instance-info \"] [type=tidb] [instance=tc-tidb-1] [version=6.6.0-alpha] [git_hash=4a38deec038d1fbfbb5373b25b947cb58cfef3fc]\r\n[2023/02/01 15:14:09.751 +08:00] [INFO] [db.go:158] [\"instance-info \"] [type=tidb] [instance=tc-tidb-0] [version=6.6.0-alpha] [git_hash=4a38deec038d1fbfbb5373b25b947cb58cfef3fc]\r\n[2023/02/01 15:14:09.751 +08:00] [INFO] [db.go:158] [\"instance-info \"] [type=pd] [instance=tc-pd-0] [version=6.6.0-alpha] [git_hash=872c73d8a930871181521094171e6b8754727815]\r\n[2023/02/01 15:14:09.751 +08:00] [INFO] [db.go:158] [\"instance-info \"] [type=pd] [instance=tc-pd-1] [version=6.6.0-alpha] [git_hash=872c73d8a930871181521094171e6b8754727815]\r\n[2023/02/01 15:14:09.751 +08:00] [INFO] [db.go:158] [\"instance-info \"] [type=pd] [instance=tc-pd-2] [version=6.6.0-alpha] [git_hash=872c73d8a930871181521094171e6b8754727815]\r\n[2023/02/01 15:14:09.751 +08:00] [INFO] [db.go:158] [\"instance-info \"] [type=tikv] [instance=tc-tikv-0] [version=6.6.0-alpha] [git_hash=a33eb2d08991f278785e8b3047c643bf07839bce]\r\n[2023/02/01 15:14:09.751 +08:00] [INFO] [db.go:158] [\"instance-info \"] [type=tikv] [instance=tc-tikv-2] [version=6.6.0-alpha] [git_hash=a33eb2d08991f278785e8b3047c643bf07839bce]\r\n[2023/02/01 15:14:09.751 +08:00] [INFO] [db.go:158] [\"instance-info \"] [type=tikv] [instance=tc-tikv-1] [version=6.6.0-alpha] [git_hash=a33eb2d08991f278785e8b3047c643bf07839bce]\r\n\r\n### What operating system and CPU are you using?\r\n8core，16GB\r\n\r\n### Steps to reproduce\r\n1、creater k8s env\r\n2、br load data\r\n3、【2023/02/01 15:14:30】enable witness、config placement-rules\r\n /pd-ctl config set enable-witness true\r\nplacement-rules：\r\n      [\r\n  {\r\n    \"group_id\": \"pd\",\r\n    \"id\": \"default\",\r\n    \"start_key\": \"\",\r\n    \"end_key\": \"\",\r\n    \"role\": \"voter\",\r\n    \"is_witness\": false,\r\n    \"count\": 2,\r\n    \"version\": 2\r\n  },\r\n  {\r\n    \"group_id\": \"pd\",\r\n    \"id\": \"witness\",\r\n    \"start_key\": \"\",\r\n    \"end_key\": \"\",\r\n    \"role\": \"follower\",\r\n    \"is_witness\": true,\r\n    \"count\": 1,\r\n    \"version\": 1,\r\n    \"create_timestamp\": 1675235650\r\n  }\r\n]\r\n4、【2023/02/01 15:42:30】/pd-ctl config set enable-witness false\r\n5、/pd-ctl config set witness-schedule-limit 2048\r\n6、【2023/02/01 16:09:21】/pd-ctl config set enable-witness true\r\n\r\n### What did you expect?\r\ntikv leader can not balance\r\n\r\n### What did happened?\r\nafter step4：\r\nafter enable witness，one tikv do not balance leader and others tikv balance very slowly.\r\nafter step6：\r\nall tikv can not balance，witness only exist on one store\r\n![image](https://user-images.githubusercontent.com/84712107/215995725-6389b505-916e-433c-8d21-a768914baf08.png)\r\n",
+  "state": "closed",
+  "created_at": "2023-02-01T07:50:49Z",
+  "updated_at": "2023-02-08T11:40:43Z",
+  "closed_at": "2023-02-08T11:40:42Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1411603461,
+      "user": "Lily2025",
+      "created_at": "2023-02-01T07:51:47Z",
+      "body": "/type bug\r\n/severity major\r\n/assign ethercflow"
+    },
+    {
+      "id": 1411603978,
+      "user": "Lily2025",
+      "created_at": "2023-02-01T07:52:25Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1411604505,
+      "user": "Lily2025",
+      "created_at": "2023-02-01T07:53:05Z",
+      "body": "/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5"
+    },
+    {
+      "id": 1421889140,
+      "user": "ethercflow",
+      "created_at": "2023-02-08T02:27:22Z",
+      "body": "fixed by https://github.com/tikv/pd/pull/5904"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "issue_number": 4703,
+  "title": "cargo audit error",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\n>➜  tikv git:(master) cargo audit\r\n    Fetching advisory database from `https://github.com/RustSec/advisory-db.git`\r\n      Loaded 24 security advisories (from /home/koushiro/.cargo/advisory-db)\r\n    Scanning Cargo.lock for vulnerabilities (306 crate dependencies)\r\nerror: Vulnerable crates found!\r\n\r\n>ID:\t RUSTSEC-2019-0003\r\nCrate:\t protobuf\r\nVersion: 2.0.4\r\nDate:\t 2018-06-08\r\nURL:\t https://github.com/stepancheg/rust-protobuf/issues/411\r\nTitle:\t Out of Memory in stream::read_raw_bytes_into()\r\nSolution: upgrade to: \r\n\r\n>error: 1 vulnerability found!\r\n\r\nIt makes Jenkins job failed.",
+  "state": "closed",
+  "created_at": "2019-05-16T03:05:27Z",
+  "updated_at": "2020-08-28T11:05:19Z",
+  "closed_at": "2020-08-28T11:04:30Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 492913650,
+      "user": "Hoverbear",
+      "created_at": "2019-05-16T04:39:07Z",
+      "body": "From @zhangjinpeng1987 \r\n\r\n![image](https://user-images.githubusercontent.com/130903/57826844-d7edee80-7759-11e9-80cc-93eb64374f8e.png)\r\nCI record: https://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/4453/pipeline/\r\n\r\nSpecifically, the fix of: https://github.com/stepancheg/rust-protobuf/commit/66a22c88d7efb762a7e2390f2bfdb275c199434c#diff-03da03412d4490720c45da0a6f43d56cR37"
+    },
+    {
+      "id": 493157439,
+      "user": "Hoverbear",
+      "created_at": "2019-05-16T17:21:33Z",
+      "body": "There is a fix pending on our internal infrastructure."
+    },
+    {
+      "id": 493768469,
+      "user": "kennytm",
+      "created_at": "2019-05-19T15:51:57Z",
+      "body": "We're currently only ignoring the audit, but the actual fix is still not applied. Let's keep this open until protobuf is updated and the audit is re-enabled."
+    },
+    {
+      "id": 682465536,
+      "user": "BusyJay",
+      "created_at": "2020-08-28T11:05:19Z",
+      "body": "The error was passed and daily audit check has been setup for quite a while."
+    }
+  ]
+}

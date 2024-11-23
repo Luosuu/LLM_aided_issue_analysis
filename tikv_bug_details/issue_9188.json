@@ -1,0 +1,40 @@
+{
+  "issue_number": 9188,
+  "title": "The unified pool cannot schedule kv_scan, raw_scan and analyze requests well",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nTiKV 4.0 or master\r\n\r\n### Steps to reproduce\r\n\r\nSet TiKV to use the unified thread pool for both storage and coprocessor. Run a TP workload. Then, run large kv_scan requests.\r\n\r\n### What did you expect?\r\n\r\nThe unified thread pool should let the kv_scan request not affect TP workload.\r\n\r\n### What did happened?\r\n\r\nIt affects the performance of the TP workload now. Even if the priority of kv_scan is set to low, it can still affect TP performance.",
+  "state": "open",
+  "created_at": "2020-12-04T09:11:55Z",
+  "updated_at": "2020-12-07T06:26:01Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/performance",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 738666905,
+      "user": "sticnarf",
+      "created_at": "2020-12-04T09:13:45Z",
+      "body": "Now analyze requests and kv_scan requests are not transformed into splittable coroutines. Then, it is not possible for yatp to schedule such a large request."
+    },
+    {
+      "id": 738670348,
+      "user": "sticnarf",
+      "created_at": "2020-12-04T09:19:40Z",
+      "body": "Typical affected cases: \r\n\r\n- TiDB analyze\r\n- Add index DDL backfilling\r\n- BR backup\r\n- TiSpark analysis\r\n\r\nThe first three use cases should have a low concurrency, so the severity should be not high.\r\nIn the last case, TiSpark may have a high concurrency, TP performance may be affected greatly even if the scan requests are marked low priority."
+    },
+    {
+      "id": 739696748,
+      "user": "BusyJay",
+      "created_at": "2020-12-07T06:22:47Z",
+      "body": "Should the change be rolled back?"
+    },
+    {
+      "id": 739698194,
+      "user": "sticnarf",
+      "created_at": "2020-12-07T06:26:00Z",
+      "body": "> Should the change be rolled back?\r\n\r\nOh. 4.0.9 is not released yet. I think we should not enable it by default now."
+    }
+  ]
+}

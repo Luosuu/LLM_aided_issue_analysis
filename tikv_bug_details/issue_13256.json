@@ -1,0 +1,17 @@
+{
+  "issue_number": 13256,
+  "title": "QuotaLimiter: coprocessor read traffic should be controlled by foreground quota limiter's read bytes",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n6.0 or later\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nset tikv config: quota.foreground_read_bytes: 5MB\r\nrun sysbench read-only workload\r\n\r\n### What did you expect?\r\nThe coprocessor's read response size is close to 5MB/s per tikv\r\n### What did happened?\r\nThe coprocessor's read response size is much larger than 5MB/s",
+  "state": "closed",
+  "created_at": "2022-08-11T06:08:59Z",
+  "updated_at": "2022-08-23T01:54:22Z",
+  "closed_at": "2022-08-23T01:54:22Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2"
+  ],
+  "comments_data": []
+}

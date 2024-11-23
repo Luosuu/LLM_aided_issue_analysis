@@ -1,0 +1,27 @@
+{
+  "issue_number": 4560,
+  "title": "Raft logs in CommitMerge should forward to raftstore first",
+  "body": "If a node is panicked when there is a region executing `catch_up_logs_for_merge`, then the node can not restart again, because when it executes `catch_up_logs_for_mrege` it may execute some committed logs that are not yet present in the peer_storage, this will lead to write an applied_index that is higher than the commit_index. When the node restarts it will panic due to applied_index > commit_index.\r\n\r\nWe can forward committed logs to raftstore, and write them to the peer_storage, then ask apply worker to apply the new committed raft logs. \r\n\r\n",
+  "state": "closed",
+  "created_at": "2019-04-23T10:18:09Z",
+  "updated_at": "2019-09-12T15:03:25Z",
+  "closed_at": "2019-09-12T15:03:25Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 530529688,
+      "user": "Hoverbear",
+      "created_at": "2019-09-11T19:27:22Z",
+      "body": "Hi @overvenus , can this be closed?"
+    },
+    {
+      "id": 530868244,
+      "user": "overvenus",
+      "created_at": "2019-09-12T15:03:25Z",
+      "body": "Yes, #4595 and #4615 fixed the bug."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 17673,
+  "title": "tidb 5.7.25-TiDB-v5.4.3中唯一索引限制失效",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n5.7.25-TiDB-v5.4.3\r\n\r\n### What operating system and CPU are you using?\r\nCentOS Linux release 7.4.1708 (Core)\r\n\r\n### Steps to reproduce\r\n当表创建唯一索引之后，唯一索引不能保证唯一性。\r\n CREATE TABLE `dba_test1` (\r\n    ->   `id` bigint(10) unsigned NOT NULL AUTO_INCREMENT,\r\n    ->   `app_id` int(10) unsigned NOT NULL COMMENT 'xxxx',\r\n    ->   `base_date` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'xxxx',\r\n    ->   `base_time` date NOT NULL COMMENT 'xxxx',\r\n    ->   `channel_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'xxxxx',\r\n    ->   `sub_channel_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'xxxxx',\r\n    ->   `name` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'xxxxx',\r\n    ->   `num` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'xxxxx',\r\n    ->   `province_code` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'xxxxx',\r\n    ->   `city_code` int(11) NOT NULL DEFAULT '0' COMMENT 'xxxxx',\r\n    ->   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\r\n    ->   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\r\n    ->   PRIMARY KEY (`id`,`base_time`) /*T![clustered_index] NONCLUSTERED */,\r\n    ->   UNIQUE KEY `uniq_absn` (`app_id`,`base_time`,`sub_channel_id`,`name`,`province_code`,`city_code`)\r\n    -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ;\r\n然后插入数据\r\ninsert into dba_test1  values (77552792,2,20240929,'2024-09-29',28278,419890,'Windows NT 10.0',2040,430000,0,'2024-09-30 12:03:18','2024-09-30 12:03:18'),(77556634,2,20240929,'2024-09-29',28278,419890,'Windows nt 10.0',1,430000,0,'2024-09-30 12:03:18','2024-09-30 12:03:18');\r\n### What did you expect?\r\n报错：Duplicate entry '2-2024-09-29-419890-Windows nt 10.0-430000-0'\r\n### What did happened?\r\nQuery OK, 2 rows affected (7.16 sec)\r\nRecords: 2  Duplicates: 0  Warnings: 0\r\n\r\nselect  * from dba_test1;\r\n![image](https://github.com/user-attachments/assets/36a17b3e-3901-4700-b24a-57d54c67abff)\r\n",
+  "state": "closed",
+  "created_at": "2024-10-17T07:55:20Z",
+  "updated_at": "2024-10-17T07:56:12Z",
+  "closed_at": "2024-10-17T07:56:12Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2418825170,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-10-17T07:55:23Z",
+      "body": "\n[FORMAT CHECKER NOTIFICATION]\n\n:rightwards_hand: ${\\color{gold}\\Huge{\\textsf{Please use english to create or update issue.}}}$\n\n<!--Checker Notification Identifier-->\n"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "issue_number": 3162,
+  "title": "Test test_server_auto_adjust_replica failed",
+  "body": "Backtrace: \r\n\r\n```\r\ntest raftstore_cases::test_conf_change::test_server_auto_adjust_replica ... thread 'raftstore_cases::test_conf_change::test_server_auto_adjust_replica' panicked at 'replica count 5 still not meet 4 after 10 secs', tests/raftstore_cases/test_conf_change.rs:288:5\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:207\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:223\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:402\r\n   5: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:349\r\n   6: integrations::raftstore_cases::test_conf_change::wait_till_reach_count\r\n             at tests/raftstore_cases/test_conf_change.rs:288\r\n   7: integrations::raftstore_cases::test_conf_change::test_auto_adjust_replica\r\n             at tests/raftstore_cases/test_conf_change.rs:344\r\n   8: integrations::raftstore_cases::test_conf_change::test_server_auto_adjust_replica\r\n             at tests/raftstore_cases/test_conf_change.rs:362\r\n   9: integrations::__test::TESTS::{{closure}}\r\n             at tests/raftstore_cases/test_conf_change.rs:359\r\n  10: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n  11: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1453\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:635\r\n  12: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:102\r\nFAILED\r\n```\r\n\r\nLink:  https://circleci.com/gh/overvenus/tikv/523\r\n",
+  "state": "closed",
+  "created_at": "2018-06-06T11:05:18Z",
+  "updated_at": "2020-12-15T12:21:26Z",
+  "closed_at": "2020-12-15T12:21:26Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 441534763,
+      "user": "breezewish",
+      "created_at": "2018-11-26T06:44:20Z",
+      "body": "https://circleci.com/gh/tikv/tikv/15180"
+    },
+    {
+      "id": 690094741,
+      "user": "hunterlxt",
+      "created_at": "2020-09-10T08:57:43Z",
+      "body": "The frequency I encountered in the recent PR is very high, about 30%."
+    },
+    {
+      "id": 745077144,
+      "user": "5kbpers",
+      "created_at": "2020-12-15T06:12:13Z",
+      "body": "Set severity to minor since cannot reproduce it."
+    }
+  ]
+}

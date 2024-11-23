@@ -1,0 +1,33 @@
+{
+  "issue_number": 2659,
+  "title": "test_server_compact_lock_cf fail",
+  "body": "```\r\ntest raftstore_cases::test_compact_lock_cf::test_server_compact_lock_cf ... thread 'raftstore_cases::test_compact_lock_cf::test_server_compact_lock_cf' panicked at 'assertion failed: compact_write_bytes > 0', tests/raftstore_cases/test_compact_lock_cf.rs:39:12\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::imp::backtrace::tracing::imp::unwind_backtrace\r\n             at /checkout/src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::_print\r\n             at /checkout/src/libstd/sys_common/backtrace.rs:71\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at /checkout/src/libstd/sys_common/backtrace.rs:60\r\n             at /checkout/src/libstd/panicking.rs:380\r\n   3: std::panicking::default_hook\r\n             at /checkout/src/libstd/panicking.rs:396\r\n   4: tikv::util::panic_hook::track_hook::{{closure}}\r\n             at src/util/panic_hook.rs:61\r\n   5: <std::thread::local::LocalKey<T>>::try_with\r\n             at /checkout/src/libstd/thread/local.rs:362\r\n   6: <std::thread::local::LocalKey<T>>::with\r\n             at /checkout/src/libstd/thread/local.rs:276\r\n   7: tikv::util::panic_hook::track_hook\r\n             at src/util/panic_hook.rs:55\r\n   8: core::ops::function::Fn::call\r\n             at /checkout/src/libcore/ops/function.rs:48\r\n   9: std::panicking::rust_panic_with_hook\r\n             at /checkout/src/libstd/panicking.rs:611\r\n  10: std::panicking::begin_panic\r\n             at /checkout/src/libstd/panicking.rs:571\r\n  11: integrations::raftstore_cases::test_compact_lock_cf::flush_then_check\r\n             at tests/raftstore_cases/test_compact_lock_cf.rs:39\r\n  12: integrations::raftstore_cases::test_compact_lock_cf::test_compact_lock_cf\r\n             at tests/raftstore_cases/test_compact_lock_cf.rs:76\r\n  13: integrations::raftstore_cases::test_compact_lock_cf::test_server_compact_lock_cf\r\n             at tests/raftstore_cases/test_compact_lock_cf.rs:83\r\n  14: <F as test::FnBox<T>>::call_box\r\n             at /checkout/src/libtest/lib.rs:1477\r\n             at /checkout/src/libcore/ops/function.rs:143\r\n             at /checkout/src/libtest/lib.rs:138\r\n  15: __rust_maybe_catch_panic\r\n             at /checkout/src/libpanic_unwind/lib.rs:98\r\n```\r\n\r\nNo logs are available.",
+  "state": "closed",
+  "created_at": "2018-01-08T13:01:50Z",
+  "updated_at": "2020-08-28T11:55:47Z",
+  "closed_at": "2020-08-28T11:55:47Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench"
+  ],
+  "comments_data": [
+    {
+      "id": 355962581,
+      "user": "siddontang",
+      "created_at": "2018-01-08T13:12:28Z",
+      "body": "Does failpoint test impact it? "
+    },
+    {
+      "id": 355969577,
+      "user": "BusyJay",
+      "created_at": "2018-01-08T13:43:25Z",
+      "body": "It has nothing to do with failpoint."
+    },
+    {
+      "id": 682484666,
+      "user": "BusyJay",
+      "created_at": "2020-08-28T11:55:47Z",
+      "body": "Seems not appear anymore."
+    }
+  ]
+}

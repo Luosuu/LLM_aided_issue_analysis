@@ -1,0 +1,74 @@
+{
+  "issue_number": 4233,
+  "title": "too many pipe and eventpoll files ",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\nJust run `lsof` and find too many pipe and eventpoll files.\r\n\r\n**What did you expect to see?**\r\n\r\nFew pipe or eventpoll files. \r\n\r\n**What did you see instead?**\r\n\r\n```\r\nsnap-send 109112 109284       qupeng  112w     FIFO                0,9       0t0  128610450 pipe\r\nsnap-send 109112 109284       qupeng  113u  a_inode               0,10         0       8838 [eventpoll]\r\nsnap-send 109112 109284       qupeng  114r     FIFO                0,9       0t0  128610451 pipe\r\nsnap-send 109112 109284       qupeng  115w     FIFO                0,9       0t0  128610451 pipe\r\nsnap-send 109112 109284       qupeng  116u  a_inode               0,10         0       8838 [eventpoll]\r\nsnap-send 109112 109284       qupeng  117r     FIFO                0,9       0t0  128610452 pipe\r\nsnap-send 109112 109284       qupeng  118w     FIFO                0,9       0t0  128610452 pipe\r\nsnap-send 109112 109284       qupeng  119u  a_inode               0,10         0       8838 [eventpoll]\r\nsnap-send 109112 109284       qupeng  120r     FIFO                0,9       0t0  128610453 pipe\r\nsnap-send 109112 109284       qupeng  121w     FIFO                0,9       0t0  128610453 pipe\r\nsnap-send 109112 109284       qupeng  122u  a_inode               0,10         0       8838 [eventpoll]\r\nsnap-send 109112 109284       qupeng  123r     FIFO                0,9       0t0  128610454 pipe\r\nsnap-send 109112 109284       qupeng  124w     FIFO                0,9       0t0  128610454 pipe\r\nsnap-send 109112 109284       qupeng  125u  a_inode               0,10         0       8838 [eventpoll]\r\n```\r\n\r\n```\r\n➜  [30.31] /data2 sudo lsof | grep 109112 | grep eventpoll | wc -l\r\n9680\r\n➜  [30.31] /data2 sudo lsof | grep 109112 | grep pipe | wc -l\r\n15488\r\n```\r\n\r\nI guess there must be something wrong for these open files, we should investigate which parts open so many files. ",
+  "state": "closed",
+  "created_at": "2019-02-19T09:27:32Z",
+  "updated_at": "2020-08-28T11:28:03Z",
+  "closed_at": "2020-08-28T11:28:03Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 465055736,
+      "user": "siddontang",
+      "created_at": "2019-02-19T09:29:46Z",
+      "body": "Btw, seem master and 2.1 both have this problem. A user gave me his result for 2.1 version.\r\n\r\n```\r\nlsof | grep pipe | wc -l\r\n5527\r\n```"
+    },
+    {
+      "id": 465060994,
+      "user": "BusyJay",
+      "created_at": "2019-02-19T09:45:07Z",
+      "body": "This is related to #4219. The problem exists after a854feee9f4a503d127fe5db95ae7c40cea93c74 and make local tests fail with too many open files error. I believe it has something to do with resource reclaim in gRPC service, but not have time to investigate further yet."
+    },
+    {
+      "id": 465062342,
+      "user": "BusyJay",
+      "created_at": "2019-02-19T09:49:03Z",
+      "body": "Although the commit doesn't appears in v2.1. I'm not sure whether 5527 is a reasonable number, but a854feee9f4a503d127fe5db95ae7c40cea93c74 makes it worse definitely."
+    },
+    {
+      "id": 465595815,
+      "user": "siddontang",
+      "created_at": "2019-02-20T14:23:02Z",
+      "body": "I use systemtap to trace pipe open \r\n\r\n```\r\nsudo stap -d /data3/tangliu/tikv/bin/tikv-server -d /usr/lib64/libc-2.17.so -e 'probe syscall.pipe {printf(\"%s %d\\n\",  execname(), tid()); print_usyms(ubacktrace()); }'\r\n```\r\nThe result is below:\r\n\r\n```\r\n 0x7f835cbb3737 : pipe2+0x7/0x30 [/usr/lib64/libc-2.17.so]\r\n 0x561115b0303b : _ZN13tokio_reactor7Reactor3new17he6f6bc748cc1e5d5E+0x30b/0x1250 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x561115af5cfd : _ZN5tokio7runtime10threadpool7builder7Builder5build17hd0a793b87067dea0E+0x9d/0x10f0 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x561115af8ef7 : _ZN5tokio7runtime10threadpool7Runtime3new17hf9c2b64f37c4f6abE+0x27/0x100 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x5611150cfe96 : _ZN3std10sys_common9backtrace28__rust_begin_short_backtrace17hd1f862cfcb6cde7cE+0x666/0x6840 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x5611151f60d9 : _ZN50_$LT$F$u20$as$u20$alloc..boxed..FnBox$LT$A$GT$$GT$8call_box17h32c8d89b0de8d146E+0x89/0x250 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x561115bbb26e : _ZN3std3sys4unix6thread6Thread3new12thread_start17h809dab03f76374f4E+0x8e/0x120 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x7f835d7c1dd5 : 0x7f835d7c1dd5 [/usr/lib64/libpthread-2.17.so+0x7dd5/0x21c000]\r\npd-worker 29167\r\n 0x7f835cbb3737 : pipe2+0x7/0x30 [/usr/lib64/libc-2.17.so]\r\n 0x561115b0303b : _ZN13tokio_reactor7Reactor3new17he6f6bc748cc1e5d5E+0x30b/0x1250 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x561115af5cfd : _ZN5tokio7runtime10threadpool7builder7Builder5build17hd0a793b87067dea0E+0x9d/0x10f0 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x561115af8ef7 : _ZN5tokio7runtime10threadpool7Runtime3new17hf9c2b64f37c4f6abE+0x27/0x100 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x5611150cfe96 : _ZN3std10sys_common9backtrace28__rust_begin_short_backtrace17hd1f862cfcb6cde7cE+0x666/0x6840 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x5611151f60d9 : _ZN50_$LT$F$u20$as$u20$alloc..boxed..FnBox$LT$A$GT$$GT$8call_box17h32c8d89b0de8d146E+0x89/0x250 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x561115bbb26e : _ZN3std3sys4unix6thread6Thread3new12thread_start17h809dab03f76374f4E+0x8e/0x120 [/data3/tangliu/tikv/bin/tikv-server]\r\n 0x7f835d7c1dd5 : 0x7f835d7c1dd5 [/usr/lib64/libpthread-2.17.so+0x7dd5/0x21c000]\r\n```\r\n\r\nSeem that all the pipes are created in tokio, so I have to assume that the this problem is caused by tokio. Seem we need to check whether others have the same problem or the tokio has already fixed it. \r\n\r\n/cc @brson @nrc "
+    },
+    {
+      "id": 465894646,
+      "user": "hicqu",
+      "created_at": "2019-02-21T07:41:16Z",
+      "body": "Seems `lsof | grep <pid>` will **print one fd multi times, depends on how many tasks in the process**. Here is a part of my result:\r\n```\r\ntikv-serv 130642              qupeng  cwd       DIR                8,2     69632    4594797 /home/qupeng/var-lib/local\r\nslogger   130642 130643       qupeng  cwd       DIR                8,2     69632    4594797 /home/qupeng/var-lib/local\r\ndefault-e 130642 130645       qupeng  cwd       DIR                8,2     69632    4594797 /home/qupeng/var-lib/local\r\ngrpc_glob 130642 130647       qupeng  cwd       DIR                8,2     69632    4594797 /home/qupeng/var-lib/local\r\n```\r\nAs you can see, the work dir appears many times in the output, and their `task-id`s are different. And the whole result has `35378` lines.\r\n\r\nHowever `lsof -p <pid>` only prints `202` lines. And after grep `pipe` it has `88` lines, and `53` lines for `eventpoll`."
+    },
+    {
+      "id": 465895458,
+      "user": "hicqu",
+      "created_at": "2019-02-21T07:44:14Z",
+      "body": "And I guess pipes opened in tokio threads is for `Timer`s, because mio also implement timer with pipes."
+    },
+    {
+      "id": 465908837,
+      "user": "siddontang",
+      "created_at": "2019-02-21T08:33:28Z",
+      "body": "I investigate this problem and may make progress. All the threads share the same file descriptor table, using `strace` we can see that the thread created with `CLONE_FILES` flag, see http://man7.org/linux/man-pages/man2/clone.2.html\r\n\r\nSo even `lsof` shows too many pipe files but in fact, we only open a little. \r\n\r\nBut another problem is that, I use `sudo stap -d /data3/tangliu/tikv/bin/tikv-server -d /usr/lib64/libc-2.17.so -e 'probe syscall.pipe {printf(\"%s %d\\n\",  execname(), tid()); }'`,  start TiKV then find pd-worker still opens many pipes, we must investigate why  @BusyJay @hicqu \r\n\r\n```\r\ntikv-server 68964\r\ntikv-server 68964\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\ntikv-server 68964\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\npd-worker 69120\r\n```"
+    },
+    {
+      "id": 465911438,
+      "user": "siddontang",
+      "created_at": "2019-02-21T08:42:20Z",
+      "body": "I write a simple example to verify my thought:\r\n\r\n```c\r\n# include <unistd.h>\r\n# include <stdlib.h>\r\n# include <stdio.h>\r\n# include <pthread.h>\r\n\r\nstatic void* thread_start(void *arg) {\r\n    printf(\"input a word in thread\\n\");\r\n    getchar();\r\n    return 0;\r\n}\r\n\r\nint main(int argc, char **argv)\r\n{\r\n  int filefd[2];\r\n  char buf[7];\r\n  int i;\r\n  \r\n  if(pipe(filefd)==-1)\r\n    {\r\n      perror(\"Error creating a pipe: \");\r\n      exit(1);\r\n    }\r\n\r\n  printf(\"input a word\\n\");\r\n  getchar();\r\n\r\n  pthread_t thread_id;\r\n  pthread_create(&thread_id, NULL, thread_start, NULL);\r\n  pthread_join(thread_id, NULL); \r\n      \r\n  return 0;\r\n}\r\n```\r\n\r\nThe output is \r\n\r\n```\r\n➜  [30.35] tools lsof | grep 69241 | grep pipe\r\na.out      69241        pingcap    3r     FIFO                0,9       0t0 246988346 pipe\r\na.out      69241        pingcap    4w     FIFO                0,9       0t0 246988346 pipe\r\n➜  [30.35] tools lsof | grep 69241 | grep pipe\r\na.out      69241        pingcap    3r     FIFO                0,9       0t0 246988346 pipe\r\na.out      69241        pingcap    4w     FIFO                0,9       0t0 246988346 pipe\r\na.out      69241  69269 pingcap    3r     FIFO                0,9       0t0 246988346 pipe\r\na.out      69241  69269 pingcap    4w     FIFO                0,9       0t0 246988346 pipe\r\n```"
+    },
+    {
+      "id": 465911608,
+      "user": "siddontang",
+      "created_at": "2019-02-21T08:42:54Z",
+      "body": "So I think `lsof` sometimes may confuse us. :sob: "
+    },
+    {
+      "id": 466226152,
+      "user": "siddontang",
+      "created_at": "2019-02-22T00:36:24Z",
+      "body": "another thing I find is that there are two `pd-worker` threads:\r\n\r\n```\r\n➜  [30.35] ~ ps -T -p 72353 | grep 72509\r\n 72353  72509 pts/2    00:00:00 pd-worker\r\n➜  [30.35] ~ ps -T -p 72353 | grep pd-worker\r\n 72353  72509 pts/2    00:00:00 pd-worker\r\n 72353  72526 pts/2    00:00:00 pd-worker\r\n```\r\n\r\nAnd through systemtap, I find all the pipe are created by the thread 72509\r\n\r\n```\r\ntikv-server 72353\r\ntikv-server 72353\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\npd-worker 72509\r\ntikv-server 72353\r\n```\r\n\r\nI guess the first thread is real the pd-worker, but the second one may be created from pd-worker. We should investigate too.\r\n\r\n@hicqu "
+    }
+  ]
+}

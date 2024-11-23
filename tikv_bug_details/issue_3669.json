@@ -1,0 +1,58 @@
+{
+  "issue_number": 3669,
+  "title": "test_delay_split_region failed",
+  "body": "## Bug Report\r\n\r\nSee https://circleci.com/gh/tikv/tikv/14340\r\n\r\n@overvenus @hicqu PTAL",
+  "state": "closed",
+  "created_at": "2018-10-11T16:57:26Z",
+  "updated_at": "2018-11-20T14:48:49Z",
+  "closed_at": "2018-11-20T14:48:49Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench",
+    "priority/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 429838010,
+      "user": "overvenus",
+      "created_at": "2018-10-15T12:41:57Z",
+      "body": "PTAL @BusyJay "
+    },
+    {
+      "id": 432110810,
+      "user": "siddontang",
+      "created_at": "2018-10-23T06:28:42Z",
+      "body": "PTAL @zhangjinpeng1987 "
+    },
+    {
+      "id": 432168286,
+      "user": "overvenus",
+      "created_at": "2018-10-23T09:21:52Z",
+      "body": "Another failed tests https://circleci.com/gh/tikv/tikv/14521"
+    },
+    {
+      "id": 432172916,
+      "user": "MyonKeminta",
+      "created_at": "2018-10-23T09:34:07Z",
+      "body": "It fails randomly and may either panic [here](https://github.com/tikv/tikv/blob/7315140a1a6b29b724d362c3b0f64ea8e19424c9/tests/raftstore_cases/test_split_region.rs#L335) (`thread 'raftstore_cases::test_split_region::test_delay_split_region' panicked at 'can't get value None for key \"k0\"'`)  or [here](https://github.com/tikv/tikv/blob/7315140a1a6b29b724d362c3b0f64ea8e19424c9/tests/raftstore_cases/test_split_region.rs#L315)(`thread 'raftstore_cases::test_split_region::test_delay_split_region' panicked at 'can't get value None for key \"k4\"'`)"
+    },
+    {
+      "id": 436890073,
+      "user": "breezewish",
+      "created_at": "2018-11-08T06:43:43Z",
+      "body": "Failure: https://circleci.com/gh/tikv/tikv/14762"
+    },
+    {
+      "id": 437252484,
+      "user": "Hijiao",
+      "created_at": "2018-11-09T05:13:37Z",
+      "body": "It fails [here](https://github.com/tikv/tikv/blob/7315140a1a6b29b724d362c3b0f64ea8e19424c9/tests/raftstore_cases/test_split_region.rs#L323) too.  (`thread 'raftstore_cases::test_split_region::test_delay_split_region' panicked at 'can't get value None for key \"k5\"`)"
+    },
+    {
+      "id": 437254832,
+      "user": "Hijiao",
+      "created_at": "2018-11-09T05:30:40Z",
+      "body": "@BusyJay Why sleep only 100ms? is it too short?\r\n>     cluster.must_put(b\"k4\", b\"v4\");\r\n>     sleep_ms(100);\r\n>     check_cluster(&mut cluster, b\"k4\", b\"v4\", false);\r\n [line312](https://github.com/tikv/tikv/blob/7315140a1a6b29b724d362c3b0f64ea8e19424c9/tests/raftstore_cases/test_split_region.rs#L312) and [line332](https://github.com/tikv/tikv/blob/7315140a1a6b29b724d362c3b0f64ea8e19424c9/tests/raftstore_cases/test_split_region.rs#L332)"
+    }
+  ]
+}

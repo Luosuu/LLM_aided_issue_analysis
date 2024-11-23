@@ -1,0 +1,28 @@
+{
+  "issue_number": 8576,
+  "title": "Deadlock in the lock table",
+  "body": "## Bug Report\r\n\r\n\r\n### What version of TiKV are you using?\r\n\r\nMaster\r\n\r\n### Steps to reproduce\r\n\r\nEnable async commit, then do transactions and do scanning at the same time. Then it is possible to cause a deadlock in the lock table. Then, lots of threads (including grpc and scheduler) will be blocked by the lock table, making TiKV unavailable. ",
+  "state": "closed",
+  "created_at": "2020-09-02T09:54:05Z",
+  "updated_at": "2020-09-09T03:01:41Z",
+  "closed_at": "2020-09-09T03:01:41Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 685534507,
+      "user": "sticnarf",
+      "created_at": "2020-09-02T09:58:28Z",
+      "body": "The cause is that we may try to remove the lock from the table while the mutex is held.\r\n\r\nFor example, look at:\r\nhttps://github.com/tikv/tikv/blob/35ebcb4abed0986872ec881fa83ab603c55defc9/components/concurrency_manager/src/lock_table.rs#L55\r\n\r\nThe mutex guard is always held inside `find_first`. Then, if the strong count of `handle` is 1, we will remove `handle` from the map when `handle.with_lock` ends. Removing elements from the lock table also requires the mutex, so we get a deadlock."
+    },
+    {
+      "id": 685541129,
+      "user": "sticnarf",
+      "created_at": "2020-09-02T10:03:05Z",
+      "body": "It is essentially a mutate-during-iteration problem. We can collect the handles and drop later but it looks ugly.\r\n\r\nThe best solution is using a concurrent data structure."
+    }
+  ]
+}

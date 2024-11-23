@@ -1,0 +1,46 @@
+{
+  "issue_number": 11670,
+  "title": "tikv keep oom on arm64 k8s deployments during br restore",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nMySQL [(none)]> select distinct type,version,git_hash from information_schema.cluster_info;\r\n+------+-------------------------+------------------------------------------+\r\n| type | version                 | git_hash                                 |\r\n+------+-------------------------+------------------------------------------+\r\n| pd   | 5.4.0-alpha-49-geba75c3 | eba75c3080a0db2d5edda7a2a8628e3a08c1af87 |\r\n| tidb | 5.4.0-alpha             | 755553660e6036ead13d1f0aa271eaf59d939fbd |\r\n| tikv | 5.4.0-alpha             | 7eeff52ec2f9494a24c712479720bbcf5e9d85dd |\r\n+------+-------------------------+------------------------------------------+\r\n3 rows in set (0.017 sec)\r\n```\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\narm64 linux\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n```\r\nrestore the ycsb dateset\r\n    br restore db --db=test --pd \"pd-peer:12379\" \\\r\n        --storage \"s3://ycsb-100m-v5.0.0\" \\\r\n        --s3.endpoint \"xyz.com\" \\\r\n        --send-credentials-to-tikv=true \\\r\n                --check-requirements=false\r\n```\r\n### What did you expect?\r\nrestore successfully\r\n\r\n### What did happened?\r\ntikv keep oom and br restore fail\r\nwhy tikv use 62G memory immediate just after startup.\r\nFor the tikv pod, 64G memory is allocated. memory_limit is set to 62GB. \r\n```\r\n  arch: arm64\r\n  user: \"tidb\"\r\n  ssh_port: 22\r\n  deploy_dir: \"/tiup/deploy\"\r\n  data_dir: \"/tiup/data\"\r\n  resource_control:\r\n    memory_limit: \"62G\"\r\nmonitored:\r\n  node_exporter_port: 19100\r\n  blackbox_exporter_port: 19115\r\nserver_configs:\r\n  pd: {}\r\n  tidb: {mem-quota-query: 64424509440, prepared-plan-cache: {enabled: true}}\r\n  tikv: {\"storage.block-cache.capacity\": 30GB}\r\n```\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/146404015-6041acac-2dc1-4638-8c62-2c52b343dcbd.png)\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/146404088-f14d465e-5098-4496-b257-2af2eb476812.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-12-16T15:56:36Z",
+  "updated_at": "2021-12-17T05:31:17Z",
+  "closed_at": "2021-12-17T05:31:17Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation"
+  ],
+  "comments_data": [
+    {
+      "id": 995950002,
+      "user": "dbsid",
+      "created_at": "2021-12-16T15:57:34Z",
+      "body": "```[Thu Dec 16 22:46:27 2021] [<ffff000008210ca8>] oom_kill_process+0x2b8/0x524\r\n[Thu Dec 16 22:46:27 2021] [<ffff0000082a145c>] mem_cgroup_oom_synchronize+0x3c0/0x424\r\n[Thu Dec 16 22:46:28 2021] [ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name\r\n[Thu Dec 16 22:46:28 2021] oom_reaper: reaped process 24747 (tikv-server), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB\r\n[Thu Dec 16 22:47:18 2021] sst-importer4 invoked oom-killer: gfp_mask=0x14000c0(GFP_KERNEL), nodemask=(null),  order=0, oom_score_adj=-998\r\n[Thu Dec 16 22:47:18 2021] [<ffff000008210ca8>] oom_kill_process+0x2b8/0x524\r\n[Thu Dec 16 22:47:18 2021] [<ffff0000082a145c>] mem_cgroup_oom_synchronize+0x3c0/0x424\r\n[Thu Dec 16 22:47:19 2021] [ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name\r\n[Thu Dec 16 22:47:19 2021] oom_reaper: reaped process 26019 (tikv-server), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB\r\n[Thu Dec 16 22:47:40 2021] sst-importer6 invoked oom-killer: gfp_mask=0x14000c0(GFP_KERNEL), nodemask=(null),  order=0, oom_score_adj=-998\r\n[Thu Dec 16 22:47:41 2021] [<ffff000008210ca8>] oom_kill_process+0x2b8/0x524\r\n[Thu Dec 16 22:47:41 2021] [<ffff0000082a145c>] mem_cgroup_oom_synchronize+0x3c0/0x424\r\n[Thu Dec 16 22:47:41 2021] [ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name\r\n[Thu Dec 16 22:47:41 2021] oom_reaper: reaped process 27400 (tikv-server), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB\r\n[Thu Dec 16 22:48:15 2021] raftstore-4-0 invoked oom-killer: gfp_mask=0x14000c0(GFP_KERNEL), nodemask=(null),  order=0, oom_score_adj=-998\r\n[Thu Dec 16 22:48:15 2021] [<ffff000008210ca8>] oom_kill_process+0x2b8/0x524\r\n[Thu Dec 16 22:48:15 2021] [<ffff0000082a145c>] mem_cgroup_oom_synchronize+0x3c0/0x424\r\n[Thu Dec 16 22:48:15 2021] [ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name\r\n[Thu Dec 16 22:48:16 2021] oom_reaper: reaped process 28058 (tikv-server), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB\r\n```"
+    },
+    {
+      "id": 995950200,
+      "user": "dbsid",
+      "created_at": "2021-12-16T15:57:47Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 996320725,
+      "user": "dbsid",
+      "created_at": "2021-12-17T00:48:34Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 996321222,
+      "user": "dbsid",
+      "created_at": "2021-12-17T00:49:44Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 996449888,
+      "user": "dbsid",
+      "created_at": "2021-12-17T05:31:17Z",
+      "body": "the oom due to the THP is not disabled on the arm64 machine, after disable THP, there is no oom.\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/146494011-c39ce4ae-ffd8-4d0e-a2fd-7a05dc497558.png)\r\n"
+    }
+  ]
+}

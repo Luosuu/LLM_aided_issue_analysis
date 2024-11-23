@@ -1,0 +1,23 @@
+{
+  "issue_number": 4225,
+  "title": "test raftstore::test_conf_change::test_node_auto_adjust_replica failed",
+  "body": "## Bug Report\r\n\r\nhttps://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/1527/pipeline\r\n\r\n```\r\ntest raftstore::test_conf_change::test_node_auto_adjust_replica ... thread 'raftstore::test_conf_change::test_node_auto_adjust_replica' panicked at 'replica count 5 still not meet 4 after 10 secs', tests/integrations/raftstore/test_conf_change.rs:272:5\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:71\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/sys_common/backtrace.rs:59\r\n             at src/libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:227\r\n   4: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:491\r\n   5: std::panicking::continue_panic_fmt\r\n             at src/libstd/panicking.rs:398\r\n   6: std::panicking::begin_panic_fmt\r\n             at src/libstd/panicking.rs:353\r\n   7: integrations::raftstore::test_conf_change::wait_till_reach_count\r\n             at tests/integrations/raftstore/test_conf_change.rs:272\r\n   8: integrations::raftstore::test_conf_change::test_auto_adjust_replica\r\n             at tests/integrations/raftstore/test_conf_change.rs:328\r\n   9: integrations::raftstore::test_conf_change::test_node_auto_adjust_replica\r\n             at tests/integrations/raftstore/test_conf_change.rs:339\r\n  10: integrations::raftstore::test_conf_change::test_node_auto_adjust_replica::{{closure}}\r\n             at tests/integrations/raftstore/test_conf_change.rs:336\r\n  11: core::ops::function::FnOnce::call_once\r\n             at /rustc/14997d56a550f4aa99fe737593cd2758227afc56/src/libcore/ops/function.rs:238\r\n  12: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at src/libtest/lib.rs:1471\r\n             at /rustc/14997d56a550f4aa99fe737593cd2758227afc56/src/libcore/ops/function.rs:238\r\n             at /rustc/14997d56a550f4aa99fe737593cd2758227afc56/src/liballoc/boxed.rs:673\r\n  13: __rust_maybe_catch_panic\r\n             at src/libpanic_unwind/lib.rs:102\r\nFAILED\r\n```",
+  "state": "closed",
+  "created_at": "2019-02-17T07:35:23Z",
+  "updated_at": "2020-11-05T09:09:22Z",
+  "closed_at": "2020-11-05T09:09:22Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 722245738,
+      "user": "5kbpers",
+      "created_at": "2020-11-05T09:09:22Z",
+      "body": "Duplicate with https://github.com/tikv/tikv/issues/4225"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "issue_number": 13425,
+  "title": "False positive PessimisticLockNotFound when a non-pessimistic key has newer rollbacks",
+  "body": "A concrete case is from https://github.com/pingcap/tidb/issues/35525#issuecomment-1171846720\r\n\r\n> It's caused by a rollback record on non-unique index keys whose ts is greater than the for_update_ts of the pessimistic transaction throwing the error.\r\n> \r\n> The sequence of events can be like:\r\n> \r\n> Pessimistic txn-A locks row key using for_update_ts = 1.\r\n> Optimistic txn-B with start_ts = 2 prewrites the index key.\r\n> txn-A finds the locks on index keys and rolls back txn-B, leaving rollback records of ts=2 on index keys.\r\n> txn-A prewrite index keys, and find a write conflict.\r\n\r\nBecause a Rollback record can be written at any timestamp. It may cause pessimistic transactions to throw `PessimisticLockNotFound` on non-pessimistic keys even if the corresponding pessimistic lock still exists.",
+  "state": "closed",
+  "created_at": "2022-09-07T07:42:59Z",
+  "updated_at": "2022-09-09T05:58:57Z",
+  "closed_at": "2022-09-09T05:58:57Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-5.4",
+    "affects-6.1"
+  ],
+  "comments_data": []
+}

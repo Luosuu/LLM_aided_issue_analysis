@@ -1,0 +1,21 @@
+{
+  "issue_number": 9041,
+  "title": "Peer reject to transfer leader because of pending conf change",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster: 33daf202a99d381b8b2526d391732ae94febecc1\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRun go-tpc and tiup reload some config. Then I cancel this  rolling update operation by mistake. Then some peers keep pending conf change and reject to transfer leader.\r\n\r\n```\r\n[2020/11/13 15:11:03.120 +08:00] [INFO] [peer.rs:2741] [\"reject to transfer leader\"] [last_index=147624] [index=139752] [reason=\"pending conf change\"] [to=\"id: 6695 store_id: 1\"] [peer_\r\nid=6694] [region_id=6692]\r\n```\r\n\r\n### What did happened?\r\n\r\nLeaders of TiKV can not balance.\r\n![image](https://user-images.githubusercontent.com/16376959/99040635-70ba3000-25c4-11eb-8f4c-3dce921f9dbc.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-11-13T07:26:05Z",
+  "updated_at": "2022-01-10T07:08:01Z",
+  "closed_at": "2022-01-10T07:08:01Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1008590363,
+      "user": "BusyJay",
+      "created_at": "2022-01-10T07:08:01Z",
+      "body": "Close due to stale."
+    }
+  ]
+}

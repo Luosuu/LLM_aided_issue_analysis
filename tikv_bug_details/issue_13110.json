@@ -1,0 +1,23 @@
+{
+  "issue_number": 13110,
+  "title": "Stale read meet `Data not ready` for a long time",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n6.1.0\r\n\r\n### What did happened?\r\nThere only 17 regions, and 9 TiKVs, them distributed in three regions: Tokyo, USA, and Singapore.\r\n\r\n### Phenomenon\r\nLogin Tokyo node `172.33.0.141` and run MySQL client, querying the data using stale read with `closest-replicas`. on the Tokyo node, read xjpnew1 data of the table will trigger `dataNotReady`:\r\n![image](https://user-images.githubusercontent.com/6428910/180409984-5a85f2e8-995e-48de-92be-8e6c9ae1575d.png)\r\n![image](https://user-images.githubusercontent.com/6428910/180410023-cf9a0f88-0190-48f7-9fe4-40f1d95623e7.png)\r\n\r\n### Placement Settings:\r\n![image](https://user-images.githubusercontent.com/6428910/180410164-587aa336-ce59-4887-a29e-cf0aa2e50a4a.png)\r\n\r\n### Regions of Table\r\n![image](https://user-images.githubusercontent.com/6428910/180410465-1fdeff89-1fc4-4325-bd2d-055adffe3b2f.png)\r\n\r\n### Replicas' Distrubution\r\n\r\n```\r\nmysql> select peer_id, a.store_id, b.ADDRESS, b.label from information_schema.tikv_region_peers a left join information_schema.tikv_store_status b on a.store_id=b.store_id  where region_id=1020;\r\n+---------+----------+---------------------+----------------------------------------------------------------------+\r\n| peer_id | store_id | ADDRESS             | label                                                                |\r\n+---------+----------+---------------------+----------------------------------------------------------------------+\r\n|    1022 |       19 | 172.34.0.94:20162   | [{\"key\": \"host\", \"value\": \"tikv2\"}, {\"key\": \"zone\", \"value\": \"xjp\"}] |\r\n|    1025 |       21 | 172.34.0.136:20163  | [{\"key\": \"host\", \"value\": \"tikv3\"}, {\"key\": \"zone\", \"value\": \"xjp\"}] |\r\n|    1028 |       20 | 172.34.0.178:20161  | [{\"key\": \"host\", \"value\": \"tikv1\"}, {\"key\": \"zone\", \"value\": \"xjp\"}] |\r\n|    1048 |        3 | 172.31.13.146:20162 | [{\"key\": \"host\", \"value\": \"tikv2\"}, {\"key\": \"zone\", \"value\": \"mg\"}]  |\r\n|    2727 |        2 | 172.31.10.140:20163 | [{\"key\": \"host\", \"value\": \"tikv3\"}, {\"key\": \"zone\", \"value\": \"mg\"}]  |\r\n|    2938 |     2808 | 172.33.0.82:20163   | [{\"key\": \"host\", \"value\": \"tikv3\"}, {\"key\": \"zone\", \"value\": \"dj\"}]  |\r\n|    2939 |        6 | 172.33.0.141:20161  | [{\"key\": \"host\", \"value\": \"tikv1\"}, {\"key\": \"zone\", \"value\": \"dj\"}]  |\r\n+---------+----------+---------------------+----------------------------------------------------------------------+\r\n7 rows in set (0.50 sec)\r\n```\r\n\r\n## Other Information\r\n\r\n### TiKV Debug Logs\r\n```\r\n$ tail -f tikv.log|grep reject\r\n[2022/07/19 04:16:30.346 +00:00] [DEBUG] [read.rs:332] [\"reject stale read by safe ts\"] [\"read ts\"=434688276561920000] [\"safe ts\"=0] [tag=\"[region 1020] 2938\"]\r\n[2022/07/19 04:16:35.714 +00:00] [DEBUG] [read.rs:332] [\"reject stale read by safe ts\"] [\"read ts\"=434688277872640000] [\"safe ts\"=0] [tag=\"[region 1020] 2938\"]\r\n\r\n$ tail -f tikv.log |grep reject\r\n[2022/07/19 04:33:00.354 +00:00] [DEBUG] [read.rs:332] [\"reject stale read by safe ts\"] [\"read ts\"=434688536084480000] [\"safe ts\"=0] [tag=\"[region 1020] 2938\"]\r\n[2022/07/19 04:33:03.570 +00:00] [DEBUG] [read.rs:332] [\"reject stale read by safe ts\"] [\"read ts\"=434688536870912000] [\"safe ts\"=0] [tag=\"[region 1020] 2938\"]\r\n``` \r\n\r\nwe can see the safe ts is always 0.\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-22T09:34:59Z",
+  "updated_at": "2023-02-17T09:07:07Z",
+  "closed_at": "2023-02-17T09:07:07Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1",
+    "affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1192381444,
+      "user": "nolouch",
+      "created_at": "2022-07-22T09:37:45Z",
+      "body": "/assign @nolouch "
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "issue_number": 12425,
+  "title": "【Dynamic Regions】unbalanced capacity between tikv, and a tikv generates an insufficient capacity alarm",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\nTiKV\r\nRelease Version: 6.0.0-alpha\r\nEdition: Community\r\nGit Commit Hash: https://github.com/tikv/tikv/commit/95c4d0ed36369c254b1bee36eb007004ee834948\r\nGit Commit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time: 2022-04-21 10:58:55\r\nRust Version: rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features: jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile: dist_release\r\n2022-04-24T10:07:55.070+0800 INFO k8s/client.go:107 it should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./pd-server -V\r\nRelease Version: v6.1.0-alpha-40-g1d8eba0\r\nEdition: Community\r\nGit Commit Hash: 1d8eba08d9907ef1a6fdebd1ebf6b218b9338d91\r\nGit Branch: feature/region_monitor\r\nUTC Build Time: 2022-04-22 12:21:42\r\n2022-04-24T10:07:55.245+0800 INFO k8s/client.go:107 it should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./tidb-server -V\r\nRelease Version: v6.1.0-nightly\r\nEdition: Community\r\nGit Commit Hash: 571d97bb16f6f69fcbcf74648380da3c2e80a3fb\r\nGit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time: 2022-04-20 23:02:41\r\nGoVersion: go1.18\r\nRace Enabled: false\r\nTiKV Min Version: v3.0.0-60965b006877ca7234adaced7890d7b029ed1306\r\nCheck Table Before Drop: false\r\n2022-04-24T10:07:55.385+0800 INFO k8s/client.go:107 it should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n\r\n### What operating system and CPU are you using?\r\n8core、16G\r\nenable-region-bucket = true\r\nregion-bucket-size = \"128M\"\r\nregion-max-keys = 1440000000000\r\nregion-max-size = \"15GB\"\r\nregion-split-keys = 960000000000\r\nregion-split-size = \"10GB\"\r\n\r\n### Steps to reproduce\r\n[2022/04/24 10:07:56.481 +08:00] [INFO] [cmd.go:124] [\"Start remote command\"] [cmd=\"sysbench --mysql-user=root --db-driver=mysql --time=0 --report-interval=10 --mysql-db=sysbenchprepare_1650766075958 --mysql-host=tc-tidb.glh-dynamic-regions-jw8pv --mysql-port=4000 --threads=256 --tables=512 --table-size=70000000 --mysql-ignore-errors=2013,1213,1105,1205,8022,8027,8028,9004,9007 oltp_insert prepare\"] [nodename=benchtoolset]\r\n\r\n### What did you expect?\r\nbalanced capacity between tikv\r\n\r\n### What did happened?\r\nunbalanced capacity between tikv, and a tikv generates an insufficient capacity alarm\r\n![image](https://user-images.githubusercontent.com/84712107/164971532-38cfb9fc-6248-46c0-b74a-27ad6e748665.png)\r\n\r\n![NUZwX553hL](https://user-images.githubusercontent.com/84712107/164971522-4e1eac84-c816-460a-9a9f-a570f52b1d03.png)\r\n![middle_img_v2_b6fae968-7279-4f2d-beac-2b743eead0cg](https://user-images.githubusercontent.com/84712107/164971786-f363b917-12a7-4467-805a-60db330e723d.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-04-24T10:11:50Z",
+  "updated_at": "2022-05-19T18:03:30Z",
+  "closed_at": "2022-05-19T18:03:30Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1107809199,
+      "user": "Lily2025",
+      "created_at": "2022-04-24T10:12:10Z",
+      "body": "/type bug\r\n/severity major\r\n/assign busyjay"
+    },
+    {
+      "id": 1110888287,
+      "user": "BusyJay",
+      "created_at": "2022-04-27T11:27:19Z",
+      "body": "We will revisit this once hotspots scheduling is fixed for large regions."
+    },
+    {
+      "id": 1120920427,
+      "user": "Lily2025",
+      "created_at": "2022-05-09T10:24:11Z",
+      "body": "/type bug\r\n/severity major\r\n/remove-type enhancement"
+    },
+    {
+      "id": 1124805362,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T10:05:25Z",
+      "body": "/remove-label affects-5.1\r\n/remove-label affects-5.2\r\n/remove-label affects-5.3\r\n/remove-label affects-5.4"
+    },
+    {
+      "id": 1124805379,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-12T10:05:26Z",
+      "body": "@Lily2025: These labels are not set on the issue: `affects-5.1, affects-5.2, affects-5.3, affects-5.4`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12425#issuecomment-1124805362):\n\n>/remove-label affects-5.1\r\n>/remove-label affects-5.2\r\n>/remove-label affects-5.3\r\n>/remove-label affects-5.4\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1124805694,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T10:05:45Z",
+      "body": "/remove-label affects-5.1"
+    },
+    {
+      "id": 1124805715,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-12T10:05:47Z",
+      "body": "@Lily2025: These labels are not set on the issue: `affects-5.1`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12425#issuecomment-1124805694):\n\n>/remove-label affects-5.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1124806616,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T10:06:46Z",
+      "body": "/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4"
+    },
+    {
+      "id": 1124806759,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T10:06:54Z",
+      "body": "/remove-label may-affects-4.0"
+    },
+    {
+      "id": 1124806991,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T10:07:09Z",
+      "body": "/remove-label may-affects-5.0"
+    },
+    {
+      "id": 1130696119,
+      "user": "BusyJay",
+      "created_at": "2022-05-18T23:07:45Z",
+      "body": "Should be fixed by https://github.com/tikv/pd/pull/4948"
+    }
+  ]
+}

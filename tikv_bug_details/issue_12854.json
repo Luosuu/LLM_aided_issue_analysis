@@ -1,0 +1,54 @@
+{
+  "issue_number": 12854,
+  "title": "br log backup checkpoint lag > 1H after stop restarting tikv for 1H",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   9fda7293db13eb2441a3814609d7a48b0c140cae\r\nGit Commit Branch: 6.1.0-pitr-dev\r\nUTC Build Time:    2022-06-13 03:03:45\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           release\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. Restart TiKV multiple times\r\n2. Start log backup  at 11:18 \r\n3. Restart TiKV servers multiple times (stop restarting TiKV at ~11:40)\r\n4. Check log backup status\r\n5\r\n### What did you expect?\r\nLog backup checkpoint should move forward in 20 minutes after stop TiKV restart.\r\n\r\n### What did happened?\r\nLog backup checkpoint doesn't move foward until ~12:44\r\nThere is a TiKV restart at ~12:33\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/174570854-9b4c4a56-b7db-4278-80d0-c4568b9db0cb.png)\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/174570529-466d2de4-0f37-477d-8384-4e715500a60c.png)\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/174573221-f17e9d08-88f1-4d50-bb43-fc80bcde9f74.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-06-20T09:38:06Z",
+  "updated_at": "2022-07-19T03:37:32Z",
+  "closed_at": "2022-07-19T03:37:18Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1160215738,
+      "user": "fubinzh",
+      "created_at": "2022-06-20T09:40:03Z",
+      "body": "/type bug\r\n/severity Major\r\n/feature developing"
+    },
+    {
+      "id": 1160216533,
+      "user": "fubinzh",
+      "created_at": "2022-06-20T09:40:45Z",
+      "body": "/assign YuJuncen"
+    },
+    {
+      "id": 1160216558,
+      "user": "ti-chi-bot",
+      "created_at": "2022-06-20T09:40:46Z",
+      "body": "@fubinzh: GitHub didn't allow me to assign the following users: YuJuncen.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12854#issuecomment-1160216533):\n\n>/assign YuJuncen\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1160222399,
+      "user": "YuJuncen",
+      "created_at": "2022-06-20T09:46:24Z",
+      "body": "The reason is probably the callback in the message 'CaptureChange' has been dropped."
+    },
+    {
+      "id": 1188558124,
+      "user": "3pointer",
+      "created_at": "2022-07-19T03:37:18Z",
+      "body": "after new checkpoint model implemented(https://github.com/pingcap/tidb/issues/35164), we need re-consider this kind of issues. close it "
+    }
+  ]
+}

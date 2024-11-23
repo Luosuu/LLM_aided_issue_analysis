@@ -1,0 +1,48 @@
+{
+  "issue_number": 8169,
+  "title": "Change max replicas may cause region unavailable",
+  "body": "## Bug Report\r\nConsider this case:\r\n```\r\nmax-replicas = 5\r\ndc1 has two zones: zone1, zone2\r\ndc2 has two zones: zone3, zone4\r\ndc3 has one zones: zone5\r\n```\r\n\r\nAfter dc2 is crushed, we want to improve the availability and change `max-replicas` from 5 to 3. But PD can't know it since it doesn't exceed the max downtime and may send remove peer command to dc1. This peer will be removed and the region becomes unavailable because we have 4 peers and 2 of them are down.",
+  "state": "closed",
+  "created_at": "2020-07-01T05:43:52Z",
+  "updated_at": "2022-01-10T10:35:50Z",
+  "closed_at": "2022-01-10T10:34:11Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/low",
+    "severity/major",
+    "won't fix"
+  ],
+  "comments_data": [
+    {
+      "id": 652251569,
+      "user": "BusyJay",
+      "created_at": "2020-07-01T07:43:33Z",
+      "body": "There is no way to guarantee complete availability during conf change.  I suggest to changing replicas only after changing state either automatically or manually. And PD should pick down node over health node."
+    },
+    {
+      "id": 721537714,
+      "user": "BusyJay",
+      "created_at": "2020-11-04T06:27:15Z",
+      "body": "Now we support joint consensus, perhaps PD can use joint consensus to remove two nodes at a time."
+    },
+    {
+      "id": 721544378,
+      "user": "HunDunDM",
+      "created_at": "2020-11-04T06:45:15Z",
+      "body": "/assign"
+    },
+    {
+      "id": 721548242,
+      "user": "HunDunDM",
+      "created_at": "2020-11-04T06:55:03Z",
+      "body": "> Now we support joint consensus, perhaps PD can use joint consensus to remove two nodes at a time.\r\n\r\nI will try to improve the logic."
+    },
+    {
+      "id": 1008736761,
+      "user": "HunDunDM",
+      "created_at": "2022-01-10T10:32:58Z",
+      "body": "I think this issue can be closed.\r\n\r\n* If the PD knows which down-peers are, the PD will first delete the down-peers.\r\n* If the PD does not know what the down-peers are, only TiKV can guarantee this. But according to @BusyJay , that can't be done.\r\n* Even with joint consensus, the PD might try to remove both dc1 and dc3 peers, and still get an error.\r\n* The only solution is to not set `max-replicas` directly but to remove dc2 via `Placement Rules`, which guarantees that peers of other dcs will not be removed."
+    }
+  ]
+}

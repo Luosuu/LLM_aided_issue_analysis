@@ -1,0 +1,24 @@
+{
+  "issue_number": 2649,
+  "title": "test_server_leader_change_with_uncommitted_log fails with stale command",
+  "body": "```\r\ntest raftstore_cases::test_multi::test_server_leader_change_with_uncommitted_log ... thread 'raftstore_cases::test_multi::test_server_leader_change_with_uncommitted_log' panicked at 'header {error {message: \"stale command\" stale_command {}} current_term: 10}', tests/raftstore_cases/test_multi.rs:405:4\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::imp::backtrace::tracing::imp::unwind_backtrace\r\n             at /checkout/src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::_print\r\n             at /checkout/src/libstd/sys_common/backtrace.rs:71\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at /checkout/src/libstd/sys_common/backtrace.rs:60\r\n             at /checkout/src/libstd/panicking.rs:380\r\n   3: std::panicking::default_hook\r\n             at /checkout/src/libstd/panicking.rs:396\r\n   4: tikv::util::panic_hook::track_hook::{{closure}}\r\n             at src/util/panic_hook.rs:61\r\n   5: <std::thread::local::LocalKey<T>>::try_with\r\n             at /checkout/src/libstd/thread/local.rs:362\r\n   6: <std::thread::local::LocalKey<T>>::with\r\n             at /checkout/src/libstd/thread/local.rs:276\r\n   7: tikv::util::panic_hook::track_hook\r\n             at src/util/panic_hook.rs:55\r\n   8: core::ops::function::Fn::call\r\n             at /checkout/src/libcore/ops/function.rs:48\r\n   9: std::panicking::rust_panic_with_hook\r\n             at /checkout/src/libstd/panicking.rs:611\r\n  10: std::panicking::begin_panic\r\n             at /checkout/src/libstd/panicking.rs:571\r\n  11: std::panicking::begin_panic_fmt\r\n             at /checkout/src/libstd/panicking.rs:521\r\n  12: integrations::raftstore_cases::test_multi::test_leader_change_with_uncommitted_log\r\n             at tests/raftstore_cases/test_multi.rs:405\r\n  13: integrations::raftstore_cases::test_multi::test_server_leader_change_with_uncommitted_log\r\n             at tests/raftstore_cases/test_multi.rs:422\r\n  14: <F as test::FnBox<T>>::call_box\r\n             at /checkout/src/libtest/lib.rs:1477\r\n             at /checkout/src/libcore/ops/function.rs:143\r\n             at /checkout/src/libtest/lib.rs:138\r\n  15: __rust_maybe_catch_panic\r\n             at /checkout/src/libpanic_unwind/lib.rs:98\r\nFAILED\r\n```",
+  "state": "closed",
+  "created_at": "2018-01-05T06:42:58Z",
+  "updated_at": "2021-01-12T12:20:50Z",
+  "closed_at": "2021-01-12T12:20:49Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 758620663,
+      "user": "overvenus",
+      "created_at": "2021-01-12T12:20:49Z",
+      "body": "Can't reproduce (tested 7783 times), closed. Feel free to reopen, if it occurs again."
+    }
+  ]
+}

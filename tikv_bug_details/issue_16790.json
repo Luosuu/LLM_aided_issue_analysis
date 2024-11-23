@@ -1,0 +1,38 @@
+{
+  "issue_number": 16790,
+  "title": "sql report \"Error 1105 (HY000): other error: Request range exceeds bound\" after flashback",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster on 4/9/2024\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. init tpcc data\r\n2. run tpcc workload for a while\r\n3. flashback to the time after initial\r\n4. check flashback success\r\n\r\n### What did you expect?\r\ndata check pass\r\n\r\n### What did happened?\r\n```\r\n[2024/04/09 04:37:49.746 +08:00] [INFO] [flashback_cluster_test.go:265] [\"total number:\"] [\"stale read\"=1000]\r\n[2024/04/09 04:37:59.747 +08:00] [INFO] [flashback_cluster_test.go:242] [\"flashback cluster to timestamp '2024-04-08 20:29:17'\"]\r\n[2024/04/09 04:38:44.765 +08:00] [INFO] [flashback_cluster_test.go:251] [\"select count(*) from tpcc.customer\"]\r\n[2024/04/09 04:38:49.649 +08:00] [INFO] [flashback_cluster_test.go:256] [\"total number:\"] [current=30000000]\r\n[2024/04/09 04:38:49.650 +08:00] [INFO] [flashback_cluster_test.go:260] [\"select count(*) from tpcc.customer as of timestamp '2024-04-08 20\r\n:29:17'\"]\r\n[2024/04/09 04:38:54.046 +08:00] [INFO] [flashback_cluster_test.go:265] [\"total number:\"] [\"stale read\"=30000000]\r\n[2024/04/09 04:38:54.046 +08:00] [INFO] [flashback_cluster_test.go:251] [\"select count(*) from tpcc.district\"]\r\n[2024/04/09 04:38:54.108 +08:00] [INFO] [flashback_cluster_test.go:256] [\"total number:\"] [current=10000]\r\n[2024/04/09 04:38:54.108 +08:00] [INFO] [flashback_cluster_test.go:260] [\"select count(*) from tpcc.district as of timestamp '2024-04-08 20\r\n:29:17'\"]\r\n[2024/04/09 04:38:54.299 +08:00] [INFO] [flashback_cluster_test.go:265] [\"total number:\"] [\"stale read\"=10000]\r\n[2024/04/09 04:38:54.299 +08:00] [INFO] [flashback_cluster_test.go:251] [\"select count(*) from tpcc.history\"]\r\n[2024/04/09 04:38:57.198 +08:00] [INFO] [flashback_cluster_test.go:256] [\"total number:\"] [current=30231905]\r\n[2024/04/09 04:38:57.198 +08:00] [INFO] [flashback_cluster_test.go:260] [\"select count(*) from tpcc.history as of timestamp '2024-04-08 20:\r\n29:17'\"]\r\n[2024/04/09 04:39:01.626 +08:00] [INFO] [flashback_cluster_test.go:265] [\"total number:\"] [\"stale read\"=30231905]\r\n[2024/04/09 04:39:01.626 +08:00] [INFO] [flashback_cluster_test.go:251] [\"select count(*) from tpcc.item\"]\r\n[2024/04/09 04:39:01.664 +08:00] [INFO] [flashback_cluster_test.go:256] [\"total number:\"] [current=100000]\r\n[2024/04/09 04:39:01.664 +08:00] [INFO] [flashback_cluster_test.go:260] [\"select count(*) from tpcc.item as of timestamp '2024-04-08 20:29:\r\n17'\"]\r\n[2024/04/09 04:39:01.706 +08:00] [INFO] [flashback_cluster_test.go:265] [\"total number:\"] [\"stale read\"=100000]\r\n[2024/04/09 04:39:01.706 +08:00] [INFO] [flashback_cluster_test.go:251] [\"select count(*) from tpcc.new_order\"]\r\n[2024/04/09 04:39:01.720 +08:00] [INFO] [flashback_cluster_test.go:254] [error] [\"select count(*) from table fail\"=\"Error 1105 (HY000): oth\r\ner error: Request range exceeds bound, request range:[7480000000000000FF735F728000000000FF8788B00000000000FA, 7480000000000000FF735F72FFFFF\r\nFFFFFFFFFFFFF0000000000FB), physical bound:[7480000000000000FF735F728000000000FF8EBBDE0000000000FA, 7480000000000000FF735F72FFFFFFFFFFFFFFF\r\nFFF0000000000FB)\"]\r\n[2024/04/09 04:39:01.720 +08:00] [INFO] [flashback_cluster_test.go:260] [\"select count(*) from tpcc.new_order as of timestamp '2024-04-08 2\r\n0:29:17'\"]\r\n```\r\n\r\nthis issue occurs with probability\r\n",
+  "state": "closed",
+  "created_at": "2024-04-10T02:26:55Z",
+  "updated_at": "2024-04-18T06:54:28Z",
+  "closed_at": "2024-04-18T06:54:23Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2050889751,
+      "user": "seiya-annie",
+      "created_at": "2024-04-12T03:14:15Z",
+      "body": "[2024/04/10 03:24:11.348 +00:00] [INFO] [[apply.rs:2574](http://apply.rs:2574/)] [\"split region\"] [keys=\"key 7480000000000000FF6D5F728000000000FF8791F10000000000FA\"] [region=\"id: 2736 start_key: 7480000000000000FF6D5F728000000000FF7934E90000000000FA end_key: 7480000000000000FF6D5F72FFFFFFFFFFFFFFFFFF0000000000FB region_epoch { conf_ver: 5 version: 200 } peers { id: 2737 store_id: 1 } peers { id: 2738 store_id: 4 } peers { id: 2739 store_id: 5 }\"] [peer_id=2737] [region_id=2736] [thread_id=84]"
+    },
+    {
+      "id": 2050889944,
+      "user": "seiya-annie",
+      "created_at": "2024-04-12T03:14:31Z",
+      "body": "[2024/04/10 03:24:30.819 +00:00] [WARN] [coprocessor.go:1450] [\"other error\"] [conn=3047162270] [session_alias=] [txnStartTS=448979132948676609] [regionID=2736] [bucketsVer=0] [latestBucketsVer=0] [rangeNums=1] [firstRangeStartKey=\"t\\ufffd\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000m_r\\ufffd\\u0000\\u0000\\u0000\\u0000y4\\ufffd\"] [lastRangeEndKey=\"t\\ufffd\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000m_r\\ufffd\\ufffd\\ufffd\\ufffd\\ufffd\\ufffd\\ufffd\\ufffd\\u0000\"] [storeAddr=[tc-tikv-2.tc](http://tc-tikv-2.tc/)-tikv-peer.endless-ha-test-tps-7504089-1-692.svc:20160] [error=\"other error: Request range exceeds bound, request range:[7480000000000000FF6D5F728000000000FF7934E90000000000FA, 7480000000000000FF6D5F72FFFFFFFFFFFFFFFFFF0000000000FB), physical bound:[7480000000000000FF6D5F728000000000FF8791F10000000000FA, 7480000000000000FF6D5F72FFFFFFFFFFFFFFFFFF0000000000FB)\"]"
+    },
+    {
+      "id": 2063151511,
+      "user": "cfzjywxk",
+      "created_at": "2024-04-18T06:54:23Z",
+      "body": "Close as it's a tidb issue https://github.com/pingcap/tidb/issues/52464"
+    },
+    {
+      "id": 2063151573,
+      "user": "seiya-annie",
+      "created_at": "2024-04-18T06:54:26Z",
+      "body": "trackered in https://github.com/pingcap/tidb/issues/52464"
+    }
+  ]
+}

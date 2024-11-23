@@ -1,0 +1,22 @@
+{
+  "issue_number": 3537,
+  "title": "trace! is executed when log level > trace",
+  "body": "## Bug Report\r\n\r\n```rust\r\n    fn foo(kind: &str) -> ::std::time::Instant {\r\n        println!(\"foo is called, kind = {}\", kind);\r\n        ::std::time::Instant::now()\r\n    }\r\n    trace!(\"foo after init log, now = {:?}\", foo(\"after\"));\r\n```\r\n\r\nOutput:\r\n\r\n```\r\nfoo is called, kind = after\r\n```\r\n\r\nAs you can see, trace body is not outputted (expected), but trace body is really executed (unexpected). If what we are tracing is time consuming, it will hurt performance badly.",
+  "state": "closed",
+  "created_at": "2018-08-28T07:21:00Z",
+  "updated_at": "2018-09-06T02:39:42Z",
+  "closed_at": "2018-09-06T02:39:42Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "component/performance"
+  ],
+  "comments_data": [
+    {
+      "id": 416482174,
+      "user": "BusyJay",
+      "created_at": "2018-08-28T07:37:42Z",
+      "body": "See also: https://github.com/tikv/tikv/pull/3010#issuecomment-388385374.\r\n\r\nAlthough slog-stdlog is the one to be blamed this time."
+    }
+  ]
+}

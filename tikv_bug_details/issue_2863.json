@@ -1,0 +1,66 @@
+{
+  "issue_number": 2863,
+  "title": "test_server_partition_write  failed on master",
+  "body": "raftstore::test_transport::test_server_partition_write\r\n\r\nCI failed a test not related to pull request.  \r\n\r\nCI task is here: https://circleci.com/gh/pingcap/tikv/8917#config/containers/0\r\n\r\ntest raftstore_cases::test_transport::test_server_partition_write ... thread 'raftstore_cases::test_transport::test_server_partition_write' panicked at 'called `Result::unwrap()` on an `Err` value: Other(StringError(\"[tests/raftstore/cluster.rs:261]: can\\'t get leader of region 1\"))', libcore/result.rs:916:5\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:68\r\n             at libstd/sys_common/backtrace.rs:57\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:380\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:396\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:576\r\n   5: std::panicking::begin_panic\r\n             at libstd/panicking.rs:537\r\n   6: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:521\r\n   7: rust_begin_unwind\r\n             at libstd/panicking.rs:497\r\n   8: core::panicking::panic_fmt\r\n             at libcore/panicking.rs:71\r\n   9: core::result::unwrap_failed\r\n             at /checkout/src/libcore/macros.rs:23\r\n  10: <core::result::Result<T, E>>::unwrap\r\n             at /checkout/src/libcore/result.rs:782\r\n  11: <integrations::raftstore::cluster::Cluster<T>>::request\r\n             at tests/raftstore/cluster.rs:550\r\n  12: <integrations::raftstore::cluster::Cluster<T>>::get_impl\r\n             at tests/raftstore/cluster.rs:603\r\n  13: <integrations::raftstore::cluster::Cluster<T>>::must_get\r\n             at tests/raftstore/cluster.rs:599\r\n  14: integrations::raftstore_cases::test_transport::test_partition_write\r\n             at tests/raftstore_cases/test_transport.rs:41\r\n  15: integrations::raftstore_cases::test_transport::test_server_partition_write\r\n             at tests/raftstore_cases/test_transport.rs:63\r\n  16: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1440\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:817\r\n  17: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:102\r\nFAILED",
+  "state": "closed",
+  "created_at": "2018-03-23T03:41:23Z",
+  "updated_at": "2020-11-17T12:23:41Z",
+  "closed_at": "2020-11-17T12:23:41Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 375543425,
+      "user": "breezewish",
+      "created_at": "2018-03-23T04:42:58Z",
+      "body": "Some tests are not very stable as far as I know. Usually we invoke a rebuild.. Let's keep this issue open so that it can be further improved."
+    },
+    {
+      "id": 375554827,
+      "user": "sunxiaoguang",
+      "created_at": "2018-03-23T06:07:29Z",
+      "body": "Ok, I see. thanks."
+    },
+    {
+      "id": 612018428,
+      "user": "sre-bot",
+      "created_at": "2020-04-10T13:00:59Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/20380/consoleFull"
+    },
+    {
+      "id": 628619003,
+      "user": "sre-bot",
+      "created_at": "2020-05-14T13:01:52Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_master_test_coverage/1233/consoleFull"
+    },
+    {
+      "id": 642632717,
+      "user": "sre-bot",
+      "created_at": "2020-06-11T13:01:13Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/24034/consoleFull"
+    },
+    {
+      "id": 723078130,
+      "user": "sre-bot",
+      "created_at": "2020-11-06T13:22:45Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/34128/consoleFull"
+    },
+    {
+      "id": 725410374,
+      "user": "sre-bot",
+      "created_at": "2020-11-11T13:01:10Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/34625/consoleFull"
+    },
+    {
+      "id": 727896736,
+      "user": "BusyJay",
+      "created_at": "2020-11-16T10:43:43Z",
+      "body": "The failure occurred 10 days ago was fixed by #8971. The failure occurred 5 days ago seemed to be a bug of system that assigned same port to two listening requests.\r\n```\r\n2020/11/11 05:08:03.630 server.rs:226: [INFO] listening on addr, addr: 127.0.0.1:10146\r\n2020/11/11 05:08:03.717 cluster.rs:284: [DEBG] node 5 started\r\n--\r\n2020/11/11 05:08:04.093 server.rs:226: [INFO] listening on addr, addr: 127.0.0.1:10146\r\n2020/11/11 05:08:04.202 cluster.rs:284: [DEBG] node 1 started\r\n```\r\n10146 was assigned twice to different stores.\r\n\r\nI'm not sure how this happens, but I'm going to use a global port allocator to avoid the conflict."
+    }
+  ]
+}

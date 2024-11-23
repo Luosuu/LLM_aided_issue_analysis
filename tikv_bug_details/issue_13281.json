@@ -1,0 +1,65 @@
+{
+  "issue_number": 13281,
+  "title": "data inconsistency after br PiTR restore ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V                                                                                            \r\nTiKV                                                                                                           \r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community                                                                                   \r\nGit Commit Hash:   7824699f4e05feb3eb37b12265ecc1e26511a4d7                                                    \r\nGit Commit Branch: heads/refs/tags/v6.2.0                                                                      \r\nUTC Build Time:    2022-08-11 13:49:18                                                                         \r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)                                                 \r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-en\r\ngine cloud-aws cloud-gcp cloud-azure                                                                           \r\nProfile:           dist_release                                                                                \r\n\r\n### What operating system and CPU are you using?\r\nK8S, 8C 16G\r\n\r\n### Steps to reproduce\r\n1. Start log backup\r\n2. Do full backup\r\n3. Start workload with 1000 tables for 10 min\r\n```\r\nsysbench --db-driver=mysql --mysql-host=upstream-tidb.brie-acceptance-pitr-robust-tps-1083099-1-452 --mysql-port=4000 --mysql-user=root --mysql-db=sbtest1000 --tables=1000 --table-size=10000 --create_secondary=off --time=60 --threads=20 oltp_insert prepare\r\nsysbench --db-driver=mysql --mysql-host=upstream-tidb.brie-acceptance-pitr-robust-tps-1083099-1-452 --mysql-port=4000 --mysql-user=root --mysql-db=sbtest1000 --tables=1000 --table-size=10000 --create_secondary=off --time=600 --threads=20 oltp_insert run\r\n```\r\n4. Wait checkpoint move forward\r\n```\r\n● Total 1 Tasks.\r\n> #1 <\r\n              name: task1\r\n            status: ● NORMAL\r\n             start: 2022-08-13 02:28:36.516 +0000\r\n               end: 2090-11-18 14:07:45.624 +0000\r\n           storage: s3://tmp/br-log-backup84ed324a-894c-4f13-84fa-44675095787d/Log\r\n       speed(est.): 0.00 ops/s\r\ncheckpoint[global]: 2022-08-13 02:43:07.216 +0000; gap=4m59s\r\n[2022/08/13 10:48:06.135 +08:00] [INFO] [br.go:518] [\"Current log backup checkpoint: 2022-08-13 02:43:07 +0000 UTC, expect it is larger than: 2022-08-13 02:41:05.816 +0000 UTC\"]\r\n\r\n```\r\n  5. Do a PiTR restore, and check data consistency\r\n```\r\n/br  restore  point \"--storage\" \"s3://tmp/br-log-backup84ed324a-894c-4f13-84fa-44675095787d/Log\" \"--pd\" \"http://downstream-pd.brie-acceptance-pitr-robust-tps-1083099-1-452:2379\" \"--full-backup-storage\" \"s3://tmp/br-log-backup84ed324a-894c-4f13-84fa-44675095787d/Full\"\r\n```\r\n    \r\n### What did you expect?\r\nData should be consistent after PiTR restore\r\n\r\n### What did happened?\r\nPiTR Restore was successful, but data consistency check failed via sync_diff_inspector.\r\n\r\n![origin_img_v2_0ef751b7-af01-4067-a24a-1b40bf07f7cg](https://user-images.githubusercontent.com/7403864/184497372-ee293554-ca81-414a-9146-2c9558fa256c.jpg)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-08-13T13:58:03Z",
+  "updated_at": "2022-10-14T01:10:29Z",
+  "closed_at": "2022-08-16T06:14:52Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/automation",
+    "affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1214165007,
+      "user": "fubinzh",
+      "created_at": "2022-08-13T14:04:42Z",
+      "body": "/type bug\r\n/severity Critical"
+    },
+    {
+      "id": 1214265856,
+      "user": "joccau",
+      "created_at": "2022-08-14T02:01:52Z",
+      "body": "/remove-label may-affects-4.0"
+    },
+    {
+      "id": 1214585301,
+      "user": "joccau",
+      "created_at": "2022-08-15T03:50:12Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1214585319,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-15T03:50:16Z",
+      "body": "@joccau: These labels are not set on the issue: `may-affects-4.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13281#issuecomment-1214585301):\n\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-5.0\r\n>/remove-label may-affects-5.1\r\n>/remove-label may-affects-5.2\r\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-6.0\r\n>/remove-label may-affects-6.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1214585405,
+      "user": "joccau",
+      "created_at": "2022-08-15T03:50:34Z",
+      "body": "/remove-label may-affects-6.2\r\n/remove-label affects-6.2"
+    },
+    {
+      "id": 1214585417,
+      "user": "ti-chi-bot",
+      "created_at": "2022-08-15T03:50:36Z",
+      "body": "@joccau: These labels are not set on the issue: `affects-6.2`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13281#issuecomment-1214585405):\n\n>/remove-label may-affects-6.2\r\n>/remove-label affects-6.2\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1214585642,
+      "user": "joccau",
+      "created_at": "2022-08-15T03:51:27Z",
+      "body": "/label affects-6.2"
+    },
+    {
+      "id": 1278346852,
+      "user": "fubinzh",
+      "created_at": "2022-10-14T01:10:28Z",
+      "body": "/found automation"
+    }
+  ]
+}

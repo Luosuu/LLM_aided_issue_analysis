@@ -1,0 +1,59 @@
+{
+  "issue_number": 9541,
+  "title": "TiKV cannot send KMS request",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\nubuntu 20.04\r\n\r\n### Steps to reproduce\r\n1. set up kms server such as localstack (https://github.com/localstack/localstack.git)\r\n2. create tikv config\r\n```\r\n[security.encryption.master-key]\r\ntype = \"kms\"\r\nkey-id = \"8c929cbb-b3b6-432a-b091-67f742be0666\"\r\nendpoint = \"http://localhost:4566\"\r\nregion = \"us-east-1\"\r\n\r\n[security.encryption]\r\ndata-encryption-method = \"aes256-ctr\"\r\ndata-key-rotation-period = \"7d\"\r\n```\r\n3. try to run pd-server and tikv-server\r\n```\r\n./bin/pd-server --name=pd --data-dir=pd --client-urls=\"http://127.0.0.1:2379\" --peer-urls=\"http://127.0.0.1:2380\" --initial-cluster=\"pd=http://127.0.0.1:2380\" --log-file=pd.log\r\n./bin/tikv-server --pd-endpoints=\"127.0.0.1:2379\" --addr=\"172.16.111.10:20160\" --data-dir=tikv --log-file=tikv.log --config=\"tikv.toml\"\r\n```\r\n4. view the tikv.log and found kms request error due to timeout.\r\n\r\n### What did you expect?\r\naccess kms service correctly.\r\n\r\nuse awslocal to test and found the service is enabled. And I created a real kms key to test, got same problem.\r\n",
+  "state": "closed",
+  "created_at": "2021-01-21T17:14:40Z",
+  "updated_at": "2021-02-02T14:39:37Z",
+  "closed_at": "2021-02-02T10:24:40Z",
+  "labels": [
+    "type/bug",
+    "component/security",
+    "severity/major",
+    "status/cannot-reproduce"
+  ],
+  "comments_data": [
+    {
+      "id": 764804057,
+      "user": "hunterlxt",
+      "created_at": "2021-01-21T17:16:04Z",
+      "body": "@gregwebs I tested using a real KMS key, maybe something is wrong with my steps"
+    },
+    {
+      "id": 765395499,
+      "user": "gregwebs",
+      "created_at": "2021-01-22T13:28:58Z",
+      "body": "> @gregwebs I tested using a real KMS key, maybe something is wrong with my steps\r\n\r\nWhat does this mean? Was this test successful? Was it against AWS rather than localstack?\r\n\r\nI have verified that master works against localstack as per the CONTRIBUTING instructions on both Mac and WSL Ubuntu Linux.\r\n\r\nA timeout error means that the KMS endpoint is never reached. Can you add a log statement to log the url that is being used?"
+    },
+    {
+      "id": 767304895,
+      "user": "hunterlxt",
+      "created_at": "2021-01-26T05:27:37Z",
+      "body": "> > @gregwebs I tested using a real KMS key, maybe something is wrong with my steps\r\n> \r\n> What does this mean? Was this test successful? Was it against AWS rather than localstack?\r\n> \r\n> I have verified that master works against localstack as per the CONTRIBUTING instructions on both Mac and WSL Ubuntu Linux.\r\n> \r\n> A timeout error means that the KMS endpoint is never reached. Can you add a log statement to log the url that is being used?\r\n\r\nI got the key-id from `https://aws.amazon.com/` and got same error from tikv.log.\r\nI followed your instructions but failed.\r\ncurl operations:\r\n```\r\nsudo docker-compose up\r\nlocalstack_main | 2021-01-26T05:27:20:INFO:localstack.services.edge: Unable to find forwarding rule for host \"localhost:4566\", path \"GET /\", target header \"\", auth header \"\", data \"b''\"\r\n```\r\n```\r\ncurl http://localhost:4566\r\n{\"status\": \"running\"}%\r\n```"
+    },
+    {
+      "id": 771080588,
+      "user": "gregwebs",
+      "created_at": "2021-02-01T18:57:36Z",
+      "body": "What is the exact error in the tikv.log? I have tested the KMS code based off of mater on Mac, Windows with WSL, and Linux (the latter both using Ubuntu) and I do not get a timeout error (testing both localstack and real AWS). Have you tested on a different machine?\r\n\r\nThis issue seems to imply that there is a regression on master from prior releases. Have you tested your setup with a prior release?"
+    },
+    {
+      "id": 771533677,
+      "user": "hunterlxt",
+      "created_at": "2021-02-02T10:24:33Z",
+      "body": "I referenced https://docs.pingcap.com/tidb/dev/encryption-at-rest and https://github.com/tikv/tikv/blob/master/CONTRIBUTING.md#testing-aws but i didn't set credentials in my environment. And tikv log didn't show the root cause."
+    },
+    {
+      "id": 771624089,
+      "user": "gregwebs",
+      "created_at": "2021-02-02T13:11:11Z",
+      "body": "Can you approve my PR that adds instructions for the credentials? https://github.com/tikv/tikv/pull/9599\r\n\r\nIf there are error messages we don't understand we should try to spend a little time improving the error messages. Error messages end up as the user interface for end users.\r\n"
+    },
+    {
+      "id": 771680464,
+      "user": "hunterlxt",
+      "created_at": "2021-02-02T14:39:37Z",
+      "body": "> Can you approve my PR that adds instructions for the credentials? #9599\r\n> \r\n> If there are error messages we don't understand we should try to spend a little time improving the error messages. Error messages end up as the user interface for end users.\r\n\r\nYeah, it just shows \"kms request timeout\" but no reason"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "issue_number": 11431,
+  "title": "QPS drop 1% ~4% for Point Get workload in v5.3.0, compared to v5.2.2",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv5.3.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86 linux\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrunning sysbench point get with 32 tables, each with 10,000,000 rows, 300 threads\r\n\r\n### What did you expect?\r\nno performance penalty.\r\n\r\n### What did happened?\r\nQPS drop 2% ~ 4% \r\n",
+  "state": "closed",
+  "created_at": "2021-11-19T15:35:20Z",
+  "updated_at": "2022-01-04T09:33:40Z",
+  "closed_at": "2022-01-04T09:33:40Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 974175445,
+      "user": "dbsid",
+      "created_at": "2021-11-19T15:36:31Z",
+      "body": "v5.2.2\r\n![v522](https://user-images.githubusercontent.com/2316425/142649164-e14bd170-0b31-4164-984f-344c547785d3.png)\r\n\r\nv5.3.0\r\n![v532](https://user-images.githubusercontent.com/2316425/142649187-1e73f59d-168d-4819-b2f4-1b87a5e2286e.png)\r\n\r\n"
+    },
+    {
+      "id": 974176893,
+      "user": "dbsid",
+      "created_at": "2021-11-19T15:37:17Z",
+      "body": "/severity Major"
+    },
+    {
+      "id": 986641618,
+      "user": "Lily2025",
+      "created_at": "2021-12-06T10:26:59Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1004653112,
+      "user": "dbsid",
+      "created_at": "2022-01-04T09:33:40Z",
+      "body": "not reproducible"
+    }
+  ]
+}

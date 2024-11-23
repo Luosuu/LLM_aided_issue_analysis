@@ -1,0 +1,72 @@
+{
+  "issue_number": 9765,
+  "title": "Built-in profiling can cause a segmentation fault",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nLatest nightly: dc8ce2cf6a8904cb3dad556f71b11bac3531689b\r\n\r\n### What operating system and CPU are you using?\r\n\r\nLinux. It happens on both CentOS 7 (3.10.0-957.27.2.el7.x86_64) and Arch Linux (5.11.2-arch1-1).\r\n\r\n### Steps to reproduce\r\n\r\nRun YCSB workloada on a 3-node TiKV cluster. Meanwhile, get `http://{TiKV_IP}:20180/debug/pprof/profile?seconds=30`.\r\n\r\n### What did you expect?\r\n\r\nGet a CPU profiling flamegraph.\r\n\r\n### What did happened?\r\n\r\nA segmentation fault happens. Backtrace of the core:\r\n\r\n```\r\nProgram terminated with signal SIGSEGV, Segmentation fault.\r\n[Current thread is 1 (Thread 0x7ff7f83fe640 (LWP 162560))]\r\nwarning: Missing auto-load script at offset 0 in section .debug_gdb_scripts\r\nof file /data/deploy/tikv-20160/bin/tikv-server.\r\nUse `info auto-load python-scripts [REGEXP]' to list them.\r\n(gdb) bt\r\n#0  x86_64_fallback_frame_state (context=0x7ff7f83d6a50, context=0x7ff7f83d6a50, fs=0x7ff7f83d6b40) at ./md-unwind-support.h:63\r\n#1  uw_frame_state_for (context=0x7ff7f83d6a50, fs=0x7ff7f83d6b40) at /build/gcc/src/gcc/libgcc/unwind-dw2.c:1271\r\n#2  0x00007ff83337433b in _Unwind_Backtrace (trace=0x556d67bdcd00 <backtrace::backtrace::libunwind::trace::trace_fn>, trace_argument=0x7ff7f83d6f40) at /build/gcc/src/gcc/libgcc/unwind.inc:302\r\n#3  0x0000556d688c5d97 in perf_signal_handler ()\r\n#4  <signal handler called>\r\n#5  0x0000556d6832d941 in crossbeam_deque::Stealer<T>::steal_batch_and_pop ()\r\n#6  0x0000000000010830 in ?? ()\r\n#7  0x0000000000000000 in ?? ()\r\n```\r\n\r\nFrame 5 has many possibilities, it may not be `crossbeam_deque::Stealer<T>::steal_batch_and_pop`.",
+  "state": "closed",
+  "created_at": "2021-03-08T13:57:57Z",
+  "updated_at": "2022-06-14T07:35:21Z",
+  "closed_at": "2022-03-19T08:58:31Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 799342604,
+      "user": "sticnarf",
+      "created_at": "2021-03-15T11:25:08Z",
+      "body": "Probably due to incorrect DWARF info during stack probing.\r\n\r\npprof-rs issue: https://github.com/tikv/pprof-rs/issues/57\r\nrust issue: https://github.com/rust-lang/rust/issues/83139"
+    },
+    {
+      "id": 799868247,
+      "user": "cosven",
+      "created_at": "2021-03-16T01:12:01Z",
+      "body": "/severity critical\r\n/remove-severity minor"
+    },
+    {
+      "id": 805443555,
+      "user": "breezewish",
+      "created_at": "2021-03-24T02:50:43Z",
+      "body": "Maybe we need to add unit tests for this? @YangKeao "
+    },
+    {
+      "id": 805462828,
+      "user": "sticnarf",
+      "created_at": "2021-03-24T03:40:01Z",
+      "body": "> Maybe we need to add unit tests for this? @YangKeao\r\n\r\nIt's hard. It only happens when a signal hits the stack probing part in the prologue of a function :(\r\n\r\nI think an integration test may be more practical."
+    },
+    {
+      "id": 805465982,
+      "user": "YangKeao",
+      "created_at": "2021-03-24T03:50:50Z",
+      "body": "I have prepared an integration test for `pprof-rs`. Once the rust team fixed this issue, I will submit and merge it. (And schedule a daily CI for every nightly rust.)"
+    },
+    {
+      "id": 805507153,
+      "user": "YangKeao",
+      "created_at": "2021-03-24T05:21:01Z",
+      "body": "The related PR has been merged https://github.com/rust-lang/rust/pull/83412 14 hours ago, so I can test it today or tomorrow."
+    },
+    {
+      "id": 1067441417,
+      "user": "breezewish",
+      "created_at": "2022-03-15T00:34:28Z",
+      "body": "I experienced yet another seg fault, which is in master branch:\r\n\r\n```\r\nRelease Version:   6.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   e1fae9469b33ff1ec4fd66aa143a21a5f30f5aa3\r\nGit Commit Branch: heads/refs/tags/v6.0.0-alpha\r\nUTC Build Time:    2022-03-12 15:16:24\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n```\r\n\r\n```\r\n(gdb) bt full\r\n#0  x86_64_fallback_frame_state (context=0x7f78451a19c0, context=0x7f78451a19c0, fs=0x7f78451a1ab0) at ./md-unwind-support.h:63\r\n        pc = 0x1760ff90 <error: Cannot access memory at address 0x1760ff90>\r\n        sc = <optimized out>\r\n        new_cfa = <optimized out>\r\n        pc = <optimized out>\r\n        sc = <optimized out>\r\n        new_cfa = <optimized out>\r\n        uc_ = <optimized out>\r\n#1  uw_frame_state_for (context=context@entry=0x7f78451a19c0, fs=fs@entry=0x7f78451a1ab0) at ../../../src/libgcc/unwind-dw2.c:1265\r\n        fde = 0x0\r\n        cie = <optimized out>\r\n        aug = <optimized out>\r\n        insn = <optimized out>\r\n        end = <optimized out>\r\n#2  0x00007f7898f43098 in _Unwind_Backtrace (trace=0x563b236b05f0 <backtrace::backtrace::libunwind::trace::trace_fn>, trace_argument=0x7f78451a2610) at ../../../src/libgcc/unwind.inc:302\r\n        fs = {regs = {reg = {{loc = {reg = 0, offset = 0, exp = 0x0}, how = REG_UNSAVED} <repeats 18 times>}, prev = 0x0, cfa_offset = 0, cfa_reg = 0, cfa_exp = 0x0, \r\n            cfa_how = CFA_UNSET}, pc = 0x0, personality = 0x0, data_align = 0, code_align = 0, retaddr_column = 0, fde_encoding = 0 '\\000', lsda_encoding = 0 '\\000', saw_z = 0 '\\000', \r\n          signal_frame = 0 '\\000', eh_ptr = 0x0}\r\n        context = {reg = {0x7f78451a3350, 0x7f78451a3348, 0x7f78451a3358, 0x7f78451a3ff0, 0x7f78451a3330, 0x7f78451a3328, 0x7f78451a4000, 0x0, 0x7f78451a32e8, 0x7f78451a32f0, \r\n            0x7f78451a32f8, 0x7f78451a3300, 0x7f78451a3ff8, 0x7f78451a3310, 0x7f78451a3318, 0x7f78451a3320, 0x7f78451a4008, 0x0}, cfa = 0x7f78451a4010, ra = 0x1760ff90, lsda = 0x0, \r\n          bases = {tbase = 0x0, dbase = 0x0, func = 0x7fff2c7db950 <clock_gettime>}, flags = 4611686018427387904, version = 0, args_size = 0, by_value = '\\000' <repeats 17 times>}\r\n        code = <optimized out>\r\n#3  0x0000563b23b5504d in backtrace::backtrace::libunwind::trace (cb=...) at /rust/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.61/src/backtrace/libunwind.rs:90\r\nNo locals.\r\n#4  backtrace::backtrace::trace_unsynchronized (cb=...) at /rust/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.61/src/backtrace/mod.rs:66\r\nNo locals.\r\n#5  pprof::profiler::perf_signal_handler (_signal=<optimized out>, _siginfo=<optimized out>, ucontext=0x7f78451a32c0)\r\n    at /rust/git/checkouts/pprof-rs-e0fcf6c5ee7a42e1/400456e/src/profiler.rs:251\r\n        index = 0\r\n        bt = smallvec::SmallVec<[backtrace::backtrace::Frame; 32]> {capacity: 4, data: smallvec::SmallVecData<[backtrace::backtrace::Frame; 32]>}\r\n#6  <signal handler called>\r\nNo locals.\r\n#7  0x00007fff2c7db6d8 in ?? ()\r\nNo symbol table info available.\r\n#8  0x00007fff2c7db982 in clock_gettime ()\r\nNo symbol table info available.\r\n#9  0x000000001760ff90 in ?? ()\r\nNo symbol table info available.\r\n#10 0x00000000000057f2 in ?? ()\r\nNo symbol table info available.\r\n#11 0xd7d6e3d38ce94500 in ?? ()\r\nNo symbol table info available.\r\n#12 0x00007f78451a40c0 in ?? ()\r\nNo symbol table info available.\r\n#13 0x0000563b2552c558 in rocksdb::WriteThread::AwaitState(rocksdb::WriteThread::Writer*, unsigned char, rocksdb::WriteThread::AdaptationContext*) ()\r\n    at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/1494bb5/librocksdb_sys/rocksdb/db/write_thread.cc:151\r\n        now = <optimized out>\r\n        spin_begin = <optimized out>\r\n        state = <optimized out>\r\n        perf_step_timer_write_thread_wait_nanos = <error reading variable perf_step_timer_write_thread_wait_nanos (Cannot access memory at address 0x5782)>\r\n        kMaxSlowYieldsWhileSpinning = 3\r\n        yield_credit = <optimized out>\r\n```"
+    },
+    {
+      "id": 1070715699,
+      "user": "sticnarf",
+      "created_at": "2022-03-17T10:02:18Z",
+      "body": "@breeswish Can you provide some more information? What is your Linux distribution and what is your libgcc version? And do you have an estimated frequency of segfault?"
+    },
+    {
+      "id": 1070755768,
+      "user": "breezewish",
+      "created_at": "2022-03-17T10:19:14Z",
+      "body": "> @breeswish Can you provide some more information? What is your Linux distribution and what is your libgcc version? And do you have an estimated frequency of segfault?\r\n\r\n@sticnarf \r\n\r\nI experienced this crash under:\r\n\r\n- Instance: AWS r5.2xlarge\r\n- Base image: Ubuntu 18.04 LTS\r\n\r\nThe crash may happen when I applied some payloads for several hours with Conprof enabled. Conprof fetches profiles for 10s every 1 minute. The last reproduction causes 5 hours for one TiKV, and 3 hours for another TiKV. ~~I was told that a long profiling (i.e. 120s) may also easily reproduce the problem but I have not tried yet.~~ I reproduced the crash after profiling for 50+ minutes under 499Hz.\r\n\r\n@mornyx is currently working on this crash. There will be a detailed material shared to you later this week.\r\n\r\nUpdate: There is no crash in CentOS 7.9.\r\n\r\nUpdate2: There are some harmless errors when checking dwarf for Ubuntu 18.04 (pass for CentOS 7.9), so I'm still not sure what's wrong with the vdso.so in Ubuntu 18:\r\n\r\n```\r\n➜ ~ dwarfdump -ka vdso.so \r\n\r\n*** HARMLESS ERROR COUNT: 2 ***\r\n\r\n*** DWARF CHECK: DW_DLE_DEBUG_FRAME_LENGTH_NOT_MULTIPLE len=0x00000050, len size=0x00000004, extn size=0x00000000, totl length=0x00000054, addr size=0x00000008, mod=0x00000004 must be zero in fde, offset 0x00000018. ***\r\n\r\n*** DWARF CHECK: DW_DLE_DEBUG_FRAME_LENGTH_NOT_MULTIPLE len=0x00000020, len size=0x00000004, extn size=0x00000000, totl length=0x00000024, addr size=0x00000008, mod=0x00000004 must be zero in fde, offset 0x0000011c. ***\r\n```"
+    }
+  ]
+}

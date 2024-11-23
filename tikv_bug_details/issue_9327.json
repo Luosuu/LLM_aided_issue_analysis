@@ -1,0 +1,14 @@
+{
+  "issue_number": 9327,
+  "title": "Can not change region-split-check-diff through config file",
+  "body": "## Bug Report\r\nregion-split-check-diff is exposed to the users, but it can not be changed through the config file. \r\nSee \r\nhttps://github.com/tikv/tikv/blob/4251f091297cd763ddf9679efca3a28ebe1beffa/etc/config-template.toml#L279-L283\r\nand\r\nhttps://github.com/tikv/tikv/blob/4251f091297cd763ddf9679efca3a28ebe1beffa/src/config.rs#L2362-L2368\r\n\r\n### What version of TiKV are you using?\r\nmaster (3b2c5337c837b8bf9d37f954a4c17a407e253251)\r\n\r\n\r\n### Steps to reproduce\r\n\r\n1. change the `region-split-check-diff` to `10MB`\r\n2. restart the tikv cluster\r\n\r\n### What did you expect?\r\nThe value of `region-split-check-diff` should be `10MB` \r\n\r\n### What did happened?\r\nThe value of `region-split-check-diff` is still `6MB` \r\n\r\n",
+  "state": "closed",
+  "created_at": "2020-12-22T09:22:08Z",
+  "updated_at": "2021-01-20T08:41:52Z",
+  "closed_at": "2021-01-20T08:41:52Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

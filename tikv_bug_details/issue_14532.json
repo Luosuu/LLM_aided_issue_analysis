@@ -1,0 +1,35 @@
+{
+  "issue_number": 14532,
+  "title": "[Dynamic Regions] workload report 9005: Region is unavailable during one tikv network partition form other tikv",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   7.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   503174b571788f01aef154157cafd53bacd6b860\r\nGit Commit Branch: heads/refs/tags/v7.1.0-alpha\r\nUTC Build Time:    2023-04-04 11:41:26\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-04-06T02:45:44.899+0800\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\ninject  one tikv network partition form other tikv\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1664013\r\nha-tikv-random-to-tikv-all-network-partition-last-for-10m\r\nhttp://perf.pingcap.net:3000/d/WOw1JWmVk/ha-test-case-detail?orgId=1&refresh=10s&var-case_id=2851125\r\n\r\n### What did you expect?\r\nno 9005 error\r\n\r\n### What did happened?\r\nworkload report 9005: Region is unavailable during one tikv network partition form other tikv\r\n[2023/04/06 02:57:42.294 +08:00] [INFO] [collection.go:150] [\"[2023-04-05 18:57:42] execute run failed, err Error 9005: Region is unavailable\\r\\n\"]\r\n...\r\n[2023/04/06 03:05:45.240 +08:00] [INFO] [collection.go:150] [\"[2023-04-05 19:05:45] execute run failed, err Error 9005: Region is unavailable\\r\\n\"]\r\n[2023/04/06 03:05:45.240 +08:00] [INFO] [collection.go:150] [\"[2023-04-05 19:05:45] execute run failed, err Error 9005: Region is unavailable\\r\\n\"]\r\n[2023/04/06 03:05:45.240 +08:00] [INFO] [collection.go:150] [\"[2023-04-05 19:05:45] execute run failed, err Error 9005: Region is unavailable\\r\\n\"]\r\n[2023/04/06 03:05:45.241 +08:00] [INFO] [collection.go:150] [\"[2023-04-05 19:05:45] execute run failed, err Error 9005: Region is unavailable\\r\\n\"]\r\n[2023/04/06 03:05:45.508 +08:00] [INFO] [collection.go:150] [\"[2023-04-05 19:05:45] execute run failed, err Error 9005: Region is unavailable\\r\\n\"]\r\n",
+  "state": "closed",
+  "created_at": "2023-04-07T05:55:16Z",
+  "updated_at": "2023-04-18T16:10:06Z",
+  "closed_at": "2023-04-18T16:10:06Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1500093105,
+      "user": "Lily2025",
+      "created_at": "2023-04-07T09:02:06Z",
+      "body": "/type bug\r\n/severity major\r\n/assign tonyxuqqi"
+    },
+    {
+      "id": 1513441369,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-18T16:10:06Z",
+      "body": "@Lily2025 It should be fixed by #14550 "
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "issue_number": 16739,
+  "title": "log_backup: the type `CallbackWaitGroup` is error-prone",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nCurrent master.\r\n\r\n### What operating system and CPU are you using?\r\nmacOS at an aarch64 CPU, but it should be independent to CPU arch.\r\n\r\n### Steps to reproduce\r\nRun this:\r\n\r\n```fish\r\nfor i in (seq 100)\r\n   if ! cargo test --package backup-stream --lib -- utils::test::test_wait_group --exact\r\n       break\r\n   end\r\n   echo \"passed $i\"\r\nend\r\n```\r\n\r\n### What did you expect?\r\nThis test should always success -- no race conditions here.\r\n\r\n### What did happened?\r\nIt will fail after about 20 times of trying.\r\n",
+  "state": "closed",
+  "created_at": "2024-04-02T08:45:12Z",
+  "updated_at": "2024-04-03T06:56:33Z",
+  "closed_at": "2024-04-03T06:36:19Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2031498756,
+      "user": "YuJuncen",
+      "created_at": "2024-04-02T09:22:51Z",
+      "body": "There is a slight possibility that backup may lost record in some theoretic time sequence. Should this be critical? cc @BornChanger @3pointer @Leavrth "
+    },
+    {
+      "id": 2031508883,
+      "user": "YuJuncen",
+      "created_at": "2024-04-02T09:27:44Z",
+      "body": "This `CallbackWaitGroup` has been used for two spaces: \r\n- One for waiting all initial scanning finish. This is an optimization. The `wait` return earlier won't be really harmful in any conditions.\r\n- One for waiting all records to be written to the buffer. When a `Flush` finishes (which usually take 10x longer than the former), the records not yet written to the buffer may be lost (or fortunately, it will be backed up in the next run of flush; for now, it seems they will be lost if the server crashes after that flush)."
+    },
+    {
+      "id": 2031531962,
+      "user": "YuJuncen",
+      "created_at": "2024-04-02T09:38:37Z",
+      "body": "The reason of the problem itself: \r\n1. A `Work` has been created.\r\n2. It finished as the last work. So it should trigger the `notify`.\r\n3. But it has been hung up by something.\r\n4. A new `Work` has been created. Someone starts waiting on the group.\r\n5. The wait should be blocked before the new `Work` finished. But now, the `notify` at step 2 has been resumed.\r\n6. And it notifies the `Wait`. **This is a stale notify(because `running_tasks` is not `0` now!), it should be dropped. But our current implementation won't drop it.**\r\n7. So, the `Wait` returns. Left there are some works still running."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "issue_number": 13829,
+  "title": "reset-to-version segfault",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nTiKV with reset-to-version functionality.\r\n\r\n### What operating system and CPU are you using?\r\n\r\nN/A\r\n\r\n### Steps to reproduce\r\n\r\n```bash\r\ntiup playground nightly --tiflash 0 --kv 1\r\nkill tikv-seerver\r\ntiup ctl:nightly tikv  --config ~/.tiup/data/*/tikv-0/tikv.toml --data-dir ~/.tiup/data/*/tikv-0/data/   --pd [127.0.0.1:2379](http://127.0.0.1:2379/) reset-to-version -v 437518324818771969\r\n```\r\n\r\n### What did you expect?\r\n\r\nSucceed.\r\n\r\n### What did happened?\r\n\r\nAborted.\r\n",
+  "state": "closed",
+  "created_at": "2022-11-22T02:37:08Z",
+  "updated_at": "2022-11-23T02:28:00Z",
+  "closed_at": "2022-11-23T02:28:00Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4"
+  ],
+  "comments_data": []
+}

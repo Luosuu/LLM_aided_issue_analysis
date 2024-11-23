@@ -1,0 +1,97 @@
+{
+  "issue_number": 12751,
+  "title": "TiKV panic when execute br restore point",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. create dir of log file\r\n2. execute br restore point command\r\n### What did you expect?\r\n\r\n### What did happened?\r\ntikv pod restarted.\r\n\r\nlogs are [here](https://grafana.oauth.dev.shared.aws.tidbcloud.com/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bcluster%3D%5C%22freetier%2Feks%2Fdev-us-east-1-f01%5C%22,%20namespace%3D%5C%22free-tier-nightly-ms-43523%5C%22,%20instance%3D%5C%22db30261-tikv-0%5C%22%7D%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D)",
+  "state": "closed",
+  "created_at": "2022-06-02T09:28:19Z",
+  "updated_at": "2022-06-07T10:16:31Z",
+  "closed_at": "2022-06-07T10:16:31Z",
+  "labels": [
+    "type/bug",
+    "sig/migrate",
+    "severity/major",
+    "feature/developing",
+    "affects-6.1",
+    "needs-cherry-pick-release-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1145002736,
+      "user": "joccau",
+      "created_at": "2022-06-02T15:32:53Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1145002861,
+      "user": "joccau",
+      "created_at": "2022-06-02T15:33:00Z",
+      "body": "/feature developing"
+    },
+    {
+      "id": 1145002936,
+      "user": "joccau",
+      "created_at": "2022-06-02T15:33:05Z",
+      "body": "\r\n/label may-affects-6.1"
+    },
+    {
+      "id": 1145003065,
+      "user": "joccau",
+      "created_at": "2022-06-02T15:33:12Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1145003179,
+      "user": "joccau",
+      "created_at": "2022-06-02T15:33:18Z",
+      "body": "/sig migrate"
+    },
+    {
+      "id": 1146588952,
+      "user": "joccau",
+      "created_at": "2022-06-04T11:05:11Z",
+      "body": "/severity Major"
+    },
+    {
+      "id": 1146589059,
+      "user": "joccau",
+      "created_at": "2022-06-04T11:05:46Z",
+      "body": "/remove-label may-affects-4.0"
+    },
+    {
+      "id": 1146589217,
+      "user": "joccau",
+      "created_at": "2022-06-04T11:06:46Z",
+      "body": "/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0"
+    },
+    {
+      "id": 1146589862,
+      "user": "joccau",
+      "created_at": "2022-06-04T11:11:11Z",
+      "body": "/label may-affects-6.1"
+    },
+    {
+      "id": 1146589895,
+      "user": "joccau",
+      "created_at": "2022-06-04T11:11:27Z",
+      "body": "/label needs-cherry-pick-6.1"
+    },
+    {
+      "id": 1146989729,
+      "user": "joccau",
+      "created_at": "2022-06-06T03:13:08Z",
+      "body": "Bug locate:\r\nBecause backup log that be not encrypted, but kv-files are decrypted when downloaded with KMS.\r\nerror  has mistaken in content of kv-file. \r\n\r\n![middle_img_v2_15c6cc4c-9b26-4819-9e26-89b287a04a5g](https://user-images.githubusercontent.com/57036248/172088372-356c3a9e-9669-483f-a5ca-d84f914247df.png)\r\n"
+    },
+    {
+      "id": 1147054264,
+      "user": "joccau",
+      "created_at": "2022-06-06T05:16:20Z",
+      "body": "/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1147054641,
+      "user": "joccau",
+      "created_at": "2022-06-06T05:16:56Z",
+      "body": "/label affects-6.1"
+    }
+  ]
+}

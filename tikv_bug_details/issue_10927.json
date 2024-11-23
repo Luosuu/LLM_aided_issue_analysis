@@ -1,0 +1,39 @@
+{
+  "issue_number": 10927,
+  "title": "the status of two store are abnormal and some tikv oom while run sysbench",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv5.2.1\r\n\r\n### What operating system and CPU are you using?\r\nk8s 3PD、2TiDB、4TiKV\r\n8 Core 16G mem\r\n\r\n### Steps to reproduce\r\ncase:TiKVWorkloadStress005（do not scale TiKV）\r\nrun sysbench prepare\r\nthreads=64\r\ntables=512\r\n\r\n### What did you expect?\r\nall store are normal\r\n\r\n### What did happened?\r\nthe status of two store are abnormal while run sysbench\r\n<img width=\"422\" alt=\"无标题\" src=\"https://user-images.githubusercontent.com/84712107/132711755-7e135d82-bf16-4296-a3e7-af2028269812.png\">\r\nsome tikv oom\r\n<img width=\"447\" alt=\"oom\" src=\"https://user-images.githubusercontent.com/84712107/132712129-444ca573-c586-4040-9a18-17d9a9b9232b.png\">\r\n",
+  "state": "closed",
+  "created_at": "2021-09-09T15:05:50Z",
+  "updated_at": "2021-11-23T05:37:45Z",
+  "closed_at": "2021-11-23T05:37:45Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 916197854,
+      "user": "Lily2025",
+      "created_at": "2021-09-09T15:20:18Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 916197994,
+      "user": "Lily2025",
+      "created_at": "2021-09-09T15:20:30Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 916199033,
+      "user": "Lily2025",
+      "created_at": "2021-09-09T15:21:53Z",
+      "body": "/assign hicqu"
+    },
+    {
+      "id": 976181058,
+      "user": "hicqu",
+      "created_at": "2021-11-23T05:37:45Z",
+      "body": "It can't be continued until we improve TiKV heap profiling. So let's close it now."
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "issue_number": 16113,
+  "title": "raftstore: record the data not ready error types more clearly",
+  "body": "## Development Task\r\n\r\nWhen `data_is_not_ready` is encounterred for stale read processing, the type is not clear and record as `Other` error types for the raft kv https://github.com/tikv/tikv/blob/release-6.5/src/storage/errors.rs#L213-L233\r\n\r\nIt's better to record specific type clearly in the metrics.\r\n\r\nThis issue affectes v6.5.x and v7.1.x, on 7.5 is has been fixed https://github.com/tikv/tikv/blob/release-7.5/src/storage/errors.rs#L250-L251\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-12-01T06:50:55Z",
+  "updated_at": "2023-12-05T11:41:38Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1839211520,
+      "user": "Gua00va",
+      "created_at": "2023-12-04T18:17:26Z",
+      "body": "I would like to work on this issue! \r\n"
+    },
+    {
+      "id": 1840500742,
+      "user": "Gua00va",
+      "created_at": "2023-12-05T10:49:19Z",
+      "body": "@cfzjywxk, Should I be opening different PRs for each version?"
+    },
+    {
+      "id": 1840611881,
+      "user": "cfzjywxk",
+      "created_at": "2023-12-05T11:41:37Z",
+      "body": "> @cfzjywxk, Should I be opening different PRs for each version?\r\n\r\n@Gua00va Yes I think so."
+    }
+  ]
+}

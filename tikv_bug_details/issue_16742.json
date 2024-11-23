@@ -1,0 +1,45 @@
+{
+  "issue_number": 16742,
+  "title": "enable async io, hxxxk poc workload has 3.6%~6.0%+ regression in performance",
+  "body": "version: 8.0.0\r\nduration 10m\r\nCompared with async io off, the performance of async io is degraded by 6.13%\r\n![image](https://github.com/tikv/tikv/assets/85105033/3be35e6f-60e0-4db3-aba6-5cdebb05eac5)\r\n\r\n\r\nversion: nightly\r\nduration 10m\r\n![image](https://github.com/tikv/tikv/assets/85105033/ec8dc136-a55f-4fa8-a2be-8b79ac601887)\r\nCompared with async io off, the performance of async io is degraded by 3.63%\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-04-02T10:32:12Z",
+  "updated_at": "2024-05-17T01:10:19Z",
+  "closed_at": "2024-05-17T01:10:19Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2035725847,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-03T22:38:02Z",
+      "body": "@shaoxiqian What is your environment? Have you tested it on the cloud disk like EBS? I believe async io has a better benefit when the sync write latency is relevant higher than local nvme disk, cloud disk is such a case."
+    },
+    {
+      "id": 2068302076,
+      "user": "kennedy8312",
+      "created_at": "2024-04-22T00:57:21Z",
+      "body": "/type regression"
+    },
+    {
+      "id": 2068302105,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-04-22T00:57:23Z",
+      "body": "@kennedy8312: The label(s) `type/regression` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16742#issuecomment-2068302076):\n\n>/type regression\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2116449210,
+      "user": "shaoxiqian",
+      "created_at": "2024-05-17T01:06:39Z",
+      "body": "we test the workload again for v8.1.0. The result indicate the Performance is almost flat.\r\n![image](https://github.com/tikv/tikv/assets/85105033/90547898-061a-4bd7-bc80-d26886752ca5)\r\n"
+    }
+  ]
+}

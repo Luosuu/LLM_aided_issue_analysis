@@ -1,0 +1,32 @@
+{
+  "issue_number": 4358,
+  "title": "fatal! macro doesn't flush logs",
+  "body": "This macro isn't used all that much, maybe not at all after startup, but one place it is very noticeable is when loading the tikv-server config fails.\r\n\r\nHere's what it's supposed to look like:\r\n\r\n```\r\nubuntu@ip-172-30-0-238:~/tikv$ target/release/tikv-server\r\n[2019/03/12 01:35:26.585 +00:00] [INFO] [mod.rs:25] [\"Welcome to TiKV.\"]\r\n[2019/03/12 01:35:26.585 +00:00] [INFO] [mod.rs:27] []\r\n[2019/03/12 01:35:26.585 +00:00] [INFO] [mod.rs:27] [\"Release Version:   3.0.0-beta\"]\r\n[2019/03/12 01:35:26.585 +00:00] [INFO] [mod.rs:27] [\"Git Commit Hash:   Unknown (env var does not exist when building)\"]\r\n[2019/03/12 01:35:26.585 +00:00] [INFO] [mod.rs:27] [\"Git Commit Branch: Unknown (env var does not exist when building)\"]\r\n[2019/03/12 01:35:26.585 +00:00] [INFO] [mod.rs:27] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2019/03/12 01:35:26.585 +00:00] [INFO] [mod.rs:27] [\"Rust Version:      Unknown (env var does not exist when building)\"]\r\n[2019/03/12 01:35:26.586 +00:00] [INFO] [mod.rs:29] []\r\n[2019/03/12 01:35:26.586 +00:00] [INFO] [config.rs:164] [\"no advertise-addr is specified, falling back to default addr\"] [addr=127.0.0.1:20160]\r\n[2019/03/12 01:35:26.586 +00:00] [ERROR] [tikv-server.rs:488] [\"invalid configuration: please specify pd.endpoints.\"]\r\n```\r\n\r\nPretty often though it looks something like:\r\n\r\n```\r\n ubuntu@ip-172-30-0-238:~/tikv$ target/release/tikv-server\r\n[2019/03/12 01:40:09.397 +00:00] [INFO] [mod.rs:25] [\"Welcome to TiKV.\"]\r\n[2019/03/12 01:40:09.398 +00:00] [INFO] [mod.rs:27] []\r\n[2019/03/12 01:40:09.398 +00:00] [INFO] [mod.rs:27] [\"Release Version:   3.0.0-beta\"]\r\n[2019/03/12 01:40:09.398 +00:00] [INFO] [mod.rs:27] [\"Git Commit Hash:   Unknown (env var does not exist when building)\"]\r\n[2019/03/12 01:40:09.398 +00:00] [INFO] [mod.rs:27] [\"Git Commit Branch: Unknown (env var does not exist when building)\"]\r\n[2019/03/12 01:40:09.398 +00:00] [INFO] [mod.rs:27] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2019/03/12 01 ubuntu@ip-172-30-0-238:~/tikv$\r\n```\r\n\r\nThe logs are cut off.\r\n\r\nThis may look minor, but is a matter of first impressions.",
+  "state": "closed",
+  "created_at": "2019-03-12T01:43:40Z",
+  "updated_at": "2019-03-12T21:08:30Z",
+  "closed_at": "2019-03-12T21:08:30Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 471814237,
+      "user": "brson",
+      "created_at": "2019-03-12T01:44:30Z",
+      "body": "Tested w/ commit 206209fbcc4c45ae50e1a66fc5df3ac39a6570f1"
+    },
+    {
+      "id": 471917317,
+      "user": "overvenus",
+      "created_at": "2019-03-12T09:14:39Z",
+      "body": "Dup with #4328 ?"
+    },
+    {
+      "id": 472181801,
+      "user": "brson",
+      "created_at": "2019-03-12T21:08:30Z",
+      "body": "Yes I think so."
+    }
+  ]
+}

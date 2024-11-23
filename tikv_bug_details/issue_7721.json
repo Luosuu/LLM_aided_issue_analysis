@@ -1,0 +1,39 @@
+{
+  "issue_number": 7721,
+  "title": "The TiKV and PD storage size is not equal",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n<img width=\"601\" alt=\"屏幕快照 2020-04-30 下午7 45 33\" src=\"https://user-images.githubusercontent.com/23521459/80706657-3bb02980-8b1b-11ea-92ef-431b57b4572c.png\">\r\n<img width=\"600\" alt=\"屏幕快照 2020-04-30 下午7 45 54\" src=\"https://user-images.githubusercontent.com/23521459/80706664-3d79ed00-8b1b-11ea-8bf5-11ca6fda2734.png\">\r\n\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nThey should be the same\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2020-04-30T11:46:49Z",
+  "updated_at": "2020-05-28T08:44:16Z",
+  "closed_at": "2020-05-28T08:44:16Z",
+  "labels": [
+    "type/bug",
+    "sig/engine"
+  ],
+  "comments_data": [
+    {
+      "id": 625150194,
+      "user": "Connor1996",
+      "created_at": "2020-05-07T09:49:37Z",
+      "body": "can't be reproduced, maybe there is something wrong with this cluster that accumulates snapshots?"
+    },
+    {
+      "id": 625238560,
+      "user": "zhouqiang-cl",
+      "created_at": "2020-05-07T12:56:42Z",
+      "body": "> can't be reproduced, maybe there is something wrong with this cluster that accumulates snapshots?\r\n\r\nLet me reproduce it and then ping you"
+    },
+    {
+      "id": 626566903,
+      "user": "zhouqiang-cl",
+      "created_at": "2020-05-11T08:53:29Z",
+      "body": "> can't be reproduced, maybe there is something wrong with this cluster that accumulates snapshots?\r\n\r\nSorry. I did not reproduce it too, can we just leave a metric(it confuse me when having two metric?"
+    },
+    {
+      "id": 634459702,
+      "user": "Connor1996",
+      "created_at": "2020-05-27T06:36:39Z",
+      "body": "> > can't be reproduced, maybe there is something wrong with this cluster that accumulates snapshots?\r\n> \r\n> Sorry. I did not reproduce it too, can we just leave a metric(it confuse me when having two metric?\r\n\r\nMost of the time, there are the same. But we can't leave only a metrics, because the difference between the two can reflect if there is any snapshot accumulation."
+    }
+  ]
+}

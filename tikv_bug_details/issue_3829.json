@@ -1,0 +1,33 @@
+{
+  "issue_number": 3829,
+  "title": "test_region_change_observer failed",
+  "body": "## Bug Report\r\n\r\nhttps://circleci.com/gh/tikv/tikv/15122\r\n\r\n@overvenus @hicqu PTAL",
+  "state": "closed",
+  "created_at": "2018-11-26T06:43:09Z",
+  "updated_at": "2019-01-29T08:04:52Z",
+  "closed_at": "2019-01-29T08:04:52Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench"
+  ],
+  "comments_data": [
+    {
+      "id": 442292582,
+      "user": "MyonKeminta",
+      "created_at": "2018-11-28T02:14:35Z",
+      "body": "This seems to be my fault. Sorry. I'll take a look."
+    },
+    {
+      "id": 442303662,
+      "user": "MyonKeminta",
+      "created_at": "2018-11-28T03:13:11Z",
+      "body": "```\r\ntest raftstore_cases::test_region_change_observer::test_region_change_observer ... thread 'raftstore_cases::test_region_change_observer::test_region_change_observer' panicked at 'region id: 1 start_key: \"k2\" region_epoch {conf_ver: 3 version: 3} peers {id: 1 store_id: 1} peers {id: 10 store_id: 2} is still not merged.', components/test_raftstore/src/pd.rs:830:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:227\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:475\r\n   5: std::panicking::continue_panic_fmt\r\n             at libstd/panicking.rs:390\r\n   6: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:345\r\n   7: test_raftstore::pd::TestPdClient::must_merge\r\n             at components/test_raftstore/src/pd.rs:830\r\n   8: integrations::raftstore_cases::test_region_change_observer::test_region_change_observer_impl\r\n             at tests/raftstore_cases/test_region_change_observer.rs:118\r\n   9: integrations::raftstore_cases::test_region_change_observer::test_region_change_observer\r\n             at tests/raftstore_cases/test_region_change_observer.rs:179\r\n  10: integrations::__test::TESTS::{{closure}}\r\n             at tests/raftstore_cases/test_region_change_observer.rs:177\r\n  11: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n  12: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1454\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:640\r\n  13: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:106\r\nFAILED\r\n```\r\nIt seems not to be caused by my code but caused by other bug in `must_merge`."
+    },
+    {
+      "id": 446515370,
+      "user": "BusyJay",
+      "created_at": "2018-12-12T09:12:07Z",
+      "body": "Any updates?"
+    }
+  ]
+}

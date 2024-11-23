@@ -1,0 +1,51 @@
+{
+  "issue_number": 12007,
+  "title": "Some grafana expression are wrong or suboptimal",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv5.4.0\r\n\r\n### What operating system and CPU are you using?\r\nDoesn't matter\r\n\r\n### Steps to reproduce\r\ntiup playground\r\n\r\n### What did you expect?\r\nGood well defined graph.\r\n\r\n### What did happened?\r\n1. Pending task is wrong.\r\n    Pending task metrics is a guage instead of a counter, its value should be used directly.\r\n2. Hitmap in coprocessor is hard to read.\r\n    It should use similar settings like Raft IO, which makes zero values transparent and choose more colorful scheme.",
+  "state": "closed",
+  "created_at": "2022-02-22T13:01:33Z",
+  "updated_at": "2022-06-20T22:16:36Z",
+  "closed_at": "2022-06-20T22:16:36Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1049770265,
+      "user": "BusyJay",
+      "created_at": "2022-02-24T11:36:29Z",
+      "body": "And storage panel should also show 99%, 95% and avg graph besides hitmap for both async snapshot and async write ."
+    },
+    {
+      "id": 1067495394,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T02:27:06Z",
+      "body": "/type bug\r\n/severity Moderate"
+    },
+    {
+      "id": 1067583972,
+      "user": "BusyJay",
+      "created_at": "2022-03-15T05:38:26Z",
+      "body": "\"Raft log speed\" should be renamed to \"Raft propose speed\" and the unit should be changed to byte/s."
+    },
+    {
+      "id": 1075112515,
+      "user": "BusyJay",
+      "created_at": "2022-03-22T12:27:01Z",
+      "body": "I suggest to include this into v6.0.0."
+    },
+    {
+      "id": 1134215735,
+      "user": "zhangjinpeng87",
+      "created_at": "2022-05-23T06:01:41Z",
+      "body": "@jiayang-zheng PTAL"
+    },
+    {
+      "id": 1151288157,
+      "user": "kevin-xianliu",
+      "created_at": "2022-06-09T15:35:12Z",
+      "body": "I will take a look at it."
+    }
+  ]
+}

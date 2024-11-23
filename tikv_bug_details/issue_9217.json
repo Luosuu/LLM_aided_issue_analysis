@@ -1,0 +1,27 @@
+{
+  "issue_number": 9217,
+  "title": "TiKV is killed during profiling via TiDB-dashboard",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nMaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nCentos 7\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nProfile instance via dashboard.\r\n\r\n```\r\n$ less tikv.log\r\n...\r\n[2020/12/10 19:51:06.978 +08:00] [INFO] [sst_importer.rs:132] [download] [range=\"Some(start: 7480000000000000FF485F720380000000FF000005DC03800000FF000000BDE1000000FCFA2707D806DBFFFD end: 7480000000000000FF485F720380000000FF000005DE03800000FF0000013CC0000000FCFA2707D6A683F\r\nFFE)\"] [name=5_3401_678_9307d51b35bc51b33dfd88e22a6806de6d57ca82a02313ffb34ec5ac531370e1_1607583693309_default.sst] [meta=\"uuid: E115BA01D7CB45BFA14A56187D7EE423 range { start: 7480000000000000FF485F720380000000FF000005DC03800000FF000000BDE1000000FC end: 7480000000000000F\r\nF485F720380000000FF000005DE03800000FF0000013CC1000000FC } length: 47128548 cf_name: \\\"default\\\" region_id: 24997 region_epoch { conf_ver: 8 version: 5192 }\"]\r\n[2020/12/10 19:51:06.979 +08:00] [INFO] [local.rs:31] [\"create local storage\"] [base=/data2/stn/backup/full3]\r\n[2020/12/10 19:51:08.128 +08:00] [INFO] [profiler.rs:182] [\"stopping cpu profiler\"]\r\n[2020/12/10 19:51:08.172 +08:00] [INFO] [mod.rs:401] [\"write report successfully\"]\r\n[2020/12/10 19:51:08.250 +08:00] [WARN] [store.rs:712] [\"[store 6] handle 72 pending peers include 72 ready, 0 entries, 102 messages and 0 snapshots\"] [takes=1280]\r\n[2020/12/10 19:51:26.563 +08:00] [INFO] [lib.rs:92] [\"Welcome to TiKV\"]\r\n[2020/12/10 19:51:26.564 +08:00] [INFO] [lib.rs:97] [\"Release Version:   4.1.0-alpha\"]\r\n[2020/12/10 19:51:26.564 +08:00] [INFO] [lib.rs:97] [\"Edition:           Community\"]\r\n[2020/12/10 19:51:26.564 +08:00] [INFO] [lib.rs:97] [\"Git Commit Hash:   520a69261628b3e7a6935a1c266b38045718d3e7\"]\r\n...\r\n\r\n$ journalctl -u tikv-47906\r\n...\r\nDec 10 19:37:41 ip-172-16-5-33 run_tikv.sh[35653]: user        0m0.000s\r\nDec 10 19:37:41 ip-172-16-5-33 run_tikv.sh[35653]: sys        0m2.316s\r\nDec 10 19:37:41 ip-172-16-5-33 run_tikv.sh[35653]: ok\r\nDec 10 19:51:08 ip-172-16-5-33 systemd[1]: tikv-47906.service: main process exited, code=killed, status=27/PROF\r\nDec 10 19:51:10 ip-172-16-5-33 systemd[1]: Unit tikv-47906.service entered failed state.\r\nDec 10 19:51:10 ip-172-16-5-33 systemd[1]: tikv-47906.service failed.\r\nDec 10 19:51:25 ip-172-16-5-33 systemd[1]: tikv-47906.service holdoff time over, scheduling restart.\r\nDec 10 19:51:25 ip-172-16-5-33 systemd[1]: Stopped tikv service.\r\nDec 10 19:51:25 ip-172-16-5-33 systemd[1]: Started tikv service.\r\nDec 10 19:51:26 ip-172-16-5-33 run_tikv.sh[34552]: sync ...\r\nDec 10 19:51:26 ip-172-16-5-33 run_tikv.sh[34552]: real        0m1.210s\r\nDec 10 19:51:26 ip-172-16-5-33 run_tikv.sh[34552]: user        0m0.000s\r\n...\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2020-12-10T12:22:04Z",
+  "updated_at": "2020-12-12T08:20:16Z",
+  "closed_at": "2020-12-11T12:46:23Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 743047885,
+      "user": "YangKeao",
+      "created_at": "2020-12-11T08:20:59Z",
+      "body": "This problem is that: the timer still works after unregistering the signal handler. Then `tikv` received a `SIGPROF` and killed.\r\n\r\nHowever, I have fixed this problem in `0.3.13`, which was published one year ago. And `tikv` used `pprof-rs 0.3.15` 🤦‍♂️ . I will try to reproduce this problem and find the reason."
+    },
+    {
+      "id": 743097974,
+      "user": "YangKeao",
+      "created_at": "2020-12-11T09:59:30Z",
+      "body": "Failed to reproduce on my low spec virtual machine with tpch load. I guess the problem is because of the signals which haven't arrived yet."
+    }
+  ]
+}

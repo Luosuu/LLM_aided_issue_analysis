@@ -1,0 +1,30 @@
+{
+  "issue_number": 2948,
+  "title": "test: raftstore_cases::test_lease_read::test_node_callback_when_destroyed panic",
+  "body": "```\r\nthread 'raftstore_cases::test_lease_read::test_node_callback_when_destroyed' panicked at 'called `Result::unwrap()` on an `Err` value: Timeout(\"request timeout for Duration { secs: 3, nanos: 0 }\")', libcore/result.rs:916:5\r\n\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:68\r\n             at libstd/sys_common/backtrace.rs:57\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:380\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:396\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:576\r\n   5: std::panicking::begin_panic\r\n             at libstd/panicking.rs:537\r\n   6: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:521\r\n   7: rust_begin_unwind\r\n             at libstd/panicking.rs:497\r\n   8: core::panicking::panic_fmt\r\n             at libcore/panicking.rs:71\r\n   9: core::result::unwrap_failed\r\n             at /checkout/src/libcore/macros.rs:23\r\n  10: <core::result::Result<T, E>>::unwrap\r\n             at /checkout/src/libcore/result.rs:782\r\n  11: integrations::raftstore_cases::test_lease_read::test_node_callback_when_destroyed\r\n             at tests/raftstore_cases/test_lease_read.rs:326\r\n  12: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1440\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:817\r\n  13: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:102\r\n```",
+  "state": "closed",
+  "created_at": "2018-04-14T01:23:23Z",
+  "updated_at": "2020-11-09T02:54:01Z",
+  "closed_at": "2020-11-09T02:54:01Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 441534928,
+      "user": "breezewish",
+      "created_at": "2018-11-26T06:45:19Z",
+      "body": "https://circleci.com/gh/tikv/tikv/15223"
+    },
+    {
+      "id": 723724746,
+      "user": "tabokie",
+      "created_at": "2020-11-09T02:54:01Z",
+      "body": "This issue is timeout related and has made no recent appearance, closing it for now."
+    }
+  ]
+}

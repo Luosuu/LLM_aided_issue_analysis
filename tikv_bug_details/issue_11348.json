@@ -1,0 +1,39 @@
+{
+  "issue_number": 11348,
+  "title": "tidb-cluster can not run pod of basic-tikv-0",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n5.2.1\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux TENCENT64.site  x86_64 x86_64 x86_64 GNU/Linux\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1.Refer to the official website document，quickly run tidb-cluster.\r\n2.Execute instructions：\r\n    kubectl -n tidb-cluster apply -f https://raw.githubusercontent.com/pingcap/tidb-operator/master/examples/basic/tidb-cluster.yaml\r\n3. kubectl logs basic-tikv-0 -n tidb-cluster,find log :\r\n    ParseIntError { kind: PosOverflow}' , components/tikv_util/src/cgroupp.rs.251:18\r\n3. find basic\r\n\r\n\r\n### What did you expect?\r\nfix bug\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2021-11-12T02:56:02Z",
+  "updated_at": "2021-11-30T08:41:07Z",
+  "closed_at": "2021-11-22T08:25:03Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 966788089,
+      "user": "sticnarf",
+      "created_at": "2021-11-12T03:18:11Z",
+      "body": "It's because we cannot handle a limit that is larger than 2^63-1. I think we can treat `PosOverflow` error same as max.\r\n"
+    },
+    {
+      "id": 966788582,
+      "user": "sticnarf",
+      "created_at": "2021-11-12T03:19:25Z",
+      "body": "@fhj939057500 Could you tell more about your kubernetes environment?\r\n\r\nAre you using a managed k8s service provided by cloud, or you deployed your own k8s? "
+    },
+    {
+      "id": 966913475,
+      "user": "fhj939057500",
+      "created_at": "2021-11-12T08:24:36Z",
+      "body": "> @fhj939057500 Could you tell more about your kubernetes environment?\r\n> \r\n> Are you using a managed k8s service provided by cloud, or you deployed your own k8s?\r\n\r\nyes,it.s run by: https://docs.pingcap.com/zh/tidb-in-kubernetes/stable/get-started#%E8%BF%9E%E6%8E%A5-tidb-%E9%9B%86%E7%BE%A4"
+    },
+    {
+      "id": 975250010,
+      "user": "sticnarf",
+      "created_at": "2021-11-22T08:25:03Z",
+      "body": "Closed by #11354"
+    }
+  ]
+}

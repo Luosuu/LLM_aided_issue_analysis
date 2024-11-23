@@ -1,0 +1,13 @@
+{
+  "issue_number": 17243,
+  "title": "In-memory engine: evict in delete_range is too late",
+  "body": "## Bug Report\r\n\r\nNow, evict range will call evict for the relevant range, but it has race conditions as delete range violates the snapshot guarantees (delete range in RocksDB will delete the data without consider snapshot).\r\nSo we could have this case:\r\n```\r\n1                      call delete_range of r1\r\n2                                                                              get range cache snapshot of r1\r\n3                      evict range\r\n4                      delete data\r\n```\r\nSo, now, we can read data that should not be read.\r\n",
+  "state": "open",
+  "created_at": "2024-07-04T15:53:59Z",
+  "updated_at": "2024-07-04T15:53:59Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

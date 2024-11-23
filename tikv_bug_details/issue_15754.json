@@ -1,0 +1,29 @@
+{
+  "issue_number": 15754,
+  "title": "when disk almost full happens, there's still minor raft write flow which could further consume up tikv free space",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n7.4 or older\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nWhen disk is almost full, we should not allow any write. \r\n### What did happened?\r\nThere's still some minor raft write that eventually could consume up free space\r\n<img width=\"826\" alt=\"Screen Shot 2023-10-11 at 2 48 37 PM\" src=\"https://github.com/tikv/tikv/assets/9442422/242355da-09e2-4d3a-b77c-a5115f33dfa2\">\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-10-11T21:48:51Z",
+  "updated_at": "2024-01-29T18:47:06Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1894142300,
+      "user": "blakehatch",
+      "created_at": "2024-01-16T16:57:38Z",
+      "body": "I would like to take on this issue."
+    },
+    {
+      "id": 1915350841,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T18:47:05Z",
+      "body": "@blakehatch Welcome!"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "issue_number": 13310,
+  "title": "The address of the check leader message sent to the TiFlash proxy is wrong",
+  "body": "https://github.com/tikv/tikv/blob/1ea26a2ac8761af356cc5c0825eb89a0b8fc9749/components/resolved_ts/src/advance.rs#L400\r\nFor TiFlash proxy, should use `store.peer_address` instead of `store.address`.",
+  "state": "closed",
+  "created_at": "2022-08-18T15:20:12Z",
+  "updated_at": "2022-12-08T03:14:06Z",
+  "closed_at": "2022-08-24T11:50:22Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.4",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-6.0",
+    "affects-6.1",
+    "may-affects-6.2",
+    "may-affects-6.3",
+    "may-affects-6.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1220188115,
+      "user": "CalvinNeo",
+      "created_at": "2022-08-19T02:57:47Z",
+      "body": "TiKV always use the same peer_address and address. Maybe we can use peer_address for those directly involved raftstore."
+    }
+  ]
+}

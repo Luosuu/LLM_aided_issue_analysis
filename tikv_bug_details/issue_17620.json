@@ -1,0 +1,19 @@
+{
+  "issue_number": 17620,
+  "title": "truncate or drop table frequently may increase cdc incremental scan CPU usage obviously",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nv6.5.x, v7.1.x and v7.5.x.\r\n\r\n### What operating system and CPU are you using?\r\nIt doesn't matter.\r\n\r\n### Steps to reproduce\r\nCreate and drop partitions very frequently, and starts a changefeed on some tables.\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\nWe can observe CDC incremental scan CPU usage can be very high, and profile results show that those threads are busy at loading old values. Here is the issue: https://github.com/tikv/tikv/issues/16601.\r\n\r\nHere is a speculation to explain the phenomenon:\r\n\r\n* TiKV combines `DeleteFilesInRange` and `Scan & Delete` to clean dropped table or partitions, so there could be some continuous RocksDB Tombstones in the dropped range;\r\n* Those tombstones may be covered by regions with some other valid table records;\r\n* According to #16362, incremental scans on those tables will scan the whole regions instead of observed ranges;\r\n* Scanners will call `RocksDBIter::Next` to avoid expensive `RocksDBIter::Seek` calls. However, on continuous Tombstones, `RocksDBIter::Next` will be very expensive. That's why some incremental scans needs more than hours to finish.\r\n\r\nTo resolve the problem on `v7.1.x` and `v7.5.x`, we need to filter events by observed ranges before loading old value.\r\n\r\nHowever in `v6.5.x`, we need also to backport #14213 and then perform the same fixing.",
+  "state": "open",
+  "created_at": "2024-10-09T05:44:18Z",
+  "updated_at": "2024-11-18T16:00:06Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "report/customer"
+  ],
+  "comments_data": []
+}

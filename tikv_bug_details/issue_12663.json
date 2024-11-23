@@ -1,0 +1,63 @@
+{
+  "issue_number": 12663,
+  "title": "tikv panic: 12475 first index 56 > min_index 55, skip pre merge",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\n[2022/05/25 15:38:59.799 +00:00] [INFO] [lib.rs:79] [\"Welcome to TiKV\"]\r\n[2022/05/25 15:38:59.799 +00:00] [INFO] [lib.rs:84] [\"Release Version:   6.1.0-alpha\"]\r\n[2022/05/25 15:38:59.799 +00:00] [INFO] [lib.rs:84] [\"Edition:           Community\"]\r\n[2022/05/25 15:38:59.799 +00:00] [INFO] [lib.rs:84] [\"Git Commit Hash:   1fb8980ccab9ff40c1adc206df52952dab8e8ad8\"]\r\n[2022/05/25 15:38:59.799 +00:00] [INFO] [lib.rs:84] [\"Git Commit Branch: heads/refs/tags/v6.1.0\"]\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n`do not care`\r\n\r\n### Steps to reproduce\r\n```\r\nrun jepsen jepsen-monotonic test with the following options:\r\n{:auto-retry-limit :default,\r\n :ssh-private-key \"jepsen.pem\",\r\n :isolation :repeatable-read,\r\n :concurrency 15,\r\n :predicate-read false,\r\n :tarball-url\r\n \"http://minio.pingcap.net:9000/tp-team/tests/jepsen/tidb-v6.1.0-pre-amd64.tar.gz\",\r\n :txn-mode \"mixed\",\r\n :force-reinstall true,\r\n :update-in-place false,\r\n :ssh\r\n {:username \"root\",\r\n  :password \"root\",\r\n  :strict-host-key-checking false,\r\n  :private-key-path \"jepsen.pem\"},\r\n :nemesis-long-recovery false,\r\n :follower-read false,\r\n :nemesis\r\n {:interval 10,\r\n  :schedules true,\r\n  :partition-pd-leader true,\r\n  :partition-half true,\r\n  :partition-ring true},\r\n :nodes\r\n [\"node-0.node-peer.jepsen-tps-840631-1-732\"\r\n  \"node-1.node-peer.jepsen-tps-840631-1-732\"\r\n  \"node-2.node-peer.jepsen-tps-840631-1-732\"\r\n  \"node-3.node-peer.jepsen-tps-840631-1-732\"\r\n  \"node-4.node-peer.jepsen-tps-840631-1-732\"],\r\n :test-count 1,\r\n :read-lock \"FOR UPDATE\",\r\n :use-index true,\r\n :os #object[tidb.core.Image 0x19fec3d6 \"tidb.core.Image@19fec3d6\"],\r\n :time-limit 300,\r\n :recovery-time 10,\r\n :version \"master\",\r\n :auto-retry :default,\r\n :workload :monotonic,\r\n :init-txn-sql\r\n (\"set @@tidb_enable_async_commit = 0, @@tidb_enable_1pc = 0\"\r\n  \"set @@tidb_enable_async_commit = 1, @@tidb_enable_1pc = 0\"\r\n  \"set @@tidb_enable_async_commit = 1, @@tidb_enable_1pc = 1\"),\r\n :init-sql\r\n (\"set @@tidb_enable_mutation_checker=1, @@tidb_txn_assertion_level=strict\")}\r\n```\r\n\r\n### What did you expect?\r\n\r\n`case run passed.`\r\n\r\n### What did happened?\r\n```\r\ncase run failed due to tikv panic:\r\n[2022/05/25 15:44:59.596 +00:00] [INFO] [raft.rs:1332] [\"[logterm: 11, index: 12, vote: 1621] ignored vote from 1622 [logterm: 11, index: 12]: lease is not expired\"] [\"msg type\"=MsgRequestPreVote] [\"remaining ticks\"=10] [term=11] [msg_index=12] [msg_term=11] [from=1622] [vote=1621] [log_index=12] [log_term=11] [raft_id=1621] [region_id=1619]\r\n[2022/05/25 15:44:59.599 +00:00] [FATAL] [lib.rs:491] [\"[region 1081] 12475 first index 56 > min_index 55, skip pre merge\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:490:18\\n   1: std::panicking::rust_panic_with_hook\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:702:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:588:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:138:18\\n   4: rust_begin_unwind\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:584:5\\n   5: core::panicking::panic_fmt\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:143:14\\n   6: raftstore::store::fsm::apply::ApplyDelegate<EK>::exec_admin_cmd\\n   7: raftstore::store::fsm::apply::ApplyDelegate<EK>::exec_raft_cmd\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:1381:13\\n      raftstore::store::fsm::apply::ApplyDelegate<EK>::apply_raft_cmd\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:1241:41\\n   8: raftstore::store::fsm::apply::ApplyDelegate<EK>::process_raft_cmd\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:1194:39\\n   9: raftstore::store::fsm::apply::ApplyDelegate<EK>::handle_raft_entry_normal\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:1077:20\\n      raftstore::store::fsm::apply::ApplyDelegate<EK>::handle_raft_committed_entries\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:980:43\\n  10: raftstore::store::fsm::apply::ApplyFsm<EK>::handle_apply\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:3362:9\\n  11: raftstore::store::fsm::apply::ApplyFsm<EK>::handle_tasks\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:3643:25\\n  12: <raftstore::store::fsm::apply::ApplyPoller<EK> as batch_system::batch::PollHandler<raftstore::store::fsm::apply::ApplyFsm<EK>,raftstore::store::fsm::apply::ControlFsm>>::handle_normal\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:3892:9\\n  13: batch_system::batch::Poller<N,C,Handler>::poll\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/batch-system/src/batch.rs:421:27\\n  14: raftstore::store::worker::refresh_config::PoolController<N,C,H>::increase_by::{{closure}}\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/worker/refresh_config.rs:76:21\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:122:18\\n  15: std::thread::Builder::spawn_unchecked_::{{closure}}::{{closure}}\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/mod.rs:498:17\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/unwind_safe.rs:271:9\\n      std::panicking::try::do_call\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:492:40\\n      std::panicking::try\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:456:19\\n      std::panic::catch_unwind\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panic.rs:137:14\\n      std::thread::Builder::spawn_unchecked_::{{closure}}\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/mod.rs:497:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:227:5\\n  16: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:1854:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:1854:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at /rust/toolchains/nightly-2022-02-14-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/thread.rs:108:17\\n  17: start_thread\\n  18: clone\\n\"] [location=/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/apply.rs:2422] [thread_name=apply-1]\r\n\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-05-26T08:01:17Z",
+  "updated_at": "2022-06-21T07:58:37Z",
+  "closed_at": "2022-06-21T07:58:37Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1138298387,
+      "user": "vivid392845427",
+      "created_at": "2022-05-26T08:32:57Z",
+      "body": "/severity major\r\n/type bug"
+    },
+    {
+      "id": 1138533722,
+      "user": "Lily2025",
+      "created_at": "2022-05-26T12:38:46Z",
+      "body": "/assign busyjay"
+    },
+    {
+      "id": 1138821339,
+      "user": "BusyJay",
+      "created_at": "2022-05-26T17:22:17Z",
+      "body": "Can you provide full logs?"
+    },
+    {
+      "id": 1139200531,
+      "user": "vivid392845427",
+      "created_at": "2022-05-27T01:41:14Z",
+      "body": "> Can you provide full logs?\r\n\r\nhttp://rms.pingcap.net:31714/workflows/testground/plan-exec-840631?tab=workflow&nodeId=plan-exec-840631-3734185420&nodePanelView=inputs-outputs"
+    },
+    {
+      "id": 1140335877,
+      "user": "BusyJay",
+      "created_at": "2022-05-28T22:07:58Z",
+      "body": "The direct cause is that we reset the `min_match` to `min_committed` when `min_match` is 0. But I would argue that even without resetting, current `min_match` can still go wrong when there are more than 3 peers.\r\n\r\nSupposing a group have 5 peers with progress match indexes as (9, 8, 8, 5, 0). And if leader replicates snapshot to the fifth peer, than match index becomes (9, 8, 8, 5, 8). min_match 5 is OK to be proposed but the fifth peer doesn't have any logs between [6, 8). So the merge will still panic.\r\n\r\nInstead of collecting information from progress, I propose to collect information from all peers directly. Just like what MsgHibernate does, before proposing prepare merge, leader needs to broadcast to all peers to check if a min_match is acceptable. If all agree to prepare merge on the index, leader can propose the real prepare merge. Any snapshot, log compact, admin proposals and leadership change will require new consensus.\r\n\r\nIf a peer agrees on an index, then it should ensure 1. local logs are available; 2. it should at least commit to the given index.\r\n\r\nThe side effect is that there can't be any peers isolated during prepare merge. I think this restriction is fair as merge is not critical for the system and PD can fix that by scale in the isolated node."
+    },
+    {
+      "id": 1140341474,
+      "user": "BusyJay",
+      "created_at": "2022-05-28T23:08:28Z",
+      "body": "Another way to solve this is to make leader records the last snapshot index it sends. When it becomes leader, the index is reset to its last index. Before proposing prepare merge, min_match has to be larger than last sent snapshot index."
+    },
+    {
+      "id": 1141452521,
+      "user": "BusyJay",
+      "created_at": "2022-05-30T20:11:57Z",
+      "body": "The solution should also avoid bugs like #11526."
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "issue_number": 12026,
+  "title": "tikv panic:918 unexpected state: Applying(0)",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:80] [\"Welcome to TiKV\"]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:85] [\"Release Version:   5.4.0-alpha\"]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:85] [\"Edition:           Community\"]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:85] [\"Git Commit Hash:   a7d1595f5486616be34e0cf2bbf372edb5f0e85a\"]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:85] [\"Git Commit Branch: heads/refs/tags/v5.5.0-nightly\"]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:85] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:85] [\"Rust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\"]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:85] [\"Enable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\"]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:85] [\"Profile:           dist_release\"]\r\n\r\n### What operating system and CPU are you using?\r\nnot involving\r\n\r\n### Steps to reproduce\r\nrun tipocket case: bank2 -run-time=6h -tikv-replicas=4 -tidb-replica-read=leader-and-follower -nemesis=random_kill,kill_tikv_1node_5min,shuffle-leader-scheduler,shuffle-region-scheduler,random-merge-scheduler,subcritical_skews\r\n\r\nhttp://172.16.4.180:31714/archived-workflows/test-store/36631d5a-80ce-43a6-ba1d-857f7bde7bf4 \r\n\r\n### What did you expect?\r\n\r\nthe cluster status normal;\r\n\r\n### What did happened?\r\n\r\ntikv panic:\r\n[2022/02/23 22:50:16.958 +00:00] [FATAL] [lib.rs:466] [\"[region 50] 918 unexpected state: Applying(0)\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:465:18\\n   1: std::panicking::rust_panic_with_hook\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:702:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:588:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:138:18\\n   4: rust_begin_unwind\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:584:5\\n   5: core::panicking::panic_fmt\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panicking.rs:143:14\\n   6: raftstore::store::peer_storage::PeerStorage<EK,ER>::snapshot\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/peer_storage.rs:1283:13\\n      <raftstore::store::peer_storage::PeerStorage<EK,ER> as raft::storage::Storage>::snapshot\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/peer_storage.rs:736:9\\n      raft::raft_log::RaftLog<T>::snapshot\\n             at rust/git/checkouts/raft-rs-42b8049ef2e3af07/2a3d7b6/src/raft_log.rs:467:9\\n      raft::raft::RaftCore<T>::prepare_send_snapshot\\n             at rust/git/checkouts/raft-rs-42b8049ef2e3af07/2a3d7b6/src/raft.rs:670:26\\n   7: raft::raft::RaftCore<T>::maybe_send_append\\n             at rust/git/checkouts/raft-rs-42b8049ef2e3af07/2a3d7b6/src/raft.rs:823:25\\n   8: raft::raft::RaftCore<T>::send_append\\n             at rust/git/checkouts/raft-rs-42b8049ef2e3af07/2a3d7b6/src/raft.rs:760:9\\n      raft::raft::Raft<T>::send_append\\n             at rust/git/checkouts/raft-rs-42b8049ef2e3af07/2a3d7b6/src/raft.rs:873:9\\n      raft::raw_node::RawNode<T>::on_entries_fetched\\n             at rust/git/checkouts/raft-rs-42b8049ef2e3af07/2a3d7b6/src/raw_node.rs:430:21\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_significant_msg\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:1198:17\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::handle_msgs\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/peer.rs:639:49\\n   9: <raftstore::store::fsm::store::RaftPoller<EK,ER,T> as batch_system::batch::PollHandler<raftstore::store::fsm::peer::PeerFsm<EK,ER>,raftstore::store::fsm::store::StoreFsm<EK>>>::handle_normal\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/fsm/store.rs:789:9\\n  10: batch_system::batch::Poller<N,C,Handler>::poll\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/batch-system/src/batch.rs:406:27\\n  11: raftstore::store::worker::refresh_config::PoolController<N,C,H>::increase_by::{{closure}}\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/worker/refresh_config.rs:71:21\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:122:18\\n  12: std::thread::Builder::spawn_unchecked_::{{closure}}::{{closure}}\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/mod.rs:498:17\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panic/unwind_safe.rs:271:9\\n      std::panicking::try::do_call\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:492:40\\n      std::panicking::try\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:456:19\\n      std::panic::catch_unwind\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panic.rs:137:14\\n      std::thread::Builder::spawn_unchecked_::{{closure}}\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/mod.rs:497:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/ops/function.rs:227:5\\n  13: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/boxed.rs:1854:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/boxed.rs:1854:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys/unix/thread.rs:108:17\\n  14: <unknown>\\n  15: clone\\n\"] [location=/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/raftstore/src/store/peer_storage.rs:1283] [thread_name=raftstore-1-1]\r\n[2022/02/23 22:50:16.958 +00:00] [INFO] [apply.rs:1763] [\"exec ConfChange\"] [epoch=\"conf_ver: 89 version: 41\"] [type=AddLearner] [peer_id=700] [region_id=207]\r\n[2022/02/23 22:50:16.958 +00:00] [INFO] [apply.rs:1903] [\"add learner successfully\"] [region=\"id: 207 start_key: 7480000000000000FF455F698000000000FF000001016163636FFF756E7420FF343232FF3637390000FD0000FD end_key: 7480000000000000FF455F698000000000FF000001016163636FFF756E7420FF353135FF3437340000FD0000FD region_epoch { conf_ver: 89 version: 41 } peers { id: 493 store_id: 6 } peers { id: 693 store_id: 4 } peers { id: 700 store_id: 1 }\"] [peer=\"id: 955 store_id: 5 role: Learner\"] [peer_id=700] [region_id=207]\r\n[2022/02/23 22:50:32.535 +00:00] [INFO] [lib.rs:80] [\"Welcome to TiKV\"]\r\n",
+  "state": "closed",
+  "created_at": "2022-02-25T05:53:58Z",
+  "updated_at": "2022-03-04T11:39:48Z",
+  "closed_at": "2022-03-04T11:39:48Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1050550331,
+      "user": "vivid392845427",
+      "created_at": "2022-02-25T05:57:43Z",
+      "body": "/type bug\r\n/severity critical"
+    },
+    {
+      "id": 1050730270,
+      "user": "NingLin-P",
+      "created_at": "2022-02-25T10:28:16Z",
+      "body": "TiKV panicked because the peer try to generate a snapshot for other peers but found that it itself is in applying snapshot state. \r\n\r\nThis panic may introduce by https://github.com/tikv/tikv/pull/11409, when a peer fetch raft logs asynchronously finished, it will try to send append msg to other peers but without checking whether the peer is still leader (in this case it is even applying snapshot). And if the requested raft log is compacted \r\nhttps://github.com/tikv/tikv/blob/bf1db1fd3ce847e0fb67b91ebe7ebe518d0a49eb/components/raftstore/src/store/peer_storage.rs#L1006\r\n\r\nthe above line will return `StorageError::Compacted` before looking up the `async_fetch_results`, thus the peer will try to get a snapshot instead, and panic if it is in applying snapshot state. /cc @Connor1996 @BusyJay "
+    },
+    {
+      "id": 1050742810,
+      "user": "NingLin-P",
+      "created_at": "2022-02-25T10:45:01Z",
+      "body": "Also, I found that `async_fetch_results` won't be freed after a leader is stepped down."
+    },
+    {
+      "id": 1050819541,
+      "user": "BusyJay",
+      "created_at": "2022-02-25T12:39:53Z",
+      "body": "So term change is considered while leadership changes is not. :(\r\n\r\n> Also, I found that async_fetch_results won't be freed after a leader is stepped down.\r\n\r\nWhy? Isn't it cleared immediately at\r\n\r\nhttps://github.com/tikv/tikv/blob/bf1db1fd3ce847e0fb67b91ebe7ebe518d0a49eb/components/raftstore/src/store/fsm/peer.rs#L1259"
+    },
+    {
+      "id": 1050822946,
+      "user": "BusyJay",
+      "created_at": "2022-02-25T12:45:22Z",
+      "body": "This may change other follower's leader internal field, and may provide false information for observers. Perhaps raft-rs should also check whether leader id changes without term changes."
+    },
+    {
+      "id": 1050861699,
+      "user": "NingLin-P",
+      "created_at": "2022-02-25T13:38:33Z",
+      "body": "> Why? Isn't it cleared immediately at\r\n> \r\n> https://github.com/tikv/tikv/blob/bf1db1fd3ce847e0fb67b91ebe7ebe518d0a49eb/components/raftstore/src/store/fsm/peer.rs#L1259\r\n\r\nI see\r\n\r\n> Perhaps raft-rs should also check whether leader id changes without term changes.\r\n\r\nSimply checking `self.state == StateRole::Leader` before sending `MsgAppend` may be enough. Besides, I think we should also do the term check in `raft-rs` otherwise it could be a pitfall for the user of `raft-rs`.\r\n"
+    },
+    {
+      "id": 1050862342,
+      "user": "BusyJay",
+      "created_at": "2022-02-25T13:39:32Z",
+      "body": "Agree. Both the term check and leadership check should be done in raft-rs."
+    },
+    {
+      "id": 1053942776,
+      "user": "Connor1996",
+      "created_at": "2022-02-28T06:49:28Z",
+      "body": "In which case, the leadership changes while the term doesn't? @NingLin-P "
+    },
+    {
+      "id": 1053944932,
+      "user": "BusyJay",
+      "created_at": "2022-02-28T06:54:14Z",
+      "body": "`term` will always changed. But `on_fetched_result` bypass term change."
+    },
+    {
+      "id": 1053954712,
+      "user": "NingLin-P",
+      "created_at": "2022-02-28T07:11:32Z",
+      "body": "> In which case, the leadership changes while the term doesn't? @NingLin-P\r\n\r\nTerm will also change, but the current term check simply remove the `async_fetch_res`, and then calling `on_entries_fetched` can still trigger the abovementioned case."
+    }
+  ]
+}

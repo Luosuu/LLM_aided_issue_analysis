@@ -1,0 +1,33 @@
+{
+  "issue_number": 17606,
+  "title": "TiKV initial scan task not cancel/termicated when changefeed paused or failed",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.5.9\r\nfcbd1624b4445574af328fe78fbb683de76057c8\r\n\r\n### What operating system and CPU are you using?\r\nX86 K8S\r\n\r\n### Steps to reproduce\r\n1. 07:51 - 07:55 Create 4 CDC clusters (each CDC cluster with 32C CDC nodes), for each CDC cluster create one changefeed,  each changefeed replicating ~40k tables (overall ~160k tables)\r\n2. 07:58 Pause changefeed and update config \r\n3. 08:12 resume all changefeeds\r\n4. 09:38 Pause all changefeed\r\n5. 10:33 delete changefeed (Delete changefeeds from TiDB cloud UI)\r\n6. 10:07 - 10:33 manually kill and restart all TiKV\r\n\r\n### What did you expect?\r\n- When task paused, previous pending initial scan task should be cancelled, Otherwise this might block following changefeed initilization.\r\n\r\n\r\n### What did happened?\r\nAfter step 1, one changefeed initilization finished (all tables added the changefeed)\r\nAfter step 3, For the initilized changefeed, table count is 0 for 1.4h+ before it was paused.\r\nAfter step 4, initial scan pending tasks is decreasing, but it is very slow.\r\nAfter step 6, the pending tasks disappeared.\r\n\r\n![image](https://github.com/user-attachments/assets/f55c340a-4b03-410f-ac61-0c23836ba3bb)\r\n![image](https://github.com/user-attachments/assets/7a8a404c-8c94-4107-a740-0610fec418d8)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-10-02T04:07:21Z",
+  "updated_at": "2024-10-09T06:19:48Z",
+  "closed_at": "2024-10-09T06:19:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2391433200,
+      "user": "fubinzh",
+      "created_at": "2024-10-03T13:32:13Z",
+      "body": "Encountered similar issue when changefeed failed.\r\n\r\nChangefeed failed at 10/03 00:00 during initial scan, but initial scan continues (and sorted disk actually increases) until I delete all changefeeds at 10/03 09:00.\r\n<img width=\"979\" alt=\"image\" src=\"https://github.com/user-attachments/assets/da058d59-336e-4e12-b394-ec94b2b0551d\">\r\n![image](https://github.com/user-attachments/assets/ab8c694f-269f-4ee0-aeba-cb68d0ae2512)\r\n![image](https://github.com/user-attachments/assets/de773e94-4438-4bdf-920a-8c0200d598ca)\r\n"
+    },
+    {
+      "id": 2401409380,
+      "user": "fubinzh",
+      "created_at": "2024-10-09T06:19:48Z",
+      "body": "close this issue, and track it by https://github.com/pingcap/tiflow/issues/11638"
+    }
+  ]
+}

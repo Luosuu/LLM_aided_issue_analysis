@@ -1,0 +1,17 @@
+{
+  "issue_number": 14785,
+  "title": "[Dynamic Regions] transfer leader may be blocked on a slow TiKV node",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nAs title, it may hinder hot spot scheduling. This is because transfer leader is rejected if there are any admin cmd that changes epoch.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv7.0.0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRun `test_read_index_after_transfer_leader`\r\n\r\n### What did you expect?\r\n\r\nTransfer leader successfully.\r\n\r\n### What did happened?\r\n\r\nTransfer leader is rejected.",
+  "state": "closed",
+  "created_at": "2023-05-22T05:54:58Z",
+  "updated_at": "2023-07-05T21:50:30Z",
+  "closed_at": "2023-05-23T11:09:41Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "feature/developing",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

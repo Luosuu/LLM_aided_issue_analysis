@@ -1,0 +1,24 @@
+{
+  "issue_number": 3272,
+  "title": "Test test_multi_node_random_latency failed",
+  "body": "```\r\nthread 'raftstore_cases::test_multi::test_multi_node_random_latency' panicked at 'need at lease 3 qualified stores, but only got 2', tests/raftstore/cluster.rs:489:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:227\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:511\r\n   5: std::panicking::continue_panic_fmt\r\n             at libstd/panicking.rs:426\r\n   6: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:413\r\n   7: <integrations::raftstore::cluster::Cluster<T>>::assert_quorum\r\n             at tests/raftstore/cluster.rs:489\r\n   8: integrations::raftstore_cases::test_multi::test_multi_base_after_bootstrap\r\n             at tests/raftstore_cases/test_multi.rs:63\r\n   9: integrations::raftstore_cases::test_multi::test_multi_random_latency\r\n             at tests/raftstore_cases/test_multi.rs:235\r\n  10: integrations::raftstore_cases::test_multi::test_multi_node_random_latency\r\n             at tests/raftstore_cases/test_multi.rs:242\r\n  11: integrations::__test::TESTS::{{closure}}\r\n             at tests/raftstore_cases/test_multi.rs:239\r\n  12: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n  13: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1451\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:640\r\n  14: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:105\r\n```\r\n\r\n[log.log](https://github.com/pingcap/tikv/files/2151589/log.log)\r\n",
+  "state": "closed",
+  "created_at": "2018-06-30T09:41:36Z",
+  "updated_at": "2020-11-04T05:45:57Z",
+  "closed_at": "2020-11-04T05:45:56Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 721524811,
+      "user": "Connor1996",
+      "created_at": "2020-11-04T05:45:56Z",
+      "body": "This info is stale, not sure if it is still unstable. Let's close it and reopen it if encounter again."
+    }
+  ]
+}

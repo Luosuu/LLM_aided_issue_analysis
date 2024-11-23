@@ -1,0 +1,30 @@
+{
+  "issue_number": 12673,
+  "title": "tikv crash when conv empty string",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nhttps://github.com/pingcap/tidb/issues/34975\r\n```\r\nuse test;\r\ndrop table if exists UK_GCOL_STORED_176092;\r\nCREATE TABLE `UK_GCOL_STORED_176092` (\r\n  `COL1` bit(16) DEFAULT NULL,\r\n  UNIQUE KEY `UK_COL1` (`COL1`) /*!80000 INVISIBLE */\r\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;\r\ninsert into UK_GCOL_STORED_176092 values(0x15AC), (0xB0B), (0xBC9), (0x11A3), (0x1055), (0x5CB), (0xC3C), (0xB25), (0x88D), (0x1220), (0x156F), (0x975), (0x190F), (0x11E6), (0x93C), (0x14B1), (0x1889), (0x71B), (0x1484), (0x133C), (0x577), (0x907), (0x8A3), (0x1598), (0xE45), (0x4C6), (0x12A2), (0x1917), (0xE57), (0x1227), (0x4D2), (0x16B8), (0x7E0), (0x990), (0x18CF), (0x233), (0x357), (0x351), (0xF01), (0x13D5), (0xCED), (0x124D), (0xB01), (0x1992), (0x7D5), (0x11AD), (0x804), (0x830), (0xBA0), (0x13FF), (0x144F), (0xE7D);\r\nselect * from  UK_GCOL_STORED_176092 where conv(col1, 2, 16);\r\n```\r\n### What did you expect?\r\nwork\r\n### What did happened?\r\ncrash",
+  "state": "closed",
+  "created_at": "2022-05-27T03:16:50Z",
+  "updated_at": "2024-06-04T02:25:31Z",
+  "closed_at": "2022-05-30T05:18:27Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "report/customer"
+  ],
+  "comments_data": [
+    {
+      "id": 2146449767,
+      "user": "seiya-annie",
+      "created_at": "2024-06-04T02:25:28Z",
+      "body": "/found customer"
+    }
+  ]
+}

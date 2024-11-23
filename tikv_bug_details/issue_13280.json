@@ -1,0 +1,55 @@
+{
+  "issue_number": 13280,
+  "title": "Storage pool regression on AWS EC2 instance type i3.4xlarge",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nversion:6.2.0-alpha,\tcommit 7824699f4e05feb3eb37b12265ecc1e26511a4d7\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nAWS EC2 instance type i3.4xlarge with Centos 7\r\n```\r\nLinux ip-172-31-25-210.us-west-2.compute.internal 3.10.0-1062.12.1.el7.x86_64 #1 SMP Tue Feb 4 23:02:59 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux\r\n```\r\n\r\n```\r\nprocessor       : 15\r\nvendor_id       : GenuineIntel\r\ncpu family      : 6\r\nmodel           : 79\r\nmodel name      : Intel(R) Xeon(R) CPU E5-2686 v4 @ 2.30GHz\r\nstepping        : 1\r\nmicrocode       : 0xb00003e\r\ncpu MHz         : 2632.000\r\ncache size      : 46080 KB\r\nphysical id     : 0\r\nsiblings        : 16\r\ncore id         : 7\r\ncpu cores       : 8\r\napicid          : 15\r\ninitial apicid  : 15\r\nfpu             : yes\r\nfpu_exception   : yes\r\ncpuid level     : 13\r\nwp              : yes\r\nflags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single fsgsbase bmi1 hle avx2 smep bmi2 erms invpcid rtm rdseed adx xsaveopt\r\nbogomips        : 4600.01\r\nclflush size    : 64\r\ncache_alignment : 64\r\naddress sizes   : 46 bits physical, 48 bits virtual\r\npower management:\r\n```\r\n\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ncompare the performance of TiDB v6.1.0 and v6.2.0 on sysbench oltp_point_select 900 threads with config\r\n`readpool.storage.normal-concurrency: 10`\r\n```\r\n sysbench oltp_point_select run --report-interval=10 --rand-type=uniform --mysql-db=sysbench \\\r\n --mysql-host=127.0.0.1 --mysql-port=3390 --mysql-user=root --time=600 --threads=900 \\\r\n --tables=16 --table-size=10000000 --mysql-ignore-errors=9007 \r\n```\r\n\r\n### What did you expect?\r\nThe performance of the two versions is similar. \r\n\r\n### What did happened?\r\nThere was a 27.46% regression in v6.2.0.\r\n\r\nversion | config | threads | QPS\r\n-- | -- | -- | --\r\n6.1.0 | readpool.storage.normal-concurrency: 10 | 900 | 417172.3\r\n6.2.0 | readpool.storage.normal-concurrency: 10 | 900 | 301870.72\r\n6.1.0 | readpool.storage.normal-concurrency: 10 | 300 | 262053.57\r\n6.2.0 | readpool.storage.normal-concurrency: 10 | 300 | 259545.54\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-08-13T02:49:54Z",
+  "updated_at": "2022-08-24T09:03:23Z",
+  "closed_at": "2022-08-24T09:03:23Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "affects-6.2",
+    "may-affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1213638470,
+      "user": "Yui-Song",
+      "created_at": "2022-08-13T02:51:20Z",
+      "body": "/type bug\r\n/severity major\r\n/assign @busyjay\r\n/label affects-6.2"
+    },
+    {
+      "id": 1216174774,
+      "user": "sticnarf",
+      "created_at": "2022-08-16T05:45:19Z",
+      "body": "I use Linux `perf` to investigate the issue on AWS i3 instances and find something unusual. `clock_gettime` needs to do real syscalls instead of just cheap vdso:\r\n\r\n![image](https://user-images.githubusercontent.com/17217495/184805426-3a9d69da-132a-4ae5-a61d-e706c030729f.png)\r\n\r\nThis means `Instant::now` is really expensive on these machines. That's why a lot of recent pull requests that change `coarse_now` to `now` or add new `Instant::now` calls are reported to cause performance regressions on AWS EC2 i3 instances.\r\n\r\nAWS i3 instances use xen virtualization. So the default clock source is `xen`. In this mode, it needs a real syscall to get monotonic now. \r\n\r\n```\r\n$ cat /sys/devices/system/clocksource/clocksource0/current_clocksource\r\nxen\r\n```\r\n\r\nAfter changing the clock source to `tsc`, `clock_gettime` no longer needs to do a real syscall.\r\n\r\n```\r\n$ echo tsc | sudo tee /sys/devices/system/clocksource/clocksource0/current_clocksource\r\n```\r\n\r\nAnd then, I cannot find the performance regression caused by #12441.\r\n\r\nUsing `tsc` as the clock source is also the best practice recommended by AWS: https://aws.amazon.com/cn/premiumsupport/knowledge-center/manage-ec2-linux-clock-source/"
+    },
+    {
+      "id": 1216193066,
+      "user": "BusyJay",
+      "created_at": "2022-08-16T06:16:56Z",
+      "body": "Can this difference be observed by builtin profiling?"
+    },
+    {
+      "id": 1216196253,
+      "user": "sticnarf",
+      "created_at": "2022-08-16T06:21:55Z",
+      "body": "> Can this difference be observed by builtin profiling?\r\n\r\nNo, the built-in profiling puts glibc and vdso in the blocklist because the unwinding implementation provided by libgcc cannot handle them well. So the syscalls are not included in the built-in flamegraph."
+    },
+    {
+      "id": 1216221809,
+      "user": "BusyJay",
+      "created_at": "2022-08-16T06:54:46Z",
+      "body": "/cc @breezewish @YangKeao another case that proves ebpf is the correct way."
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "issue_number": 13090,
+  "title": "Redhat 8.4: tikv restart by systemd after set memory-usage-limit less than vm message",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nsh-4.4# /tiup/deploy/tikv-20160/bin/tikv-server -V\r\nTiKV\r\nRelease Version:   6.1.0\r\nEdition:           Community\r\nGit Commit Hash:   080d086832ae5ce2495352dccaf8df5d40f30687\r\nGit Commit Branch: heads/refs/tags/v6.1.0\r\nUTC Build Time:    2022-06-10 11:22:39\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\npod has request 16G memory\r\n\t\terr := tc.UpdateConfig(resource.TiDBClusterUpdateConfigOptions{\r\n\t\t\tTarget: resource.TiKV,\r\n\t\t\tConfig: \"memory-usage-limit = \\\"12G\\\"\\n[storage.block-cache]\\ncapacity = \\\"7G\\\"\"})\r\n\t\treturn err\r\n\t}\r\n\r\n### What did happened?\r\ntikv oom and use than 12G.\r\n[2936253.548142] oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=cri-containerd-6d9f788aa1549022adddd2d2cd5bcf2c1e6a4376059f5bf95901d9633392db28.scope,mems_allowed=0-1,oom_memcg=/kubepods.slice/kubepods-podb0bd101c_6315_4417_be9c_a2d7c9f3bb9e.slice/cri-containerd-6d9f788aa1549022adddd2d2cd5bcf2c1e6a4376059f5bf95901d9633392db28.scope/system.slice,task_memcg=/kubepods.slice/kubepods-podb0bd101c_6315_4417_be9c_a2d7c9f3bb9e.slice/cri-containerd-6d9f788aa1549022adddd2d2cd5bcf2c1e6a4376059f5bf95901d9633392db28.scope/system.slice/tikv-20160.service,task=tikv-server,pid=2326757,uid=1000\r\n[2936253.548290] Memory cgroup out of memory: Killed process 2326757 (tikv-server) total-vm:19640788kB, anon-rss:15651428kB, file-rss:0kB, shmem-rss:0kB, UID:1000 pgtables:32684kB oom_score_adj:-997\r\n[2936254.543814] oom_reaper: reaped process 2326757 (tikv-server), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB\r\n\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/180186429-fc929bb4-9624-45b8-859c-676f2fc30321.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-21T09:57:06Z",
+  "updated_at": "2022-10-11T02:49:17Z",
+  "closed_at": "2022-10-11T02:49:07Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1191288450,
+      "user": "mayjiang0203",
+      "created_at": "2022-07-21T09:58:00Z",
+      "body": "/type bug\r\n/severity major\r\n/assign @tier-cap"
+    },
+    {
+      "id": 1197806928,
+      "user": "jebter",
+      "created_at": "2022-07-28T08:06:31Z",
+      "body": "any update？"
+    },
+    {
+      "id": 1211754002,
+      "user": "ethercflow",
+      "created_at": "2022-08-11T09:34:36Z",
+      "body": "@jebter Has discussed with @mayjiang0203 , She'll reproduce this, then we'll investigate why"
+    },
+    {
+      "id": 1217548095,
+      "user": "mayjiang0203",
+      "created_at": "2022-08-17T07:10:03Z",
+      "body": "After three times try, didn't reproduce oom in dmesg again, but tikv still restart many times.\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/185056815-c5b517c3-bba9-4521-8cda-0c3b352ab105.png)\r\n\r\n\r\n\r\nAnd from systemd log, found that tikv restart by systemd.\r\n```\r\njournalctl -u tikv-20160.service\r\nAug 17 11:29:35 tikv1-0 systemd[1]: Stopping tikv service...\r\n-- Subject: Unit tikv-20160.service has begun shutting down\r\n-- Defined-By: systemd\r\n-- Support: https://access.redhat.com/support\r\n--\r\n-- Unit tikv-20160.service has begun shutting down.\r\nAug 17 11:29:58 tikv1-0 systemd[1]: tikv-20160.service: Succeeded.\r\n-- Subject: Unit succeeded\r\n-- Defined-By: systemd\r\n-- Support: https://access.redhat.com/support\r\n--\r\n-- The unit tikv-20160.service has successfully entered the 'dead' state.\r\nAug 17 11:29:58 tikv1-0 systemd[1]: Stopped tikv service.\r\n-- Subject: Unit tikv-20160.service has finished shutting down\r\n-- Defined-By: systemd\r\n-- Support: https://access.redhat.com/support\r\n--\r\n-- Unit tikv-20160.service has finished shutting down.\r\nAug 17 11:29:58 tikv1-0 systemd[1]: Started tikv service.\r\n-- Subject: Unit tikv-20160.service has finished start-up\r\n-- Defined-By: systemd\r\n-- Support: https://access.redhat.com/support\r\n--\r\n-- Unit tikv-20160.service has finished starting up.\r\n```\r\n"
+    },
+    {
+      "id": 1219018069,
+      "user": "mayjiang0203",
+      "created_at": "2022-08-18T04:04:50Z",
+      "body": "Update, after disable auto restart, run 6 hours, didn't hit tikv reset again. \r\nNeed more time to verify this restart can be fixed by disable systemd auto restart."
+    },
+    {
+      "id": 1271947183,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T18:38:37Z",
+      "body": "@mayjiang0203 After disable auto restart, does the problem exit anymore? If not, we may close it or downgrade the severity. "
+    },
+    {
+      "id": 1274019770,
+      "user": "mayjiang0203",
+      "created_at": "2022-10-11T02:49:07Z",
+      "body": "Yes, after disable auto restart, didn't hit this again."
+    }
+  ]
+}

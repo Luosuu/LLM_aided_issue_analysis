@@ -1,0 +1,14 @@
+{
+  "issue_number": 1397,
+  "title": "server: can not pass etcd local test with send/receive corruption enabled",
+  "body": "I use etcd [local-test](https://github.com/coreos/etcd/tree/master/tools/local-tester) and find that the bank transfer test will fail when enable send/receive corruption flag. \r\n\r\nWhen these flags enabled, local-test will randomly change a byte in the data, but now we have no way to check it.\r\n\r\nMaybe we should wait gRPC, but seem that we still need checksum? /cc @xiang90 ",
+  "state": "closed",
+  "created_at": "2016-12-06T14:46:32Z",
+  "updated_at": "2018-08-07T00:46:22Z",
+  "closed_at": "2017-08-23T02:31:31Z",
+  "labels": [
+    "type/bug",
+    "status/proposal"
+  ],
+  "comments_data": []
+}

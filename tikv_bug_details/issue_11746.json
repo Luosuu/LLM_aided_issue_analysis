@@ -1,0 +1,76 @@
+{
+  "issue_number": 11746,
+  "title": "raftstore: snapshot files may deleted while the peer state is still `PeerState::Applying`",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nMatser\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nNot related\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nA peer with the peer state set to `PeerState::Applying` is started the apply snapshot process. If before it actually starts to apply snapshot data, it received a message (gc message or raft msg with larger peer id) telling it to destroy itself, the peer will try to cancel applying snapshot and submit the change of peer state (to `PeerState::Tombstone`) to the `WriteBatch`.\r\n\r\nAt the meantime, a canceled snapshot will be gc by the `StoreTick::SnapGc` tick, which will delete the snapshot files immediately and the `WriteBatch` may not persist yet. If TiKV then crashes and recover, the peer state is still `PeerState::Applying` and TiKV will panic because the snapshot does not exist.\r\n\r\nThis case can happen in scenarios like a TiKV is down while there are regions applying snapshot, and recover after a long time, by then these regions will try to continue to apply snapshot and the leader will tell them to gc themself, at this time the TiKV is crashed.\r\n\r\n### What did you expect?\r\n\r\nNot panic\r\n\r\n### What did happened?\r\n\r\nPanic because snapshot files not exist\r\n",
+  "state": "closed",
+  "created_at": "2021-12-28T12:08:13Z",
+  "updated_at": "2022-01-12T08:57:45Z",
+  "closed_at": "2022-01-12T08:57:45Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1002087517,
+      "user": "NingLin-P",
+      "created_at": "2021-12-28T12:48:22Z",
+      "body": "/cc @BusyJay @gengliqi @hicqu "
+    },
+    {
+      "id": 1002089542,
+      "user": "BusyJay",
+      "created_at": "2021-12-28T12:51:40Z",
+      "body": "Is it duplicated with https://github.com/tikv/tikv/issues/11618?"
+    },
+    {
+      "id": 1002101848,
+      "user": "NingLin-P",
+      "created_at": "2021-12-28T13:18:39Z",
+      "body": "> Is it duplicated with #11618?\r\n\r\nI think it is different, the root cause of this bug is the delete of snapshot files and the persist of `PeerState::Tombstone` are not atomic."
+    },
+    {
+      "id": 1002405789,
+      "user": "BusyJay",
+      "created_at": "2021-12-29T05:37:34Z",
+      "body": "> a canceled snapshot will be gc by the StoreTick::SnapGc tick, which will delete the snapshot files immediately\r\n\r\nHow can this happen? `StoreTick` will not delete the files unless mailbox is not found. And the mailbox is destroyed only after the tombstone state is written to disk. "
+    },
+    {
+      "id": 1002412715,
+      "user": "NingLin-P",
+      "created_at": "2021-12-29T06:09:12Z",
+      "body": "> How can this happen? `StoreTick` will not delete the files unless mailbox is not found. And the mailbox is destroyed only after the tombstone state is written to disk.\r\n\r\nMore precisely, the `StoreTick::SnapGc` will collect snapshot files that not currently applying and send them to the corresponding peer, and the peer will find it is not applying a snapshot (which had aborted by `maybe_destroy`) so delete the snapshot files immediately.\r\n\r\n"
+    },
+    {
+      "id": 1002455695,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T08:29:02Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002456111,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T08:30:03Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1002592041,
+      "user": "BusyJay",
+      "created_at": "2021-12-29T13:21:46Z",
+      "body": "It should be major as it hardly happen."
+    },
+    {
+      "id": 1004445051,
+      "user": "tonyxuqqi",
+      "created_at": "2022-01-04T00:25:30Z",
+      "body": "/assign tonyxuqqi"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "issue_number": 13020,
+  "title": "Should not fill cache when backup rawkv",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.1.0 & master\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n1. run backup raw command\r\n2. rocksdb block cache has much add operations.\r\n\r\n### What did you expect?\r\n\r\nbackup should not fill block cache as it may evict cached data of user read. \r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2022-07-14T07:37:38Z",
+  "updated_at": "2022-07-14T10:25:06Z",
+  "closed_at": "2022-07-14T10:25:06Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1"
+  ],
+  "comments_data": []
+}

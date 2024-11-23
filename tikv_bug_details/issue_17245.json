@@ -1,0 +1,26 @@
+{
+  "issue_number": 17245,
+  "title": "In-memory Engine: Duplicate error when range cache enabled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv8.1.0-20240621-c57aef1\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\ntidb cloud dedicated cluster\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. change \"insert\" statement in sysbench lua script to \"insert ... on duplicate key update ... \" as belows.\r\n`   con:query(string.format(\"INSERT INTO %s (id, k, c, pad) VALUES \" ..\r\n                               \"(%d, %d, '%s', '%s')  ON DUPLICATE KEY UPDATE k= %d, c='%s', pad='%s'\",\r\n                              table_name, id, k_val, c_val, pad_val, k_val, c_val, pad_val))`\r\n2.run sysbench with multi-threads such as threads=100\r\n\r\n3. the duplicate entry error will occur with a certain probability but not 100%.\r\n`FATAL: mysql_drv_query() returned error 1062 (Duplicate entry '?' for key 'sbtest17.PRIMARY') for query 'INSERT INTO sbtest17 (id, k, c, pad) VALUES (505, 537, '35427163386-66434975679-60734913781-63936242757-88587149249-49987974580-52063606092-35392391173-06670234997-51692119414', '55391731813-20939278325-13595195053-78812361500-66575989095')  ON DUPLICATE KEY UPDATE k= 537, c='35427163386-66434975679-60734913781-63936242757-88587149249-49987974580-52063606092-35392391173-06670234997-51692119414', pad='55391731813-20939278325-13595195053-78812361500-66575989095''\r\nFATAL: `thread_run' function failed: /usr/share/sysbench/oltp_dml_less1000.lua:19: SQL error, errno = 1062, state = '23000': Duplicate entry '?' for key 'sbtest17.PRIMARY'\r\nFATAL: mysql_drv_query() returned error 1062 (Duplicate entry '?' for key 'sbtest17.PRIMARY') for query 'INSERT INTO sbtest17 (id, k, c, pad) VALUES (441, 498, '39737765223-76388610332-37719229090-10882829262-80128900507-84179942182-52918941709-03562905073-72489028054-80380455269', '32143820534-73863753728-80997232311-18470349394-97294667789')  ON DUPLICATE KEY UPDATE k= 498, c='39737765223-76388610332-37719229090-10882829262-80128900507-84179942182-52918941709-03562905073-72489028054-80380455269', pad='32143820534-73863753728-80997232311-18470349394-97294667789''\r\nFATAL: `thread_run' function failed: /usr/share/sysbench/oltp_dml_less1000.lua:19: SQL error, errno = 1062, state = '23000': Duplicate entry '?' for key 'sbtest17.PRIMARY'\r\nError in my_thread_global_end(): 2 threads didn't exit`\r\n\r\n### What did you expect?\r\nNo duplicate entry error for insert ... on duplicate key update statement.\r\n\r\n### What did happened?\r\nDuplicate entry error reported for insert ... on duplicate key update statement.",
+  "state": "closed",
+  "created_at": "2024-07-05T02:59:26Z",
+  "updated_at": "2024-08-05T02:09:44Z",
+  "closed_at": "2024-08-05T02:09:44Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2209906611,
+      "user": "qiaoxinke",
+      "created_at": "2024-07-05T03:02:18Z",
+      "body": "@overvenus @SpadeA-Tang "
+    },
+    {
+      "id": 2268040062,
+      "user": "SpadeA-Tang",
+      "created_at": "2024-08-05T02:09:44Z",
+      "body": "This issue is not reproduced after serverial reproduction tests, so close it."
+    }
+  ]
+}

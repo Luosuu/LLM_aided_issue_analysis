@@ -1,0 +1,40 @@
+{
+  "issue_number": 12234,
+  "title": "after upgrade from v4.0.0  to v6.0.0, tikv report \" [FATAL] [lib.rs:468] [\"assertion failed: self.others.is_empty()\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n [\"Git Commit Hash:   5b59a1e4c3cfd98dda93f36f7a6d67463c3dae98\"]\r\n\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nupgrade from 4.0.0 to v6.0.0, 4 tikv node in cluster\r\nscale out tikv:20560\r\nscale in tikv: 20160\r\n\r\ndetail config and log please see in clinic:\r\n[\"clinic link\"] [url=\"https://clinic.pingcap.com:4433/diag/files?uuid=99ddf1bf22478d51-42afbae221c1ac1d-af79a0b55e8efcdf\"]\r\n\r\n\r\n### What did you expect?\r\nno panic\r\n\r\n### What did happened?\r\n[2022/03/23 07:22:15.410 +08:00] [FATAL] [lib.rs:468] [\"assertion failed: self.others.is_empty()\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:467:18\\n   1: std::panicking::rust_panic_with_hook\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:702:17\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:586:13\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:138:18\\n   4: rust_begin_unwind\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:584:5\\n   5: core::panicking::panic_fmt\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panicking.rs:143:14\\n   6: core::panicking::panic\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panicking.rs:48:5\\n   7: resource_metering::model::Records::is_empty\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/resource_metering/src/model.rs:289:13\\n      resource_metering::reporter::Reporter::upload\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/resource_metering/src/reporter/mod.rs:132:12\\n      <resource_metering::reporter::Reporter as tikv_util::worker::pool::RunnableWithTimer>::on_timeout\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/resource_metering/src/reporter/mod.rs:64:9\\n      tikv_util::worker::pool::Worker::start_with_timer_impl::{{closure}}\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/worker/pool.rs:465:25\\n      <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/future/mod.rs:84:19\\n      yatp::task::future::RawTask<F>::poll\\n             at /rust/git/checkouts/yatp-e704b73c3ee279b6/5f3d580/src/task/future.rs:59:9\\n   8: yatp::task::future::TaskCell::poll\\n             at /rust/git/checkouts/yatp-e704b73c3ee279b6/5f3d580/src/task/future.rs:103:9\\n      <yatp::task::future::Runner as yatp::pool::runner::Runner>::handle\\n             at /rust/git/checkouts/yatp-e704b73c3ee279b6/5f3d580/src/task/future.rs:387:20\\n   9: <tikv_util::yatp_pool::YatpPoolRunner<T> as yatp::pool::runner::Runner>::handle\\n             at /home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/yatp_pool/mod.rs:104:24\\n      yatp::pool::worker::WorkerThread<T,R>::run\\n             at /rust/git/checkouts/yatp-e704b73c3ee279b6/5f3d580/src/pool/worker.rs:48:13\\n      yatp::pool::builder::LazyBuilder<T>::build::{{closure}}\\n             at /rust/git/checkouts/yatp-e704b73c3ee279b6/5f3d580/src/pool/builder.rs:114:25\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:122:18\\n  10: std::thread::Builder::spawn_unchecked_::{{closure}}::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/mod.rs:498:17\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panic/unwind_safe.rs:271:9\\n      std::panicking::try::do_call\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:492:40\\n      std::panicking::try\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:456:19\\n      std::panic::catch_unwind\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panic.rs:137:14\\n      std::thread::Builder::spawn_unchecked_::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/mod.rs:497:30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/ops/function.rs:227:5\\n  11: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/boxed.rs:1854:9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/boxed.rs:1854:9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys/unix/thread.rs:108:17\\n  12: start_thread\\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-03-23T01:30:57Z",
+  "updated_at": "2022-04-15T09:08:09Z",
+  "closed_at": "2022-03-25T02:42:33Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 1075824735,
+      "user": "seiya-annie",
+      "created_at": "2022-03-23T01:51:04Z",
+      "body": "[tikv.log](https://github.com/tikv/tikv/files/8328988/tikv.log)\r\n"
+    },
+    {
+      "id": 1075827796,
+      "user": "Lily2025",
+      "created_at": "2022-03-23T01:57:37Z",
+      "body": "/type bug\r\n/severity Critical"
+    },
+    {
+      "id": 1075881968,
+      "user": "glorv",
+      "created_at": "2022-03-23T03:40:23Z",
+      "body": "https://github.com/tikv/tikv/blob/ac32d5c8099a85994a9790ae1840755033dd0fac/components/resource_metering/src/model.rs#L108-L117\r\n\r\nThe returned iterator may keep less records when the kth's record's value is not unique. In the worst case, all records' value is the same, the iterator is empty. This will likely cause this panic.\r\n\r\n/cc @mornyx "
+    },
+    {
+      "id": 1075927852,
+      "user": "mornyx",
+      "created_at": "2022-03-23T05:27:09Z",
+      "body": "/assign"
+    }
+  ]
+}

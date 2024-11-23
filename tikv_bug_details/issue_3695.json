@@ -1,0 +1,44 @@
+{
+  "issue_number": 3695,
+  "title": "Consider choosing block strategy for slog-async",
+  "body": "## Question\r\n\r\nThere are lot of `slog-async: logger dropped messages due to channel overflow, count: 7` in tikv's log file. The `count: 7` means 7 logs have been drop due to slogger channel full. There is no way to recover dropped logs, which is not helpful for debugging. The behaviour is controlled by `slog_async::OverflowStrategy`. Instead of `OverflowStrategy::DropAndReport`(current strategy), please consider choosing `OverflowStrategy::Block`, so tikv prints all logs.  \r\n",
+  "state": "closed",
+  "created_at": "2018-10-20T11:50:57Z",
+  "updated_at": "2018-11-12T00:21:18Z",
+  "closed_at": "2018-11-12T00:21:18Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 431848390,
+      "user": "Hoverbear",
+      "created_at": "2018-10-22T14:16:37Z",
+      "body": "Already fixed in `master` quite some time ago:\r\n\r\nhttps://github.com/tikv/tikv/blob/d046faecf56a11e526ce4f0211fe76ac5f1c7296/src/bin/util/setup.rs#L39-L62"
+    },
+    {
+      "id": 436134851,
+      "user": "overvenus",
+      "created_at": "2018-11-06T05:24:12Z",
+      "body": "Block strategy only appiles to `term-slogger`. `file-slogger` still uses `OverflowStrategy::DropAndReport`."
+    },
+    {
+      "id": 436620026,
+      "user": "Hoverbear",
+      "created_at": "2018-11-07T13:20:11Z",
+      "body": "Ah, of course!"
+    },
+    {
+      "id": 436878713,
+      "user": "hicqu",
+      "created_at": "2018-11-08T05:33:34Z",
+      "body": "Why not remove redudant logs? For example, `CompactLog` is print too frequently."
+    },
+    {
+      "id": 437049575,
+      "user": "Hoverbear",
+      "created_at": "2018-11-08T16:02:15Z",
+      "body": "@hicqu We don't ever want to drop logs (this is a bug). Removing redundant logs is a feature request, and can have it's own issue. :)"
+    }
+  ]
+}

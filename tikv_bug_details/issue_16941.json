@@ -1,0 +1,14 @@
+{
+  "issue_number": 16941,
+  "title": "Add observability on why tikv requests are timing out",
+  "body": "## Bug Report\r\n\r\nWe are experiencing timeouts in TiDB and numerous 'deadline exceeded' errors in TiKV. However, we are unable to identify where the requests are getting stuck. It is unclear whether they are stuck in the process of renewing the leader lease, reading the index, or encountering another issue entirely. To effectively debug these issues, we need to enhance observability in this specific area. \r\n<img width=\"1700\" alt=\"Screenshot 2024-05-03 at 3 50 46 PM\" src=\"https://github.com/tikv/tikv/assets/20447313/1e966c0b-4914-4940-a312-1cc285a259d1\">\r\n\r\n<img width=\"1712\" alt=\"Screenshot 2024-05-03 at 3 50 28 PM\" src=\"https://github.com/tikv/tikv/assets/20447313/154b4429-6161-4956-b53d-11538e89e368\">\r\n\r\n\r\n\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "open",
+  "created_at": "2024-05-03T22:51:57Z",
+  "updated_at": "2024-05-09T08:30:00Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

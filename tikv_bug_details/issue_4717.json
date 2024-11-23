@@ -1,0 +1,21 @@
+{
+  "issue_number": 4717,
+  "title": "Sending messages should be more tolerant",
+  "body": "https://github.com/tikv/tikv/blob/69680545b2721810581cdedeb5c4a975ddc4dc2b/src/raftstore/store/peer.rs#L2046-L2055\r\n\r\nIf returns error early, all the following messages will be discard and other peers may not receive logs until next heartbeat, which can cause unexpected delay.\r\n\r\nIn my opinion, sending message may not report error at all, because there will be no special handing except logging.",
+  "state": "closed",
+  "created_at": "2019-05-19T14:55:01Z",
+  "updated_at": "2019-05-29T05:15:15Z",
+  "closed_at": "2019-05-29T05:15:15Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 493764026,
+      "user": "BusyJay",
+      "created_at": "2019-05-19T14:55:32Z",
+      "body": "/cc @zhangjinpeng1987 @siddontang "
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 4220,
+  "title": "test log wrapper does not contain jemalloc",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\nmake test\r\n\r\n**What did you expect to see?**\r\n\r\nall tests passed\r\n\r\n**What did you see instead?**\r\n\r\n```\r\nerror: ./target/debug/log_wrappers-277edbd461a788c9 does not contain jemalloc\r\n```\r\n\r\nDo we need to exclude this test from jemalloc checking? ",
+  "state": "closed",
+  "created_at": "2019-02-15T05:14:27Z",
+  "updated_at": "2019-02-23T13:15:38Z",
+  "closed_at": "2019-02-23T13:15:38Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 466607971,
+      "user": "brson",
+      "created_at": "2019-02-23T02:31:04Z",
+      "body": "It's a simple fix: https://github.com/tikv/tikv/pull/4267"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "issue_number": 4219,
+  "title": "test failed with \"Resource temporarily unavailable\"",
+  "body": "## Bug Report\r\n\r\n**What did you do?**\r\n\r\nmake test and failed \r\n\r\n**What did you expect to see?**\r\n\r\nAll tests passed \r\n\r\n**What did you see instead?**\r\n\r\n```\r\ntest raftstore::test_multi::test_node_consistency_check ... ok\r\nthread 'raftstore::test_conf_change::test_server_pd_conf_change' panicked at 'called `Result::unwrap()` on an `Err` value: Os { code: 11, kind: WouldBlock, message: \"Resource temporarily unavailable\" }', src/libcore/result.rs:1009:5\r\ntest raftstore::test_merge::test_node_check_merged_message ... ok\r\nthread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: Os { code: 11, kind: WouldBlock, message: \"Resource temporarily unavailable\" }', src/libcore/result.rs:1009:5\r\nthread 'raftstore::test_multi::test_server_leader_change_with_uncommitted_log' panicked at 'called `Result::unwrap()` on an `Err` value: Os { code: 11, kind: WouldBlock, message: \"Resource temporarily unavailable\" }', src/libcore/result.rs:1009:5\r\nthread 'raftstore::test_multi::test_multi_server_latency' panicked at 'called `Result::unwrap()` on an `Err` value: Os { code: 11, kind: WouldBlock, message: \"Resource temporarily unavailable\" }', src/libcore/result.rs:1009:5\r\n```\r\n\r\nSeem that we create too many threads in the test. Our test may create many threads and the `cargo test` will run many tests (maybe depending on the CPU number) at the same time in parallel, which may cause this problem. \r\n\r\nI use `export RUST_TEST_THREADS=4` and the tests pass. \r\n\r\nSo maybe we should:\r\n\r\n1. Use fewer test threads \r\n2. Or adjust the thread number in tests \r\n\r\n",
+  "state": "closed",
+  "created_at": "2019-02-15T05:04:33Z",
+  "updated_at": "2019-02-26T07:33:00Z",
+  "closed_at": "2019-02-26T07:33:00Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 463914839,
+      "user": "BusyJay",
+      "created_at": "2019-02-15T05:43:33Z",
+      "body": "I will take a look to the problem."
+    },
+    {
+      "id": 463948571,
+      "user": "breezewish",
+      "created_at": "2019-02-15T08:19:33Z",
+      "body": "We need to investigate why it is ok previously."
+    },
+    {
+      "id": 463985798,
+      "user": "breezewish",
+      "created_at": "2019-02-15T10:21:58Z",
+      "body": "I found that 592c0838d (Dec 18) is the first commit that makes these tests fail on my machine."
+    },
+    {
+      "id": 464012033,
+      "user": "breezewish",
+      "created_at": "2019-02-15T11:30:40Z",
+      "body": "@Connor1996 PTAL as well"
+    },
+    {
+      "id": 464987414,
+      "user": "Connor1996",
+      "created_at": "2019-02-19T05:21:22Z",
+      "body": "maybe it is related to file handle limit. In my commit, the test will call `flush_cf` in a loop which generates many files. @breeswish "
+    },
+    {
+      "id": 464990134,
+      "user": "breezewish",
+      "created_at": "2019-02-19T05:33:38Z",
+      "body": "@Connor1996 Got it"
+    },
+    {
+      "id": 465063356,
+      "user": "BusyJay",
+      "created_at": "2019-02-19T09:51:53Z",
+      "body": "On my local tests, the error is reported after a854feee9f4a503d127fe5db95ae7c40cea93c74. It has something to do with resource reclaim in gRPC service. Maybe there is memory leak that leads to never-dropped tokio reactor."
+    },
+    {
+      "id": 465900257,
+      "user": "hicqu",
+      "created_at": "2019-02-21T08:02:27Z",
+      "body": "I agree with @BusyJay . According to my test, the initial tikv opens `187` fds. after I start/stop a tidb, the fd numbers of tikv is `187` -> `190` -> `193` -> `196` -> `199` -> `200` -> `201` -> `202` ...\r\nSo there must be something unreleased after the gRPC connection to tidb is closed."
+    },
+    {
+      "id": 466289101,
+      "user": "BusyJay",
+      "created_at": "2019-02-22T06:29:49Z",
+      "body": "I do a simple experiment and findout that all runtimes are dropped properly, so grpcio seems not to be the one to be blamed. :rofl: "
+    },
+    {
+      "id": 466296612,
+      "user": "BusyJay",
+      "created_at": "2019-02-22T07:08:43Z",
+      "body": "After #4256, the error never show up on my machine. Do you want to have a try? @siddontang @breeswish"
+    },
+    {
+      "id": 467328411,
+      "user": "BusyJay",
+      "created_at": "2019-02-26T07:32:59Z",
+      "body": "All tests pass on my local machine after merging #4256. Feel free to reopen it if you have further problem."
+    }
+  ]
+}

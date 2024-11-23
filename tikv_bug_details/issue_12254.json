@@ -1,0 +1,54 @@
+{
+  "issue_number": 12254,
+  "title": "slow score calculation is not accurate",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n5.4.0 or older version\r\n\r\n### What operating system and CPU are you using?\r\nLinux/Intel\r\n\r\n### Steps to reproduce\r\nCode review\r\nTwo issues:\r\n1)  in https://github.com/tikv/tikv/blob/v5.4.0/components/raftstore/src/store/worker/pd.rs#L606\r\n\"if OrderedFloat(desc) > self.value\" should be \"if OrderedFloat(desc) > self.value - 1\". Otherwise the value could be < 1 (not [1, 100])\r\n\r\n2) in https://github.com/tikv/tikv/blob/v5.4.0/components/raftstore/src/store/fsm/store.rs#L881\r\ninspector.record_store_write(dur) and inspector.record_store_process(dur) (in L879) are double counting the dur. \r\n\r\n### What did you expect?\r\nSlowScore calculation is accurate\r\n### What did happened?\r\nSlowScore calculation is inaccurate in corner cases.",
+  "state": "closed",
+  "created_at": "2022-03-23T23:34:28Z",
+  "updated_at": "2022-04-26T13:30:54Z",
+  "closed_at": "2022-04-26T13:30:54Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1076919484,
+      "user": "tonyxuqqi",
+      "created_at": "2022-03-23T23:34:45Z",
+      "body": "/assign 5kbpers"
+    },
+    {
+      "id": 1077341759,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T08:01:55Z",
+      "body": "/type bug\r\n/severity Moderate"
+    },
+    {
+      "id": 1079266931,
+      "user": "JayiceZ",
+      "created_at": "2022-03-25T17:55:06Z",
+      "body": "@5kbpers Hi. Have you started working on the issue? if haven't, can I try it?😀"
+    },
+    {
+      "id": 1079633523,
+      "user": "5kbpers",
+      "created_at": "2022-03-26T07:46:56Z",
+      "body": "> @5kbpers Hi. Have you started working on the issue? if haven't, can I try it?😀\r\n\r\n@JayiceZ  I've not started yet. Your contribution is welcome!"
+    },
+    {
+      "id": 1080224756,
+      "user": "JayiceZ",
+      "created_at": "2022-03-28T05:59:30Z",
+      "body": "@5kbpers  I‘ve sent two PRs to fix those two issues, PTAL if you have time~"
+    },
+    {
+      "id": 1109801231,
+      "user": "5kbpers",
+      "created_at": "2022-04-26T13:30:54Z",
+      "body": "Fixed by #12275 and #12276"
+    }
+  ]
+}

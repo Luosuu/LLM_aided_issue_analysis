@@ -1,0 +1,27 @@
+{
+  "issue_number": 15304,
+  "title": "CpuRecorder may leak memory for destroyed threads",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n`CpuRecorder.thread_stats` never get cleanup. It should remove threads that is not in `_thread_stores`.\r\nThrough it may not be a real problem as TiKV does not create and destroy threads frequently.\r\n\r\nhttps://github.com/tikv/tikv/blob/9b1a816f1229c122b2c322f2d297de2217820fb1/components/resource_metering/src/recorder/sub_recorder/cpu.rs#L49-L61\r\n\r\n### What version of TiKV are you using?\r\n\r\nv7.3.0\r\n",
+  "state": "closed",
+  "created_at": "2023-08-09T10:26:40Z",
+  "updated_at": "2023-08-21T09:29:05Z",
+  "closed_at": "2023-08-21T09:29:05Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3"
+  ],
+  "comments_data": []
+}

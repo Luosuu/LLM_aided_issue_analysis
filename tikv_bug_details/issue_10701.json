@@ -1,0 +1,87 @@
+{
+  "issue_number": 10701,
+  "title": "v5.2.0: run sysbench insert abort 40min, one tikv oom",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@centos76_vm bin]# ./tikv-server -V\r\nTiKV\r\nRelease Version:   5.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   d78394cb8dcc3e55a53d34378253a0888d26b438\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time:    2021-08-09 12:08:07\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\ntiup部署\r\n1 tidb，1pd，3 tikv\r\nnode：8G、4 cores\r\n盘：500G SAS盘\r\n\r\n### Steps to reproduce\r\n1、run sysbench oltp_point_select prepare\r\n    threads=512\r\n    tableNum = 512\r\n    tableSize = 10000000000\r\n\r\n### What did you expect?\r\ntikv is normal\r\n\r\n### What did happened?\r\nrun sysbench insert abort 40min，one tikv oom\r\n![Lark20210811-111949](https://user-images.githubusercontent.com/84712107/128964485-464c29bb-1ead-4e49-8c69-20d4b925ff96.png)\r\n![Lark20210811-112042](https://user-images.githubusercontent.com/84712107/128964489-e5be2f26-abf0-42af-830f-c97d3c73fcbe.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-08-11T03:21:23Z",
+  "updated_at": "2021-11-03T13:04:50Z",
+  "closed_at": "2021-11-03T13:04:49Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 896469915,
+      "user": "Lily2025",
+      "created_at": "2021-08-11T03:21:47Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 896484678,
+      "user": "Lily2025",
+      "created_at": "2021-08-11T04:10:08Z",
+      "body": "/assign hicqu"
+    },
+    {
+      "id": 896507191,
+      "user": "hicqu",
+      "created_at": "2021-08-11T05:15:38Z",
+      "body": "![图片](https://user-images.githubusercontent.com/8407317/128973069-a801f9f4-c9e9-4750-b736-a454e7047830.png)\r\n![图片](https://user-images.githubusercontent.com/8407317/128973127-905a5dd6-bfe9-4388-99b2-e9420f44d998.png)\r\nFrom metrics we can't see any components with an abnormal memory usage. I guess it's caused by some new introduced components, they are not traced by the current mem-tracing mechanism.\r\nWe have modified `MALLOC_CONF` for TiKV instances, then test again and wait more results."
+    },
+    {
+      "id": 897248127,
+      "user": "Lily2025",
+      "created_at": "2021-08-12T00:17:17Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 898975856,
+      "user": "Lily2025",
+      "created_at": "2021-08-15T00:28:33Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 898975885,
+      "user": "Lily2025",
+      "created_at": "2021-08-15T00:28:56Z",
+      "body": "/severity Minor"
+    },
+    {
+      "id": 900807716,
+      "user": "Lily2025",
+      "created_at": "2021-08-18T04:43:36Z",
+      "body": "/remove-severity Minor"
+    },
+    {
+      "id": 901665575,
+      "user": "Lily2025",
+      "created_at": "2021-08-19T07:08:24Z",
+      "body": "/remove-severity major"
+    },
+    {
+      "id": 901665707,
+      "user": "Lily2025",
+      "created_at": "2021-08-19T07:08:39Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 902374780,
+      "user": "hicqu",
+      "created_at": "2021-08-20T02:06:33Z",
+      "body": "Can't reproduce with a cluster with 4C 8GB 3 TiKVs:\r\n![图片](https://user-images.githubusercontent.com/8407317/130167822-05adb113-554b-4f38-8068-8b0d8638a446.png)\r\n\r\nI will injest some errors to slow down the nvme disk.\r\n"
+    },
+    {
+      "id": 905190269,
+      "user": "hicqu",
+      "created_at": "2021-08-25T05:15:57Z",
+      "body": "I have located the root cause. It's because of auto analyze. Here is a test log about analyze:\r\n```\r\n[2021/08/24 17:57:10.766 +08:00] [WARN] [analyze.rs:107] [\"[QP] full sampling finished, result size: 22469640\"]\r\n[2021/08/24 17:57:11.014 +08:00] [WARN] [analyze.rs:339] [\"[QP] collect_column_stats is called, sample_size: 100000, sketch_size: 10000\"]\r\n[2021/08/24 17:57:16.286 +08:00] [WARN] [analyze.rs:107] [\"[QP] full sampling finished, result size: 22469492\"]\r\n```\r\n\r\nFor a full sampling response, about 22M memory will be consumed. So if there are more than 50 Regions are performing analyze, memory usage can increase about 1GB, which can lead OOM on a 4C 8G TiKV instance."
+    },
+    {
+      "id": 959022415,
+      "user": "BusyJay",
+      "created_at": "2021-11-03T13:04:49Z",
+      "body": "Fixed by https://github.com/pingcap/tidb/issues/28960"
+    }
+  ]
+}

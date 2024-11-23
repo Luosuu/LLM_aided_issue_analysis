@@ -1,0 +1,25 @@
+{
+  "issue_number": 14411,
+  "title": "[Dynamic Regions] tikv oom after Inject one tikv network_partition last for 50m and recover due to lack of flow control for log replication",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.7.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   c3e1cfb04046fe8ee1bc4a7ce453f273490e697a\r\nGit Commit Branch: heads/refs/tags/v6.7.0-alpha\r\nUTC Build Time:    2023-03-14 11:42:04\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-03-15T01:10:09.762+0800\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1657727\r\nha-tikv-random-to-all-network-partition-last-for-50m\r\nhttp://perf.pingcap.net:3000/d/WOw1JWmVk/ha-test-case-detail?orgId=1&refresh=10s&var-case_id=2820443\r\n\r\n### What did you expect?\r\ntikv should not be oom\r\n\r\n### What did happened?\r\ntikv oom after Inject one tikv network_partition last for 50m and recover\r\n![8e4030eb-cd0b-4b08-8ab6-12ede7a40803](https://user-images.githubusercontent.com/84712107/225790072-5fdc7fef-c103-4be9-bbda-1e8b141554f0.jpeg)\r\nclinic: https://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7210433082137609367?from=1678813797&to=1678819847\r\n![image](https://user-images.githubusercontent.com/84712107/225790236-6bd8363e-d136-4111-9c76-10fd83103c33.png)\r\n",
+  "state": "closed",
+  "created_at": "2023-03-17T01:39:15Z",
+  "updated_at": "2023-06-21T02:45:35Z",
+  "closed_at": "2023-06-21T02:34:13Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1472986385,
+      "user": "Lily2025",
+      "created_at": "2023-03-17T01:40:31Z",
+      "body": "/feature developing\r\n/severity major\r\n/assign busyjay"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "issue_number": 5516,
+  "title": "raftstore::test_tombstone::test_server_readd_peer response header { error { message: \"peer is not leader for region 1, leader may None\" not_leader { region_id: 1 } } } has error",
+  "body": "## Bug Report\r\n\r\n\r\n### What version of TiKV are you using?\r\nThis tikv source 7cbf045bb6bf7255ddedd44e76beba98efedd2e6\r\n\r\n### What operating system and CPU are you using?\r\n```\r\n\r\nprocessor\t: 39\r\nvendor_id\t: GenuineIntel\r\ncpu family\t: 6\r\nmodel\t\t: 79\r\nmodel name\t: Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\nstepping\t: 1\r\nmicrocode\t: 0xb00001f\r\ncpu MHz\t\t: 2400.341\r\ncache size\t: 25600 KB\r\nphysical id\t: 1\r\nsiblings\t: 20\r\ncore id\t\t: 12\r\ncpu cores\t: 10\r\napicid\t\t: 57\r\ninitial apicid\t: 57\r\nfpu\t\t: yes\r\nfpu_exception\t: yes\r\ncpuid level\t: 20\r\nwp\t\t: yes\r\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb cat_l3 cdp_l3 intel_pt tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a rdseed adx smap xsaveopt cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local dtherm ida arat pln pts\r\nbogomips\t: 4399.40\r\nclflush size\t: 64\r\ncache_alignment\t: 64\r\naddress sizes\t: 46 bits physical, 48 bits virtual\r\npower management:\r\n```\r\n\r\n```\r\nLinux version 3.10.0-862.14.4.el7.x86_64 (mockbuild@kbuilder.bsys.centos.org) (gcc version 4.8.5 20150623 (Red Hat 4.8.5-28) (GCC) ) #1 SMP Wed Sep 26 15:12:11 UTC 2018\r\n```\r\n\r\n### Steps to reproduce\r\n\r\nI run `cargo test --all` in `tikv/` dir(the root dir of tikv project).\r\nAnd it report this error\r\n```\r\nfailures:\r\n\r\n---- raftstore::test_tombstone::test_server_readd_peer stdout ----\r\nthread 'raftstore::test_tombstone::test_server_readd_peer' panicked at 'response header { error { message: \"peer is not leader for region 1, leader may None\" not_leader { region_id: 1 } } } has error', components/test_raftstore/src/cluster.rs:682:13\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace.\r\n\r\n\r\nfailures:\r\n    raftstore::test_tombstone::test_server_readd_peer\r\n```\r\nHowever, when I run it one more time, there is no this failure, so I can not get the full backtrace.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2019-09-24T03:17:20Z",
+  "updated_at": "2020-11-04T06:05:20Z",
+  "closed_at": "2020-11-04T06:05:20Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 721530767,
+      "user": "BusyJay",
+      "created_at": "2020-11-04T06:05:20Z",
+      "body": "Duplicated with #7692."
+    }
+  ]
+}

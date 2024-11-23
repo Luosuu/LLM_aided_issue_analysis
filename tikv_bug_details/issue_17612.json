@@ -1,0 +1,17 @@
+{
+  "issue_number": 17612,
+  "title": "flaky test test_limited_future",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n```\r\n--- TRY 3 STDERR:        resource_control future::tests::test_limited_future ---\r\n\r\nthread 'future::tests::test_limited_future' panicked at components/resource_control/src/future.rs:327:9:\r\n\r\nassertion failed: dur >= Duration::from_millis(150) && dur <= Duration::from_millis(160)\r\n\r\nstack backtrace:\r\n\r\n   0: rust_begin_unwind\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/std/src/panicking.rs:645:5\r\n\r\n   1: core::panicking::panic_fmt\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/core/src/panicking.rs:72:14\r\n\r\n   2: core::panicking::panic\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/core/src/panicking.rs:144:5\r\n\r\n   3: resource_control::future::tests::test_limited_future\r\n\r\n   4: resource_control::future::tests::test_limited_future::{{closure}}\r\n\r\n   5: core::ops::function::FnOnce::call_once\r\n\r\n   6: core::ops::function::FnOnce::call_once\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/core/src/ops/function.rs:250:5\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2024-10-08T03:33:15Z",
+  "updated_at": "2024-10-21T02:28:08Z",
+  "closed_at": "2024-10-08T04:23:22Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "component/test",
+    "flaky_test",
+    "affects-8.1"
+  ],
+  "comments_data": []
+}

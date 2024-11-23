@@ -1,0 +1,54 @@
+{
+  "issue_number": 9728,
+  "title": "Lease check should consider tick count",
+  "body": "## Bug Report\r\n\r\nTo guarantee lease correctness, follower should not start elections or accept vote request when with in lease. Inside raft, lease is counted by tick count, which is not accurate, the error range is within 1 tick. For example, if a tick interval is 2s, election timeout is 5 ticks, lease is also 2s * 5 = 10s. A follower is scheduled to tick at time 3:00, and leader's message arrives at 2:59, which reset its tick count to 0, so the follower may start election at 3:08. But leader expects its lease last till 2:59 + 10s = 3:09.\r\n\r\nThe correct check should ensure lease duration should not larger than election timeout - 1 tick. The default value follows the rule but we need a safe check when validating custom configuration.",
+  "state": "closed",
+  "created_at": "2021-03-01T08:29:51Z",
+  "updated_at": "2021-03-04T05:02:54Z",
+  "closed_at": "2021-03-04T05:02:54Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/raft",
+    "difficulty/easy",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 787771584,
+      "user": "seiya-annie",
+      "created_at": "2021-03-01T08:47:40Z",
+      "body": "Probability appears when election timeout time == lease time"
+    },
+    {
+      "id": 788529245,
+      "user": "TszKitLo40",
+      "created_at": "2021-03-02T02:32:09Z",
+      "body": "Can I try this issue?"
+    },
+    {
+      "id": 788543261,
+      "user": "BusyJay",
+      "created_at": "2021-03-02T03:08:44Z",
+      "body": "Sure!"
+    },
+    {
+      "id": 788549257,
+      "user": "TszKitLo40",
+      "created_at": "2021-03-02T03:21:45Z",
+      "body": "If I have any questions, can I request for help from you in slack? @BusyJay "
+    },
+    {
+      "id": 788777838,
+      "user": "TszKitLo40",
+      "created_at": "2021-03-02T09:51:54Z",
+      "body": "I am doubt that why the follower may start election at 3:08? @BusyJay It seems that it is just 4 ticks since 3:00."
+    },
+    {
+      "id": 788800276,
+      "user": "BusyJay",
+      "created_at": "2021-03-02T10:25:21Z",
+      "body": "> If I have any questions, can I request for help from you in slack? @BusyJay\r\n\r\nOf course yes.\r\n\r\n>  it is just 4 ticks since 3:00.\r\n\r\nBecause the follower is scheduled to tick at 3:00, so at 3:00, it will increase the tick from 0 to 1. Following ticks will be scheduled at 3:02, 3:04, 3:06, 3:08, and the tick will increase to 2, 3, 4, 5 respectively. It can start election or approve vote request at tick 5."
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "issue_number": 14137,
+  "title": "【witness】enable witness and pitr，inject one tikv io delay 200ms last for 5m，pitr task became to paused",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nsh-5.1# ./tikv-server -V\r\nTiKV \r\nRelease Version:   6.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   9c0df6d68c72d30021b36d24275fdceca9864235\r\nGit Commit Branch: heads/refs/tags/v6.6.0-alpha\r\nUTC Build Time:    2023-02-01 08:37:19\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n./br -V\r\n Release Version: v6.6.0-alpha\r\nGit Commit Hash: d4e2b2eac1c93cef247ebb7d0bdff83474eda94a\r\nGit Branch: heads/refs/tags/v6.6.0-alpha\r\nGo Version: go1.19.5\r\nUTC Build Time: 2023\r\n\r\n### What operating system and CPU are you using?\r\n8c/16GB\r\n\r\n### Steps to reproduce\r\n1、enable witness \r\n2、br restore data\r\n3、enable pitr\r\n4、run workload \r\n [\"Start remote command\"] [cmd=\"go-tpc tpcc run -D tpcc --host tc-tidb.testbed-glh-c7g8n -P4000 --warehouses 1000 -T 10 --ignore-error '2013,1213,1105,1205,8022,8028,9004,9007,1062' --password ''\"] [nodename=benchtoolset]\r\n5、inject chaos\r\n     one tikv io delay 200ms last for 5m\r\n\r\n### What did you expect?\r\npitr task can run normally\r\n\r\n### What did happened?\r\ntestbed：testbed-glh-c7g8n\r\nlogs：http://minio.pingcap.net:38888/buckets/test-infra-testground/browse/YXJjaGl2ZS90ZXN0YmVkLWdsaC1jN2c4bi8=\r\nwhen inject one tikv io delay，pitr task became to paused and can not recover automatically\r\n![image](https://user-images.githubusercontent.com/84712107/216565589-e17bc204-7152-4f8e-b1d9-d558548a1cbf.png)\r\n\r\nsh-5.1# /br log status --pd=\"tc-pd.testbed-glh-c7g8n.svc:2379\"\r\nDetail BR log in /tmp/br.log.2023-02-03T09.18.44Z \r\n● Total 1 Tasks.\r\n> #1 <\r\n                    name: pitr\r\n                  status: ○ ERROR\r\n                   start: 2023-02-03 07:53:26.333 +0000\r\n                     end: 2090-11-18 14:07:45.624 +0000\r\n                 storage: s3://tmp/log-hatest\r\n             speed(est.): 0.00 ops/s\r\n      checkpoint[global]: 2023-02-03 08:27:54.183 +0000; gap=50m50s\r\n          error[store=5]: KV:LogBackup:RaftReq\r\nerror-happen-at[store=5]: 2023-02-03 08:31:55.816 +0000; gap=46m48s\r\n  error-message[store=5]: retry time exceeds: and error and error failed to ge\r\n                          t initial snapshot: failed to get the snapshot (regi\r\n                          on_id = 27955): Error during requesting raftstore: m\r\n                          essage: \"peer is a witness of region 27955\" is_witne\r\n                          ss { region_id: 27955 }: failed to get initial snaps\r\n                          hot: failed to get the snapshot (region_id = 27955):\r\n                           Error during requesting raftstore: message: \"peer i\r\n                          s a witness of region 27955\" is_witness { region_id:\r\n                           27955 }: failed to get initial snapshot: failed to \r\n                          get the snapshot (region_id = 27955): Error during r\r\n                          equesting raftstore: message: \"peer is not leader fo\r\n                          r region 27955, leader may Some(id: 27956 store_id: \r\n                          16816)\" not_leader { region_id: 27955 leader { id: 2\r\n                          7956 store_id: 16816 } }\r\nsh-5.1#",
+  "state": "closed",
+  "created_at": "2023-02-03T09:36:49Z",
+  "updated_at": "2023-02-08T02:26:17Z",
+  "closed_at": "2023-02-08T02:26:16Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1415483176,
+      "user": "Lily2025",
+      "created_at": "2023-02-03T09:37:20Z",
+      "body": "/type bug\r\n/severity major\r\n/assign joccau"
+    },
+    {
+      "id": 1415483253,
+      "user": "ti-chi-bot",
+      "created_at": "2023-02-03T09:37:22Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: joccau.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14137#issuecomment-1415483176):\n\n>/type bug\r\n>/severity major\r\n>/assign joccau\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1415484698,
+      "user": "Lily2025",
+      "created_at": "2023-02-03T09:38:03Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5"
+    },
+    {
+      "id": 1418490208,
+      "user": "joccau",
+      "created_at": "2023-02-06T04:16:58Z",
+      "body": "![image](https://user-images.githubusercontent.com/57036248/216882538-eaf04a58-f1f5-48e7-b479-944eec704aeb.png)\r\n"
+    },
+    {
+      "id": 1418562988,
+      "user": "Lily2025",
+      "created_at": "2023-02-06T06:05:32Z",
+      "body": "/remove-severity major\r\n/severity critical"
+    },
+    {
+      "id": 1418563277,
+      "user": "Lily2025",
+      "created_at": "2023-02-06T06:05:54Z",
+      "body": "remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5"
+    },
+    {
+      "id": 1418563813,
+      "user": "Lily2025",
+      "created_at": "2023-02-06T06:06:34Z",
+      "body": "/remove-label may-affects-4.0"
+    },
+    {
+      "id": 1418958088,
+      "user": "ethercflow",
+      "created_at": "2023-02-06T11:50:57Z",
+      "body": "![image](https://user-images.githubusercontent.com/38067786/216964261-8143f5af-c2f2-4400-9ec9-2de802b9578b.png)\r\n"
+    },
+    {
+      "id": 1421888394,
+      "user": "ethercflow",
+      "created_at": "2023-02-08T02:26:16Z",
+      "body": "Fixed by https://github.com/tikv/pd/pull/5918, and tested."
+    }
+  ]
+}

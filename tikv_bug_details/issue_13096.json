@@ -1,0 +1,45 @@
+{
+  "issue_number": 13096,
+  "title": "upgrade to master（v6.2.0），the metrics of unified read pool cpu does not display properly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV Control (tikv-ctl) \r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   0dff1be50281c72c55c5464751cd733032115ce4\r\nGit Commit Branch: heads/refs/tags/v6.2.0-alpha\r\nUTC Build Time:    2022-07-19 11:03:30\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8core、16GB\r\n\r\n### Steps to reproduce\r\nupgrade to master（v6.2.0） from v5.4.0\r\n\r\n### What did you expect?\r\nhe metrics of unified read pool cpu can display properly\r\n\r\n### What did happened?\r\nupgrade to master（v6.2.0），the metrics of unified read pool cpu does not display properly\r\n![RTL5A9HJj4](https://user-images.githubusercontent.com/84712107/180366443-0b8320d4-ba86-4d63-91f7-985cebc2ca0c.jpg)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-22T05:03:20Z",
+  "updated_at": "2022-07-22T19:27:06Z",
+  "closed_at": "2022-07-22T19:27:06Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1192185263,
+      "user": "Lily2025",
+      "created_at": "2022-07-22T05:04:11Z",
+      "body": "/type bug\r\n/severity Moderate\r\n/assign GanZiheng"
+    },
+    {
+      "id": 1192185274,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-22T05:04:13Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: GanZiheng.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13096#issuecomment-1192185263):\n\n>/type bug\r\n>/severity Moderate\r\n>/assign GanZiheng\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1192197063,
+      "user": "glorv",
+      "created_at": "2022-07-22T05:27:54Z",
+      "body": "duplicated with #13086"
+    },
+    {
+      "id": 1192873136,
+      "user": "tonyxuqqi",
+      "created_at": "2022-07-22T19:27:03Z",
+      "body": "/close"
+    },
+    {
+      "id": 1192873164,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-22T19:27:06Z",
+      "body": "@tonyxuqqi: Closing this issue.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13096#issuecomment-1192873136):\n\n>/close\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

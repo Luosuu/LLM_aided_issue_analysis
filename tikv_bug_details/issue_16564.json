@@ -1,0 +1,44 @@
+{
+  "issue_number": 16564,
+  "title": "High peer msg duration, should avoid snapshot IO in raftstore",
+  "body": "## Bug Report\r\n\r\nWhen taking a store offline, we notice that it would cause high process-ready duration in other stores.\r\n\r\n<img width=\"733\" alt=\"img_v3_028f_96f38cdb-72af-4d84-82eb-ee03f82375dg\" src=\"https://github.com/tikv/tikv/assets/13497871/25b0d818-2e9b-4adf-bc55-3a23e3465197\">\r\n\r\nIt's mainly due to high peer msg handle duration.\r\n![img_v3_028f_095e107c-9f71-4348-99f1-8163d5cfa3cg](https://github.com/tikv/tikv/assets/13497871/4a084173-a8e0-43eb-9af8-4456e1581c27)\r\n\r\nAs we can see, there is some read io of raftstore. And from CPU profile, `cacl_checksum_and_size` is noticeable. So it's because snapshot checksum scan of `check_snapshot` performed in raftstore thread causes the high duration.\r\n<img width=\"735\" alt=\"img_v3_028f_fb6549d2-4f30-4f9f-9314-fb32f261ba2g\" src=\"https://github.com/tikv/tikv/assets/13497871/7274b55c-3804-40c4-b64c-a419a7856828\">\r\n![img_v3_028f_381b4b0d-c67b-40a0-9971-18820291cb4g](https://github.com/tikv/tikv/assets/13497871/accb4c60-c490-4fa7-a7d7-0ebef610c39b)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-02-27T09:53:06Z",
+  "updated_at": "2024-03-25T09:23:19Z",
+  "closed_at": "2024-03-25T09:23:19Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1966190663,
+      "user": "LykxSassinator",
+      "created_at": "2024-02-27T10:01:45Z",
+      "body": "### Reference\r\nThe related TiKV config can be reviewed from the followings show:\r\n```\r\nconfig: \r\n            [cdc]                      \r\n              min-ts-interval = \"200ms\"\r\n            [raftstore]\r\n              store-io-pool-size = 16\r\n              region-compact-tombstones-percent = 10\r\n              max-leader-missing-duration = \"20m\"\r\n            [resolved-ts]\r\n              advance-ts-interval = \"2s\"\r\n            [storage]\r\n              reserve-space = \"300GB\"\r\n              scheduler-worker-pool-size = 16\r\n            [storage.block-cache]\r\n              num-shard-bits = 4\r\n              capacity = \"12GB\"\r\n            [quota]\r\n              foreground-write-bandwidth = \"40MB\"\r\n              max-delay-duration = \"1s\"\r\n            [rocksdb]\r\n              max-open-files = 10240\r\n              [rocksdb.titan]\r\n                enabled = true\r\n              [rocksdb.defaultcf.titan]\r\n                blob-cache-size = \"32GB\"\r\n                min-blob-size = \"4KB\"\r\n                discardable-ratio = 0.4\r\n            [coprocessor]\r\n              region-split-size = \"512MiB\"\r\n              region-split-keys = 5120000\r\n              region-max-size = \"640MiB\"\r\n              region-max-keys = 6400000\r\n            [raftdb]\r\n              max-open-files = 10240\r\n            [readpool.unified]\r\n              max-thread-count = 80\r\n              max-tasks-per-worker = 20000\r\n            [server]\r\n              grpc-concurrent-stream = 65535\r\n            [raft-engine]\r\n              enable = true\r\n            [storage.flow-control]\r\n              l0-files-threshold = 45\r\n            [rocksdb.defaultcf]\r\n              level0-stop-writes-trigger = 50\r\n            [gc]\r\n              enable-compaction-filter = false\r\n            [import]\r\n              num-threads = 10\r\n            [backup]\r\n              num-threads = 4\r\n```"
+    },
+    {
+      "id": 1966192419,
+      "user": "LykxSassinator",
+      "created_at": "2024-02-27T10:02:44Z",
+      "body": "Maybe it's caused by doing checksum on the too large snapshot as the setting on region size is big in this scenario."
+    },
+    {
+      "id": 1978042115,
+      "user": "Connor1996",
+      "created_at": "2024-03-05T06:20:06Z",
+      "body": "@LykxSassinator Probabaly. Anyway, we should avoid IO in raftstore thread"
+    },
+    {
+      "id": 1985511128,
+      "user": "cfzjywxk",
+      "created_at": "2024-03-08T11:14:18Z",
+      "body": "Perhaps we need to detail the operations within the store loop that could trigger IO operations."
+    }
+  ]
+}

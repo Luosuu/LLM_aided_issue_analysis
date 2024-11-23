@@ -1,0 +1,21 @@
+{
+  "issue_number": 7384,
+  "title": "Configuration is not fully checked if the unified read pool is partially enabled",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nNightly or latest release-4.0.\r\n\r\n### What operating system and CPU are you using?\r\n\r\nUnrelated.\r\n\r\n### Steps to reproduce\r\n\r\nThe following invalid configuration is not rejected:\r\n\r\n```toml\r\n[readpool.storage]\r\nuse-unified-pool = false\r\nstack-size = \"1MiB\"\r\n\r\n[readpool.coprocessor]\r\nuse-unified-pool = true\r\n```\r\n\r\n### What did you expect?\r\n\r\nThe above configuration is rejected because the minimal stack size is 2MiB.\r\n\r\n### What did happened?\r\n\r\nTiKV starts.",
+  "state": "closed",
+  "created_at": "2020-04-08T06:50:46Z",
+  "updated_at": "2020-08-28T07:36:56Z",
+  "closed_at": "2020-08-28T07:36:55Z",
+  "labels": [
+    "type/bug",
+    "component/configuration"
+  ],
+  "comments_data": [
+    {
+      "id": 682377830,
+      "user": "sticnarf",
+      "created_at": "2020-08-28T07:36:55Z",
+      "body": "Closed by #7387"
+    }
+  ]
+}

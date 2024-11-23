@@ -1,0 +1,48 @@
+{
+  "issue_number": 12580,
+  "title": "[BR] huge logs when PD error during log backup",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nRelease Version: 6.1.0-alpha\r\nEdition: Community\r\nGit Commit Hash: https://github.com/tikv/tikv/commit/f05af56d12b93c74ac5a54a28f77d2f6dc7d6ad8\r\nGit Commit Branch: inflight-detect\r\nUTC Build Time: 2022-05-17 08:48:36\r\nRust Version: rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features: jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile: release\r\n\r\n### What operating system and CPU are you using?\r\nCent OS, 16U\r\n\r\n### Steps to reproduce\r\n1. Start a log backup task\r\n2. There is a pd error\r\n\r\n### What did you expect?\r\nThere should be lots of logs generated\r\n\r\n### What did happened?\r\nhuge logs generated.\r\n",
+  "state": "closed",
+  "created_at": "2022-05-19T09:38:40Z",
+  "updated_at": "2022-07-12T10:59:51Z",
+  "closed_at": "2022-07-12T10:59:51Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1131473049,
+      "user": "fubinzh",
+      "created_at": "2022-05-19T09:38:56Z",
+      "body": "/type bug\r\n/severity Critical\r\n/feature developing"
+    },
+    {
+      "id": 1131474789,
+      "user": "fubinzh",
+      "created_at": "2022-05-19T09:40:40Z",
+      "body": "/assign joccau"
+    },
+    {
+      "id": 1131474813,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-19T09:40:42Z",
+      "body": "@fubinzh: GitHub didn't allow me to assign the following users: joccau.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12580#issuecomment-1131474789):\n\n>/assign joccau\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1181618940,
+      "user": "3pointer",
+      "created_at": "2022-07-12T10:59:51Z",
+      "body": "close it due to https://github.com/tikv/tikv/pull/12584 merged"
+    }
+  ]
+}

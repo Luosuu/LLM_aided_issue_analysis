@@ -1,0 +1,63 @@
+{
+  "issue_number": 7312,
+  "title": "TiKV try to connect HTTP/1.x server",
+  "body": "## Bug Report\r\n\r\nIt seems the TLS does not work on Mac\r\n\r\n### What version of TiKV are you using?\r\n\r\n```\r\nRelease Version:   3.1.0-beta.2\r\nGit Commit Hash:   acd585d8aba82343f094d094a63f16c841ecfe29\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2020-03-31 06:43:47\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n\r\n```\r\n> $ sw_vers                                                                                            \r\nProductName:\tMac OS X\r\nProductVersion:\t10.14.6\r\nBuildVersion:\t18G1012\r\n```\r\n\r\n### Steps to reproduce\r\n#### Start pd-server\r\nstart pd-server with the following config\r\n```\r\nname = \"pd\"\r\nclient-urls = \"https://127.0.0.1:2379\"\r\npeer-urls = \"https://127.0.0.1:2380\"\r\nadvertise-client-urls = \"https://127.0.0.1:2379\"\r\nadvertise-peer-urls = \"https://127.0.0.1:2380\"\r\n\r\n[security]\r\ncacert-path = \"/Users/shirly/Downloads/0cluster/tls/myCA.pem\"\r\ncert-path = \"/Users/shirly/Downloads/0cluster/tls/pd-server-mtls.pem\"\r\nkey-path = \"/Users/shirly/Downloads/0cluster/tls/pd-server-mtls.key\"\r\nclient-cert-auth = false\r\n```\r\nstart shell\r\n\r\n```\r\n./bin/pd-server -data-dir=data.pd -initial-cluster=\"pd=https://127.0.0.1:2380\" -config pd-config.toml\r\n```\r\nAnd PD is working with the following log\r\n\r\n```\r\n[2020/03/31 15:56:45.875 +08:00] [INFO] [util.go:84] [\"load cluster version\"] [cluster-version=0.0.0]\r\n[2020/03/31 15:56:45.875 +08:00] [INFO] [server.go:1069] [\"PD cluster leader is ready to serve\"] [leader-name=pd]\r\n```\r\n\r\n#### start tikv-server\r\nthe configuration\r\n```\r\n[security]\r\nca-path = \"/Users/shirly/Downloads/0cluster/tls/myCA.pem\"\r\ncert-path = \"/Users/shirly/Downloads/0cluster/tls/tikv-server-mtls.pem\"\r\nkey-path = \"/Users/shirly/Downloads/0cluster/tls/tikv-server-mtls.key\"\r\n```\r\nthe start shell\r\n```\r\n./bin/tikv-server --pd-endpoints=\"127.0.0.1:2379\" --addr=\"127.0.0.1:20160\" --data-dir=data.tikv -C \"tikv-config.toml\"\r\n```\r\n\r\ntikv-server start failed with the following log\r\n```\r\n[2020/03/31 15:59:04.740 +08:00] [INFO] [subchannel.cc:841] [\"New connected subchannel at 0x7fa3f3015020 for subchannel 0x7fa3f0d20380\"]\r\n[2020/03/31 15:59:04.740 +08:00] [INFO] [util.rs:357] [\"PD failed to respond\"] [err=\"Grpc(RpcFailure(RpcStatus { status: Unavailable, details: Some(\\\"Trying to connect an http1.x server\\\") }))\"] [endpoints=127.0.0.1:2379]\r\n[2020/03/31 15:59:05.040 +08:00] [INFO] [util.rs:397] [\"connecting to PD endpoint\"] [endpoints=127.0.0.1:2379]\r\n[2020/03/31 15:59:05.047 +08:00] [INFO] [subchannel.cc:841] [\"New connected subchannel at 0x7fa3f0d1adf0 for subchannel 0x7fa3f0e07140\"]\r\n[2020/03/31 15:59:05.047 +08:00] [INFO] [util.rs:357] [\"PD failed to respond\"] [err=\"Grpc(RpcFailure(RpcStatus { status: Unavailable, details: Some(\\\"Trying to connect an http1.x server\\\") }))\"] [endpoints=127.0.0.1:2379]\r\n```\r\n### What did you expect?\r\n\r\ntikv-server started without any error\r\n\r\n### What did happened?\r\n\r\nIt failed with `PD failed to respond`",
+  "state": "closed",
+  "created_at": "2020-03-31T08:14:28Z",
+  "updated_at": "2020-05-13T08:23:46Z",
+  "closed_at": "2020-05-13T08:23:46Z",
+  "labels": [
+    "type/bug",
+    "component/gRPC"
+  ],
+  "comments_data": [
+    {
+      "id": 606518349,
+      "user": "hunterlxt",
+      "created_at": "2020-03-31T09:49:13Z",
+      "body": "For the same test method, I have tested that it works fine on Linux systems. I will investigate the issue after finishing the matter at hand."
+    },
+    {
+      "id": 608083661,
+      "user": "kolbe",
+      "created_at": "2020-04-02T20:36:50Z",
+      "body": "Hm, I think I was able to reproduce this on Linux, also. I just did builds of pd and tikv on Ubuntu 18.04 and I got these same tikv-server errors when trying to connect to pd-server.\r\n\r\n```\r\n$ tikv-server -V\r\nTiKV\r\nRelease Version:   4.1.0-alpha\r\nGit Commit Hash:   50397a6e9f9e4f80ac640ec2b4bf6b1315ebb9d7\r\nGit Commit Branch: master\r\nUTC Build Time:    2020-04-02 07:33:17\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\nEnable Features:   jemalloc portable sse protobuf-codec\r\nProfile:           release\r\n\r\n$ pd-server -V\r\nRelease Version: v4.0.0-beta.2-36-ga22224df-dirty\r\nGit Commit Hash: a22224df124e8a8f9261e4129751200255db6f2c\r\nGit Branch: master\r\nUTC Build Time:  2020-04-02 07:55:19\r\n```\r\n"
+    },
+    {
+      "id": 608416734,
+      "user": "hunterlxt",
+      "created_at": "2020-04-03T12:53:30Z",
+      "body": "According to tests, PD compiled on multiple platforms(ubuntu 18.04, 20.04, MacOs) will cause tikv to try to connect http/1.x server.\r\n\r\nRelated issue: https://github.com/pingcap/pd/issues/2329"
+    },
+    {
+      "id": 609016952,
+      "user": "hunterlxt",
+      "created_at": "2020-04-04T11:51:28Z",
+      "body": "After investigating PD, TiKV, gRPC, Golang and negotiation protocols, I found the root reason. The problem is divided into two aspects: tikv and pd.\r\n\r\nTiKV uses grpc-rs as its rpc framework. grpc-rs disabled ALPN support after [PR](https://github.com/tikv/grpc-rs/pull/239) merged. So since then, the negotiation of tls depends on the support of NPN which has been replaced by ALPN if you use grpc-rs with openssl. This means that the server must also provide NPN support. BTW grpc also provides security powered by boringssl where ALPN is always enabled.\r\n\r\nPD is a go-based project, using the crypto/tls library. But in the newer go release, they has removed support for NPN [here](https://github.com/golang/go/commit/6da300b196df5fc3b33dd3bc87c477d46473abde). So the pd compiled with the new version of go only provides ALPN negotiation option.\r\n\r\nGiven that NPN is old, I think this problem can be solved by enabling ALPN support by default in grpc-rs or switching back to boringssl. [Related grpc-rs PR](https://github.com/tikv/grpc-rs/pull/456)\r\n\r\nIf you want to understand the relationship between ALPN, http, tls, check here https://tools.ietf.org/html/rfc7301 https://imququ.com/post/protocol-negotiation-in-http2.html\r\nIf you want to test more details, wireshark may be a good friend."
+    },
+    {
+      "id": 609098222,
+      "user": "yiwu-arbug",
+      "created_at": "2020-04-04T22:36:06Z",
+      "body": "@hunterlxt so the problem is not only with Mac, can you confirm? can you also confirm what's the Go version NPN being drop?"
+    },
+    {
+      "id": 609288616,
+      "user": "hunterlxt",
+      "created_at": "2020-04-05T04:06:37Z",
+      "body": "> @hunterlxt so the problem is not only with Mac, can you confirm? can you also confirm what's the Go version NPN being drop?\r\n\r\nYes. Since v1.14 [related commit](https://github.com/golang/go/commit/6da300b196df5fc3b33dd3bc87c477d46473abde)"
+    },
+    {
+      "id": 609471684,
+      "user": "BusyJay",
+      "created_at": "2020-04-05T19:45:30Z",
+      "body": "👍 Great analysis! Glad you didn't hurry to close it."
+    },
+    {
+      "id": 614029893,
+      "user": "hunterlxt",
+      "created_at": "2020-04-15T13:09:13Z",
+      "body": "https://github.com/tikv/grpc-rs/pull/456 has fixed, waiting for next release of grpc-rs in 0.5.x "
+    }
+  ]
+}

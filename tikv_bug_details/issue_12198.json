@@ -1,0 +1,41 @@
+{
+  "issue_number": 12198,
+  "title": "Handshake failed with fatal error SSL_ERROR_SSL",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nTiKV\r\nRelease Version:   6.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   ab9bb0028e3df3bd55838acf83412c10e9964ad3\r\nGit Commit Branch: heads/refs/tags/v6.1.0-alpha\r\nUTC Build Time:    2022-03-18 05:25:58\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n```\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n```\r\nprocessor\t: 39\r\nvendor_id\t: GenuineIntel\r\ncpu family\t: 6\r\nmodel\t\t: 79\r\nmodel name\t: Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\nstepping\t: 1\r\nmicrocode\t: 0xb00002a\r\ncpu MHz\t\t: 1861.083\r\ncache size\t: 25600 KB\r\nphysical id\t: 1\r\nsiblings\t: 20\r\ncore id\t\t: 12\r\ncpu cores\t: 10\r\napicid\t\t: 57\r\ninitial apicid\t: 57\r\nfpu\t\t: yes\r\nfpu_exception\t: yes\r\ncpuid level\t: 20\r\nwp\t\t: yes\r\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb cat_l3 cdp_l3 invpcid_single intel_pt ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a rdseed adx smap xsaveopt cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local dtherm ida arat pln pts spec_ctrl intel_stibp\r\nbogomips\t: 4405.27\r\nclflush size\t: 64\r\ncache_alignment\t: 64\r\naddress sizes\t: 46 bits physical, 48 bits virtual\r\npower management:\r\n```\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun br_integration_test .\r\n\r\n### What did you expect?\r\ntest passed.\r\n\r\n### What did happened?\r\ntikv segfault.\r\n\r\nin tikv.log:\r\n```\r\n[2022/03/18 11:19:16.293 +08:00] [ERROR] [<unknown>] [\"Handshake failed with fatal error SSL_ERROR_SSL: error:141CF132:SSL routines:tls_parse_ctos_key_share:bad ecpoint.\"]\r\n\r\n[2022-03-18T03:19:57.852Z] [2022/03/18 11:19:16.295 +08:00] [ERROR] [<unknown>] [\"assertion failed: i != pss->pollset_count\"]\r\n```\r\n\r\ndmesg\r\n```\r\n[10174120.629813] grpc-server-2[2815733]: segfault at 2b ip 00005568779c6bd0 sp 00007fc9e9fcab70 error 4 in tikv-server[556875770000+30e4000]\r\n```\r\n\r\nthe detail is in https://ci.pingcap.net/blue/organizations/jenkins/br_ghpr_unit_and_integration_test/detail/br_ghpr_unit_and_integration_test/10691/pipeline/.",
+  "state": "closed",
+  "created_at": "2022-03-18T06:30:21Z",
+  "updated_at": "2022-03-28T11:02:29Z",
+  "closed_at": "2022-03-28T11:02:29Z",
+  "labels": [
+    "type/bug",
+    "component/gRPC",
+    "severity/critical",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1072346408,
+      "user": "BusyJay",
+      "created_at": "2022-03-18T12:04:23Z",
+      "body": "Is there any way to get the coredump?"
+    },
+    {
+      "id": 1073429405,
+      "user": "3pointer",
+      "created_at": "2022-03-21T02:43:34Z",
+      "body": "coredump: https://drive.google.com/file/d/1bGtECv3waa6pzc7I7-Efl21OVAzN2AOz/view?usp=sharing"
+    },
+    {
+      "id": 1078806828,
+      "user": "you06",
+      "created_at": "2022-03-25T09:09:49Z",
+      "body": "@BusyJay do you have any clue about it?"
+    },
+    {
+      "id": 1078817746,
+      "user": "BusyJay",
+      "created_at": "2022-03-25T09:23:05Z",
+      "body": "Not yet."
+    }
+  ]
+}

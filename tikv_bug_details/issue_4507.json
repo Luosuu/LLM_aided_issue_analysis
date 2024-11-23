@@ -1,0 +1,30 @@
+{
+  "issue_number": 4507,
+  "title": "test_server_read_leader_with_unapplied_log fails",
+  "body": "## Bug Report\r\n\r\n```\r\ntest raftstore::test_multi::test_server_read_leader_with_unapplied_log ... thread 'main' panicked at 'read should be dropped immediately, but got RaftCmdResponse { header: Some(RaftResponseHeader { error: None, uuid: [], current_term: 8, unknown_fields: UnknownFields { fields: None }, cached_size: CachedSize { size: 0 } }), responses: [Response { cmd_type: Get, get: Some(GetResponse { value: [118], unknown_fields: UnknownFields { fields: None }, cached_size: CachedSize { size: 0 } }), put: None, delete: None, snap: None, prewrite: None, delte_range: None, ingest_sst: None, unknown_fields: UnknownFields { fields: None }, cached_size: CachedSize { size: 0 } }], admin_response: None, status_response: None, unknown_fields: UnknownFields { fields: None }, cached_size: CachedSize { size: 0 } }', tests/integrations/raftstore/test_multi.rs:562:5\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:39\r\n   1: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:71\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/sys_common/backtrace.rs:59\r\n             at src/libstd/panicking.rs:197\r\n   3: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:211\r\n   4: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:474\r\n   5: std::panicking::continue_panic_fmt\r\n             at src/libstd/panicking.rs:381\r\n   6: std::panicking::begin_panic_fmt\r\n             at src/libstd/panicking.rs:336\r\n   7: integrations::raftstore::test_multi::test_read_leader_with_unapplied_log\r\n             at tests/integrations/raftstore/test_multi.rs:562\r\n   8: integrations::raftstore::test_multi::test_server_read_leader_with_unapplied_log\r\n             at tests/integrations/raftstore/test_multi.rs:583\r\n   9: integrations::raftstore::test_multi::test_server_read_leader_with_unapplied_log::{{closure}}\r\n             at tests/integrations/raftstore/test_multi.rs:581\r\n  10: core::ops::function::FnOnce::call_once\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libcore/ops/function.rs:231\r\n  11: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at src/libtest/lib.rs:1513\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libcore/ops/function.rs:231\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/liballoc/boxed.rs:749\r\n  12: __rust_maybe_catch_panic\r\n             at src/libpanic_unwind/lib.rs:87\r\n  13: test::run_test::run_test_inner::{{closure}}\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libstd/panicking.rs:272\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libstd/panic.rs:388\r\n             at src/libtest/lib.rs:1468\r\n  14: test::run_test::run_test_inner\r\n             at src/libtest/lib.rs:1490\r\n  15: test::run_test\r\n             at src/libtest/lib.rs:1509\r\n  16: test::run_tests_console\r\n             at src/libtest/lib.rs:1167\r\n             at src/libtest/lib.rs:972\r\n  17: test::test_main\r\n             at src/libtest/lib.rs:293\r\n  18: test::test_main_static\r\n             at src/libtest/lib.rs:327\r\n  19: integrations::main\r\n  20: std::rt::lang_start::{{closure}}\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libstd/rt.rs:64\r\n  21: std::panicking::try::do_call\r\n             at src/libstd/rt.rs:49\r\n             at src/libstd/panicking.rs:293\r\n  22: __rust_maybe_catch_panic\r\n             at src/libpanic_unwind/lib.rs:87\r\n  23: std::rt::lang_start_internal\r\n             at src/libstd/panicking.rs:272\r\n             at src/libstd/panic.rs:388\r\n             at src/libstd/rt.rs:48\r\n  24: std::rt::lang_start\r\n             at /rustc/a9da8fc9c267c08cfdb8cf5b39da14f154d12939/src/libstd/rt.rs:64\r\n  25: main\r\n  26: __libc_start_main\r\n  27: <unknown>\r\n```\r\n\r\nLink: https://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/3156/pipeline\r\n\r\nLogs are lost due to #4505",
+  "state": "closed",
+  "created_at": "2019-04-10T07:21:12Z",
+  "updated_at": "2020-11-04T06:14:17Z",
+  "closed_at": "2020-11-04T06:14:17Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 720862029,
+      "user": "zhangjinpeng87",
+      "created_at": "2020-11-03T01:55:05Z",
+      "body": "Duplicated with https://github.com/tikv/tikv/issues/5611, close this one."
+    },
+    {
+      "id": 721533472,
+      "user": "BusyJay",
+      "created_at": "2020-11-04T06:14:17Z",
+      "body": "Duplicated with #7426."
+    }
+  ]
+}

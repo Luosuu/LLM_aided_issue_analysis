@@ -1,0 +1,40 @@
+{
+  "issue_number": 14759,
+  "title": "[Read-Only Replica] tikv oom when network delay between read-only instance and tispark",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.5.1\r\nEdition:           Community\r\nGit Commit Hash:   bc3e311060be390c16c66172ae86c9f34a28c72f\r\nGit Commit Branch: heads/refs/tags/v6.5.1\r\nUTC Build Time:    2023-03-04 06:28:22\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-05-17T08:51:01.761+0800\tINFO\tk8s/client.go:132\r\n\r\n### What operating system and CPU are you using?\r\n16c/64g\r\n\r\n### Steps to reproduce\r\n1. Record the current QPS, latency, and other information of the load. \r\n2. Use TiSpark to export data to S3 (select * from table), and during the export process, simulate a network latency of 20ms for one read-only instance. Let the latency persist for 10 minutes before recovering. Observe the workload metrics (QPS, latency) of the system and the behavior of the TiSpark export task.\r\n\r\n### What did you expect?\r\nall instance are normal\r\n\r\n### What did happened?\r\n tikv oom twice\r\n![image](https://github.com/tikv/tikv/assets/84712107/68a2cdfe-8d4d-43e5-8a29-bb837117198c)\r\n![image](https://github.com/tikv/tikv/assets/84712107/67e36da8-b19c-41e4-92fa-3c93eff329d4)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-05-17T01:47:25Z",
+  "updated_at": "2023-06-06T07:55:24Z",
+  "closed_at": "2023-06-06T07:55:24Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1550569803,
+      "user": "Lily2025",
+      "created_at": "2023-05-17T01:47:47Z",
+      "body": "/type bug\r\n/severity major"
+    },
+    {
+      "id": 1550569969,
+      "user": "Lily2025",
+      "created_at": "2023-05-17T01:48:06Z",
+      "body": "/assign v01dstar"
+    },
+    {
+      "id": 1578121631,
+      "user": "v01dstar",
+      "created_at": "2023-06-06T07:55:24Z",
+      "body": "This kind of OOM is expected. Since the coprocessor tasks were huge, increasing the latency increased the in flight tasks, which resulted in OOM, it was a \"common\" instead of \"specific\" OOM. To solve this kind of issue fundamentally, we need to bring proactive memory management mechanism into TiKV, which is already considered but not scheduled yet. Fortunately, this issue has some mitigations such as: 1. changing the server instance type, more memory less CPU. 2. reducing the client's traffic. etc. Due to above reasons, I am closing this issue for better organizing and planing."
+    }
+  ]
+}

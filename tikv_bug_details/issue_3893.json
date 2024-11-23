@@ -1,0 +1,21 @@
+{
+  "issue_number": 3893,
+  "title": "Either mod or abs has bug",
+  "body": "## Bug Report\r\n\r\nUsing a branch that mod is pushed down to TiKV.\r\n\r\n```\r\nmysql> create table t (`id` bigint(20) not null auto_increment, primary key(`id`));\r\nQuery OK, 0 rows affected (0.11 sec)\r\n\r\nmysql> insert into t values (-1005085877);\r\nQuery OK, 1 row affected (0.12 sec)\r\n\r\nmysql> select * from t;\r\n+-----------------+\r\n| id |\r\n+-----------------+\r\n|     -1005085877 |\r\n+-----------------+\r\n1 row in set (0.01 sec)\r\n\r\nmysql> select mod(abs(id), 20) from t;\r\n+-------------------------------+\r\n| mod(abs(id), 20) |\r\n+-------------------------------+\r\n|                            17 |\r\n+-------------------------------+\r\n1 row in set (0.00 sec)\r\n\r\nmysql> select * from t where mod(abs(id), 20) = 17;\r\nEmpty set (0.01 sec)\r\n```",
+  "state": "closed",
+  "created_at": "2018-12-07T07:58:22Z",
+  "updated_at": "2018-12-07T08:35:26Z",
+  "closed_at": "2018-12-07T08:20:51Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor"
+  ],
+  "comments_data": [
+    {
+      "id": 445157363,
+      "user": "breezewish",
+      "created_at": "2018-12-07T08:20:51Z",
+      "body": "Closing, this is a TiDB bug in master. TiKV process correctly.\r\n\r\n```\r\nmysql> select * from t where abs(settle_order_id) = 1005085877;\r\nEmpty set (0.03 sec)\r\n\r\nmysql> select abs(settle_order_id) from t;\r\n+----------------------+\r\n| abs(settle_order_id) |\r\n+----------------------+\r\n|           1005085877 |\r\n+----------------------+\r\n1 row in set (0.01 sec)\r\n```\r\n"
+    }
+  ]
+}

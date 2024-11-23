@@ -1,0 +1,58 @@
+{
+  "issue_number": 12032,
+  "title": "Store read query is not converging after 30m when set strict-picking-store to false",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   5.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   a7d1595f5486616be34e0cf2bbf372edb5f0e85a\r\nGit Commit Branch: heads/refs/tags/v5.5.0-nightly\r\nUTC Build Time:    2022-02-24 06:10:41\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nsysbench /go/location.lua --is_long_connection=true --queries=/go/poisource.sql --threads=500 --mysql-db=location  --mysql-host=tc-tidb.pd-scheduler-hongm-pb5jv --mysql-port=4000 --mysql-user=root --db-driver=mysql --time=0 --report-interval=10  run\r\n\r\n### What did you expect?\r\nShould converge with 10min as before version.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/9443637/155910685-d0c1e12f-75a1-4d18-9273-79a5b055afe8.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-02-28T01:40:34Z",
+  "updated_at": "2022-03-31T06:43:10Z",
+  "closed_at": "2022-03-31T06:43:10Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1053779985,
+      "user": "mayjiang0203",
+      "created_at": "2022-02-28T01:41:23Z",
+      "body": "/type bug\r\n/assign JmPotato\r\n/severity major"
+    },
+    {
+      "id": 1053780001,
+      "user": "ti-chi-bot",
+      "created_at": "2022-02-28T01:41:24Z",
+      "body": "@mayjiang0203: GitHub didn't allow me to assign the following users: JmPotato.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12032#issuecomment-1053779985):\n\n>/type bug\r\n>/assign JmPotato\r\n>/severity major\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1057813407,
+      "user": "mayjiang0203",
+      "created_at": "2022-03-03T08:50:22Z",
+      "body": "/assign JmPotato"
+    },
+    {
+      "id": 1057813425,
+      "user": "ti-chi-bot",
+      "created_at": "2022-03-03T08:50:23Z",
+      "body": "@mayjiang0203: GitHub didn't allow me to assign the following users: JmPotato.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12032#issuecomment-1057813407):\n\n>/assign JmPotato\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1057815531,
+      "user": "JmPotato",
+      "created_at": "2022-03-03T08:53:01Z",
+      "body": "/assign JmPotato"
+    },
+    {
+      "id": 1081838458,
+      "user": "JmPotato",
+      "created_at": "2022-03-29T12:57:35Z",
+      "body": "After a series of tests, we found that the test failed because the QPS did not reach the QPS threshold of the Load Base Split check due to test environmental problems, so the region could not be further split for scheduling. This issue could be closed now."
+    },
+    {
+      "id": 1084158547,
+      "user": "mayjiang0203",
+      "created_at": "2022-03-31T06:43:02Z",
+      "body": "The reason why qps drop from 5.4 is cause by https://github.com/pingcap/tidb/issues/33422\r\nAfter change the data source, now the hot region scheduler works fine. \r\n![image](https://user-images.githubusercontent.com/9443637/160991850-9072e2f1-ac03-4a7f-ae3d-15fa4317828f.png)\r\n"
+    }
+  ]
+}

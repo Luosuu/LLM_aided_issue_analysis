@@ -1,0 +1,70 @@
+{
+  "issue_number": 12202,
+  "title": "Map must not be polled after it returned `Poll::Ready`",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\n [\"Welcome to TiKV\"]\r\n [\"Release Version:   6.0.0-alpha\"]\r\n [\"Edition:           Community\"]\r\n [\"Git Commit Hash:   ab9bb0028e3df3bd55838acf83412c10e9964ad3\"]\r\n [\"Git Commit Branch: heads/refs/tags/v6.1.0-alpha\"]\r\n [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n [\"Rust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\"]\r\n [\"Enable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\"]\r\n [\"Profile:           dist_release\"]\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun br_integration_test.\r\n\r\n### What did you expect?\r\ntest passed.\r\n\r\n### What did happened?\r\n```\r\n[2022-03-18T07:46:34.192Z] [2022/03/18 15:46:00.090 +08:00] [FATAL] [[lib.rs:468](http://lib.rs:468/)] [\"Map must not be polled after it returned `Poll::Ready`\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n             at /home/jenkins/agent/workspace/d_tikv_multi_branch_v6.1.0-alpha/tikv/components/tikv_util/src/[lib.rs:467](http://lib.rs:467/):18\\n   1: std::panicking::rust_panic_with_hook\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/[panicking.rs:702](http://panicking.rs:702/):17\\n   2: std::panicking::begin_panic::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/[panicking.rs:617](http://panicking.rs:617/):9\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/[backtrace.rs:138](http://backtrace.rs:138/):18\\n   4: std::panicking::begin_panic\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/[panicking.rs:616](http://panicking.rs:616/):12\\n   5: <futures_util::future::future::map::Map<Fut,F> as core::future::future::Future>::poll\\n             at /rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-util-0.3.15/src/future/future/[map.rs:62](http://map.rs:62/):17\\n      <futures_util::future::future::Map<Fut,F> as core::future::future::Future>::poll\\n             at /rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-util-0.3.15/src/[lib.rs:93](http://lib.rs:93/):13\\n   6: tikv_util::future::PollAtWake::poll\\n             at /home/jenkins/agent/workspace/d_tikv_multi_branch_v6.1.0-alpha/tikv/components/tikv_util/src/[future.rs:145](http://future.rs:145/):19\\n   7: <tikv_util::future::PollAtWake as futures_task::arc_wake::ArcWake>::wake_by_ref\\n             at /home/jenkins/agent/workspace/d_tikv_multi_branch_v6.1.0-alpha/tikv/components/tikv_util/src/[future.rs:188](http://future.rs:188/):9\\n      futures_task::waker::wake_by_ref_arc_raw\\n             at /rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-task-0.3.15/src/[waker.rs:54](http://waker.rs:54/):5\\n   8: futures::task_impl::NotifyHandle::notify\\n             at /rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-0.1.31/src/task_impl/[mod.rs:657](http://mod.rs:657/):18\\n      futures::task_impl::core::TaskUnpark::notify\\n             at /rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-0.1.31/src/task_impl/[core.rs:67](http://core.rs:67/):9\\n      futures::task_impl::std::TaskUnpark::notify\\n             at /rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-0.1.31/src/task_impl/std/[mod.rs:204](http://mod.rs:204/):41\\n      futures::task_impl::Task::notify\\n             at /rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-0.1.31/src/task_impl/[mod.rs:147](http://mod.rs:147/):9\\n      futures::task_impl::atomic_task::AtomicTask::notify\\n             at /rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-0.1.31/src/task_impl/[atomic_task.rs:250](http://atomic_task.rs:250/):21\\n   9: tokio_timer::timer::entry::Entry::fire\\n             at /rust/git/checkouts/tokio-8e927faba632ed16/e8ac149/tokio-timer/src/timer/[entry.rs:251](http://entry.rs:251/):9\\n      tokio_timer::timer::Timer<T,N>::process\\n             at /rust/git/checkouts/tokio-8e927faba632ed16/e8ac149/tokio-timer/src/timer/[mod.rs:276](http://mod.rs:276/):13\\n  10: tikv_util::timer::start_global_steady_timer::{{closure}}\\n             at /home/jenkins/agent/workspace/d_tikv_multi_branch_v6.1.0-alpha/tikv/components/tikv_util/src/[timer.rs:196](http://timer.rs:196/):17\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/[backtrace.rs:122](http://backtrace.rs:122/):18\\n  11: std::thread::Builder::spawn_unchecked_::{{closure}}::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/[mod.rs:498](http://mod.rs:498/):17\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panic/[unwind_safe.rs:271](http://unwind_safe.rs:271/):9\\n      std::panicking::try::do_call\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/[panicking.rs:492](http://panicking.rs:492/):40\\n      std::panicking::try\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/[panicking.rs:456](http://panicking.rs:456/):19\\n      std::panic::catch_unwind\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/[panic.rs:137](http://panic.rs:137/):14\\n      std::thread::Builder::spawn_unchecked_::{{closure}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/thread/[mod.rs:497](http://mod.rs:497/):30\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/ops/[function.rs:227](http://function.rs:227/):5\\n  12: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/[boxed.rs:1854](http://boxed.rs:1854/):9\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/alloc/src/[boxed.rs:1854](http://boxed.rs:1854/):9\\n      std::sys::unix::thread::Thread::new::thread_start\\n             at /rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys/unix/[thread.rs:108](http://thread.rs:108/):17\\n  13: start_thread\\n  14: __clone\\n\"] [location=/rust/registry/src/[github.com](http://github.com/)-1ecc6299db9ec823/futures-util-0.3.15/src/future/future/[map.rs:62](http://map.rs:62/)] [thread_name=steady-timer]\r\n```\r\ndetail is in tikv2.log\r\nhttps://ci.pingcap.net/blue/organizations/jenkins/br_ghpr_unit_and_integration_test/detail/br_ghpr_unit_and_integration_test/10706/pipeline/117",
+  "state": "closed",
+  "created_at": "2022-03-18T11:20:41Z",
+  "updated_at": "2022-03-28T11:02:29Z",
+  "closed_at": "2022-03-28T11:02:29Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1072363534,
+      "user": "BusyJay",
+      "created_at": "2022-03-18T12:27:27Z",
+      "body": "@you06 ptal. It seems to be related to the timer updates."
+    },
+    {
+      "id": 1072367041,
+      "user": "BusyJay",
+      "created_at": "2022-03-18T12:32:02Z",
+      "body": "It's possible to fix the problem in PollAtWait to detect being notified twice. But it seems strange that it can be notified twice in a timer and I also saw some strange case failure due to wrong timer step: https://ci.pingcap.net/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/17795/pipeline/."
+    },
+    {
+      "id": 1072435009,
+      "user": "BusyJay",
+      "created_at": "2022-03-18T13:55:12Z",
+      "body": "Is there anything like online configuration changes that will update the tick timeout dynamically?"
+    },
+    {
+      "id": 1072495234,
+      "user": "Lily2025",
+      "created_at": "2022-03-18T15:01:20Z",
+      "body": "/type bug\r\n/severity Critical"
+    },
+    {
+      "id": 1073839546,
+      "user": "you06",
+      "created_at": "2022-03-21T12:35:19Z",
+      "body": "Don't have many ideas about how this can happen... I'm running some tests on the timer toolkit now."
+    },
+    {
+      "id": 1076265406,
+      "user": "BusyJay",
+      "created_at": "2022-03-23T11:32:08Z",
+      "body": "I carefully review the PollAtWake again, even being notified twice, it's impossible for PollAtWake to poll the same future twice as it will take the future after it returns ready. So it's more likely that the future is being polled by two executors."
+    },
+    {
+      "id": 1076281599,
+      "user": "BusyJay",
+      "created_at": "2022-03-23T11:48:17Z",
+      "body": "The thread \"steady-timer\" thread only poll timers created by `SteadyTimer`, and both using `SteadyTimer` and `PollAtWake` can only happen in\r\n\r\nhttps://github.com/tikv/tikv/blob/5ee7d037d4e2e63d710410daac81baca7e9efe69/components/raftstore/src/store/fsm/store.rs#L455-L469\r\n\r\nand\r\n\r\nhttps://github.com/tikv/tikv/blob/5ee7d037d4e2e63d710410daac81baca7e9efe69/components/raftstore/src/store/fsm/store.rs#L670-L689\r\n\r\n. However, both places can't schedule the map future twice.\r\n\r\n/cc @sticnarf What do you think?"
+    },
+    {
+      "id": 1077276818,
+      "user": "sticnarf",
+      "created_at": "2022-03-24T06:20:04Z",
+      "body": "> So it's more likely that the future is being polled by two executors.\r\n\r\nI cannot think of a possibility of this case, either.\r\n\r\nThe only possibility that the future is being polled by two _executors_ is that the first one is the thread calling `poll_future_notify` and the second one is the `steady-timer` itself.\r\n\r\nBut the state transition of `PollAtWake` prevents parallel polling of the same future. Only one thread can set the task to the `POLLING` state, so they cannot both fetch the future to poll..."
+    },
+    {
+      "id": 1077278977,
+      "user": "BusyJay",
+      "created_at": "2022-03-24T06:23:47Z",
+      "body": "Or there is an illegal memory access that updates the state of `Map` accidentally."
+    }
+  ]
+}

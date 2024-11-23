@@ -1,0 +1,14 @@
+{
+  "issue_number": 15438,
+  "title": "v5.2.4 upgrade to master with tiup，tikv report check config fail",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nsh-4.2# ./tikv-server -V\r\nTiKV \r\nRelease Version:   7.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   8a44a2c4c11b3da9d776d2877f631922d3833933\r\nGit Commit Branch: heads/refs/tags/v7.4.0-alpha\r\nUTC Build Time:    2023-08-24 14:36:07\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\nsh-4.2#\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n1. install v5.2.4 cluster with config:\r\nserver_configs:\r\n  tidb:\r\n    new_collations_enabled_on_first_bootstrap: false\r\n    performance.gogc: 200\r\n    server-version: 8.0.30\r\n  tikv: {}\r\n  pd: {}\r\n  tidb_dashboard: {}\r\n  tiflash: {}\r\n2. upgrade to master\r\n\r\n### What did you expect?\r\nupgrade successfully\r\n### What did happened?\r\nError: init config failed: cluster-peer:20160: executor.ssh.execute_failed: Failed to execute command over SSH for 'tidb@cluster-peer:22' {ssh_stderr: thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', components/raftstore/src/store/[config.rs:777](http://config.rs:777/):13\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\n, ssh_stdout: , ssh_command: export LANG=C; PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin /home/tidb/deploy/tikv-20160/bin/tikv-server --config-check --config=/home/tidb/deploy/tikv-20160/conf/tikv.toml --pd \"\" --data-dir \"/home/tidb/deploy/tikv-20160/data\"}, cause: exit status 101: check config failed",
+  "state": "closed",
+  "created_at": "2023-08-25T03:30:35Z",
+  "updated_at": "2023-08-25T04:35:09Z",
+  "closed_at": "2023-08-25T04:35:08Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

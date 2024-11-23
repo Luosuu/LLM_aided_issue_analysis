@@ -1,0 +1,16 @@
+{
+  "issue_number": 14636,
+  "title": "Support verifying whether it's primary when handling check_txn_status",
+  "body": "## Development Task\r\n\r\nThis is part of fixing of https://github.com/pingcap/tidb/issues/42937 . \r\n\r\nIt's quite triky to make it works well with both new clients and old clients that doesn't support this behavior. To simplify the problem, a field `verify_is_primary` can be added to `CheckTxnStatusRequest`, and TiKV only do this check when this field is set to true.\r\n",
+  "state": "closed",
+  "created_at": "2023-04-23T07:08:21Z",
+  "updated_at": "2023-05-10T15:16:33Z",
+  "closed_at": "2023-04-26T06:21:54Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "priority/critical",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,39 @@
+{
+  "issue_number": 12365,
+  "title": "Single table with 7000 partitioned tables，Approximate Region size exception",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv6.0.0-alpha\r\nb60271983288caf7d978f111cd1878b508861327\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n\r\n7000 partitioned tables were created in a single table（https://github.com/pingcap/tidb/issues/34011）\r\nregion size P.99 has a statistical error\r\n\r\n<img width=\"2123\" alt=\"image\" src=\"https://user-images.githubusercontent.com/11624213/163532069-aef071a5-9933-49d9-a922-d99b914970b8.png\">\r\n<img width=\"1230\" alt=\"image\" src=\"https://user-images.githubusercontent.com/11624213/163532095-3bac4f9c-0dc9-48b1-8684-9ccfc1076783.png\">\r\n<img width=\"1226\" alt=\"image\" src=\"https://user-images.githubusercontent.com/11624213/163532176-e200b0fd-27ec-4e87-ba4e-35e268235f1e.png\">\r\n<img width=\"1228\" alt=\"image\" src=\"https://user-images.githubusercontent.com/11624213/163532510-32d43afa-33de-4f67-a410-d00057e42c44.png\">\r\n<img width=\"1223\" alt=\"image\" src=\"https://user-images.githubusercontent.com/11624213/163532588-d9c8caca-59b4-452f-9d53-7591e01d2c96.png\">\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-04-15T06:47:52Z",
+  "updated_at": "2023-10-24T00:48:33Z",
+  "closed_at": "2023-10-24T00:48:33Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1107699398,
+      "user": "Lily2025",
+      "created_at": "2022-04-24T03:27:30Z",
+      "body": "cc @tonyxuqqi "
+    },
+    {
+      "id": 1124843192,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T10:48:52Z",
+      "body": "/type bug\r\n/severity Moderate"
+    },
+    {
+      "id": 1126524806,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-13T21:31:47Z",
+      "body": "It's likely due to issue #12510"
+    },
+    {
+      "id": 1134116555,
+      "user": "zhangjinpeng87",
+      "created_at": "2022-05-23T02:58:09Z",
+      "body": "@tonyxuqqi Have we confirmed this issue is caused by https://github.com/tikv/tikv/issues/12510, and should we close this issue since https://github.com/tikv/tikv/issues/12510 is closed."
+    }
+  ]
+}

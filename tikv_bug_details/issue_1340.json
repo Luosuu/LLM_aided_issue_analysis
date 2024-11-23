@@ -1,0 +1,13 @@
+{
+  "issue_number": 1340,
+  "title": "advertise-addr = \"\" causes program exit",
+  "body": "Please answer these questions before submitting your issue. Thanks!\r\n\r\n1. What version of Rust are you using (`rustc --version`)?\r\nofficial binary\r\n\r\n2. What operating system and processor architecture are you using?\r\nLinux /Ubuntu 14.04 LTS\r\n\r\n3. What did you do?\r\nIf possible, provide a recipe for reproducing the error.\r\nA complete runnable program is good.\r\n\r\nstart program with advertise-addr = \"\"\r\n\r\n```\r\n2016-11-23 09:49:46,525 mod.rs:396 - INFO  - Welcome to TiKV.\r\n2016-11-23 09:49:46,525 mod.rs:397 - INFO  - Version:\r\n2016-11-23 09:49:46,525 mod.rs:398 - INFO  - Git Commit Hash: 25e3666f9823892060e8adaad8e91c1f015067af\r\n2016-11-23 09:49:46,525 mod.rs:399 - INFO  - UTC Build Time:  2016-11-22 01:23:10\r\n2016-11-23 09:49:46,525 tikv-server.rs:125 - INFO  - rocksdb.max-open-files use default Some(40960)\r\n2016-11-23 09:49:46,525 tikv-server.rs:130 - INFO  - toml value rocksdb.max-open-files : 40960\r\n2016-11-23 09:49:46,525 tikv-server.rs:179 - WARN  - Limit(\"kernel parameters net.core.somaxconn got 128, expect 32768\")\r\n2016-11-23 09:49:46,525 tikv-server.rs:179 - WARN  - Limit(\"kernel parameters net.ipv4.tcp_syncookies got 1, expect 0\")\r\n2016-11-23 09:49:46,526 tikv-server.rs:179 - WARN  - Limit(\"kernel parameters vm.swappiness got 60, expect 0\")\r\n2016-11-23 09:49:46,526 tikv-server.rs:73 - INFO  - flag A: Some(\"192.168.199.141:10086\")\r\n2016-11-23 09:49:46,526 tikv-server.rs:73 - INFO  - flag advertise-addr: None\r\n2016-11-23 09:49:46,526 tikv-server.rs:112 - INFO  - toml value server.advertise-addr: \"\"\r\n2016-11-23 09:49:46,526 tikv-server.rs:67 - ERROR - Address(\"invalid addr: \")\r\n```\r\n\r\nthen program exit.\r\n\r\n\"leave empty, fallback to use addr\"? \r\n\r\nperhaps caused by recent command line arguments handling refactor.",
+  "state": "closed",
+  "created_at": "2016-11-23T02:10:49Z",
+  "updated_at": "2018-08-07T00:46:19Z",
+  "closed_at": "2016-11-29T08:20:07Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

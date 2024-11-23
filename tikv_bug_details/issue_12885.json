@@ -1,0 +1,36 @@
+{
+  "issue_number": 12885,
+  "title": "br log backup too many small files and too many files in single folder",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   9fda7293db13eb2441a3814609d7a48b0c140cae\r\nGit Commit Branch: 6.1.0-pitr-dev\r\nUTC Build Time:    2022-06-13 03:03:45\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\n\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\nRunning log backup for about 7 days, with QPS(insert & update 8K+)\r\n\r\n### What did you expect?\r\nLog backup should not generate too many small file, and put too many files in a single folder.\r\n\r\n### What did happened?\r\nCurrently log backup files are small ( tens of KB to hundred of KB mostly.), and one folder for each table, and result in log backup error if target storage is ext4.\r\n\r\nLots of log files flushed to minio (ext4 file system), and exceed the limit of ext4 file system, and log backup in error status\r\n```\r\n[二 6月 21 03:33:40 2022] EXT4-fs warning (device dm-4): ext4_dx_add_entry:2353: Directory (ino: 568113172) index full, reach max htree level :2\r\n[二 6月 21 03:33:40 2022] EXT4-fs warning (device dm-4): ext4_dx_add_entry:2357: Large directory feature is not enabled on this filesystem\r\n```\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/175197629-8fb21637-4365-4f83-a70d-b8be559c9afb.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-06-23T03:04:42Z",
+  "updated_at": "2022-07-19T03:32:24Z",
+  "closed_at": "2022-07-19T03:32:12Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1163871933,
+      "user": "fubinzh",
+      "created_at": "2022-06-23T03:05:35Z",
+      "body": "/type bug\r\n/severity Major\r\n/feature developing"
+    },
+    {
+      "id": 1188555635,
+      "user": "3pointer",
+      "created_at": "2022-07-19T03:32:12Z",
+      "body": "https://github.com/tikv/tikv/pull/13018 will partition files by `date/Hour/store`"
+    }
+  ]
+}

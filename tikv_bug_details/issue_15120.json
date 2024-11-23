@@ -1,0 +1,39 @@
+{
+  "issue_number": 15120,
+  "title": "enable stale read and closest-replicas，simulate one of tikv network partition last for 50min，qps drop to zero for more than 1h after fault recover",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # ./tikv-server -V\r\nTiKV \r\nRelease Version:   6.5.3\r\nEdition:           Community\r\nGit Commit Hash:   fd5f88a7fdda1bf70dcb0d239f60137110c54d46\r\nGit Commit Branch: heads/refs/tags/v6.5.0-nightly\r\nUTC Build Time:    2023-06-09 11:05:24\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c、32g\r\n\r\n### Steps to reproduce\r\n1、enable stale read and set cloest read\r\n![acc6b0eb-fb50-481c-bd7f-2a8f99c18589](https://github.com/tikv/tikv/assets/84712107/7d5c9d16-9e1c-48a3-921f-bde5d996ea42)\r\n2、run ycsb\r\n3、simulate one of tikv network partition last for 50min and recover\r\n\r\n### What did you expect?\r\ninjection time：2023/07/09 00:05:29.152 +08:00\r\nrecover time：2023/07/09 00:55:29.652 +08:00\r\n\r\n### What did happened?\r\nqps drop to zero for more than 1h after fault recover\r\n![e4fee09f-fd73-4560-b757-bec7204d4c70](https://github.com/tikv/tikv/assets/84712107/7fac939c-a057-4b36-a1fc-abf551b31790)\r\n![2c0f5820-d6f0-41ff-9a49-97c507257b47](https://github.com/tikv/tikv/assets/84712107/73cd5fce-f116-4425-b5cb-da2cfa85d891)\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-07-14T02:22:30Z",
+  "updated_at": "2023-08-14T01:56:16Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "type/question"
+  ],
+  "comments_data": [
+    {
+      "id": 1635172184,
+      "user": "Lily2025",
+      "created_at": "2023-07-14T02:23:15Z",
+      "body": "/type bug\r\n/assign cfzjywxk"
+    },
+    {
+      "id": 1639675007,
+      "user": "cfzjywxk",
+      "created_at": "2023-07-18T07:40:00Z",
+      "body": "/cc @ekexium We need to verify the reason for the slowness of the related read requests, for example if they are follow-read type or the stale-read type."
+    },
+    {
+      "id": 1647140368,
+      "user": "cfzjywxk",
+      "created_at": "2023-07-24T03:21:43Z",
+      "body": "The reason for the QPS drop is:\r\n1. When `tidb_replica_read` is set, snapshot reads may use `follower-read`.\r\n2. When the isolated tikv node recovers, `follower-read` requests related to the `INSERT` statements are routed to it and the request type is `Batch-Get`.\r\n3. These `follower-read` requests could not be served until the condition `applied index >= read index committed index` satisfies.\r\n4. The isolated tikv node has a vast log lag, it would wait for the log replication, thus wait for the `async raft log fetch` on the leader nodes. As a result, the `async snapshot` duration is relatively high on this node and the QPS drops a lot.\r\n\r\nThis is a to-be-improved issue related to the https://github.com/tikv/tikv/issues/13060"
+    },
+    {
+      "id": 1648863624,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-25T02:06:48Z",
+      "body": "If the reason is the lagged follower, then #13060 may not help. \r\nThe #13060 is mainly to speed up the raft-entry after tikv restarts for leader,  but here the follower is down for 50 minutes and the relevant region's leader should already warm up with raft-entry. And due to 50 minutes down, many region's log have been GC-ed and thus the follower has to rely on snapshot. \r\n\r\nI think to avoid that follower with large lag for follower-read/stale-read is the better way to solve the issue. \r\n"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 17562,
+  "title": "In-memory engine: auto load is slow to identify hotspot regions",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nLeft: manual load, right: auto load.\r\n\r\n![{B4A51723-319B-4262-8845-FB815127C0E9}](https://github.com/user-attachments/assets/82efdd43-ef02-4ea7-9c3b-34063b6478e6)\r\n\r\nIt takes about 2 hours for auto load to close the performance gap compared to manual load.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\n# Prepare\r\n./prepare.sh -h $HOST -r $PORT -u root -t 10 -w 4000 -d 0 -j 10000\r\n\r\n# Enable manual load\r\nALTER TABLE `<TABLE_NAME>` ATTRIBUTES 'cache=always';\r\n\r\n# Run\r\nsysbench --mysql-host=$HOST --mysql-user=root --mysql-port=$PORT --threads=10  --db-driver=mysql --report-interval=1 --mysql-db=jobs --time=3600000  --number_workspaces=4000 --jobs_per_org=10000 --select_percentage=10 many_delete_mvcc.lua run\r\n\r\n# Disable manual load\r\nALTER TABLE `<TABLE_NAME>` ATTRIBUTES '';\r\n```\r\n\r\nMetrics: https://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7402953040254488320?from=1726602523&to=1726664038\r\n\r\n### What did you expect?\r\n\r\nIt should take about 5~10m for identifying and loading hotspot regions.\r\n\r\n### What did happened?\r\n\r\nIt takes 2 hours which is too slow.\r\n ",
+  "state": "closed",
+  "created_at": "2024-09-20T08:20:53Z",
+  "updated_at": "2024-10-09T06:41:51Z",
+  "closed_at": "2024-10-09T06:41:51Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2401449476,
+      "user": "overvenus",
+      "created_at": "2024-10-09T06:41:51Z",
+      "body": "Tests show that after restart tikv, auto load only takes about 10 min to reach the peak (and stable) performance.\r\n\r\n![{89463BAC-03CD-4123-8BA6-F1CBB870AB41}](https://github.com/user-attachments/assets/bf74e2e1-1f88-4733-9b22-2cb22335f470)\r\n\r\nThis concludes that this issue only occurs when we disable manual load and enable auto load online which is a rare case and can be worked around.  "
+    }
+  ]
+}

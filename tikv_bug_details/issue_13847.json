@@ -1,0 +1,61 @@
+{
+  "issue_number": 13847,
+  "title": "IPv6 support: tikv should listen on IPv6 instead of IPv4， which cause br restore failed.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nbuild k8s cluster with ipv6 and ipv4 enabled both, and set ipv6 as default network.\r\n\r\n### What did you expect?\r\n\r\n\r\n### What did happened?\r\n➜  ~ kubectl -n user-py get pod\r\nNAME                               READY   STATUS    RESTARTS   AGE\r\nbasic-discovery-6dd445bb49-6brdn   1/1     Running   0          43h\r\nbasic-pd-0                         1/1     Running   0          43h\r\nbasic-tidb-0                       2/2     Running   0          43h\r\nbasic-tikv-0                       1/1     Running   0          42h\r\nbenchtoolset-0                     1/1     Running   0          33m\r\nbr-0                               1/1     Running   0          5m48s\r\n➜  ~ kubectl -n user-py exec basic-tikv-0 -c tikv -it -- sh\r\n/ # netstat -lt\r\nActive Internet connections (only servers)\r\nProto Recv-Q Send-Q Local Address           Foreign Address         State\r\ntcp        0      0 0.0.0.0:20180           0.0.0.0:*               LISTEN\r\ntcp        0      0 :::20160                :::*                    LISTEN\r\ntcp        0      0 :::20160                :::*                    LISTEN\r\ntcp        0      0 :::20160                :::*                    LISTEN\r\ntcp        0      0 :::20160                :::*                    LISTEN\r\ntcp        0      0 :::20160                :::*                    LISTEN\r\n\r\n/br restore full --send-credentials-to-tikv=true --pd http://basic-pd:2379 --storage s3://benchmark/tpcc-1000-4.0 --s3.endpoin\r\nt  xxxxx\r\nDetail BR log in /tmp/br.log.2022-11-25T07.47.17Z\r\n[2022/11/25 07:47:25.458 +00:00] [INFO] [collector.go:69] [\"Full Restore failed summary\"] [total-ranges=0] [ranges-succeed=0] [ranges-failed=0]\r\nError: Get \"http://basic-tikv-0.basic-tikv-peer.user-py.svc:20180/config\": dial tcp [fd00:100:96:1::b]:20180: connect: connection refused; Get \"http://basic-tikv-0.basic-tikv-peer.user-py.svc:20180/config\": dial tcp [fd00:100:96:1::b]:20180: connect: connection refused;\r\n",
+  "state": "closed",
+  "created_at": "2022-11-25T08:20:04Z",
+  "updated_at": "2024-01-30T00:00:48Z",
+  "closed_at": "2024-01-29T23:59:59Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "may-affects-6.2",
+    "may-affects-6.3",
+    "may-affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1327145874,
+      "user": "mayjiang0203",
+      "created_at": "2022-11-25T08:20:22Z",
+      "body": "/type bug\r\n/severity Major"
+    },
+    {
+      "id": 1327232226,
+      "user": "mayjiang0203",
+      "created_at": "2022-11-25T09:46:23Z",
+      "body": "    1 root      0:16 /tikv-server --pd=http://basic-pd:2379 --advertise-addr=basic-tikv-0.basic-tikv-peer.user-py.svc:20160 --addr=0.0.0.0:20160 --status-addr=0.0.0.0:20180 --advertise-status-addr=basic-tikv-0.basic-tikv-peer.user-py.svc:20180 --data-dir=/var/lib/tikv --capacity=0 --config=/etc/tikv/tikv.toml\r\n\r\nseems caused by command line parameter setting.\r\n"
+    },
+    {
+      "id": 1328429877,
+      "user": "mayjiang0203",
+      "created_at": "2022-11-28T02:02:25Z",
+      "body": "https://github.com/pingcap/tidb-operator/issues/4790 track it in operator repo."
+    },
+    {
+      "id": 1333099314,
+      "user": "mayjiang0203",
+      "created_at": "2022-12-01T03:07:24Z",
+      "body": "Reopen it, for it is better if we can fix it in TiKV instead of in operator."
+    },
+    {
+      "id": 1915791972,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-30T00:00:47Z",
+      "body": "0.0.0.0 Is ipv4 only in most of implementation. For ipv6, it should use :: instead."
+    }
+  ]
+}

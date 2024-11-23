@@ -1,0 +1,27 @@
+{
+  "issue_number": 4900,
+  "title": "should not check SSE if we disable it",
+  "body": "## Bug Report\r\n\r\n**What version of TiKV are you using?**\r\nmaster\r\n\r\n**What operating system and CPU are you using?**\r\n\r\nARM64\r\n\r\n**What did you do?**\r\n\r\n```\r\nROCKSDB_SYS_SSE=0 make release\r\n```\r\n\r\n**What did you expect to see?**\r\n\r\nCompile successfully\r\n\r\n**What did you see instead?**\r\n\r\n```\r\nbash scripts/check-sse4_2.sh\r\nchecking bins for sse4.2\r\nchecking binary ./target/release/tikv-server for sse4.2\r\nerror: ./target/release/tikv-server does not contain rocksdb::crc32c::Fast_CRC32 function\r\nchecking binary ./target/release/tikv-importer for sse4.2\r\nerror: ./target/release/tikv-importer does not contain rocksdb::crc32c::Fast_CRC32 function\r\nsome binaries do not enable sse4.2\r\nfix this by building tikv with ROCKSDB_SYS_SSE=1\r\nmake[1]: *** [dist_release] Error 1\r\n```",
+  "state": "closed",
+  "created_at": "2019-06-14T14:13:18Z",
+  "updated_at": "2019-06-19T03:22:20Z",
+  "closed_at": "2019-06-19T03:22:20Z",
+  "labels": [
+    "type/bug",
+    "component/build"
+  ],
+  "comments_data": [
+    {
+      "id": 503171305,
+      "user": "siddontang",
+      "created_at": "2019-06-18T14:51:12Z",
+      "body": "@shafreeck can you fix this too?"
+    },
+    {
+      "id": 503310791,
+      "user": "brson",
+      "created_at": "2019-06-18T21:03:03Z",
+      "body": "I can pick this up."
+    }
+  ]
+}

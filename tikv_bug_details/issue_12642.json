@@ -1,0 +1,34 @@
+{
+  "issue_number": 12642,
+  "title": "DynamicRegion: Buckets are not working as expected.",
+  "body": "## Description\r\n\r\nAfter enabling `coprocessor.enable-region-bucket`, region will be split into buckets logically and reports region information as well as bucket keys to PD periodically. TiDB will use these buckets to split cop requests into bucket level sub tasks whose information can be found in `explain analyze select ...`. \r\n\r\nI set bucket size to be very small and insert some data that guarantee that the region will not be split but generate some bucket keys.\r\n\r\nPlease answer these questions before submitting your issue. Thanks!\r\n\r\n### 1. Minimal reproduce step (Required)\r\n\r\n<!-- a step by step guide for reproducing the bug. -->\r\n\r\n`create database test1;`\r\n`create table t (id int primary key, c int, d int);`\r\n`insert into t values(i, i, i);` i from 1 to 20\r\nWait for 60 seconds which is enough for region to splits, generates buckets, and  reports to PD.\r\n`select * from t;` The response carrys more update-to-date bucket version which makes TiDB to reload region from PD.\r\n`explain analyze select * from t;`\r\n\r\nWe can see the followering which is good as cop_task number to be larger than 1.\r\n![image](https://user-images.githubusercontent.com/71589810/169805734-133cd3bd-22ba-4fdc-8a55-df06617fed7c.png)\r\n\r\nHowever, when I drop test1 and create database test2 and insert these data again. And do `explain analyze ...`. The result is as followers.\r\n![image](https://user-images.githubusercontent.com/71589810/169809137-7919a433-218e-4b2a-a03b-8e39cac6b3f1.png)\r\n\r\n### 2. What did you expect to see? (Required)\r\nCop_task num is expected to be larger than 1.\r\n\r\n### 3. What is your TiDB and TiKV version? (Required)\r\n\r\nTiDB version:\r\n0cf93b5f51a9fa510e7ccc6937051f42e07ed69b\r\nTiKV version:\r\n1fb8980ccab9ff40c1adc206df52952dab8e8ad8\r\n\r\n<!-- Paste the output of SELECT tidb_version() -->\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-25T10:20:21Z",
+  "updated_at": "2022-05-28T04:12:31Z",
+  "closed_at": "2022-05-28T04:12:31Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1138109752,
+      "user": "Lily2025",
+      "created_at": "2022-05-26T03:25:59Z",
+      "body": "/type bug\r\n/severity major\r\n/assign tonyxuqqi"
+    },
+    {
+      "id": 1138109937,
+      "user": "Lily2025",
+      "created_at": "2022-05-26T03:26:16Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/label affects-6.1"
+    },
+    {
+      "id": 1140100097,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-27T23:24:03Z",
+      "body": "it should be resolved by PR: https://github.com/tikv/tikv/pull/12620"
+    }
+  ]
+}

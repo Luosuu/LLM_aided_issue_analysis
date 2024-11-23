@@ -1,0 +1,125 @@
+{
+  "issue_number": 13106,
+  "title": "log backup failed when use GCS as external storage",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nlinux\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nstart log backup with GCS storage\r\n\r\n### What did you expect?\r\n\r\nlog backup task status is normal\r\n\r\n### What did happened?\r\n\r\nlog backup task status is **error**\r\n",
+  "state": "closed",
+  "created_at": "2022-07-22T07:19:43Z",
+  "updated_at": "2022-07-27T08:17:12Z",
+  "closed_at": "2022-07-27T08:17:12Z",
+  "labels": [
+    "type/bug",
+    "sig/migrate",
+    "severity/major",
+    "affects-6.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1192264694,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:19:56Z",
+      "body": "/assign @WangLe1321 "
+    },
+    {
+      "id": 1192289425,
+      "user": "joccau",
+      "created_at": "2022-07-22T07:51:59Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1192289552,
+      "user": "joccau",
+      "created_at": "2022-07-22T07:52:08Z",
+      "body": "/severity Major"
+    },
+    {
+      "id": 1192290189,
+      "user": "joccau",
+      "created_at": "2022-07-22T07:52:55Z",
+      "body": "/remove-label may-affects-4.0"
+    },
+    {
+      "id": 1192290673,
+      "user": "joccau",
+      "created_at": "2022-07-22T07:53:30Z",
+      "body": "/remove-severity critical"
+    },
+    {
+      "id": 1192290975,
+      "user": "joccau",
+      "created_at": "2022-07-22T07:53:55Z",
+      "body": "/label may-affects-6.2"
+    },
+    {
+      "id": 1192291236,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:54:15Z",
+      "body": "/remove-severity may-affects-5.0 may-affects-5.1"
+    },
+    {
+      "id": 1192291267,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-22T07:54:16Z",
+      "body": "@WangLe1321: These labels are not set on the issue: `severity/may-affects-5.0, severity/may-affects-5.1`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13106#issuecomment-1192291236):\n\n>/remove-severity may-affects-5.0 may-affects-5.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1192291347,
+      "user": "joccau",
+      "created_at": "2022-07-22T07:54:22Z",
+      "body": "/sig migrate"
+    },
+    {
+      "id": 1192291825,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:55:00Z",
+      "body": "/remove-label may-affects-5.0 may-affects-5.1"
+    },
+    {
+      "id": 1192292219,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:55:29Z",
+      "body": "/remove-label may-affects-5.0"
+    },
+    {
+      "id": 1192292386,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:55:41Z",
+      "body": "/remove-label may-affects-5.1"
+    },
+    {
+      "id": 1192293012,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:56:31Z",
+      "body": "/remove-label may-affects-5.2"
+    },
+    {
+      "id": 1192293068,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:56:36Z",
+      "body": "/remove-label may-affects-5.3"
+    },
+    {
+      "id": 1192293140,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:56:41Z",
+      "body": "/remove-label may-affects-5.4"
+    },
+    {
+      "id": 1192293326,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:56:56Z",
+      "body": "/remove-label may-affects-6.0"
+    },
+    {
+      "id": 1192293419,
+      "user": "WangLe1321",
+      "created_at": "2022-07-22T07:57:04Z",
+      "body": "/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1192305374,
+      "user": "joccau",
+      "created_at": "2022-07-22T08:11:59Z",
+      "body": "/label affects-6.2"
+    }
+  ]
+}

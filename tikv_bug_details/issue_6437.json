@@ -1,0 +1,16 @@
+{
+  "issue_number": 6437,
+  "title": "RawGet may be incorrect when get request batch is enabled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster.\r\n\r\n \r\n\r\nThe current implementation of batch get request cross command has a bug that may cause raw get produce incorrect result. The raw `PointGetCommand` is created via `from_raw_get` method, which [encodes the key](https://github.com/tikv/tikv/pull/5598/files#diff-a2828e4f71806f3e4623d048057803d4R134), however for raw kv the key shouldn't be encoded. And in the unit test's code [here](https://github.com/tikv/tikv/pull/5598/files#diff-a2828e4f71806f3e4623d048057803d4R3391), it didn't use `from_raw_get` to create the request, so the mistake is not dicovered by unit tests.\r\n",
+  "state": "closed",
+  "created_at": "2020-01-08T06:40:24Z",
+  "updated_at": "2020-08-10T05:27:37Z",
+  "closed_at": "2020-01-09T11:02:17Z",
+  "labels": [
+    "type/bug",
+    "component/storage",
+    "difficulty/easy",
+    "severity/major"
+  ],
+  "comments_data": []
+}

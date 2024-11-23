@@ -1,0 +1,66 @@
+{
+  "issue_number": 8272,
+  "title": "raftstore::test_stale_peer::test_stale_learner failed",
+  "body": "raftstore::test_stale_peer::test_stale_learner\n\n\n Latest failed builds: \nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/25442/consoleFull\n",
+  "state": "closed",
+  "created_at": "2020-07-16T13:01:23Z",
+  "updated_at": "2021-06-21T06:24:32Z",
+  "closed_at": "2021-06-21T06:24:32Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 659823015,
+      "user": "fzhedu",
+      "created_at": "2020-07-17T03:38:33Z",
+      "body": "/label component/raft"
+    },
+    {
+      "id": 665025901,
+      "user": "sre-bot",
+      "created_at": "2020-07-28T13:02:37Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/26002/consoleFull"
+    },
+    {
+      "id": 668581897,
+      "user": "sre-bot",
+      "created_at": "2020-08-04T13:00:55Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/26400/consoleFull"
+    },
+    {
+      "id": 676317716,
+      "user": "sre-bot",
+      "created_at": "2020-08-19T13:01:30Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/26944/consoleFull"
+    },
+    {
+      "id": 685720137,
+      "user": "sre-bot",
+      "created_at": "2020-09-02T13:01:38Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/27701/consoleFull"
+    },
+    {
+      "id": 704252657,
+      "user": "sre-bot",
+      "created_at": "2020-10-06T13:01:26Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/30794/consoleFull"
+    },
+    {
+      "id": 712833722,
+      "user": "sre-bot",
+      "created_at": "2020-10-20T13:03:45Z",
+      "body": "New failed test found:\nhttps://internal.pingcap.net/idc-jenkins/job/tikv_ghpr_test/32159/consoleFull"
+    },
+    {
+      "id": 732606884,
+      "user": "hunterlxt",
+      "created_at": "2020-11-24T03:13:47Z",
+      "body": "After investigation, I found that this problem has nothing to do with the test itself, tikv node successfully schedule the `addnode` command. But something stuck. I suspect that it's a raftstore problem."
+    }
+  ]
+}

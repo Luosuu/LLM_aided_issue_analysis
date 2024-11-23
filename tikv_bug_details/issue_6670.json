@@ -1,0 +1,15 @@
+{
+  "issue_number": 6670,
+  "title": "Catch up logs is too slow when region is idle",
+  "body": "When the region is idle, leader sends logs to followers only when there is a heartbeat response. TiKV is configured to send a heartbeat about every 2 seconds, which can be too slow for catching up logs.\r\n\r\ncoreos/etcd#9985 fixes that by making append more aggressively.",
+  "state": "closed",
+  "created_at": "2020-02-21T13:11:28Z",
+  "updated_at": "2020-08-10T05:30:28Z",
+  "closed_at": "2020-03-30T10:51:44Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": []
+}

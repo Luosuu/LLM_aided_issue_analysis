@@ -1,0 +1,26 @@
+{
+  "issue_number": 11299,
+  "title": "Incorrect by-instance average gRPC duration",
+  "body": "## Bug Report\r\n\r\n![图片](https://user-images.githubusercontent.com/17217495/140893095-6d1419d5-27d3-4876-8d13-8873e127a893.png)\r\n\r\nThe instance selection `{tidb_cluster=\"$tidb_cluster\", instance=~\"$instance\"}` is missing from the denominator in the expression for \"Average gRPC message duration\". So we will see incorrect duration when we select the instance.",
+  "state": "closed",
+  "created_at": "2021-11-09T08:57:15Z",
+  "updated_at": "2021-11-22T08:12:24Z",
+  "closed_at": "2021-11-10T12:57:06Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3"
+  ],
+  "comments_data": [
+    {
+      "id": 964001823,
+      "user": "Lily2025",
+      "created_at": "2021-11-09T10:10:58Z",
+      "body": "/severity Moderate"
+    }
+  ]
+}

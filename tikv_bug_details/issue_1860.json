@@ -1,0 +1,13 @@
+{
+  "issue_number": 1860,
+  "title": "panic with TOGGLE_PROF_SIG in MacOSX",
+  "body": "```\r\n2017/05/24 10:17:55.836 panic_hook.rs:85: [ERROR] thread 'main' panicked 'called `Result::unwrap()` on an `Err` value: Sys(EINVAL)' at \"src/libcore/result.rs:859\"\r\nstack backtrace:\r\n   0:        0x108688e8e - backtrace::backtrace::trace::h8cee6f01b33d21bf\r\n   1:        0x10868917c - backtrace::capture::Backtrace::new::h1feefe4cb9308814\r\n   2:        0x10852b355 - tikv::util::panic_hook::set_exit_hook::{{closure}}::hbb6779d1f1e5cb55\r\n   3:        0x108a4baa9 - std::panicking::rust_panic_with_hook::h05996066754c6be9\r\n   4:        0x108a4b954 - std::panicking::begin_panic::h9fecf34da42eb910\r\n   5:        0x108a4b872 - std::panicking::begin_panic_fmt::he5aad713258a67c3\r\n   6:        0x108a4b7d7 - rust_begin_unwind\r\n   7:        0x108a73410 - core::panicking::panic_fmt::he26d734b771c5b2c\r\n   8:        0x10868088a - core::result::unwrap_failed::h2226cc167bb00bf1\r\n   9:        0x108680929 - signal::trap::Trap::trap::h5a3ccd44583e2c3b\r\n  10:        0x1083c1d2a - tikv_server::run_raft_server::hba931147bfa4b3b5\r\n  11:        0x1083cb73d - tikv_server::main::hf8fec1f952f13e35\r\n  12:        0x108a4b735 - std::panicking::try::do_call::h24a2756282b9a31c\r\n  13:        0x108a4cc3a - __rust_maybe_catch_panic\r\n  14:        0x108a4be80 - std::rt::lang_start::hd19f94db0c6a490e\r\n```\r\n\r\nI guess this is caused with `let trap = Trap::trap(&[SIGTERM, SIGINT, SIGUSR1, SIGUSR2, TOGGLE_PROF_SIG]);` and I comment all `TOGGLE_PROF_SIG`, then it works.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2017-05-24T02:25:53Z",
+  "updated_at": "2018-08-07T00:46:44Z",
+  "closed_at": "2017-05-24T06:20:57Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

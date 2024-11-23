@@ -1,0 +1,41 @@
+{
+  "issue_number": 14333,
+  "title": "[Dynamic Regions] Bucket flow report triggers much faster region split than before. ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly  commit hash# 6a906dae15f62be7df7c707c43550e25c0599a9a\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nEnable partitioned-raft-kv and run sysbench insert\r\n### What did you expect?\r\nRegion split will be stable and slow\r\n### What did happened?\r\nRegion split is about 100 per minutes. And many tikv requests failed and grpc latency is very high. \r\n\r\n![Feishu20230302-215556](https://user-images.githubusercontent.com/9442422/222642698-0343575b-d3c0-466d-a1f7-7084f421a6bd.jpeg)\r\n![Feishu20230302-215547](https://user-images.githubusercontent.com/9442422/222642699-a26eb939-ebae-4bc1-801d-dc675f228ee0.jpeg)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-03T05:56:50Z",
+  "updated_at": "2023-04-23T10:32:45Z",
+  "closed_at": "2023-04-23T10:32:45Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1496745836,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-05T00:03:04Z",
+      "body": "/assign @bufferflies"
+    },
+    {
+      "id": 1496745927,
+      "user": "ti-chi-bot",
+      "created_at": "2023-04-05T00:03:06Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: bufferflies.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14333#issuecomment-1496745836):\n\n>/assign @bufferflies\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1496746778,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-05T00:03:36Z",
+      "body": "/cc @bufferflies"
+    },
+    {
+      "id": 1496812076,
+      "user": "bufferflies",
+      "created_at": "2023-04-05T01:49:03Z",
+      "body": "In past, the `split-bukcet-scheduler` split region according the top buckets not the hot regions . I will optimaze the pick strategy order by the in need regions like the scheduled hot regions . "
+    }
+  ]
+}

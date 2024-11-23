@@ -83,10 +83,10 @@ def main():
         print("Warning: Proceeding without GitHub token. Rate limits will be restricted.")
 
     # Load bug issues CSV
-    bug_df = pd.read_csv('redis_bug_issues.csv')
+    bug_df = pd.read_csv('tikv_bug_issues.csv')
 
     # Create directory for storing detailed issue data
-    output_dir = Path('redis_bug_details')
+    output_dir = Path('tikv_bug_details')
     output_dir.mkdir(exist_ok=True)
 
     # Track progress and failures
@@ -107,7 +107,7 @@ def main():
             continue
 
         # Fetch issue details
-        issue_details = fetch_issue_details('redis', 'redis', issue_number, auth_token)
+        issue_details = fetch_issue_details('tikv', 'tikv', issue_number, auth_token)
 
         if issue_details:
             # Save individual issue details to JSON

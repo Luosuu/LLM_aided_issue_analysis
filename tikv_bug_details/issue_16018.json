@@ -1,0 +1,40 @@
+{
+  "issue_number": 16018,
+  "title": "tikv report \"cleanup import sst failed\" during import into command",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv7.5.0\r\n076b79c54b9e7656f9119865d4ed75bec3bd58d6\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nMySQL [test]> IMPORT INTO test.item_core  FROM \"ks3://qe-testing/xxx/data*/data*/test.item_core.*.csv?access-key=xxx\" with thread=30,detached;\r\n\r\n\r\n### What did you expect?\r\nimport into  successfully\r\n\r\n### What did happened?\r\n```\r\nfound \"cleanup import sst failed\" ERROR in log\r\n2023-11-17 21:46:36 (UTC+08:00)TiKV [tc-tikv-14.tc](http://tc-tikv-14.tc/)-tikv-peer.sql-global-sort-and-mvindex-testing-tps-3720033-1-803.svc:20160[[store.rs:2881](http://store.rs:2881/)] [\"cleanup import sst failed\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/[store.rs:2763](http://store.rs:2763/)]: No such file or directory (os error 2)\\\")\"] [store_id=25] [thread_id=0x5]\r\n2023-11-17 21:48:19 (UTC+08:00)TiKV [tc-tikv-2.tc](http://tc-tikv-2.tc/)-tikv-peer.sql-global-sort-and-mvindex-testing-tps-3720033-1-803.svc:20160[[store.rs:2881](http://store.rs:2881/)] [\"cleanup import sst failed\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/[store.rs:2763](http://store.rs:2763/)]: No such file or directory (os error 2)\\\")\"] [store_id=6] [thread_id=0x5]\r\n2023-11-17 21:56:36 (UTC+08:00)TiKV [tc-tikv-14.tc](http://tc-tikv-14.tc/)-tikv-peer.sql-global-sort-and-mvindex-testing-tps-3720033-1-803.svc:20160[[store.rs:2881](http://store.rs:2881/)] [\"cleanup import sst failed\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/[store.rs:2763](http://store.rs:2763/)]: No such file or directory (os error 2)\\\")\"] [store_id=25] [thread_id=0x5]\r\n```\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-11-20T03:17:32Z",
+  "updated_at": "2024-01-29T18:28:44Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "component/lightning"
+  ],
+  "comments_data": [
+    {
+      "id": 1818170012,
+      "user": "seiya-annie",
+      "created_at": "2023-11-20T03:27:25Z",
+      "body": "[tikv-2023-11-17T22-55-52.317.log.gz](https://github.com/tikv/tikv/files/13405936/tikv-2023-11-17T22-55-52.317.log.gz)\r\n"
+    },
+    {
+      "id": 1818204672,
+      "user": "lance6716",
+      "created_at": "2023-11-20T04:21:28Z",
+      "body": "Seems when `ingest` is concurrent running with `list_ssts`, we will meet this error\r\n\r\n```\r\n[2023/11/17 21:46:36.351 +08:00] [Info] [sst_importer.rs:364] [ingest] [metas=\"[SstMetaInfo { total_bytes: 79114298, total_kvs: 5349, meta: uuid: 657F6AE5AB534F60A6549779AEDC325C range { start: 7480000000000000FF935F720133393831FF36353037FF644D4CFF57384C6669FF6E76FF4768355A4D49FF38FF3745316C614172FFFF316D4D6E65676E73FFFF00000000000000FF00F7000000000000F9 end: 7480000000000000FF935F720133393832FF31333235FF4E7947FF5251693977FF736AFF6C5446717939FF78FF62564366736844FFFF47386C7473596A72FFFF00000000000000FF00F7000000000000F9 } cf_name: \\\"default\\\" region_id: 48147236 region_epoch { conf_ver: 2582735 version: 22260 } }, SstMetaInfo { total_bytes: 572922, total_kvs: 5349, meta: uuid: 657F6AE5AB534F60A6549779AEDC325C range { start: 7480000000000000FF935F720133393831FF36353037FF644D4CFF57384C6669FF6E76FF4768355A4D49FF38FF3745316C614172FFFF316D4D6E65676E73FFFF00000000000000FF00F7000000000000F9 end: 7480000000000000FF935F720133393832FF31333235FF4E7947FF5251693977FF736AFF6C5446717939FF78FF62564366736844FFFF47386C7473596A72FFFF00000000000000FF00F7000000000000F9 } cf_name: \\\"write\\\" region_id: 48147236 region_epoch { conf_ver: 2582735 version: 22260 } }]\"] [thread_id=0x5]\r\n[2023/11/17 21:46:36.618 +08:00] [Info] [endpoint.rs:597] [\"the max gap of follower safe-ts is large\"] [oldest_candidate=None] [latest_candidate=None] [applied_index=10] [duration_to_last_consume_leader=4983245ms] [resolved_ts=445703466070573063] [safe_ts=445703466070573063] [gap=5003261ms] [region_id=48121774] [thread_id=0x5]\r\n[2023/11/17 21:46:36.618 +08:00] [Info] [endpoint.rs:622] [\"the max gap of follower resolved-ts is large\"] [oldest_candidate=\"Some(ReadState { idx: 6, ts: 445684255083724801 })\"] [latest_candidate=\"Some(ReadState { idx: 6, ts: 445684255083724801 })\"] [applied_index=0] [duration_to_last_consume_leader=78267390ms] [resolved_ts=445684255083724801] [safe_ts=0] [gap=78287360ms] [region_id=43045180] [thread_id=0x5]\r\n[2023/11/17 21:46:36.720 +08:00] [Info] [snap.rs:673] [\"set_snapshot_meta total cf files count: 3\"] [thread_id=0x5]\r\n[2023/11/17 21:46:36.729 +08:00] [Error] [store.rs:2881] [\"cleanup import sst failed\"] [err_code=KV:Raftstore:Unknown] [err=\"Other(\\\"[components/raftstore/src/store/fsm/store.rs:2763]: No such file or directory (os error 2)\\\")\"] [store_id=25] [thread_id=0x5]\r\n[2023/11/17 21:46:36.729 +08:00] [Info] [sst_importer.rs:329] [delete] [path=\"ImportPath { save: \\\"/var/lib/tikv/data/import/657f6ae5-ab53-4f60-a654-9779aedc325c_48147236_2582735_22260_default_2.sst\\\", temp: \\\"/var/lib/tikv/data/import/.temp/657f6ae5-ab53-4f60-a654-9779aedc325c_48147236_2582735_22260_default_2.sst\\\", clone: \\\"/var/lib/tikv/data/import/.clone/657f6ae5-ab53-4f60-a654-9779aedc325c_48147236_2582735_22260_default_2.sst\\\" }\"] [thread_id=0x5]\r\n[2023/11/17 21:46:36.729 +08:00] [Warn] [store.rs:780] [\"[store 25] handle timeout CleanupImportSst\"] [takes=1156] [thread_id=0x5]\r\n[2023/11/17 21:46:36.729 +08:00] [Info] [sst_importer.rs:329] [delete] [path=\"ImportPath { save: \\\"/var/lib/tikv/data/import/657f6ae5-ab53-4f60-a654-9779aedc325c_48147236_2582735_22260_write_2.sst\\\", temp: \\\"/var/lib/tikv/data/import/.temp/657f6ae5-ab53-4f60-a654-9779aedc325c_48147236_2582735_22260_write_2.sst\\\", clone: \\\"/var/lib/tikv/data/import/.clone/657f6ae5-ab53-4f60-a654-9779aedc325c_48147236_2582735_22260_write_2.sst\\\" }\"] [thread_id=0x5]\r\n```\r\n\r\nSo this error is not critical"
+    },
+    {
+      "id": 1820389740,
+      "user": "lance6716",
+      "created_at": "2023-11-21T07:44:24Z",
+      "body": "@YuJuncen can we simply change the log level to warning?"
+    },
+    {
+      "id": 1820454510,
+      "user": "YuJuncen",
+      "created_at": "2023-11-21T08:32:54Z",
+      "body": "@lance6716 Surely we can. This isn't an essential error anyway."
+    }
+  ]
+}

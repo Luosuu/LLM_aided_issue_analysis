@@ -1,0 +1,33 @@
+{
+  "issue_number": 16429,
+  "title": "hibernate region may not able to reelection a new leader for a long when leader is partitioned",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1. deploy a 3 tikv cluster when hibernate-region enabled and write some data. Let number the tikv with 1,2,3 and 1 is the current leader. \r\n2. Wait some time to let region became hibernate. \r\n3. Partition tikv 2 from 1. Then write some data again.\r\n4. partition from 3 from 1.\r\n5. wait some time to let the region election new leader.\r\n\r\n### What did you expect?\r\nNew region leader should be elected soon after step 4. SQL can still execute with no error.\r\n\r\n### What did happened?\r\nRegion leader can't be elected from a long time. And tidb is likely to encounter with `Region is unavailable` error.\r\n\r\n## Investigation\r\n\r\nFrom the log in one test cluster, I saw after step 5, the kv request from tidb in tikv 2 will change the peer state to Chaos and triggers a new election and the vote request will be rejected by tikv 3 because it doesn't contains the newest log. \r\nBut then tikv 3 will still in Idle state due to following logic, which lead  to no available leader for a long time.\r\n\r\nhttps://github.com/tikv/tikv/blob/866eda664e45f2bea1977a2c10ed50c0e6aa74c3/components/raftstore/src/store/fsm/peer.rs#L2208-L2250\r\n\r\nThe `missing_ticks` while make tikv 3 not tick enough times to establish a new election and tikv 2's election retry will always be rejected.\r\n\r\nI think while processing the `missing_ticks`, if the tick is triggered be a vote request, we should take the vote result into consideration, if rejected, it'd better to let the threshold be `randomized_election_elapsed` so the currently peer can able to propose a election as the currently election is likely to be failed.\r\n",
+  "state": "closed",
+  "created_at": "2024-01-23T07:29:18Z",
+  "updated_at": "2024-01-30T07:35:56Z",
+  "closed_at": "2024-01-30T03:08:47Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1905444643,
+      "user": "glorv",
+      "created_at": "2024-01-23T07:29:37Z",
+      "body": "/cc @Connor1996  @overvenus  PTAL"
+    },
+    {
+      "id": 1916237385,
+      "user": "glorv",
+      "created_at": "2024-01-30T07:35:55Z",
+      "body": "We found the reason that the region cannot election a leader is that the user config a very big election_elapse for one tikv instance thus it will take a long time before that tikv instance start a new election. So we close this issue as the result is expected for this kind of unexpected configuration."
+    }
+  ]
+}

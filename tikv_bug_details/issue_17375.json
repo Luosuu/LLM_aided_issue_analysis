@@ -1,0 +1,29 @@
+{
+  "issue_number": 17375,
+  "title": "Although performance degradation under massive regions is a known issue, in addition to merging regions, are there other methods available?",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv8.2.0\r\n\r\n### Steps to reproduce\r\nstep1:\r\n1. br restore full datase with 50,000 databases and 250,000 tables (5 tables per databse,2 rows per table and the number of empty region is about 480k）\r\n2. warmup for 10m\r\n3. sysbench run oltp_read_write 5m v1\r\n4. sysbench run oltp_read_write 5m v2\r\nstep2:\r\n1. br restore full datase with 1 databases and 16 tables (10M rows per table)\r\n2. warmup for 10m\r\n3. sysbench run oltp_read_write 5m v1\r\n4. sysbench run oltp_read_write 5m v2\r\n\r\n### What did you expect?\r\nThere is no performance regression with  250,000  tables compared with 16 tables when there are many empty regions. \r\n### What did happened?\r\nWith V2 enabled, the performance of 50,000 databases experiences a 17.22% regression compared to that of a single database.\r\n",
+  "state": "closed",
+  "created_at": "2024-08-12T08:23:09Z",
+  "updated_at": "2024-11-06T14:49:48Z",
+  "closed_at": "2024-11-06T14:49:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2459955848,
+      "user": "LykxSassinator",
+      "created_at": "2024-11-06T14:49:48Z",
+      "body": "Can be closed as https://github.com/tikv/tikv/pull/17408 is merged."
+    }
+  ]
+}

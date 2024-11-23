@@ -1,0 +1,16 @@
+{
+  "issue_number": 9115,
+  "title": "encryption: handle non-atomic file operations",
+  "body": "## Bug Report\r\n\r\nWhen encryption (TDE) is enabled, file operations like delete file/rename file/copy file are non-atomic. For these operations, we need to update encryption metadata via `encryption::DataKeyManager`, which cannot combine with the actual file operation into one atomic operation. When TiKV crash in between file operation and encryption metadata update, encryption metadata could be inconsistent with the file system. This is fine, providing that as long as an encrypted file exist in the file system, the corresponding entry in encryption metadata always exists. And whenever we find there's an obsolete entry in the metadata without corresponding file, the entry should be ignored and removed. Current implementation is not consistent for all `DataKeyManager` call sites. We need to refactor the code to provide helper method that work in the following way:\r\n\r\n* delete file: works in the order 1. fs::delete_file(), 2. key_manager.delete_file()\r\n* rename file: works in the order 1. key_manager.new_file(dst), 2. fs::rename_file(), 3. key_manager.delete_file(src)\r\n* link (copy) file: works in the order 1. key_manager.new_file(dst), 2. fs::copy_file()\r\n\r\nAnd whenever these operations see unexpected existing entry in metadata (for example, when link file and see metadata for dst already exists), check if the file exists in the file system. If not, ignore and remove the entry.\r\n\r\nThe task include changing TiKV code and RocksDB code.\r\n\r\n### What version of TiKV are you using?\r\nmaster, 4.0.x\r\n\r\n### What operating system and CPU are you using?\r\nN/A\r\n\r\n### Steps to reproduce\r\n#9099 for example\r\n\r\n### What did you expect?\r\nencryption logic should handle non-atomic file operations like delete/rename/link files correctly\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2020-11-25T22:59:52Z",
+  "updated_at": "2021-01-04T09:19:48Z",
+  "closed_at": "2021-01-04T09:19:48Z",
+  "labels": [
+    "type/bug",
+    "component/rocksdb",
+    "component/security",
+    "severity/major"
+  ],
+  "comments_data": []
+}

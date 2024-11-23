@@ -1,0 +1,51 @@
+{
+  "issue_number": 10150,
+  "title": "jemalloc will fetch backtrace at every malloc",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nRelease v5.0.1\r\n\r\n### Steps to reproduce\r\n\r\n1. `tiup playground v5.0.1` setups a tikv cluster\r\n2. `gdb` attachs the running tikv, and set a breakpoint with `break uw_frame_state_for`\r\n3. run anything like connecting with `mysql`\r\n4. Then the breakpoints hit and the backtrace shows the call stack  is inside the jemalloc\r\n\r\n```\r\n#0  uw_frame_state_for (context=0x7f57853d4390, fs=0x7f57853d4480) at ../../../libgcc/unwind-dw2.c:1256\r\n#1  0x00007f578d6e31b4 in _Unwind_Backtrace (trace=trace@entry=0x55e0ee63da10 <prof_unwind_callback>, \r\n    trace_argument=trace_argument@entry=0x7f57853d4640) at ../../../libgcc/unwind.inc:302\r\n#2  0x000055e0ee648b16 in _rjem_je_prof_backtrace (bt=bt@entry=0x7f57853d4680) at src/prof.c:637\r\n#3  0x000055e0ee5ec5d5 in prof_alloc_prep (update=true, _rjem_je_prof_active=<optimized out>, usize=<optimized out>, tsd=<optimized out>)\r\n    at include/jemalloc/internal/prof_inlines_b.h:158\r\n#4  imalloc_body (tsd=<optimized out>, dopts=<synthetic pointer>, sopts=<synthetic pointer>) at src/jemalloc.c:2116\r\n#5  imalloc (dopts=<synthetic pointer>, sopts=<synthetic pointer>) at src/jemalloc.c:2258\r\n#6  _rjem_je_malloc_default (size=<optimized out>) at src/jemalloc.c:2289\r\n#7  0x000055e0ee9c0c38 in operator new(unsigned long) ()\r\n#8  0x000055e0ee7109f6 in rocksdb::LRUHandleTable::Resize (this=0x7f5783c47a80)\r\n    at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/1b3a613/librocksdb_sys/rocksdb/cache/lru_cache.cc:77\r\n#9  0x000055e0ee71157e in rocksdb::LRUCacheShard::LRUCacheShard (this=0x7f5783c47a00, capacity=524288, \r\n    strict_capacity_limit=<optimized out>, high_pri_pool_ratio=<optimized out>, use_adaptive_mutex=<optimized out>)\r\n    at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/1b3a613/librocksdb_sys/rocksdb/cache/lru_cache.cc:108\r\n#10 0x000055e0ee7116e1 in rocksdb::LRUCache::LRUCache (this=0x7f5783c21190, capacity=<optimized out>, num_shard_bits=<optimized out>, \r\n    strict_capacity_limit=false, high_pri_pool_ratio=0, allocator=..., use_adaptive_mutex=<optimized out>)\r\n    at /rust/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/1b3a613/librocksdb_sys/rocksdb/cache/lru_cache.cc:460\r\n#11 0x000055e0ee71185f in __gnu_cxx::new_allocator<rocksdb::LRUCache>::construct<rocksdb::LRUCache, unsigned long&, int&, bool&, double&, std::shared_ptr<rocksdb::MemoryAllocator>, bool&> (__p=0x7f5783c21190, this=<optimized out>)\r\n    at /opt/rh/devtoolset-8/root/usr/include/c++/8/new:169\r\n#12 std::allocator_traits<std::allocator<rocksdb::LRUCache> >::construct<rocksdb::LRUCache, unsigned long&, int&, bool&, double&, std::shared_ptr<rocksdb::MemoryAllocator>, bool&> (__p=0x7f5783c21190, __a=...) at /opt/rh/devtoolset-8/root/usr/include/c++/8/bits/alloc_traits.h:475\r\n#13 std::_Sp_counted_ptr_inplace<rocksdb::LRUCache, std::allocator<rocksdb::LRUCache>, (__gnu_cxx::_Lock_policy)2>::_Sp_counted_ptr_inplace<unsigned long&, int&, bool&, double&, std::shared_ptr<rocksdb::MemoryAllocator>, bool&> (__a=..., this=0x7f5783c21180)\r\n    at /opt/rh/devtoolset-8/root/usr/include/c++/8/bits/shared_ptr_base.h:545\r\n```\r\n\r\nThis could be the reason for #10131 . And fetching backtrace all the time will make it impossible to run `pprof-rs`.\r\n\r\n### What did you expect?\r\n\r\nDon't fetch backtrace all the time :imp: ",
+  "state": "closed",
+  "created_at": "2021-05-11T13:19:18Z",
+  "updated_at": "2021-07-02T13:55:20Z",
+  "closed_at": "2021-07-02T13:55:20Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 838474203,
+      "user": "YangKeao",
+      "created_at": "2021-05-11T13:26:53Z",
+      "body": "Or should I open an issue on `tiup`?"
+    },
+    {
+      "id": 839503443,
+      "user": "BusyJay",
+      "created_at": "2021-05-12T06:37:45Z",
+      "body": "That's strange as the function will only be called when prof_active is set to true, which can be configured by either environment variables or API in status server."
+    },
+    {
+      "id": 839518386,
+      "user": "YangKeao",
+      "created_at": "2021-05-12T07:02:38Z",
+      "body": "> That's strange as the function will only be called when prof_active is set to true, which can be configured by either environment variables or API in status server.\r\n\r\n@BusyJay  Yes. In the latest version of `tiup`, `prof_active` is set to `true`, (and that's why I opened this issue, exactly, to talk about whether it should be set to `true` by default):\r\n\r\nhttps://github.com/pingcap/tiup/blob/52e24c2ee45e6a2acc3bd59990a4f1ebbedcd633/embed/templates/scripts/run_tikv.sh.tpl#L23\r\n\r\n```\r\nexport MALLOC_CONF=\"prof:true,prof_active:true,prof.active:false\"\r\n```"
+    },
+    {
+      "id": 839518798,
+      "user": "BusyJay",
+      "created_at": "2021-05-12T07:03:24Z",
+      "body": "No, it should not."
+    },
+    {
+      "id": 839721486,
+      "user": "BusyJay",
+      "created_at": "2021-05-12T12:13:46Z",
+      "body": "Instead of removing it completely, better use \"prof:true,prof_active:false\" to make it possible to profile memory without restarting."
+    },
+    {
+      "id": 873017466,
+      "user": "BusyJay",
+      "created_at": "2021-07-02T13:55:20Z",
+      "body": "Closed as it was a bug of tiup and it was fixed and released."
+    }
+  ]
+}

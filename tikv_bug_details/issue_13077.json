@@ -1,0 +1,28 @@
+{
+  "issue_number": 13077,
+  "title": "v6.1.0: After network isolation is recovered, QPS drops more than 50% due to high commit log duration",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.1.0 GA\r\n\r\n### What operating system and CPU are you using?\r\n8core\\16G \r\n4 tikvs\r\n\r\n### Steps to reproduce\r\nrun tpcc\r\nInject a tikv disconnection and recover it after 50 minutes\r\n\r\n### What did you expect?\r\nQPS can not drop too much\r\n\r\n### What did happened?\r\nmore details see https://internal.pingcap.net/jira/projects/INCALL/issues/INCALL-106\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7116448296305065735?from=1656926856&to=1656955605\r\n![origin_img_v2_d8ae9e53-9aa5-4f2c-8472-3d837fdb4b9g](https://user-images.githubusercontent.com/84712107/179956024-f706f10a-ee91-459a-b251-c46526a435e0.jpg)\r\n![origin_img_v2_16f36469-74e2-4da4-b040-0a5b44424ccg](https://user-images.githubusercontent.com/84712107/179956507-f097c099-8c79-4ad1-bee9-e35dbb85f64b.jpg)\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-20T09:53:13Z",
+  "updated_at": "2023-06-09T03:57:35Z",
+  "closed_at": "2022-07-21T08:43:11Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1190073521,
+      "user": "Lily2025",
+      "created_at": "2022-07-20T09:56:34Z",
+      "body": "/type bug\r\n/severity major\r\n/assign Connor1996"
+    }
+  ]
+}

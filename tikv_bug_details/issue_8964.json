@@ -1,0 +1,42 @@
+{
+  "issue_number": 8964,
+  "title": "Insertion after deletion meets duplicate entry error in optimistic transactions",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv3.x, v4.x, master\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNot related\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n```sql\r\ncreate table t (i int primary key, j int unique);\r\ninsert into t values (1, 1);\r\n\r\n-- session 1\r\ndelete from t where i = 1;\r\n-- prewrite: row key is the primary lock and unique key is the secondary lock.\r\n-- commit: the primary lock is committed, but the secondary lock is not.\r\n\r\n-- session 2\r\ninsert into t values (1, 1)\r\n-- report duplicate entry error\r\n```\r\n\r\n### What did you expect?\r\nSucceed in insertion.\r\n\r\n### What did happened?\r\nReport duplicate entry error.",
+  "state": "closed",
+  "created_at": "2020-11-04T09:56:03Z",
+  "updated_at": "2020-11-04T10:18:08Z",
+  "closed_at": "2020-11-04T10:18:08Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "component/storage",
+    "sig/transaction",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 721632863,
+      "user": "youjiali1995",
+      "created_at": "2020-11-04T09:57:29Z",
+      "body": "/info"
+    },
+    {
+      "id": 721632883,
+      "user": "ti-srebot",
+      "created_at": "2020-11-04T09:57:31Z",
+      "body": "## Please edit this comment to complete the following information\n\n### Not a bug\n\n1. Remove the 'type/bug' label\n2. Add notes to indicate why it is not a bug\n\n### Duplicate bug\n\n1. Add the 'type/duplicate' label\n2. Add the link to the original bug\n\n### Bug\n\nNote: Make Sure that 'component', and 'severity' labels are added\nExample for how to fill out the template: https://github.com/pingcap/tidb/issues/20100\n\n#### 1. Root Cause Analysis (RCA) (optional) \n<!-- Write down the reason why this bug occurs -->\n\n#### 2. Symptom (optional)\n\n<!-- What will the user see when this bug occurs. The error message may be in the terminal, log or monitoring -->\n\n#### 3. All Trigger Conditions (optional)\n\n<!-- All the user scenarios that may trigger this bug -->\n\n#### 4. Workaround (optional)\n\n#### 5. Affected versions\n\n<!--\nIn the format of [start_version:end_version], multiple version ranges are\naccepted. If the bug only affects the unreleased version, please input:\n\"unreleased\". For example:\n\nNotes:\n  1. Do not use any white spaces in '[]'.\n  2. The range in '[]' is a closed interval\n  3. The version format is `v$Major.$Minor.$Patch`, the $Majoy and $Minor\n     number in a version range should be the same. [v3.0.1:v3.1.2] is\n     invalid because the $Minor number of the version range is different.\n\nExample 1: [v3.0.1:v3.0.5], [v4.0.1:v4.0.5]\nExample 2: unreleased\n-->\n\n#### 6. Fixed versions\n\n<!--\nThe first released version that contains this fix in each minor version. If the bug's affected version has been released, the fixed version should be a detailed version number; If the bug doesn't affect any released version, the fixed version can be \"master\";  \n\nExample 1: v3.0.13, v4.0.5\nExample 2: master\n-->"
+    },
+    {
+      "id": 721643339,
+      "user": "youjiali1995",
+      "created_at": "2020-11-04T10:17:57Z",
+      "body": "### Bug\r\n\r\n#### 1. Root Cause Analysis (RCA) (optional) \r\n<!-- Write down the reason why this bug occurs -->\r\n\r\nTiDB pushes down the check of uniqueness to TiKV when prewrites, however, TiKV checks write conflict and data constraint before lock's existence. It can report a duplicate entry error when there is a lock belonging to a committed transaction that deletes the key.\r\n\r\n#### 2. Symptom (optional)\r\n\r\n<!-- What will the user see when this bug occurs. The error message may be in the terminal, log or monitoring -->\r\n\r\nFail to insert a row due to duplicate entry error and no corresponding row is in the table.\r\n\r\n#### 3. All Trigger Conditions (optional)\r\n\r\n<!-- All the user scenarios that may trigger this bug -->\r\n\r\n1. A transaction deleted one row with unique indexes, and locks on unique indexes are left.\r\n2. Another transaction inserts a row with the same unique index in optimistic transaction mode or autocommit mode.\r\n\r\n#### 4. Workaround (optional)\r\nUse pessimistic transaction mode. However, the lock behavior of deletion in pessimistic transaction mode is not correct because TiDB doesn't lock unique indexes. It can report a duplicate entry error if insertion and deletion are concurrent. This bug will be fixed in v4.0.9 too.\r\n\r\n#### 5. Affected versions\r\n\r\n<!--\r\nIn the format of [start_version:end_version], multiple version ranges are\r\naccepted. If the bug only affects the unreleased version, please input:\r\n\"unreleased\". For example:\r\n\r\nNotes:\r\n  1. Do not use any white spaces in '[]'.\r\n  2. The range in '[]' is a closed interval\r\n  3. The version format is `v$Major.$Minor.$Patch`, the $Majoy and $Minor\r\n     number in a version range should be the same. [v3.0.1:v3.1.2] is\r\n     invalid because the $Minor number of the version range is different.\r\n\r\nExample 1: [v3.0.1:v3.0.5], [v4.0.1:v4.0.5]\r\nExample 2: unreleased\r\n-->\r\n\r\n[v3.0.0:v3.0.19], [v4.0.0:v4.0.8]\r\n\r\n#### 6. Fixed versions\r\n\r\n<!--\r\nThe first released version that contains this fix in each minor version. If the bug's affected version has been released, the fixed version should be a detailed version number; If the bug doesn't affect any released version, the fixed version can be \"master\";  \r\n\r\nExample 1: v3.0.13, v4.0.5\r\nExample 2: master\r\n-->\r\n\r\nv3.0.20, v4.0.9"
+    },
+    {
+      "id": 721643428,
+      "user": "youjiali1995",
+      "created_at": "2020-11-04T10:18:07Z",
+      "body": "Fixed by https://github.com/tikv/tikv/pull/8921."
+    }
+  ]
+}

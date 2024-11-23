@@ -1,0 +1,89 @@
+{
+  "issue_number": 14883,
+  "title": "[dr-autosync]online recover failed due to one store have not reported to PD",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n6.5.1\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n\r\n### What did happened?\r\n```\r\nsh-4.2# tiup ctl:v6.5.2 pd -u http://pd3-peer.dr-autosync-hongmei-testbedz4qk6:2379 unsafe remove-failed-stores show\r\nStarting component `ctl`: /root/.tiup/components/ctl/v6.5.2/ctl /root/.tiup/components/ctl/v6.5.2/ctl pd -u http://pd3-peer.dr-autosync-hongmei-testbedz4qk6:2379 unsafe remove-failed-stores show\r\n[\r\n  {\r\n    \"info\": \"Unsafe recovery enters collect report stage\",\r\n    \"time\": \"2023-06-06 14:01:39.316\",\r\n    \"details\": [\r\n      \"failed stores 292, 6, 7, 8\"\r\n    ]\r\n  },\r\n  {\r\n    \"info\": \"Unsafe recovery enters tombstone TiFlash learner stage\",\r\n    \"time\": \"2023-06-06 14:01:42.453\",\r\n    \"actions\": {\r\n      \"store 293\": [\r\n        \"tombstone the peer of region 476\"\r\n      ]\r\n    }\r\n  },\r\n  {\r\n    \"info\": \"Unsafe recovery enters force leader stage\",\r\n    \"time\": \"2023-06-06 14:01:52.365\",\r\n    \"actions\": {\r\n      \"store 1\": [\r\n        \"force leader on regions: 364\"\r\n      ],\r\n      \"store 293\": [\r\n        \"force leader on regions: \"\r\n      ],\r\n      \"store 5\": [\r\n        \"force leader on regions: 94, 96, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92, 343, 581, 350, 574, 357, 591, 371, 378, 777, 385, 598, 605, 392, 612, 399, 406, 626, 413, 619, 634, 420, 641, 427, 656, 434, 649, 441, 448, 455, 663, 462, 469, 476, 567, 483, 670, 490, 497, 678, 504, 685, 511, 518, 694, 525, 532, 701, 539, 710, 717, 546, 726, 733, 553, 740, 747, 560, 16, 14, 12, 10, 98, 2\"\r\n      ],\r\n      \"store 9\": [\r\n        \"force leader on regions: \"\r\n      ]\r\n    }\r\n  },\r\n  {\r\n    \"info\": \"Unsafe recovery enters exit force leader stage\",\r\n    \"time\": \"2023-06-06 14:11:41.420\",\r\n    \"details\": [\r\n      \"triggered by error: Exceeds timeout 2023-06-06 14:11:39.316626213 +0800 CST m=+721.464357784\"\r\n    ]\r\n  },\r\n  {\r\n    \"info\": \"Unsafe recovery failed: Exceeds timeout 2023-06-06 14:11:39.316626213 +0800 CST m=+721.464357784\",\r\n    \"time\": \"2023-06-06 14:13:01.427\",\r\n    \"details\": [\r\n      \"affected meta regions: 96\",\r\n      \"affected table ids: 88, 48, 8, 60, 66, 100, 6, 10, 28, 30, 64, 96, 97, 4, 18, 26, 50, 70, 76, 94, 22, 14, 42, 56, 281474976710651, 32, 40, 46, 54, 68, 90, 281474976710654, 52, 72, 281474976710653, 36, 62, 78, 24, 84, 95, 281474976710652, 89, 98, 12, 16, 20, 74, 82, 83, 86, 87, 91, 99, 281474976710655, 34, 38, 44, 58, 85\",\r\n      \"Stores that have not dispatched plan: \",\r\n      \"Stores that have reported to PD: 9, 293, 1\",\r\n      \"Stores that have not reported to PD: 5\"\r\n    ]\r\n  }\r\n]\r\n```\r\ncluster id: 7241445049684945592\r\n",
+  "state": "closed",
+  "created_at": "2023-06-06T06:44:28Z",
+  "updated_at": "2023-07-24T17:01:09Z",
+  "closed_at": "2023-07-24T17:01:08Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "affects-6.5",
+    "may-affects-7.1",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1578017143,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-06T06:46:26Z",
+      "body": "/type bug\r\n/assign @Connor1996 "
+    },
+    {
+      "id": 1588420324,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-13T02:26:40Z",
+      "body": "/severity  critical\r\nhit it again in two testing environments， so mark it critical."
+    },
+    {
+      "id": 1588421959,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-13T02:28:53Z",
+      "body": "/label affects-6.5"
+    },
+    {
+      "id": 1594257352,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-16T07:43:58Z",
+      "body": "cluster-id 7244760729059942601 "
+    },
+    {
+      "id": 1598147452,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-20T05:38:44Z",
+      "body": "/remove-severity critical\r\n/severity major\r\nDidn't hit it recently, and based on the diagnosis, the issue is that TiKV is unable to connect to PD. In theory, it should be possible to resolve it by restarting TiKV.\r\nSo reduce the bug severity.\r\nAfter the problem reproduces, further analysis will be conducted."
+    },
+    {
+      "id": 1598149029,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-20T05:41:06Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14883#issuecomment-1598147452):\n\n>/remove-severity critical\r\n>Didn't hit it recently, and based on the diagnosis, the issue is that TiKV is unable to connect to PD. In theory, it should be possible to resolve it by restarting TiKV.\r\n>So reduce the bug severity.\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1598149263,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-20T05:41:27Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14883#issuecomment-1598147452):\n\n>/remove-severity critical\r\n>/severity major\r\n>Didn't hit it recently, and based on the diagnosis, the issue is that TiKV is unable to connect to PD. In theory, it should be possible to resolve it by restarting TiKV.\r\n>So reduce the bug severity.\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1598150119,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-20T05:42:51Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14883#issuecomment-1598147452):\n\n>/remove-severity critical\r\n>/severity major\r\n>Didn't hit it recently, and based on the diagnosis, the issue is that TiKV is unable to connect to PD. In theory, it should be possible to resolve it by restarting TiKV.\r\n>So reduce the bug severity.\r\n>After the problem reproduces, further analysis will be conducted.\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1605990675,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-25T09:36:54Z",
+      "body": "/remove-severity major\r\n/severity critical\r\nHit it again, and can't w/a after restart the cluster,  mark ti to critical."
+    },
+    {
+      "id": 1633885797,
+      "user": "mayjiang0203",
+      "created_at": "2023-07-13T09:25:26Z",
+      "body": "this can be fixed in  pr https://github.com/tikv/pd/pull/6683"
+    },
+    {
+      "id": 1647723842,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-24T11:23:19Z",
+      "body": "@mayjiang0203 can this bug be closed then? "
+    }
+  ]
+}

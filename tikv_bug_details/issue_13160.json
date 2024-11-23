@@ -1,0 +1,23 @@
+{
+  "issue_number": 13160,
+  "title": "raftstore: apply res may be dropped silently",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nVersions after 4.0.\r\n\r\n### What did happened?\r\nIn https://github.com/tikv/tikv/pull/8487 we changed the way of sending ApplyRes to `try_send`\r\nhttps://github.com/tikv/tikv/blob/84654c87d6def968a197d47babad8e08acdf685a/components/raftstore/src/store/fsm/store.rs#L293-L302\r\n\r\nIn extreme cases, the mailbox of PeerFsms may be full and some of ApplyRes may be lost.\r\nThen some regions that was supposed to created by split can not be actually created here.\r\nhttps://github.com/tikv/tikv/blob/84654c87d6def968a197d47babad8e08acdf685a/components/raftstore/src/store/fsm/peer.rs#L3596-L3601\r\n\r\nAnd as only part of ApplyRes was lost, the range of the original region could still be changed by other admin commands. Then a region that is actually overlapped with current regions can still be created.\r\nhttps://github.com/tikv/tikv/blob/84654c87d6def968a197d47babad8e08acdf685a/components/raftstore/src/store/fsm/store.rs#L2058-L2063\r\n\r\nHere is an example: \r\n* Region A [1, 100) was splitted into region B [1, 50) and region C [50, 100), wrote peer states of B and C into KVDB, and the corresponding ApplyRes was lost so region C was not created. \r\n* Then region C was splitted into region D [50, 75) and region E [75, 100)\r\n* Region D can be created in the store with the first message, it received a snapshot and wrote its peer state to KVDB\r\n* Then store restarted, it would continuously panic at `clear_stale_data` https://github.com/tikv/tikv/blob/84654c87d6def968a197d47babad8e08acdf685a/components/raftstore/src/store/fsm/store.rs#L1217-L1228",
+  "state": "closed",
+  "created_at": "2022-07-29T02:30:18Z",
+  "updated_at": "2022-07-29T10:41:14Z",
+  "closed_at": "2022-07-29T10:41:14Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2"
+  ],
+  "comments_data": []
+}

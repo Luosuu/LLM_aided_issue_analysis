@@ -1,0 +1,17 @@
+{
+  "issue_number": 11047,
+  "title": "Channel full could break the raft connection",
+  "body": "## Bug Report\r\n\r\nInside the implementation of the `raft` and `batch_raft`:\r\nhttps://github.com/tikv/tikv/blob/6d0edd7e690d376e651aecf6f0bbefdeec22c390/src/server/service/kv.rs#L697-L709\r\n\r\nIf L705 returns error `RaftStoreError::Transport(DiscardReason::Full)`, the `res` future will resolve to that error immediately and the `RequestStream` will be dropped hence the RPC stream is broken.\r\n\r\nBreaking the raft connection when the channel full occur doesn't help much about the situation and even bring more problems instead:\r\n- Raft messages that have been received but not process yet will be dropped silently\r\n- Breaking the connection could also cause hibernated followers to wake up to start a new election, and potentially could cause region unavailable due to split vote (usually happen when there are more than 3 voters)\r\n",
+  "state": "closed",
+  "created_at": "2021-10-13T05:41:14Z",
+  "updated_at": "2021-11-22T07:49:40Z",
+  "closed_at": "2021-10-15T05:49:27Z",
+  "labels": [
+    "type/bug",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2"
+  ],
+  "comments_data": []
+}

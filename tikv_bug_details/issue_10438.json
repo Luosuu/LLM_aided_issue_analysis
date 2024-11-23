@@ -1,0 +1,22 @@
+{
+  "issue_number": 10438,
+  "title": "TiKV panic because of ingest files not exist.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\nWhen I use lightning to import data to TiKV, if TiKV apply slowly, the files which would be ingested may cause panic because TiKV has deleted it in another thread.\r\n",
+  "state": "closed",
+  "created_at": "2021-06-23T09:33:28Z",
+  "updated_at": "2021-08-16T06:25:59Z",
+  "closed_at": "2021-08-16T06:25:59Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "component/backup-restore"
+  ],
+  "comments_data": [
+    {
+      "id": 897481656,
+      "user": "Little-Wallace",
+      "created_at": "2021-08-12T09:19:12Z",
+      "body": "I will explain what cause this bug:\r\n\r\n- at time t0, the leader of region1 submitted a `SplitRequest` to every followers. And most of them responses this submission so that leader committed this request.\r\n- at time t1, the leader applied this request, and it splitted into two regions (region1 and region2). But one of the follower in store3 was so busy that it could not apply this request. We defined the two stores which had applied this `SplitRequest` were store1 and store2.\r\n- at time t2, because there were two member had applied this `SplitRequest`,  one of them won the election and became leader.\r\n- at time t3, lightning send a WriteRequest to each member of region2. But the follower of region1 in store3 had not applied the `SplitRequest`, so there was no member of region2 in store3.\r\n- at time t5, lightning submitted an `IngestRequest` to region2 and it was accepted by members at store1 and store3.\r\n- at time t6, PD send a  `ScatterRequest` to the region2 and this request removed the member in store3 from member list of region2.\r\n- at time t7, the clean thread in store3 removed the sst which was just written by lightning. Because it found that this sst did not belong to any region in this store and the new regioninfo of `PD` server  showed that the member-list had not included this store as a raft member.\r\n- at time t8, the follower of region1 in store3 had applied the `SplitRequest` so that the follower of region2 was created in store3.\r\n- at time t9, the follower of region2 in store3 applied the `IngestRequest` but found the sst file had been removed so that the store3 crashed."
+    }
+  ]
+}

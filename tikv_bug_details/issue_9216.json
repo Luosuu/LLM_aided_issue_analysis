@@ -1,0 +1,28 @@
+{
+  "issue_number": 9216,
+  "title": "TiKV's distributed GC may keep scanning and consuming CPU when there's very low write flow",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nThis is an old problem that has been recorded in our internal jira. We now also record it on github.\r\n\r\n### What version of TiKV are you using?\r\n\r\n4.0.x, 3.0.x\r\n\r\n### What operating system and CPU are you using?\r\n\r\n-\r\n\r\n### Steps to reproduce\r\n\r\n1. Load a lot of data to the cluster\r\n2. Do some update to the data, but very rarely.\r\n3. In a little chance the problem may happen: there may be a range of regions that cannot skip GC by checking `need_gc`.\r\n\r\n### What did you expect?\r\n\r\nMost of the regions can skip GC since there are little writing flow\r\n\r\n### What did happened?\r\n\r\nGC may be unable to skip regions in a large range, and keeps scanning and consuming CPU but makes nonsense.\r\n\r\nThe root cause is that, in this situation, there may be an SST file that spans a very large range staying in a upper layer. It's not compacted to lower layer for a long time due to low write flow. If there is a key that has more than 100 versions in the SST, then it will be recorded into the `max_row_versions` field in the SST file's properties. Therefore, all regions that's covered by the SST file will get this value, causing the GC not being skipped.\r\n",
+  "state": "closed",
+  "created_at": "2020-12-10T12:21:13Z",
+  "updated_at": "2021-03-05T05:42:12Z",
+  "closed_at": "2021-03-05T05:42:12Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 784861555,
+      "user": "hicqu",
+      "created_at": "2021-02-24T07:33:42Z",
+      "body": "Seems the only place that too many versions for one user key hurts performance is `MvccReader::get_txn_commit_record`. So how about not consider `max_row_versions` in `check_need_gc`, but send a GC task if `MvccReader::get_txn_commit_record` found too many versions for a key?"
+    },
+    {
+      "id": 791170862,
+      "user": "youjiali1995",
+      "created_at": "2021-03-05T05:42:12Z",
+      "body": "Fixed by https://github.com/tikv/tikv/pull/9703"
+    }
+  ]
+}

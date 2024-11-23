@@ -1,0 +1,35 @@
+{
+  "issue_number": 14313,
+  "title": "pitr restore data fail for \"failed: raft entry is too large, region 170, entry size 8616655\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n2.28 nightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nstart log backup\r\ndo full backup every sometime\r\nrun paypay workload\r\ndo pitr restore with latest full backup repeatedly (clean target TiDB eachtime)\r\n\r\n### What did you expect?\r\npitr backup and restore works normal\r\n### What did happened?\r\n```code\r\nfailed: raft entry is too large, region 170, entry size 8616655; execute over region id:170 start_key:\\\"t\\\\200\\\\\r\n000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377e_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\377\\\\000\\\\000\\\\001\\\\003\\\\200\\\\000\\\\000\\\\000\\\\377\\\\000\r\n\\\\031\\\\014\\\\336\\\\000\\\\000\\\\000\\\\000\\\\373\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377e_i\\\\200\\\\000\\\\000\\\\00\r\n0\\\\000\\\\377\\\\000\\\\000\\\\001\\\\003\\\\200\\\\000\\\\000\\\\000\\\\377\\\\000\\\\035O\\\\237\\\\000\\\\000\\\\000\\\\000\\\\373\\\" region_epoch:<co\r\nnf_ver:1 version:158 > peers:<id:171 store_id:1 >  failed: raft entry is too large, region 170, entry size 8616655;\r\nexecute over region id:170 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377e_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\377\\\\0\r\n00\\\\000\\\\001\\\\003\\\\200\\\\000\\\\000\\\\000\\\\377\\\\000\\\\031\\\\014\\\\336\\\\000\\\\000\\\\000\\\\000\\\\373\\\" end_key:\\\"t\\\\200\\\\000\\\\000\r\n\\\\000\\\\000\\\\000\\\\000\\\\377e_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\377\\\\000\\\\000\\\\001\\\\003\\\\200\\\\000\\\\000\\\\000\\\\377\\\\000\\\\035O\\\\\r\n237\\\\000\\\\000\\\\000\\\\000\\\\373\\\" region_epoch:<conf_ver:1 version:158 > peers:<id:171 store_id:1 >  failed: raft entry\r\n is too large, region 170, entry size 8616655; execute over region id:170 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\00\r\n0\\\\000\\\\377e_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\377\\\\000\\\\000\\\\001\\\\003\\\\200\\\\000\\\\000\\\\000\\\\377\\\\000\\\\031\\\\014\\\\336\\\\000\\\\\r\n000\\\\000\\\\000\\\\373\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377e_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\377\\\\000\\\\000\\\r\n\\001\\\\003\\\\200\\\\000\\\\000\\\\000\\\\377\\\\000\\\\035O\\\\237\\\\000\\\\000\\\\000\\\\000\\\\373\\\" region_epoch:<conf_ver:1 version:158 >\r\n peers:<id:171 store_id:1 >  failed: raft entry is too large, region 170, entry size 8616655; execute over region id\r\n:170 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377e_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\377\\\\000\\\\000\\\\001\\\\003\\\\200\r\n\\\\000\\\\000\\\\000\\\\377\\\\000\\\\031\\\\014\\\\336\\\\000\\\\000\\\\000\\\\000\\\\373\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\\r\n377e_i\\\\200\\\\000\\\\000\\\\000\\\\000\\\\377\\\\000\\\\000\\\\001\\\\003\\\\200\\\\000\\\\000\\\\000\\\\377\\\\000\\\\035O\\\\237\\\\000\\\\000\\\\000\\\\00\r\n0\\\\373\\\" region_epoch:<conf_ver:1 version:158 > peers:<id:171 store_id:1 >  failed: raft entry is too large, region\r\n170, entry size 8616655\\n\", \"error\": \"command terminated with exit code 1\"} \r\n```",
+  "state": "closed",
+  "created_at": "2023-03-01T07:49:36Z",
+  "updated_at": "2023-04-10T07:37:01Z",
+  "closed_at": "2023-04-10T07:37:01Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1449501700,
+      "user": "seiya-annie",
+      "created_at": "2023-03-01T07:49:56Z",
+      "body": "[tikv.log.gz](https://github.com/tikv/tikv/files/10858417/tikv.log.gz)\r\n[br.log.2023-03-01T01.44.39Z.gz](https://github.com/tikv/tikv/files/10858418/br.log.2023-03-01T01.44.39Z.gz)\r\n"
+    },
+    {
+      "id": 1451542325,
+      "user": "YuJuncen",
+      "created_at": "2023-03-02T09:15:18Z",
+      "body": "I think this is because we replaced the `RaftStoreRouter` by the `Engine` trait at https://github.com/tikv/tikv/pull/14294, where we have only calculated the size of the write itself, hence won't affect `release-6.5`."
+    },
+    {
+      "id": 1489627912,
+      "user": "YuJuncen",
+      "created_at": "2023-03-30T03:21:26Z",
+      "body": "This may happen in v6.5.1 in some scenarios. Perhaps due to we haven't computed the wire header for EACH REQUEST.\r\n\r\nI think we should batch upto 1/2 of the `raft_max_size`."
+    }
+  ]
+}

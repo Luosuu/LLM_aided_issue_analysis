@@ -1,0 +1,35 @@
+{
+  "issue_number": 8721,
+  "title": "compression ratio of L6 is even smaller than L5/L4",
+  "body": "![image](https://user-images.githubusercontent.com/13497871/93966115-78184680-fd96-11ea-827f-233d9e8e346e.png)\r\nIt can be observed in multiple clusters.",
+  "state": "closed",
+  "created_at": "2020-09-23T04:16:22Z",
+  "updated_at": "2020-12-21T22:14:24Z",
+  "closed_at": "2020-12-21T22:14:02Z",
+  "labels": [
+    "type/bug",
+    "status/discussion",
+    "sig/engine",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 719148007,
+      "user": "Connor1996",
+      "created_at": "2020-10-30T03:23:37Z",
+      "body": "Some thoughts:\r\n- ingested files doesn't use zstd compression\r\n- By dynamical level bytes, L6 may accumulate some files with no compression at first\r\n\r\nBetter to dump the compression type of every L6 files to see if it is the situation."
+    },
+    {
+      "id": 719148933,
+      "user": "Connor1996",
+      "created_at": "2020-10-30T03:26:49Z",
+      "body": "Also why L0's is better than L2/L3's"
+    },
+    {
+      "id": 749226459,
+      "user": "yiwu-arbug",
+      "created_at": "2020-12-21T22:14:02Z",
+      "body": "Fixed by #8908 "
+    }
+  ]
+}

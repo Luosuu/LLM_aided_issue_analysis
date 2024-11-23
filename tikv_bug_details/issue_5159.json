@@ -1,0 +1,68 @@
+{
+  "issue_number": 5159,
+  "title": "How does 5 tikv nodes handle two nodes fault?",
+  "body": "## Question\r\nIn [FAQ](https://github.com/tikv/tikv/wiki/TiKV-FAQ#can-raft--multiple-replicas-in-the-tikv-architecture-achieve-absolute-data-security-is-it-necessary-to-apply-the-most-strict-mode-sync-log--true-to-a-standalone-storage), it says that a cluster of 5 tikv nodes can tolerate two nodes fault. I don't fully understand how does it work? I mean as raft requires >50% nodes return ACK, with a replica equals to 3, even two nodes down in 5 nodes cluster may cause some regions that are left only one copy. In this case, how could raft receives >50% ACK?\r\n\r\nOr do I misunderstand this FAQ, it actually says 5 nodes with a replica equals to 5?\r\n",
+  "state": "closed",
+  "created_at": "2019-07-30T15:47:45Z",
+  "updated_at": "2019-07-31T09:07:31Z",
+  "closed_at": "2019-07-31T09:07:31Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 516687792,
+      "user": "BusyJay",
+      "created_at": "2019-07-31T04:15:56Z",
+      "body": "Good point! It means to say 5 replicas instead of 5 nodes. Would you like to send a PR to fix that?"
+    },
+    {
+      "id": 516709870,
+      "user": "Sraw",
+      "created_at": "2019-07-31T06:06:23Z",
+      "body": "I don't find a way to fix in this repository and the wiki also doesn't have `edit` button."
+    },
+    {
+      "id": 516717667,
+      "user": "siddontang",
+      "created_at": "2019-07-31T06:35:21Z",
+      "body": "PTAL @dcalvin "
+    },
+    {
+      "id": 516726444,
+      "user": "dcalvin",
+      "created_at": "2019-07-31T07:08:09Z",
+      "body": "Will fix in Wiki. Currently our FAQ only exists on the Wiki page. But will add one on the Doc site very soon. Thanks. @Sraw "
+    },
+    {
+      "id": 516752232,
+      "user": "dcalvin",
+      "created_at": "2019-07-31T08:30:59Z",
+      "body": "Updated @Sraw. Please check again. "
+    },
+    {
+      "id": 516757346,
+      "user": "Sraw",
+      "created_at": "2019-07-31T08:45:44Z",
+      "body": "Well, the page is totally unavailable now. Redirect to the main page and prompt \"You do not have permission to update this wiki.\""
+    },
+    {
+      "id": 516761295,
+      "user": "dcalvin",
+      "created_at": "2019-07-31T08:57:21Z",
+      "body": "Sorry, @Sraw  I am not sure what happened. I just re-edited and saved again. Should be fine now. By the way, we are migrating the whole documentation to tikv.org. Stay tuned."
+    },
+    {
+      "id": 516763600,
+      "user": "Sraw",
+      "created_at": "2019-07-31T09:03:37Z",
+      "body": "Thanks for your efforts, it now works :)"
+    },
+    {
+      "id": 516765013,
+      "user": "dcalvin",
+      "created_at": "2019-07-31T09:07:31Z",
+      "body": "You are welcome. Closing this issue now."
+    }
+  ]
+}

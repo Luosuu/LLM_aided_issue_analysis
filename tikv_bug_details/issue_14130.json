@@ -1,0 +1,66 @@
+{
+  "issue_number": 14130,
+  "title": "【witness】after enable witness，br restore very slowly and failed with error [tikv:9005]Region is unavailable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\n./pd-server -V\r\n Release Version: v6.6.0-alpha\r\nEdition: Community\r\nGit Commit Hash: 6ca9a3398f15a4d80865cb90ec322cb89f92555c\r\nGit Branch: heads/refs/tags/v6.6.0-alpha\r\nUTC Build Time:  2023-02-01 08:27:19\r\n2023-02-02T11:16:24.829Z        INFO    k8s/client.go:132       it should be noted that a long-running command will not be inter\r\nrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./tidb-server -V\r\n Release Version: v6.6.0-alpha\r\nEdition: Community\r\nGit Commit Hash: d28a8d84b5c3978156c29318529900a6e527be1b\r\nGit Branch: heads/refs/tags/v6.6.0-alpha\r\nUTC Build Time: 2023-02-01 11:50:11\r\nGoVersion: go1.19.5\r\nRace Enabled: false\r\nTiKV Min Version: 6.2.0-alpha\r\nCheck Table Before Drop: false\r\nStore: unistore\r\n2023-02-02T11:16:24.982Z        INFO    k8s/client.go:132       it should be noted that a long-running command will not be inter\r\nrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./br -V\r\n Release Version: v6.6.0-alpha\r\nGit Commit Hash: d28a8d84b5c3978156c29318529900a6e527be1b\r\nGit Branch: heads/refs/tags/v6.6.0-alpha\r\nGo Version: go1.19.5\r\nUTC Build Time: 2023-02-01 11:41:38\r\nRace Enabled: false\r\n\r\n### What operating system and CPU are you using?\r\n8C / 32GB\r\n\r\n### Steps to reproduce\r\n1、\r\necho \"[ { \\\"group_id\\\": \\\"pd\\\", \\\"id\\\": \\\"default\\\", \\\"start_key\\\": \\\"\\\", \\\"end_key\\\": \\\"\\\", \\\"role\\\": \\\"voter\\\", \\\"is_witness\\\": false, \\\"count\\\": 2 }, { \\\"group_id\\\": \\\"pd\\\", \\\"id\\\": \\\"witness\\\", \\\"start_key\\\": \\\"\\\", \\\"end_key\\\": \\\"\\\", \\\"role\\\": \\\"follower\\\", \\\"is_witness\\\": true, \\\"count\\\": 1 } ]\" > placementRulesBeforeCase.json\r\n\r\n/pd-ctl config set enable-witness true\r\n\r\n/pd-ctl config placement-rules save --in=placementRulesBeforeCase.json\r\n\r\n2、[2023/02/02 07:42:28.185 +00:00] [INFO] [cmd.go:141] [\"Start remote command\"] [cmd=\"export AWS_ACCESS_KEY_ID=minioadmin;export AWS_SECRET_ACCESS_KEY=minioadmin;/br restore full --send-credentials-to-tikv=true --pd http://tc-pd.endless-ha-test-witness-tps-1530066-1-619:2379 --storage s3://benchmark/tpcc20000 --s3.endpoint  http://minio.pingcap.net:9000 --check-requirements=false\"] [nodename=br]\r\n\r\n### What did you expect?\r\nthe speed of br restore can not slow down and can not failed when witness enable\r\n\r\n### What did happened?\r\nafter enable witness，br restore very slowly（3h29m） and failed with error [tikv:9005]Region is unavailable\r\n[2023/02/02 11:12:45.839 +00:00] [INFO] [collector.go:73] [\"Full Restore failed summary\"] [total-ranges=44857] [ranges-succeed=44857] [ranges-failed=0] [split-region=3h29m3.928099793s] [restore-ranges=30461]\r\nError: [tikv:9005]Region is unavailable\r\n\r\ncompared with disable witness（1h20m）\r\n[2023/02/02 04:09:50.537 +00:00] [INFO] [collector.go:73] [\"Full Restore success summary\"] [total-ranges=44857] [ranges-succeed=\r\n44857] [ranges-failed=0] [split-region=15m29.429351165s] [restore-ranges=30461] [total-take=1h20m56.188645562s] [restore-data-si\r\nze(after-compressed)=872.8GB] [Size=872829472054] [BackupTS=437462604353372161] [RestoreTS=439171451783479297] [total-kv=1238041\r\n0664] [total-kv-size=2.044TB] [average-speed=420.8MB/s]\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-02-02T11:53:26Z",
+  "updated_at": "2023-10-23T23:31:43Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1413617521,
+      "user": "Lily2025",
+      "created_at": "2023-02-02T11:53:39Z",
+      "body": "/type bug\r\n/severity major\r\n/assign ethercflow"
+    },
+    {
+      "id": 1413617848,
+      "user": "Lily2025",
+      "created_at": "2023-02-02T11:53:58Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5"
+    },
+    {
+      "id": 1423419131,
+      "user": "ethercflow",
+      "created_at": "2023-02-09T00:26:09Z",
+      "body": "\"Region is unavailable\" not recurring:\r\n\r\n![f1a33442-ed8c-4db9-8888-57bae9d85f98](https://user-images.githubusercontent.com/38067786/217682312-6f503835-82e5-457b-96d5-71cf12b9ca9a.jpeg)\r\n\r\n\r\n![image](https://user-images.githubusercontent.com/38067786/217682553-209a0a75-44ca-4c49-a72b-dd01775c95d7.png)\r\n"
+    },
+    {
+      "id": 1463224131,
+      "user": "Lily2025",
+      "created_at": "2023-03-10T04:06:42Z",
+      "body": "/remove-severity major\r\n/severity critical "
+    },
+    {
+      "id": 1463224336,
+      "user": "Lily2025",
+      "created_at": "2023-03-10T04:07:00Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5"
+    },
+    {
+      "id": 1463224441,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-10T04:07:09Z",
+      "body": "@Lily2025: These labels are not set on the issue: `may-affects-6.0, may-affects-6.2, may-affects-6.3, may-affects-6.4`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14130#issuecomment-1463224336):\n\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-5.0\r\n>/remove-label may-affects-5.1\r\n>/remove-label may-affects-5.2\r\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-6.0\r\n>/remove-label may-affects-6.1\r\n>/remove-label may-affects-6.2\r\n>/remove-label may-affects-6.3\r\n>/remove-label may-affects-6.4\r\n>/remove-label may-affects-6.5\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1463224654,
+      "user": "Lily2025",
+      "created_at": "2023-03-10T04:07:29Z",
+      "body": "/remove-label may-affects-6.6"
+    },
+    {
+      "id": 1463224675,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-10T04:07:31Z",
+      "body": "@Lily2025: These labels are not set on the issue: `may-affects-6.6`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14130#issuecomment-1463224654):\n\n>/remove-label may-affects-6.6\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

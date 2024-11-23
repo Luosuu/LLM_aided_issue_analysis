@@ -1,0 +1,15 @@
+{
+  "issue_number": 7746,
+  "title": "TiKV scale out has high jitter on Latency",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\nWhen Scale-out TiKV from 3 to 4. The jitter is high\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux x86_64\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun TPCC\r\nscale out TiKV server from 3 to 4\r\nThen can see latency has high jitter\r\n\r\n### What did you expect?\r\nLatency has low jitter\r\n\r\n### What did happened?\r\nFrom 3:50 we start scale out TiKV. Then the jitter is very high\r\n<img width=\"603\" alt=\"屏幕快照 2020-05-06 下午9 07 48\" src=\"https://user-images.githubusercontent.com/23521459/81180499-b5de2380-8fdd-11ea-8bb7-e07a0fc3ad73.png\">\r\n",
+  "state": "closed",
+  "created_at": "2020-05-06T13:09:06Z",
+  "updated_at": "2021-06-24T04:00:28Z",
+  "closed_at": "2021-06-24T04:00:28Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,26 @@
+{
+  "issue_number": 5319,
+  "title": "approximate_keys for raw kv region always be 0",
+  "body": "## Bug Report\r\nThe function `get_region_approximate_keys`  in https://github.com/tikv/tikv/blob/master/src/raftstore/coprocessor/split_check/keys.rs only consider about txn kv region, for raw kv region the approximate_keys would be 0. Then the approximate_keys of region sended to pd would all be 0. This may be a bug.\r\n```\r\n/// Get the approximate number of keys in the range.\r\npub fn get_region_approximate_keys(db: &DB, region: &Region) -> Result<u64> {\r\n    // try to get from RangeProperties first.\r\n    match get_region_approximate_keys_cf(db, CF_WRITE, region) {\r\n        Ok(v) => {\r\n            if v > 0 {\r\n                return Ok(v);\r\n            }\r\n        }\r\n        Err(e) => debug!(\r\n            \"failed to get keys from RangeProperties\";\r\n            \"err\" => ?e,\r\n        ),\r\n    }\r\n\r\n    let start = keys::enc_start_key(region);\r\n    let end = keys::enc_end_key(region);\r\n    let cf = box_try!(rocks::util::get_cf_handle(db, CF_WRITE));\r\n    let (_, keys) = get_range_entries_and_versions(db, cf, &start, &end).unwrap_or_default();\r\n    Ok(keys)\r\n}\r\n```\r\n",
+  "state": "open",
+  "created_at": "2019-08-22T07:58:53Z",
+  "updated_at": "2024-11-01T10:18:07Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "priority/low",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": []
+}

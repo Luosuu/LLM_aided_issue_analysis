@@ -1,0 +1,46 @@
+{
+  "issue_number": 9859,
+  "title": "raftstore: leader may not send snapshot to the follower",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n5.0-rc, master\r\n\r\nThe leader will be triggered to generates snapshot for a follower in two places: \r\n\r\nhttps://github.com/tikv/tikv/blob/f02f492614c10d1cdffce8e0214feef15ce521f0/components/raftstore/src/store/peer.rs#L1662-L1671\r\n\r\nhttps://github.com/tikv/tikv/blob/f02f492614c10d1cdffce8e0214feef15ce521f0/components/raftstore/src/store/peer.rs#L1881-L1886\r\n\r\nThe first place will not enter if the region has a `Ready`,  and the latter one will also not enter if the `Ready` has not committed entries because it is inside `handle_raft_committed_entries` and:\r\nhttps://github.com/tikv/tikv/blob/f02f492614c10d1cdffce8e0214feef15ce521f0/components/raftstore/src/store/peer.rs#L1729-L1731\r\n",
+  "state": "closed",
+  "created_at": "2021-03-22T13:12:28Z",
+  "updated_at": "2021-03-25T07:45:24Z",
+  "closed_at": "2021-03-25T07:45:24Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 804050403,
+      "user": "NingLin-P",
+      "created_at": "2021-03-22T13:13:06Z",
+      "body": "/cc @gengliqi @BusyJay "
+    },
+    {
+      "id": 804094628,
+      "user": "BusyJay",
+      "created_at": "2021-03-22T14:13:08Z",
+      "body": "Why 4.0.x is safe?"
+    },
+    {
+      "id": 804128513,
+      "user": "gengliqi",
+      "created_at": "2021-03-22T14:57:45Z",
+      "body": "\r\n\r\n\r\n\r\n> Why 4.0.x is safe?\r\n\r\nBecause the function name of `handle_raft_committed_entries` in 4.0 is `handle_raft_ready_apply`, which is always called after getting ready."
+    },
+    {
+      "id": 805656277,
+      "user": "ilovesoup",
+      "created_at": "2021-03-24T09:48:24Z",
+      "body": "Does this affect learner?"
+    },
+    {
+      "id": 805889283,
+      "user": "NingLin-P",
+      "created_at": "2021-03-24T14:56:13Z",
+      "body": "> Does this affect learner?\r\n\r\nYes, it will affect learner."
+    }
+  ]
+}

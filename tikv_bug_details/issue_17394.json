@@ -1,0 +1,34 @@
+{
+  "issue_number": 17394,
+  "title": "Memory usage may grow unexpectedly and causes OOM in some high-concurrency lock contention scenarios",
+  "body": "## Bug Report\r\n\r\nWe noticed that the memory of TiKV can grow quickly and can cause OOM in such scenario:\r\n\r\n* Many transactions concurrently try to lock a few keys, in which case a lock blocks many other transactions and the lock waiting queue can be very long.\r\n* The lock contention happens on a TiKV node where the leader of the deadlock detector is NOT on it, therefore each time there's an update to the lock-waiting relationships, there needs an RPC to notify the leader.\r\n\r\nWe are still investigating the root cause. Currently, we found the operation `update_wait_for` is very suspicious:\r\n\r\nhttps://github.com/tikv/tikv/blob/2577ecfee311d4335c5e415a13ed95be78eeed24/src/server/lock_manager/waiter_manager.rs#L547-L564\r\n\r\nConsidering the case that $N$ pessimistic lock requests is waiting in queue. At this time, the current lock from transaction A is released, and another transaction B acquired the lock. In this case, the $N$ lock waits for transaction A previously, and all become waiting for B suddenly. To notify the detector the change, $N$ `clean_up_wait_for` messages and $N$ `detect` messages will be sent to the detector leader. These requests are not batched. Batching them is not yet implemented as it needs changing the protocol and introduces complexity. However it seems it finally caused problem: If the lock waiting queue is long and lock is acquired and released very quickly, the total OPS of sending these requests can be very high, and finally exceed the sender's ability of sending requests, causing message accumulating in this channel: \r\n\r\nhttps://github.com/tikv/tikv/blob/2577ecfee311d4335c5e415a13ed95be78eeed24/src/server/lock_manager/client.rs#L80-L87\r\n\r\n\\* ~~We are still trying to confirm whether the above explanation is really the root cause.~~ It's confirmed now\r\n\r\n---\r\n\r\n## Steps to reproduce:\r\n\r\n1. Create a cluster with at least 2 TiKV nodes. It's ok to use tiup playground.\r\n2. Use either pd-ctl operator commands / placement rules to make the first region (start_key == `\"\"`) and the region of tested table have their leader on different TiKV nodes.\r\n    Example of how this can be done:\r\n    1.  (Assuming the two TiKV nodes have store_id 1 and 2 respectively):\r\n        ```bash\r\n        # Find the first region\r\n        REGION_ID=$(tiup ctl:v7.5.2 pd region key \"00\" | jq \".id\")\r\n        \r\n        # Ensure the first region's leader be on store 2\r\n        tiup ctl:v7.5.2 pd operator add transfer-leader $REGION_ID 2\r\n        \r\n        # Setup zone labels to be used by placement rules\r\n        tiup ctl:v7.5.2 pd store label 1 zone=z1\r\n        tiup ctl:v7.5.2 pd store label 2 zone=z2\r\n        ```\r\n    2. Create a placement rule that makes all eader locates in zone z1 (store 1):\r\n        ```sql\r\n        create placement policy p1 leader_constraints=\"[+zone=z1]\";\r\n        ```\r\n    3. Bind the placement rule p1 when creating table for testing.\r\n3. Run the following test program:\r\n    ```go\r\n    package main\r\n    \r\n    import (\r\n\t    \"context\"\r\n\t    \"database/sql\"\r\n\t    \"encoding/hex\"\r\n\t    \"flag\"\r\n\t    \"fmt\"\r\n\t    \"math/rand\"\r\n\t    \"time\"\r\n    \r\n\t    _ \"github.com/go-sql-driver/mysql\"\r\n\t    \"github.com/zyguan/sqlz\"\r\n\t    \"golang.org/x/sync/errgroup\"\r\n    )\r\n    \r\n    var txnSize = flag.Int(\"txnSize\", 2, \"\")\r\n    var vLen = flag.Int(\"vlen\", 32, \"\")\r\n    var concurrency = flag.Int(\"concurrency\", 200, \"\")\r\n    var dsn = flag.String(\"dsn\", \"root:@tcp(127.0.0.1:4000)/test\", \"\")\r\n    \r\n    func main() {\r\n\t    flag.Parse()\r\n    \r\n\t    db, err := sql.Open(\"mysql\", *dsn)\r\n\t    if err != nil {\r\n\t\t    panic(err)\r\n\t    }\r\n    \r\n\t    sqlz.MustExec(db, \"drop table if exists t\")\r\n\t    sqlz.MustExec(db, \"create table t (id int primary key, v varchar(512), cnt int) placement policy=p1\")\r\n    \r\n\t    genStmt := func() string {\r\n\t\t    stmt := \"insert into t values \"\r\n\t\t    for i := 0; i < *txnSize; i++ {\r\n\t\t\t    v := make([]byte, *vLen/2)\r\n\t\t\t    l, err := rand.Read(v)\r\n\t\t\t    if err != nil || l != *vLen/2 {\r\n\t\t\t\t    panic(fmt.Sprint(\"l:\", l, \"err:\", err))\r\n\t\t\t    }\r\n\t\t\t    vh := hex.EncodeToString(v)\r\n\t\t\t    if i != 0 {\r\n\t\t\t\t    stmt += \", \"\r\n\t\t\t    }\r\n\t\t\t    stmt += fmt.Sprintf(\"(%v, \\\"%s\\\", 1)\", i+1, vh)\r\n\t\t    }\r\n\t\t    stmt += \" on duplicate key update cnt = cnt + 1\"\r\n\t\t    return stmt\r\n\t    }\r\n    \r\n\t    ctx, cancel := context.WithTimeout(context.Background(), time.Hour)\r\n\t    defer cancel()\r\n    \r\n\t    err = sqlz.WithConns(ctx, db, *concurrency, func(conns ...*sql.Conn) error {\r\n\t\t    wg := new(errgroup.Group)\r\n\t\t    stmt := genStmt()\r\n\t\t    for _, conn := range conns {\r\n\t\t\t    conn1 := conn\r\n\t\t\t    wg.Go(func() error {\r\n\t\t\t\t    for {\r\n\t\t\t\t\t    tx, err := conn1.BeginTx(ctx, nil)\r\n\t\t\t\t\t    if err != nil {\r\n\t\t\t\t\t\t    return err\r\n\t\t\t\t\t    }\r\n\t\t\t\t\t    _, err = tx.ExecContext(ctx, stmt)\r\n\t\t\t\t\t    if err != nil {\r\n\t\t\t\t\t\t    return err\r\n\t\t\t\t\t    }\r\n\t\t\t\t\t    err = tx.Commit()\r\n\t\t\t\t\t    if err != nil {\r\n\t\t\t\t\t\t    return err\r\n\t\t\t\t\t    }\r\n\t\t\t\t    }\r\n\t\t\t    })\r\n\t\t    }\r\n    \r\n\t\t    return wg.Wait()\r\n\t    })\r\n\t    if err != nil {\r\n\t\t    panic(err)\r\n\t    }\r\n    }\r\n\r\n    ```",
+  "state": "closed",
+  "created_at": "2024-08-19T07:49:48Z",
+  "updated_at": "2024-11-20T09:54:16Z",
+  "closed_at": "2024-11-20T09:54:16Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/critical",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "impact/oom",
+    "affects-8.4",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2301005142,
+      "user": "cfzjywxk",
+      "created_at": "2024-08-21T04:49:03Z",
+      "body": "Changing the severity to critical since it's encounterred in server recent cases."
+    },
+    {
+      "id": 2301214456,
+      "user": "kennedy8312",
+      "created_at": "2024-08-21T06:15:21Z",
+      "body": "/impact oom\r\n"
+    }
+  ]
+}

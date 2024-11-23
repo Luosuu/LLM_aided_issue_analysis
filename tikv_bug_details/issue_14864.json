@@ -1,0 +1,41 @@
+{
+  "issue_number": 14864,
+  "title": "Resolved ts in stale read may cause TiKV OOM",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nStale read is enabled by default, and it maintains resolved ts(a btree map) for tracking every lock written by leaders.\r\nIf there is a large txn, the map may cause TiKV OOM.\r\n\r\nTo prevent OOM, we can use a memory quota to keep the total memory consumption under control. If a region is tracking too many locks and exceeds the quota, we can deregister its delegate in the stale read component, free its memory, and then register it again after a certain backoff period.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n\\> 5.1.0\r\n\r\n### Steps to reproduce\r\n\r\nRun a large txn that is much greater than TiKV memory size.\r\n\r\n### What did you expect?\r\n\r\nNo OOM.\r\n\r\n### What did happened?\r\n\r\nOOM.",
+  "state": "closed",
+  "created_at": "2023-06-01T08:03:19Z",
+  "updated_at": "2023-08-29T09:03:40Z",
+  "closed_at": "2023-08-29T09:03:40Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1637246434,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-17T00:57:40Z",
+      "body": "@overvenus Do we have metrics for the memory consumption (direct or indirect) of the resolved-ts map? It can be the first step to solve this issue"
+    },
+    {
+      "id": 1637472486,
+      "user": "overvenus",
+      "created_at": "2023-07-17T06:49:49Z",
+      "body": "Yes, we have such metric, it's TiKV-Details -> Resolved-TS -> Lock heap size\r\n\r\n![image](https://github.com/tikv/tikv/assets/2150711/3bdc92cc-39da-43a0-bc66-e9ec24239b65)\r\n\r\n"
+    },
+    {
+      "id": 1647791407,
+      "user": "tonyxuqqi",
+      "created_at": "2023-07-24T12:11:33Z",
+      "body": "The overall solution looks good to me. One detail is that maybe we can use the free memory ratio as the config to evict some large region's entry, other than using a quota. Since it's hard to ensure all components' quota added up to be 100% of total memory. "
+    }
+  ]
+}

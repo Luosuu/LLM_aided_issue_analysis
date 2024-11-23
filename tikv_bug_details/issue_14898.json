@@ -1,0 +1,14 @@
+{
+  "issue_number": 14898,
+  "title": "[Dynamic Regions] online qps drop a lot when drop other database",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster ae9094e4364af60bb6c231a16341c654d13b8f08\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nsysbench prepare some wide table and drop other database about 1TB\r\nsysbench insert qps drop from 9k to 1k\r\n![image](https://github.com/tikv/tikv/assets/7677963/61a3551e-9605-43a2-a6bf-e22beea35b5c)\r\n\r\n### What did you expect?\r\nNot too much impact on online business\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-06-07T13:57:19Z",
+  "updated_at": "2023-07-07T03:57:17Z",
+  "closed_at": "2023-07-07T03:57:17Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

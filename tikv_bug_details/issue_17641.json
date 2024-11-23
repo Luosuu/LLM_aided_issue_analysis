@@ -1,0 +1,40 @@
+{
+  "issue_number": 17641,
+  "title": "tikv oom when using tiup on `rocky-8.9` for deployment",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV \r\nRelease Version:   8.4.0\r\nEdition:           Community\r\nGit Commit Hash:   fa6e1753c2c4916ae5918281db3d863ec47ce322\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2024-10-10 06:42:18\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\ndeploy with tiup（rocky8.9，cgroup v2 ）\r\n\r\n### Steps to reproduce\r\n1、run tpcc\r\n\r\n### What did you expect?\r\nno oom\r\n\r\n### What did happened?\r\ntikv oom\r\n![img_v3_02fl_7268d759-032a-49a7-b0d3-fb4ed7569d9g](https://github.com/user-attachments/assets/4e7fd3c3-8099-4de3-8092-ff1bfcd99d99)\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-10-14T07:28:51Z",
+  "updated_at": "2024-11-01T10:00:48Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2410273727,
+      "user": "Lily2025",
+      "created_at": "2024-10-14T07:29:52Z",
+      "body": "/severity major\r\n/assign LykxSassinator"
+    },
+    {
+      "id": 2410296227,
+      "user": "LykxSassinator",
+      "created_at": "2024-10-14T07:38:13Z",
+      "body": "It's a bug in the `sysinfo` crate, recorded in https://github.com/GuillaumeGomez/sysinfo/issues/1219.\r\nAnd after this crate in TiKV is upgraded to the latest version (or version >= [0.30.13](https://crates.io/crates/sysinfo/0.30.13)), this issue will be tackled."
+    },
+    {
+      "id": 2415654885,
+      "user": "LykxSassinator",
+      "created_at": "2024-10-16T03:32:07Z",
+      "body": "Notice to correct:\r\nIt's a corner issue triggered by deploying tikv based on the self-defined `rocky-8.9` image. And it's hard to fully support it by an elegant way.\r\nSo, just left it as a tracking issue if anyone encounters the same problems later. And to workaround it, users can directly set the configuration `memory-usage-limit` with the expected value."
+    }
+  ]
+}

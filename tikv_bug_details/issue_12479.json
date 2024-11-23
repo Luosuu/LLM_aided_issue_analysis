@@ -1,0 +1,26 @@
+{
+  "issue_number": 12479,
+  "title": "`cpu_cores_quota` cause TiKV Panic",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster `27bfe30`\r\n\r\n### What operating system and CPU are you using?\r\nCentOS 7.6; running in k8s, container runtime is docker.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\nno panic\r\n\r\n### What did happened?\r\n```\r\n kubectl logs t1-tikv-0 -n csn\r\nstarting tikv-server ...\r\n/tikv-server --pd=http://t1-pd:2379 --advertise-addr=t1-tikv-0.t1-tikv-peer.csn.svc:20160 --addr=0.0.0.0:20160 --status-addr=0.0.0.0:20180 --data-dir=/var/lib/tikv --capacity=200GB --config=/etc/tikv/tikv.toml\r\n\r\nthread 'main' panicked at 'called `Option::unwrap()` on a `None` value', components/tikv_util/src/sys/cgroup.rs:263:44\r\nstack backtrace:\r\n   0: rust_begin_unwind\r\n             at ./rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:584:5\r\n   1: core::panicking::panic_fmt\r\n             at ./rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panicking.rs:143:14\r\n   2: core::panicking::panic\r\n             at ./rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panicking.rs:48:5\r\n   3: tikv_util::sys::cgroup::build_path\r\n   4: tikv_util::sys::cgroup::CGroupSys::cpuset_cores\r\n   5: tikv_util::sys::SysQuota::cpu_cores_quota\r\n   6: <tikv::config::TiKvConfig as core::default::Default>::default\r\n   7: <tikv::config::_IMPL_DESERIALIZE_FOR_TiKvConfig::<impl serde::de::Deserialize for tikv::config::TiKvConfig>::deserialize::__Visitor as serde::de::Visitor>::visit_map\r\n   8: tikv::config::TiKvConfig::from_file\r\n   9: tikv_server::main\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n```",
+  "state": "closed",
+  "created_at": "2022-05-10T06:12:59Z",
+  "updated_at": "2022-05-24T10:52:48Z",
+  "closed_at": "2022-05-24T10:52:48Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1122644473,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-10T16:55:23Z",
+      "body": "/cc @tabokie "
+    }
+  ]
+}

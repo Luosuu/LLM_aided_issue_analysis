@@ -1,0 +1,80 @@
+{
+  "issue_number": 4323,
+  "title": "TiKV may not report errors if port is in conflict",
+  "body": "Because TiKV binds port using SO_REUSEPORT, so if the port is binded by other process with SO_REUSEPORT already, the instance can start successfully without errors. However new connections may not be accepted by the started instance, so it's idle and no errors or warnings are reported.\r\n\r\nThis can easily happen if multiple instances are sharing the same machine while they are not configured properly.",
+  "state": "closed",
+  "created_at": "2019-03-06T16:15:06Z",
+  "updated_at": "2020-04-13T13:41:12Z",
+  "closed_at": "2020-04-13T13:41:12Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 471377027,
+      "user": "siddontang",
+      "created_at": "2019-03-11T01:37:13Z",
+      "body": "can we add `SO_REUSEADDR` to avoid this?"
+    },
+    {
+      "id": 471458506,
+      "user": "BusyJay",
+      "created_at": "2019-03-11T09:08:41Z",
+      "body": "Yes. It should solve the problem. And gRPC sets `SO_REUSEADDR` by default."
+    },
+    {
+      "id": 478414666,
+      "user": "brson",
+      "created_at": "2019-04-01T02:28:25Z",
+      "body": "If grpc already uses `SO_REUSEADDR` which are the network connections that it needs to be added to?"
+    },
+    {
+      "id": 485234973,
+      "user": "sticnarf",
+      "created_at": "2019-04-21T08:36:24Z",
+      "body": "Would you please explain a bit more about how `SO_REUSEADDR` solves this? I think it unrelated.\r\n\r\nTo my understanding, gRPC uses `SO_REUSEPORT` to enable multi-processing. But `SO_REUSEADDR` does not limit another process to bind to the same address and port. \r\n\r\nI cannot think of a perfect solution. But I think we may bind to the port w/o `SO_REUSEPORT` first to detect if it conflicts, then we close it and run gRPC on it. It is not an atomic operation to re-bind the port, but for the situation when people run multiple instances in one machine with the same port, I think people start instances manually. It is rare that another server starts just between we close the first socket and run the new one. So I believe it helps."
+    },
+    {
+      "id": 492567820,
+      "user": "kennytm",
+      "created_at": "2019-05-15T08:55:23Z",
+      "body": "For the record, we've spent a few hours today debugging why Lightning randomly got some \"UNIMPLEMENTED\" gRPC error from Importer, before we (through Wireshark) realized that both TiKV and Importer are configured to bind to the same port. "
+    },
+    {
+      "id": 600420723,
+      "user": "BusyJay",
+      "created_at": "2020-03-18T04:37:38Z",
+      "body": "@sticnarf  The purpose we used `SO_REUSEPORT` is to bind to an address that is hold by other socket in TIME_WAIT state. So using `SO_REUSEADDR` is sufficient to solve the problem.\r\n\r\n> ...SO_REUSEADDR does not limit another process to bind to the same address and port.\r\n\r\nIt does. See http://man7.org/linux/man-pages/man7/socket.7.html."
+    },
+    {
+      "id": 600440949,
+      "user": "youjiali1995",
+      "created_at": "2020-03-18T06:03:09Z",
+      "body": "> @sticnarf The purpose we used `SO_REUSEPORT` is to bind to an address that is hold by other socket in TIME_WAIT state. So using `SO_REUSEADDR` is sufficient to solve the problem.\r\n> \r\n> > ...SO_REUSEADDR does not limit another process to bind to the same address and port.\r\n> \r\n> It does. See http://man7.org/linux/man-pages/man7/socket.7.html.\r\n\r\ngRPC doesn't need the ability of `SO_REUSEPORT` to solve thundering herd problem? Why it uses `SO_REUSEPORT` instead of `SO_REUSEADDR`? "
+    },
+    {
+      "id": 600456827,
+      "user": "BusyJay",
+      "created_at": "2020-03-18T07:00:03Z",
+      "body": "gRPC use EPOLLEXCLUSIVE to avoid waking up multiple threads at a time. But we do need to check whether there is performance regression after disabling so_reuseport.\r\n\r\nAnother unsafe way is try to check if the port is bound before starting up. It's racy to do the check and should be considered only when all other solutions don't work out."
+    },
+    {
+      "id": 600458490,
+      "user": "youjiali1995",
+      "created_at": "2020-03-18T07:05:24Z",
+      "body": "> gRPC use EPOLLEXCLUSIVE to avoid waking up multiple threads at a time. But we do need to check whether there is performance regression after disabling so_reuseport.\r\n> \r\n> Another unsafe way is try to check if the port is bound before starting up. It's racy to do the check and should be considered only when all other solutions don't work out.\r\n\r\n`EPOLLEXCLUSIVE` can wake up more than one threads. We need to benchmark it. And it's odd to use both `EPOLLEXCLUSIVE` and `SO_REUSEPORT`...😂\r\n"
+    },
+    {
+      "id": 606402281,
+      "user": "hunterlxt",
+      "created_at": "2020-03-31T05:06:22Z",
+      "body": "Hi all, I've benchmarked on the weekend and I found that QPS got better in benchmark with sysbench after `reuse_port(false)`. Here are some pieces of QPS result.\r\n\r\n```bash\r\nsysbench --config-file=config select_random_points --tables=32 --table-size=1000000\r\nbefore:14299\r\nafter:20455\r\nsysbench --config-file=config oltp_point_select --tables=32 --table-size=1000000 \r\nbefore:53926\r\nafter:58163\r\nsysbench --config-file=config oltp_update_index --tables=32 --table-size=1000000\r\nbefore:6974\r\nafter:7022\r\n```\r\n\r\nBTW, cluster just used default config and sysbench driver is deployed on the same node as TiDB with 64 threads. The bin files used by the cluster are automatically downloaded by ansible except tikv-server.\r\n\r\nBenchmark again. Adjust the grpc concurrency to 8 and keep the others unchanged. It looks like the result changes every time.\r\n```bash\r\nselect_random_points\r\nbefore:22181.12\r\nafter:21033.89\r\noltp_point_select\r\nbefore:75454.47\r\nafter:71488.11\r\noltp_update_index\r\nbefore:8247.94\r\nafter:9620.03\r\n```"
+    },
+    {
+      "id": 606403921,
+      "user": "youjiali1995",
+      "created_at": "2020-03-31T05:12:12Z",
+      "body": "> Hi all, I've benchmarked on the weekend and I found that QPS got better in benchmark with sysbench after `reuse_port(false)`. Here are some pieces of QPS result.\r\n> \r\n> ```shell\r\n> sysbench --config-file=config select_random_points --tables=32 --table-size=1000000\r\n> before:14299\r\n> after:20455\r\n> sysbench --config-file=config oltp_point_select --tables=32 --table-size=1000000 \r\n> before:53926\r\n> after:58163\r\n> sysbench --config-file=config oltp_update_index --tables=32 --table-size=1000000\r\n> before:6974\r\n> after:7022\r\n> ```\r\n> \r\n> BTW, cluster just used default config and sysbench driver is deployed on the same node as TiDB with 64 threads.\r\n\r\nInteresting..."
+    }
+  ]
+}

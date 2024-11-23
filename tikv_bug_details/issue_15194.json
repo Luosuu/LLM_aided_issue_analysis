@@ -1,0 +1,33 @@
+{
+  "issue_number": 15194,
+  "title": "[dr-autosync] set cluster to dr-autosync mode,  min-resolved-ts is still 0 after run some transactions",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nsh-4.2# /tiup/deploy/tikv-20160/bin/tikv-server -V\r\nTiKV\r\nRelease Version:   6.5.3\r\nEdition:           Community\r\nGit Commit Hash:   87e946d363cd1603e60f638b8f2e3dcf4c37e600\r\nGit Commit Branch: heads/refs/tags/v6.6.0\r\nUTC Build Time:    2023-07-21 01:40:37\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n[root@hongmei tiuptest]# ke pd1-0\r\nsh-4.2# /tiup/deploy/pd-2379/bin/pd-server -V\r\nRelease Version: v6.5.3-drautosync\r\nEdition: Community\r\nGit Commit Hash: bd94a98fa1268da6073efd7a67aa29bf9b2ccfc0\r\nGit Branch: heads/refs/tags/v6.5.3-drautosync\r\nUTC Build Time:  2023-07-24 06:26:35\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\n[2023/07/25 12:40:01.165 +08:00] [INFO] [cmd.go:141] [\"Start remote command\"] [cmd=\"go-tpc tpcc run -D tpcc --host tiup-peer.dr-autosync-hongmei-testbedcw7cb -P3390 --warehouses 10 -T 50 --time 36000m --ignore-error '2013,1213,1105,1205,8022,8028,9004,9007,1062' --user root --password '' --interval '10s'\"] [nodename=benchtoolset]\r\n```\r\nAfter run tpcc 30min in dr-auto-sync mode, check current ts in sql or get min-resolved-ts in pd, both is 0.\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n\r\nsh-4.2# date;tiup ctl:v6.5.3 pd -u pd1-peer:2379 min-resolved-ts\r\nTue Jul 25 13:18:30 CST 2023\r\nStarting component `ctl`: /root/.tiup/components/ctl/v6.5.3/ctl /root/.tiup/components/ctl/v6.5.3/ctl pd -u pd1-peer:2379 min-resolved-ts\r\n{\r\n  \"is_real_time\": true,\r\n  \"min_resolved_ts\": 0,\r\n  \"persist_interval\": \"1s\"\r\n}\r\n",
+  "state": "closed",
+  "created_at": "2023-07-25T05:15:10Z",
+  "updated_at": "2023-08-03T02:54:03Z",
+  "closed_at": "2023-08-03T02:54:03Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1649138389,
+      "user": "mayjiang0203",
+      "created_at": "2023-07-25T05:16:21Z",
+      "body": "/severity major\r\n/assign @JmPotato "
+    },
+    {
+      "id": 1663220092,
+      "user": "mayjiang0203",
+      "created_at": "2023-08-03T02:54:03Z",
+      "body": "When raftstore.pd-store-heartbeat-tick-interval <= 1s， tikv will skip stats monitoring according following pr\r\nhttps://github.com/tikv/tikv/pull/7648/files#diff-98929fd3b3a50ad4fec505b4d75418d5c809947875e9da0d44f29d7d1a567ac2R309"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "issue_number": 6107,
+  "title": "tikv-ctl unsafe recover can lead to inconsistent replica list",
+  "body": "Suppose region 1 has three replicas A, B and C, and A is leader. A adds a new replica D and then both A and D are corrupted, and B has applied the conf change while D has not. Using tikv-ctl will remove both A and D from B's local peer list and just remove A from C's. After B and C are started, C will apply the conf change add D to its list. So B's peer list becomes (B, C), and C's list is (B, C, D).\r\n\r\nTo get a consistent list, we need to skip mutating the list after an unsafe recovery. A simple way is maintain a tombstone store list on every node. When applying conf change, ignore the targets that locate on the store. Note that conf version should still be increased to reach the correct version.\r\n\r\n/cc @disksing @hicqu ",
+  "state": "closed",
+  "created_at": "2019-11-29T09:27:29Z",
+  "updated_at": "2022-04-12T12:54:37Z",
+  "closed_at": "2022-04-12T12:54:37Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/low",
+    "severity/major",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 559723477,
+      "user": "hicqu",
+      "created_at": "2019-11-29T09:31:40Z",
+      "body": "Stores could be only `tombstone` for some special regions, but still useful for other regions.\r\nSo, there are 2 question:\r\n1. The list is for all regions, or for some special regions?\r\n2. When will the list be clear?\r\n"
+    },
+    {
+      "id": 559767105,
+      "user": "BusyJay",
+      "created_at": "2019-11-29T11:57:51Z",
+      "body": "Another way is to scan all the logs and mutate the id to a special value, which we should treat as no-op. It requires to update region peer list and logs atomically."
+    },
+    {
+      "id": 680455695,
+      "user": "disksing",
+      "created_at": "2020-08-26T02:57:14Z",
+      "body": "any update?"
+    },
+    {
+      "id": 680659318,
+      "user": "BusyJay",
+      "created_at": "2020-08-26T05:20:08Z",
+      "body": "It's still under discussion.\r\n\r\nI think the safest way for the problem is generating a snapshot from a node that has applied most up to date data, and restoring it on all other remaining node.\r\n\r\nThis approach is generic and work on many situation."
+    },
+    {
+      "id": 685393408,
+      "user": "NingLin-P",
+      "created_at": "2020-09-02T07:06:46Z",
+      "body": "I have an idea for this problem: \r\n\r\nFor each peer removed by tikv-ctl append one `RemovePeer` raft log on every peer of the region because every peer has these logs so they must commit and send to the apply worker. \r\n\r\nAlso tikv-ctl remove peer from store's local peer list as before, and because there is at most one unapplied `confchange`, so at most one `RemovePeer` logs appended by tikv-ctl will success, others will result in a `remove missing peer` error log, for the epoch of these `RemovePeer` logs we can simply set to the same `epoch { ver: exist_ver, conf_ver: exist_confver + 1 }`. \r\n\r\nBut this approach will not work when joint consensus is in use."
+    },
+    {
+      "id": 685411595,
+      "user": "BusyJay",
+      "created_at": "2020-09-02T07:32:44Z",
+      "body": "> because every peer has these logs so they must commit and send to the apply worker\r\n\r\nSo you mean propose a conf change after restarting all the remaining nodes?\r\n\r\n>  because there is at most one unapplied confchange\r\n\r\nNo, it's only guaranteed that at most one uncommitted conf change."
+    },
+    {
+      "id": 685421334,
+      "user": "NingLin-P",
+      "created_at": "2020-09-02T07:51:13Z",
+      "body": "> So you mean propose a conf change after restarting all the remaining nodes\r\n\r\nNo, just append log (write to rocksdb) without propose when the nodes are down.\r\n \r\n> No, it's only guaranteed that at most one uncommitted conf change.\r\n\r\nI think the guaranteed is most one unapplied conf change.\r\n"
+    },
+    {
+      "id": 685446706,
+      "user": "BusyJay",
+      "created_at": "2020-09-02T08:37:04Z",
+      "body": "> No, just append log (write to rocksdb) without propose when the nodes are down.\r\n\r\nHow to guarantee safety? raft-rs can't distinguish difference of logs when they have the same term and index. So it's possible appending a log in followers can break consistency.\r\n\r\n> I think the guaranteed is most one unapplied conf change.\r\n\r\nFor example, if an isolated follower recover, it can receive multiple committed conf changes from leader and crash before applying."
+    },
+    {
+      "id": 866046875,
+      "user": "BusyJay",
+      "created_at": "2021-06-22T14:45:04Z",
+      "body": "I have a new idea. Instead of mutating the state manually, we rely on the log replication to handle changes correctly.\r\n\r\nLet's introduce a FORCE_LEADER state. If a peer enters a `FORCE_LEADER` state, it will become leader immediately without counting majority votes. And all its logs will also be committed without replicating to majority. A node in `FORCE_LEADER` state will only accept new conf change proposals and `EXIT_FORCE_LEADER` proposal. After exiting `FORCE_LEADER`, it will need a new election to become leader again.\r\n\r\nBecause all fixing commands are proposed as logs, so all previous working logs will still being applied correctly. Fixing commands will also be replicated to other nodes and executing in the same order, so consistency is guaranteed in the end.\r\n\r\n`FORCE_LEADER` state can be implemented as custom quorum function so that we can ensure logs will be replicated to all known working nodes.\r\n\r\nPD should be the one to trigger `FORCE_LEADER` state transition. It can either broadcast failure node list to all alive nodes and let them triggering `FORCE_LEADER` state or send a command to control specific region. It's required that failure nodes should never be able to rejoin the cluster and should be physically stopped.\r\n"
+    },
+    {
+      "id": 869450923,
+      "user": "NingLin-P",
+      "created_at": "2021-06-28T07:41:12Z",
+      "body": "> Let's introduce a FORCE_LEADER state. If a peer enters a `FORCE_LEADER` state, it will become leader immediately without counting majority votes. And all its logs will also be committed without replicating to majority. A node in `FORCE_LEADER` state will only accept new conf change proposals and `EXIT_FORCE_LEADER` proposal. After exiting `FORCE_LEADER`, it will need a new election to become leader again.\r\n\r\nWe may need mechanisms to ensure more things:\r\n- Only one alive peer enter `FORCE_LEADER` state, so conflict entries (same index with different term) won't be committed \r\n- The alive peer with the highest `commit_index` enter `FORCE_LEADER` state, so `MsgAppend` won't be rejected because log index lower than the receiver's `commit_index`\r\n\r\nThere is also a problem with the learner role, if a learner has the highest `commit_index` but can't choose to enter `FORCE_LEADER` state, then it may reject all incoming `MsgAppend`"
+    }
+  ]
+}

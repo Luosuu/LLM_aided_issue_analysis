@@ -1,0 +1,25 @@
+{
+  "issue_number": 17376,
+  "title": "During the process of merging regions, TiKV's execution speed is very slow, and it occurs multipl OOM events.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nnightly\r\n\r\n### Steps to reproduce\r\n1. restore full database with 200k databases and 1M tables\r\n2. 2M empty regions were created\r\n3. pd config set merge-schedule-limit 512\r\n\r\n### What did you expect?\r\ntikv will not be the bottleneck for merging regions and not oom\r\n### What did happened?\r\n1. There are too many pending tasks(mergeing regions)\r\n2. Tikv occurs multipl OOM events.",
+  "state": "closed",
+  "created_at": "2024-08-12T08:37:27Z",
+  "updated_at": "2024-11-06T14:51:09Z",
+  "closed_at": "2024-11-06T14:50:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.5",
+    "affects-8.1",
+    "impact/oom",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2459958373,
+      "user": "LykxSassinator",
+      "created_at": "2024-11-06T14:50:48Z",
+      "body": "Closed as #17408 has been merged."
+    }
+  ]
+}

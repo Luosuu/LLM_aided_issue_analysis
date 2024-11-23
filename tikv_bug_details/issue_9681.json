@@ -1,0 +1,58 @@
+{
+  "issue_number": 9681,
+  "title": "Add learner operator runs very slow when hibernate region is on",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster (5.0.0-rc.x, 2d3c66cc44ea19a4e339ec44cf1fcd1477555b7d)\r\n\r\n### What operating system and CPU are you using?\r\n\r\nCentOS 7.6.1810\r\n\r\n### Steps to reproduce\r\n\r\n(I'm currently not sure if it can be reproduced)\r\n\r\nConstruct a case where a lot of region scheduling or adding peer. For example:\r\n\r\n1. Prepare a cluster with at least 4 TiKV nodes and load a lot of data to generate 10K+ regions. Enable hibernate region.\r\n2. Stop all read and write, and then all regions should be cold.\r\n3. Stop one of the nodes, and offline it with PD\r\n\r\n### What did you expect?\r\n\r\nThe regions that has a missing peer should quickly add a new peer, limited by PD's configurations like region-schedule-limit, max-snapshot-count and store limit.\r\n\r\n### What did happened?\r\n\r\nIt's slow. PD's metrics shows that AddLearner operator runs slowly. After disabling hibernate region, it becomes faster.\r\n![image](https://user-images.githubusercontent.com/9948422/108591818-91550b80-73a5-11eb-874f-2b502624be9f.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-02-20T10:01:09Z",
+  "updated_at": "2021-12-29T13:21:07Z",
+  "closed_at": "2021-12-29T13:21:07Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 782598888,
+      "user": "MyonKeminta",
+      "created_at": "2021-02-20T10:01:50Z",
+      "body": "cc @BusyJay "
+    },
+    {
+      "id": 783042632,
+      "user": "MyonKeminta",
+      "created_at": "2021-02-22T03:26:35Z",
+      "body": "Ah, I forgot that I in the above example, when disabling hibernate region, store pool size is increased from 2 to 6. However the raftstore CPU usage is always low.\r\n![image](https://user-images.githubusercontent.com/9948422/108653152-b8742000-7500-11eb-862c-8d47a39247e6.png)\r\n"
+    },
+    {
+      "id": 801605607,
+      "user": "hicqu",
+      "created_at": "2021-03-18T04:06:08Z",
+      "body": "Can't reproduce with my environment: 4 TiKV, store-pool-size = 2, hibernate_regions = true:\r\n![图片](https://user-images.githubusercontent.com/8407317/111571774-4a123d00-87e2-11eb-83a3-b716f7fa2b97.png)\r\n"
+    },
+    {
+      "id": 801613374,
+      "user": "BusyJay",
+      "created_at": "2021-03-18T04:27:22Z",
+      "body": "I think it's probably related to slow heartbeat processing. /cc @HunDunDM Is it fixed in master or 5.0?"
+    },
+    {
+      "id": 801642504,
+      "user": "HunDunDM",
+      "created_at": "2021-03-18T05:36:31Z",
+      "body": "It has been fixed on `master` / `release-5.0` / `release-4.0`. We need to test whether this problem is solved at the same time."
+    },
+    {
+      "id": 1002544789,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T11:18:06Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002591769,
+      "user": "BusyJay",
+      "created_at": "2021-12-29T13:21:07Z",
+      "body": "Closed due to not reproduced."
+    }
+  ]
+}

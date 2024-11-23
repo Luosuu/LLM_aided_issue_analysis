@@ -1,0 +1,22 @@
+{
+  "issue_number": 8433,
+  "title": "Optimization in peer/apply fsm destroy process may lead to a panic in apply fsm's register",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/d9219efe8f26a557d7649e93ec6ebd7bce3197dd/components/raftstore/src/store/peer.rs#L537-L554\r\nThe above code in `maybe_destroy` is a little hard to understand.\r\n\r\nIn normal cases, the peer fsm and apply fsm destroy process should be:\r\n1. send destroy msg to apply fsm\r\n2. destroy peer fsm after receiving the reply msg from apply fsm\r\n\r\nThere is an optimization that the peer fsm can be destroyed synchronously if there is a pending snapshot and it can be aborted because there is no task in apply fsm which is ensured before applying snapshot. In this case, the apply fsm may not be destroyed while its corresponding peer fsm has already been destroyed. \r\n\r\nBut if a new peer from the same region is created and the apply fsm gets stuck for a while, the register msg will send to an old apply fsm with a different peer id, then the panic will happen in the 2775 line.\r\nhttps://github.com/tikv/tikv/blob/d9219efe8f26a557d7649e93ec6ebd7bce3197dd/components/raftstore/src/store/fsm/apply.rs#L2767-L2779\r\n\r\nI think the easy way to fix it is to just remove this sync remove optimization, always using async remove.",
+  "state": "closed",
+  "created_at": "2020-08-12T03:30:48Z",
+  "updated_at": "2020-08-24T08:14:22Z",
+  "closed_at": "2020-08-24T08:14:22Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 672628513,
+      "user": "liuzix",
+      "created_at": "2020-08-12T06:08:36Z",
+      "body": "/label sig/raft"
+    }
+  ]
+}

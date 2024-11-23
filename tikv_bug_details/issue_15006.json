@@ -1,0 +1,46 @@
+{
+  "issue_number": 15006,
+  "title": "diagnostic: non-stop cpu expansion causes index out of bounds error",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n`master`\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n```\r\nLinux x86_64/aarch64\r\n```\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1. Boot a TiDB cluster.\r\n\r\n2. Execute the following query:\r\n\r\n```sql\r\nSELECT * FROM information_schema.cluster_hardware;\r\n```\r\n\r\n3. Expand the number of TiKV host's CPU cores without restarting TiKV process.\r\n\r\n4. Re-execute the query in step-2.\r\n\r\nThen TiKV crashed.\r\n\r\nIf step-3 is not easy to achieve, we can simulate it in the following way:\r\n\r\n1. Copy `/proc/stat`:\r\n```shell\r\n$ cp /proc/stat /tmp/proc/stat\r\n```\r\n\r\n2. Edit `sysinfo/src/linux/cpu.rs`, temporarily use `/tmp/proc/stat` instead of `/proc/stat`:\r\n\r\n```rust\r\npub(crate) fn refresh(&mut self, only_update_global_cpu: bool, refresh_kind: CpuRefreshKind) {\r\n  // ...\r\n  if need_cpu_usage_update {\r\n      self.last_update = Some(Instant::now());\r\n      let f = match File::open(\"/proc/stat\") { // \"/proc/stat\" -> \"/tmp/proc/stat\"\r\n          Ok(f) => f,\r\n          Err(_e) => {\r\n              sysinfo_debug!(\"failed to retrieve CPU information: {:?}\", _e);\r\n              return;\r\n          }\r\n      };\r\n  // ...\r\n```\r\n\r\n3. Rebuild and restart TiKV, then re-run `SELECT * FROM information_schema.cluster_hardware;`.\r\n\r\n4. Edit `/tmp/proc/stat`, add one CPU core:\r\n\r\n```\r\ncpu  888202 0 64366 33777873 6620 0 9253 0 0 0\r\ncpu0 84111 0 6925 3369197 309 0 7126 0 0 0\r\ncpu1 99737 0 8030 3364200 1975 0 1161 0 0 0\r\ncpu2 102944 0 6564 3365370 338 0 254 0 0 0\r\ncpu3 80441 0 6131 3387710 943 0 145 0 0 0\r\ncpu4 79461 0 6371 3388871 531 0 94 0 0 0   <===== added line\r\n...\r\n```\r\n\r\n5. Re-run `SELECT * FROM information_schema.cluster_hardware;`.\r\n\r\n### What did you expect?\r\n\r\nAll going well.\r\n\r\n### What did happened?\r\n\r\nTiKV crashed:\r\n\r\n```\r\n[2023/06/27 00:18:15.154 +08:00] [FATAL] [lib.rs:497] [\"index out of bounds: the len is 4 but the index is 4\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n   1: std::panicking::rust_panic_with_hook\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n   4: rust_begin_unwind\\n   5: core::panicking::panic_fmt\\n   6: core::panicking::panic_bounds_check\\n   7: sysinfo::linux::cpu::CpusWrapper::refresh\\n   8: tikv::server::service::diagnostics::sys::hardware_info\\n   9: tokio::runtime::task::core::CoreStage<T>::poll\\n  10: tokio::runtime::task::raw::poll\\n  11: tokio::runtime::scheduler::multi_thread::worker::Context::run_task\\n  12: tokio::runtime::scheduler::multi_thread::worker::run\\n  13: tokio::runtime::task::raw::poll\\n  14: std::sys_common::backtrace::__rust_begin_short_backtrace\\n  15: core::ops::function::FnOnce::call_once{{vtable.shim}}\\n  16: std::sys::unix::thread::Thread::new::thread_start\\n  17: <unknown>\\n  18: <unknown>\\n\"]\r\n```",
+  "state": "closed",
+  "created_at": "2023-06-26T16:19:17Z",
+  "updated_at": "2023-06-30T10:03:44Z",
+  "closed_at": "2023-06-30T10:03:44Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.2"
+  ],
+  "comments_data": [
+    {
+      "id": 1607813703,
+      "user": "mornyx",
+      "created_at": "2023-06-26T16:19:29Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1608867933,
+      "user": "mornyx",
+      "created_at": "2023-06-27T06:21:54Z",
+      "body": "/cc @kaixu120811"
+    },
+    {
+      "id": 1614073431,
+      "user": "aytrack",
+      "created_at": "2023-06-30T03:45:54Z",
+      "body": "/label type/bug\r\n/label severity/minor"
+    },
+    {
+      "id": 1614073444,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-30T03:45:56Z",
+      "body": "@aytrack: The label(s) `type/bug, severity/minor` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, wontfix, do-not-merge/cherry-pick-not-approved, needs-cherry-pick-release-5.2, needs-cherry-pick-release-5.3, needs-cherry-pick-release-5.4, needs-cherry-pick-release-6.0, needs-cherry-pick-release-6.1, needs-cherry-pick-release-6.2, needs-cherry-pick-release-6.3, needs-cherry-pick-release-6.4, needs-cherry-pick-release-6.5, needs-cherry-pick-release-6.6, needs-cherry-pick-release-7.0, needs-cherry-pick-release-7.1, needs-cherry-pick-release-7.2, affects-5.2, affects-5.3, affects-5.4, affects-6.0, affects-6.1, affects-6.2, affects-6.3, affects-6.4, affects-6.5, affects-6.6, affects-7.0, affects-7.1, affects-7.2, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0, may-affects-6.1, may-affects-6.2, may-affects-6.3, may-affects-6.4, may-affects-6.5, may-affects-6.6, may-affects-7.0, may-affects-7.1, may-affects-7.2`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15006#issuecomment-1614073431):\n\n>/label type/bug\r\n>/label severity/minor\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

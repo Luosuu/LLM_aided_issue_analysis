@@ -1,0 +1,21 @@
+{
+  "issue_number": 12933,
+  "title": "components/pd_client: potential deadlocks caused by double-readlock in call_option",
+  "body": "## Bug Report\r\n\r\nIn components/pd_client/src/client.rs, \r\n`Client.inner` is a `std::sync::RwLock<Inner>`\r\nThe first readlock is on L705, `call_option` is called on L709, and the second readlock is on L195.\r\nhttps://github.com/tikv/tikv/blob/d356be1d051f38b9cd9c9239468073c05ccc6c03/components/pd_client/src/client.rs#L704-L709\r\nhttps://github.com/tikv/tikv/blob/d356be1d051f38b9cd9c9239468073c05ccc6c03/components/pd_client/src/client.rs#L194-L197\r\n\r\nSimilarly, there are other 9 cases in client.rs:\r\n1. L217, L221, L195\r\n2. L256, L260, L195\r\n3. L499, L503, L195\r\n4. L537, L541, L195\r\n5. L670, L674, L195\r\n6. L749, L753, L195\r\n7. L783, L787, L195\r\n8. L924, L928, L195\r\n9. L962, L966, L195\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster branch\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nFound by code analysis\r\n### What did you expect?\r\n\r\nCause deadlock if interleaved by a writelock. This is true for both std::sync::RwLock and parking_lot::RwLock.\r\nFor more details, see\r\nhttps://www.reddit.com/r/rust/comments/urnqz8/different_behaviors_of_recursive_read_locks_in/\r\n\r\nI think one possible solution is to add a new function `call_option_inner`, which takes `&Inner` as the parameter instead of `&Client`. Then there is no need to lock inside `call_option_inner`.\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2022-06-29T09:03:26Z",
+  "updated_at": "2022-08-04T12:26:07Z",
+  "closed_at": "2022-08-04T12:26:07Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.2"
+  ],
+  "comments_data": []
+}

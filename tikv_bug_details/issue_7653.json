@@ -1,0 +1,13 @@
+{
+  "issue_number": 7653,
+  "title": "Deprecated raft cmd AdminCmdType::Split is reused",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n   Release Version:   4.0.0-rc\r\n   Git Commit Hash:   8a43dccee00a396ce7ab766ae6afb6505a94c1b2\r\n   Git Commit Branch: release-4.0\r\n   UTC Build Time:    2020-04-24 03:34:49\r\n\r\n### What did happened?\r\ntiflash received raft cmd `AdminCmdType::Split` which has been deprecated since tikv 2.x.\r\nShould use `BatchSplit` instead.\r\n",
+  "state": "closed",
+  "created_at": "2020-04-26T06:55:32Z",
+  "updated_at": "2020-04-26T08:29:19Z",
+  "closed_at": "2020-04-26T07:58:59Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

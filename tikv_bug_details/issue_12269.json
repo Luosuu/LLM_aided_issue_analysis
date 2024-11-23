@@ -1,0 +1,100 @@
+{
+  "issue_number": 12269,
+  "title": "when upgrade cluster to v6.0.0, tikv throws an error.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n5.3.1 --> 6.0.0\r\n5.4.0 --> 6.0.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\ndbaas \r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nstaging 上从 5.3.1 升级到 6.0.0 orgs/1369847559690647294/projects/1369847559691367831/clusters/1373933076657976100\r\n和\r\n5.4.0 升级到 6.0.0 orgs/1369847559690857266/projects/1369847559691367830/clusters/1373933076657976102 \r\n\r\nOptions\r\n\r\n### What did you expect?\r\ncan upgrade successfully.\r\n\r\n### What did happened?\r\n tikv error：\r\n[2022/03/25 08:25:58.681 +00:00] [FATAL] [lib.rs:468] [\"failed to load_latest_options \\\"Invalid argument: [RocksDBOptionsParser Error] : A valid statement must have a '='. (at line 2)\\\"\"] [backtrace=\" 0: tikv_util::set_panic_hook::{{closure}}\\n at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:467:18\\n 1: std::panicking::rust_panic_with_hook\\n at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:702:17\\n 2: std::panicking::begin_panic_handler::{{closure}}\\n at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:588:13\\n 3: std::sys_common::backtrace::__rust_end_short_backtrace\\n at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:138:18\\n 4: rust_begin_unwind\\n at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/panicking.rs:584:5\\n 5: core::panicking::panic_fmt\\n at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/panicking.rs:143:14\\n 6: engine_rocks::raw_util::new_engine_opt::{{closure}}\\n at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/engine_rocks/src/raw_util.rs:122:33\\n core::result::Result<T,E>::unwrap_or_else\\n at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/result.rs:1428:23\\n engine_rocks::raw_util::new_engine_opt\\n at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/engine_rocks/src/raw_util.rs:121:24\\n 7: server::server::TiKVServer<raft_log_engine::engine::RaftLogEngine>::init_raw_engines\\n at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/server/src/server.rs:1400:26\\n server::server::run_tikv\\n at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/server/src/server.rs:158:9\\n 8: tikv_server::main\\n at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/cmd/tikv-server/src/main.rs:190:5\\n 9: core::ops::function::FnOnce::call_once\\n at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/core/src/ops/function.rs:227:5\\n std::sys_common::backtrace::__rust_begin_short_backtrace\\n at rustc/1e12aef3fab243407f9d71ba9956cb2a1bf105d5/library/std/src/sys_common/backtrace.rs:122:18\\n 10: main\\n 11: __libc_start_main\\n 12: <unknown>\\n\"] [location=components/engine_rocks/src/raw_util.rs:122] [thread_name=main]",
+  "state": "closed",
+  "created_at": "2022-03-25T09:00:57Z",
+  "updated_at": "2022-04-26T02:21:35Z",
+  "closed_at": "2022-03-28T10:16:29Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/dbaas"
+  ],
+  "comments_data": [
+    {
+      "id": 1078801842,
+      "user": "Lily2025",
+      "created_at": "2022-03-25T09:03:56Z",
+      "body": "/type bug\r\n/severity Critical\r\n/assign tabokie"
+    },
+    {
+      "id": 1078837800,
+      "user": "you06",
+      "created_at": "2022-03-25T09:46:52Z",
+      "body": "Can you provide the details of how you pass the argument in your environment?"
+    },
+    {
+      "id": 1078870250,
+      "user": "tabokie",
+      "created_at": "2022-03-25T10:15:51Z",
+      "body": "The bug is introduced by #12047. TiKV cannot find the original encryption key after the directory is renamed. I'll fix it later."
+    },
+    {
+      "id": 1108366259,
+      "user": "Lily2025",
+      "created_at": "2022-04-25T10:11:05Z",
+      "body": "/env dbaas"
+    },
+    {
+      "id": 1108367980,
+      "user": "Lily2025",
+      "created_at": "2022-04-25T10:12:31Z",
+      "body": "/label env/dbaas"
+    },
+    {
+      "id": 1108368000,
+      "user": "ti-chi-bot",
+      "created_at": "2022-04-25T10:12:33Z",
+      "body": "@Lily2025: The label(s) `env/dbaas` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12269#issuecomment-1108367980):\n\n>/label env/dbaas\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1108369052,
+      "user": "Lily2025",
+      "created_at": "2022-04-25T10:13:23Z",
+      "body": "/label dbaas"
+    },
+    {
+      "id": 1108369067,
+      "user": "ti-chi-bot",
+      "created_at": "2022-04-25T10:13:24Z",
+      "body": "@Lily2025: The label(s) `dbaas` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12269#issuecomment-1108369052):\n\n>/label dbaas\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1108416168,
+      "user": "Lily2025",
+      "created_at": "2022-04-25T10:57:20Z",
+      "body": "/env dbaas"
+    },
+    {
+      "id": 1108427755,
+      "user": "Lily2025",
+      "created_at": "2022-04-25T11:08:23Z",
+      "body": "/env dbaas"
+    },
+    {
+      "id": 1108436082,
+      "user": "jebter",
+      "created_at": "2022-04-25T11:15:35Z",
+      "body": "/label env/dbaas"
+    },
+    {
+      "id": 1108436111,
+      "user": "ti-chi-bot",
+      "created_at": "2022-04-25T11:15:36Z",
+      "body": "@jebter: The label(s) `env/dbaas` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12269#issuecomment-1108436082):\n\n>/label env/dbaas\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1108532075,
+      "user": "jebter",
+      "created_at": "2022-04-25T12:53:57Z",
+      "body": "/found dbaas"
+    },
+    {
+      "id": 1109230509,
+      "user": "Lily2025",
+      "created_at": "2022-04-26T02:21:35Z",
+      "body": "/found dbaas"
+    }
+  ]
+}

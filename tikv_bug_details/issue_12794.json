@@ -1,0 +1,34 @@
+{
+  "issue_number": 12794,
+  "title": "Workload Error when killing pd Leader in HA test",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n6.1.0-alpha   5c6018e5711bec3d13f9cdf39d3a84ed9de27809\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. Deploy RawKV Cluster, API-Version =2 , storage.enable-ttl: true\r\n2. Start Workload R-W\r\n3. Kill PD Leader\r\n\r\n### What did you expect?\r\nWorkload runs normally.\r\n\r\n### What did happened?\r\nSome R-W actions failed.",
+  "state": "closed",
+  "created_at": "2022-06-10T03:51:25Z",
+  "updated_at": "2022-09-27T09:49:58Z",
+  "closed_at": "2022-09-27T09:49:58Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1152054826,
+      "user": "pingyu",
+      "created_at": "2022-06-10T07:23:18Z",
+      "body": "### Issue Analysis\r\n\r\nThe duration of `raw_get` & `raw_compare_and_swap` is much longer than expect, up to 8s (The metrics in the following diagram is MAX message duration)\r\n![middle_img_v2_50945c99-988e-406c-9975-63b54bae26ag](https://user-images.githubusercontent.com/1907938/173009678-7cefa157-e933-4ed6-83c9-1d9ded45017f.jpg)\r\n\r\nWe can also see that the long duration of `propose wait`:\r\n<img width=\"1301\" alt=\"image\" src=\"https://user-images.githubusercontent.com/1907938/173009890-8f42ba45-a11a-4441-982e-9b098643d4f3.png\">\r\n\r\n\r\nFrom metrics & logs, the 8s consist of:\r\n1. 4s from PD leader killed to TSO service recovery.\r\npd.log:\r\n```\r\nJun 6, 2022 @ 11:40:21.222\t7105962764204181729\tpd\tpd-2.pd-peer\t[node.go:331] [\"raft.node: aa10f5ac15deb34e lost leader b7a58c96c777aa50 at term 2\"]\r\nJun 6, 2022 @ 11:40:21.223\t7105962764204181729\tpd\tpd-2.pd-peer\t[node.go:325] [\"raft.node: aa10f5ac15deb34e elected leader aa10f5ac15deb34e at term 3\"]\r\nJun 6, 2022 @ 11:40:21.223\t7105962764204181729\tpd\tpd-2.pd-peer\t[raft.go:765] [\"aa10f5ac15deb34e became leader at term 3\"]\r\nJun 6, 2022 @ 11:40:25.320\t7105962764204181729\tpd\tpd-2.pd-peer\t[server.go:1410] [\"PD cluster leader is ready to serve\"] [pd-leader-name=pd-pd-2.pd-peer-2579]\r\n```\r\n\r\n2. 3s from TSO service recovery to TiKV's tso component restart & recovery.\r\ntikv.log:\r\n```\r\nJun 6, 2022 @ 11:40:22.352\ttikv-7.tikv-peer\t[util.rs:447] [\"request failed, retry\"] [err_code=KV:PD:Unknown] [err=\"Other(\\\"[components/pd_client/src/client.rs:897]: get timestamp timeout\\\")\"]\r\nJun 6, 2022 @ 11:40:26.357\ttikv-7.tikv-peer\t[util.rs:701] [\"connected to PD member\"] [endpoints=http://pd-2.pd-peer:2579/]\r\nJun 6, 2022 @ 11:40:26.358\ttikv-7.tikv-peer\t[util.rs:385] [\"trying to update PD client done\"] [spend=4.365108ms]\r\nJun 6, 2022 @ 11:40:26.358\ttikv-7.tikv-peer\t[util.rs:258] [\"update pd client\"] [via=] [leader=http://pd-2.pd-peer:2579/] [prev_via=] [prev_leader=http://pd-0.pd-peer:2579/]\r\nJun 6, 2022 @ 11:40:27.310\ttikv-7.tikv-peer\t[util.rs:447] [\"request failed, retry\"] [err_code=KV:PD:Unknown] [err=\"Other(\\\"[components/pd_client/src/client.rs:897]: get timestamp timeout\\\")\"]\r\nJun 6, 2022 @ 11:40:27.311\ttikv-7.tikv-peer\t[tso.rs:157] [\"TSO worker terminated\"] [receiver_cause=None] [sender_cause=None]\r\nJun 6, 2022 @ 11:40:27.312\ttikv-7.tikv-peer\t[util.rs:258] [\"update pd client\"] [via=] [leader=http://pd-2.pd-peer:2579/] [prev_via=] [prev_leader=http://pd-2.pd-peer:2579/]\r\nJun 6, 2022 @ 11:40:28.314\ttikv-7.tikv-peer\t[util.rs:385] [\"trying to update PD client done\"] [spend=4.366822ms]\r\n```\r\n\r\n### Solutions\r\nWe can solve this issue from 3 aspect:\r\n1. Shorten the recovery duration of PD's TSO service (https://github.com/tikv/pd/issues/5122).\r\n2. Shorten the recovery duration of TiKV's tso worker.\r\n3. Cache more TSO in [`BatchTsoProvider`](https://github.com/tikv/tikv/blob/ab968ffb5e496ea1fce4ff40ee0e562247de98dd/components/causal_ts/src/tso.rs#L128) to be more tolerable to fault of TSO service."
+    },
+    {
+      "id": 1259251424,
+      "user": "Connor1996",
+      "created_at": "2022-09-27T09:42:04Z",
+      "body": "@pingyu can it close now?"
+    },
+    {
+      "id": 1259260368,
+      "user": "pingyu",
+      "created_at": "2022-09-27T09:49:58Z",
+      "body": "Oh yes, it can."
+    }
+  ]
+}

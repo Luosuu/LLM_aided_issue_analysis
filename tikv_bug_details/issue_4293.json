@@ -1,0 +1,39 @@
+{
+  "issue_number": 4293,
+  "title": "coprocessor: parsing error is never returned",
+  "body": "When it fails to parse a request, the error is wrapped in an dummy handler which is returned from the function with a fake context and supposed to be executed inside read pool.\r\n\r\nhttps://github.com/tikv/tikv/blob/e53a8c21d77d8ce0e06b855fbe31ee9f8cd525a2/src/coprocessor/endpoint.rs#L196-L211\r\n\r\nHowever endpoint will continue to get a snapshot first using the fake context, which will always fail as it's an invalid context.\r\n\r\nhttps://github.com/tikv/tikv/blob/e53a8c21d77d8ce0e06b855fbe31ee9f8cd525a2/src/coprocessor/endpoint.rs#L344-L357\r\n\r\nSo a strange error from raftstore is returned instead of the actual error which is the parsing error in the first place.\r\n\r\nThe bug is introduced in #3515, and affects v2.1.x and v3.0.x, needs to be fixed soon.\r\n\r\n@disksing @breeswish PTAL\r\n\r\n",
+  "state": "closed",
+  "created_at": "2019-02-27T15:57:05Z",
+  "updated_at": "2019-03-18T06:57:46Z",
+  "closed_at": "2019-03-18T06:57:46Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor"
+  ],
+  "comments_data": [
+    {
+      "id": 467920343,
+      "user": "siddontang",
+      "created_at": "2019-02-27T16:01:36Z",
+      "body": "Finally, we find this problem 😭 \r\n\r\nBtw, why parsing failed? the request is too big? @BusyJay "
+    },
+    {
+      "id": 467922823,
+      "user": "disksing",
+      "created_at": "2019-02-27T16:07:47Z",
+      "body": "The request can be unmarshalled in Go. I guess the problem is the  DAG request recurses too deep. "
+    },
+    {
+      "id": 467940207,
+      "user": "breezewish",
+      "created_at": "2019-02-27T16:50:59Z",
+      "body": "Interesting finding. Looks like we must find a way that parsing failed errors are returned immediately instead of partially finished the pipe line."
+    },
+    {
+      "id": 473791763,
+      "user": "breezewish",
+      "created_at": "2019-03-18T06:57:46Z",
+      "body": "Fixed in #4303"
+    }
+  ]
+}

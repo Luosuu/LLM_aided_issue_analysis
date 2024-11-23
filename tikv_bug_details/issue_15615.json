@@ -1,0 +1,14 @@
+{
+  "issue_number": 15615,
+  "title": "unstable test test_destroy_missing",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n```\r\n[2023-09-14T21:37:28.854Z] --- TRY 3 STDERR:        raftstore-v2 worker::tablet::tests::test_destroy_missing ---\r\n\r\n[2023-09-14T21:37:28.854Z] thread 'worker::tablet::tests::test_destroy_missing' panicked at 'assertion failed: !path.exists()', components/raftstore-v2/src/worker/tablet.rs:817:9\r\n\r\n[2023-09-14T21:37:28.854Z] stack backtrace:\r\n\r\n[2023-09-14T21:37:28.854Z]    0: rust_begin_unwind\r\n\r\n[2023-09-14T21:37:28.854Z]              at /rustc/96ddd32c4bfb1d78f0cd03eb068b1710a8cebeef/library/std/src/panicking.rs:575:5\r\n\r\n[2023-09-14T21:37:28.854Z]    1: core::panicking::panic_fmt\r\n\r\n[2023-09-14T21:37:28.854Z]              at /rustc/96ddd32c4bfb1d78f0cd03eb068b1710a8cebeef/library/core/src/panicking.rs:65:14\r\n\r\n[2023-09-14T21:37:28.855Z]    2: core::panicking::panic\r\n\r\n[2023-09-14T21:37:28.855Z]              at /rustc/96ddd32c4bfb1d78f0cd03eb068b1710a8cebeef/library/core/src/panicking.rs:114:5\r\n\r\n[2023-09-14T21:37:28.855Z]    3: raftstore_v2::worker::tablet::tests::test_destroy_missing\r\n\r\n[2023-09-14T21:37:28.855Z]    4: raftstore_v2::worker::tablet::tests::test_destroy_missing::{{closure}}\r\n\r\n[2023-09-14T21:37:28.855Z]    5: core::ops::function::FnOnce::call_once\r\n\r\n[2023-09-14T21:37:28.855Z]    6: core::ops::function::FnOnce::call_once\r\n\r\n[2023-09-14T21:37:28.855Z]              at /rustc/96ddd32c4bfb1d78f0cd03eb068b1710a8cebeef/library/core/src/ops/function.rs:513:5\r\n\r\n[2023-09-14T21:37:28.855Z] note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n```\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-09-15T08:06:50Z",
+  "updated_at": "2023-09-18T10:24:13Z",
+  "closed_at": "2023-09-18T10:24:13Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

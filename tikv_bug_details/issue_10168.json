@@ -1,0 +1,57 @@
+{
+  "issue_number": 10168,
+  "title": "Region not found because of access before splitting",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nA recent master TiKV https://github.com/tikv/tikv/commit/a52d25a2b4c53706046346c522b4dd653d9befc4\r\n\r\n\r\n### Steps to reproduce\r\n\r\nKeeps giving TiKV huge write load. I run with uniform workload in pingcap/tipocket#410.\r\n\r\n### What did happened?\r\n\r\nThere are lots of \"region not found\" logs like this on TiKV:\r\n\r\n```\r\n[2021/05/13 17:52:35.738 +08:00] [INFO] [scheduler.rs:393] [\"get snapshot failed\"] [err=\"Error(Request(message: \\\"region 24869 is missing\\\" region_not_found { region_id: 24869 }))\"] [cid=471484]\r\n[2021/05/13 17:52:35.738 +08:00] [INFO] [scheduler.rs:393] [\"get snapshot failed\"] [err=\"Error(Request(message: \\\"region 24869 is missing\\\" region_not_found { region_id: 24869 }))\"] [cid=471485]\r\n[2021/05/13 17:52:35.738 +08:00] [INFO] [scheduler.rs:393] [\"get snapshot failed\"] [err=\"Error(Request(message: \\\"region 24869 is missing\\\" region_not_found { region_id: 24869 }))\"] [cid=471486]\r\n[2021/05/13 17:52:35.738 +08:00] [INFO] [scheduler.rs:393] [\"get snapshot failed\"] [err=\"Error(Request(message: \\\"region 24869 is missing\\\" region_not_found { region_id: 24869 }))\"] [cid=471487]\r\n```\r\n\r\nAt the time these errors occur, PD has split the region:\r\n\r\n```\r\n[2021/05/13 17:52:08.968 +08:00] [INFO] [cluster_worker.go:127] [\"alloc ids for region split\"] [region-id=24869] [peer-ids=\"[24870,24871,24872]\"]\r\n[2021/05/13 17:52:21.548 +08:00] [INFO] [cluster_worker.go:219] [\"region batch split, generate new regions\"] [region-id=2] [origin=\"id:24865 start_key:\\\"7480000000000000FFB600000000000000F8\\\" end_key:\\\"7480000000000000FFB65F720135666538FF32303962FF2D6337FF33312D3464FF6232FF2D383663352DFF61FF63366231303931FFFF3237336100000000FFFB00000000000000F8\\\" region_epoch:<conf_ver:5 version:827 > peers:<id:24866 store_id:1 > peers:<id:24867 store_id:4 > peers:<id:24868 store_id:5 > id:24869 start_key:\\\"7480000000000000FFB65F720135666538FF32303962FF2D6337FF33312D3464FF6232FF2D383663352DFF61FF63366231303931FFFF3237336100000000FFFB00000000000000F8\\\" end_key:\\\"7480000000000000FFB65F720162636438FF63613537FF2D6264FF66612D3430FF6661FF2D386363352DFF63FF66623935313036FFFF6463623500000000FFFB00000000000000F8\\\" region_epoch:<conf_ver:5 version:827 > peers:<id:24870 store_id:1 > peers:<id:24871 store_id:4 > peers:<id:24872 store_id:5 >\"] [total=2]\r\n```\r\n\r\nBut because of high write pressure, TiKV don't execute the split commands in time. The `BatchSplit` command is executed a few minutes later:\r\n\r\n```\r\n[2021/05/13 17:56:48.200 +08:00] [INFO] [apply.rs:1292] [\"execute admin command\"] [command=\"cmd_type: BatchSplit splits { requests { split_key: 7480000000000000FFB65F720135666538FF32303962FF2D6337FF33312D3464FF6232FF2D383663352DFF61FF63366231303931FFFF3237336100000000FFFB00000000000000F8 new_region_id: 24865 new_peer_ids: 24866 new_peer_ids: 24867 new_peer_ids: 24868 } requests { split_key: 7480000000000000FFB65F720162636438FF63613537FF2D6264FF66612D3430FF6661FF2D386363352DFF63FF66623935313036FFFF6463623500000000FFFB00000000000000F8 new_region_id: 24869 new_peer_ids: 24870 new_peer_ids: 24871 new_peer_ids: 24872 } right_derive: true }\"] [index=411703] [term=55] [peer_id=77] [region_id=2]\r\n[2021/05/13 17:56:48.705 +08:00] [INFO] [peer.rs:2264] [\"insert new region\"] [region=\"id: 24869 start_key: 7480000000000000FFB65F720135666538FF32303962FF2D6337FF33312D3464FF6232FF2D383663352DFF61FF63366231303931FFFF3237336100000000FFFB00000000000000F8 end_key: 7480000000000000FFB65F720162636438FF63613537FF2D6264FF66612D3430FF6661FF2D386363352DFF63FF66623935313036FFFF6463623500000000FFFB00000000000000F8 region_epoch { conf_ver: 5 version: 827 } peers { id: 24870 store_id: 1 } peers { id: 24871 store_id: 4 } peers { id: 24872 store_id: 5 }\"] [region_id=24869]\r\n[2021/05/13 17:56:48.705 +08:00] [INFO] [peer.rs:189] [\"create peer\"] [peer_id=24872] [region_id=24869]\r\n[2021/05/13 17:56:48.713 +08:00] [INFO] [raft.rs:2443] [\"switched to configuration\"] [config=\"Configuration { voters: Configuration { incoming: Configuration { voters: {24872, 24870, 24871} }, outgoing: Configuration { voters: {} } }, learners: {}, learners_next: {}, auto_leave: false }\"] [raft_id=24872] [region_id=24869]\r\n[2021/05/13 17:56:48.713 +08:00] [INFO] [raft.rs:1064] [\"became follower at term 5\"] [term=5] [raft_id=24872] [region_id=24869]\r\n[2021/05/13 17:56:48.713 +08:00] [INFO] [raw_node.rs:285] [\"RawNode created with id 24872.\"] [id=24872] [raft_id=24872] [region_id=24869]\r\n[2021/05/13 17:56:48.713 +08:00] [INFO] [raft.rs:1307] [\"received a message with higher term from 24871\"] [\"msg type\"=MsgAppend] [message_term=6] [term=5] [from=24871] [raft_id=24872] [region_id=24869]\r\n[2021/05/13 17:56:48.716 +08:00] [INFO] [raft.rs:1064] [\"became follower at term 6\"] [term=6] [raft_id=24872] [region_id=24869]\r\n[2021/05/13 17:56:48.716 +08:00] [WARN] [endpoint.rs:300] [\"deregister unregister region\"] [region_id=24869]\r\n```\r\n\r\nThis is weird because at 17:52, no store contained any peer of region 24869. So apparently, there can't be any leader of it. But the client did send some requests to the region.",
+  "state": "closed",
+  "created_at": "2021-05-13T17:14:46Z",
+  "updated_at": "2022-01-05T08:27:33Z",
+  "closed_at": "2022-01-05T08:27:32Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 841085334,
+      "user": "cosven",
+      "created_at": "2021-05-14T08:03:49Z",
+      "body": "/severity major\r\n\r\nFeel free to change the severity ~"
+    },
+    {
+      "id": 841142653,
+      "user": "sticnarf",
+      "created_at": "2021-05-14T09:56:26Z",
+      "body": "Looks weird and I have no idea why... cc @nolouch "
+    },
+    {
+      "id": 850060393,
+      "user": "sticnarf",
+      "created_at": "2021-05-28T02:11:25Z",
+      "body": "It is also an issue cause by long splitting time. As said in https://github.com/tikv/tikv/issues/10169#issuecomment-850059610, the optimal solution should be removing the write stall from RocksDB."
+    },
+    {
+      "id": 864657023,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-06-21T01:18:34Z",
+      "body": "`the optimal solution should be removing the write stall from RocksDB`\r\n\r\ncc @Connor1996 "
+    },
+    {
+      "id": 864879455,
+      "user": "Connor1996",
+      "created_at": "2021-06-21T09:23:23Z",
+      "body": "@zhangjinpeng1987 Yes, all the admin commands won't be blocked anymore."
+    },
+    {
+      "id": 927263842,
+      "user": "HunDunDM",
+      "created_at": "2021-09-26T09:00:46Z",
+      "body": "Maybe there is improvement after the implementation of [pd#4157](https://github.com/tikv/pd/issues/4157)."
+    },
+    {
+      "id": 1005477309,
+      "user": "sticnarf",
+      "created_at": "2022-01-05T08:27:32Z",
+      "body": "After write stall is substituted by scheduler-level flow control, this issue should not happen any more."
+    }
+  ]
+}

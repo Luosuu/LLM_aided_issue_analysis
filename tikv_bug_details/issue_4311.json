@@ -1,0 +1,20 @@
+{
+  "issue_number": 4311,
+  "title": "ChannelCredentialsBuilder leaks secrets on drop",
+  "body": "ChannelCredentialsBuilder contains an Option field called cert_key_pair that contains secrets when Some. The drop function assumes that cert_key_pair has been moved into grpc_sys, but it is possible for that not to be true if `build` is never called.\r\n\r\nThe drop method should look into this field and call `clear_key_securely` on it if it still exists.",
+  "state": "closed",
+  "created_at": "2019-03-05T01:29:34Z",
+  "updated_at": "2019-03-05T01:36:47Z",
+  "closed_at": "2019-03-05T01:36:47Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 469498982,
+      "user": "brson",
+      "created_at": "2019-03-05T01:36:47Z",
+      "body": "This is incorrect. Not sure what I was looking at."
+    }
+  ]
+}

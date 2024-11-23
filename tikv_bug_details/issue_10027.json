@@ -1,0 +1,45 @@
+{
+  "issue_number": 10027,
+  "title": "rocksdb snapshot doesn't released and make space not reclaimed.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv4.0.11\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nnot related\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nCan't reproduce\r\n\r\n### What did you expect?\r\nspace is properly reclaimed\r\n\r\n### What did happened?\r\n\r\n![image](https://user-images.githubusercontent.com/13497871/114964885-2f46ed00-9ea2-11eb-9c1c-ade04118347e.png)\r\nrocksdb snapshot is held about 1.2 weeks, which causes region worker won't clean up the data of region when the peer is removed.\r\n\r\n![image](https://user-images.githubusercontent.com/13497871/114964934-3ff76300-9ea2-11eb-8a2a-68967cbcf618.png)\r\nthere are 8 rocksdb snapshots leaked. And it happens in multiple tikv nodes. There must be something wrong that the rocksdb snapshot release is not properly called or some threads got stuck.\r\n",
+  "state": "closed",
+  "created_at": "2021-04-16T02:59:19Z",
+  "updated_at": "2021-06-10T10:14:12Z",
+  "closed_at": "2021-06-10T10:14:12Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 821019535,
+      "user": "cosven",
+      "created_at": "2021-04-16T08:40:01Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 821810814,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-04-17T11:50:16Z",
+      "body": "Do they use TiCDC?"
+    },
+    {
+      "id": 822133394,
+      "user": "Connor1996",
+      "created_at": "2021-04-19T03:01:04Z",
+      "body": "> Do they use TiCDC?\r\n\r\nNot sure, but they use BR"
+    },
+    {
+      "id": 822168929,
+      "user": "Connor1996",
+      "created_at": "2021-04-19T05:07:14Z",
+      "body": "> Do they use TiCDC?\r\n\r\nConfirmed, they don't use TiCDC"
+    },
+    {
+      "id": 834172275,
+      "user": "Connor1996",
+      "created_at": "2021-05-07T08:32:12Z",
+      "body": "It's because TiKV is blocked on uploading SST to S3 for a long time due to external issues (maybe S3 client, maybe nginx). So the snapshot can't be released until the upload is finished. "
+    }
+  ]
+}

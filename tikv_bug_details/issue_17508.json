@@ -1,0 +1,29 @@
+{
+  "issue_number": 17508,
+  "title": "TiKV disk full during PiTR log restore",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nTiKV \r\nRelease Version:   8.2.0\r\nEdition:           Community\r\nGit Commit Hash:   6e50b27980d7d2795c2d662c7a11d03d81d4b64d\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2024-07-09 08:09:03\r\n\r\nBr\r\nRelease Version: v8.2.0\r\nGit Commit Hash: 821e491a20fbab36604b36b647b5bae26a2c1418\r\nGit Branch: HEAD\r\nGo Version: go1.21.10\r\nUTC Build Time: 2024-07-05 09:18:40\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n1. Start PiTR restore\r\nBackup cluster:  \r\n9 TiKV (3.6TB Disk), full backup: ~19TB,  log backup:  ~2 days (2.5TB), write throughtput < 30M; insert/udpate ratio: 1.5/100\r\n```\r\n# ks3util ls ks3://xxxx/test0907/pitr-log-task | awk '{sum += $5} END {print sum/1024/1024/1024 \" GB\"}'\r\n2567.21 GB\r\n\r\n```\r\n![image](https://github.com/user-attachments/assets/34776b9d-6b73-4f57-a108-334db25be7e3)\r\n\r\nRestored Cluster:\r\n9 TiKV, 3.6TB disk\r\n\r\n\r\n### What did you expect?\r\nPiTR restore should succeed.\r\n\r\n### What did happened?\r\nFull restore succeeded, and log restore failed due to TiKV disk full.\r\n   errorVerbose=\"the following errors occurred:\\n -  store ids [8], errmsg propose failed: tikv disk full\r\n\r\n```\r\nbr.log.2024-09-09T03.56-2024-09-09T05-22-38.368.12Z:[2024/09/09 05:12:18.414 +00:00] [INFO] [collector.go:78] [\"Full Restore success summary\"] [total-ranges=108514] [ranges-succeed=108514] [ranges-failed=0] [split-region=252.239295ms] [restore-ranges=60106] [total-take=1h16m5.452399912s] [Size=6019419618843] [BackupTS=452375349333066050] [RestoreTS=452422317109149698] [total-kv=18103664429] [total-kv-size=8.212TB] [average-speed=1.799GB/s] [restore-data-size(after-compressed)=6.019TB]\r\n```\r\n<img width=\"1354\" alt=\"image\" src=\"https://github.com/user-attachments/assets/b591fb0b-fbfa-4aa6-9018-9abee21a9ee4\">\r\n",
+  "state": "open",
+  "created_at": "2024-09-09T11:57:55Z",
+  "updated_at": "2024-11-01T10:02:07Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2339501105,
+      "user": "3pointer",
+      "created_at": "2024-09-10T02:46:20Z",
+      "body": "Because we stop GC during log restore. Too many MVCC + Big Compaction will consume more space. we should consider triggering some GC during that time."
+    }
+  ]
+}

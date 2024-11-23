@@ -1,0 +1,42 @@
+{
+  "issue_number": 14257,
+  "title": "upgrade openssl version to fix CVE-2023-0286",
+  "body": "## Bug Report\r\n\r\nTiKV currently use an old version openssl-src `111.20.0+1.1.1o`. The bug [cve-2023-0286](https://www.trellix.com/en-us/about/newsroom/stories/research/cve-2023-0286-the-openssl-who-cried-severity-high.html) was fixed in `1.1.1t`.\r\n\r\nSo let's upgrade the openssl version.",
+  "state": "closed",
+  "created_at": "2023-02-22T07:53:10Z",
+  "updated_at": "2023-02-27T07:32:44Z",
+  "closed_at": "2023-02-23T01:29:09Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-6.6"
+  ],
+  "comments_data": [
+    {
+      "id": 1439572194,
+      "user": "cosven",
+      "created_at": "2023-02-22T07:53:40Z",
+      "body": "/type bug\r\n/assign @cosven\r\n/severity major\r\n/remove-severity minor"
+    },
+    {
+      "id": 1439764023,
+      "user": "cosven",
+      "created_at": "2023-02-22T10:20:54Z",
+      "body": "Remove non-lts version \r\n\r\n/remove-label may-affects-4.0\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.6"
+    },
+    {
+      "id": 1445838891,
+      "user": "cosven",
+      "created_at": "2023-02-27T07:32:42Z",
+      "body": "/label affects-4.0"
+    }
+  ]
+}

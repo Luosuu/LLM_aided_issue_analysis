@@ -1,0 +1,21 @@
+{
+  "issue_number": 17147,
+  "title": "In-memory Engine: the tag in `CacheRange` may be inaccurate ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nAfter region split, in-memory engine changes range respectively, but it does not update the tag, because it does not know the region id. As the result, the tag might be misleading during debugging.\r\n\r\nSee https://github.com/tikv/tikv/pull/17137#discussion_r1637634602\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nNightly, 2024-06-13.\r\n\r\n### What did you expect?\r\n\r\nThe tag should match the actually region ID.\r\n",
+  "state": "closed",
+  "created_at": "2024-06-14T08:42:24Z",
+  "updated_at": "2024-08-16T08:11:43Z",
+  "closed_at": "2024-08-16T08:11:42Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 2290818892,
+      "user": "overvenus",
+      "created_at": "2024-08-15T07:33:59Z",
+      "body": "Tag is removed, see https://github.com/tikv/tikv/pull/17331#discussion_r1716331463"
+    }
+  ]
+}

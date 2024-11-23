@@ -1,0 +1,20 @@
+{
+  "issue_number": 6702,
+  "title": "Welcome message are not the first message when starting anymore",
+  "body": "## Bug Report\r\n\r\nI expect seeing \"Welcome to TiKV\" at the startup messages, but seeing configuration check and connecting to PD instead. This may not be convenient for diagnosticsing problem. If it keeps panicing during connecting to PD, it may not be easy to find it out as we used to check \"Welcome\" message first.\r\n\r\n### What version of TiKV are you using?\r\nLatest master\r\n\r\n### What operating system and CPU are you using?\r\nCentOS\r\n\r\n### Steps to reproduce\r\nsystemctl start tikv-port\r\n\r\n### What did you expect?\r\n\r\n```\r\n[2020/02/26 10:55:10.727 +00:00] [INFO] [lib.rs:88] [\"Welcome to TiKV\"]\r\n[2020/02/26 10:55:10.727 +00:00] [INFO] [lib.rs:90] []\r\n[2020/02/26 10:55:10.727 +00:00] [INFO] [lib.rs:90] [\"Release Version:   4.1.0-alpha\"]\r\n```\r\n\r\n### What did happened?\r\n```\r\n[2020/02/26 09:10:07.141 +00:00] [INFO] [config.rs:514] [\"kernel parameters\"] [value=32768] [param=net.core.somaxconn]\r\n[2020/02/26 09:10:07.141 +00:00] [INFO] [config.rs:514] [\"kernel parameters\"] [value=0] [param=net.ipv4.tcp_syncookies]\r\n[2020/02/26 09:10:07.141 +00:00] [INFO] [config.rs:514] [\"kernel parameters\"] [value=0] [param=vm.swappiness]\r\n[2020/02/26 09:10:07.141 +00:00] [INFO] [util.rs:425] [\"connecting to PD endpoint\"] [endpoints=127.0.0.1:2379]\r\n[2020/02/26 09:10:07.143 +00:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f98ac04b150 for subchannel 0x7f98abc21000\"]\r\n[2020/02/26 09:10:07.156 +00:00] [INFO] [server.rs:244] [\"connect to PD cluster\"] [cluster_id=6797395620193450052]\r\n[2020/02/26 09:10:07.224 +00:00] [INFO] [server.rs:759] [\"beginning system configuration check\"]\r\n[2020/02/26 09:10:07.224 +00:00] [INFO] [lib.rs:88] [\"Welcome to TiKV\"]\r\n[2020/02/26 09:10:07.224 +00:00] [INFO] [lib.rs:90] []\r\n[2020/02/26 10:55:10.727 +00:00] [INFO] [lib.rs:90] [\"Release Version:   4.1.0-alpha\"]\r\n```",
+  "state": "closed",
+  "created_at": "2020-02-26T11:46:08Z",
+  "updated_at": "2020-02-27T12:02:52Z",
+  "closed_at": "2020-02-27T12:02:52Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 591407085,
+      "user": "NingLin-P",
+      "created_at": "2020-02-26T12:43:30Z",
+      "body": "Thanks for report, I will fix it later."
+    }
+  ]
+}

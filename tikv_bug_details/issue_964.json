@@ -1,0 +1,39 @@
+{
+  "issue_number": 964,
+  "title": "raft: use monotonic clock check for leader lease read ",
+  "body": "Now we only use \n\n```\npub fn in_lease(&self) -> bool {\n        self.state == StateRole::Leader && self.check_quorum\n    }\n```\n\nto check whether we can read in lease or not, but this has some ricks if we meet time drift or raft thread blocking.  \nSo we can add monotonic clock to do more strict check. but now rust seems not supporting CLOCK_MONOTONIC_RAW only CLOCK_MONOTONIC.\n\nIf the in_lease returns true but the monotonic clock overtime, we should log an error here. \n\n/cc @ngaut @swingbach \n",
+  "state": "closed",
+  "created_at": "2016-08-23T04:06:42Z",
+  "updated_at": "2018-08-07T00:46:02Z",
+  "closed_at": "2016-11-28T06:38:08Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 241654400,
+      "user": "siddontang",
+      "created_at": "2016-08-23T07:50:58Z",
+      "body": "Hi @xiang90 \nDo you want to add this check in etcd too? \n"
+    },
+    {
+      "id": 241811194,
+      "user": "xiang90",
+      "created_at": "2016-08-23T17:32:53Z",
+      "body": "If you do not trust clock or the clock drift is unbounded, you should not use this feature for lease read. \n\nMONO clock guarantees that the clock will not go backwards, but this is not good enough. Say a leader is disconnected with other nodes. And its \"clock\" also stops or moved slow for 2 seconds (this can happen due to GC, process scheduling or clock drift). The leader might still believe it has the lease. But for other nodes the lease is already expired. Then the client might read stale data from the leader that was slow.\n"
+    },
+    {
+      "id": 241927705,
+      "user": "siddontang",
+      "created_at": "2016-08-24T00:56:13Z",
+      "body": "Thanks @xiang90 Any better solution? \nI know this way is not 100% safe, here is a more strict check. \n"
+    },
+    {
+      "id": 259316220,
+      "user": "siddontang",
+      "created_at": "2016-11-09T01:59:18Z",
+      "body": "```\n113 \n2016-11-07 23:57:47,511 raft.rs:642 - INFO  - [region 143] 3507 became leader at term 13\n2016-11-07 23:58:40,809 raft.rs:732 - INFO  - [region 143] 3507 [logterm: 13, index: 227201, vote: 3507] ignored vote from 146 [logterm: 13, index: 227177] at term 13: lease is not expired (remaining ticks: 27)\n2016-11-07 23:58:40,809 raft.rs:752 - INFO  - [region 143] 3507 [term: 13] received a MsgAppend message with higher term from 146 [term: 14]\n2016-11-07 23:58:40,810 raft.rs:606 - INFO  - [region 143] 3507 became follower at term 14\n\n114 \n2016-11-07 23:58:08,996 raft.rs:1201 - INFO  - [region 143] 146 [quorum:2] has received 2 votes and 0 vote rejections\n2016-11-07 23:58:08,996 raft.rs:642 - INFO  - [region 143] 146 became leader at term 14\n```\n\nAs we see, there are two leaders now, the leader in 113 is stale, but it can still supply lease read. Now our system is not linearizability.\n\nWe must construct a unit test to reproduce and fix it ASAP. \n"
+    }
+  ]
+}

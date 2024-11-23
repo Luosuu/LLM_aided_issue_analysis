@@ -1,0 +1,77 @@
+{
+  "issue_number": 15555,
+  "title": "Br failed backup to ks3 for The operation generates conflict uploadId, try to initiate multipart upload later",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nRelease Version:   7.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   640143a2daba90bfcc9a3848d19887a7a2f39170\r\nGit Commit Branch: heads/refs/tags/v7.4.0-alpha\r\nUTC Build Time:    2023-09-04 11:47:37\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nmultiple rocksdb, 50 tikvs\r\nbr backup 115T full to ks3\r\n```\r\n[2023/09/07 12:58:41.026 +08:00] [INFO] [collector.go:77] [\"Full Backup failed summary\"] [total-ranges=1] [ranges-succeed=0] [ranges-failed=1] [backup-total-ranges=119] [unit-name=\"range start:7480000000000000685f7201 end:7480000000000000685f72fb\"] [error=\"error happen in store 40 at [tc-tikv-38.tc](http://tc-tikv-38.tc/)-tikv-peer.partition-raft-xxwgm.svc:20160: Io(Custom { kind: Other, error: \\\"failed to put object rusoto error Request ID: None Body: <?xml version=\\\\\\\"1.0\\\\\\\" encoding=\\\\\\\"UTF-8\\\\\\\" standalone=\\\\\\\"yes\\\\\\\"?><Error><Code>MultiThreadInitMultipartUploadError</Code><Message>The operation generates conflict uploadId, try to initiate multipart upload later</Message><Resource>/qe-testing/kernel-testing/airbnb-115t-br/snapshot-09071100/40/21178237_458_17c24bb88496b662b57371d0aa6ead9bc809b4cbc53c69c4886f6291027d9ee6_1694062719530_default.sst?uploads</Resource><RequestId>f1jkg020kcmoa875s98qvm5qlk5ga7us</RequestId></Error>\\\" }): [BR:KV:ErrKVStorage]tikv storage occur I/O error\"] [errorVerbose=\"[BR:KV:ErrKVStorage]tikv storage occur I/O error\\nerror happen in store 40 at [tc-tikv-38.tc](http://tc-tikv-38.tc/)-tikv-peer.partition-raft-xxwgm.svc:20160: Io(Custom { kind: Other, error: \\\"failed to put object rusoto error Request ID: None Body: <?xml version=\\\\\\\"1.0\\\\\\\" encoding=\\\\\\\"UTF-8\\\\\\\" standalone=\\\\\\\"yes\\\\\\\"?><Error><Code>MultiThreadInitMultipartUploadError</Code><Message>The operation generates conflict uploadId, try to initiate multipart upload later</Message><Resource>/qe-testing/kernel-testing/airbnb-115t-br/snapshot-09071100/40/21178237_458_17c24bb88496b662b57371d0aa6ead9bc809b4cbc53c69c4886f6291027d9ee6_1694062719530_default.sst?uploads</Resource><RequestId>f1jkg020kcmoa875s98qvm5qlk5ga7us</RequestId></Error>\\\" })\\[ngithub.com/pingcap/tidb/br/pkg/backup.(*pushDown).pushBackup\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/backup/push.go:218\\ngithub.com/pingcap/tidb/br/pkg/backup.(*Client).BackupRange\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/backup/client.go:962\\ngithub.com/pingcap/tidb/br/pkg/backup.(*Client).BackupRanges.func2\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/backup/client.go:876\\ngithub.com/pingcap/tidb/br/pkg/utils.(*WorkerPool).ApplyOnErrorGroup.func1\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/utils/worker.go:76\\ngolang.org/x/sync/errgroup.(*Group).Go.func1\\n\\t/go/pkg/mod/golang.org/x/sync@v0.3.0/errgroup/errgroup.go:75\\nruntime.goexit\\n\\t/usr/local/go/src/runtime/asm_amd64.s:1650](http://ngithub.com/pingcap/tidb/br/pkg/backup.(*pushDown).pushBackup/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/backup/push.go:218/ngithub.com/pingcap/tidb/br/pkg/backup.(*Client).BackupRange/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/backup/client.go:962/ngithub.com/pingcap/tidb/br/pkg/backup.(*Client).BackupRanges.func2/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/backup/client.go:876/ngithub.com/pingcap/tidb/br/pkg/utils.(*WorkerPool).ApplyOnErrorGroup.func1/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/utils/worker.go:76/ngolang.org/x/sync/errgroup.(*Group).Go.func1/n/t/go/pkg/mod/golang.org/x/sync@v0.3.0/errgroup/errgroup.go:75/nruntime.goexit/n/t/usr/local/go/src/runtime/asm_amd64.s:1650)\"]\r\nFull Backup <--------------------------------------------------------------------------------------------------------------------------------------------------.> 99.16%Error: error happen in store 40 at [tc-tikv-38.tc](http://tc-tikv-38.tc/)-tikv-peer.partition-raft-xxwgm.svc:20160: Io(Custom { kind: Other, error: \"failed to put object rusoto error Request ID: None Body: <?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\" standalone=\\\"yes\\\"?><Error><Code>MultiThreadInitMultipartUploadError</Code><Message>The operation generates conflict uploadId, try to initiate multipart upload later</Message><Resource>/qe-testing/kernel-testing/airbnb-115t-br/snapshot-09071100/40/21178237_458_17c24bb88496b662b57371d0aa6ead9bc809b4cbc53c69c4886f6291027d9ee6_1694062719530_default.sst?uploads</Resource><RequestId>f1jkg020kcmoa875s98qvm5qlk5ga7us</RequestId></Error>\" }): [BR:KV:ErrKVStorage]tikv storage occur I/O error\r\n```\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-09-07T08:59:38Z",
+  "updated_at": "2024-04-26T10:40:33Z",
+  "closed_at": "2024-04-26T10:40:33Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1709809217,
+      "user": "Leavrth",
+      "created_at": "2023-09-07T09:29:09Z",
+      "body": "the external storage is ks3.\r\n```\r\n<Code>MultiThreadInitMultipartUploadError</Code><Message>The operation generates conflict uploadId, try to initiate multipart upload later</Message>\r\n```\r\n\r\nIt seems that the ks3 response a conflict uploadid."
+    },
+    {
+      "id": 1711166608,
+      "user": "BornChanger",
+      "created_at": "2023-09-08T06:51:15Z",
+      "body": "@jebter It seems this issue might occur on king cloud. Please change the severity to moderate."
+    },
+    {
+      "id": 1711167059,
+      "user": "BornChanger",
+      "created_at": "2023-09-08T06:51:42Z",
+      "body": "@Leavrth please open a ticket to king cloud."
+    },
+    {
+      "id": 1711256911,
+      "user": "jebter",
+      "created_at": "2023-09-08T08:08:38Z",
+      "body": "This issue causes tests to fail, let's drive the issue with high priority"
+    },
+    {
+      "id": 1711569382,
+      "user": "Leavrth",
+      "created_at": "2023-09-08T12:08:55Z",
+      "body": "> @Leavrth please open a ticket to king cloud.\r\n\r\nFrom ks3 service support: The error occurs in the `init_multipart_upload` stage. And the error rarely occurs. We can just retry."
+    },
+    {
+      "id": 1720958830,
+      "user": "Leavrth",
+      "created_at": "2023-09-15T09:22:47Z",
+      "body": "The http code of the error is 409."
+    },
+    {
+      "id": 1797075612,
+      "user": "BornChanger",
+      "created_at": "2023-11-07T00:24:02Z",
+      "body": "@Leavrth is there PR to retry for this failure?"
+    },
+    {
+      "id": 2078937073,
+      "user": "BornChanger",
+      "created_at": "2024-04-26T08:51:09Z",
+      "body": "> @Leavrth is there PR to retry for this failure?\r\n\r\n@Leavrth "
+    },
+    {
+      "id": 2079016836,
+      "user": "Leavrth",
+      "created_at": "2024-04-26T09:38:43Z",
+      "body": "fixed by https://github.com/pingcap/tidb/issues/47656"
+    }
+  ]
+}

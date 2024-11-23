@@ -1,0 +1,27 @@
+{
+  "issue_number": 16410,
+  "title": "raftstore: Peer does not print `raft-id` and `peer-id` in `raft-rs` lib",
+  "body": "## Bug Report\r\nThe `raftstore` do not print the `raft-id` and `region-id` in raft-rs.\r\n```\r\n[2024/01/18 12:23:45.245 +08:00] [INFO] [raft.rs:1532] [\"starting a new election\"] [term=5] [thread_id=1]\r\n[2024/01/18 12:23:45.245 +08:00] [INFO] [raft.rs:1177] [\"became pre-candidate at term 5\"] [term=5] [thread_id=1]\r\n[2024/01/18 12:23:45.245 +08:00] [INFO] [raft.rs:1151] [\"became candidate at term 6\"] [term=6] [thread_id=1]\r\n[2024/01/18 12:23:45.245 +08:00] [INFO] [raft.rs:1235] [\"became leader at term 6\"] [term=6] [thread_id=1]\r\n```\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nNightly branch: e2a2e87a890ad488446b3c4a2900a74d9313a8ba\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nNone\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nBuild with nightly branch.\r\n### What did you expect?\r\n`raft-rs` should print the `raft-id` and `region-id` as before.\r\n![img_v3_0277_181b7b71-6c8c-4924-a974-bd8930aa661g](https://github.com/tikv/tikv/assets/18441614/96c1c96f-2ac7-4e99-a90a-761a84494eac)\r\n\r\n### What did happened?\r\n`raft-rs` does not print the `raft-id` and `region-id` as before.",
+  "state": "closed",
+  "created_at": "2024-01-18T09:50:29Z",
+  "updated_at": "2024-01-19T06:19:48Z",
+  "closed_at": "2024-01-19T06:19:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1898144592,
+      "user": "LykxSassinator",
+      "created_at": "2024-01-18T09:51:24Z",
+      "body": "/cc @overvenus "
+    },
+    {
+      "id": 1898146795,
+      "user": "LykxSassinator",
+      "created_at": "2024-01-18T09:52:45Z",
+      "body": "It seems that this issue is introduced by https://github.com/tikv/tikv/pull/16399, which fixes the abnormal prints on `thread-id` but missing on printing `raft-id` and `region-id`."
+    }
+  ]
+}

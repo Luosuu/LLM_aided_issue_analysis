@@ -1,0 +1,21 @@
+{
+  "issue_number": 9910,
+  "title": "the rule for TiKV_GC_can_not_work alert should be enhanced to check with GC speed instead of GC task",
+  "body": "## Bug Report\r\n\r\nctive Since\tValue\r\nalertname=\"TiKV_GC_can_not_work\" env=\"ENV_LABELS_ENV\" expr=\"sum(increase(tikv_gcworker_gc_tasks_vec{task=\"gc\"}[1d])) < 1\" level=\"emergency\"\tFIRING\t2021-03-27 15:10:06.568417073 +0000 UTC\r\n\r\nsometimes, the system maybe has not update or delete record, should not triggered this alert.\r\n\r\n### What version of TiKV are you using?\r\nv5.0.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2021-03-28T06:36:45Z",
+  "updated_at": "2022-02-14T09:09:29Z",
+  "closed_at": "2021-03-30T10:56:44Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1038831517,
+      "user": "sticnarf",
+      "created_at": "2022-02-14T09:09:29Z",
+      "body": "#10661 fixes similar false-positive problems."
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "issue_number": 12399,
+  "title": "File locks for working around port conflict are sometimes inaccessible ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\nunix\r\n\r\n### Steps to reproduce\r\n1. run tikv-server in root mode\r\n2. run tikv-server in user mode\r\n\r\n### What did you expect?\r\nnornal startup\r\n\r\n### What did happened?\r\n`[FATAL] [[server.rs:894](http://server.rs:894/)] [\"failed to create lock at /tmp/1001_TIKV_LOCK_FILES/0.0.0.0_20160: Permission denied (os error 13)\"]`\r\n",
+  "state": "closed",
+  "created_at": "2022-04-21T06:51:39Z",
+  "updated_at": "2022-04-27T06:10:51Z",
+  "closed_at": "2022-04-27T06:10:51Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1105193982,
+      "user": "BusyJay",
+      "created_at": "2022-04-21T13:16:43Z",
+      "body": "I don't get it. If this file is created by other user, then ownership of all the files also belongs to them. How can it start normally by just making the lock file accessible to all other users? Is it even secure to do so?"
+    },
+    {
+      "id": 1105195865,
+      "user": "hunterlxt",
+      "created_at": "2022-04-21T13:18:32Z",
+      "body": "lock file need to be accessed so they can try lock that file."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "issue_number": 17671,
+  "title": "build: CI tasks are failed on testing loading coprocessor plugins.",
+  "body": "## Bug Report\r\n\r\nIntroduced by #17466, which has cleared the dependency on `example_coprocessor_plugin`. And it will cause TiKV failed on related UTs, such as `registry_load_and_get_plugin`, as the testing lib is not built when building.\r\n![img_v3_02fo_6fe71872-f120-4c3f-80e9-e09a31bd22ag](https://github.com/user-attachments/assets/b1c432ec-8c74-4881-aee7-0892ccabe722)\r\n\r\nAnd as we can see, the related plugin lib is not built:\r\n![img_v3_02fo_6fe71872-f120-4c3f-80e9-e09a31bd22ag](https://github.com/user-attachments/assets/e349f8df-631e-4d63-b31b-6f9b989cb71e)\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nNightly: 3635ff2c8b12015ce379bb5c8e4839af774190a8\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nMacOS and Linux-centos.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nClean all caches by `make clean`, then tests with `make nextest`.\r\n\r\n### What did you expect?\r\nRelated UTs should be normal.\r\n\r\n\r\n### What did happened?\r\nRelated UTs are failed as followings show:\r\nhttps://do.pingcap.net/jenkins/blue/organizations/jenkins/tikv%2Ftikv%2Frelease-8.4%2Fpull_unit_test/detail/pull_unit_test/11/pipeline/84/",
+  "state": "closed",
+  "created_at": "2024-10-17T06:39:21Z",
+  "updated_at": "2024-10-17T09:04:04Z",
+  "closed_at": "2024-10-17T09:04:04Z",
+  "labels": [
+    "type/bug",
+    "priority/critical",
+    "severity/critical",
+    "affects-8.4"
+  ],
+  "comments_data": [
+    {
+      "id": 2418654894,
+      "user": "LykxSassinator",
+      "created_at": "2024-10-17T06:42:18Z",
+      "body": "Thx for the help from @purelind and @wuhuizuo ."
+    }
+  ]
+}

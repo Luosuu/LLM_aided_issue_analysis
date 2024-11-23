@@ -1,0 +1,27 @@
+{
+  "issue_number": 17127,
+  "title": "In-memory Engine: lock should not be deleted directly",
+  "body": "## Bug Report\r\n\r\nFor delete cmd of lock cf, the delete is performed directly on in-memory engine rather than write tombsone. This is considered that we always want to read the latest value of the lock cf. However, it volates the write atomicity of the in-memory engine and rocksdb.\r\nThe complete process for writing a write batch is as follows:\r\nrocksdb:write_callback -> .. -> rocksdb:write to memtable and callback with seqno. -> in-memory engine: write_impl -> rocksdb:publish seqno.\r\nWe can see that only when the last step that rocksdb publish the seqno will the write be visible. So we cannot avoid to write tombstone in lock-cf to guarantee the write atomicity.\r\n\r\nOne of the abnormal caused by this issue is: https://github.com/tikv/tikv/issues/17018\r\n",
+  "state": "closed",
+  "created_at": "2024-06-12T06:33:04Z",
+  "updated_at": "2024-06-19T10:52:11Z",
+  "closed_at": "2024-06-13T03:39:01Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 2178325101,
+      "user": "seiya-annie",
+      "created_at": "2024-06-19T10:24:31Z",
+      "body": "/found customer"
+    },
+    {
+      "id": 2178374296,
+      "user": "seiya-annie",
+      "created_at": "2024-06-19T10:52:09Z",
+      "body": "/remove-found customer"
+    }
+  ]
+}

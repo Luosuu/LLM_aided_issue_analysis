@@ -1,0 +1,30 @@
+{
+  "issue_number": 15125,
+  "title": "region count should not be throttled when memory usage exceeds a threshold ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nmassive split region requests makes TiKV OOM\r\n### What did you expect?\r\nSplit region should be throttled when memory usage is very high & region count is quite large\r\n### What did happened?\r\nRegion counts are too many and then TiKV OOMs",
+  "state": "open",
+  "created_at": "2023-07-14T04:27:40Z",
+  "updated_at": "2024-11-01T10:18:18Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1776200497,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T23:26:29Z",
+      "body": "Same as  https://github.com/tikv/tikv/issues/15701"
+    }
+  ]
+}

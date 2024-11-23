@@ -1,0 +1,14 @@
+{
+  "issue_number": 17131,
+  "title": "In-memory Engine: `range` to evict may contain multiple cached range",
+  "body": "## Bug Report\r\n\r\nNow, the implementation of `evict_range` assumes the range to be evicted is just overlapped(including contain and be contained) with at most one range. However, if delete_range occurs as well as merge, the range may contain multiple cached  ranges.\r\n",
+  "state": "closed",
+  "created_at": "2024-06-12T11:16:21Z",
+  "updated_at": "2024-06-17T04:32:47Z",
+  "closed_at": "2024-06-17T04:32:47Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

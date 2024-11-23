@@ -1,0 +1,34 @@
+{
+  "issue_number": 14470,
+  "title": "[Dynamic Regions] qps and latency is unstable for oltp_insert",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv7.0.0\r\n[38d6d6264e4ce25e3fe780e03b879c04890ca37b](https://github.com/tikv/tikv/commit/38d6d6264e4ce25e3fe780e03b879c04890ca37b)\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nx86\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrun oltp_insert for 6 hours\r\n\r\n```\r\nsysbench oltp_insert run --mysql-host=lb.release-perftest-amd64-stability-001-tps-1661755-1-440 --mysql-port=4000 --mys\r\nql-user=root --db-driver=mysql --mysql-db=test --threads=100 --time=21600 --report-interval=10 --tables=32 --table-size=10000000 --mysql-ignore-errors=1062,2013,8028,9002,9007\r\n--auto-inc=false\r\n```\r\n\r\n### What did you expect?\r\nqps and latency is stable\r\n\r\n### What did happened?\r\n![27d0328b-693e-49f9-a486-5d58730d05c6](https://user-images.githubusercontent.com/2316425/228133995-544d7249-aef2-43be-98e3-2a778142bb8a.jpeg)\r\n![image](https://user-images.githubusercontent.com/2316425/228134051-1f013698-2a16-45ad-9a67-07b09ab74dba.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-03-28T05:11:10Z",
+  "updated_at": "2023-10-23T22:40:11Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1486226636,
+      "user": "dbsid",
+      "created_at": "2023-03-28T05:11:52Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1486229152,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-28T05:15:08Z",
+      "body": "/assign @tonyxuqqi "
+    },
+    {
+      "id": 1487322518,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-28T17:23:40Z",
+      "body": "<img width=\"907\" alt=\"Screen Shot 2023-03-28 at 10 21 27 AM\" src=\"https://user-images.githubusercontent.com/9442422/228318991-869eda0c-4a44-49d7-bd23-727e320e9072.png\">\r\n\r\n<img width=\"1430\" alt=\"Screen Shot 2023-03-28 at 10 23 06 AM\" src=\"https://user-images.githubusercontent.com/9442422/228319252-03a1b793-c5ee-4370-8b59-95d57dd14ef3.png\">\r\n\r\nThe root cause is that the compaction flow spike impacts the IO latency which leads to the raft-engine's IO latency spike. \r\nTo minimize the compaction's impact, we probably need to set the compact's flow limit \"rocksdb.rate-bytes-per-sec\". \r\nIn this case, the proper value can be around 100MB/s ~ 150MB/s. Also reduce the rocksdb.writecf.write-buffer-size to 64MB could reduce the compaction flow spike (but increase the overall compaction volumes)"
+    }
+  ]
+}

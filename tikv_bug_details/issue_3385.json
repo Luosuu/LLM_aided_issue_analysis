@@ -1,0 +1,24 @@
+{
+  "issue_number": 3385,
+  "title": "Some Prevote tests cannot pass reliably.",
+  "body": "In #3386 we determined that some prevote tests cannot pass reliably.\r\n\r\nThis is because we attach a `MessageTypeNotifier` which listens for a specific message type to be send in some duration.\r\n\r\nThe way we use it is by creating a failure, such as a partition, then recovering it and immediately attaching the notifiers.\r\n\r\nSome notes:\r\n\r\n* Attaching the notifiers before clearing the partitioning means we accidentally clear the notifiers as well.\r\n* Since the notifiers are attached after the partition is removed it's entirely possible that the prevote messages will be sent before we can go an attach the notifier.\r\n* It was manually verified even in failing test cases that a prevote was sent as appropriate.\r\n\r\nIn #3386 we disabled these unreliable tests, enabling them will require some thought around how to catch these messages.",
+  "state": "closed",
+  "created_at": "2018-08-02T15:20:31Z",
+  "updated_at": "2021-12-09T07:10:31Z",
+  "closed_at": "2021-12-09T07:10:30Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 989576084,
+      "user": "5kbpers",
+      "created_at": "2021-12-09T07:10:30Z",
+      "body": "Close this issue since we opened some other issues for specified tests."
+    }
+  ]
+}

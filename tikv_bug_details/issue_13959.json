@@ -1,0 +1,16 @@
+{
+  "issue_number": 13959,
+  "title": "log-backup: log backup cannot work in some conditions",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\ncurrent master\r\n\r\n### What operating system and CPU are you using?\r\nNot relative\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nI haven't manually executed these steps. However the reporter did shows the error. I'm not sure what exactly they did, however still a (hopefully valid) recipe here:\r\n1. Sign a Root CA `R` with one key.\r\n2. With the Root CA `R`, issue another CA `S`.\r\n3. Sign a cert `Cert` for client key `CK` by the CA `S`.\r\n4. Run cluster with `--ca-path S --key-path CK --cert-path Cert`, and enable PITR.\r\n\r\n### What did you expect?\r\nPITR success to start.\r\n\r\n### What did happened?\r\nIt said:\r\n```\r\nEtcd(GRpcStatus(Status { code: Unknown, \r\n  message: \"buffered service failed: load balancer discovery error: transport error: transport error\", source: \r\n    Some(ServiceError { inner: \r\n      Discover(TransportError(tonic::transport::Error(Transport, hyper::Error(Connect, ConnectError { error: Error { code: ErrorCode(1), cause: \r\n        Some(Ssl(ErrorStack([\r\n            Error { code: 337047686, library: \"SSL routines\", function: \"tls_process_server_certificate\", reason: \"certificate verify failed\", file: \"ssl/statem/statem_clnt.c\", line: 1921 }\r\n        ])))\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2022-12-19T03:29:33Z",
+  "updated_at": "2023-07-03T02:39:00Z",
+  "closed_at": "2022-12-19T06:24:55Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

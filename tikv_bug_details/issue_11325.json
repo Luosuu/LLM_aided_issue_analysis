@@ -1,0 +1,39 @@
+{
+  "issue_number": 11325,
+  "title": "test_resolve::test_joint_confchange failed",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nNightly\r\n\r\n### What operating system and CPU are you using?\r\nLinux\r\n\r\n### Steps to reproduce\r\nMake dev\r\n\r\n### What did you expect?\r\nTests pass.\r\n\r\n### What did happened?\r\nIt failed occasionally.\r\n\r\n```\r\ntest test_resolve::test_joint_confchange ... thread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: ()', components/cdc/tests/failpoints/../mod.rs:69:87\r\nstack backtrace:\r\n   0: rust_begin_unwind\r\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/std/src/panicking.rs:515:5\r\n   1: core::panicking::panic_fmt\r\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/panicking.rs:92:14\r\n   2: core::result::unwrap_failed\r\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/result.rs:1599:5\r\n   3: core::result::Result<T,E>::unwrap\r\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/result.rs:1281:23\r\n   4: failpoints::testsuite::new_event_feed::{{closure}}\r\n             at /home/jenkins/tikv-src/components/cdc/tests/failpoints/../mod.rs:69:34\r\n   5: <alloc::boxed::Box<F,A> as core::ops::function::Fn<Args>>::call\r\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1586:9\r\n   6: failpoints::test_resolve::test_joint_confchange::{{closure}}\r\n             at /home/jenkins/tikv-src/components/cdc/tests/failpoints/test_resolve.rs:191:25\r\n   7: failpoints::test_resolve::test_joint_confchange\r\n             at /home/jenkins/tikv-src/components/cdc/tests/failpoints/test_resolve.rs:235:5\r\n   8: failpoints::test_resolve::test_joint_confchange::{{closure}}\r\n             at /home/jenkins/tikv-src/components/cdc/tests/failpoints/test_resolve.rs:181:1\r\n   9: core::ops::function::FnOnce::call_once\r\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/ops/function.rs:227:5\r\n  10: test_util::runner::run_test_with_hook::{{closure}}::{{closure}}\r\n             at /home/jenkins/tikv-src/components/test_util/src/runner.rs:64:21\r\n  11: core::ops::function::FnOnce::call_once{{vtable.shim}}\r\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/core/src/ops/function.rs:227:5\r\n  12: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\r\n             at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nFAILED\r\n```\r\n\r\nLogs can be found at https://ci.pingcap.net/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/10866/nodes/104/steps/191/log/?start=0.",
+  "state": "open",
+  "created_at": "2021-11-10T11:22:01Z",
+  "updated_at": "2021-12-29T10:05:21Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 967857612,
+      "user": "BusyJay",
+      "created_at": "2021-11-13T08:55:41Z",
+      "body": "Another case: https://ci.pingcap.net/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/11117/pipeline/"
+    },
+    {
+      "id": 986674819,
+      "user": "Lily2025",
+      "created_at": "2021-12-06T11:10:49Z",
+      "body": "/severity Moderate"
+    },
+    {
+      "id": 1002453098,
+      "user": "BusyJay",
+      "created_at": "2021-12-29T08:22:08Z",
+      "body": "Any updates? /cc @overvenus \r\n\r\nIf no one is going to fix the issue, I will disable the case in this week."
+    },
+    {
+      "id": 1002453451,
+      "user": "BusyJay",
+      "created_at": "2021-12-29T08:23:12Z",
+      "body": "Latest logs about the failing case can be found at https://ci.pingcap.net/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/14378/nodes/101/steps/164/log/?start=0."
+    }
+  ]
+}

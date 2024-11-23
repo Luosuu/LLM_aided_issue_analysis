@@ -1,0 +1,82 @@
+{
+  "issue_number": 9126,
+  "title": "TiKV panic during upgrading from v4.0.8 to nightly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n`bf4c5a49e3ae5134c3f66e67fce6aa7335da9ac3` in [`gengliqi:fsync-control`](https://github.com/gengliqi/tikv/tree/fsync-control)\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nDbaas t1-standard\r\n\r\n### What did happened?\r\n```\r\n[2020/11/26 11:42:45.969 +00:00] [ERROR] [kms.rs:137] [\"kms request failed\"] [error=\"Other(HttpDispatch(HttpDispatchError { message: \\\"Error during dispatch: error trying to connect: error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed:ssl/statem/statem_clnt.c:1915: (unable to get local issuer certificate)\\\" }))\"]\r\n[2020/11/26 11:42:45.977 +00:00] [ERROR] [kms.rs:137] [\"kms request failed\"] [error=\"Other(HttpDispatch(HttpDispatchError { message: \\\"Error during dispatch: error trying to connect: error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed:ssl/statem/statem_clnt.c:1915: (unable to get local issuer certificate)\\\" }))\"]\r\n[2020/11/26 11:42:45.977 +00:00] [ERROR] [mod.rs:108] [\"encryption: failed to load key dictionary.\"]\r\n[2020/11/26 11:42:46.350 +00:00] [FATAL] [lib.rs:482] [\"called `Result::unwrap()` on an `Err` value: Other(\\\"[components/encryption/src/master_key/kms.rs:148]: Some(Other(HttpDispatch(HttpDispatchError { message: \\\\\\\"Error during dispatch: error trying to connect: error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed:ssl/statem/statem_clnt.c:1915: (unable to get local issuer certificate)\\\\\\\" })))\\\")\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{closure}}\\n             at components/tikv_util/src/lib.rs:481\\n   1: std::panicking::rust_panic_with_hook\\n             at library/std/src/panicking.rs:581\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n             at library/std/src/panicking.rs:484\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n             at library/std/src/sys_common/backtrace.rs:141\\n   4: rust_begin_unwind\\n             at library/std/src/panicking.rs:483\\n   5: core::panicking::panic_fmt\\n             at library/core/src/panicking.rs:85\\n   6: core::option::expect_none_failed\\n             at library/core/src/option.rs:1238\\n   7: core::result::Result<T,E>::unwrap\\n             at rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/core/src/result.rs:973\\n      cmd::server::TiKVServer<ER>::init_encryption\\n             at cmd/src/server.rs:372\\n      cmd::server::run_tikv\\n             at cmd/src/server.rs:124\\n   8: tikv_server::main\\n             at cmd/src/bin/tikv-server.rs:181\\n   9: core::ops::function::FnOnce::call_once\\n             at rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/core/src/ops/function.rs:227\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\n             at rustc/b1496c6e606dd908dd651ac2cce89815e10d7fc5/library/std/src/sys_common/backtrace.rs:125\\n  10: main\\n  11: __libc_start_main\\n  12: <unknown>\\n\"] [location=cmd/src/server.rs:376] [thread_name=main]\r\n```\r\nSee more details in [tikv_panic.log](https://github.com/tikv/tikv/files/5602723/tikv_panic.log)\r\n",
+  "state": "closed",
+  "created_at": "2020-11-26T11:48:30Z",
+  "updated_at": "2020-12-14T03:25:23Z",
+  "closed_at": "2020-12-14T03:25:23Z",
+  "labels": [
+    "type/bug",
+    "component/security",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 734253396,
+      "user": "5kbpers",
+      "created_at": "2020-11-26T11:49:34Z",
+      "body": "PTAL @yiwu-arbug @overvenus @hunterlxt "
+    },
+    {
+      "id": 734668927,
+      "user": "Little-Wallace",
+      "created_at": "2020-11-27T06:29:20Z",
+      "body": "@glorv No. It is not from v4.0.8..... It is upgrading from master to release-4.0. So it is not a bug."
+    },
+    {
+      "id": 734669604,
+      "user": "glorv",
+      "created_at": "2020-11-27T06:31:36Z",
+      "body": "> @glorv No. It is not from v4.0.8..... It is upgrading from master to release-4.0. So it is not a bug.\r\n\r\nI deleted the comment since it's misleading.."
+    },
+    {
+      "id": 735043675,
+      "user": "yiwu-arbug",
+      "created_at": "2020-11-28T05:48:06Z",
+      "body": "The KMS logic didn't get changed since 4.0GA. Looks like that's a connection issue when connect to AWS?"
+    },
+    {
+      "id": 736012689,
+      "user": "yiwu-arbug",
+      "created_at": "2020-11-30T20:05:30Z",
+      "body": "Not sure if it related to proxy setting: https://github.com/aws/aws-toolkit-vscode/issues/899#issuecomment-589500847"
+    },
+    {
+      "id": 736360492,
+      "user": "5kbpers",
+      "created_at": "2020-12-01T09:46:39Z",
+      "body": "Not sure how it happened since the pod had restarted after TiKV stopped, but I think it is reproducible.\r\nIMO we may need more proper error handling.🤔"
+    },
+    {
+      "id": 737229626,
+      "user": "shuijing198799",
+      "created_at": "2020-12-02T13:27:42Z",
+      "body": "It seems only occured in upgrade and downgrade tikv version. \r\n```\r\n\"encryption\\\":{\\\"data-encryption-method\\\":\\\"aes256-ctr\\\",\\\"data-key-rotation-period\\\":\\\"7d\\\",\\\"master-key\\\":{\\\"type\\\":\\\"kms\\\",\\\"key-id\\\":\\\"xxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxx\\\",\\\"region\\\":\\\"us-west-2\\\",\\\"endpoint\\\":\\\"\\\"},\\\"previous-master-key\\\":{\\\"type\\\":\\\"plaintext\\\"}}}\r\n```\r\nthis is the tikv config for encryption, please checkout is it any change or misconfiguration"
+    },
+    {
+      "id": 737474685,
+      "user": "yiwu-arbug",
+      "created_at": "2020-12-02T20:24:35Z",
+      "body": "@shuijing198799 the issue you experience with downgrade is caused by incompatible encryption metadata format. #8865 we changed the file format, but for compatibility reason the change isn't cherry-pick into 4.0.x (otherwise it will cause incompatibility between 4.0.x bugfix versions). The error in this case is\r\n```\r\ncomponents/encryption/src/encrypted_file/header.rs:18]: unknown version 2\r\n```\r\nIf so desire, we can apply a change to 4.0.x to make it able to downgrade, by making 4.0.x able to read the new file format, and rewrite the file into old format. "
+    },
+    {
+      "id": 737665422,
+      "user": "shuijing198799",
+      "created_at": "2020-12-03T04:56:04Z",
+      "body": "> Not sure how it happened since the pod had restarted after TiKV stopped, but I think it is reproducible.\r\n> IMO we may need more proper error handling.\r\n\r\nIt seems can't reproduce in dbaas. From the log point of view, it is obvious that the kms at that time could not be connected. This may be a problem of the dbaas environment itself at that time, rather than a logical bug. Can you elaborate on the environment and operation path at the time?\r\nMy operation path is create 4.0.8 version cluster -> upgrade to nightly.\r\n\r\n"
+    },
+    {
+      "id": 739136562,
+      "user": "yiwu-arbug",
+      "created_at": "2020-12-05T06:55:48Z",
+      "body": "> components/encryption/src/encrypted_file/header.rs:18]: unknown version 2\r\n\r\nOpened issue #9190 and PR #9191 for the fix."
+    },
+    {
+      "id": 744141807,
+      "user": "yiwu-arbug",
+      "created_at": "2020-12-14T03:25:23Z",
+      "body": "Closing for now if not reproducible. @5kbpers @shuijing198799 please reopen if needed."
+    }
+  ]
+}

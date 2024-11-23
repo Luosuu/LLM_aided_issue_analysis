@@ -1,0 +1,13 @@
+{
+  "issue_number": 11489,
+  "title": "nightly upgrade panic due to unrecognized configuration for raft-engine.recovery-mode",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nAny\r\n\r\n### What operating system and CPU are you using?\r\nAny\r\n\r\n### Steps to reproduce\r\n\r\nUpgrade to nightly after #10937 \r\n\r\n### What did you expect?\r\n\r\nSuccess\r\n\r\n### What did happened?\r\n\r\nPanics:\r\n```\r\nthread 'main' panicked at 'invalid auto generated configuration file /mnt/nvmessd1/centos/three-tikv-cdc/data/tikv-20160/last_tikv.toml, err unknown variant `tolerate-corrupted-tail-records`, expected one of `absolute-consistency`, `tolerate-tail-corruption`, `tolerate-any-corruption` for key `raft-engine` at line 660 column 1', src/config.rs:2885:13\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-11-26T08:42:10Z",
+  "updated_at": "2021-11-26T10:18:51Z",
+  "closed_at": "2021-11-26T10:18:51Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}

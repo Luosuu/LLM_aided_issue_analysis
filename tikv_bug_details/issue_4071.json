@@ -1,0 +1,45 @@
+{
+  "issue_number": 4071,
+  "title": "raft lib bug: In handle_heartbeat_response, the leader will lose the reply request of readindex",
+  "body": "`  fn handle_heartbeat_response(\r\n        &mut self,\r\n        m: &Message,\r\n        prs: &mut ProgressSet,\r\n        send_append: &mut bool,\r\n        more_to_send: &mut Option<Message>,\r\n    ) {\r\n        // Update the node. Drop the value explicitly since we'll check the qourum after.\r\n        {\r\n            let pr = prs.get_mut(m.get_from()).unwrap();\r\n            pr.recent_active = true;\r\n            pr.resume();\r\n\r\n            // free one slot for the full inflights window to allow progress.\r\n            if pr.state == ProgressState::Replicate && pr.ins.full() {\r\n                pr.ins.free_first_one();\r\n            }\r\n            if pr.matched < self.raft_log.last_index() {\r\n                *send_append = true;\r\n            }\r\n\r\n            if self.read_only.option != ReadOnlyOption::Safe || m.get_context().is_empty() {\r\n                return;\r\n            }\r\n        }\r\n\r\n        if !prs.has_quorum(&self.read_only.recv_ack(m)) {\r\n            return;\r\n        }\r\n\r\n        let rss = self.read_only.advance(m);\r\n        for rs in rss {\r\n            let mut req = rs.req;\r\n            if req.get_from() == INVALID_ID || req.get_from() == self.id {\r\n                // from local member\r\n                let rs = ReadState {\r\n                    index: rs.index,\r\n                    request_ctx: req.take_entries()[0].take_data(),\r\n                };\r\n                self.read_states.push(rs);\r\n            } else {\r\n              /*\r\nEach loop overrides to_send , but readindex req may come from a different slave. Causes some slaves to accept no return request.*/\r\n                let mut to_send = Message::new()\r\n                to_send.set_to(req.get_from());\r\n                to_send.set_msg_type(MessageType::MsgReadIndexResp);\r\n                to_send.set_index(rs.index);\r\n                to_send.set_entries(req.take_entries());\r\n                *more_to_send = Some(to_send);\r\n            }\r\n        }\r\n    }\r\n`\r\n\r\nEach loop overrides \"to_send\" , but readindex req may come from a different slave. Causes some slaves to accept no return request.",
+  "state": "closed",
+  "created_at": "2019-01-15T07:32:42Z",
+  "updated_at": "2020-08-28T11:59:21Z",
+  "closed_at": "2020-08-28T11:59:20Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 454302117,
+      "user": "rleungx",
+      "created_at": "2019-01-15T08:11:36Z",
+      "body": "@zhongleihe Thanks for your feedback!\r\nCould you please follow our template to edit your issue? It's not quite straightforward to figure out what is your question."
+    },
+    {
+      "id": 454391399,
+      "user": "rleungx",
+      "created_at": "2019-01-15T13:27:21Z",
+      "body": "PTAL. @hicqu "
+    },
+    {
+      "id": 454641510,
+      "user": "Fullstop000",
+      "created_at": "2019-01-16T03:45:48Z",
+      "body": "It seems that we only send the last `ReadIndexStatus` and drop the previous reading requests if using `ReadOnlyOption::Safe`\r\n```rust\r\n        for rs in rss {\r\n            let mut req = rs.req;\r\n            if req.get_from() == INVALID_ID || req.get_from() == self.id {\r\n                // from local member\r\n                // ...\r\n            } else {\r\n                let mut to_send = Message::new();\r\n                to_send.set_to(req.get_from());\r\n                to_send.set_msg_type(MessageType::MsgReadIndexResp);\r\n                to_send.set_index(rs.index);\r\n                to_send.set_entries(req.take_entries());\r\n                // only send the last one here\r\n                *more_to_send = Some(to_send);\r\n            }\r\n        }\r\n```\r\nI thinks this is a critical issue but does tikv just use lease read ? @rleungx "
+    },
+    {
+      "id": 454646821,
+      "user": "BusyJay",
+      "created_at": "2019-01-16T04:21:29Z",
+      "body": "This can become a problem when implementing follower read. /cc @nolouch "
+    },
+    {
+      "id": 454647191,
+      "user": "BusyJay",
+      "created_at": "2019-01-16T04:23:49Z",
+      "body": "@zhongleihe Can you send it to pingcap/raft-rs too? This is more related to raft-rs itself."
+    }
+  ]
+}

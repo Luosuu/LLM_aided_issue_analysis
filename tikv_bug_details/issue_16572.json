@@ -1,0 +1,14 @@
+{
+  "issue_number": 16572,
+  "title": "v7.5 tikv grafana [TiKV-Details] [Recently Released Bytes by Thread] incorrect configuration",
+  "body": "![tikv grafana](https://github.com/tikv/tikv/assets/7782693/c4d496be-1255-44eb-8207-c58b99b7831b)\r\n\r\n[Recently Released Bytes by Thread] should use the dealloc type.\r\n\r\n\r\nNewly Allocated Bytes by Thread:\r\nsum(delta(tikv_allocator_thread_allocation{k8s_cluster=\"$k8s_cluster\", tidb_cluster=\"$tidb_cluster\", instance=~\"$instance\", type=\"alloc\"}[$__rate_interval])) by (thread_name)\r\n\r\nRecently Released Bytes by Thread (alloc should not be used, should use the dealloc type):\r\nsum(delta(tikv_allocator_thread_allocation{k8s_cluster=\"$k8s_cluster\", tidb_cluster=\"$tidb_cluster\", instance=~\"$instance\", type=\"alloc\"}[$__rate_interval])) by (thread_name)",
+  "state": "open",
+  "created_at": "2024-02-28T07:12:02Z",
+  "updated_at": "2024-03-08T03:41:17Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,26 @@
+{
+  "issue_number": 6097,
+  "title": "Failpoint tests will not run when make dev",
+  "body": "When calling command `make dev` on master, only integration tests are run, but failpoints is ignored.\r\n\r\nWhen I run it explicitly, it refuses to run and reports:\r\n```\r\n% cargo test --no-default-features --features \" jemalloc portable sse failpoints protobuf-codec\" -p tests --test failpoints  -- --nocapture  \"\"\r\nerror: target `failpoints` in package `tests` requires the features: `failpoints`\r\nConsider enabling them by passing, e.g., `--features=\"failpoints\"`\r\n```",
+  "state": "closed",
+  "created_at": "2019-11-28T12:24:29Z",
+  "updated_at": "2020-08-28T09:25:20Z",
+  "closed_at": "2020-08-28T09:25:20Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 559479211,
+      "user": "BusyJay",
+      "created_at": "2019-11-28T12:38:47Z",
+      "body": "I think it's introduced by #5379."
+    },
+    {
+      "id": 559600907,
+      "user": "nrc",
+      "created_at": "2019-11-28T20:50:28Z",
+      "body": "I'm investigating. I can reproduce the error and it is certainly introduced by #5379, in particular by separating out the `tests` crate (which was done to work around another Cargo bug with features :-| ).\r\n\r\nMinimal repro I'm using is `cargo test --no-default-features --features=\"failpoints\" -p tests --test failpoints`. The issue seems to be that the feature is not passed to the failpoints test. Not sure why yet.\r\n\r\n(Given that issue, the failpoints test being skipped when not mentioned explicitly is expected)."
+    }
+  ]
+}

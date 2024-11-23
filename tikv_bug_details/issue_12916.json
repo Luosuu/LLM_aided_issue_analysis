@@ -1,0 +1,48 @@
+{
+  "issue_number": 12916,
+  "title": "[BR] partition table created during log backup are not restored correctly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/ # /tikv-server -V                                             \r\nTiKV                                                            \r\nRelease Version:   6.1.0                                        \r\nEdition:           Enterprise                                   \r\nGit Commit Hash:   f20a1195ddadf435329a0fbde7326ae9df17c245     \r\nGit Commit Branch: heads/refs/tags/v6.1.0-20220622              \r\nUTC Build Time:    2022-06-24 13:42:12                          \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. Start log backup\r\n2. Do full backup\r\n3. Execute below SQL in upstream TiDB\r\n```\r\ncreate table if not exists user (\r\n        id int unsigned not null auto_increment,\r\n        name varchar(64) not null,\r\n        phone varchar(16) not null,\r\n        gender tinyint not null,\r\n        age tinyint unsigned not null default 0,\r\n        created_at bigint unsigned not null default 0,\r\n        unique uniq_p(phone),\r\n        primary key (id)\r\n)ENGINE=InnoDB DEFAULT CHARSET=utf8;\r\n\r\ncreate table if not exists user_partition (\r\n        id int unsigned not null auto_increment,\r\n        name varchar(64) not null,\r\n        phone varchar(16) not null,\r\n        gender tinyint not null,\r\n        age tinyint unsigned not null default 0,\r\n        created_at bigint unsigned not null default 0,\r\n        primary key (id)\r\n)ENGINE=InnoDB DEFAULT CHARSET=utf8\r\npartition by range(id) (\r\n        partition p0 values less than (10000),\r\n        partition p1 values less than (20000),\r\n        partition p2 values less than MAXVALUE\r\n);\r\n\r\n1.\r\ninsert into user (name, phone, gender, age, created_at) values (\"bHHSrAUkcLLkFyH\", \"18618965199\", 1, 31, 2217363746106514);\r\ninsert into user (name, phone, gender, age, created_at) values (\"Qf\", \"18655541328\", 1, 35, 2170203167941878);\r\ninsert into user (name, phone, gender, age, created_at) values (\"bzfpuitAJZMlAPdO\", \"18613931556\", 0, 9, 2523078289610011);\r\ninsert into user (name, phone, gender, age, created_at) values (\"bUkiUP\", \"18662656875\", 0, 89, 110255637499037);\r\ninsert into user (name, phone, gender, age, created_at) values (\"LdjCrvkCHMmm\", \"18677866002\", 1, 20, 449433223380229);\r\n\r\ninsert into user_partition partition (p0) (name, phone, gender, age, created_at) values (\"xoLmWrAElsnlCg\", \"18605548391\", 1, 35, 788012805936334);\r\ninsert into user_partition partition (p1) values (10000, \"ANeiOdLugLQX\", \"18650866083\", 1, 4, 1561575837952842);\r\ninsert into user_partition partition (p2) values (20000, \"rAD\", \"18615972109\", 1, 51, 184542647548237);\r\n\r\ncreate table user_copy like user;\r\ninsert into user_copy select * from user;\r\ncreate table user_partition_copy like user_partition;\r\ninsert into user_partition_copy select * from user_partition;\r\n\r\ninsert into user (name, phone, gender, age, created_at) values (\"iQf\", \"18655541328\", 1, 35, 2170203167941878) on duplicate key update name=\"iQf\"; \r\n\r\n4.\r\nupdate user set name=\"update_1\", age=30 where id=1;\r\nupdate user as u1, user_partition as u2 set u1.name=\"update_3\", u2.name=\"update_1\" where u1.id = 3 and u2.id = 1;\r\n\r\n5.\r\ndelete from user where id = 4;\r\ndelete from user_partition partition (p1);\r\n\r\n6.\r\ninsert into user values (6, \"uFQVKFoTjvamCPyCfHxU\", \"18686569090\", 0, 51, 222086844502290), (7, \"mNDzcMyxospuHAnUANL\", \"18657142749\", 1, 4, 1002643543421445), (8, \"VJLJsk\", \"18615607609\", 1, 2, 1501461552385777), (9, \"OnvRhUQA\", \"18648088608\", 1, 50, 13199615195161), (10, \"sDTGtdgWBlZTv\", \"18691926052\", 1, 13, 1807215679804069);\r\n\r\n7.\r\nreplace into user values (6, \"replace_6\", \"18686569090\", 0, 51, 222086844502290), (7, \"replace_7\", \"18657142749\", 1, 4, 1002643543421445);\r\nreplace into user_partition partition(p2) values (20000, \"replace_20000\", \"18615972109\", 1, 51, 184542647548237);\r\nreplace into user set id=8, name=\"replace_8\", phone=\"18615607609\", gender=1;\r\ninsert into user_partition partition (p1) values (10000, \"ANeiOdLugLQX\", \"18650866083\", 1, 4, 1561575837952842);\r\nreplace into user_partition partition (p1) set id=10000, name=\"replace_10000\", phone=\"18650866083\", gender=1;\r\nreplace into user select * from user_copy where id=5;\r\nreplace into user_partition partition (p0) select * from user_partition_copy partition (p0) where id=1;\r\n\r\n8.\r\ndo sleep(5);\r\n\r\n9.\r\ntable user order by id desc limit 5;\r\n\r\n10.\r\nwith cte1 as (select * from user limit 5) select * from cte1;\r\n\r\n11.\r\nbegin;\r\nselect * from user where id <= 5 for update;\r\ncommit;\r\n```\r\n4. Wait checkpoint move forward, do PiTR restore to downstream, and check data consistency\r\n![origin_img_v2_a3e81231-b787-42d3-8329-10a7b99b7bbg](https://user-images.githubusercontent.com/7403864/175915894-77a50203-7081-419e-a77c-255b37a200f8.jpg)\r\n\r\n### What did you expect?\r\nData consistency check should pass\r\n\r\n### What did happened?\r\nData lost, 2 of the tables doesn't have data\r\n![WVYKvv4bb9](https://user-images.githubusercontent.com/7403864/175915924-687ba3d9-93ab-4ad6-9dc6-5ec98939a196.jpg)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-06-27T10:00:29Z",
+  "updated_at": "2022-07-12T11:01:44Z",
+  "closed_at": "2022-07-12T11:01:44Z",
+  "labels": [
+    "type/bug",
+    "sig/migrate",
+    "severity/critical",
+    "feature/developing",
+    "may-affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1167148032,
+      "user": "fubinzh",
+      "created_at": "2022-06-27T10:01:03Z",
+      "body": "/type bug\r\n/severity Critical\r\n/feature developing"
+    },
+    {
+      "id": 1167402478,
+      "user": "joccau",
+      "created_at": "2022-06-27T14:09:33Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0"
+    },
+    {
+      "id": 1167402666,
+      "user": "joccau",
+      "created_at": "2022-06-27T14:09:41Z",
+      "body": "/sig migrate"
+    },
+    {
+      "id": 1167402796,
+      "user": "joccau",
+      "created_at": "2022-06-27T14:09:46Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1167403426,
+      "user": "joccau",
+      "created_at": "2022-06-27T14:10:11Z",
+      "body": "/assign"
+    }
+  ]
+}

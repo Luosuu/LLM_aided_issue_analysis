@@ -1,0 +1,32 @@
+{
+  "issue_number": 3744,
+  "title": "three tikv crashes with version 2.1.0-rc.4",
+  "body": "## Bug Report\r\n\r\nwe met three (different) tikv crashes  after upgrading to version 2.1.0-rc.4\r\ncore dump is not enabled in our cluster, so a core file is not available for now.\r\n\r\nbut I have enabled it on the hosts with which crash had happened, so if crash happens again a core file may be attached later.\r\n\r\nthree different crash logs from kernel's dmesg:\r\n\r\n```\r\nNov  1 19:08:55 slave93 kernel: pd-0[9056]: segfault at ffffffffffff0000 ip 0000558c4fed4985 sp 00007f5d855fbcb0 error 5 in tikv-server[558c4ef9d000+1671000] #硬盘有故障\r\nNov  5 00:32:58 slave83 kernel: pd-0[28039]: segfault at ffffffffffff0000 ip 000055aaefc01985 sp 00007f020f1fbcb0 error 5 in tikv-server[55aaeecca000+1671000] \r\nNov  6 15:59:29 slave94 kernel: grpc-server-2[39262]: segfault at ffffffffffff0000 ip 000055dfe607c985 sp 00007f0ae49fbcb0 error 5 in tikv-server[55dfe5145000+1671000]\r\n```\r\n\r\nThe first one is due to problems with the hard disk, so the crash is expected\r\n\r\nbut there are no disk problems with the second and third one, especillay the third one: grpc-server crashes?\r\n\r\n\r\n\r\n\r\n**What version of  tikv are you using?**\r\n```\r\nTiKV \r\nRelease Version:   2.1.0-rc.4\r\nGit Commit Hash:   ff59513e059ad3772efef91b31892d4204795e05\r\nGit Commit Branch: release-2.1\r\nUTC Build Time:    2018-10-25 03:00:54\r\nRust Version:      rustc 1.29.0-nightly (4f3c7a472 2018-07-17)\r\n```\r\n\r\n",
+  "state": "closed",
+  "created_at": "2018-11-06T09:05:09Z",
+  "updated_at": "2018-12-05T02:55:12Z",
+  "closed_at": "2018-12-05T02:55:11Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 436190204,
+      "user": "overvenus",
+      "created_at": "2018-11-06T09:39:39Z",
+      "body": "Hi @darren \r\n\r\nWe are sorry for the issue. We have confirmed this is a bug of gRPC core library(v1.14.2). I have filed a PR to regress grpcio to v0.3(uses core library v1.7.2) which works fine."
+    },
+    {
+      "id": 437533609,
+      "user": "darren",
+      "created_at": "2018-11-10T00:08:22Z",
+      "body": "one more crash (not grpc):\r\n\r\n```\r\nNov 10 03:28:48 slave88(192.168.20.88) kernel: pd-0[3792]: segfault at ffffffffffff0000 ip 0000562aeb9e4985 sp 00007fa17fdfbcb0 error 5 in tikv-server[562aeaaad000+1671000]\r\n```\r\n\r\nwierd enough, one tikv crash causes another tikv to exit without any crash, last logs from the other tikv instance, no crash info from `dmesg`\r\n\r\n```\r\n2018/11/10 07:14:12.884 INFO transport.rs:258: resolve store 1515 address ok, addr 192.168.20.88:20161\r\n2018/11/10 07:14:12.885 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.885 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.885 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.885 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.885 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.885 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.886 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.886 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.886 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.886 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.887 INFO raft_client.rs:54: server: new connection with tikv endpoint: 192.168.20.88:20161\r\n2018/11/10 07:14:12.911 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.911 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.911 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.911 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.911 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.911 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.911 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.912 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n2018/11/10 07:14:12.912 WARN raft_client.rs:92: send raftmessage to 192.168.20.88:20161 failed: Grpc(RpcFinished(Some(RpcStatus { status: Unavailable, details: Some(\"Connect Failed\") })))\r\n```"
+    },
+    {
+      "id": 444340255,
+      "user": "darren",
+      "created_at": "2018-12-05T02:55:11Z",
+      "body": "After upgrade to version rc.5 and the crash does not happen again, so close this for now."
+    }
+  ]
+}

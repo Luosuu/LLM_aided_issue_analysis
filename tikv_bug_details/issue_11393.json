@@ -1,0 +1,17 @@
+{
+  "issue_number": 11393,
+  "title": "tikv-ctl can't open raft db correctly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv5.2, but v5.1 is also affected.\r\n\r\n### What operating system and CPU are you using?\r\nLinux.\r\n\r\n### Steps to reproduce\r\n1. setup a cluster\r\n```\r\ntiup playground --tiflash 0 --kv 3\r\n```\r\n2. wait till it's ready to serve requests, kill all tikv instances.\r\n3. use tikv-ctl to dump all regions\r\n```\r\ntikv-ctl --config config_path --data-dir data-dir\r\n```\r\n\r\n\r\n### What did you expect?\r\nAll region states are dumped.\r\n\r\n### What did happened?\r\nRaft state is always None.",
+  "state": "closed",
+  "created_at": "2021-11-16T14:04:12Z",
+  "updated_at": "2022-01-18T08:11:04Z",
+  "closed_at": "2021-11-18T03:41:48Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,41 @@
+{
+  "issue_number": 14704,
+  "title": "[dr-autosync] after down one voter tikv in backup dc，replicatiton state didn't change to async",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n6.5.1\r\n\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nplan/1692014\r\n\r\n### What did you expect?\r\nchange mode from sync to async, and unblock write and read\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/9443637/236767227-a432837a-c3ea-434b-baa9-5446c4461329.png)\r\n![image](https://user-images.githubusercontent.com/9443637/236767259-1a9800bc-e31b-49f8-ac3c-6aa108366472.png)\r\n\r\n```\r\n[2023/05/08 15:23:30.289 +08:00] [INFO] [chaos.go:150] [\"Run chaos\"] [name=failure] [selectors=\"[ha-test-dr-autosync-tps-1691975-1-343/tc2-tikv-0]\"] [SelectorsRetainPolicy(selectors)=\"[ha-test-dr-autosyn\r\nc-tps-1691975-1-343/tc2-tikv-0]\"] [targetSelectors=\"[nil]\"] [TargetSelectorsRetainPolicy(targetSelectors)=\"[nil]\"] [experimentSpec=\"FailureExperimentSpec{Duration: \\\"\\\", Scheduler: <nil>}\"]\r\n[2023/05/08 15:23:30.294 +08:00] [INFO] [dr_autosync_check.go:82] [\"Current replica status\"] [dr-auto-sync.state=sync]\r\n```\r\n![image](https://user-images.githubusercontent.com/9443637/236767300-ed9784f1-a2f6-4318-9d7d-0e75e18e7544.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-05-08T07:53:04Z",
+  "updated_at": "2023-05-19T05:44:52Z",
+  "closed_at": "2023-05-18T08:05:38Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1537914547,
+      "user": "mayjiang0203",
+      "created_at": "2023-05-08T07:53:51Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign @nolouch "
+    },
+    {
+      "id": 1537918729,
+      "user": "mayjiang0203",
+      "created_at": "2023-05-08T07:57:28Z",
+      "body": "/assign @nolouch "
+    },
+    {
+      "id": 1537984142,
+      "user": "mayjiang0203",
+      "created_at": "2023-05-08T08:46:15Z",
+      "body": "here is the topo.\r\n![image](https://user-images.githubusercontent.com/9443637/236778978-56491d17-2d79-4691-b13b-f6d21392828c.png)\r\n\r\nIf down tc3-tikv-0 at the same time, the replication-state will switch to async.\r\nIn above case,only tc2-tikv-0 in dc2 was shutdown."
+    },
+    {
+      "id": 1554039192,
+      "user": "mayjiang0203",
+      "created_at": "2023-05-19T05:44:50Z",
+      "body": "/remove-severity critical\r\n/severity moderate"
+    }
+  ]
+}

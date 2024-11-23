@@ -1,0 +1,170 @@
+{
+  "issue_number": 15896,
+  "title": "We have some bad encoded-keys like: aaaa FF bbbb FF cccc 06 dd00 FE",
+  "body": "## Bug Report\r\n\r\nWe got some BadPadding error when txn.scan our keys.\r\nAnd we found some bad encoded-keys.\r\n\r\nz195C9BD2E32AFE6A`FF`BA5883313B1C40BC`FF`5FBB8C713232714D`06`3772536E2E747300FE\r\nz077BBB09103E1FBF`FF`DE4280443C5BAF6A`FF`498D1C7272347442`06`3577776C2E747300FE\r\nz188fe7ba4b2b9d54`ff`dda3441f37dccd90`ff`41b66ec468794341`ff`644f30502e747300`fe` `fffffffffffffff5`\r\n\r\n\r\n### What version of TiKV are you using?\r\ntikv: v6.5.0 (set keys & when scan error happend)\r\ngo sdk: 2.0.5 (set keys)\r\n\r\ntikv: v7.4.0 (still now work)\r\ngo sdk: 2.0.7 (still now work)\r\n\r\n### Steps to reproduce\r\nWe have no idea.\r\nWe use txn.Set to set keys and txn.Tier to scan keys.\r\n\r\n### What did you expect?\r\n06 should be FF\r\nfffffffffffffff5 should not exist\r\n\r\n### What did happened?\r\nhard to say.\r\n\r\npls help @pingyu ",
+  "state": "closed",
+  "created_at": "2023-11-01T07:09:47Z",
+  "updated_at": "2024-01-29T18:40:58Z",
+  "closed_at": "2024-01-29T18:40:58Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 1788584618,
+      "user": "pingyu",
+      "created_at": "2023-11-01T08:23:45Z",
+      "body": "How you can these keys ?\r\n\r\nThe last key `z188fe7ba4b2b9d54ffdda3441f37dccd90ff41b66ec468794341ff644f30502e747300fefffffffffffffff5` may be correct. The `fffffffffffffff5` would be the timestamp.\r\n\r\n"
+    },
+    {
+      "id": 1788594937,
+      "user": "imfantuan",
+      "created_at": "2023-11-01T08:33:19Z",
+      "body": "When we scan all keys by using txn.Iter ( in client-go ) we got some panic errors:\r\n\r\ntwo KeyPadding errors when:\r\nz195C9BD2E32AFE6A FFBA5883313B1C40BC FF5FBB8C713232714D 063772536E2E747300FE\r\nz077BBB09103E1FBF FFDE4280443C5BAF6A FF498D1C7272347442 063577776C2E74 7300FE\r\n\r\none DefaultNotFound when:\r\nz188fe7ba4b2b9d54 ffdda3441f37dccd90 ff41b66ec468794341 ff644f30502e747300fe fffffffffffffff5\r\n\r\n(we just get errors, then find these bad keys by using tikv cli)\r\n\r\n@pingyu "
+    },
+    {
+      "id": 1788664622,
+      "user": "pingyu",
+      "created_at": "2023-11-01T09:33:05Z",
+      "body": "It seems to be data corruption.\r\n\r\nHow many replicas do your cluster have, and whether other replica has the same wrong keys ? Please also check the health of disks.\r\n\r\nIf the issue is not relevant with hardware, the informations provided currently are not enough to address the issue. Please help to reproduce the problem."
+    },
+    {
+      "id": 1788743267,
+      "user": "imfantuan",
+      "created_at": "2023-11-01T10:39:56Z",
+      "body": "we found “z195C9BD2E32AFE6A FFBA5883313B1C40BC FF5FBB8C713232714D 063772536E2E747300FE” in 10768 region\r\n\r\nwe using\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.7:20160 raft region | grep 10768\r\n```\r\nto find region. \r\n\r\nusing\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.xxx:yyy scan --from \"z\\031\\\\\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q1kT4\\377llZR.ts\\000\\376\" --limit 100\r\n```\r\nto find bad key.\r\n\r\nAnd here's result:\r\n```\r\n192.168.10.11:20160  tikv          found 10768 region          found \"z195C...\" bad key\r\n192.168.10.11:20161  tikv          \r\n192.168.10.11:20162  tikv          \r\n192.168.10.12:20160  tikv          \r\n192.168.10.12:20161  tikv          \r\n192.168.10.12:20162  tikv          \r\n192.168.10.7:20160   tikv          found 10768 region          found \"z195C...\" bad key\r\n192.168.10.7:20161   tikv          found 10768 region          first key is \"z1B38...\" (out of range)\r\n192.168.10.7:20162   tikv          found 10768 region          first key is \"z196E...\" (out of range)\r\n192.168.10.9:20160   tikv          found 10768 region          found \"z195C...\" bad key\r\n192.168.10.9:20161   tikv          \r\n192.168.10.9:20162   tikv          \r\n```"
+    },
+    {
+      "id": 1788752383,
+      "user": "imfantuan",
+      "created_at": "2023-11-01T10:48:02Z",
+      "body": "We scaned (using txn.iter) all keys in our system. Can only found these 3 bad keys(of more than 200M keys).\r\n\r\nAnd we checked ssd disk by using smartctl it shows no problems.\r\n\r\nBy the way... how could we just delete them? @pingyu \r\n\r\nClient-go has no way to delete these wrong keys.\r\n\r\nBecause we could not reproduce these incorrect EncodeBytes."
+    },
+    {
+      "id": 1789122789,
+      "user": "pingyu",
+      "created_at": "2023-11-01T15:07:32Z",
+      "body": "Please provide the complete command & result of `tiup ctl tikv scan` of these 3 keys on all replicas if the key is on it.\r\n\r\nBesides, is there RawKV workload on the cluster ?"
+    },
+    {
+      "id": 1790220071,
+      "user": "imfantuan",
+      "created_at": "2023-11-02T07:41:01Z",
+      "body": "## 1 (All replicas) error key (in region: 10768)\r\n\r\nRun to `192.168.10.7:20160`:\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.7:20160 scan --from \"z\\031\\\\\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q1kT4\\377llZR.ts\\000\\376\" --limit 20\r\n```\r\nResult ❌ should be `\\3777rSn` but `\\0067rSn`:\r\n```\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q20ap\\377p5vZ.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q21TE\\377qhqf.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q22qM\\0067rSn.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q24wS\\377vFuJ.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q28B9\\3777quy.ts\\000\\376\r\n```\r\n\r\nRun to `192.168.10.9:20160`:\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.9:20160 scan --from \"z\\031\\\\\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q1kT4\\377llZR.ts\\000\\376\" --limit 20\r\n```\r\nResult ❌ should be `\\3777rSn` but `\\0067rSn`:\r\n```\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q20ap\\377p5vZ.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q21TE\\377qhqf.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q22qM\\0067rSn.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q24wS\\377vFuJ.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q28B9\\3777quy.ts\\000\\376\r\n```\r\n\r\nRun to `192.168.10.11:20160`:\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.11:20160 scan --from \"z\\031\\\\\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q1kT4\\377llZR.ts\\000\\376\" --limit 20\r\n```\r\nResult ❌ should be `\\3777rSn` but `\\0067rSn`:\r\n```\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q20ap\\377p5vZ.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q21TE\\377qhqf.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q22qM\\0067rSn.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q24wS\\377vFuJ.ts\\000\\376\r\nkey: z\\031\\\\\\233\\322\\343*\\376j\\377\\272X\\2031;\\034@\\274\\377_\\273\\214q28B9\\3777quy.ts\\000\\376\r\n```\r\n\r\n## 2 (Part of all replicas) error key (in region: 46505)\r\n\r\nRun to `192.168.10.7:20162`:\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.7:20162 scan --from \"z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rqfdg\\377z7IA.ts\\000\\376\" --limit 20\r\n```\r\nResult ✅ `\\3775wwl`:\r\n```\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rqzg5\\377XLt2.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rr3ku\\377SzTL.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rr4tB\\3775wwl.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rrAcM\\377Lp1F.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rrChl\\377rp9M.ts\\000\\376\r\n```\r\n\r\nRun to `192.168.10.9:20161`:\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.9:20161 scan --from \"z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rqfdg\\377z7IA.ts\\000\\376\" --limit 20\r\n```\r\nResult ❌ should be `\\3775wwl` but `\\0065wwl`:\r\n```\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rqzg5\\377XLt2.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rr3ku\\377SzTL.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rr4tB\\0065wwl.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rrAcM\\377Lp1F.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rrChl\\377rp9M.ts\\000\\376\r\n```\r\n\r\nRun to `192.168.10.11:20161`:\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.11:20161 scan --from \"z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rqfdg\\377z7IA.ts\\000\\376\" --limit 20\r\n```\r\nResult ❌ should be `\\3775wwl` but `\\0065wwl`:\r\n```\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rqzg5\\377XLt2.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rr3ku\\377SzTL.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rr4tB\\0065wwl.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rrAcM\\377Lp1F.ts\\000\\376\r\nkey: z\\007{\\273\\t\\020>\\037\\277\\377\\336B\\200D<[\\257j\\377I\\215\\034rrChl\\377rp9M.ts\\000\\376\r\n```"
+    },
+    {
+      "id": 1790231250,
+      "user": "imfantuan",
+      "created_at": "2023-11-02T07:51:32Z",
+      "body": "> Please provide the complete command & result of `tiup ctl tikv scan` of these 3 keys on all replicas if the key is on it.\r\n> \r\n> Besides, is there RawKV workload on the cluster ?\r\n\r\nAnd we confirm there's no RawKV workload on this cluster."
+    },
+    {
+      "id": 1790506816,
+      "user": "imfantuan",
+      "created_at": "2023-11-02T10:57:13Z",
+      "body": "## 3 error key (in region: 10768)\r\n\r\nWe could not find it by using `tiup ctl:v7.4.0 tikv`,\r\n\r\nhowever, we always get this error when scan by using txn.Iter(start, nil) with client-go, it shows the key name directly, so we no need to find it by using tikv ctl:\r\n```\r\n[WARN] [error.go:302] [\"2PC failed\"] [error=\"tikv aborts txn: Error(Txn(Error(Mvcc(Error(DefaultNotFound { key: [24, 143, 231, 186, 75, 43, 157, 84, 255, 221, 163, 68, 31, 55, 220, 205, 144, 255, 65, 182, 110, 196, 104, 121, 67, 65, 255, 100, 79, 48, 80, 46, 116, 115, 0, 254, 255, 255, 255, 255, 255, 255, 255, 245] })))))\"] [errorVerbose=\"tikv aborts txn: Error(Txn(Error(Mvcc(Error(DefaultNotFound { key: [24, 143, 231, 186, 75, 43, 157, 84, 255, 221, 163, 68, 31, 55, 220, 205, 144, 255, 65, 182, 110, 196, 104, 121, 67, 65, 255, 100, 79, 48, 80, 46, 116, 115, 0, 254, 255, 255, 255, 255, 255, 255, 255, 245] })))))\r\ngithub.com/tikv/client-go/v2/error.ExtractKeyErr\r\n\t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/error/error.go:301\r\ngithub.com/tikv/client-go/v2/txnkv/txnlock.ExtractLockFromKeyErr\r\n\t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/txnkv/txnlock/lock.go:27\r\ngithub.com/tikv/client-go/v2/txnkv/txnsnapshot.(*Scanner).getData\r\n\t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/txnkv/txnsnapshot/scan.go:291\r\ngithub.com/tikv/client-go/v2/txnkv/txnsnapshot.(*Scanner).Next\r\n\t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/txnkv/txnsnapshot/scan.go:138\r\ngithub.com/tikv/client-go/v2/internal/unionstore.(*UnionIter).snapshotNext\r\n\t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/internal/unionstore/union_iter.go:81\r\ngithub.com/tikv/client-go/v2/internal/unionstore.(*UnionIter).Next\r\n\t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/internal/unionstore/union_iter.go:165\r\ngo-server/scan.StartScan\r\n\t/Users/ethan/Desktop/go-server/scan/scan.go:73\r\nmain.main\r\n\t/Users/ethan/Desktop/go-server/main.go:33\r\nruntime.main\r\n\t/usr/local/go/src/runtime/proc.go:250\r\nruntime.goexit\r\n\t/usr/local/go/src/runtime/asm_amd64.s:1598\"]\r\n```"
+    },
+    {
+      "id": 1790934904,
+      "user": "danlanxiaohei",
+      "created_at": "2023-11-02T15:15:40Z",
+      "body": "@Connor1996 need your help~"
+    },
+    {
+      "id": 1791778882,
+      "user": "pingyu",
+      "created_at": "2023-11-03T01:33:22Z",
+      "body": "> ## 3 error key (in region: 10768)\r\n> We could not find it by using `tiup ctl:v7.4.0 tikv`,\r\n> \r\n> however, we always get this error when scan by using txn.Iter(start, nil) with client-go, it shows the key name directly, so we no need to find it by using tikv ctl:\r\n> \r\n> ```\r\n> [WARN] [error.go:302] [\"2PC failed\"] [error=\"tikv aborts txn: Error(Txn(Error(Mvcc(Error(DefaultNotFound { key: [24, 143, 231, 186, 75, 43, 157, 84, 255, 221, 163, 68, 31, 55, 220, 205, 144, 255, 65, 182, 110, 196, 104, 121, 67, 65, 255, 100, 79, 48, 80, 46, 116, 115, 0, 254, 255, 255, 255, 255, 255, 255, 255, 245] })))))\"] [errorVerbose=\"tikv aborts txn: Error(Txn(Error(Mvcc(Error(DefaultNotFound { key: [24, 143, 231, 186, 75, 43, 157, 84, 255, 221, 163, 68, 31, 55, 220, 205, 144, 255, 65, 182, 110, 196, 104, 121, 67, 65, 255, 100, 79, 48, 80, 46, 116, 115, 0, 254, 255, 255, 255, 255, 255, 255, 255, 245] })))))\r\n> github.com/tikv/client-go/v2/error.ExtractKeyErr\r\n> \t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/error/error.go:301\r\n> github.com/tikv/client-go/v2/txnkv/txnlock.ExtractLockFromKeyErr\r\n> \t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/txnkv/txnlock/lock.go:27\r\n> github.com/tikv/client-go/v2/txnkv/txnsnapshot.(*Scanner).getData\r\n> \t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/txnkv/txnsnapshot/scan.go:291\r\n> github.com/tikv/client-go/v2/txnkv/txnsnapshot.(*Scanner).Next\r\n> \t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/txnkv/txnsnapshot/scan.go:138\r\n> github.com/tikv/client-go/v2/internal/unionstore.(*UnionIter).snapshotNext\r\n> \t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/internal/unionstore/union_iter.go:81\r\n> github.com/tikv/client-go/v2/internal/unionstore.(*UnionIter).Next\r\n> \t/Users/ethan/Desktop/go-server/vendor/github.com/tikv/client-go/v2/internal/unionstore/union_iter.go:165\r\n> go-server/scan.StartScan\r\n> \t/Users/ethan/Desktop/go-server/scan/scan.go:73\r\n> main.main\r\n> \t/Users/ethan/Desktop/go-server/main.go:33\r\n> runtime.main\r\n> \t/usr/local/go/src/runtime/proc.go:250\r\n> runtime.goexit\r\n> \t/usr/local/go/src/runtime/asm_amd64.s:1598\"]\r\n> ```\r\n\r\n`DefaultNotFound` means that the the committed entry existed in \"write cf\" related value is not found in \"default cf\". Try `tiup ctl:v7.4.0 tiup scan` again with additional argument `--show-cf lock,default,write`."
+    },
+    {
+      "id": 1791889774,
+      "user": "imfantuan",
+      "created_at": "2023-11-03T04:47:58Z",
+      "body": "> --show-cf lock,default,write\r\n\r\nThanks for reply.\r\n\r\nWe run:\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.7:20160 scan --from \"z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304hsi6\\377HVG0.ts\\000\\376\" --show-cf lock,default,write  --limit 5\r\n```\r\n\r\nResult:\r\n```\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304hsi6\\377HVG0.ts\\000\\376\r\n         write cf value: start_ts: 439939666526076929 commit_ts: 439939666526076931 short_value: 1A3818E0921620DC86D3B9DCEA92A5172A186F33594C59446A5437416D5168366E794D735A4A69413D3D3A0E0895D40210B3ACB01C1D445B54CE226108E0921610E2B79FA00618B00330E2B79FA0063A17766964656F2F766E642E646C6E612E6D7065672D7474737210A3760B6038D3EC099087A9F232C64988A206206133373630623630333864336563303939303837613966323332633634393838A206110A0F756D5142674131547A775530613079\r\n\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304hx7E\\377NOAW.ts\\000\\376\r\n         write cf value: start_ts: 439939666526076945 commit_ts: 439939666526076950 short_value: 1A3818E0E81920848AF6BADCEA92A5172A1851664830502F347333667470575139716F706F6839413D3D3A0E089CD40210B6ACB01C1DD72F7D7A226108E0E81910E2B79FA00618B00330E2B79FA0063A17766964656F2F766E642E646C6E612E6D7065672D747473721041F1F43FFE2CDDFB69590F6AA29A21F4A206203431663166343366666532636464666236393539306636616132396132316634A206110A0F757748554F4849384C74336D4D674E\r\n\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304hyCA\\377dO0P.ts\\000\\376\r\n         write cf value: start_ts: 10 commit_ts: 439939666526076986\r\n\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304i3Xy\\377W0LA.ts\\000\\376\r\n         write cf value: start_ts: 439939666526077012 commit_ts: 439939666526077016 short_value: 1A381880D01820A799A9C0DCEA92A5172A18354353476C726A7A6F4C5149733961682B772F672B773D3D3A0E089CD40210C2ACB01C1D088DC69022610880D01810E2B79FA00618B00330E2B79FA0063A17766964656F2F766E642E646C6E612E6D7065672D7474737210E4248696B8F3A0B408B3D6A1FB0FE0FBA206206534323438363936623866336130623430386233643661316662306665306662A206110A0F6670783665356F70334234764E4162\r\n\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304i6YE\\377E0EC.ts\\000\\376\r\n         write cf value: start_ts: 439939666526077038 commit_ts: 439939666526077041 short_value: 1A381880C7192092EF8CC2DCEA92A5172A18557878353973456474374B66324E33734A6A436541773D3D3A0E089AD40210C5ACB01C1DFA0A4D7722610880C71910E2B79FA00618B00330E2B79FA0063A17766964656F2F766E642E646C6E612E6D7065672D7474737210531C79F6C11DB7B29FD8DDEC26309E03A206203533316337396636633131646237623239666438646465633236333039653033A206110A0F63586C32356755527A306F664C6344\r\n```\r\n\r\nCan see the same result on other 2 nodes."
+    },
+    {
+      "id": 1791913921,
+      "user": "pingyu",
+      "created_at": "2023-11-03T05:33:23Z",
+      "body": "The `start_ts: 10` should not be correct.\r\n\r\nHow you use `client-go` to perform business ? Can you show some codes of application closely related to`client-go`. Or just provide the address of repo if it's open source."
+    },
+    {
+      "id": 1791918675,
+      "user": "pingyu",
+      "created_at": "2023-11-03T05:43:04Z",
+      "body": "Please check whether there are some data file damaged. Refer to https://docs.pingcap.com/tidb/stable/tikv-control#print-information-related-to-damaged-sst-files."
+    },
+    {
+      "id": 1791922148,
+      "user": "imfantuan",
+      "created_at": "2023-11-03T05:50:00Z",
+      "body": "> The `start_ts: 10` should not be correct.\r\n> \r\n> How you use `client-go` to perform business ? Can you show some codes of application closely related to`client-go`. Or just provide the address of repo if it's open source.\r\n\r\nour tikv codes are from here: https://github.com/seaweedfs/seaweedfs/tree/master/weed/filer/tikv"
+    },
+    {
+      "id": 1791934143,
+      "user": "imfantuan",
+      "created_at": "2023-11-03T06:11:01Z",
+      "body": "> Please check whether there are some data file damaged. Refer to https://docs.pingcap.com/tidb/stable/tikv-control#print-information-related-to-damaged-sst-files.\r\n\r\nWe run:\r\n(copy tikv file to another place)\r\n```\r\ncp -R /data1/tidb-data/tikv-20160/ /home/tikv-20160\r\n```\r\nand run:\r\n```\r\ntiup ctl:v7.4.0 tikv --data-dir /home/tikv-20160 bad-ssts --pd 192.168.10.11:2379\r\n```\r\n\r\nWe get:\r\n```\r\nStarting component `ctl`: /root/.tiup/components/ctl/v7.4.0/ctl tikv --data-dir /home/tikv-20160 bad-ssts --pd 192.168.10.11:2379\r\n\r\nstart to print bad ssts; data_dir:/home/tikv-20160; db:/home/tikv-20160/db\r\n--------------------------------------------------------\r\ncorruption analysis has completed\r\n```\r\n\r\nBut we run:\r\n```\r\ntiup ctl:v7.4.0 tikv --host 192.168.10.11:20160 scan --from \"z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304hsi6\\377HVG0.ts\\000\\376\" --show-cf lock,default,write  --limit 5\r\n```\r\n\r\nResult:\r\n```\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304hsi6\\377HVG0.ts\\000\\376\r\n         write cf value: start_ts: 439939666526076929 commit_ts: 439939666526076931 short_value: 1A3818E0921620DC86D3B9DCEA92A5172A186F33594C59446A5437416D5168366E794D735A4A69413D3D3A0E0895D40210B3ACB01C1D445B54CE226108E0921610E2B79FA00618B00330E2B79FA0063A17766964656F2F766E642E646C6E612E6D7065672D7474737210A3760B6038D3EC099087A9F232C64988A206206133373630623630333864336563303939303837613966323332633634393838A206110A0F756D5142674131547A775530613079\r\n\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304hx7E\\377NOAW.ts\\000\\376\r\n         write cf value: start_ts: 439939666526076945 commit_ts: 439939666526076950 short_value: 1A3818E0E81920848AF6BADCEA92A5172A1851664830502F347333667470575139716F706F6839413D3D3A0E089CD40210B6ACB01C1DD72F7D7A226108E0E81910E2B79FA00618B00330E2B79FA0063A17766964656F2F766E642E646C6E612E6D7065672D747473721041F1F43FFE2CDDFB69590F6AA29A21F4A206203431663166343366666532636464666236393539306636616132396132316634A206110A0F757748554F4849384C74336D4D674E\r\n\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304hyCA\\377dO0P.ts\\000\\376\r\n         write cf value: start_ts: 10 commit_ts: 439939666526076986\r\n\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304i3Xy\\377W0LA.ts\\000\\376\r\n         write cf value: start_ts: 439939666526077012 commit_ts: 439939666526077016 short_value: 1A381880D01820A799A9C0DCEA92A5172A18354353476C726A7A6F4C5149733961682B772F672B773D3D3A0E089CD40210C2ACB01C1D088DC69022610880D01810E2B79FA00618B00330E2B79FA0063A17766964656F2F766E642E646C6E612E6D7065672D7474737210E4248696B8F3A0B408B3D6A1FB0FE0FBA206206534323438363936623866336130623430386233643661316662306665306662A206110A0F6670783665356F70334234764E4162\r\n\r\nkey: z\\030\\217\\347\\272K+\\235T\\377\\335\\243D\\0377\\334\\315\\220\\377A\\266n\\304i6YE\\377E0EC.ts\\000\\376\r\n         write cf value: start_ts: 439939666526077038 commit_ts: 439939666526077041 short_value: 1A381880C7192092EF8CC2DCEA92A5172A18557878353973456474374B66324E33734A6A436541773D3D3A0E089AD40210C5ACB01C1DFA0A4D7722610880C71910E2B79FA00618B00330E2B79FA0063A17766964656F2F766E642E646C6E612E6D7065672D7474737210531C79F6C11DB7B29FD8DDEC26309E03A206203533316337396636633131646237623239666438646465633236333039653033A206110A0F63586C32356755527A306F664C6344\r\n```"
+    },
+    {
+      "id": 1791951611,
+      "user": "imfantuan",
+      "created_at": "2023-11-03T06:40:42Z",
+      "body": "Here are some infomations:\r\n\r\n1. We import these (group A) data on Mar.07;\r\n2. We scan all data after import found 66,968,762 keys (no BadPadding or DefaultNotFound errors);\r\n3. Import many other (group B) data ( ≈ 20000000+ );\r\n4. 1/3 tikv server shuted down, can not restart;\r\n5. We scale-in that by using --force on tiup server (and scale-out to another server);\r\n6. Got BadPadding and DefaultNotFound errors when we scan all data (all 3 incorrect keys are belongs to group A data)."
+    },
+    {
+      "id": 1791997187,
+      "user": "pingyu",
+      "created_at": "2023-11-03T07:44:21Z",
+      "body": "> 1. We import these (group A) data on Mar.07;\r\n\r\nHow did you import data ?\r\n\r\n> 4. 1/3 tikv server shuted down, can not restart;\r\n\r\nWhy can not restart ? Please provide error logs if there is any."
+    },
+    {
+      "id": 1792047854,
+      "user": "imfantuan",
+      "created_at": "2023-11-03T08:35:20Z",
+      "body": "> > 1. We import these (group A) data on Mar.07;\r\n> \r\n> How did you import data ?\r\n\r\nBy using this: https://github.com/seaweedfs/seaweedfs/tree/master/weed/filer/tikv\r\n\r\n> \r\n> > 4. 1/3 tikv server shuted down, can not restart;\r\n> \r\n> Why can not restart ? Please provide error logs if there is any.\r\n\r\nIt is a hardware error on machine, not pd / tikv. So we could not scale-in by using tiup.\r\n\r\nFinally we run `tiup cluster check [cluster-name] --cluster` and it shows `All regions are healthy.` after (force scale-in & scale-out) \r\n"
+    },
+    {
+      "id": 1792052409,
+      "user": "pingyu",
+      "created_at": "2023-11-03T08:39:20Z",
+      "body": "> > > 1. We import these (group A) data on Mar.07;\r\n> > \r\n> > \r\n> > How did you import data ?\r\n> \r\n> By using this: https://github.com/seaweedfs/seaweedfs/tree/master/weed/filer/tikv\r\n> \r\n\r\nSo it's `KvPut` underlying ?"
+    },
+    {
+      "id": 1792070746,
+      "user": "imfantuan",
+      "created_at": "2023-11-03T08:55:27Z",
+      "body": "> > > > 1. We import these (group A) data on Mar.07;\r\n> > > \r\n> > > \r\n> > > How did you import data ?\r\n> > \r\n> > \r\n> > By using this: https://github.com/seaweedfs/seaweedfs/tree/master/weed/filer/tikv\r\n> \r\n> So it's `KvPut` underlying ?\r\n\r\nI think it's (https://github.com/seaweedfs/seaweedfs/blob/master/weed/filer/tikv/tikv_store.go#L76-L95):\r\n``` go\r\nfunc (store *TikvStore) InsertEntry(ctx context.Context, entry *filer.Entry) error {\r\n\tdir, name := entry.DirAndName()\r\n\tkey := generateKey(dir, name)\r\n\r\n\tvalue, err := entry.EncodeAttributesAndChunks()\r\n\tif err != nil {\r\n\t\treturn fmt.Errorf(\"encoding %s %+v: %v\", entry.FullPath, entry.Attr, err)\r\n\t}\r\n\ttxn, err := store.getTxn(ctx)\r\n\tif err != nil {\r\n\t\treturn err\r\n\t}\r\n\terr = txn.RunInTxn(func(txn *txnkv.KVTxn) error {\r\n\t\treturn txn.Set(key, value)\r\n\t})\r\n\tif err != nil {\r\n\t\treturn fmt.Errorf(\"persisting %s : %v\", entry.FullPath, err)\r\n\t}\r\n\treturn nil\r\n}\r\n```"
+    },
+    {
+      "id": 1793655999,
+      "user": "pingyu",
+      "created_at": "2023-11-05T06:59:31Z",
+      "body": "> By the way... how could we just delete them?\r\n\r\nYou can use RawKV API to delete the wrong keys. Use with caption, pay attention to the CF.\r\n\r\nRefer to https://github.com/tikv/client-go/wiki/RawKV-Basic#single-key-readwrite."
+    },
+    {
+      "id": 1793660832,
+      "user": "pingyu",
+      "created_at": "2023-11-05T07:26:35Z",
+      "body": "> Here are some infomations:\r\n> \r\n> 1. We import these (group A) data on Mar.07;\r\n> 2. We scan all data after import found 66,968,762 keys (no BadPadding or DefaultNotFound errors);\r\n> 3. Import many other (group B) data ( ≈ 20000000+ );\r\n> 4. 1/3 tikv server shuted down, can not restart;\r\n> 5. We scale-in that by using --force on tiup server (and scale-out to another server);\r\n> 6. Got BadPadding and DefaultNotFound errors when we scan all data (all 3 incorrect keys are belongs to group A data).\r\n\r\nWhen 1/3 TiKV servers shut down, it's very likely that some regions lost majority. Have you ever perform any unsafe recover ?\r\n\r\nPlease collect and upload diagnostic data, including metrics and logs, of the whole day(s) when TiKV servers shutting down and scaling in/out happened. Refer to https://docs.pingcap.com/tidb/stable/quick-start-with-clinic."
+    },
+    {
+      "id": 1793689107,
+      "user": "imfantuan",
+      "created_at": "2023-11-05T09:53:21Z",
+      "body": "> > By the way... how could we just delete them?\r\n> \r\n> You can use RawKV API to delete the wrong keys. Use with caption, pay attention to the CF.\r\n> \r\n> Refer to https://github.com/tikv/client-go/wiki/RawKV-Basic#single-key-readwrite.\r\n\r\nWe will check this first, thanks.\r\n\r\n> When 1/3 TiKV servers shut down, it's very likely that some regions lost majority. Have you ever perform any unsafe recover ?\r\n\r\nWe did not."
+    },
+    {
+      "id": 1797859305,
+      "user": "imfantuan",
+      "created_at": "2023-11-07T05:43:10Z",
+      "body": "> > By the way... how could we just delete them?\r\n> \r\n> You can use RawKV API to delete the wrong keys. Use with caption, pay attention to the CF.\r\n> \r\n> Refer to https://github.com/tikv/client-go/wiki/RawKV-Basic#single-key-readwrite.\r\n\r\nThis would be work, thank you.\r\n\r\n> Please collect and upload diagnostic data, including metrics and logs, of the whole day(s) when TiKV servers shutting down and scaling in/out happened. Refer to https://docs.pingcap.com/tidb/stable/quick-start-with-clinic.\r\n\r\nWe lost the logs. So this probably won't help."
+    },
+    {
+      "id": 1915341833,
+      "user": "tonyxuqqi",
+      "created_at": "2024-01-29T18:40:58Z",
+      "body": "@imfantuan Since we don't have enough information, we will close this issue for now. Please reopen if you have full diagnostics information. "
+    }
+  ]
+}

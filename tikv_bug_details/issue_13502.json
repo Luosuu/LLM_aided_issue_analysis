@@ -1,0 +1,33 @@
+{
+  "issue_number": 13502,
+  "title": "RawKV API V2 timestamp causality violation",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nMaster branch with PR https://github.com/tikv/tikv/pull/13326.\r\n\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. run endless rawkv apiv2 test case [causality_100](https://github.com/pingcap/endless/blob/c56f06a04f5324a8c906bcec3d0cfccc29f1fdd4/testcase/rawkv/api_v2/api_v2_test.go#L584)\r\n\r\n### What did you expect?\r\n\r\nTest case pass.\r\n\r\n### What did happened?\r\n\r\nTest case fail with causality issue.\r\n\r\nExpect value0, but get value1. \r\n```\r\n------------------------------\r\n• Failure [51.544 seconds]\r\nRawKV\r\n/home/jenkins/agent/workspace/endless-master-build/pkg/util/dsl.go:29\r\n  ApiV2\r\n  /home/jenkins/agent/workspace/endless-master-build/testcase/rawkv/api_v2/api_v2_test.go:230\r\n    Causality test by all workloads #causality_100# [It]\r\n    /home/jenkins/agent/workspace/endless-master-build/pkg/util/dsl.go:61\r\n    key: cc0000000816002860\r\n    Expected\r\n        <[]uint8 | len:74, cap:80>: 816002860_0000000000000000000000000000000000000000000000000000000000000000\r\n    to equal\r\n        <[]uint8 | len:74, cap:80>: 816002861_0000000000000000000000000000000000000000000000000000000000000000\r\n    /home/jenkins/agent/workspace/endless-master-build/testcase/rawkv/api_v2/workload.go:41\r\n------------------------------\r\n```",
+  "state": "closed",
+  "created_at": "2022-09-21T02:07:19Z",
+  "updated_at": "2022-09-30T08:17:47Z",
+  "closed_at": "2022-09-30T08:17:47Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1253121979,
+      "user": "haojinming",
+      "created_at": "2022-09-21T02:15:54Z",
+      "body": "After some investigation with debug log, the root cause is that `tikv-server` recieves `raw_put` request before becoming leader and no term info is provided in `raw_put` request. Then `raw_put` interface [get the causal ts](https://github.com/tikv/tikv/blob/f55c26368194c9fa595f78e06a67efee60e462a5/src/storage/mod.rs#L1921) from `CausalTsProvider` and encode it to key. However the ts violate  the causality as CausalTsProvider should [flush](https://github.com/tikv/tikv/blob/f55c26368194c9fa595f78e06a67efee60e462a5/components/causal_ts/src/observer.rs#L69-L82) before become leader. When it enter raft process, the node become leader and finish this request. So a key/value pair with wrong ts is writen to tikv with success.\r\n\r\n[debug log.txt](https://github.com/tikv/tikv/files/9612360/debug.log.txt)\r\n"
+    },
+    {
+      "id": 1253141508,
+      "user": "pingyu",
+      "created_at": "2022-09-21T02:51:24Z",
+      "body": "/assign @zeminzhou "
+    },
+    {
+      "id": 1253141517,
+      "user": "ti-chi-bot",
+      "created_at": "2022-09-21T02:51:25Z",
+      "body": "@pingyu: GitHub didn't allow me to assign the following users: zeminzhou.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/13502#issuecomment-1253141508):\n\n>/assign @zeminzhou \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "issue_number": 16956,
+  "title": "log_backup: misleading error message reported when pausing a task",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nMaster\r\n\r\n### What operating system and CPU are you using?\r\nNot relative.\r\n\r\n### Steps to reproduce\r\n1. Start a log backup task.\r\n2. Pause it.\r\n\r\n### What did you expect?\r\nNo strange error messages issued.\r\n\r\n### What did happened?\r\n`[2024/05/03 21:52:54.024 +08:00] [WARN] [errors.rs:159] [\"backup stream meet error\"] [position=\"Location { file: \\\"/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/backup-stream/src/endpoint.rs\", line: 694, col: 54 }\"] [verbose_err=\"Pd(UnsafeServiceGcSafePoint { requested: TimeStamp(0), current_minimal: TimeStamp(449509094337282117) })\"] [err=\"PD client meet error: the requested service gc safe point(0) isn't safe(safe point now is 449509094337282117)\"] [context=\"removing safe point for pausing\"] [thread_id=81]`\r\n",
+  "state": "closed",
+  "created_at": "2024-05-07T05:52:22Z",
+  "updated_at": "2024-05-09T03:59:39Z",
+  "closed_at": "2024-05-09T03:59:39Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

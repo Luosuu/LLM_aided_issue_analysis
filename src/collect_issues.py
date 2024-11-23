@@ -103,7 +103,7 @@ def main():
     auth_token = "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"  # Replace with your token if available
 
     # Fetch Redis repository issues
-    issues = fetch_github_issues('redis', 'redis', auth_token=auth_token)
+    issues = fetch_github_issues('tikv', 'tikv', auth_token=auth_token)
 
     # Analyze issues
     df, labels_counter = analyze_issues(issues)
@@ -112,7 +112,7 @@ def main():
     print_statistics(df, labels_counter)
 
     # Save to CSV for further analysis
-    df.to_csv('redis_issues.csv', index=False)
+    df.to_csv('tikv_issues.csv', index=False)
 
     # Basic bug analysis
     bug_issues = df[df['labels'].str.contains('bug', case=False, na=False)]

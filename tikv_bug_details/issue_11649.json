@@ -1,0 +1,63 @@
+{
+  "issue_number": 11649,
+  "title": "More frequent 'pessimistic lock not found' since v5.3.0",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nWe met more frequent 'pessimistic lock not found' errors than before since async-io which changes how to call proposed callback( https://github.com/tikv/tikv/pull/11147). We need to figure it out.",
+  "state": "open",
+  "created_at": "2021-12-13T11:33:14Z",
+  "updated_at": "2023-08-16T06:31:40Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "sig/transaction",
+    "severity/moderate",
+    "affects-5.3",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 995984017,
+      "user": "gengliqi",
+      "created_at": "2021-12-16T16:36:05Z",
+      "body": "Does the `store-io-pool-size` change to a non-zero value when testing? \r\n#11147 should not take effect if `store-io-pool-size` is 0 by default."
+    },
+    {
+      "id": 996458698,
+      "user": "youjiali1995",
+      "created_at": "2021-12-17T05:57:00Z",
+      "body": "> Does the `store-io-pool-size` change to a non-zero value when testing? #11147 should not take effect if `store-io-pool-size` is 0 by default.\r\n\r\nNo, use the default config."
+    },
+    {
+      "id": 1013061062,
+      "user": "BusyJay",
+      "created_at": "2022-01-14T12:03:20Z",
+      "body": "Any progress on the issue?"
+    },
+    {
+      "id": 1014303148,
+      "user": "youjiali1995",
+      "created_at": "2022-01-17T09:19:57Z",
+      "body": "> Any progress on the issue?\r\n\r\nNone"
+    },
+    {
+      "id": 1014338857,
+      "user": "BusyJay",
+      "created_at": "2022-01-17T10:00:06Z",
+      "body": "Does it need to be solved? Or is it an improvement?"
+    },
+    {
+      "id": 1014348807,
+      "user": "youjiali1995",
+      "created_at": "2022-01-17T10:09:50Z",
+      "body": "It's a regression and should be resolved."
+    }
+  ]
+}

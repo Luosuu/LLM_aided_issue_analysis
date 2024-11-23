@@ -1,0 +1,47 @@
+{
+  "issue_number": 3255,
+  "title": "test failpoints_cases::test_merge::test_node_merge_restart  failed",
+  "body": "```\r\ntest failpoints_cases::test_merge::test_node_merge_restart ... thread 'failpoints_cases::test_merge::test_node_merge_restart' panicked at 'region id: 1004 end_key: \"k2\" region_epoch {conf_ver: 1 version: 5} peers {id: 1005 store_id: 2} peers {id: 1006 store_id: 1} peers {id: 1007 store_id: 3} is still not merged.', tests/raftstore/pd.rs:817:9\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:227\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:511\r\n   5: std::panicking::continue_panic_fmt\r\n             at libstd/panicking.rs:426\r\n   6: std::panicking::begin_panic_fmt\r\n             at libstd/panicking.rs:413\r\n   7: failpoints::raftstore::pd::TestPdClient::must_merge\r\n             at tests/raftstore/pd.rs:817\r\n   8: failpoints::failpoints_cases::test_merge::test_node_merge_restart\r\n             at tests/failpoints_cases/test_merge.rs:205\r\n   9: failpoints::__test::TESTS::{{closure}}\r\n             at tests/failpoints_cases/test_merge.rs:119\r\n  10: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n  11: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1451\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:640\r\n  12: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:105\r\n```",
+  "state": "closed",
+  "created_at": "2018-06-27T08:14:57Z",
+  "updated_at": "2020-11-20T07:05:06Z",
+  "closed_at": "2020-11-20T07:05:05Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 403158973,
+      "user": "Hoverbear",
+      "created_at": "2018-07-06T22:09:29Z",
+      "body": "(Testing with prevote enabled)\r\n\r\nI think this is related:\r\n\r\n```\r\nJul 06 11:54:39.592 WARN [region 1004] 1005 skip proposal: Other(StringError(\"[src/raftstore/store/peer.rs:1538]: log gap (0, 8] is too large, skip merge\"))\r\n```\r\n\r\nThis seems to be due to:\r\n\r\nhttps://github.com/pingcap/tikv/blob/1e45270e93b31f24dfbc030691bcd49fb52cf19a/src/raftstore/store/peer.rs#L1535\r\n\r\nWhich is calculated by:\r\n\r\nhttps://github.com/pingcap/tikv/blob/1e45270e93b31f24dfbc030691bcd49fb52cf19a/src/raftstore/store/peer.rs#L1523-L1531\r\n\r\nInspecting this more it seems that in some cases on peer 1005 it will think peer 1007 has a `match` of 0.\r\n\r\nI noted that considerably more happens in `becomePreCandidate` in https://github.com/coreos/etcd/blob/f7b3017752421bd7ed1c122398b2eab1a0f23853/raft/raft.go#L672-L685 now."
+    },
+    {
+      "id": 490840577,
+      "user": "overvenus",
+      "created_at": "2019-05-09T10:01:03Z",
+      "body": "Another failed test. [log.txt](https://github.com/tikv/tikv/files/3161467/log.txt)\r\n"
+    },
+    {
+      "id": 518161533,
+      "user": "breezewish",
+      "created_at": "2019-08-05T09:35:46Z",
+      "body": "https://internal.pingcap.net/idc-jenkins/blue/rest/organizations/jenkins/pipelines/tikv_ghpr_test/runs/7372/nodes/116/steps/579/log/?start=0"
+    },
+    {
+      "id": 535424921,
+      "user": "overvenus",
+      "created_at": "2019-09-26T09:39:03Z",
+      "body": "Another failed case.\r\n\r\n[internal.pingcap.net.txt](https://github.com/tikv/tikv/files/3657098/internal.pingcap.net.txt)\r\n"
+    },
+    {
+      "id": 730951282,
+      "user": "NingLin-P",
+      "created_at": "2020-11-20T07:05:05Z",
+      "body": "Close this issue, since it is duplicated with https://github.com/tikv/tikv/issues/7184"
+    }
+  ]
+}

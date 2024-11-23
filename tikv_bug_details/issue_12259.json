@@ -1,0 +1,90 @@
+{
+  "issue_number": 12259,
+  "title": "tikv stability: QPS fell to zero for a few minutes after fault recover from minority tikv network-loss due to full of \"Async Apply CPU\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/03/24 14:52:29.026 +08:00] [INFO] [client.go:376] [\"Cluster version information\"] [type=pd] [version=6.0.0] [git_hash=fa15ec25753791b3439454d41187078ed2d61659]\r\n[2022/03/24 14:52:29.026 +08:00] [INFO] [client.go:376] [\"Cluster version information\"] [type=tidb] [version=6.0.0] [git_hash=3fa3e0e9105ac1a2de13814e45d55d93cda2661b]\r\n[2022/03/24 14:52:29.026 +08:00] [INFO] [client.go:376] [\"Cluster version information\"] [type=tikv] [version=6.0.0-alpha] [git_hash=118b4eff21104581048a69526dd17b378a9605f2]\r\n\r\n### What operating system and CPU are you using?\r\n8core、16G\r\n\r\n### Steps to reproduce\r\n1、br data ： storage: 's3://benchmark/tpcc-1000-4.0'\r\n2、[2022/03/24 14:52:29.261 +08:00] [INFO] [cmd.go:124] [\"Start remote command\"] [cmd=\"go-tpc tpcc run -D tpcc --host tc-tidb.glh-master-8zxtz -P4000 --warehouses 1000 -T 64 --time 36000m --ignore-error '2013,1213,1105,1205,8022,8027,8028,9004,9007'\"] [nodename=benchtoolset]\r\n2022-03-24T14:52:29.261+0800\tINFO\tk8s/client.go:195\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n[2022/03/24 14:53:29.262 +08:00] [INFO] [oltp_test.go:143] [\"Before each finished.\"]\r\n3、inject two tikv network-loss (network disconnected)\r\ninject：2022/3/24 11:08\r\nrecovery fault: 2022/3/24 11:52\r\n\r\n### What did you expect?\r\nafter fault recovery，QPS can not drop to zero\r\n\r\n### What did happened?\r\nQPS fell to zero for a few minutes after fault recovery\r\n![image](https://user-images.githubusercontent.com/84712107/159864975-c7d2868e-196d-4ab0-9eef-07b01ecacc18.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159865121-d0e92a02-a2ab-4055-9f06-43359a232b7a.png)\r\n![image](https://user-images.githubusercontent.com/84712107/159865272-b8b1b10b-5baa-4c46-9da0-f68be01ee2d8.png)\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-03-24T07:34:39Z",
+  "updated_at": "2024-07-12T08:10:59Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "impact/perf-jitter"
+  ],
+  "comments_data": [
+    {
+      "id": 1077323096,
+      "user": "Lily2025",
+      "created_at": "2022-03-24T07:35:13Z",
+      "body": "/type bug\r\n/severity major\r\n/assign Connor1996"
+    },
+    {
+      "id": 1101968154,
+      "user": "Lily2025",
+      "created_at": "2022-04-19T03:57:55Z",
+      "body": "/label affects-5.2\r\n/label affects-5.3\r\n/label affects-5.4"
+    },
+    {
+      "id": 1103830583,
+      "user": "cfzjywxk",
+      "created_at": "2022-04-20T11:36:55Z",
+      "body": "Is this verified to be caused by a bug or some expected situation in which the majority serving the client requests is isolated?"
+    },
+    {
+      "id": 1104633931,
+      "user": "Lily2025",
+      "created_at": "2022-04-21T02:10:26Z",
+      "body": "> [cfzjywxk](/cfzjywxk)\r\nfrom @Connor1996\r\nThis pr should be able to improve this problem, https://github.com/tikv/tikv/pull/11921, the newly pulled tikv will temporarily not be the leader"
+    },
+    {
+      "id": 1271986841,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T18:59:31Z",
+      "body": "/cc cosven\r\nPTAL"
+    },
+    {
+      "id": 1873602274,
+      "user": "Lily2025",
+      "created_at": "2024-01-02T03:59:14Z",
+      "body": "qps drop after one of tikv recover from io hang\r\n\r\n![image](https://github.com/tikv/tikv/assets/84712107/42a6776f-4d2c-431b-8e50-a43c9d1130b8)\r\n![image](https://github.com/tikv/tikv/assets/84712107/d5bc2d5f-ec47-4928-914b-e79bf9ff04bb)\r\n\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7319161375831017483?from=1704139208&to=1704143700\r\n![image](https://github.com/tikv/tikv/assets/84712107/8cc09b54-84a4-4174-b987-72486ece44b5)\r\n![image](https://github.com/tikv/tikv/assets/84712107/3a133710-05a1-4e26-bc77-049cffc1d1ff)\r\n![image](https://github.com/tikv/tikv/assets/84712107/6f5f43eb-dab7-4e27-b035-8379b8385edf)\r\n\r\n"
+    },
+    {
+      "id": 2074265558,
+      "user": "LykxSassinator",
+      "created_at": "2024-04-24T07:29:37Z",
+      "body": "The underlying issue is attributed to the significant volume of raft logs that the recovered node must load and apply. This process consumes substantial resources such as CPU, memory, and disk I/O, thereby affecting the overall cluster availability.\r\n\r\nThroughout the recovery process, the cluster is engaged in the following steps:\r\n- Step 1: Synchronizing the lagging raft logs to the recovered node.\r\n- Step 2: The recovered node endeavors to commit the missing raft logs/snapshots and apply these logs.\r\n- Step 3: Concurrently, PD identifies that the peers on the recovered node are prepared for balancing, having caught up with the leaders (`peer.committed_index` >= `leader.committed_index` - `config.leader_transfer_max_log_lag`). Subsequently, PD initiates the `balance-leader-scheduler` to rebalance leaders.\r\n- Step 4: Next, the recovered node are applying raft logs, and some peers on it become leaders, which need to handle the Write requests.\r\n- Step 5: Finally, within the recovered node, the process of applying logs involves loading raft logs into Memory, and it also consumes a lot of CPU resources.\r\n\r\nHowever, during `Step 5`, the excessive memory usage triggers the rejection of appending raft logs due to the [OOM guard setting](https://github.com/tikv/tikv/blob/2ec9ee78504d9740c9f2456f2fb0dcdb3efe1671/src/server/config.rs#L170-L180), leading to constraints on write operations. And the rejection can be reviewed from the Grafana, in the section TiKV-Details/Error section, such as following shows:\r\n![img_v3_029i_0f71a927-6630-4c88-a17e-3402ae4b873g](https://github.com/tikv/tikv/assets/18441614/46ddce8b-9c3b-4580-9cb7-05649b04a3db)\r\n\r\nAt the end, the QPS drops to zero, and the cluster needs waiting for the recovered node ends its applying progress before it can serve the WRITE requests.\r\n\r\n\r\n\r\n"
+    },
+    {
+      "id": 2074283251,
+      "user": "LykxSassinator",
+      "created_at": "2024-04-24T07:39:13Z",
+      "body": "As for mitigating this issue, in a short term, there exists some minor advices to users:\r\n- Reduce the configuration `raftstore.reject_messages_on_memory_ratio` or set it to `0` directly. This setting is not recommended be changed, which might cause OOM issues.\r\n- Reduce the block cache capacity and increase the memory capacity.\r\n\r\nAnd as for long-term plans, I've kept tracking this issue, and put up one pr based on the master branch to mitigate it. This pr makes the recovered node not available for re-balancing leaders until the most of regions finishing applying missing raft logs. It can be reviewed in https://github.com/tikv/tikv/pull/16738, and it can be cp to other lts version later."
+    },
+    {
+      "id": 2100194769,
+      "user": "LykxSassinator",
+      "created_at": "2024-05-08T09:48:37Z",
+      "body": "Currently, https://github.com/tikv/tikv/pull/16738 is merged into master branch and it can mitigate the jitters of QPS when restarting TiKV nodes. \r\n\r\nBut as mentioned before\r\n> However, during Step 5, the excessive memory usage triggers the rejection of appending raft logs due to the [OOM guard setting](https://github.com/tikv/tikv/blob/2ec9ee78504d9740c9f2456f2fb0dcdb3efe1671/src/server/config.rs#L170-L180), leading to constraints on write operations.\r\n\r\nThere still exists some works need to be tracking on the management of memory resources in TiKV.\r\n\r\n"
+    },
+    {
+      "id": 2225055524,
+      "user": "Lily2025",
+      "created_at": "2024-07-12T08:10:56Z",
+      "body": "/impact perf-jitter"
+    }
+  ]
+}

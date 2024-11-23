@@ -1,0 +1,52 @@
+{
+  "issue_number": 15258,
+  "title": "[Dynamic Regions] resolved ts blocked after region merge",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2023/07/30 04:15:22.889 +00:00] [INFO] [lib.rs:93] [\"Git Commit Hash:   42882f8bcf4ce52ea93f93d325c000147ac2e137\"]\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nexecute flashback during pitr\r\n\r\n### What did you expect?\r\npitr run normally ,flashback run normally\r\n### What did happened?\r\n2023-07-30T05:39:25.092Z        FATAL   ./main.go:125   Br PiTR DDL Comp failed {\"error\": \"Error 1105: cannot set flashback timestamp aft\r\ner min-resolved-ts(2023-07-30 05:23:03.204 +0000 UTC)\", \"errorVerbose\": \"Error 1105: cannot set flashback timestamp after min-resolved-ts\r\n(2023-07-30 05:23:03.204 +0000 UTC)\\[ngithub.com/pingcap/errors.AddStack\\n\\tgithub.com/pingcap/errors@v0.11.5-0.20211224045212-9687c2b0f87](http://ngithub.com/pingcap/errors.AddStack/n/tgithub.com/pingcap/errors@v0.11.5-0.20211224045212-9687c2b0f87)\r\nc/errors.go:174\\[ngithub.com/pingcap/errors.Trace\\n\\tgithub.com/pingcap/errors@v0.11.5-0.20211224045212-9687c2b0f87c/juju_adaptor.go:15\\ng](http://ngithub.com/pingcap/errors.Trace/n/tgithub.com/pingcap/errors@v0.11.5-0.20211224045212-9687c2b0f87c/juju_adaptor.go:15/ng)\r\n[ithub.com/pingcap/test-infra/caselib/pkg/steps.(*executeSqlStatements).Execute\\n\\tgithub.com/pingcap/test-infra/caselib/pkg/steps/databas](http://ithub.com/pingcap/test-infra/caselib/pkg/steps.(*executeSqlStatements).Execute/n/tgithub.com/pingcap/test-infra/caselib/pkg/steps/databas)\r\ne.go:367\\[ngithub.com/pingcap/test-infra/caselib/pkg/steps.(*Parallel).Execute.func1\\n\\tgithub.com/pingcap/test-infra/caselib/pkg/steps/st](http://ngithub.com/pingcap/test-infra/caselib/pkg/steps.(*Parallel).Execute.func1/n/tgithub.com/pingcap/test-infra/caselib/pkg/steps/st)\r\nep.go:69\\[ngolang.org/x/sync/errgroup.(*Group).Go.func1\\n\\tgolang.org/x/sync@v0.0.0-20220722155255-886fb9371eb4/errgroup/errgroup.go:75\\nr](http://ngolang.org/x/sync/errgroup.(*Group).Go.func1/n/tgolang.org/x/sync@v0.0.0-20220722155255-886fb9371eb4/errgroup/errgroup.go:75/nr)\r\nuntime.goexit\\n\\truntime/asm_amd64.s:1594\"}",
+  "state": "closed",
+  "created_at": "2023-08-01T08:14:55Z",
+  "updated_at": "2023-08-10T09:52:58Z",
+  "closed_at": "2023-08-10T09:52:58Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1659804813,
+      "user": "seiya-annie",
+      "created_at": "2023-08-01T08:16:27Z",
+      "body": "![20230801-161607](https://github.com/tikv/tikv/assets/53471087/f1db759e-3d5b-4a00-9cab-00e811a3ca73)\r\n"
+    },
+    {
+      "id": 1659808111,
+      "user": "seiya-annie",
+      "created_at": "2023-08-01T08:18:32Z",
+      "body": "[tikv--0.log.gz](https://github.com/tikv/tikv/files/12226188/tikv--0.log.gz)\r\n"
+    },
+    {
+      "id": 1659808375,
+      "user": "seiya-annie",
+      "created_at": "2023-08-01T08:18:43Z",
+      "body": "[tikv--1.log.gz](https://github.com/tikv/tikv/files/12226193/tikv--1.log.gz)\r\n"
+    },
+    {
+      "id": 1659808672,
+      "user": "seiya-annie",
+      "created_at": "2023-08-01T08:18:54Z",
+      "body": "[tikv--2.log.gz](https://github.com/tikv/tikv/files/12226196/tikv--2.log.gz)\r\n"
+    },
+    {
+      "id": 1669067301,
+      "user": "overvenus",
+      "created_at": "2023-08-08T07:31:19Z",
+      "body": "Root cause: PD does not consider flashback state changes when updating Region info. \r\n\r\n* Resolved TS is blocked because region merge is blocked.\r\n* Region merged is blocked because Region info (flashback = true) on PD does not match TiKV local Region info (flashback = false), CommitMerge can not proceed.\r\n* Region info (flashback = true) on PD because leader is changed during flashback.\r\n* Region info does not update after flashback because PD does not consider flashback state change.\r\n\r\nhttps://github.com/tikv/pd/blob/a605e11f984e35fa148c92387db52a1d178815bf/pkg/core/region.go#L672-L766"
+    }
+  ]
+}

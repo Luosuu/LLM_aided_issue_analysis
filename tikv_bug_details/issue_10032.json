@@ -1,0 +1,22 @@
+{
+  "issue_number": 10032,
+  "title": "CDC old value cache does not work effectively for caching pessimistic txn write",
+  "body": "## Bug Report\r\n\r\n0% old value cache hit for pessimistic transaction write.\r\n\r\nThis issue may relate to https://github.com/tikv/tikv/issues/9996 and https://github.com/tikv/tikv/issues/9981.\r\n\r\nThe left is optimistic transaction writes and the right is pessimistic transaction writes.\r\n![image](https://user-images.githubusercontent.com/2150711/115109723-13c70980-9faa-11eb-851b-424e45a75223.png)\r\n![image](https://user-images.githubusercontent.com/2150711/115109787-66a0c100-9faa-11eb-9df0-8a616b73192d.png)\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster and v5.0.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\n# create a changefeed with old value feature.\r\nsysbench --db-driver=mysql --mysql-host=172.16.5.33 --mysql-port=47904 --mysql-user=root --time=15000 --report-interval=10 --threads=64 --mysql-db=test --tables=1 --table-size=6000000 oltp_write_only prepare\r\nsleep 60 && sysbench --db-driver=mysql --mysql-host=172.16.5.33 --mysql-port=47904 --mysql-user=root --time=15000 --report-interval=10 --threads=64 --mysql-db=test --tables=1 --table-size=6000000 oltp_write_only run\r\n```\r\n\r\n### What did you expect?\r\n\r\nOld value cache works effectively.\r\n",
+  "state": "closed",
+  "created_at": "2021-04-17T10:30:24Z",
+  "updated_at": "2021-04-27T14:37:56Z",
+  "closed_at": "2021-04-27T14:37:56Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 823000341,
+      "user": "5kbpers",
+      "created_at": "2021-04-20T06:08:36Z",
+      "body": "The pessimistic txn write reads the previous write when acquiring the pessimistic lock so the old value cache will be always missing.\r\nIMO the block cache could be good enough to relieve this situation, because in most cases if an old value is not in the block cache, then a great chance it was evicted from the old value cache."
+    }
+  ]
+}

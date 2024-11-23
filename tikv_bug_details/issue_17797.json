@@ -1,0 +1,17 @@
+{
+  "issue_number": 17797,
+  "title": "flaky test: cases::test_in_memory_engine::test_load_with_eviction",
+  "body": "```\r\n--- TRY 3 STDERR:        tests::failpoints cases::test_in_memory_engine::test_load_with_eviction ---\r\n\r\nthread 'apply-0::test_load_with_eviction' panicked at components/in_memory_engine/src/region_manager.rs:973:17:\r\n\r\nassertion failed: meta.is_written()\r\n\r\nstack backtrace:\r\n\r\n   0: rust_begin_unwind\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/std/src/panicking.rs:645:5\r\n\r\n   1: core::panicking::panic_fmt\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/core/src/panicking.rs:72:14\r\n\r\n   2: core::panicking::panic\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/core/src/panicking.rs:144:5\r\n\r\n   3: in_memory_engine::region_manager::RegionManager::clear_regions_in_being_written::{{closure}}\r\n\r\n   4: in_memory_engine::region_manager::RegionMetaMap::on_all_overlapped_regions\r\n\r\n   5: in_memory_engine::region_manager::RegionManager::clear_regions_in_being_written\r\n\r\n   6: <in_memory_engine::write_batch::RegionCacheWriteBatch as engine_traits::write_batch::WriteBatch>::clear\r\n\r\n   7: <hybrid_engine::observer::write_batch::HybridObservableWriteBatch as engine_traits::write_batch::WriteBatch>::clear\r\n\r\n   8: <raftstore::coprocessor::read_write::write_batch::WriteBatchWrapper<WB> as engine_traits::write_batch::WriteBatch>::clear\r\n\r\n   9: raftstore::store::fsm::apply::ApplyContext<EK>::write_to_db\r\n\r\n  10: raftstore::store::fsm::apply::ApplyContext<EK>::flush\r\n\r\n  11: <raftstore::store::fsm::apply::ApplyPoller<EK> as batch_system::batch::PollHandler<raftstore::store::fsm::apply::ApplyFsm<EK>,raftstore::store::fsm::apply::ControlFsm>>::end\r\n\r\n  12: batch_system::batch::Poller<N,C,Handler>::poll\r\n\r\n  13: batch_system::batch::BatchSystem<N,C>::start_poller::{{closure}}\r\n```\r\n\r\nDetails: https://do.pingcap.net/jenkins/blue/organizations/jenkins/tikv%2Ftikv%2Fpull_unit_test/detail/pull_unit_test/2335/pipeline\r\n",
+  "state": "closed",
+  "created_at": "2024-11-11T03:22:09Z",
+  "updated_at": "2024-11-11T07:25:52Z",
+  "closed_at": "2024-11-11T07:25:52Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "component/test",
+    "flaky_test",
+    "affects-8.5"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,16 @@
+{
+  "issue_number": 15428,
+  "title": "Too many MemberList request after PD lost leader for a while",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n![image](https://github.com/tikv/tikv/assets/6428910/e705abf1-9245-4422-92ed-415f87dec7d1)\r\n![image](https://github.com/tikv/tikv/assets/6428910/df8dea9f-8a67-469f-bf68-f43f5e28e43c)\r\n\r\n\r\n### What version of TiKV are you using?\r\nv6.5.3\r\n\r\n### Steps to reproduce\r\nuse. pd failpoint binary, and ingest the failpoint.\r\n\r\n1. enable fail point, like gRPC is throttling, cannot read from etcd.\r\n`curl -X PUT -d 'return(10)' http://tc-pd-1.tc-pd-peer.csn-simulator-big-cluster-vd62g.svc:2379/pd/api/v1/fail/github.com/tikv/pd/pkg/etcdutil/SlowEtcdKVGet`\r\n\r\n2. simulate pd lost leader\r\n`curl -X PUT -d 'return(\"2346857576170797299\")' http://tc-pd-1.tc-pd-peer.csn-simulator-big-cluster-vd62g.svc:2379/pd/api/v1/fail/github.com/tikv/pd/server/exitCampaignLeader`\r\n\r\n### What did you expect?\r\n\r\nless rpc \r\n\r\n### What did happened?\r\nmany rpc\r\n",
+  "state": "closed",
+  "created_at": "2023-08-24T09:17:48Z",
+  "updated_at": "2023-08-30T02:21:39Z",
+  "closed_at": "2023-08-30T02:21:39Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,24 @@
+{
+  "issue_number": 15878,
+  "title": "`field` function doesn't consider the collation",
+  "body": "Run the following SQL:\r\n\r\n```\r\ndrop table if exists t;\r\ncreate table t(a varchar(10) collate utf8mb4_bin, b varchar(10) collate utf8mb4_general_ci);\r\ninsert into t (a, b) values ('a', 'A');\r\nselect * from t where field('A', a collate utf8mb4_general_ci, b) > 1;\r\n\r\n```\r\n\r\nThe result is wrong, because TiKV doesn't use `utf8mb4_general_ci` to compare the string, and so that `a != A`. The expected behavior is that `a == A` and this `SELECT` should return empty.\r\n\r\nRef https://github.com/pingcap/tidb/issues/47688",
+  "state": "closed",
+  "created_at": "2023-10-31T06:37:02Z",
+  "updated_at": "2023-10-31T17:35:09Z",
+  "closed_at": "2023-10-31T17:35:09Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor",
+    "severity/critical",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1787663403,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-10-31T17:27:01Z",
+      "body": "@tonyxuqqi: It seems you want to merge this PR, I will help you trigger all the tests:\n\n/run-all-tests\n\nYou only need to trigger `/merge` once, and if the CI test fails, you just re-trigger the test that failed and the bot will merge the PR for you after the CI passes.\n\n> If you have any questions about the PR merge process, please refer to [pr process](https://book.prow.tidb.net/#/en/workflows/pr).\n\n\n<details>\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

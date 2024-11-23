@@ -1,0 +1,34 @@
+{
+  "issue_number": 4409,
+  "title": "Reorganize tikv_alloc's cargo features",
+  "body": "The way tikv_alloc uses features makes it easy to silently break it's conditional compilation such that it's impossible to disable jemalloc.\r\n\r\ntikv_alloc makes jemalloc a default feature that can be turned off by asking cargo to disable its default features. In order to make it possible to do so, the tikv create marks jemalloc as default-features = false and turns them back on by itself making jemalloc a default feature.\r\n\r\nUnfortunately it is very easy to link crates together in a way that makes it impossible to turn off default features. For it to be possible to turn off default features, every crate that links to tikv_alloc or tikv must configure it as default-features = false. Features are additive, so if any crate in the dag requests the feature, including the default feature, then it will be on.\r\n\r\nSomeone adding a new crate is probably not going to to know this.\r\n\r\nSo I think the right way to organize the features is to not name \"jemalloc\" as a default feature. in either tikv or tikv_alloc. That way crates don't have to turn off the default feature. jemalloc is still used by default, there's just no feature named \"jemalloc\". Instead there is a feature named \"system-alloc\".\r\n\r\nNeed to wait for https://github.com/tikv/tikv/pull/4207, which itself is reorganizing the features to make tcmalloc work.",
+  "state": "open",
+  "created_at": "2019-03-20T08:57:00Z",
+  "updated_at": "2020-08-28T11:18:14Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "priority/low",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 474879528,
+      "user": "siddontang",
+      "created_at": "2019-03-20T15:18:16Z",
+      "body": "@brson \r\n\r\nI want to use sanitizer which is conflicted jemalloc, so how can I enable all the crates don't use it?"
+    },
+    {
+      "id": 475045864,
+      "user": "brson",
+      "created_at": "2019-03-20T22:02:05Z",
+      "body": "@siddontang today it's not possible because of https://github.com/tikv/tikv/issues/4410, which is fixed in https://github.com/tikv/tikv/pull/4411.\r\n\r\nAfter just https://github.com/tikv/tikv/pull/4411 it _might_ be possible, but I'd wait  for https://github.com/tikv/tikv/pull/4370. After that you would run\r\n\r\n`cargo build --no-default-features`\r\n\r\nAfter https://github.com/tikv/tikv/pull/4411 and https://github.com/tikv/tikv/pull/4370 land and _this_ issue is fixed you would do:\r\n\r\n`cargo build --feature=system_alloc`\r\n\r\n"
+    },
+    {
+      "id": 482822504,
+      "user": "ZhangHanDong",
+      "created_at": "2019-04-13T15:37:36Z",
+      "body": "@brson  https://github.com/tikv/tikv/pull/4524  "
+    }
+  ]
+}

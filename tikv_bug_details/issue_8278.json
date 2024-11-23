@@ -1,0 +1,22 @@
+{
+  "issue_number": 8278,
+  "title": "cases::test_merge::test_node_merge_crash_when_snapshot not work",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\nubuntu 20.04\r\n\r\n### Steps to reproduce\r\n`cargo test --package tests --test failpoints -- cases::test_merge::test_node_merge_crash_when_snapshot --exact --nocapture`\r\n\r\n### What did you expect?\r\nfailpoint \"on_region_worker_destroy\" code be executed.\r\n\r\n### What did happened?\r\nbut it's not",
+  "state": "closed",
+  "created_at": "2020-07-17T09:19:21Z",
+  "updated_at": "2020-11-04T08:59:39Z",
+  "closed_at": "2020-11-04T08:59:39Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 721586458,
+      "user": "gengliqi",
+      "created_at": "2020-11-04T08:27:33Z",
+      "body": "The failpoint `on_region_worker_destroy` is truly useless. I will remove it in next pr."
+    }
+  ]
+}

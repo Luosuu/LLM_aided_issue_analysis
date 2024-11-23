@@ -1,0 +1,16 @@
+{
+  "issue_number": 12542,
+  "title": "TiKV panic when `cast` func pushdown with process invalid utf8 character",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.0.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\nset @@tidb_skip_utf8_check = 1\r\ncreate table t (a char(10) charset latin1, b int);\r\ninsert into t values (0x90, 1);\r\nselect a from t where cast(a as char(10) charset utf8) = a limit 1;\r\n```\r\n\r\n### What did you expect?\r\n\r\nnot panic\r\n\r\n### What did happened?\r\n\r\npanic\r\n\r\n```\r\n[2022/05/17 10:22:10.919 +08:00] [FATAL] [lib.rs:468] [\"called `Result::unwrap()` on an `Err` value: Utf8Error { valid_up_to: 0, error_len: Some(1) }\"] [backtrace=\"   0: backtrace::capture::Backtrace::new\\n   1: tikv_util::set_panic_hook::{{closure}}\\n   2: std::panicking::rust_panic_with_hook\\n   3: std::panicking::begin_panic_handler::{{closure}}\\n   4: std::sys_common::backtrace::__rust_end_short_backtrace\\n   5: _rust_begin_unwind\\n   6: core::panicking::panic_fmt\\n   7: core::result::unwrap_failed\\n   8: tidb_query_expr::impl_cast::cast_as_string_helper\\n   9: tidb_query_expr::impl_cast::cast_string_as_string_fn_meta::run\\n  10: tidb_query_expr::types::expr_eval::<impl tidb_query_expr::types::expr::RpnExpression>::eval_decoded\\n  11: <tidb_query_common::execute_stats::WithSummaryCollector<C,T> as tidb_query_executors::interface::BatchExecutor>::next_batch\\n  12: <tidb_query_common::execute_stats::WithSummaryCollector<C,T> as tidb_query_executors::interface::BatchExecutor>::next_batch\\n  13: tidb_query_executors::runner::BatchExecutorsRunner<SS>::internal_handle_request\\n  14: <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n  15: <tikv::coprocessor::interceptors::tracker::Tracker<F> as core::future::future::Future>::poll\\n  16: <tikv::coprocessor::interceptors::concurrency_limiter::ConcurrencyLimiter<PF,F> as core::future::future::Future>::poll\\n  17: <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n  18: yatp::task::future::RawTask<F>::poll\\n  19: <yatp::task::future::Runner as yatp::pool::runner::Runner>::handle\\n  20: std::sys_common::backtrace::__rust_begin_short_backtrace\\n  21: core::ops::function::FnOnce::call_once{{vtable.shim}}\\n  22: std::sys::unix::thread::Thread::new::thread_start\\n  23: __pthread_deallocate\\n\"] [location=components/tidb_query_datatype/src/codec/convert.rs:716] [thread_name=unified-read-pool-5]\r\n```",
+  "state": "closed",
+  "created_at": "2022-05-17T02:25:21Z",
+  "updated_at": "2022-05-18T07:02:39Z",
+  "closed_at": "2022-05-18T07:02:39Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "difficulty/easy",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

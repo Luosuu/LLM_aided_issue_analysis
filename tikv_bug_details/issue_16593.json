@@ -1,0 +1,33 @@
+{
+  "issue_number": 16593,
+  "title": "TiKV built failed with GCC13",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nManjaro\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\nmake build\r\n```\r\n\r\n### What did you expect?\r\n\r\nsuccess\r\n\r\n### What did happened?\r\n\r\n```\r\n...\r\n  /home/lance/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/05fc3f8/librocksdb_sys/rocksdb/monitoring/perf_flag.cc:19:20: error: ‘PerfFlag’ was not declared in this scope; did you mean ‘CheckPerfFlag’?\r\n     19 | bool CheckPerfFlag(PerfFlag flag) { return perf_flags.test(flag); }\r\n        |                    ^~~~~~~~\r\n        |                    CheckPerfFlag\r\n  /home/lance/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/05fc3f8/librocksdb_sys/rocksdb/monitoring/perf_flag.cc:21:1: error: ‘PerfFlags’ does not name a type\r\n     21 | PerfFlags GetPerfFlags() { return perf_flags; }\r\n        | ^~~~~~~~~\r\n  /home/lance/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/05fc3f8/librocksdb_sys/rocksdb/monitoring/perf_flag.cc:23:6: error: variable or field ‘SetPerfFlags’ declared void\r\n     23 | void SetPerfFlags(PerfFlags flags) { perf_flags = flags; }\r\n        |      ^~~~~~~~~~~~\r\n  /home/lance/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/05fc3f8/librocksdb_sys/rocksdb/monitoring/perf_flag.cc:23:19: error: ‘PerfFlags’ was not declared in this scope\r\n     23 | void SetPerfFlags(PerfFlags flags) { perf_flags = flags; }\r\n        |                   ^~~~~~~~~\r\n  make[4]: *** [CMakeFiles/rocksdb.dir/build.make:1885: CMakeFiles/rocksdb.dir/monitoring/perf_flag.cc.o] Error 1\r\n  make[4]: *** Waiting for unfinished jobs....\r\n  cc1plus: all warnings being treated as errors\r\n  make[4]: *** [CMakeFiles/rocksdb.dir/build.make:555: CMakeFiles/rocksdb.dir/db/db_impl/db_impl.cc.o] Error 1\r\n  make[3]: *** [CMakeFiles/Makefile2:142: CMakeFiles/rocksdb.dir/all] Error 2\r\n  make[2]: *** [CMakeFiles/Makefile2:149: CMakeFiles/rocksdb.dir/rule] Error 2\r\n  make[1]: *** [Makefile:172: rocksdb] Error 2\r\n  thread 'main' panicked at /home/lance/.cargo/git/checkouts/cmake-rs-1b5303aca42ae56b/00e6b22/src/lib.rs:1054:5:\r\n\r\n  command did not execute successfully, got: exit status: 2\r\n\r\n  build script failed, must exit now\r\n  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\nwarning: build failed, waiting for other jobs to finish...\r\n```",
+  "state": "open",
+  "created_at": "2024-03-04T03:35:47Z",
+  "updated_at": "2024-08-07T05:46:37Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1975639258,
+      "user": "lance6716",
+      "created_at": "2024-03-04T03:36:23Z",
+      "body": "I'm using GCC13, maybe I should try to downgrade it to 12 as https://github.com/tikv/tikv/issues/12888"
+    },
+    {
+      "id": 1975650561,
+      "user": "lance6716",
+      "created_at": "2024-03-04T03:52:36Z",
+      "body": "after I switch to gcc 12 `export CC=gcc-12 CXX=g++-12`, new error is\r\n\r\n```\r\n  CMake Error at /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake:230 (message):\r\n    Could NOT find gflags (missing: GFLAGS_LIBRARIES GFLAGS_INCLUDE_DIR)\r\n  Call Stack (most recent call first):\r\n    /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake:600 (_FPHSA_FAILURE_MESSAGE)\r\n    /home/lance/Projects/tikv/target/x86_64-unknown-linux-gnu/debug/build/libtitan_sys-16bebfd88ea769f7/out/build/rocksdb/cmake/modules/Findgflags.cmake:15 (find_package_handle_standard_args)\r\n    /home/lance/Projects/tikv/target/x86_64-unknown-linux-gnu/debug/build/libtitan_sys-16bebfd88ea769f7/out/build/rocksdb/CMakeLists.txt:137 (find_package)\r\n\r\n  \r\n     Called from: [4]   /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake\r\n                  [3]   /usr/share/cmake/Modules/FindPackageHandleStandardArgs.cmake\r\n                  [2]   /home/lance/Projects/tikv/target/x86_64-unknown-linux-gnu/debug/build/libtitan_sys-16bebfd88ea769f7/out/build/rocksdb/cmake/modules/Findgflags.cmake\r\n                  [1]   /home/lance/Projects/tikv/target/x86_64-unknown-linux-gnu/debug/build/libtitan_sys-16bebfd88ea769f7/out/build/rocksdb/CMakeLists.txt\r\n     Returning to         /home/lance/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/05fc3f8/librocksdb_sys/libtitan_sys/titan\r\n     Called from: [1]   /home/lance/.cargo/git/checkouts/rust-rocksdb-a9a28e74c6ead8ef/05fc3f8/librocksdb_sys/libtitan_sys/titan/CMakeLists.txt\r\n  thread 'main' panicked at /home/lance/.cargo/git/checkouts/cmake-rs-1b5303aca42ae56b/00e6b22/src/lib.rs:1054:5:\r\n\r\n  command did not execute successfully, got: exit status: 1\r\n\r\n  build script failed, must exit now\r\n  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\nmake: *** [Makefile:204: build] Error 101\r\n```"
+    },
+    {
+      "id": 1975655605,
+      "user": "lance6716",
+      "created_at": "2024-03-04T03:59:55Z",
+      "body": "I can build after install gflags now"
+    }
+  ]
+}

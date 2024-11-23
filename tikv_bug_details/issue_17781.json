@@ -1,0 +1,46 @@
+{
+  "issue_number": 17781,
+  "title": "CDC lag up to 2.5h when titan is on and region size is large (280MB+)",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv8.4.0 \r\nCommit: 22bbfeb958936ab75dda1f60ca6bdc1cc0bb5231\r\n\r\n### What operating system and CPU are you using?\r\nX86, Docker \r\n\r\n### Steps to reproduce\r\n1. Deploy v8.4.0 cluster with 6 TiKV node (16C64G), titan is on.\r\n2. br restore 4000 tables (~8TB), avg region size is about 280MB+ after restore \r\n3. start log backup task\r\n4. create one CDC kafka changefeed to replicate the workload to Kafka\r\n5. run workload\r\n\r\n### What did you expect?\r\nhttps://github.com/tikv/tikv/pull/17724 partly fixed issue https://github.com/tikv/tikv/pull/17724, by taking cdc tasks into memory quota to prevent the TiKV OOM caused by too many pending tasks. With this fix, TiKV will not OOM, and TiDB latency can be relatively stable. But we still have the issue that CDC replication capability is greatly impacted due to \"slow processing of old_value_cb\", we want this issue be fixed as well.\r\n\r\n### What did happened?\r\nWith https://github.com/tikv/tikv/pull/17724, \r\n- Takes 2.8h to finish initial scan of 2h cdc lag. The initial scan speed is 4X slower than that of v8.3.0\r\n- CDC lag up to 2.5h during normal replication\r\n![image](https://github.com/user-attachments/assets/03c9678c-bb89-4eb4-9eb5-c2c306852904)\r\n![image](https://github.com/user-attachments/assets/20ca87da-32d6-4ccc-ab3e-b91233b533ad)\r\n![image](https://github.com/user-attachments/assets/3f02719a-724f-4bd6-b33e-177a42a69be8)\r\n![image](https://github.com/user-attachments/assets/2180fbe9-0a10-4646-a1b7-d1eb2b20fd5f)\r\n![image](https://github.com/user-attachments/assets/957013e9-7a9d-4bf2-af67-0264286f124a)\r\n",
+  "state": "closed",
+  "created_at": "2024-11-07T03:11:28Z",
+  "updated_at": "2024-11-22T03:19:27Z",
+  "closed_at": "2024-11-22T03:19:26Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2461243589,
+      "user": "fubinzh",
+      "created_at": "2024-11-07T03:26:57Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 2461244410,
+      "user": "fubinzh",
+      "created_at": "2024-11-07T03:27:58Z",
+      "body": "/label affects-8.5"
+    },
+    {
+      "id": 2475311207,
+      "user": "LykxSassinator",
+      "created_at": "2024-11-14T02:58:30Z",
+      "body": "/cc @v01dstar ptal, thx"
+    },
+    {
+      "id": 2492798225,
+      "user": "v01dstar",
+      "created_at": "2024-11-22T03:19:26Z",
+      "body": "Opened another issue #17877"
+    }
+  ]
+}

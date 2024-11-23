@@ -1,0 +1,19 @@
+{
+  "issue_number": 16601,
+  "title": "TiCDC incremental scan can usage too much CPU under some unkown conditions",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n`v6.5.5`.\r\n\r\nHowever, I guess the issue also exists in all later versions.\r\n\r\n### What operating system and CPU are you using?\r\nDoesn't matter.\r\n\r\n### Steps to reproduce\r\nIt can't be reprocued stably. The root cause is still unknown.\r\n\r\n### What did you expect?\r\nTiCDC incremental scan shouldn't be too slow.\r\n\r\n### What did happened?\r\nTiCDC incremental scan is too slow (about 30min), and incremental scan worker CPU usage is always 100%:\r\n\r\n```\r\n[2023/11/27 10:54:58.200 +08:00] [INFO] [replication_manager.go:635] [\"schedulerv3: slow table\"] [namespace=default] [changefeed=policy-t2o-36] [tableID=52592] [tableStatus=] [checkpointTs=445920115528303141] [resolvedTs=445920115528303141] [checkpointLag=57m32.250351282s]\r\n```\r\n\r\n![image-2024-01-22-15-00-49-850](https://github.com/tikv/tikv/assets/8407317/e3fec341-951c-4f72-81d7-e64704862115)\r\n\r\n\r\n![image-2024-01-22-15-01-14-465](https://github.com/tikv/tikv/assets/8407317/74b31535-1802-45e6-b7e6-1adef463136d)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-03-05T06:47:55Z",
+  "updated_at": "2024-11-21T11:35:24Z",
+  "closed_at": "2024-11-21T11:35:24Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": []
+}

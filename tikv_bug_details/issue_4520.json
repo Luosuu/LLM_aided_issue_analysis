@@ -1,0 +1,22 @@
+{
+  "issue_number": 4520,
+  "title": "Link libunwind into tcmalloc crate",
+  "body": "As mentioned in https://github.com/tikv/tikv/pull/4516, the tcmalloc crate builds tcmalloc but does not build an unwinder.\r\n\r\nThis is a problem because the build _will_ link to some unwinder, but tcmalloc is only compatible with specific versions of libunwind.\r\n\r\nTo make the tcmalloc crate reliable it needs to build and link the correct version of libunwind.\r\n\r\nLinking unwinders is tricky because they are a global resource, and other libraries in the stack are probably already pulling in unwinders, so it will take some care.",
+  "state": "open",
+  "created_at": "2019-04-12T00:32:44Z",
+  "updated_at": "2020-08-28T11:14:09Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "priority/low",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 682468738,
+      "user": "BusyJay",
+      "created_at": "2020-08-28T11:13:55Z",
+      "body": "Can this be closed?"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "issue_number": 6985,
+  "title": "Deadlock detector sometimes reconnects to the same leader",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nWhen the peer of the leader region is merged, splits or transfers to another store, the deadlock detector will receive a role change message which causes the connection between it and the leader dropped. \r\n\r\nSometimes, the leader is not changed, but people can see:\r\n```\r\n[2020/03/03 04:10:30.655 +00:00] [INFO] [deadlock.rs:616] [\"leader changed\"] [leader_addr=172.31.38.19:20160] [leader_id=2]\r\n[2020/03/03 04:10:30.656 +00:00] [INFO] [deadlock.rs:680] [\"reconnect leader succeeded\"] [leader_id=2]\r\n```\r\nIt may mislead people the network is unstable.",
+  "state": "open",
+  "created_at": "2020-03-03T07:54:22Z",
+  "updated_at": "2021-01-22T09:51:31Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "priority/low",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

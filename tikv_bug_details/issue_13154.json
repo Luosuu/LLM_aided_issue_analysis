@@ -1,0 +1,27 @@
+{
+  "issue_number": 13154,
+  "title": "Load split: split too fast during do little table scan",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n./tikv-server -V\r\n TiKV\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   1cb47d2fb98e5e9cacae4301899a3d74a97d861c\r\nGit Commit Branch: heads/refs/tags/v6.2.0\r\nUTC Build Time:    2022-07-27 10:57:03\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1、Run workload sysbench on database A;\r\n2、Prepare 1k rows to database B in one table;\r\n3、Run update random row and scan full table at database B;\r\n\r\n\r\n### What did you expect?\r\nSplit works fine, not too fast nor too slow.\r\n\r\n### What did happened?\r\nFound split 20+ regions within 1 min.\r\n![image](https://user-images.githubusercontent.com/9443637/181475970-45299058-dd2e-4ce4-9cc0-a6133a9990ea.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-07-28T09:48:33Z",
+  "updated_at": "2022-08-01T11:33:30Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1197918033,
+      "user": "mayjiang0203",
+      "created_at": "2022-07-28T09:48:47Z",
+      "body": "/type bug\r\n/severity moderate\r\n/assign @nolouch"
+    },
+    {
+      "id": 1201077598,
+      "user": "nolouch",
+      "created_at": "2022-08-01T11:30:11Z",
+      "body": "After my rerun many times and checking this environment, the QPS down is not relative to the split. It's a not blocking issue, will try to improve it in 6.3."
+    }
+  ]
+}

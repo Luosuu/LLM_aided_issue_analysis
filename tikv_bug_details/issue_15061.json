@@ -1,0 +1,32 @@
+{
+  "issue_number": 15061,
+  "title": "[Dynamic Region] tikv oom when inject 100ms io delay chaos",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV\r\nRelease Version:   7.3.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   425f6f262f577425612cf1663ea6cceada72c724\r\nGit Commit Branch: heads/refs/tags/v7.3.0-alpha\r\nUTC Build Time:    2023-06-30 11:15:31\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n30 tikv and sysbench write only workload with about 40T data, open slow store evict scheduler and inject a tikv 100ms io delay chaos\r\nthe injected tikv oom\r\n![img_v2_b1199307-9e8a-44c8-9e8d-0e7b2203695g](https://github.com/tikv/tikv/assets/7677963/a6947afd-b739-4e00-a8fc-b2e4ceee9abc)\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-07-04T04:02:52Z",
+  "updated_at": "2024-04-23T02:36:10Z",
+  "closed_at": "2024-04-23T02:36:09Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2071300636,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-23T02:36:10Z",
+      "body": "Close this issue temporarily since Dynamic Regions project is paused."
+    }
+  ]
+}

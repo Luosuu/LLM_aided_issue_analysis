@@ -1,0 +1,53 @@
+{
+  "issue_number": 12518,
+  "title": "[Dynamic Region] region size config is not inconsistent between tikv config file and pd config show ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # ./pd-server -V\r\nRelease Version: v6.1.0-nightly\r\nEdition: Community\r\nGit Commit Hash: https://github.com/tikv/pd/commit/656f50d4578c50e8aa658459cc866a68c12ba6c2\r\nGit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time: 2022-05-13 10:56:22\r\n\r\n/ # ./tikv-server -V\r\nTiKV\r\nRelease Version: 6.1.0-alpha\r\nEdition: Community\r\nGit Commit Hash: 744d688512744c7a6898d96c4f247c1dc26680b2\r\nGit Commit Branch: heads/refs/tags/v6.1.0-nightly\r\nUTC Build Time: 2022-05-14 10:57:47\r\nRust Version: rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features: jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile: dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8core、32GB\r\n\r\n### Steps to reproduce\r\nmodify tikv config file\r\n\r\n### What did you expect?\r\nregion size config is inconsistent between tikv config file and pd config show\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/84712107/168526042-26b9a9f8-cbea-48b3-b8cf-2d5aefb6fc26.png)\r\n![image](https://user-images.githubusercontent.com/84712107/168526055-6b051695-5a34-44e0-a0c4-c650b688ac9b.png)\r\n![image](https://user-images.githubusercontent.com/84712107/168526062-8999f450-0f55-4a57-a3a4-a62bce86898a.png)\r\n![middle_img_v2_4f30db8b-82c2-4cde-9022-cf7e36fa74ag](https://user-images.githubusercontent.com/84712107/168531828-74fb3d99-6e41-4830-bb00-208d8206d51f.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-16T05:36:41Z",
+  "updated_at": "2022-05-24T18:20:46Z",
+  "closed_at": "2022-05-24T18:20:46Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1127240020,
+      "user": "Lily2025",
+      "created_at": "2022-05-16T05:37:27Z",
+      "body": "/type bug\r\n/severity Critical\r\n/assign 5kbpers"
+    },
+    {
+      "id": 1127240217,
+      "user": "Lily2025",
+      "created_at": "2022-05-16T05:37:51Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/label affects-6.0"
+    },
+    {
+      "id": 1127314794,
+      "user": "Lily2025",
+      "created_at": "2022-05-16T07:18:46Z",
+      "body": "This problem affects merge function of pd, and has certain restrictions on merge，but do not affects split"
+    },
+    {
+      "id": 1127314979,
+      "user": "Lily2025",
+      "created_at": "2022-05-16T07:18:59Z",
+      "body": "/remove-severity critical\r\n/severity major"
+    },
+    {
+      "id": 1127317540,
+      "user": "Lily2025",
+      "created_at": "2022-05-16T07:22:00Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/label affects-6.0"
+    },
+    {
+      "id": 1127317590,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-16T07:22:04Z",
+      "body": "@Lily2025: These labels are not set on the issue: `may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12518#issuecomment-1127317540):\n\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-5.0\r\n>/remove-label may-affects-5.1\r\n>/remove-label may-affects-5.2\r\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-6.0\r\n>/label affects-6.0\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

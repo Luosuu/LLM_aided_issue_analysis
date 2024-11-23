@@ -1,0 +1,16 @@
+{
+  "issue_number": 15219,
+  "title": "scan_latest_user_keys should skip the type of non-user write",
+  "body": "## Bug Report\r\n\r\n`scan_latest_user_keys` is used to scan and get the latest user keys during the flashback progress, currently, it doesn't consider the key's write record which may cause the following situation:\r\n\r\n1. Flashback in phase 1 uses `scan_latest_user_keys` to scan and get the first user key `k1` which has the latest write record with the type `WriteType::Lock` or `WriteType::Rollback`.\r\n2. Flashback prewrite this key.\r\n3. Compaction Filter removes `k1`'s latest record since it's a non-user write.\r\n4. Flashback in phase 2 uses `scan_latest_user_keys` to scan and get the first user key `k2` which doesn't have any lock or commit record with `flashback_commit_ts`.\r\n5. Flashback fails.\r\n\r\n`scan_latest_user_keys` should skip the type of non-user write to ensure we can always get the same key in the 2 different phases.\r\n",
+  "state": "closed",
+  "created_at": "2023-07-27T07:30:09Z",
+  "updated_at": "2023-07-28T03:58:37Z",
+  "closed_at": "2023-07-28T03:58:37Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1"
+  ],
+  "comments_data": []
+}

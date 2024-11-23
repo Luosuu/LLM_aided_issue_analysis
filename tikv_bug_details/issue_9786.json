@@ -1,0 +1,22 @@
+{
+  "issue_number": 9786,
+  "title": "Raftstore GC snapshot calculates crc32 which is useless and causes unnecessary IO",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n\r\n\\-\r\n\r\n### Steps to reproduce\r\n\r\nNot sure if there's any simple way to reproduce, but it may happen when there are too many stale generated snapshot files to ge GCed\r\n\r\n### What did you expect?\r\n\r\nThe cluster runs normally and the stale generated snapshot files are deleted normally.\r\n\r\n### What did happened?\r\n\r\nThe raftstore threads consumes too much IO, which makes the cluster's performance is bad and nearly unable to serve.\r\n\r\nHere's a sample flame graph when the issue happens:\r\n![image-2021-02-19-16-11-20-127](https://user-images.githubusercontent.com/9948422/110748190-55151c80-827a-11eb-85e4-71b7dadfedbe.png)\r\n",
+  "state": "closed",
+  "created_at": "2021-03-11T06:59:25Z",
+  "updated_at": "2021-03-15T09:33:27Z",
+  "closed_at": "2021-03-15T09:33:26Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 799267547,
+      "user": "hicqu",
+      "created_at": "2021-03-15T09:33:26Z",
+      "body": "Closed by https://github.com/tikv/tikv/pull/9669."
+    }
+  ]
+}

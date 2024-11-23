@@ -1,0 +1,21 @@
+{
+  "issue_number": 13586,
+  "title": "TiKV start failed with less than 1 core CPU on Kubernetes",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv6.2.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\non Kubernetes, with `500m` (`0.5` core) CPU resource limit\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\nTiKV running.\r\n\r\n### What did happened?\r\n\r\n```\r\n[2022/10/11 09:45:18.979 +00:00] [FATAL] [[setup.rs:306](http://setup.rs:306/)] [\"invalid configuration: max_background_jobs should be greater than 0 and less than or equal to 0\"]\r\n```\r\n\r\nhttps://github.com/tikv/tikv/blob/4f717716a515a8047d91f4cbeef219f41c20dc2c/src/config.rs#L1199-L1210\r\n",
+  "state": "closed",
+  "created_at": "2022-10-12T03:51:38Z",
+  "updated_at": "2023-01-29T04:15:55Z",
+  "closed_at": "2023-01-29T04:15:55Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

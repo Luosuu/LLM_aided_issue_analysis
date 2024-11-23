@@ -1,0 +1,59 @@
+{
+  "issue_number": 17602,
+  "title": "BatchSplit hang at joint state when execute `BatchSplit` and `move-hot-read-leader` at same time",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.9 \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nBatchsplit was created when the raft was in a joint state due to TransferLeader.\r\nThe split will hang until pd triage the operator of \"leave-joint-state\".\r\nHere are the tikv logs and pd logs.\r\n```\r\n[2024/09/24 19:19:45.210 +08:00] [INFO] [operator_controller.go:443] [\"add operator\"] [region-id=368266575] [operator=\"\\\"move-hot-read-leader {mv peer: store [1679158548] to [18]} (kind:hot-region,region,leader, region:368266575(212337, 576903), createAt:2024-09-24 19:19:45.208873645 +0800 CST m=+11111568.506147198, startAt:0001-01-01 00:00:00 +0000 UTC, currentStep:0, size:125, steps:[0:{add learner peer 1755178085 on store 18}, 1:{use joint consensus, promote learner peer 1755178085 on store 18 to voter, demote voter peer 1755177430 on store 1679158548 to learner}, 2:{transfer leader from store 1679158548 to store 18}, 3:{leave joint state, promote learner peer 1755178085 on store 18 to voter, demote voter peer 1755177430 on store 1679158548 to learner}, 4:{remove peer on store 1679158548}]，timeout:[22m30s])\\\"\"] [additional-info=] \r\n...\r\n[2024/09/24 19:19:50.395 +08:00] [INFO] [apply.rs:1621] [\"execute admin command\"] [command=\"cmd_type: TransferLeader transfer_leader { peer { id: 1755178085 store_id: 18 role: IncomingVoter } }\"] [index=89035270301] [term=64797] [peer_id=1755118766] [region_id=368266575]\r\n[2024/09/24 19:19:50.395 +08:00] [INFO] [apply.rs:1621] [\"execute admin command\"] [command=\"cmd_type: BatchSplit splits { requests { split_key: 748000000000002AFF095F7289CDEBFD54FF514E200000000000FA new_region_id: 1755178101 new_peer_ids: 1755178102 new_peer_ids: 1755178103 new_peer_ids: 1755178104 new_peer_ids: 1755178105 } right_derive: true share_source_region_size: true }\"] [index=89035270302] [term=64797] [peer_id=1755118766] [region_id=368266575]\r\n[2024/09/24 19:19:50.395 +08:00] [INFO] [apply.rs:2482] [\"    split region\"] [keys=\"key 748000000000002AFF095F7289CDEBFD54FF514E200000000000FA\"] [region=\"id: 368266575 start_key: 748000000000002AFF095F7289CDEBA413FF51561D0000000000FA end_key: 748000000000002AFF1C00000000000000F8 region_epoch { conf_ver: 576906 version: 212337 } peers { id: 1755118766 store_id: 32 } peers { id: 1755133193 store_id: 10 } peers { id: 1755177430 store_id: 1679158548 role: DemotingVoter } peers { id: 1755178085 store_id: 18 role: IncomingVoter }\"] [peer_id=1755118766] [region_id=368266575]\r\n[2024/09/24 19:19:50.396 +08:00] [INFO] [peer.rs:4150] [\"insert new region\"] [store_id=32] [is_uninitialized_peer_exist=false] [region=\"id: 1755178101 start_key: 748000000000002AFF095F7289CDEBA413FF51561D0000000000FA end_key: 748000000000002AFF095F7289CDEBFD54FF514E200000000000FA region_epoch { conf_ver: 576906 version: 212338 } peers { id: 1755178102 store_id: 32 } peers { id: 1755178103 store_id: 10 } peers { id: 1755178104 store_id: 1679158548 role: DemotingVoter } peers { id: 1755178105 store_id: 18 role: IncomingVoter }\"] [region_id=1755178101]\r\n[2024/09/24 19:19:50.396 +08:00] [INFO] [peer.rs:267] [\"create peer\"] [peer_id=1755178102] [region_id=1755178101]\r\n[2024/09/24 19:19:50.396 +08:00] [INFO] [raft.rs:2660] [\"switched to configuration\"] [config=\"Configuration { voters: Configuration { incoming: Configuration { voters: {1755178105, 1755178102, 1755178103} }, outgoing: Configuration { voters: {1755178104, 1755178102, 1755178103} } }, learners: {}, learners_next: {1755178104}, auto_leave: false }\"] [raft_id=1755178102] [region_id=1755178101]\r\n[2024/09/24 19:19:50.396 +08:00] [INFO] [raft.rs:1127] [\"became follower at term 5\"] [term=5] [raft_id=1755178102] [region_id=1755178101]\r\n[2024/09/24 19:19:50.396 +08:00] [INFO] [raft.rs:388] [newRaft] [peers=\"Configuration { incoming: Configuration { voters: {1755178105, 1755178102, 1755178103} }, outgoing: Configuration { voters: {1755178104, 1755178102, 1755178103} } }\"] [\"last term\"=5] [\"last index\"=5] [applied=5] [commit=5] [term=5] [raft_id=1755178102] [region_id=1755178101]\r\n[2024/09/24 19:19:50.396 +08:00] [INFO] [raw_node.rs:315] [\"RawNode created with id 1755178102.\"] [id=1755178102] [raft_id=1755178102] [region_id=1755178101]\r\n...\r\n[2024/09/24 19:20:01.406 +08:00] [INFO] [raft.rs:1581] [\"[logterm: 5, index: 5, vote: 0] cast vote for 1755178105 [logterm: 5, index: 5] at term 5\"] [\"msg type\"=MsgRequestPreVote] [term=5] [msg_index=5] [msg_term=5] [from=1755178105] [vote=0] [log_index=5] [log_term=5] [raft_id=1755178102] [region_id=1755178101]\r\n```\r\n\r\npd logs:\r\n```\r\n[2024/09/24 19:19:50.395 +08:00] [INFO] [cluster_worker.go:145] [\"alloc ids for region split\"] [region-id=1755178101] [peer-ids=\"[1755178102,1755178103,1755178104,1755178105]\"]\r\n[2024/09/24 19:19:50.398 +08:00] [INFO] [operator_controller.go:556] [\"operator finish\"] [region-id=368266575] [takes=5.187803822s] [operator=\"\\\"move-hot-read-leader {mv peer: store [1679158548] to [18]} (kind:hot-region,region,leader, region:368266575(212337, 576903), createAt:2024-09-24 19:19:45.208873645 +0800 CST m=+11111568.506147198, startAt:2024-09-24 19:19:45.210858002 +0800 CST m=+11111568.508131561, currentStep:5, size:125, steps:[0:{add learner peer 1755178085 on store 18}, 1:{use joint consensus, promote learner peer 1755178085 on store 18 to voter, demote voter peer 1755177430 on store 1679158548 to learner}, 2:{transfer leader from store 1679158548 to store 18}, 3:{leave joint state, promote learner peer 1755178085 on store 18 to voter, demote voter peer 1755177430 on store 1679158548 to learner}, 4:{remove peer on store 1679158548}]，timeout:[22m30s]) finished\\\"\"] [additional-info=]\r\n...\r\n[2024/09/24 19:20:01.415 +08:00] [INFO] [operator_controller.go:443] [\"add operator\"] [region-id=1755178101] [operator=\"\\\"leave-joint-state {promote peer: store [18]} (kind:unknown, region:1755178101(212338, 576906), createAt:2024-09-24 19:20:01.415300081 +0800 CST m=+11111584.712573633, startAt:0001-01-01 00:00:00 +0000 UTC, currentStep:0, size:1, steps:[0:{leave joint state, promote learner peer 1755178105 on store 18 to voter, demote voter peer 1755178104 on store 1679158548 to learner}]，timeout:[3m0s])\\\"\"] [additional-info=]\r\n[2024/09/24 19:20:01.415 +08:00] [INFO] [operator_controller.go:642] [\"send schedule command\"] [region-id=1755178101] [step=\"leave joint state, promote learner peer 1755178105 on store 18 to voter, demote voter peer 1755178104 on store 1679158548 to learner\"] [source=create]\r\n[2024/09/24 19:20:01.416 +08:00] [INFO] [region.go:669] [\"region ConfVer changed\"] [region-id=1755178101] [detail=\"Remove peer:{id:1755178104 store_id:1679158548 role:DemotingVoter },Remove peer:{id:1755178105 store_id:18 role:IncomingVoter },Add peer:{id:1755178104 store_id:1679158548 role:Learner },Add peer:{id:1755178105 store_id:18 }\"] [old-confver=576906] [new-confver=576908]\r\n[2024/09/24 19:20:01.416 +08:00] [INFO] [operator_controller.go:556] [\"operator finish\"] [region-id=1755178101] [takes=1.136862ms] [operator=\"\\\"leave-joint-state {promote peer: store [18]} (kind:unknown, region:1755178101(212338, 576906), createAt:2024-09-24 19:20:01.415300081 +0800 CST m=+11111584.712573633, startAt:2024-09-24 19:20:01.415464006 +0800 CST m=+11111584.712737559, currentStep:1, size:1, steps:[0:{leave joint state, promote learner peer 1755178105 on store 18 to voter, demote voter peer 1755178104 on store 1679158548 to learner}]，timeout:[3m0s]) finished\\\"\"] [additional-info=\r\n```\r\n\r\n### What did you expect?\r\nDon't split the region if it in joint state or not hang.\r\n\r\n### What did happened?\r\n",
+  "state": "open",
+  "created_at": "2024-09-29T07:07:53Z",
+  "updated_at": "2024-11-01T10:00:43Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5",
+    "affects-7.6",
+    "affects-8.0",
+    "affects-8.1",
+    "report/customer",
+    "affects-8.2",
+    "affects-8.3",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2381139593,
+      "user": "mayjiang0203",
+      "created_at": "2024-09-29T07:08:17Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 2381276727,
+      "user": "overvenus",
+      "created_at": "2024-09-29T09:13:14Z",
+      "body": "This is caused by https://github.com/tikv/tikv/issues/12410."
+    },
+    {
+      "id": 2409736468,
+      "user": "seiya-annie",
+      "created_at": "2024-10-14T02:13:36Z",
+      "body": "/report customer"
+    }
+  ]
+}

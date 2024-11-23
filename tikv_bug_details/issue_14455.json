@@ -1,0 +1,15 @@
+{
+  "issue_number": 14455,
+  "title": "tikv will upgrade fail with config: server.snap-max-write-bytes-per-sec",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<[root@localhost 700]#  /home/tidb/deploy/tikv-2360/bin/tikv-server -V \r\nTiKV \r\nRelease Version:   7.0.0\r\nEdition:           Community\r\nGit Commit Hash:   38d6d6264e4ce25e3fe780e03b879c04890ca37b\r\nGit Commit Branch: heads/refs/tags/v7.0.0\r\nUTC Build Time:    2023-03-24 09:40:13\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n[root@localhost 700]# \r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\ninstall tidb v6.6.0 version cluster with following config, then upgrade to v7.0.0\r\n  tikv:\r\n    raft-engine.enable-log-recycle: false\r\n    raftdb.defaultcf.target-file-size-base: 8MiB\r\n    resource-control.enabled: false\r\n    server.snap-max-write-bytes-per-sec: 50MiB\r\n    \r\n### What did you expect?\r\n\r\n### What did happened?\r\n/home/tidb/deploy/prometheus-9090, data_dir=[/home/tidb/deploy/prometheus-9090/data], log_dir=/home/tidb/deploy/prometheus-9090/log, cache_dir=/root/.tiup/storage/cluster/clusters/113/config-cache\r\n\r\nError: init config failed: 172.16.6.113:2360: executor.ssh.execute_failed: Failed to execute command over SSH for 'tidb@172.16.6.113:22' {ssh_stderr: unknown configuration options: server.snap-max-write-bytes-per-sec\r\n, ssh_stdout: , ssh_command: export LANG=C; PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin /home/tidb/deploy/tikv-2360/bin/tikv-server --config-check --config=/home/tidb/deploy/tikv-2360/conf/tikv.toml --pd \"\" --data-dir \"/home/tidb/deploy/tikv-2360/data\"}, cause: Process exited with status 1: check config failed\r\n\r\nVerbose debug logs has been written to /root/.tiup/logs/tiup-cluster-debug-2023-03-24-18-42-47.log.",
+  "state": "closed",
+  "created_at": "2023-03-24T10:48:53Z",
+  "updated_at": "2023-03-29T03:38:36Z",
+  "closed_at": "2023-03-28T08:26:58Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.0"
+  ],
+  "comments_data": []
+}

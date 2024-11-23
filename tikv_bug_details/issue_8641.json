@@ -1,0 +1,21 @@
+{
+  "issue_number": 8641,
+  "title": "Status port refused connection when tls enabled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nI have test `v4.0.2`, `v4.0.4`, both have this issue.\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nLinux/Centos 7\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nThese steps are taken on the same host with IP 172.16.5.140\r\n\r\n1. Start a pd-server with the command:\r\n```sh\r\nexec bin/pd-server \\\r\n    --name=\"pd-172.16.5.140-2379\" \\\r\n    --client-urls=\"https://0.0.0.0:2379\" \\\r\n    --advertise-client-urls=\"https://172.16.5.140:2379\" \\\r\n    --peer-urls=\"https://172.16.5.140:2380\" \\\r\n    --advertise-peer-urls=\"https://172.16.5.140:2380\" \\\r\n    --data-dir=\"/data2/pd-2379/data\" \\\r\n    --initial-cluster=\"pd-172.16.5.140-2379=https://172.16.5.140:2380\" \\\r\n    --config=conf/pd.toml\r\n```\r\n\r\n2. Start a tikv-server with the command:\r\n```sh\r\nexec bin/tikv-server \\\r\n    --addr \"0.0.0.0:20160\" \\\r\n    --advertise-addr \"172.16.5.140:20160\" \\\r\n    --status-addr \"0.0.0.0:20180\" \\\r\n    --pd \"172.16.5.140:2379\" \\\r\n    --data-dir \"/data2/tikv-20160/data\" \\\r\n    --config conf/tikv.toml\r\n```\r\n\r\n3. Execute the commands\r\n```sh\r\ncurl https://172.16.5.140:20180/metrics  # the 1st curl\r\ncurl http://172.16.5.140:20180/metrics    # the 2nd curl\r\ncurl https://172.16.5.140:20180/metrics  # the 3rd curl\r\n```\r\n\r\n### What did you expect?\r\nThe 1st and 3rd curl should both success.\r\n\r\n### What did happened?\r\nOnly the 1st curl success. \r\nThe 2nd curl failed with `curl: (56) Recv failure: Connection reset by peer`.\r\nAnd the 3rd and latter curl will fail with `curl: (7) Failed to connect to 172.16.5.140 port 20180: Connection refused`\r\n\r\n### IMO\r\nI think this may be related to https://github.com/tikv/tikv/issues/8449",
+  "state": "closed",
+  "created_at": "2020-09-11T04:43:48Z",
+  "updated_at": "2020-09-11T14:43:35Z",
+  "closed_at": "2020-09-11T14:43:35Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 690945995,
+      "user": "hunterlxt",
+      "created_at": "2020-09-11T08:11:19Z",
+      "body": "It has now been determined that it is introduced by https://github.com/tikv/tikv/pull/7893"
+    }
+  ]
+}

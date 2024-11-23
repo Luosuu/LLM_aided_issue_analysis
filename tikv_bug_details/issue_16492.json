@@ -1,0 +1,28 @@
+{
+  "issue_number": 16492,
+  "title": "cast string as datetime with time zone results in loss of precision",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nrelated to https://github.com/pingcap/tidb/issues/49555\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n v8.0.0-alpha-126-gc0476a0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n```\r\nuse test;\r\ndrop table if exists t;\r\ncreate table t(a varchar(50));\r\ninsert into t values ('2020-01-01 12:00:00.123456 +0600 PST');\r\ninsert into t values ('2020-01-01 12:00:00.123456 -0600 PST');\r\ninsert into t values ('2020-01-01 12:00:00.123456');\r\nselect * from t where cast(a as datetime(6)) = cast('2020-01-01 12:00:00.123456' as datetime(6));\r\n\r\n+-------------------------+----------+-----------+---------------+--------------------------------------------------------------------+\r\n| id                      | estRows  | task      | access object | operator info                                                      |\r\n+-------------------------+----------+-----------+---------------+--------------------------------------------------------------------+\r\n| TableReader_7           | 8000.00  | root      |               | data:Selection_6                                                   |\r\n| └─Selection_6           | 8000.00  | cop[tikv] |               | eq(cast(test.t.a, datetime(6) BINARY), 2020-01-01 12:00:00.123456) |\r\n|   └─TableFullScan_5     | 10000.00 | cop[tikv] | table:t       | keep order:false, stats:pseudo                                     |\r\n+-------------------------+----------+-----------+---------------+--------------------------------------------------------------------+\r\n```\r\n\r\n### What did you expect?\r\n```\r\n+--------------------------------------+\r\n| a                                    |\r\n+--------------------------------------+\r\n| 2020-01-01 12:00:00.123456 +0600 PST |\r\n| 2020-01-01 12:00:00.123456 -0600 PST |\r\n| 2020-01-01 12:00:00.123456           |\r\n+--------------------------------------+\r\n```\r\n\r\n### What did happened?\r\n```\r\n+----------------------------+\r\n| a                          |\r\n+----------------------------+\r\n| 2020-01-01 12:00:00.123456 |\r\n+----------------------------+\r\n```",
+  "state": "closed",
+  "created_at": "2024-02-04T05:55:47Z",
+  "updated_at": "2024-04-29T21:26:22Z",
+  "closed_at": "2024-04-29T21:26:22Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2083705092,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-29T21:26:22Z",
+      "body": "Close it since https://github.com/pingcap/tidb/issues/49555 already closed."
+    }
+  ]
+}

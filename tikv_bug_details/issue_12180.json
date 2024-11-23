@@ -1,0 +1,21 @@
+{
+  "issue_number": 12180,
+  "title": "Heap profiling not works when prof_active is set to false before starting",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\nHeap profiling not works when prof_active is set to false before starting.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n```\r\n$ /tikv-server -V \r\nTiKV \r\nRelease Version:  6.0.0-alpha \r\nEdition:          Community \r\nGit Commit Hash:  8954a76e2b87575d80336f502a4d078e5da1508f \r\nGit Commit Branch: heads/refs/tags/v6.0.0-nightly \r\nUTC Build Time:   2022-03-09 18:10:26 \r\nRust Version:     rustc 1.60.0-nightly (1e12aef3f 2022-02-13) \r\nEnable Features:  jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure \r\nProfile:          dist_release\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nDocker container on K8s\r\n```\r\nsh-4.2# uname -a\r\nLinux tc-tikv-3 3.10.0-957.el7.x86_64 #1 SMP Thu Nov 8 23:39:32 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux\r\n(reverse-i-search)`': ^C\r\nsh-4.2# cat /etc/redhat-release\r\nCentOS Linux release 7.9.2009 (Core)\r\nsh-4.2# \r\n```\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. start tikv with environ var `MALLOC_CONF=prof_active:false,prof:true,lg_prof_interval:32,prof_final:true`\r\n2. activate heap profiling by `curl {tikv:status}/debug/pprof/activate`\r\n\r\n### What did you expect?\r\n1. a valid heap profiling result\r\n\r\n### What did happened?\r\n1. invalid\r\n\r\nFor example\r\n[tikv3-2022-03-15-on-the-fly.pdf](https://github.com/tikv/tikv/files/8258384/tikv3-2022-03-15-on-the-fly.pdf)\r\n",
+  "state": "closed",
+  "created_at": "2022-03-16T02:14:56Z",
+  "updated_at": "2022-03-17T03:16:31Z",
+  "closed_at": "2022-03-17T03:16:31Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1068660949,
+      "user": "cosven",
+      "created_at": "2022-03-16T02:15:23Z",
+      "body": "/type bug\r\n/severity moderate"
+    }
+  ]
+}

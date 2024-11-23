@@ -1,0 +1,49 @@
+{
+  "issue_number": 7024,
+  "title": "`acquire_pessimistic_lock` has very poor performance if there are many `Write::Lock`s",
+  "body": "## Bug Report\r\nWith https://github.com/tikv/tikv/pull/6696, TiDB uses `kv_pessimistic_lock` to get the value of a key in some cases. If there are many `Write::Lock`s, the performance is very poor. We should optimize it.\r\n![image](https://user-images.githubusercontent.com/14819777/76084829-c37e2980-5feb-11ea-95a0-e747244094bc.png)\r\n",
+  "state": "closed",
+  "created_at": "2020-03-06T12:49:08Z",
+  "updated_at": "2020-11-04T06:23:24Z",
+  "closed_at": "2020-11-04T06:23:24Z",
+  "labels": [
+    "type/bug",
+    "component/storage",
+    "sig/transaction",
+    "component/performance",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 596366859,
+      "user": "siddontang",
+      "created_at": "2020-03-09T07:20:36Z",
+      "body": "how do you found this problem?"
+    },
+    {
+      "id": 637303124,
+      "user": "sticnarf",
+      "created_at": "2020-06-02T06:17:15Z",
+      "body": "I think the problem actually has nothing to do with `acquire_pessimistic_lock` itself. The impact is significant because this actions requires a latch and there's no concurrency for a single key."
+    },
+    {
+      "id": 637306293,
+      "user": "youjiali1995",
+      "created_at": "2020-06-02T06:25:37Z",
+      "body": "However, the performance degrades. We didn't optimize `MvccReader` for reading data like `PointGetter` or sth else. I think we should do."
+    },
+    {
+      "id": 721534632,
+      "user": "youjiali1995",
+      "created_at": "2020-11-04T06:17:59Z",
+      "body": "It's not safe to eliminate `Write::Lock` because it makes commit requests not idempotent. For example, a transaction commits the `select-for-update` key and the lock is removed without a `Write::Lock` left. It's possible that TiDB fails to receive the response and retry. However, the lock is missing and the transaction can't know whether the lock is removed by itself or another one. Even if it doesn't affect correctness because it only happens to secondary locks and we can swallow the error, it may hide the real bugs.\r\n\r\nAnother problem is it may cause write skew according to this [article](https://mp.weixin.qq.com/s?__biz=MzI1MzYzMjE0MQ==&mid=2247486255&idx=1&sn=ee933f326cfc755289b52d9bb41a129c&chksm=e9d0c0cddea749db184de9415471056acad11ca24888e71404b542a216526fe1ddbafc3f3f75&scene=0&xtrack=1#rd). I don't agree with it but we can postpone the improvement for safety.\r\n\r\n"
+    },
+    {
+      "id": 721536392,
+      "user": "youjiali1995",
+      "created_at": "2020-11-04T06:23:24Z",
+      "body": "With this fix https://github.com/tikv/tikv/pull/8850, the performance is similar to `PointGetter` now. Now the problem is how to avoid the regression caused by too many versions, so close it."
+    }
+  ]
+}

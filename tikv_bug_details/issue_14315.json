@@ -1,0 +1,59 @@
+{
+  "issue_number": 14315,
+  "title": "[Dynamic Regions] QPS drop form 28k to 1k with workload error code 9005 during one tikv down ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.7.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   192dff638d05724759e3dee642639a86b20e4565\r\nGit Commit Branch: heads/refs/tags/v6.7.0-alpha\r\nUTC Build Time:    2023-02-28 09:44:19\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c/16g\r\n\r\n### Steps to reproduce\r\n1、run tpcc \r\ngo-tpc tpcc run -D tpcc --host tc-tidb.glh-master-2s274 -P4000 --warehouses 1000 -T 64 --ignore-error '2013,1213,1105,1205,8022,8028,9004,9007,1062' --password ''\"\r\n2、inject one tikv down for 10m\r\n\r\n### What did you expect?\r\nqps can recover within 2min\r\n\r\n### What did happened?\r\nlogs：http://minio.pingcap.net:38888/buckets/test-infra-testground/browse/YXJjaGl2ZS9nbGgtbWFzdGVyLTJzMjc0\r\nclinic：https://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7205420345768410023?from=1677663000&to=1677664550\r\nQPS drop form 28k to 1k during inject one tikv down\r\n![image](https://user-images.githubusercontent.com/84712107/222104268-8848f5c1-1d6a-412c-bcb7-25317d1cc2e6.png)\r\n![image](https://user-images.githubusercontent.com/84712107/222104395-991b4e92-eb10-4f45-aa28-13613b03048e.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-01T09:16:04Z",
+  "updated_at": "2023-03-17T04:19:06Z",
+  "closed_at": "2023-03-17T04:19:06Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1449697421,
+      "user": "Lily2025",
+      "created_at": "2023-03-01T09:35:27Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign tonyxuqqi"
+    },
+    {
+      "id": 1449818379,
+      "user": "Lily2025",
+      "created_at": "2023-03-01T10:30:15Z",
+      "body": "/assign SpadeA-Tang"
+    },
+    {
+      "id": 1449818456,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-01T10:30:17Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: SpadeA-Tang.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14315#issuecomment-1449818379):\n\n>/assign SpadeA-Tang\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1451235621,
+      "user": "Lily2025",
+      "created_at": "2023-03-02T03:17:14Z",
+      "body": "cluster is unavailable after this issue occurrence even if the injected failure is recovered，report error always\r\n![8ea068c5-edde-44f1-92a0-060407eab477](https://user-images.githubusercontent.com/84712107/222322066-afab4c6e-5c94-4af3-b122-7af8bf529b34.jpeg)\r\n![16de50c7-c201-4270-bcbc-f70cbd3718a9](https://user-images.githubusercontent.com/84712107/222322079-7846a66f-7fc2-441b-891d-ebb7cfcf8339.jpeg)\r\n"
+    },
+    {
+      "id": 1461703075,
+      "user": "BusyJay",
+      "created_at": "2023-03-09T09:59:41Z",
+      "body": "Should be fixed by #14275 "
+    },
+    {
+      "id": 1461726093,
+      "user": "SpadeA-Tang",
+      "created_at": "2023-03-09T10:12:53Z",
+      "body": "The cause of this issue is that there was a race condition between registering mailbox and scheduling some ticks including raft tick (it has been fixed by #14275). The race condition means some peers may not schedule raft tick successfully as the mailbox has not been registered at that time. Some raft processes will not be proceeded without raft tick including election, so after they recognize a leader, they will be in lease status forever (`self.leader != INVALID_ID && self.election_elapsed < self.election_timeout`). Now, if the node of their leader restarts, their pre-leader will start to compaign after some while, but the votes will be rejected by them (in lease status). So two peers of the same region falling in this condition will lead the region unavailable forever just like this."
+    }
+  ]
+}

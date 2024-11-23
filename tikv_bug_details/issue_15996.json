@@ -1,0 +1,30 @@
+{
+  "issue_number": 15996,
+  "title": "TiKV store size among TiKV nodes are very different after Titan is enabled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nEnable Titan and prepare some data with Sysbench wide-table prepare\r\n### What did you expect?\r\nStore size on TiKV nodes are roughly same\r\n### What did happened?\r\nStore size is different due to different compression rate \r\n![img_v2_f8214297-59d9-4d5a-a583-1ece61f62c0g](https://github.com/tikv/tikv/assets/9442422/e8f1ad86-b7a2-44ad-8460-6cb40e071461)\r\n\r\nThe reason is the compression rate of RocksDB data and Titan data is different. And each node's Titan data percentage is different which is by design. \r\n",
+  "state": "open",
+  "created_at": "2023-11-15T22:57:10Z",
+  "updated_at": "2024-11-01T10:16:51Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/titan",
+    "severity/major",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1815724289,
+      "user": "JasonWu0506",
+      "created_at": "2023-11-17T04:17:53Z",
+      "body": "@tonyxuqqi for this issue, we should add 6.5, 7.1 right?"
+    },
+    {
+      "id": 1880592259,
+      "user": "LykxSassinator",
+      "created_at": "2024-01-08T08:53:05Z",
+      "body": "maybe dup with https://github.com/tikv/tikv/issues/16055"
+    }
+  ]
+}

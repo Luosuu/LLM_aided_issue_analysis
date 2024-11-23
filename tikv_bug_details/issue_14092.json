@@ -1,0 +1,17 @@
+{
+  "issue_number": 14092,
+  "title": "Inter-TiKV idle network traffic increases about 100% since v6.5.0",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv6.5.0\r\n\r\nThe issue is caused by:\r\n  - https://github.com/tikv/tikv/pull/12839\r\n  - https://github.com/tikv/tikv/pull/13657\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nCreate a cluster that has many regions (>20K).\r\n\r\n### What did you expect?\r\n\r\nThe idle network traffic keeps the same as v6.1.0.\r\n \r\n### What did happened?\r\n\r\nThe traffic increases about 100%.\r\n",
+  "state": "closed",
+  "created_at": "2023-01-29T09:46:44Z",
+  "updated_at": "2023-01-31T06:35:56Z",
+  "closed_at": "2023-01-31T06:35:56Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/moderate",
+    "affects-6.4",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,41 @@
+{
+  "issue_number": 6420,
+  "title": "Conf change is too slow",
+  "body": "When adding a new peer, logs shows that it takes at least 6 seconds.\r\n```\r\n[2020/01/06 17:45:41.648 +08:00] [INFO] [pd.rs:680] [\"try to change peer\"] [peer=\"id: 5 store_id: 4 is_learner: true\"] [change_type=AddLearnerNode] [region_id=2\r\n]\r\n[2020/01/06 17:45:41.648 +08:00] [INFO] [peer.rs:2339] [\"propose conf change peer\"] [change_peer=5] [change_type=AddLearnerNode] [peer_id=3] [region_id=2]\r\n[2020/01/06 17:45:41.744 +08:00] [INFO] [apply.rs:1052] [\"execute admin command\"] [command=\"cmd_type: ChangePeer change_peer { change_type: AddLearnerNode peer \r\n{ id: 5 store_id: 4 is_learner: true } }\"] [index=7] [term=6] [peer_id=3] [region_id=2]\r\n[2020/01/06 17:45:41.744 +08:00] [INFO] [apply.rs:1384] [\"exec ConfChange\"] [epoch=\"conf_ver: 1 version: 1\"] [type=AddLearner] [peer_id=3] [region_id=2]\r\n[2020/01/06 17:45:41.744 +08:00] [INFO] [apply.rs:1524] [\"add learner successfully\"] [region=\"id: 2 region_epoch { conf_ver: 1 version: 1 } peers { id: 3 store_\r\nid: 1 }\"] [peer=\"id: 5 store_id: 4 is_learner: true\"] [peer_id=3] [region_id=2]\r\n[2020/01/06 17:45:41.758 +08:00] [INFO] [peer.rs:1504] [\"notify pd with change peer region\"] [region=\"id: 2 region_epoch { conf_ver: 2 version: 1 } peers { id: 3 store_id: 1 } peers { id: 5 store_id: 4 is_learner: true }\"] [peer_id=3] [region_id=2]\r\n[2020/01/06 17:45:43.651 +08:00] [INFO] [transport.rs:144] [\"resolve store address ok\"] [addr=127.0.0.1:4570] [store_id=4]\r\n[2020/01/06 17:45:43.652 +08:00] [INFO] [raft_client.rs:48] [\"server: new connection with tikv endpoint\"] [addr=127.0.0.1:4570]\r\n[2020/01/06 17:45:43.653 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f5b60da6050 for subchannel 0x7f5b79ce1000\"]\r\n[2020/01/06 17:45:43.656 +08:00] [INFO] [kv.rs:825] [\"batch_raft RPC is called, new gRPC stream established\"]\r\n[2020/01/06 17:45:43.657 +08:00] [INFO] [peer_storage.rs:794] [\"requesting snapshot\"] [request_index=0] [peer_id=3] [region_id=2]\r\n[2020/01/06 17:45:45.654 +08:00] [INFO] [snap.rs:701] [\"scan snapshot of one cf\"] [size=0] [key_count=0] [cf=default] [snapshot=./snap/gen_2_6_7_(default|lock|write).sst] [region_id=2]\r\n[2020/01/06 17:45:45.654 +08:00] [INFO] [snap.rs:701] [\"scan snapshot of one cf\"] [size=0] [key_count=0] [cf=lock] [snapshot=./snap/gen_2_6_7_(default|lock|write).sst] [region_id=2]\r\n[2020/01/06 17:45:45.654 +08:00] [INFO] [snap.rs:701] [\"scan snapshot of one cf\"] [size=0] [key_count=0] [cf=write] [snapshot=./snap/gen_2_6_7_(default|lock|write).sst] [region_id=2]\r\n[2020/01/06 17:45:45.757 +08:00] [INFO] [snap.rs:755] [\"scan snapshot\"] [takes=104.491078ms] [size=0] [key_count=0] [snapshot=./snap/gen_2_6_7_(default|lock|write).sst] [region_id=2]\r\n[2020/01/06 17:45:47.657 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7f5b7e40c0d0 for subchannel 0x7f5b79821600\"]\r\n[2020/01/06 17:45:47.667 +08:00] [INFO] [snap.rs:385] [\"sent snapshot\"] [duration=11.204351ms] [size=0] [snap_key=2_6_7] [region_id=2]\r\n[2020/01/06 17:45:47.667 +08:00] [INFO] [peer.rs:603] [\"report snapshot status\"] [status=Finish] [to=\"id: 5 store_id: 4 is_learner: true\"] [peer_id=3] [region_id=2]\r\n```\r\nIt takes 2 seconds to request snapshot after editing the metadata, and then takes another 2 seconds to actually generating a snapshot, finally another 2 seconds to send out a snapshot.\r\n\r\nRaft will only send a snapshot after a MsgAppend rejection, which is triggered by a heartbeat. That's where the first 2 seconds takes. Generating snapshot task will be sent to apply worker only when there is readiness, another 2 seconds, which is next heartbeat. Generated snapshot will be sent out only after leader finds the follower still needs the snapshot, the third heartbeat, 2 seconds.",
+  "state": "closed",
+  "created_at": "2020-01-06T09:54:34Z",
+  "updated_at": "2021-12-09T08:36:11Z",
+  "closed_at": "2021-12-09T08:36:11Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/low",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 583863136,
+      "user": "BusyJay",
+      "created_at": "2020-02-09T16:13:22Z",
+      "body": "The issue can still be reproduced."
+    },
+    {
+      "id": 699865137,
+      "user": "hunterlxt",
+      "created_at": "2020-09-28T08:35:27Z",
+      "body": "This issue is staled for a long time. Will it still reproduce now?"
+    },
+    {
+      "id": 730110424,
+      "user": "hunterlxt",
+      "created_at": "2020-11-19T03:45:58Z",
+      "body": "with master version. result:\r\n```\r\nmysql> create table x(a int);\r\nQuery OK, 0 rows affected (0.08 sec)\r\n\r\nmysql> split table x between (0) and (9000000) regions 900;\r\n+--------------------+----------------------+\r\n| TOTAL_SPLIT_REGION | SCATTER_FINISH_RATIO |\r\n+--------------------+----------------------+\r\n|                899 |                    1 |\r\n+--------------------+----------------------+\r\n1 row in set (4 min 2.94 sec)\r\n```"
+    },
+    {
+      "id": 989628069,
+      "user": "BusyJay",
+      "created_at": "2021-12-09T08:36:11Z",
+      "body": "I repeated the test with v5.3.0, it finished in 2 secs.\r\n\r\n![image](https://user-images.githubusercontent.com/1701473/145361949-361709e0-8b70-42c2-9583-e97bda5c2a10.png)\r\n\r\n\r\nFeel free to reopen if the issue still exists."
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "issue_number": 3655,
+  "title": "tikv-ctl compact run infinitely",
+  "body": "## Bug Report\r\n\r\nWhen tikv-ctl `--host` is set with url with a schema like `172.0.0.1:20161`, compact runs successfully and returns soon. But once the url has a schema like `http://172.0.0.1:20161`, compact will run infinitely and actually it does nothing.",
+  "state": "closed",
+  "created_at": "2018-10-09T02:44:20Z",
+  "updated_at": "2018-10-17T06:42:29Z",
+  "closed_at": "2018-10-16T16:03:25Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "difficulty/easy",
+    "component/tikv-ctl"
+  ],
+  "comments_data": [
+    {
+      "id": 428259677,
+      "user": "poonai",
+      "created_at": "2018-10-09T16:27:35Z",
+      "body": "I would like to take this\r\n```rust\r\n pub fn secure_connect(mut self, addr: &str, mut creds: ChannelCredentials) -> Channel {\r\n            let args = self.prepare_connect_args();\r\n           // does the http prefix has to be removed?\r\n            let addr = CString::new(addr).unwrap();\r\n            let addr_ptr = addr.as_ptr();\r\n            let channel = unsafe {\r\n                grpc_sys::grpc_secure_channel_create(\r\n                    creds.as_mut_ptr(),\r\n                    addr_ptr,\r\n                    args.args,\r\n                    ptr::null_mut(),\r\n                )\r\n            };\r\n\r\n            Channel::new(self.env.pick_cq(), self.env, channel)\r\n        }\r\n```\r\n does the http prefix has to be removed on connect?"
+    },
+    {
+      "id": 428406787,
+      "user": "zhangjinpeng87",
+      "created_at": "2018-10-10T01:27:44Z",
+      "body": "@Connor1996 We need to find out why it can not work when has http:// prefix."
+    },
+    {
+      "id": 428410047,
+      "user": "Connor1996",
+      "created_at": "2018-10-10T01:47:26Z",
+      "body": "@sch00lb0y only remove http prefix is not elegant, any invalid url will cause it run infinitely. IMO, it is better to return some error info."
+    },
+    {
+      "id": 429281435,
+      "user": "overvenus",
+      "created_at": "2018-10-12T10:31:29Z",
+      "body": "Looks like grpc dns resolution failed.\r\n```\r\nGRPC_VERBOSITY=debug RUST_BACKTRACE=1 tikv-ctl --host http://127.0.0.1:2379 compact\r\nI1012 18:30:00.103591814   19552 ev_epoll1_linux.c:93]       grpc epoll fd: 3\r\nD1012 18:30:00.103678277   19552 ev_posix.c:107]             Using polling engine: epoll1\r\nD1012 18:30:00.103723979   19552 dns_resolver.c:301]         Using native dns resolver\r\nI1012 18:30:00.157116868   19554 dns_resolver.c:170]         dns resolution failed (will retry): {\"created\":\"@1539340200.157073771\",\"description\":\"OS Error\",\"errno\":-2,\"file\":\"/home/jenkins/.cargo/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.2.3/grpc/src/core/lib/iomgr/resolve_address_posix.c\",\"file_line\":104,\"os_error\":\"Name or service not known\",\"syscall\":\"getaddrinfo\",\"target_address\":\"http://127.0.0.1:2379\"}\r\nD1012 18:30:00.157149170   19554 dns_resolver.c:176]         retrying in 1.000000000 seconds\r\nI1012 18:30:01.206784191   19554 dns_resolver.c:170]         dns resolution failed (will retry): {\"created\":\"@1539340201.206747007\",\"description\":\"OS Error\",\"errno\":-2,\"file\":\"/home/jenkins/.cargo/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.2.3/grpc/src/core/lib/iomgr/resolve_address_posix.c\",\"file_line\":104,\"os_error\":\"Name or service not known\",\"syscall\":\"getaddrinfo\",\"target_address\":\"http://127.0.0.1:2379\"}\r\nD1012 18:30:01.206818784   19554 dns_resolver.c:176]         retrying in 1.000000000 seconds\r\nI1012 18:30:02.258244236   19554 dns_resolver.c:170]         dns resolution failed (will retry): {\"created\":\"@1539340202.258199163\",\"description\":\"OS Error\",\"errno\":-2,\"file\":\"/home/jenkins/.cargo/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.2.3/grpc/src/core/lib/iomgr/resolve_address_posix.c\",\"file_line\":104,\"os_error\":\"Name or service not known\",\"syscall\":\"getaddrinfo\",\"target_address\":\"http://127.0.0.1:2379\"}\r\nD1012 18:30:02.258287685   19554 dns_resolver.c:176]         retrying in 1.000000000 seconds\r\nI1012 18:30:03.312975073   19554 dns_resolver.c:170]         dns resolution failed (will retry): {\"created\":\"@1539340203.312935103\",\"description\":\"OS Error\",\"errno\":-2,\"file\":\"/home/jenkins/.cargo/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.2.3/grpc/src/core/lib/iomgr/resolve_address_posix.c\",\"file_line\":104,\"os_error\":\"Name or service not known\",\"syscall\":\"getaddrinfo\",\"target_address\":\"http://127.0.0.1:2379\"}\r\nD1012 18:30:03.313031626   19554 dns_resolver.c:176]         retrying in 1.000000000 seconds\r\n```"
+    },
+    {
+      "id": 429524686,
+      "user": "poonai",
+      "created_at": "2018-10-13T09:10:13Z",
+      "body": "@Connor1996 @zhangjinpeng1987 @overvenus I did some investigation on this with help of log.\r\n Error is happening here https://github.com/grpc/grpc/blob/master/src/core/lib/iomgr/resolve_address_posix.cc#L87\r\ncause for the bug is not parsing the hostname and port properly.(https://github.com/grpc/grpc/blob/master/src/core/lib/gpr/host_port.cc#L41)\r\nThey passing `http://localhost:80` in getaddrinfo instead of `localhost:80`\r\n\r\nI'm not sure whether it is not convention to use http.\r\n\r\nBut the problem is not in tikv, It's in grpc core library. \r\n\r\n"
+    },
+    {
+      "id": 429536426,
+      "user": "poonai",
+      "created_at": "2018-10-13T12:03:44Z",
+      "body": "And I've tried this with sample server. It was panicked and exited.\r\nWhen I tried to compile tikv with latest grpc-rs,I was not able to compile. \r\nI think, This issue will be solved with the new grpc-rs"
+    },
+    {
+      "id": 430079818,
+      "user": "Connor1996",
+      "created_at": "2018-10-16T02:33:55Z",
+      "body": "@overvenus /cc"
+    },
+    {
+      "id": 430296237,
+      "user": "overvenus",
+      "created_at": "2018-10-16T16:03:25Z",
+      "body": "Yes, it is solved with grpc-rs 0.4.\r\n\r\n```\r\nGRPC_VERBOSITY=debug RUST_BACKTRACE=1 ./tikv-ctl --host http://127.0.0.1:2379 metrics\r\nD1017 00:01:47.164783511   66453 ev_posix.cc:145]            Using polling engine: epollex\r\nD1017 00:01:47.164902734   66453 dns_resolver.cc:339]        Using native dns resolver\r\nD1017 00:01:47.165200193   66453 dns_resolver.cc:280]        Start resolving.\r\nI1017 00:01:47.217677672   66454 dns_resolver.cc:210]        dns resolution failed (will retry): {\"created\":\"@1539705707.217636686\",\"description\":\"OS Error\",\"errno\":-2,\"file\":\"/home/jenkins/.cargo/registry/src/github.com-1ecc6299db9ec823/grpcio-sys-0.4.0/grpc/src/core/lib/iomgr/resolve_address_posix.cc\",\"file_line\":108,\"os_error\":\"Name or service not known\",\"syscall\":\"getaddrinfo\",\"target_address\":\"http://127.0.0.1:2379\"}\r\nD1017 00:01:47.217708128   66454 dns_resolver.cc:221]        retrying in 1000 milliseconds\r\nDebugClient::metrics: RpcFailure(RpcStatus { status: Unavailable, details: Some(\"Name resolution failure\") })\r\n```"
+    },
+    {
+      "id": 430508582,
+      "user": "Connor1996",
+      "created_at": "2018-10-17T06:42:29Z",
+      "body": "@sch00lb0y Thanks a lot😄"
+    }
+  ]
+}

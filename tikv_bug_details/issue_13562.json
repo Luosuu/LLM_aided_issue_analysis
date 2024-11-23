@@ -1,0 +1,33 @@
+{
+  "issue_number": 13562,
+  "title": "when `tikv:6.3.0` checkout to `tikv:master` in k8s, k8s pod cannot start and `crashloopbackoff`",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.3.0\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n`tikv:6.3.0` checkout to `tikv:master` in k8s env\r\n### What did you expect?\r\ncheckout successfully\r\n### What did happened?\r\n1. k8s pod `tikv-7` cannot start and `crashloopbackoff`\r\n![065523f1-5e1b-4d06-8050-6998211e6cd3](https://user-images.githubusercontent.com/50363732/192994520-28d46da4-ab7f-4053-ba39-2716d8ffc130.jpeg)\r\n![14293804-9b8d-4c03-9b9e-a16441468965](https://user-images.githubusercontent.com/50363732/192994578-b4ab3ec7-41f7-44e1-bd7e-b335b94e0665.jpeg)\r\n2. and logs in loki show that pd client assumed tikv version is v6.2.0-alpha\r\n![img_v2_4a6e0c40-9c83-4887-bc28-dc4e59d3816g](https://user-images.githubusercontent.com/50363732/192994828-c2aeea13-12e6-4155-aa63-8e7f0e99fd2e.jpg)\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-09-29T09:28:32Z",
+  "updated_at": "2022-12-01T03:14:01Z",
+  "closed_at": "2022-12-01T03:14:01Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1262017548,
+      "user": "AkiraXie",
+      "created_at": "2022-09-29T09:29:11Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1262019596,
+      "user": "AkiraXie",
+      "created_at": "2022-09-29T09:30:57Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1262056262,
+      "user": "AkiraXie",
+      "created_at": "2022-09-29T10:03:12Z",
+      "body": "this maybe docker image version error"
+    }
+  ]
+}

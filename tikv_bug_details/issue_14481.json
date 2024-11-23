@@ -1,0 +1,40 @@
+{
+  "issue_number": 14481,
+  "title": "[Dynamic Regions] replay raft log after restart is too slow (> 5hour in some cases)",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly #5a2ff323d6fae82c624ad802e8100d3154d01ba1\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nLaunch some heavy write for a few hours (like sysbench prepare), and then restart one tikv\r\n### What did you expect?\r\nThe Tikv can restart succeeded\r\n### What did happened?\r\nThe TiKV is down for more than 5 hours. And it's doing the raft log replay. \r\n<img width=\"831\" alt=\"Screen Shot 2023-03-28 at 9 59 22 PM\" src=\"https://user-images.githubusercontent.com/9442422/228431174-4fa64b5c-66d4-49ef-9aff-36c838c65cc3.png\">\r\n\r\nThe CPU is just below 150 when doing the replay. The raft-engine's read entry is too slow and qps is too low. \r\n\r\n<img width=\"830\" alt=\"Screen Shot 2023-03-28 at 10 01 36 PM\" src=\"https://user-images.githubusercontent.com/9442422/228431540-f8058e4e-5bfc-4b14-8424-b83d2316021a.png\">\r\n\r\n<img width=\"837\" alt=\"Screen Shot 2023-03-28 at 10 01 22 PM\" src=\"https://user-images.githubusercontent.com/9442422/228431582-f131da21-ca3a-4f55-a0e5-e6f4e597b20a.png\">\r\n\r\nAs a result, RocksDB's write flow on the recovering tikv is too small. \r\n\r\n<img width=\"823\" alt=\"Screen Shot 2023-03-28 at 10 01 08 PM\" src=\"https://user-images.githubusercontent.com/9442422/228431634-aea86033-ac44-457f-bd68-c646e0ae6bbe.png\">\r\n\r\nLogs:\r\n[2023/03/28 23:13:26.265 +00:00] [INFO] [lib.rs:86] [\"Welcome to TiKV\"]\r\n...\r\n[2023/03/29 05:04:53.828 +00:00] [INFO] [mod.rs:399] [\"recovery completed\"] [apply_index=23820359] [peer_id=11282] [region_id=11280]\r\n[tikv.log.tar.gz](https://github.com/tikv/tikv/files/11096768/tikv.log.tar.gz)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-29T05:03:00Z",
+  "updated_at": "2023-09-27T05:10:20Z",
+  "closed_at": "2023-06-29T21:57:02Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1487955996,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-29T05:11:06Z",
+      "body": "There's some bottleneck during the recover. The TiKV's resource is barely used and the replay speed is about 1/100 of normal insert.  @BusyJay "
+    },
+    {
+      "id": 1488356632,
+      "user": "dbsid",
+      "created_at": "2023-03-29T10:40:54Z",
+      "body": "it takes 6 minutes to recover a tikv with ~600GB\r\n\r\n```\r\n[2023/03/29 10:30:28.376 +00:00] [INFO] [engine.rs:91] [\"Recovering raft logs takes 183.769046293s\"]\r\n[2023/03/29 10:30:33.893 +00:00] [INFO] [mod.rs:144] [\"pause for recovery\"] [committed=9809] [applied=5] [peer_id=771] [region_id=768]\r\n[2023/03/29 10:30:33.893 +00:00] [INFO] [mod.rs:144] [\"pause for recovery\"] [committed=1691770] [applied=1664822] [peer_id=259] [region_id=256]\r\n[2023/03/29 10:30:35.290 +00:00] [INFO] [mod.rs:144] [\"pause for recovery\"] [committed=249507] [applied=5] [peer_id=515] [region_id=512]\r\n[2023/03/29 10:30:37.269 +00:00] [INFO] [mod.rs:144] [\"pause for recovery\"] [committed=1431199] [applied=1420268] [peer_id=503] [region_id=500]\r\n....\r\n[2023/03/29 10:35:29.891 +00:00] [INFO] [mod.rs:397] [\"recovery completed\"] [apply_index=29665] [peer_id=779] [region_id=776]\r\n[2023/03/29 10:35:30.780 +00:00] [INFO] [mod.rs:397] [\"recovery completed\"] [apply_index=3990740] [peer_id=47] [region_id=44]\r\n[2023/03/29 10:35:31.212 +00:00] [INFO] [mod.rs:397] [\"recovery completed\"] [apply_index=3588187] [peer_id=375] [region_id=372]\r\n[2023/03/29 10:35:53.284 +00:00] [INFO] [mod.rs:397] [\"recovery completed\"] [apply_index=3856] [peer_id=715] [region_id=712]\r\n[2023/03/29 10:35:57.644 +00:00] [INFO] [mod.rs:397] [\"recovery completed\"] [apply_index=6543546] [peer_id=255] [region_id=252]\r\n[2023/03/29 10:36:27.810 +00:00] [INFO] [mod.rs:397] [\"recovery completed\"] [apply_index=1999756] [peer_id=295] [region_id=292]\r\n```\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/228509019-e059cb5e-9dd7-4063-bf01-696d059ffce4.png)\r\n"
+    },
+    {
+      "id": 1496728371,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-04T23:41:51Z",
+      "body": "/cc @tabokie "
+    },
+    {
+      "id": 1613855595,
+      "user": "tonyxuqqi",
+      "created_at": "2023-06-29T21:56:55Z",
+      "body": "Fixed by https://github.com/tikv/tikv/pull/14917"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "issue_number": 11210,
+  "title": "tikv-ctl's output is incomplete, maybe slog-async is not flushed when tikv-ctl process exits",
+  "body": "I am using the master branch of tikv-server which build from source code. And running the following tikv-ctl command gives incomplete outputs:\r\n```bash\r\n$ ./tikv-ctl --data-dir=/path/to/tikv/data/dir size\r\n[2021/11/02 20:51:48.157 +08:00] [INFO] [mod.rs:118] [\"encryption: none of key dictionary and file dictionary are found.\"]\r\n[2021/11/02 20:51:48.157 +08:00] [INFO] [mod.rs:479] [\"encryption is disabled.\"]\r\n[2021/11/02 20:51:48.160 +08:00] [WARN] [config.rs:338] [\"Memory allocator nodump is not supported, continue with default allocator\"]\r\n[2021/11/02 20:51:48.164 +08:00] [WARN] [config.rs:587] [\"compaction guard is disabled due to region info provider not available\"]\r\n[2021/11/02 20:51:48.164 +08:00] [WARN] [config.rs:682] [\"compaction guard is disabled due to region info provider not available\"]\r\n```\r\nas shown above, some logs not printed, and if add `std::thread::sleep(std::time::Duration::from_secs(1));` before \r\nhttps://github.com/tikv/tikv/blob/8a16a5b63402096850509855961e7f1be5705509/cmd/tikv-ctl/src/main.rs#L92\r\nthe output is complete now:\r\n```bash\r\n$ ./tikv-ctl --data-dir=/path/to/tikv/data/dir size\r\n[2021/11/02 21:11:29.503 +08:00] [INFO] [mod.rs:118] [\"encryption: none of key dictionary and file dictionary are found.\"]\r\n[2021/11/02 21:11:29.503 +08:00] [INFO] [mod.rs:479] [\"encryption is disabled.\"]\r\n[2021/11/02 21:11:29.506 +08:00] [WARN] [config.rs:317] [\"Memory allocator nodump is not supported, continue with default allocator\"]\r\n[2021/11/02 21:11:29.510 +08:00] [WARN] [config.rs:587] [\"compaction guard is disabled due to region info provider not available\"]\r\n[2021/11/02 21:11:29.510 +08:00] [WARN] [config.rs:682] [\"compaction guard is disabled due to region info provider not available\"]\r\n[2021/11/02 21:11:29.514 +08:00] [ERROR] [main.rs:82] [\"error while open kvdb: Storage Engine IO error: While lock file: /path/to/tikv/data/dir/db/LOCK: Resource temporarily unavailable\"]\r\n[2021/11/02 21:11:29.514 +08:00] [ERROR] [main.rs:85] [\"LOCK file conflict indicates TiKV process is running. Do NOT delete the LOCK file and force the command to run. Doing so could cause data corruption.\"]\r\n```\r\n\r\nand if I set `use_async`\r\nhttps://github.com/tikv/tikv/blob/8a16a5b63402096850509855961e7f1be5705509/components/tikv_util/src/logger/mod.rs#L78\r\nto always false , the output is complete ditto.\r\n\r\nSo, maybe tikv-ctl needs to use sync' mode slog to different from tikv-server which is performance sensitive.\r\n",
+  "state": "closed",
+  "created_at": "2021-11-02T13:22:27Z",
+  "updated_at": "2022-01-12T01:59:44Z",
+  "closed_at": "2022-01-12T01:59:44Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 958610366,
+      "user": "yaozongyou",
+      "created_at": "2021-11-03T02:43:52Z",
+      "body": "https://docs.rs/slog-async/2.7.0/slog_async/#beware-of-stdprocessexit\r\nstd::process::exit prevents flushing of the async drain."
+    },
+    {
+      "id": 1002526169,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T10:31:43Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002526246,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T10:31:54Z",
+      "body": "/severity Minor "
+    }
+  ]
+}

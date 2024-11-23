@@ -1,0 +1,57 @@
+{
+  "issue_number": 12088,
+  "title": "tracker.rs doesn't log the slow request if it exceeds the deadline ",
+  "body": "## Bug Report\r\n\r\nIf a coprocessor task takes longer than 1 minute, it can't be logged by tracker slowlog.\r\n\r\n\r\nhttps://github.com/tikv/tikv/blob/master/src/coprocessor/tracker.rs#L256\r\n\r\n\r\n### What did you expect?\r\n\r\nWe want to get more information from the slow log to see why it take more than 1 minute.\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-03-03T21:10:48Z",
+  "updated_at": "2022-03-16T05:42:11Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1058762582,
+      "user": "youjiali1995",
+      "created_at": "2022-03-04T02:25:06Z",
+      "body": "Good catch. We will improve it."
+    },
+    {
+      "id": 1065106319,
+      "user": "JayiceZ",
+      "created_at": "2022-03-11T13:19:21Z",
+      "body": "> Good catch. We will improve it.\r\n\r\nCan I try to fix it?"
+    },
+    {
+      "id": 1066410557,
+      "user": "youjiali1995",
+      "created_at": "2022-03-14T06:02:00Z",
+      "body": "@JayiceZ Of course."
+    },
+    {
+      "id": 1067506575,
+      "user": "Lily2025",
+      "created_at": "2022-03-15T02:49:02Z",
+      "body": "/type bug\r\n/severity Moderate\r\n/assign youjiali1995"
+    },
+    {
+      "id": 1067637518,
+      "user": "sticnarf",
+      "created_at": "2022-03-15T07:02:06Z",
+      "body": "Per https://github.com/tikv/tikv/pull/12154#issuecomment-1067610392, personally I think it not a good idea to simply log the request as long as the request exceeds the deadline. This may cause log explosion under heavy load.\r\n\r\nInstead, I'm thinking about returning enough information to TiDB and let TiDB aggregate and log the slow query. For example, how many requests are dropped due to exceeding the deadline, how much cpu time and i/o is wasted on these aborted executions."
+    },
+    {
+      "id": 1068561132,
+      "user": "coderplay",
+      "created_at": "2022-03-15T23:28:26Z",
+      "body": "Agreed on the aggregated summary to avoid the log flooding. However, why not doing the aggregation in-place, i.e. the current  TiKV node?  There are basically multiple advantages doing it on TiKV node 1) saving a networking communications between TiKV and TiDB 2) in case there is no TiDB, user just run TiKV  3) in case a single node is busy while the others are idle because of data skew/hotspot,  per TiKV node level aggregation should be more useful."
+    },
+    {
+      "id": 1068753934,
+      "user": "sticnarf",
+      "created_at": "2022-03-16T05:42:11Z",
+      "body": "A node level aggregation can be done through the metrics. We will try improving the Grafana dashboards.\r\n\r\nTo aggregate query-level information, we have to return these statistics to TiDB, because a TiDB query consists of multiple coprocessor requests.\r\n\r\nThe tracker only works for the tidb_query coprocessor. It's not useful for KV users. Anyway, it is better to provide the similar statistics in KV interfaces."
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "issue_number": 9520,
+  "title": "BR will lead to the emergence of big regions with version v4.0.9",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV\r\n```\r\nTiKV \r\nRelease Version:   4.0.9\r\nEdition:           Community\r\nGit Commit Hash:   18dec72b12eafdc40a463eee8f6c32594ee4a9ff\r\nGit Commit Branch: heads/refs/tags/v4.0.9\r\nUTC Build Time:    2020-12-21 02:52:25\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec\r\nProfile:           dist_release\r\n```\r\nBR\r\n```\r\nRelease Version: v4.0.9\r\nGit Commit Hash: 804aa908719748888010edaa944757b82f99f4df\r\nGit Branch: heads/refs/tags/v4.0.9\r\nGo Version: go1.13\r\nUTC Build Time: 2020-12-19 04:53:25\r\nRace Enabled: false\r\n```\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nPrepare some data to the tidb cluster\r\nuse BR to backup\r\n### What did you expect?\r\ntikv region will keep in a stable status, and use limited memory\r\n### What did happened?\r\nregion decrease dramatically and tikv OOM\r\n\r\nWhen the backup started, the region dropped from 3K to close to 1K and the region became larger. Lead to tikv-2 OOM\r\ntikv configuration 1c 3.75G mem 100G cloud-ssd\r\nlike shown in the next picture\r\n![2021-01-18 20-32-22 的屏幕截图](https://user-images.githubusercontent.com/30903849/104916186-acaab080-59cc-11eb-9b12-7c446533e6ea.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-01-18T12:24:39Z",
+  "updated_at": "2021-01-21T10:02:34Z",
+  "closed_at": "2021-01-21T10:02:34Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "sig/migrate"
+  ],
+  "comments_data": [
+    {
+      "id": 762577470,
+      "user": "overvenus",
+      "created_at": "2021-01-19T03:24:00Z",
+      "body": "This is caused by missing region approximate size/keys after restoration, it is resolved by https://github.com/pingcap/br/pull/702 ."
+    },
+    {
+      "id": 762624578,
+      "user": "tennix",
+      "created_at": "2021-01-19T06:11:51Z",
+      "body": "/cc @SunRunAway "
+    },
+    {
+      "id": 764522362,
+      "user": "shuijing198799",
+      "created_at": "2021-01-21T10:02:34Z",
+      "body": "with PR https://github.com/pingcap/br/pull/702 the region decrease is imporve and momory used like below\r\n![image](https://user-images.githubusercontent.com/30903849/105335258-cd644780-5c12-11eb-8087-de85f962f69b.png)\r\n"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "issue_number": 12345,
+  "title": "PD client should handle errors properly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv4.0.15\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\ndoesn't matter\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nOnce PD client meets an error, it will reconnect and retry the request even if the request is invalid. The disconnection may result in other requests failure, e.g., region heartbeat. I saw lots of logs below. I suspect the disconnection makes region heartbeat fail and PD contains stale region information for a long time.\r\n```\r\n[2022/04/06 19:03:05.883 +08:00] [ERROR] [util.rs:348] [\"request failed, retry\"] [err_code=KV:Unknown] [err=\"Grpc(RpcFailure(RpcStatus { status: 2-UNKNOWN, details: Some(\\\"region not found, request region: id:56125222 start_key:\\\\\\\"7480000000014B7AFF3500000000000000F8\\\\\\\" region_epoch:<conf_ver:288104 version:4789963 > peers:<id:175253496 store_id:161941895 > peers:<id:175254079 store_id:161941897 > peers:<id:175443528 store_id:155883000 >\\\") }))\"]\r\n[2022/04/06 19:03:05.883 +08:00] [INFO] [util.rs:470] [\"connecting to PD endpoint\"] [endpoints=http://172.29.5.31:2379]\r\n[2022/04/06 19:03:05.884 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7fa29ebb7e90 for subchannel 0x7f99d359f2c0\"]\r\n[2022/04/06 19:03:05.885 +08:00] [INFO] [util.rs:470] [\"connecting to PD endpoint\"] [endpoints=http://172.29.5.33:2379]\r\n[2022/04/06 19:03:05.886 +08:00] [INFO] [util.rs:533] [\"connected to PD leader\"] [endpoints=http://172.29.5.33:2379]\r\n[2022/04/06 19:03:05.886 +08:00] [INFO] [util.rs:231] [\"heartbeat sender and receiver are stale, refreshing ...\"]\r\n[2022/04/06 19:03:05.997 +08:00] [WARN] [util.rs:249] [\"updating PD client done\"] [spend=114.438081ms]\r\n```\r\n### What did you expect?\r\n\r\nPD client doesn't reconnect and retry invalid requests.\r\n\r\n### What did happened?\r\n\r\nPD client does reconnect and retry.",
+  "state": "closed",
+  "created_at": "2022-04-11T08:00:14Z",
+  "updated_at": "2022-06-15T10:22:34Z",
+  "closed_at": "2022-06-15T10:22:34Z",
+  "labels": [
+    "type/bug",
+    "component/pd-client",
+    "severity/major",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1134147467,
+      "user": "zhangjinpeng87",
+      "created_at": "2022-05-23T03:59:33Z",
+      "body": "@nolouch PTAL"
+    },
+    {
+      "id": 1134609682,
+      "user": "mayjiang0203",
+      "created_at": "2022-05-23T12:25:25Z",
+      "body": "/severity Major"
+    },
+    {
+      "id": 1136800437,
+      "user": "nolouch",
+      "created_at": "2022-05-25T06:36:17Z",
+      "body": "ptal @HunDunDM "
+    },
+    {
+      "id": 1156046132,
+      "user": "Connor1996",
+      "created_at": "2022-06-15T06:35:32Z",
+      "body": "This is partial fixed by https://github.com/tikv/tikv/pull/12629 which avoids reconnecting on some error.\r\n\r\nEncounter the same issue, the `RegionNotFound` or `EpochIsStale` returned by PD trigger mistakenly reconnection of the PD client as well."
+    },
+    {
+      "id": 1156251453,
+      "user": "Connor1996",
+      "created_at": "2022-06-15T09:48:49Z",
+      "body": "Error type should be changed on PD side as well https://github.com/tikv/pd/issues/5161"
+    }
+  ]
+}

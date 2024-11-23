@@ -1,0 +1,17 @@
+{
+  "issue_number": 14165,
+  "title": "log-backup: PITR cannot detect new members in the etcd cluster",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.5.0\r\n\r\n### What operating system and CPU are you using?\r\nN/A, this problem is probably CPU irrelatived.\r\n\r\n### Steps to reproduce\r\n1. Run a cluster with PITR. (Assume PD nodes = `[1]`)\r\n2. Scale-out the PD cluster. (Assume Added nodes `[2, 3]`)\r\n3. Scale-in the PD cluster. (Assume expelling the nodes `[1, 2]`)\r\n\r\n### What did you expect?\r\nPITR work as normal.\r\n\r\n### What did happened?\r\nPITR failed to access the etcd cluster.\r\n",
+  "state": "closed",
+  "created_at": "2023-02-07T08:58:21Z",
+  "updated_at": "2023-02-08T08:24:01Z",
+  "closed_at": "2023-02-08T08:24:01Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

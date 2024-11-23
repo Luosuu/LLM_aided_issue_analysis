@@ -1,0 +1,98 @@
+{
+  "issue_number": 15714,
+  "title": "br: pitr-task stuck and log shows \"failed to get initial snapshot: failed to get the snapshot\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n/tikv-server -V\r\nTiKV\r\nRelease Version:   7.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   bbfedd409b5965c04b9edcb34f0a0907c75d6dd2\r\nGit Commit Branch: heads/refs/tags/v7.4.0-alpha\r\nUTC Build Time:    2023-09-22 11:51:22\r\nRust Version:      rustc 1.73.0-nightly (180dffba1 2023-08-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nopen pitr\r\n### What did you expect?\r\n\r\n### What did happened?\r\npitr stuck\r\n\r\nlogs:\r\n```\r\n2023-09-26 16:55:54 (UTC+08:00)TiKV maincluster-tikv-8.maincluster-tikv-peer.stable-testbed-47l4r.svc:20160[errors.rs:176]  [\"backup stream meet error\"] [verbose_err=\"Contextual { context: \\\"failed to get initial snapshot: failed to get the snapshot  (region_id = 1276484)\\\", inner_error: RaftRequest(message: \\\"read index not ready, reason can not read index due to merge, region 1276484\\\" read_index_not_ready { reason: \\\"can not read index due to merge\\\" region_id: 1276484 }) }\"] [err=\"failed to get initial snapshot: failed to get the snapshot (region_id = 1276484): Error during requesting raftstore: message: \\\"read index not ready, reason can not read index due to merge, region 1276484\\\" read_index_not_ready { reason: \\\"can not read index due to merge\\\" region_id: 1276484 }\"] [context=\"during getting initial snapshot for region id: 1276484 start_key: 748000000000009DFF2C5F728000000005FFC875E10000000000FA end_key: 748000000000009DFF2C5F72800000000CFF1B71680000000000FA region_epoch { conf_ver: 216 version: 3111 } peers { id: 1276485 store_id: 6 } peers { id: 1276486 store_id: 7 } peers { id: 1276487 store_id: 10 role: Learner } peers { id: 1276488 store_id: 11 role: Learner } peers { id: 1276489 store_id: 19 }; can retry = true\"]\r\n```",
+  "state": "closed",
+  "created_at": "2023-09-28T10:07:18Z",
+  "updated_at": "2024-09-14T16:00:08Z",
+  "closed_at": "2023-11-07T04:41:12Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "report/customer"
+  ],
+  "comments_data": [
+    {
+      "id": 1738857924,
+      "user": "AkiraXie",
+      "created_at": "2023-09-28T10:07:39Z",
+      "body": "/component br\r\n/severity critical"
+    },
+    {
+      "id": 1738858023,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-09-28T10:07:42Z",
+      "body": "@AkiraXie: The label(s) `component/br` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15714#issuecomment-1738857924):\n\n>/component br\r\n>/severity critical\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1738893470,
+      "user": "YuJuncen",
+      "created_at": "2023-09-28T10:34:53Z",
+      "body": "This log isn't the real cause. For an unknown reason, initial scanning queue has been stuck.\r\nThe regions encountered error are recovered soon.\r\n\r\n<img width=\"390\" alt=\"image\" src=\"https://github.com/tikv/tikv/assets/36239017/aa94f0b0-6132-4419-8e6c-11a88c422031\">\r\n"
+    },
+    {
+      "id": 1747951720,
+      "user": "YuJuncen",
+      "created_at": "2023-10-05T02:42:19Z",
+      "body": "Also I have tried to reproduce this in latest master with TPCC workload and `shuffle-region-scheduler`. It seems this cannot be reproduced in the latest master for a 4 days run. I'm not sure whether there are some problems about other components or something else."
+    },
+    {
+      "id": 1748577167,
+      "user": "YuJuncen",
+      "created_at": "2023-10-05T10:13:22Z",
+      "body": "And, I guess this is probably caused by a background panic. Could you upload the stderr log of TiKV?"
+    },
+    {
+      "id": 1751165689,
+      "user": "YuJuncen",
+      "created_at": "2023-10-06T17:34:08Z",
+      "body": "The reason is probably we have moved the execution of storing events to local file to the initial scanning pool, but it doesn't enable the io reactor. Hence once the memory tempfile pool reaches its limit, it will panic during swapping contents out."
+    },
+    {
+      "id": 1754311715,
+      "user": "YuJuncen",
+      "created_at": "2023-10-10T03:52:16Z",
+      "body": "> The reason is probably we have moved the execution of storing events to local file to the initial scanning pool, but it doesn't enable the io reactor. Hence once the memory tempfile pool reaches its limit, it will panic during swapping contents out.\r\n\r\nNope, writing to local files doesn't requires the IO reactor. we need further digging this by `async-backtrace`."
+    },
+    {
+      "id": 1772222827,
+      "user": "BornChanger",
+      "created_at": "2023-10-20T07:27:38Z",
+      "body": "@AkiraXie please manage to re-produce the problem with the async-backtrace enhancement."
+    },
+    {
+      "id": 1780671599,
+      "user": "YuJuncen",
+      "created_at": "2023-10-26T08:42:15Z",
+      "body": "```\r\n--\r\n4505853076451622926\r\n└[components/backup-stream/src/subscription_manager.rs:241] [span_id=4505853076451622926] [\"exec_initial_scan\"] [region=7187021] [handle=\"ObserveId(326894)\"] [elapsed=58080.514s]\r\n └[components/backup-stream/src/subscription_manager.rs:201] [span_id=5224177217017217027] [\"exec_by_with_retry\"] [elapsed=58080.514s]\r\n  └[components/backup-stream/src/subscription_manager.rs:181] [span_id=4382004086698934300] [\"exec_by\"] [elapsed=58080.514s]\r\n   └[components/backup-stream/src/event_loader.rs:428] [span_id=5974026554974404615] [\"do_initial_scan\"] [elapsed=58079.534s]\r\n    └[components/backup-stream/src/event_loader.rs:374] [span_id=4517112075520049174] [\"scan_and_async_send\"] [elapsed=58079.534s]\r\n     └[components/backup-stream/src/event_loader.rs:413] [span_id=6131652541932371986] [\"self.quota.pending(event_size)\"] [event_size=\"640387033\"] [elapsed=58075.904s]\r\n```\r\n\r\nThere is a task requires memory more than the memory quota. Then the whole semaphore gets stuck. Perhaps this is a bug (or feature) in the semaphore implementation. Anyway we can workaround this by getting rid of this memory quota."
+    },
+    {
+      "id": 1780674601,
+      "user": "YuJuncen",
+      "created_at": "2023-10-26T08:44:16Z",
+      "body": "Theoretically this will only happen on clusters with huge lines and #15541 may not really contributes to this. "
+    },
+    {
+      "id": 1838222134,
+      "user": "YuJuncen",
+      "created_at": "2023-12-04T10:10:03Z",
+      "body": "Given #15541 has been delivered to release-7.1(in https://github.com/tikv/tikv/pull/15336, why?), this may affect release-7.1 too. (I guess event w/o #15541 this will affect all older versions...)"
+    },
+    {
+      "id": 1838224044,
+      "user": "YuJuncen",
+      "created_at": "2023-12-04T10:11:11Z",
+      "body": "(Anyway #15541 should be brought to 6.5.)"
+    },
+    {
+      "id": 2347908155,
+      "user": "seiya-annie",
+      "created_at": "2024-09-13T02:14:37Z",
+      "body": "/report customer"
+    }
+  ]
+}

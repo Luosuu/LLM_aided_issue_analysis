@@ -1,0 +1,16 @@
+{
+  "issue_number": 8423,
+  "title": "cpu_cores_quota can return 0 which makes unified thread pool hang for long running query",
+  "body": "## Bug Report\r\n\r\nCPU quota should not return 0.\r\n\r\nhttps://github.com/tikv/tikv/blob/226139e82d22cc27bfb6fe65c383d68d9a26fd8a/components/tikv_util/src/sys/cgroup.rs#L256-L270\r\n\r\nThe above calculation can return 0 because cpu limit can be set to arbitrary float that is even less then 1.\r\n\r\nhttps://github.com/tikv/tikv/blob/226139e82d22cc27bfb6fe65c383d68d9a26fd8a/components/tikv_util/src/sys/mod.rs#L24-L32\r\n\r\nSo the above code can also return 0, which can cause problems as we have assumed the CPU count is not less than 1.\r\n\r\nA quick fix is returning 1 when cgroup limit is less than 1.\r\n\r\n/cc @sticnarf ",
+  "state": "closed",
+  "created_at": "2020-08-10T11:59:05Z",
+  "updated_at": "2020-08-17T10:22:32Z",
+  "closed_at": "2020-08-11T05:25:19Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "difficulty/easy",
+    "severity/major"
+  ],
+  "comments_data": []
+}

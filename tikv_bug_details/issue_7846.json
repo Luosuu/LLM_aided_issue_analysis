@@ -1,0 +1,78 @@
+{
+  "issue_number": 7846,
+  "title": "BR ignore some GCS and S3 errors which should retry when restore",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\nTiKV \r\nRelease Version:   4.1.0-alpha\r\nGit Commit Hash:   957655cacab1bd48100bf0b252fa93a9758848dc\r\nGit Commit Branch: master\r\nUTC Build Time:    2020-05-08 02:04:59\r\nRust Version:      rustc 1.44.0-nightly (b2e36e6c2 2020-04-22)\r\nEnable Features:   jemalloc portable sse protobuf-codec\r\nProfile:           dist_release\r\n```\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nrun in container\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n- deploy a cluster in gcp\r\n\r\n- restore data from `dbaas-hibernate`  and prefix `test180`  parameter as below\r\n```\r\nrestore full --send-credentials-to-tikv=true --storage=gcs://dbaas-hibernate/test180/ --pd=db-pd.tidb1261141553175334912:2379 --ca=/var/lib/cluster-client-tls/ca.crt --cert=/var/lib/cluster-client-tls/tls.crt --key=/var/lib/cluster-client-tls/tls.key\r\n```\r\n\r\n- the restore process will report error\r\n\r\n### What did you expect?\r\nrestore normally \r\n### What did happened?\r\nIt report file can't find after restore 60%.  log file is send to @kennytm\r\n\r\nbr report error like below \r\n```\r\nI0515 03:22:59.804703       1 restore.go:86] [2020/05/15 03:22:59.804 +00:00] [INFO] [domain.go:607] [\"domain closed\"] [\"take time\"=7.954583ms]\r\nI0515 03:22:59.805656       1 restore.go:86] [2020/05/15 03:22:59.805 +00:00] [INFO] [collector.go:180] [\"Full restore Failed summary : total restore files: 162, total success: 161, total failed: 1\"] [\"split region\"=13.897256965s] [\"restore ranges\"=8113] [unitName=file:6] [error=\"Cannot read gcs://dbaas-hibernatetest180//1_30660_1764_3e2d519a8088cd8665c72caa9436ca004df6ae5d3ecb085a18357e4799295170_default.sst: download from gcs error request or response body error: error reading a body from connection: Connection reset by peer (os error 104): download sst failed\"] [errorVerbose=\"download sst failed\\nCannot read gcs://dbaas-hibernatetest180//1_30660_1764_3e2d519a8088cd8665c72caa9436ca004df6ae5d3ecb085a18357e4799295170_default.sst: download from gcs error request or response body error: error reading a body from connection: Connection reset by peer (os error 104)\"]\r\nI0515 03:22:59.812736       1 restore.go:86] \r\nI0515 03:22:59.812968       1 restore.go:93] Error: Cannot read gcs://dbaas-hibernatetest180//1_30660_1764_3e2d519a8088cd8665c72caa9436ca004df6ae5d3ecb085a18357e4799295170_default.sst: download from gcs error request or response body error: error reading a body from connection: Connection reset by peer (os error 104): download sst failed\r\nI0515 03:22:59.876117       1 manager.go:206] reset cluster tidb1261127456232837120/demo-restore-gcs-br tikv_gc_life_time to 10m0s success\r\nE0515 03:22:59.876398       1 manager.go:209] restore cluster tidb1261127456232837120/demo-restore-gcs-br from  failed, err: cluster tidb1261127456232837120/demo-restore-gcs-br, wait pipe message failed, errMsg [2020/05/15 03:22:44.223 +00:00] [ERROR] [import.go:249] [\"download file failed\"] [file=\"name:\\\"1_30660_1764_3e2d519a8088cd8665c72caa9436ca004df6ae5d3ecb085a18357e4799295170_default.sst\\\" sha256:\\\"{L\\\\221\\\\017\\\\2224\\\\014X:\\\\031\\\\330\\\\221hW'kx+\\\\341\\\\373\\\\3073&\\\\272\\\\023/\\\\025B&\\\\306Xr\\\" start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000I_r\\\\200\\\\000\\\\000\\\\000\\\\361\\\\240\\\\340\\\\263\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000I_r\\\\200\\\\000\\\\000\\\\000\\\\361\\\\320,\\\\266\\\" end_version:416668903579320321 crc64xor:12054115323811038481 total_kvs:253923 total_bytes:85420743 cf:\\\"default\\\" size:71449721 \"] [region=\"id:16120 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377I_r\\\\200\\\\000\\\\000\\\\000\\\\361\\\\377\\\\240\\\\340\\\\263\\\\000\\\\000\\\\000\\\\000\\\\000\\\\372\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377I_r\\\\200\\\\000\\\\000\\\\000\\\\361\\\\377\\\\320,\\\\266\\\\000\\\\000\\\\000\\\\000\\\\000\\\\372\\\" region_epoch:<conf_ver:5 version:1815 > peers:<id:16121 store_id:1 > peers:<id:16122 store_id:4 > peers:<id:16123 store_id:6 > \"] [startKey=dIAAAAAAAAD/SV9ygAAAAPH/oOCzAAAAAAD6] [endKey=dIAAAAAAAAD/SV9ygAAAAPH/0Cy2AAAAAAD6] [error=\"Cannot read gcs://dbaas-hibernatetest180//1_30660_1764_3e2d519a8088cd8665c72caa9436ca004df6ae5d3ecb085a18357e4799295170_default.sst: download from gcs error request or response body error: error reading a body from connection: Connection reset by peer (os error 104): download sst failed\"] [errorVerbose=\"download sst failed\\nCannot read gcs://dbaas-hibernatetest180//1_30660_1764_3e2d519a8088cd8665c72caa9436ca004df6ae5d3ecb085a18357e4799295170_default.sst: download from gcs error request or response body error: error reading a body from connection: Connection reset by peer (os error 104)\"] [stack=\"github.com/pingcap/log.Error\\n\\t/go/pkg/mod/github.com/pingcap/log@v0.0.0-20200117041106-d28c14d3b1cd/global.go:42\\ngithub.com/pingcap/br/pkg/restore.(*FileImporter).Import.func1\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/import.go:249\\ngithub.com/pingcap/br/pkg/utils.WithRetry\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/utils/retry.go:29\\ngithub.com/pingcap/br/pkg/restore.(*FileImporter).Import\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/import.go:203\\ngithub.com/pingcap/br/pkg/restore.(*Client).RestoreFiles.func2\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/client.go:493\\ngithub.com/pingcap/br/pkg/utils.(*WorkerPool).Apply.func1\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/utils/worker.go:47\"]\r\n[2020/05/15 03:22:57.743 +00:00] [ERROR] [import.go:249] [\"download file failed\"] [file=\"name:\\\"5_42992_1895_7323a1bf2360b9a3aba9a0cf485a1fdac3004d8aa006ca675fc65c244e882b72_write.sst\\\" sha256:\\\"\\\\n\\\\272\\\\365\\\\242\\\\212\\\\334\\\\220j\\\\3170\\\\311\\\\321\\\\005\\\\340\\\\235\\\\365W\\\\031\\\\340\\\\354\\\\340O\\\\014\\\\200\\\\266/q'I[\\\\246\\\\247\\\" start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000I_r\\\\200\\\\000\\\\000\\\\001\\\\002\\\\340<\\\\266\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000I_r\\\\200\\\\000\\\\000\\\\001\\\\003\\\\001\\\\022\\\\033\\\" end_version:416668903579320321 cf:\\\"write\\\" size:682443 \"] [region=\"id:16548 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377I_r\\\\200\\\\000\\\\000\\\\001\\\\002\\\\377\\\\340<\\\\266\\\\000\\\\000\\\\000\\\\000\\\\000\\\\372\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377I_r\\\\200\\\\000\\\\000\\\\001\\\\003\\\\377\\\\001\\\\022\\\\033\\\\000\\\\000\\\\000\\\\000\\\\000\\\\372\\\" region_epoch:<conf_ver:5 version:1815 > peers:<id:16549 store_id:1 > peers:<id:16550 store_id:4 > peers:<id:16551 store_id:6 > \"] [startKey=dIAAAAAAAAD/SV9ygAAAAQL/4Dy2AAAAAAD6] [endKey=dIAAAAAAAAD/SV9ygAAAAQP/ARIbAAAAAAD6] [error=\"rpc error: code = Canceled desc = context canceled: gRPC error\"] [errorVerbose=\"gRPC error\\nrpc error: code = Canceled desc = context canceled\"] [stack=\"github.com/pingcap/log.Error\\n\\t/go/pkg/mod/github.com/pingcap/log@v0.0.0-20200117041106-d28c14d3b1cd/global.go:42\\ngithub.com/pingcap/br/pkg/restore.(*FileImporter).Import.func1\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/import.go:249\\ngithub.com/pingcap/br/pkg/utils.WithRetry\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/utils/retry.go:29\\ngithub.com/pingcap/br/pkg/restore.(*FileImporter).Import\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/import.go:203\\ngithub.com/pingcap/br/pkg/restore.(*Client).RestoreFiles.func2\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/client.go:493\\ngithub.com/pingcap/br/pkg/utils.(*WorkerPool).Apply.func1\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/utils/worker.go:47\"]\r\n[2020/05/15 03:22:57.744 +00:00] [ERROR] [import.go:249] [\"download file failed\"] [file=\"name:\\\"4_30988_1895_f8d5a564e27e0b47a6a4f0d048580d7ed23e75d2111f42b73cd3aa6c903598b7_write.sst\\\" sha256:\\\"\\\\315\\\\261\\\\256\\\\357+\\\\242M\\\\276\\\\360\\\\014\\\\341s \\\\371D'Cm\\\\021\\\\264\\\\014Z)\\\\010nn\\\\024\\\\323\\\\310\\\\204Y\\\\t\\\" start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000I_r\\\\200\\\\000\\\\000\\\\000\\\\376\\\\320\\\\235\\\\364\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000I_r\\\\200\\\\000\\\\000\\\\000\\\\376\\\\361r\\\\372\\\" end_version:416668903579320321 cf:\\\"write\\\" size:682137 \"] [region=\"id:16448 start_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377I_r\\\\200\\\\000\\\\000\\\\000\\\\376\\\\377\\\\320\\\\235\\\\364\\\\000\\\\000\\\\000\\\\000\\\\000\\\\372\\\" end_key:\\\"t\\\\200\\\\000\\\\000\\\\000\\\\000\\\\000\\\\000\\\\377I_r\\\\200\\\\000\\\\000\\\\000\\\\376\\\\377\\\\361r\\\\372\\\\000\\\\000\\\\000\\\\000\\\\000\\\\372\\\" region_epoch:<conf_ver:5 version:1815 > peers:<id:16449 store_id:1 > peers:<id:16450 store_id:4 > peers:<id:16451 store_id:6 > \"] [startKey=dIAAAAAAAAD/SV9ygAAAAP7/0J30AAAAAAD6] [endKey=dIAAAAAAAAD/SV9ygAAAAP7/8XL6AAAAAAD6] [error=\"rpc error: code = Canceled desc = context canceled: gRPC error\"] [errorVerbose=\"gRPC error\\nrpc error: code = Canceled desc = context canceled\"] [stack=\"github.com/pingcap/log.Error\\n\\t/go/pkg/mod/github.com/pingcap/log@v0.0.0-20200117041106-d28c14d3b1cd/global.go:42\\ngithub.com/pingcap/br/pkg/restore.(*FileImporter).Import.func1\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/import.go:249\\ngithub.com/pingcap/br/pkg/utils.WithRetry\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/utils/retry.go:29\\ngithub.com/pingcap/br/pkg/restore.(*FileImporter).Import\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/import.go:203\\ngithub.com/pingcap/br/pkg/restore.(*Client).RestoreFiles.func2\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/restore/client.go:493\\ngithub.com/pingcap/br/pkg/utils.(*WorkerPool).Apply.func1\\n\\t/home/jenkins/agent/workspace/build_br_multi_branch_v4.0.0-rc/go/src/github.com/pingcap/br/pkg/utils/worker.go:47\"]\r\n```\r\ntikv seem have no error report and I checkout the files in gcs bucket `dbaas-hibernate` prefix `test180` these file are exist\r\n ",
+  "state": "closed",
+  "created_at": "2020-05-15T03:53:42Z",
+  "updated_at": "2020-08-31T13:28:15Z",
+  "closed_at": "2020-08-31T13:28:15Z",
+  "labels": [
+    "type/bug",
+    "priority/high",
+    "component/backup-restore",
+    "sig/migrate",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 630066863,
+      "user": "kennytm",
+      "created_at": "2020-05-18T09:37:51Z",
+      "body": "We have reproduced once today, but with a different error message:\r\n\r\n```\r\n[2020/05/18 09:14:47.561 +00:00] [ERROR] [sst_importer.rs:129] [\"download failed\"] [err=\"Cannot read gcs://dbaas-hibernatetest180//1_16848_1064_2a108431266f8717f750a23dddce0ed9efe0bc29aa32e11951c721c34d12bb81_write.sst: request failed. status: 503 Service Unavailable, text: Backend Error\"] [name=1_16848_1064_2a108431266f8717f750a23dddce0ed9efe0bc29aa32e11951c721c34d12bb81_write.sst] [meta=\"uuid: 36530FEF13A34F22BBE27B7E77198154 range { start: 7480000000000000FF4D5F7280000000E8FF1204D60000000000FA end: 7480000000000000FF4D5F7280000000E8FF1B970E0000000000FA } cf_name: \\\"write\\\" region_id: 26500 region_epoch { conf_ver: 5 version: 1082 }\"]\r\n```\r\n\r\nGCS is replying `503 Service Unavailable` with text `Backend Error`. This happens only on one TiKV node out of three, and should be considered a transient error.\r\n\r\nCurrently BR will retry on transient errors, but this doesn't seem to be considered such, and thus caused the entire process to be interrupted.\r\n\r\nThis is probably the same as tidb-challenge-program/bug-hunting-issue#72."
+    },
+    {
+      "id": 630071515,
+      "user": "shuijing198799",
+      "created_at": "2020-05-18T09:46:04Z",
+      "body": "It seems these two errors are showed in the backup / restore process too. \r\n```\r\nConnection timed out (os error 110)\r\n```\r\n```\r\nConnection disconnect by peer (os error 104)\r\n```"
+    },
+    {
+      "id": 632442574,
+      "user": "tirsen",
+      "created_at": "2020-05-22T02:25:29Z",
+      "body": "We are also seeing this issue. If you're using the AWS SDK there's a way to configure it so that it automatically does retries with backoff on transient errors."
+    },
+    {
+      "id": 632447583,
+      "user": "shuijing198799",
+      "created_at": "2020-05-22T02:45:10Z",
+      "body": "> We are also seeing this issue. If you're using the AWS SDK there's a way to configure it so that it automatically does retries with backoff on transient errors.\r\n\r\nwe are working in add retry now."
+    },
+    {
+      "id": 632449484,
+      "user": "tirsen",
+      "created_at": "2020-05-22T02:52:27Z",
+      "body": "It would be good to backport this to 3.1 if possible. We are aiming for 4.0 but our largest cluster is currently running on 3.1."
+    },
+    {
+      "id": 632456268,
+      "user": "3pointer",
+      "created_at": "2020-05-22T03:20:02Z",
+      "body": "Yes, after this fixed, it will backport to 3.1 and 4.0"
+    },
+    {
+      "id": 633362930,
+      "user": "IANTHEREAL",
+      "created_at": "2020-05-25T03:52:17Z",
+      "body": "duplicated with https://github.com/tikv/tikv/issues/7850"
+    },
+    {
+      "id": 633376872,
+      "user": "shuijing198799",
+      "created_at": "2020-05-25T05:00:56Z",
+      "body": "PR https://github.com/pingcap/br/pull/298 fix this issue, This pr will be retried when restore encounters any unexpected error。"
+    },
+    {
+      "id": 682432717,
+      "user": "overvenus",
+      "created_at": "2020-08-28T09:42:03Z",
+      "body": "What's the progress of this issue?"
+    },
+    {
+      "id": 683363993,
+      "user": "shuijing198799",
+      "created_at": "2020-08-30T01:30:31Z",
+      "body": "> What's the progress of this issue?\r\n\r\nhttps://github.com/pingcap/br/pull/298 this PR will retryed when encounter restore failed, and solved this issue. I think this issue could be closed. "
+    }
+  ]
+}

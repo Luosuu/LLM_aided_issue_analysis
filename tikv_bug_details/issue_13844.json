@@ -1,0 +1,15 @@
+{
+  "issue_number": 13844,
+  "title": "Flashback may overwrite wrong write record",
+  "body": "## Bug Report\r\n\r\nWhen `scan_writes` meets `WriteType::Lock | WriteType::Rollback`, it should immediately set `write` to `None`, otherwise if the current key is the last key, it will return the wrong write record to the flashback to perform the later overwriting.\r\n\r\nhttps://github.com/tikv/tikv/blob/dc347f98ae70e8f829a55d4df1f002b4ad17e72d/src/storage/mvcc/reader/reader.rs#L640-L650",
+  "state": "closed",
+  "created_at": "2022-11-24T08:34:40Z",
+  "updated_at": "2022-11-25T02:22:00Z",
+  "closed_at": "2022-11-25T02:22:00Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.4"
+  ],
+  "comments_data": []
+}

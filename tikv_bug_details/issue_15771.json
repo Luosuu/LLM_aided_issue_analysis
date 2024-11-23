@@ -1,0 +1,33 @@
+{
+  "issue_number": 15771,
+  "title": "Can't set raft-engine.dir as the same as raftstore.raftdb-path when upgrading",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n```\r\n$ ./bin/tikv-server --version\r\nTiKV\r\nRelease Version:   6.5.3\r\nEdition:           Community\r\nGit Commit Hash:   fd5f88a7fdda1bf70dcb0d239f60137110c54d46\r\nGit Commit Branch: heads/refs/tags/v6.5.3\r\nUTC Build Time:    2023-06-09 10:55:15\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n```\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. Deploy a low version TiKV which uses raftdb, and set raftstore.raftdb-path\r\n```\r\n- host: x.x.x.x\r\n  ssh_port: 22\r\n  port: 43000\r\n  status_port: 43001\r\n  deploy_dir: x\r\n  data_dir: x\r\n  log_dir: x\r\n  config:\r\n    raftstore.raftdb-path: /old-raftdb-dir\r\n```\r\n2. Upgrade TiKV with TiUP to v6.5.3\r\n3. The origin `raftstore.raftdb-path` is clear, but the `raft-engine.dir` is set the default value\r\n\r\n### What did you expect?\r\n`raft-engine.dir` should be set as the same dir as  `raftstore.raftdb-path`\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-10-16T11:17:49Z",
+  "updated_at": "2023-11-14T08:29:16Z",
+  "closed_at": "2023-11-14T08:29:16Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1765562097,
+      "user": "Smityz",
+      "created_at": "2023-10-17T02:36:19Z",
+      "body": "Hi @tabokie, could you please take a look?\r\nShould we fix this problem, or add some hints in the document?"
+    },
+    {
+      "id": 1770139222,
+      "user": "tabokie",
+      "created_at": "2023-10-19T06:23:16Z",
+      "body": "I think it's not strictly a bug, but I agree it's a good idea to automatically place raft-engine in the same volume. cc @tonyxuqqi "
+    },
+    {
+      "id": 1770532951,
+      "user": "Smityz",
+      "created_at": "2023-10-19T10:32:40Z",
+      "body": "In our use case, this may cause an impact because disks mount to different dir may have different performance. But I can't change this setting when updating cluster"
+    }
+  ]
+}

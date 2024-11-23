@@ -1,0 +1,24 @@
+{
+  "issue_number": 14547,
+  "title": "Seems region leaders can lose after one tikv instance fail",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV\r\nRelease Version:   7.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   abb672b8218307e3811281c22643e0eb2e13cc2c\r\nGit Commit Branch: heads/refs/tags/v7.1.0-alpha\r\nUTC Build Time:    2023-04-08 14:33:07\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n\r\n### Steps to reproduce\r\n1. Deploy a TiDB cluster with 4 TiKV instance.\r\n2. Create 1000 sysbench tables with `pre-split = 8`, so that we get 256K Regions.\r\n3. Create a TiCDC changefeed, and then kill one TiKV instance.\r\n\r\n### What did you expect?\r\nChangefeed checkpoint lag may increase, but should decrease after a while.\r\n\r\n### What did happened?\r\nChangefeed lag keeps increasing about 1 hour.\r\nThis may contains several issues. Let's focus on this one: seems some region leaders are lost in about 10min.",
+  "state": "closed",
+  "created_at": "2023-04-10T08:36:09Z",
+  "updated_at": "2023-09-13T07:13:23Z",
+  "closed_at": "2023-09-13T07:13:23Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.5",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1508012328,
+      "user": "hicqu",
+      "created_at": "2023-04-14T06:50:41Z",
+      "body": "I think the root cause is when a TiKV node fails, other nodes can still dispatch Raft messages from it, after `StoreUnreachable` is reported. It will changes raft peers state from `GroupState::Chaos` to `GroupState::Ordered` incorrectly.\r\n\r\n#14574  adds a test case for this. Here is its log:\r\n```\r\ntest_store_disconnect_with_hibernate 2023/04/14 13:45:58.500 store.rs:2887: [INFO] broadcasting unreachable, unreachable_store_id: 1, store_id: 2\r\ntest_store_disconnect_with_hibernate 2023/04/14 13:45:58.522 store.rs:2887: [INFO] broadcasting unreachable, unreachable_store_id: 1, store_id: 3\r\ntest_store_disconnect_with_hibernate 2023/04/14 13:45:58.631 peer.rs:2446: [DEBG] handle raft message, to_peer_id: 3, from_peer_id: 1, message_type: MsgAppend, peer_id: 3, region_id: 1\r\ntest_store_disconnect_with_hibernate 2023/04/14 13:45:58.631 peer.rs:2446: [DEBG] handle raft message, to_peer_id: 2, from_peer_id: 1, message_type: MsgAppend, peer_id: 2, region_id: 1\r\ntest_store_disconnect_with_hibernate 2023/04/14 13:45:58.653 peer.rs:2175: [DEBG] stop ticking, election_elapsed: 1, peer_id: 2, region_id: 1, res: Some(CheckTickResult { leader: false, up_to_date: false, reason: \"\" })\r\ntest_store_disconnect_with_hibernate 2023/04/14 13:45:58.675 peer.rs:2175: [DEBG] stop ticking, election_elapsed: 1, peer_id: 3, region_id: 1, res: Some(CheckTickResult { leader: false, up_to_date: false, reason: \"\" })\r\ntest_store_disconnect_with_hibernate 2023/04/14 13:45:58.363 peer.rs:2136: [DEBG] follower hibernates, missing_ticks: 6, election_elapsed: 1, peer_id: 2, region_id: 1\r\ntest_store_disconnect_with_hibernate 2023/04/14 13:45:58.380 peer.rs:2136: [DEBG] follower hibernates, missing_ticks: 6, election_elapsed: 1, peer_id: 3, region_id: 1\r\n```"
+    }
+  ]
+}

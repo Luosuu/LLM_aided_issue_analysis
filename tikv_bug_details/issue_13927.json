@@ -1,0 +1,40 @@
+{
+  "issue_number": 13927,
+  "title": "`tikv-ctl` creates log directory regardless of command",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nLatest master.\r\n\r\nIt doesn't really matter. It has been like this for a long time.\r\n\r\n### Steps to reproduce\r\n\r\nJust run `tikv-ctl --help`. It creates a `ctl-engine-info-log` directory.\r\n\r\nAnd if there is no permission in the current directory, the command will fail.",
+  "state": "open",
+  "created_at": "2022-12-12T03:49:39Z",
+  "updated_at": "2023-02-07T03:43:13Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1347658700,
+      "user": "masonyc",
+      "created_at": "2022-12-13T02:27:58Z",
+      "body": "Hi I am interested to pick this up. May I ask what is the expected behavior we want to have?"
+    },
+    {
+      "id": 1347676982,
+      "user": "sticnarf",
+      "created_at": "2022-12-13T03:00:40Z",
+      "body": "> Hi I am interested to pick this up. May I ask what is the expected behavior we want to have?\r\n\r\nThe most basic requirement is that we don't have to create the directory when not executing any command. For example, `tikv-ctl --help` or `tikv-ctl --encode some_key`.\r\n\r\nBut a lot of subcommands also don't need these engine logs. So, personally I prefer to defer the creation of engine log directory until necessary.\r\n\r\nThis can be done by wrapping the log `Drain` and create the directory when there is actually something to log. And I think we can allow permission errors if the directory fails to be created. Silently ignoring the error or falling back to stderr are both acceptable to me."
+    },
+    {
+      "id": 1420152390,
+      "user": "omkar-mohanty",
+      "created_at": "2023-02-07T03:38:00Z",
+      "body": "Hi @sticnarf if this issue is still open can I pick this up? "
+    },
+    {
+      "id": 1420155426,
+      "user": "sticnarf",
+      "created_at": "2023-02-07T03:43:13Z",
+      "body": "> Hi @sticnarf if this issue is still open can I pick this up?\r\n\r\nYes, it's still open.\r\n\r\n@masonyc Do you have some progress on this issue?"
+    }
+  ]
+}

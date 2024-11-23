@@ -1,0 +1,32 @@
+{
+  "issue_number": 17709,
+  "title": "If titan is enabled for the backup cluster, tikv will crash if titan is not enabled for restore. [restore for 15945]",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. config tikv titan true\r\n2. do volumebackup\r\n3. restore the cluster, config tikv titan false\r\n\r\n### What did you expect?\r\n1. There are documents telling users not to use it this way.\r\n\r\n### What did happened?\r\n1. tikv crash\r\n![img_v2_0a19fb25-4412-421f-af64-dfe77b1b7ebg](https://github.com/tikv/tikv/assets/81375082/85c57f85-ab8c-41d7-801b-641e1c7aa9dc)\r\n\r\n",
+  "state": "open",
+  "created_at": "2024-10-25T10:17:07Z",
+  "updated_at": "2024-10-25T10:22:19Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2437416325,
+      "user": "ti-chi-bot",
+      "created_at": "2024-10-25T10:17:10Z",
+      "body": "This issue is restored for #15945, it originally created at 2023-11-08 10:14:17."
+    },
+    {
+      "id": 2437425612,
+      "user": "ti-chi-bot",
+      "created_at": "2024-10-25T10:22:15Z",
+      "body": "/assign @BornChanger"
+    },
+    {
+      "id": 2437425701,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-10-25T10:22:18Z",
+      "body": "@ti-chi-bot: GitHub didn't allow me to assign the following users: BornChanger.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/17709#issuecomment-2437425612):\n\n>/assign @BornChanger\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

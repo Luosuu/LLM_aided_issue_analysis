@@ -1,0 +1,15 @@
+{
+  "issue_number": 9463,
+  "title": "Blocking PD leader update leads to gRPC keepalive watchdog fire and disrupts online service",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\npingcap/br#671 reports restore fails due to gRPC keepalive watchdog fire. This is because gRPC threads in TiKV is blocked for a long time (17s > keepalive).\r\n\r\n```\r\n[2020/12/30 05:30:55.933 +00:00] [INFO] [util.rs:395] [\"connecting to PD endpoint\"] [endpoints=http://10.0.2.80:2379]\r\n[2020/12/30 05:30:55.935 +00:00] [INFO] [util.rs:395] [\"connecting to PD endpoint\"] [endpoints=http://10.0.2.80:2379]\r\n[2020/12/30 05:30:55.936 +00:00] [INFO] [util.rs:459] [\"connected to PD leader\"] [endpoints=http://10.0.2.80:2379]\r\n[2020/12/30 05:30:55.936 +00:00] [INFO] [util.rs:198] [\"heartbeat sender and receiver are stale, refreshing ...\"]\r\n[2020/12/30 05:30:55.937 +00:00] [INFO] [client.rs:486] [\"cancel region heartbeat sender\"]\r\n[2020/12/30 05:30:59.410 +00:00] [INFO] [sst_importer.rs:132] [download] [range=\"Some(start: 7480000000000000FF3B5F728000000070FFDA61380000000000FAFA254B1E2C9FFFFF end: 7480000000000000FF3B5F728000000070FFDCD08E0000000000FAFA254B1E2C9FFFFF)\"] [name=10_33363_1141_19dadd8f2\r\n...\r\n[2020/12/30 05:31:07.389 +00:00] [INFO] [<unknown>] [\"ipv4:10.0.2.161:56460: Keepalive watchdog fired. Closing transport.\"]\r\n[2020/12/30 05:31:07.858 +00:00] [INFO] [<unknown>] [\"ipv4:10.0.2.79:52248: Keepalive watchdog fired. Closing transport.\"]\r\n[2020/12/30 05:31:12.502 +00:00] [INFO] [<unknown>] [\"ipv4:10.0.2.161:56478: Keepalive watchdog fired. Closing transport.\"]\r\n[2020/12/30 05:31:13.413 +00:00] [WARN] [util.rs:215] [\"updating PD client done\"] [spend=17.479934778s]\r\n```\r\n\r\nThis is likely caused by \r\n\r\nhttps://github.com/tikv/tikv/blob/55156a210593c4f163779959efb83a197554d9bf/components/pd_client/src/util.rs#L170-L215\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nrelease-5.0-rc branch\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2021-01-08T07:42:58Z",
+  "updated_at": "2021-01-09T10:55:49Z",
+  "closed_at": "2021-01-09T10:55:49Z",
+  "labels": [
+    "type/bug",
+    "component/pd-client",
+    "severity/major"
+  ],
+  "comments_data": []
+}

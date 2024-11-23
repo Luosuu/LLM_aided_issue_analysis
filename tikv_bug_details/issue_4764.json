@@ -1,0 +1,69 @@
+{
+  "issue_number": 4764,
+  "title": "ReadIndex service may got duplicate `ctx` ",
+  "body": "## Bug Report\r\n\r\n**What version of TiKV are you using?**\r\nrelease3.0 rc2\r\n\r\n**Problems** \r\n1. The `ctx` of pending reading is independently produced by `tikv` itself, it may same in leader and follower at the same time, the `ReadIndex` request will conflict and may lose one.\r\n2. If we use `follwer_id` in `ctx`, it will solve problem 1, but if follower restart will also produce the same `ctx`. \r\n3. `advance` the pending reads may need to iterate all pending reads, which is slowly. likely get the order of `ctx` in follower from ready is 1 2  4 5 6 7 8 9 3.",
+  "state": "closed",
+  "created_at": "2019-05-24T09:45:14Z",
+  "updated_at": "2019-09-11T18:50:06Z",
+  "closed_at": "2019-09-11T18:50:05Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 518237091,
+      "user": "overvenus",
+      "created_at": "2019-08-05T13:36:40Z",
+      "body": "How about combining peer id and current unix timestamp? It does the best effort and should cover for most cases."
+    },
+    {
+      "id": 518489118,
+      "user": "nolouch",
+      "created_at": "2019-08-06T04:04:52Z",
+      "body": "cc @5kbpers "
+    },
+    {
+      "id": 518511001,
+      "user": "5kbpers",
+      "created_at": "2019-08-06T05:42:40Z",
+      "body": "> How about combining peer id and current unix timestamp? It does the best effort and should cover for most cases.\r\n\r\nGreat idea. I think we could get a monotonic clock time, combine with `peer_id` as the first id, then increase it to allocate the following ids."
+    },
+    {
+      "id": 518554799,
+      "user": "BusyJay",
+      "created_at": "2019-08-06T07:56:31Z",
+      "body": "Monotonic clock time is not reliable. It's not guaranteed to be increased monotonically between booting."
+    },
+    {
+      "id": 518570739,
+      "user": "5kbpers",
+      "created_at": "2019-08-06T08:38:09Z",
+      "body": "> Monotonic clock time is not reliable. It's not guaranteed to be increased monotonically between booting.\r\n\r\nYes, we can use `SystemTime` too, but I'm worried about it would be not reliable when the process restart."
+    },
+    {
+      "id": 518576665,
+      "user": "BusyJay",
+      "created_at": "2019-08-06T08:53:11Z",
+      "body": "Why not use UUID?"
+    },
+    {
+      "id": 518577982,
+      "user": "5kbpers",
+      "created_at": "2019-08-06T08:56:27Z",
+      "body": "UUID can not be sorted :("
+    },
+    {
+      "id": 518588903,
+      "user": "5kbpers",
+      "created_at": "2019-08-06T09:26:13Z",
+      "body": "Seems it is not required to be sorted (get it after reading the code again), UUID is a good idea :)"
+    },
+    {
+      "id": 530515456,
+      "user": "Hoverbear",
+      "created_at": "2019-09-11T18:50:05Z",
+      "body": "Hi folks seems this is fixed by #5213. I'm closing this but feel free to reopen."
+    }
+  ]
+}

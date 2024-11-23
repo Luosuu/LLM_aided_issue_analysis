@@ -1,0 +1,26 @@
+{
+  "issue_number": 16629,
+  "title": "`tikv_unified_read_pool_thread_count` is always zero until online modifying `readpool.unified.max-thread-count`.",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nCurrent master. It looks some of release versions also suffers from this.\r\n\r\n### What operating system and CPU are you using?\r\nNot relative.\r\n\r\n### Steps to reproduce\r\n1. Start a TiKV cluster.\r\n2. Look at the series `tikv_unified_read_pool_thread_count`.\r\n\r\n### What did you expect?\r\nThat should be the config value of `readpool.unified.max-thread-count`.\r\n\r\n### What did happened?\r\nIt is zero. Until I modify the config with:\r\n\r\n```sql\r\nset config tikv `readpool.unified.max-thread-count` = 3;\r\nset config tikv `readpool.unified.max-thread-count` = 4;\r\n```\r\n\r\n![CleanShot 2024-03-12 at 12 15 27@2x](https://github.com/tikv/tikv/assets/36239017/b42d817d-2b41-4c7f-8d87-f733bc77474b)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-03-12T04:15:54Z",
+  "updated_at": "2024-06-04T02:23:29Z",
+  "closed_at": "2024-03-15T03:47:12Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate",
+    "affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "report/customer"
+  ],
+  "comments_data": [
+    {
+      "id": 2146447435,
+      "user": "seiya-annie",
+      "created_at": "2024-06-04T02:23:27Z",
+      "body": "/found customer"
+    }
+  ]
+}

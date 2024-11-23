@@ -1,0 +1,24 @@
+{
+  "issue_number": 8168,
+  "title": "TiKV keeps OOM if there are too many change events need to be sent to CDC",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nTiKV keeps OOM if there are too many change events need to be sent to CDC.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv4.0.1\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1. Create a changefeed \r\n  `cdc cli changefeed create --sink-uri=\"tidb://root@xxx:xxx/\" --pd=\"http://yyy:yyy\"`\r\n2. Pause the change feed\r\n  `cdc cli changefeed pause --changefeed-id xxx --pd=\"HTTP://yyy:yyy\"`\r\n3. Running sysbench for about 1 hour.\r\n  `sysbench --db-driver=mysql --mysql-host=xxx --mysql-port=xxx --mysql-user=root --mysql-db=test --time=30000000 --report-interval=10 --threads=100 oltp_update_non_index --tables=100 --table-size=5000000 prepare && sysbench --db-driver=mysql --mysql-host=xxx --mysql-port=xxx --mysql-user=root --mysql-db=test --time=30000000 --report-interval=10 --threads=50 oltp_update_non_index --tables=100 --table-size=5000000 run`\r\n4. Resume the changefeed\r\n  `cdc cli changefeed resume --changefeed-id xxx --pd=\"HTTP://yyy:yyy\"`\r\n\r\n### What did you expect?\r\n\r\nNo OOM, everything works fine.\r\n\r\n### What did happened?\r\n\r\nOOM\r\n",
+  "state": "closed",
+  "created_at": "2020-07-01T05:36:54Z",
+  "updated_at": "2021-06-10T15:20:10Z",
+  "closed_at": "2021-06-10T15:20:10Z",
+  "labels": [
+    "type/bug",
+    "priority/high",
+    "component/CDC",
+    "sig/migrate",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 858714217,
+      "user": "overvenus",
+      "created_at": "2021-06-10T15:20:04Z",
+      "body": "This issue has been fixed by https://github.com/tikv/tikv/pull/10135"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "issue_number": 14115,
+  "title": "[Dynamic Regions] Tablet GC tasks are accumulated overtime and incorrect store size reported",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nnightly\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ntpcc 25k warehouse prepare\r\n### What did you expect?\r\nTablet GC could run timely\r\n### What did happened?\r\nPending tablet gc tasks are accumulated overtime and the store size exceeds the capacity. \r\n\r\nGrafana: http://54.189.73.225:33762/d/RDVQiEzZz/tpcc-tikv-details?orgId=1&from=1675200847691&to=1675204064867&var-k8s_cluster=&var-tidb_cluster=&var-db=All&var-command=All&var-instance=172.31.15.134:20180&var-titan_db=All\r\n\r\n<img width=\"1782\" alt=\"Screen Shot 2023-01-31 at 2 37 48 PM\" src=\"https://user-images.githubusercontent.com/9442422/215899648-3ef35927-ee55-4611-a3bc-ed2f15497e75.png\">\r\n<img width=\"921\" alt=\"Screen Shot 2023-01-31 at 2 38 03 PM\" src=\"https://user-images.githubusercontent.com/9442422/215899654-9f733386-8a26-4912-81ab-7b50a7deaae3.png\">\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-01-31T22:38:29Z",
+  "updated_at": "2023-02-07T05:01:59Z",
+  "closed_at": "2023-02-07T05:01:59Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1411211591,
+      "user": "tonyxuqqi",
+      "created_at": "2023-01-31T23:24:56Z",
+      "body": "There're three tikv nodes and one of them is normal, but the other two are abnormal----basically there's no \"destroy tablet\" or \"failed to check whether the tablet path is locked\" in the two abnormal tikv logs. "
+    },
+    {
+      "id": 1411216927,
+      "user": "tonyxuqqi",
+      "created_at": "2023-01-31T23:32:39Z",
+      "body": "The same stack is found in the two abnormal nodes. I think we may run into some dead lock . \r\n```\r\n#0  0x00007f97b2d0f377 in pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libpthread.so.0\r\n#1  0x000055b967f813cd in rocksdb::port::CondVar::Wait() ()\r\n#2  0x000055b967e7ec15 in rocksdb::InstrumentedCondVar::Wait() ()\r\n#3  0x000055b967d3f1cf in rocksdb::DBImpl::RunManualCompaction(rocksdb::ColumnFamilyData*, int, int, rocksdb::CompactRangeOptions const&, rocksdb::Slice const*, rocksdb::Slice const*, bool, bool, unsigned long) ()\r\n#4  0x000055b967d3fede in rocksdb::DBImpl::CompactRangeInternal(rocksdb::CompactRangeOptions const&, rocksdb::ColumnFamilyHandle*, rocksdb::Slice const*, rocksdb::Slice const*) ()\r\n#5  0x000055b967d403e8 in rocksdb::DBImpl::CompactRange(rocksdb::CompactRangeOptions const&, rocksdb::ColumnFamilyHandle*, rocksdb::Slice const*, rocksdb::Slice const*) ()\r\n#6  0x000055b967c4444e in crocksdb_compact_range_cf_opt ()\r\n#7  0x000055b964e0c326 in engine_rocks::compact::<impl engine_traits::compact::CompactExt for engine_rocks::engine::RocksEngine>::compact_range_cf ()\r\n#8  0x000055b9660907e0 in engine_traits::compact::CompactExt::compact_range ()\r\n#9  0x000055b965d117c5 in raftstore_v2::worker::tablet_gc::Runner<EK>::trim ()\r\n#10 0x000055b965cf1f4b in <raftstore_v2::worker::tablet_gc::Runner<EK> as tikv_util::worker::pool::Runnable>::run ()\r\n#11 0x000055b966cd9fb1 in <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll ()\r\n#12 0x000055b967a1cbab in <yatp::task::future::Runner as yatp::pool::runner::Runner>::handle ()\r\n#13 0x000055b9662dd8fa in <tikv_util::yatp_pool::YatpPoolRunner<T> as yatp::pool::runner::Runner>::handle ()\r\n#14 0x000055b966786eae in yatp::pool::worker::WorkerThread<T,R>::run ()\r\n#15 0x000055b9664ce805 in std::sys_common::backtrace::__rust_begin_short_backtrace ()\r\n#16 0x000055b9660ff2dc in core::ops::function::FnOnce::call_once{{vtable-shim}} ()\r\n#17 0x000055b967180735 in std::sys::unix::thread::Thread::new::thread_start ()\r\n#18 0x00007f97b2d0944b in start_thread () from /lib64/libpthread.so.0\r\n#19 0x00007f97b270452f in clone () from /lib64/libc.so.6\r\n```"
+    }
+  ]
+}

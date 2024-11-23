@@ -1,0 +1,16 @@
+{
+  "issue_number": 13955,
+  "title": "br: ebs restore could not success when network down more than 5 seconds",
+  "body": "## Bug Report\r\n\r\n\r\n### What version of TiKV are you using?\r\ndocker image\r\npingcap/tikv:nightly\r\n\r\n### What operating system and CPU are you using?\r\ncentos\r\n\r\n### Steps to reproduce\r\n1. create cluster with 80+ tikv nodes\r\n2. following the instruction https://docs.pingcap.com/zh/tidb-in-kubernetes/v1.4/backup-to-aws-s3-by-snapshot to create a cluster backup\r\n3. create backup\r\n4. following https://docs.pingcap.com/zh/tidb-in-kubernetes/v1.4/restore-from-aws-s3-by-snapshot to restore the cluster\r\nrestore does not success\r\n\r\n### What did you expect?\r\nrestore success\r\n\r\n### What did happened?\r\nrestore stuck",
+  "state": "closed",
+  "created_at": "2022-12-18T01:53:24Z",
+  "updated_at": "2022-12-19T05:29:34Z",
+  "closed_at": "2022-12-19T03:46:56Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

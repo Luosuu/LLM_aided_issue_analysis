@@ -1,0 +1,32 @@
+{
+  "issue_number": 3709,
+  "title": "TiKV Server crashed in rocksdb.bg2",
+  "body": "## Bug Report\r\n\r\n**What version of Rust are you using?**\r\nInstalled by ansible, release 2.0.6\r\n\r\n**What operating system and CPU are you using?**\r\n<!-- You can run `cat /proc/cpuinfo` -->\r\nCentOS Linux release 7.3.1611 (Core)\r\n```\r\nprocessor       : 39\r\nvendor_id       : GenuineIntel\r\ncpu family      : 6\r\nmodel           : 79\r\nmodel name      : Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz\r\nstepping        : 1\r\nmicrocode       : 0xb00001d\r\ncpu MHz         : 2200.000\r\ncache size      : 25600 KB\r\nphysical id     : 1\r\nsiblings        : 20\r\ncore id         : 12\r\ncpu cores       : 10\r\napicid          : 57\r\ninitial apicid  : 57\r\nfpu             : yes\r\nfpu_exception   : yes\r\ncpuid level     : 20\r\nwp              : yes\r\nflags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb invpcid_single intel_pt kaiser tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdseed adx smap xsaveopt cqm_llc cqm_occup_llc dtherm arat pln pts\r\nbugs            : cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf\r\nbogomips        : 4403.54\r\nclflush size    : 64\r\ncache_alignment : 64\r\naddress sizes   : 46 bits physical, 48 bits virtual\r\npower management:\r\n```\r\n**What did you do?**\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nIt occured when importing large dataset with small key-value sizes. I can not reproduce it now and ther is no coredump file.\r\n\r\n**What did you expect to see?**\r\n\r\nDO NOT CRASH\r\n\r\n**What did you see instead?**\r\nTiKV Server crashed\r\n\r\n**Other info**\r\n[2577231.277642] rocksdb:bg2[33473]: segfault at 7b23 ip 00005580bce6fc81 sp 00007f843a1fd090 error 4 in tikv-server[5580bbf51000+145b000]",
+  "state": "closed",
+  "created_at": "2018-10-24T07:05:30Z",
+  "updated_at": "2019-07-04T07:26:33Z",
+  "closed_at": "2019-07-04T07:26:33Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 432539046,
+      "user": "solotzg",
+      "created_at": "2018-10-24T07:09:33Z",
+      "body": "@huachaohuang PTAL."
+    },
+    {
+      "id": 433387570,
+      "user": "huachaohuang",
+      "created_at": "2018-10-26T12:14:16Z",
+      "body": "Looks like it ran into a weird address, can you try to do this:\r\n\r\n`addr2line -e /path/to/tikv-server 7b23`\r\n\r\nBTW, anything special happened when it crashed? Like it was shutting down?"
+    },
+    {
+      "id": 508371941,
+      "user": "shafreeck",
+      "created_at": "2019-07-04T07:26:32Z",
+      "body": "Has lost the environment and outdated for a long time. Close it now."
+    }
+  ]
+}

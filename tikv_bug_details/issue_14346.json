@@ -1,0 +1,27 @@
+{
+  "issue_number": 14346,
+  "title": "TiKV OOM Killed",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv6.6.0\r\n```\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:85] [\"Welcome to TiKV\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:90] [\"Release Version:   6.6.0\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:90] [\"Edition:           Enterprise\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:90] [\"Git Commit Hash:   58d231bccb4fb188bb697905ee4faf086c4ac931\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:90] [\"Git Commit Branch: heads/refs/tags/v6.6.0\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:90] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:90] [\"Rust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:90] [\"Enable Features:   pprof-fp jemalloc mem-profiling portable test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [lib.rs:90] [\"Profile:           dist_release\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [mod.rs:80] [\"cgroup quota: memory=Some(62834700288), cpu=None, cores={7, 13, 14, 2, 0, 4, 9, 15, 1, 10, 6, 5, 3, 8, 11, 12}\"]\r\n[2023/03/04 07:23:36.979 +00:00] [INFO] [mod.rs:87] [\"memory limit in bytes: 62834700288, cpu cores quota: 16\"]\r\n```\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nAWS.\r\nSee https://clinic.pingcap.com/portal/#/orgs/1372813089196911678/clusters/1379661944632784068.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nTBD.\r\n\r\n### What did you expect?\r\n\r\nNo OOM.\r\n\r\n### What did happened?\r\n\r\nOOM at: 2023/03/04 15:23:19.406 +08:00\r\ncluster_id = 1379661944632784068\r\ninstance = db-tikv-2\r\n\r\n### Preliminary inspection\r\nThe OOM may be caused by fragmentation of allocator.\r\nMemory usage of fragmentation increased from `10GB` (20230304 15:21:30 +08:00) to `16GB` (20230304 15:23:30 +08:00)\r\n\r\nSee [metrics](https://clinic.pingcap.com/grafana/d/RDVQiEzZztidbcloudv6_5_x/tikv-details-cluster-clinic?orgId=1&var-tidb_cluster=1379661944632784068&var-instance=db-tikv-2&var-store=All&from=1677910550000&to=1677917750000&var-tidb_version=v6.5.x&var-org=1372813089196911678&var-org_type=cloud&var-k8s_cluster=&var-db=All&var-command=All&var-titan_db=All&editPanel=2696)\r\n\r\n![image](https://user-images.githubusercontent.com/1907938/222916790-ea517240-6194-4ecb-a786-dc74b6cb4b90.png)\r\n\r\nAnother component having memory usage increased is \"raftstore-peers\" & \"raftstore-entry_cache\", but the growth is low (~20MB)\r\n\r\n![image](https://user-images.githubusercontent.com/1907938/222916799-10d468ee-e184-459d-a9ae-74e7d3948352.png)\r\n\r\n#### Components which would possibly cause the increase of memory fragment, per time point correlation\r\n\r\n##### Resolved-TS\r\n![image](https://user-images.githubusercontent.com/1907938/222916825-8d2da493-d80f-4e32-97d0-be41e209964d.png)\r\n![image](https://user-images.githubusercontent.com/1907938/222916833-773b9e3d-df4e-4e7e-b99b-4a40f923071a.png)\r\n\r\n##### Prewrite request\r\n(This is less possible as there was another burst of prewrite requests at 14:21 but no fragment increase at all. However, the prewrite of a big transaction would be the cause of \"Lock heap size\" increasing of Resolved-TS.)\r\n![image](https://user-images.githubusercontent.com/1907938/222916850-edec1b4d-8860-4209-a0a3-8c1f8924ea70.png)\r\n",
+  "state": "closed",
+  "created_at": "2023-03-04T16:27:07Z",
+  "updated_at": "2024-01-30T01:00:23Z",
+  "closed_at": "2024-01-30T01:00:23Z",
+  "labels": [
+    "type/bug",
+    "affects-6.6"
+  ],
+  "comments_data": [
+    {
+      "id": 1459678147,
+      "user": "pingyu",
+      "created_at": "2023-03-08T07:49:21Z",
+      "body": "This issue happen again on the same cluster, with a very similar significant increasing on \"fragmentation\" of \"Allocator Stats\".\r\n<img width=\"1367\" alt=\"image\" src=\"https://user-images.githubusercontent.com/1907938/223652737-af206367-d102-412e-9394-be467eed29d3.png\">\r\n\r\nBut this time there is no growth on Resolved-TS metrics.\r\n<img width=\"1368\" alt=\"image\" src=\"https://user-images.githubusercontent.com/1907938/223652783-2dfed1a2-4843-4ed5-b191-ce42124c35a8.png\">\r\n<img width=\"1365\" alt=\"image\" src=\"https://user-images.githubusercontent.com/1907938/223652899-877d9ff7-c9f8-4d07-ac61-77e7c62e7773.png\">\r\n"
+    },
+    {
+      "id": 1915861369,
+      "user": "pingyu",
+      "created_at": "2024-01-30T01:00:23Z",
+      "body": "Since we don't have enough information, we will close this issue for now."
+    }
+  ]
+}

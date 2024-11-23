@@ -1,0 +1,19 @@
+{
+  "issue_number": 17233,
+  "title": "cdc: no more any events should be emit to a downstream after it retrieves an event error",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\nMaster.\r\n\r\n### What operating system and CPU are you using?\r\n\r\n### Steps to reproduce\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n\r\nFor a given subscriped region, after emiting an `EventError` to one downstream, the downstream may still have an unfinished incremental scan, and the scan will still emit some events to the downstream.\r\n\r\nThis shouldn't be allowed. It\r\n\r\n* can cause ticdc panic on \"an committed entry with CommitTs less than ResolvedTs\";\r\n* may cause https://github.com/pingcap/tiflow/issues/11343.\r\n",
+  "state": "closed",
+  "created_at": "2024-07-04T01:48:01Z",
+  "updated_at": "2024-07-09T07:30:06Z",
+  "closed_at": "2024-07-09T07:30:06Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/critical",
+    "affects-7.5",
+    "affects-8.0",
+    "affects-8.1",
+    "affects-8.2"
+  ],
+  "comments_data": []
+}

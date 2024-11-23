@@ -1,0 +1,36 @@
+{
+  "issue_number": 16561,
+  "title": "Resolve ts can't not advance",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nTiKV\r\nRelease Version:   8.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   9b60505a84d550a6d34582b2d44d3066cff9f75e\r\nGit Commit Branch: heads/refs/tags/v8.0.0-alpha\r\nUTC Build Time:    2024-02-24 11:43:24\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nrandom dml\r\n![img_v3_028e_f542993c-3699-4180-977a-f32c1e98526g](https://github.com/tikv/tikv/assets/7677963/93351e02-57ec-4a9d-8df7-e814be1d2bfe)\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2024-02-27T07:01:28Z",
+  "updated_at": "2024-03-29T16:26:36Z",
+  "closed_at": "2024-03-08T18:53:08Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1966005559,
+      "user": "Connor1996",
+      "created_at": "2024-02-27T08:16:51Z",
+      "body": "It's caused by an orphan peer.\r\n\r\n![img_v3_028f_361b8afe-b2a6-436b-aa79-99638c55512g](https://github.com/tikv/tikv/assets/13497871/a2b18598-d41b-48f8-9509-2d7cb0f5a1db)\r\n\r\nFrom the log, the peer is applying a snapshot while told being stale and needs to be destroyed. Due to code defect, after applying snapshot is cancelled, `destroy_peer` isn't called anymore. So the peer is left and becomes an orphan peer."
+    },
+    {
+      "id": 2027450415,
+      "user": "tonyxuqqi",
+      "created_at": "2024-03-29T16:26:28Z",
+      "body": "/cherry-pick release-7.1"
+    },
+    {
+      "id": 2027450522,
+      "user": "tonyxuqqi",
+      "created_at": "2024-03-29T16:26:35Z",
+      "body": "/cherry-pick release-7.5"
+    }
+  ]
+}

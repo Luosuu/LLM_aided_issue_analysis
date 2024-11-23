@@ -1,0 +1,42 @@
+{
+  "issue_number": 12579,
+  "title": "[BR] gc safepoint not set correctly when there is log backup fatal error ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV\r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   f05af56d12b93c74ac5a54a28f77d2f6dc7d6ad8\r\nGit Commit Branch: inflight-detect\r\nUTC Build Time:    2022-05-17 08:48:36\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           release\r\n\r\n### What operating system and CPU are you using?\r\nCent OS, 16U\r\n\r\n### Steps to reproduce\r\n1. Start a log backup task\r\n2. Simulate fetal errors like storage can't be access\r\n\r\n### What did you expect?\r\nWhen error happens, GC safepoint should be set appropriately to prevent GC scheduler delete logs that is not backed up.\r\n\r\n### What did happened?\r\nCurrently we use start_ts to set the GC safepoint, which doesn't take effect actually, and will result in data loss.\r\n",
+  "state": "closed",
+  "created_at": "2022-05-19T09:22:20Z",
+  "updated_at": "2022-07-12T11:34:06Z",
+  "closed_at": "2022-07-12T11:28:38Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1131456386,
+      "user": "fubinzh",
+      "created_at": "2022-05-19T09:23:01Z",
+      "body": "/type bug\r\n/severity Critical\r\n/feature developing"
+    },
+    {
+      "id": 1181641800,
+      "user": "joccau",
+      "created_at": "2022-07-12T11:26:17Z",
+      "body": "fix by https://github.com/joccau/tikv/pull/13"
+    },
+    {
+      "id": 1181648817,
+      "user": "joccau",
+      "created_at": "2022-07-12T11:34:06Z",
+      "body": "/close"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "issue_number": 9704,
+  "title": "Inconsisitent with Mysql When a varchar column only have empty string",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\ndrop table t;\r\ncreate table t (a varchar(30));\r\ninsert into t values ('');\r\ndelete from t where a=10;\r\n\r\n### What did you expect?\r\nQuery OK, 0 rows affected (0.01 sec) \r\n\r\n\r\n### What did happened?\r\nERROR 1265 (01000): Data Truncated\r\n\r\nPS: It's cast expression'bug. It was fixed on TiDB [here](https://github.com/pingcap/tidb/issues/10806), but we still need to fix it in coprocessor.",
+  "state": "closed",
+  "created_at": "2021-02-24T11:50:47Z",
+  "updated_at": "2021-02-26T11:55:53Z",
+  "closed_at": "2021-02-25T14:56:04Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 785022485,
+      "user": "guo-shaoge",
+      "created_at": "2021-02-24T11:51:06Z",
+      "body": "/assign @guo-shaoge "
+    }
+  ]
+}

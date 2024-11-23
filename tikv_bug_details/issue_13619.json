@@ -1,0 +1,34 @@
+{
+  "issue_number": 13619,
+  "title": "PITR lag > 5min when move-to-better-location scheduler running",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version: 6.2.0-alpha\r\nEdition: Community\r\nGit Commit Hash: https://github.com/tikv/tikv/commit/8b915d3b4894c01c843f452ae5a6a579e4b4b208\r\nGit Commit Branch: heads/refs/tags/v6.3.0\r\nUTC Build Time: 2022-09-22 07:38:02\r\nRust Version: rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\n\r\n### What operating system and CPU are you using?\r\nK8s\r\n\r\n### Steps to reproduce\r\n1. Deploy cluster with 6 TiKV in Azure, each AZ has 2 TiKV (isolation-level not configured to by \"zone\")\r\n2. Start PITR log backup tasks\r\n3. Run workload\r\n4. Enable isolation-level = zone, which triggers move-to-better-location scheduler\r\n\r\n### What did you expect?\r\nPITR lag should not be > 5min, though move-to-better-location is in progress, to make sure RPO < 5min (move-to-better-location may take hours to finish.\r\n\r\n\r\n### What did happened?\r\nPITR checkpoint lag > 5 frequently when move-to-better-location in progress. (In our case, it takes more than 3 hours for move-to-better-location)\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/196148253-d5435fbe-065f-4d01-8b19-6d68fed6f16c.png)\r\n\r\n(ignore the 2 spikes in below metric, which are due to other chaos actions)\r\n![image](https://user-images.githubusercontent.com/7403864/196148315-d0269c71-07a7-4164-a941-7b9ce10f63d6.png)\r\n\r\nPITR lag is OK when move-to-better-location finishes\r\n![image](https://user-images.githubusercontent.com/7403864/196149092-0d9175cd-87b3-484e-855d-a600fda896f8.png)\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-10-17T10:00:01Z",
+  "updated_at": "2023-09-05T15:14:19Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1280603736,
+      "user": "fubinzh",
+      "created_at": "2022-10-17T10:00:13Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1280603978,
+      "user": "fubinzh",
+      "created_at": "2022-10-17T10:00:24Z",
+      "body": "/severity Moderate"
+    },
+    {
+      "id": 1706815517,
+      "user": "BornChanger",
+      "created_at": "2023-09-05T15:14:17Z",
+      "body": "/component backup-restore"
+    }
+  ]
+}

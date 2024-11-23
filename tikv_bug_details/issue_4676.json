@@ -1,0 +1,51 @@
+{
+  "issue_number": 4676,
+  "title": "coprocessor::Result<T> is at least 176 bytes..",
+  "body": "## Bug Report\r\n\r\nFound during an investigation of performance regression after applying some new optimizations to the Coprocessor.\r\n\r\n```rust\r\n    println!(\"{}\", std::mem::size_of::<tikv::coprocessor::Result<i64>>());\r\n    println!(\"{}\", std::mem::size_of::<tikv::coprocessor::Error>());\r\n```\r\n\r\nOutput:\r\n\r\n```\r\n184\r\n176\r\n```\r\n\r\nThis means that, any frequent interface using `coprocessor::Result` as the return value will be very ineffective. This should be one of the root case of so many memcpy in the profiling result.\r\n\r\nFollow up:\r\n\r\n```rust\r\nprintln!(\"{}\", std::mem::size_of::<codec::Error>());\r\n// => 16\r\n\r\nprintln!(\"{}\", std::mem::size_of::<tikv_util::codec::Error>());\r\n// => 16\r\n\r\nprintln!(\"{}\", std::mem::size_of::<tikv::storage::Error>());\r\n// => 200\r\n\r\nprintln!(\"{}\", std::mem::size_of::<tikv::storage::mvcc::Error>());\r\n// => 184\r\n\r\nprintln!(\"{}\", std::mem::size_of::<tikv::storage::txn::Error>());\r\n// => 192\r\n```",
+  "state": "closed",
+  "created_at": "2019-05-09T16:03:28Z",
+  "updated_at": "2020-08-28T11:12:08Z",
+  "closed_at": "2020-08-28T11:12:08Z",
+  "labels": [
+    "type/bug",
+    "component/performance"
+  ],
+  "comments_data": [
+    {
+      "id": 491225679,
+      "user": "siddontang",
+      "created_at": "2019-05-10T09:33:23Z",
+      "body": "oh, seem we need to use Box to wrap the Error, right?"
+    },
+    {
+      "id": 491272077,
+      "user": "breezewish",
+      "created_at": "2019-05-10T12:30:48Z",
+      "body": "@siddontang Maybe yes, maybe no:\r\n\r\nYes: -- This can solve the large memory problem.\r\nNo: -- This will simply make `?` operator fail everywhere."
+    },
+    {
+      "id": 491332796,
+      "user": "kennytm",
+      "created_at": "2019-05-10T15:37:17Z",
+      "body": "This sort of thing is supposed to be warned by the [`large_enum_variant`](https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant) lint. Unfortunately the default setting is allow up to 200 bytes (inclusive), i.e. your `tikv::storage::txn::Error` is 16 bytes too small from triggering the warning 🙃."
+    },
+    {
+      "id": 491335902,
+      "user": "breezewish",
+      "created_at": "2019-05-10T15:46:38Z",
+      "body": "@kennytm Maybe we can adjust the throttle, to discover what is missing in the list. I believe there are a lot :(   For those really unimportant & large ones we can whitelist them explicitly in `#[allow]`."
+    },
+    {
+      "id": 492238027,
+      "user": "siddontang",
+      "created_at": "2019-05-14T13:30:15Z",
+      "body": "@breeswish \r\n\r\nCan we file an issue to let contributors help us do the large enum check?"
+    },
+    {
+      "id": 492238224,
+      "user": "siddontang",
+      "created_at": "2019-05-14T13:30:47Z",
+      "body": "Not only the large enum, I also think we should find a way to detect large structure move. "
+    }
+  ]
+}

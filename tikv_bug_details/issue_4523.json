@@ -1,0 +1,21 @@
+{
+  "issue_number": 4523,
+  "title": "Make logs of protobuf structures more friendly",
+  "body": "## Feature Request\r\n\r\nNow our log output is pretty verbose:\r\n\r\n```\r\n[2019/04/13 01:37:55.189 +00:00] [ERROR] [endpoint.rs:462] [error-response] [err=\"region Error { message: \\\"peer is not leader\\\", not_leader: Some(NotLeader { region_id: 1001, leader: None, unknown_fields: UnknownFields { fields: None }, cached_size: CachedSize { size: 0 } }), region_not_found: None, key_not_in_region: None, epoch_not_match: None, server_is_busy: None, stale_command: None, store_not_match: None, raft_entry_too_large: None, unknown_fields: UnknownFields { fields: None }, cached_size: CachedSize { size: 0 } }\"]\r\n```\r\n\r\nwould be better to make it short and easy to view, for example, do not display internal fields.",
+  "state": "closed",
+  "created_at": "2019-04-13T01:51:41Z",
+  "updated_at": "2019-05-10T05:59:30Z",
+  "closed_at": "2019-05-10T05:59:30Z",
+  "labels": [
+    "type/bug",
+    "priority/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 491166746,
+      "user": "BusyJay",
+      "created_at": "2019-05-10T05:59:29Z",
+      "body": "Should be fixed by pingcap/kvproto#389 and #4658."
+    }
+  ]
+}

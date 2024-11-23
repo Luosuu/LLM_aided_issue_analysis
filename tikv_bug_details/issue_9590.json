@@ -1,0 +1,15 @@
+{
+  "issue_number": 9590,
+  "title": "raft client doesn't recognize tombstone store",
+  "body": "## Bug Report\r\n\r\npd client will filter tombstone store and return error\r\n\r\nhttps://github.com/tikv/tikv/blob/6cd51f9d07aa60fea651dea7ecb6a39c7425273a/components/pd_client/src/client.rs#L343-L347\r\n\r\nbut raft client depends on the store meta to recognize tombstone store correctly, so it will keep failing.\r\n\r\nhttps://github.com/tikv/tikv/blob/6cd51f9d07aa60fea651dea7ecb6a39c7425273a/src/server/resolve.rs#L100-L103\r\n",
+  "state": "closed",
+  "created_at": "2021-01-27T13:38:54Z",
+  "updated_at": "2021-01-29T13:13:45Z",
+  "closed_at": "2021-01-29T13:13:45Z",
+  "labels": [
+    "type/bug",
+    "component/gRPC",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

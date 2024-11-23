@@ -1,0 +1,38 @@
+{
+  "issue_number": 15784,
+  "title": "[dr-autosync] hang in sync_recover when change from majority to dr-auto-sync",
+  "body": "## Bug Report\r\n\r\n<!-- Please answer these questions before submitting your issue. Thanks! -->\r\n\r\n### What did you do?\r\n\r\n<!-- If possible, provide a recipe for reproducing the error. -->\r\n1. Config one cluster to dr-auto-sync mode with 3 voters in primary dc and 2 follower + 1 learner in backup dc;\r\n2. Run following steps:\r\n```\r\n\t//step 1: down 2 voters in primary dc\r\n\topt.DrClusterInfo.DownNodesInDc(ctxCore, \"primary\", \"tikv\", 2)\r\n\tc := opt.DrClusterInfo\r\n\tctx := ctxCore\r\n\toltppkg.WaitFor(ctx, \"after step 1: down primary 2 tikv, workload running\", 1*time.Minute)\r\n\r\n\t//step 2: change cluster to majority\r\n\toutput, err := oltppkg.BasicClusterExecPdCtl(c.Cluster, \"config set replication-mode majority\")\r\n\tExpect(err).Should(BeNil())\r\n\tExpect(strings.Contains(strings.ToLower(output), \"succ\")).Should(BeTrue())\r\n\tfmt.Println(output)\r\n\toltppkg.WaitFor(ctx, \"after step2:change to majority,  workload running\", 1*time.Minute)\r\n\r\n\t//step 3: update placement rule to change from voter to learner for the two down tikv\r\n\tc.PdURL = Try(c.Cluster.ServiceURL(resource.PDAddr)).(*url.URL)\r\n\terr = drutils.SetPlacementRule(ctx, c.Cluster, c.TiupNode,\r\n\t\tdrconfig.PlacementRuleDowngrade)\r\n\tExpect(err).Should(BeNil())\r\n\toltppkg.WaitFor(ctx, \"after step3: update placement rule, change voter to learner,  workload running\", 1*time.Minute)\r\n\r\n\t//step 4 : clean chaos\r\n\tc.CleanChaos()\r\n\toltppkg.WaitFor(ctx, \"step 4: clean chaos, waiting for workload running\", 1*time.Minute)\r\n\r\n\t//step 5: set back to dr-auto-sync\r\n\toutput, err = oltppkg.BasicClusterExecPdCtl(c.Cluster, \"config set replication-mode dr-auto-sync\")\r\n\tExpect(err).Should(BeNil())\r\n\tExpect(strings.Contains(strings.ToLower(output), \"succ\")).Should(BeTrue())\r\n\tfmt.Println(output)\r\n\toltppkg.WaitFor(ctx, \"step5: set back to dr-autosync workload running\", 1*time.Minute)\r\n\r\n\t//step 6: set back to dr-auto-sync placement rule\r\n\terr = drutils.SetPlacementRule(ctx, c.Cluster, c.TiupNode,\r\n\t\tdrconfig.PlacementRuleConfigPrimary)\r\n\tExpect(err).Should(BeNil())\r\n\tdrutils.WaitForReplicateStatus(ctx, c.Cluster, 10*time.Minute, 1*time.Minute, \"sync\")\r\n\toltppkg.WaitFor(gctx, \"step 6: set back to dr-auto-sync placement rule, waiting for workload running\", 5*time.Minute)\r\n```\r\n\r\n### What did you expect to see?\r\nIn step 6,  sync_recover can ack to sync after some time (according to the data (10G), should with 10min ).\r\n\r\n### What did you see instead?\r\nHang in sync_recover.\r\n\r\n### What version of PD are you using (`pd-server -V`)?\r\nv6.5.5\r\n",
+  "state": "closed",
+  "created_at": "2023-10-17T03:35:20Z",
+  "updated_at": "2024-04-12T14:11:47Z",
+  "closed_at": "2023-10-23T08:05:03Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1765611777,
+      "user": "mayjiang0203",
+      "created_at": "2023-10-17T03:37:41Z",
+      "body": "/severity critical\r\n/assign @Connor1996 "
+    },
+    {
+      "id": 1765612367,
+      "user": "mayjiang0203",
+      "created_at": "2023-10-17T03:38:39Z",
+      "body": "/label affects-6.5\r\n/label affects-7.1\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1765612391,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-10-17T03:38:41Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `may-affects-5.3, may-affects-5.4, may-affects-6.1`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15784#issuecomment-1765612367):\n\n>/label affects-6.5\r\n>/label affects-7.1\r\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-6.1\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "issue_number": 10570,
+  "title": "Transaction may read staled data",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nk8s\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nJepsen append workload still failed with incompatible-order anomaly after #10551 . It's turned out to be a new issue (see https://github.com/tikv/client-go/pull/233) and can be reproduced by the following steps.\r\n\r\n```sql\r\n/* init */ drop table if exists t;\r\n/* init */ create table t (id int primary key, v int);\r\n/* init */ insert into test (id, v) values (1, 1);\r\n/* t1 */ set tidb_enable_async_commit = 0;\r\n/* t1 */ set tidb_enable_1pc = 0;\r\n/* t2 */ set tidb_enable_async_commit = 0;\r\n/* t2 */ set tidb_enable_1pc = 0;\r\n/* t1:wait */ begin optimistic;\r\n/* t1 */ insert into tk values (1, 2) on duplicate key update val = val + 10;\r\n/* t2:wait */ begin pessimistic;\r\n-- failpoint.Enable(\"tikvclient/beforeCommit\", \"1*pause\")\r\n/* t1 */ commit;\r\n-- wait a while until t1 prewrites\r\n/* t2 */ insert into tk values (1, 3) on duplicate key update val = val + 100;\r\n-- blocked, wait a while until t2 starts adding pessimistic locks\r\n-- failpoint.Disable(\"tikvclient/beforeCommit\")\r\n/* t2:wait */ commit;\r\n/* t2 */ select * from test where id = 1; -- (should be 111, but get 101)\r\n```\r\n\r\n### What did you expect?\r\n\r\nAs described in *Steps to reproduce*.\r\n\r\n### What did happened?\r\n\r\nAs described in *Steps to reproduce*.",
+  "state": "closed",
+  "created_at": "2021-07-14T10:23:26Z",
+  "updated_at": "2021-07-16T09:11:34Z",
+  "closed_at": "2021-07-16T09:11:34Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction"
+  ],
+  "comments_data": []
+}

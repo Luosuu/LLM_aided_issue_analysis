@@ -1,0 +1,74 @@
+{
+  "issue_number": 16435,
+  "title": "raftstore: Add a timeout mechanism on snapshot send",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n7.6 or older\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nIn an environment where network is very slow,  it's possible that a region's leader cannot transfer leader to other peer.\r\n  \"[2024/01/18 08:39:09.814 +00:00] [INFO] [peer.rs:3274] [\\\"reject to transfer leader\\\"] [last_index=118] [index=118] [reason=\\\"pending snapshot\\\"] [to=\\\"id: 1013401971 store_id: 3163 role: IncomingVoter\\\"] [peer_id=1013386609] [region_id=1012011487]\",\r\n  \r\n  And this is because the send_snapshot may be stuck and it does not return success or failure, as the log below shows, it did not show either snapshot sent success or failure. \r\n```\r\n    \"[2024/01/18 08:21:11.882 +00:00] [INFO] [snap.rs:1050] [\\\"scan snapshot\\\"] [takes=1.354081432s] [size=6574425] [key_count=83914] [snapshot=/var/lib/tikv/snap/gen_1012011487_12_116_(default|lock|write).sst] [region_id=1012011487]\",\r\n\r\n[2024/01/18 08:21:10.528 +00:00] [INFO] [peer_storage.rs:520] [\\\"requesting snapshot\\\"] [request_peer=1013195901] [request_index=0] [peer_id=1013386609] [region_id=1012011487]\r\n```\r\n### What did you expect?\r\nSend snapshot should have timeout mechanism. \r\n### What did happened?\r\nSend snapshot may be stuck there forever and the leader cannot get rid of the \"pending snapshot\" status. ",
+  "state": "closed",
+  "created_at": "2024-01-24T00:58:50Z",
+  "updated_at": "2024-02-19T06:33:27Z",
+  "closed_at": "2024-02-19T06:33:27Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "user_report"
+  ],
+  "comments_data": [
+    {
+      "id": 1917897092,
+      "user": "mittalrishabh",
+      "created_at": "2024-01-30T21:08:46Z",
+      "body": "What happens if snapshot response from follower is lost. Is the leader going to remain in ProgressState::snapshot forever ? https://github.com/tikv/raft-rs/blob/65a00620d80a89603c3358fd4b90265a692ae767/src/raft.rs#L1783"
+    },
+    {
+      "id": 1918084011,
+      "user": "mittalrishabh",
+      "created_at": "2024-01-30T23:25:57Z",
+      "body": "And also i don't see a retry if snapshot send is failed. https://github.com/tikv/tikv/blob/43d0e061159100092d89147480a94b51b6a158b4/src/server/raft_client.rs#L448C8-L448C26"
+    },
+    {
+      "id": 1918255138,
+      "user": "glorv",
+      "created_at": "2024-01-31T02:28:44Z",
+      "body": "@mittalrishabh \r\n> What happens if snapshot response from follower is lost. Is the leader going to remain in ProgressState::snapshot forever ? \r\n\r\nThe peer state is changed after the snapshot is sent(either finished or failed). It will call the callback and call `report_snapshot_status` with send a `SignificantMsg::SnapshotStatus` to the raftstore, on this message, the region leader will change target peer's state to Replicate.\r\n\r\n> And also i don't see a retry if snapshot send is failed.\r\n\r\nYes, there is no retry here, so if send failed the peer status will change back to replicate. And the snapshot procedure will be trigger after an AppendResponse(triggered by new raft log) or a HeartbeatResponse(if no new message aft 1 tick)."
+    },
+    {
+      "id": 1918353546,
+      "user": "mittalrishabh",
+      "created_at": "2024-01-31T04:20:38Z",
+      "body": "I am new to this code. I still don't understand it. SignificantMsg::SnapshotStatus sends a status message to the peer. I couldn't find the code other than https://github.com/tikv/raft-rs/blob/65a00620d80a89603c3358fd4b90265a692ae767/src/raft.rs#L1783 where peer status in leader is changed to Replicate if snapshot request fails."
+    },
+    {
+      "id": 1918391921,
+      "user": "mittalrishabh",
+      "created_at": "2024-01-31T05:06:18Z",
+      "body": "I found the code where it is changing it to probe here. https://github.com/tikv/raft-rs/blob/65a00620d80a89603c3358fd4b90265a692ae767/src/raft.rs#L1943. But lets say snapshot request is successfully sent but the response is dropped from the peer than would it remain in pause state forever."
+    },
+    {
+      "id": 1918473592,
+      "user": "glorv",
+      "created_at": "2024-01-31T06:33:27Z",
+      "body": "> \r\nI am new to this code. I still don't understand it. SignificantMsg::SnapshotStatus sends a status message to the peer. I couldn't find the code other than https://github.com/tikv/raft-rs/blob/65a00620d80a89603c3358fd4b90265a692ae767/src/raft.rs#L1783 where peer status in leader is changed to Replicate if snapshot request fails.\r\n\r\nYes, this is it. Please notice that the `SignificantMsg::SnapshotStatus` is sent to the leader itself after it sending the snapshot, and it will update the target peer's replicate state.\r\n\r\n> I found the code where it is changing it to probe here. https://github.com/tikv/raft-rs/blob/65a00620d80a89603c3358fd4b90265a692ae767/src/raft.rs#L1943. But lets say snapshot request is successfully sent but the response is dropped from the peer than would it remain in pause state forever.\r\n\r\nIt is possible that the target peer missing the snapshot or has other factors that causes applying snapshot failure. In this case, the region leader will trigger sending a snapshot again after receiving AppendResponse or HeartbeatResponse."
+    },
+    {
+      "id": 1918520141,
+      "user": "mittalrishabh",
+      "created_at": "2024-01-31T07:15:18Z",
+      "body": "it is doing pause here https://github.com/tikv/raft-rs/blob/65a00620d80a89603c3358fd4b90265a692ae767/src/raft.rs#L1979. \r\nCan you point me to the code who is unpausing after the above code in case of response failure or snapshot failure. I am looking at these places because one of the node was stuck in \"snapshot pending\" state for days after logging a snapshot failure message.  \r\n\r\n```2024/01/18 08:54:07.429 +00:00] [ERROR] [snap.rs:462] [\"failed to send snap\"] [err=Grpc(RemoteStopped)] [region_id=1012095669] [to_addr=mussel-prod-replace-tikv-22.mussel-prod-replace-tikv-peer.tidb-mussel-prod-replace.svc.us-east-1a.mussel-prod-replace.tidb.musta.ch:20160]```"
+    },
+    {
+      "id": 1918581214,
+      "user": "glorv",
+      "created_at": "2024-01-31T08:03:16Z",
+      "body": "> Can you point me to the code who is unpausing after the above code in case of response failure or snapshot failure. I am looking at these places because one of the node was stuck in \"snapshot pending\" state for days after logging a snapshot failure message.\r\n\r\nyou can see there are both `resume()` call in `handle_append_response` and `handle_heartbeat_response` that will resume the pause status."
+    },
+    {
+      "id": 1919521356,
+      "user": "mittalrishabh",
+      "created_at": "2024-01-31T16:58:12Z",
+      "body": "makes sense. Thanks for the explanation. "
+    }
+  ]
+}

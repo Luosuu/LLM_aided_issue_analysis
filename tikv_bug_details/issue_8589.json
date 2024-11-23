@@ -1,0 +1,202 @@
+{
+  "issue_number": 8589,
+  "title": "Async commit does not ensure linearizability",
+  "body": "## Bug Report\r\n\r\n### Read in the same session\r\n\r\nRead with max u64 immediately after an async commit transaction. Because the lock in the previous transaction may be not committed yet, and locks can be ignored if we read with max u64. So we may not read the latest changes from the last async commit transaction.\r\n\r\n### Causal consistency across nodes\r\n\r\nExample:\r\n\r\nAt first the values of k1 and k2 are all 0, they can locate in different regions.\r\n\r\nWe commit k1=1@100 at first. The `max_read_ts` of the k2 region leader is 50. \r\n\r\nThen, we prewrite and commit k2=1@51 using async commit.\r\n\r\nNow, a transaction with start_ts=80, reads k1 and k2 in the same transaction. We get k1=0, k2=1.\r\n\r\nWe break an external consistency that k2 commits later than k1.\r\n\r\n### Affected version\r\n\r\nmaster",
+  "state": "closed",
+  "created_at": "2020-09-03T08:29:03Z",
+  "updated_at": "2020-12-09T02:53:12Z",
+  "closed_at": "2020-11-12T06:43:24Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 686359507,
+      "user": "sticnarf",
+      "created_at": "2020-09-03T09:08:54Z",
+      "body": "For the first problem, we can change the `check_ts_conflict` function. If the lock is from an async commit transaction, we cannot ignore it even if the read ts is max u64."
+    },
+    {
+      "id": 686378943,
+      "user": "youjiali1995",
+      "created_at": "2020-09-03T09:46:40Z",
+      "body": "> We commit k1=1@100 at first. The max_read_ts of the k2 region leader is 50.\r\nThen, we prewrite and commit k2=1@51 using async commit.\r\n\r\nIt's impossible if transactions modify k1 and k2 are not concurrent. In your case, all transactions are concurrent so the order is OK.\r\n\r\nI can't think of a case that async commit in TiDB can break external consistency. ~~And because we get start ts from PD which can avoid [causal reverse](https://www.cockroachlabs.com/blog/consistency-model/).~~"
+    },
+    {
+      "id": 686385099,
+      "user": "sticnarf",
+      "created_at": "2020-09-03T09:59:13Z",
+      "body": "@youjiali1995 \r\nA more concrete example:\r\n\r\n1. An external client starts two sessions A and B.\r\n2. Session A starts T1, start_ts = 1.\r\n3. Session B starts T2, start_ts = 2.\r\n4. Client starts session C, it starts a transaction T3, start_ts = 80.\r\n5. Session A prewrites k1=1.\r\n7. Session A commits T1 with commit_ts = 100.\r\n6. Session B prewrites k2=1 using async commit, min_commit_ts = 51.\r\n8. Session B commits T2 with commit_ts = 51.\r\n9. Session C reads k1 and k2."
+    },
+    {
+      "id": 686386755,
+      "user": "sticnarf",
+      "created_at": "2020-09-03T10:02:22Z",
+      "body": "> @youjiali1995\r\n> A more concrete example:\r\n> \r\n>     1. An external client starts two sessions A and B.\r\n> \r\n>     2. Session A starts T1, start_ts = 1.\r\n> \r\n>     3. Session B starts T2, start_ts = 2.\r\n> \r\n>     4. Client starts session C, it starts a transaction T3, start_ts = 80.\r\n> \r\n>     5. Session A prewrites k1=1.\r\n> \r\n>     6. Session A commits T1 with commit_ts = 100.\r\n> \r\n>     7. Session B prewrites k2=1 using async commit, min_commit_ts = 51.\r\n> \r\n>     8. Session B commits T2 with commit_ts = 51.\r\n> \r\n>     9. Session C reads k1 and k2.\r\n\r\nSession B triggers commit after it receives the success from session A (between 6 and 7)"
+    },
+    {
+      "id": 686413027,
+      "user": "MyonKeminta",
+      "created_at": "2020-09-03T11:00:30Z",
+      "body": "I'm actually not very sure if we need to guarantee this. @coocood PTAL"
+    },
+    {
+      "id": 686418459,
+      "user": "jackysp",
+      "created_at": "2020-09-03T11:12:05Z",
+      "body": "Can Jepsen test find this out?"
+    },
+    {
+      "id": 686419191,
+      "user": "youjiali1995",
+      "created_at": "2020-09-03T11:13:46Z",
+      "body": "I see. It's another kind of causal reverse. We can't avoid it but I think it's not very severe because it rarely happens. We can implement causality tokens to solve it which is passed between transactions if needed."
+    },
+    {
+      "id": 686420818,
+      "user": "sticnarf",
+      "created_at": "2020-09-03T11:17:30Z",
+      "body": "It's quite similar to the causal reverse crdb mentioned in their blog. So I think it can be detected by Jepsen too. @jackysp "
+    },
+    {
+      "id": 686422930,
+      "user": "youjiali1995",
+      "created_at": "2020-09-03T11:22:02Z",
+      "body": "If a user depends on external consistency, we can disable async commit. Actually, we can't offer the true external consistency even with the timestamp oracle which requires serializability isolation."
+    },
+    {
+      "id": 686423780,
+      "user": "coocood",
+      "created_at": "2020-09-03T11:23:50Z",
+      "body": "This anomaly requires one client maintains two transactions at the same time, are there any existing application do it this way?"
+    },
+    {
+      "id": 686426621,
+      "user": "sticnarf",
+      "created_at": "2020-09-03T11:30:26Z",
+      "body": "> This anomaly requires one client maintains two transactions at the same time, are there any existing application do it this way?\r\n\r\nUsually operations with causality are done in a single transaction. But maybe one client receives success and then inform another client to commit? I don't know...\r\n\r\nBut this is indeed a change in consistency guarantee which should be mentioned and make users aware of."
+    },
+    {
+      "id": 686431529,
+      "user": "coocood",
+      "created_at": "2020-09-03T11:40:38Z",
+      "body": "I can think of an example, an application A call service B inside a transaction, and service B do another transaction to get a value, then application A use that value to commit its transaction.\r\n\r\nBut this case application A and service B are separated components, the inconsistency should not matter much."
+    },
+    {
+      "id": 686436077,
+      "user": "cfzjywxk",
+      "created_at": "2020-09-03T11:50:03Z",
+      "body": "Maybe there are some applications that will use this form to simulate some savepoint or nested transaction usages, which may start multiple transactions and decide the next step based on these results."
+    },
+    {
+      "id": 686450606,
+      "user": "youjiali1995",
+      "created_at": "2020-09-03T12:20:40Z",
+      "body": "If write-1, write-2 are write transactions and read-1 is the read transaction, this anomaly can exhibit only when:\r\n\r\n1. Write-1, write-2, and read-1 are concurrent which means if write-2 or read-1 begins after write-1 committing, it can't exhibit.\r\n2. The application depends on the order of write-1 and write-2. And the order should be guaranteed even in concurrent transactions.\r\n3. Write-1 and write-2 can't modify data on the same store(region exactly).\r\n4. Max ts on stores must meet the condition: write-2's commit ts < read-1's start ts < write-1's commit ts."
+    },
+    {
+      "id": 686490161,
+      "user": "gengliqi",
+      "created_at": "2020-09-03T13:27:14Z",
+      "body": "We can tell the users that the async commit does not fully ensure **external consistency**.\r\n1. Async commit ensures that any transaction can observe the effects of all transactions that committed before the start of it.\r\n2. Async commit doesn't ensure that the **concurrent** transactions' serial order is consistent with the order in which transactions can be observed to commit.\r\n\r\nI think the first one is the most needed while the second one is not."
+    },
+    {
+      "id": 686508875,
+      "user": "gengliqi",
+      "created_at": "2020-09-03T13:54:56Z",
+      "body": "> > @youjiali1995\r\n> > A more concrete example:\r\n> > ```\r\n> > 1. An external client starts two sessions A and B.\r\n> > \r\n> > 2. Session A starts T1, start_ts = 1.\r\n> > \r\n> > 3. Session B starts T2, start_ts = 2.\r\n> > \r\n> > 4. Client starts session C, it starts a transaction T3, start_ts = 80.\r\n> > \r\n> > 5. Session A prewrites k1=1.\r\n> > \r\n> > 6. Session A commits T1 with commit_ts = 100.\r\n> > \r\n> > 7. Session B prewrites k2=1 using async commit, min_commit_ts = 51.\r\n> > \r\n> > 8. Session B commits T2 with commit_ts = 51.\r\n> > \r\n> > 9. Session C reads k1 and k2.\r\n> > ```\r\n> \r\n> Session B triggers commit after it receives the success from session A (between 6 and 7)\r\n\r\nBTW, maybe we can get a ts from PD before starting prewrite phase, then we can carry it with the prewrite request to primary key and calculate the max(ts, max_read_ts from all keys)+1 as the commit ts. The order of A and B can be ensured in this case because the new ts from PD must be greater than the A's commit ts.(maybe equal?)\r\n~~I am not sure if it is enough for any situation.~~ I think it's enough. Maybe this change can be an option for users if they want truly external consistency."
+    },
+    {
+      "id": 686556506,
+      "user": "sticnarf",
+      "created_at": "2020-09-03T15:06:32Z",
+      "body": "@gengliqi Previously I talked with @5kbpers about this idea too.\r\nI think maybe it's better to ensure external consistency by default because that's what we guarantee before."
+    },
+    {
+      "id": 686874658,
+      "user": "gengliqi",
+      "created_at": "2020-09-04T03:11:25Z",
+      "body": "> @gengliqi Previously I talked with @5kbpers about this idea too.\r\n> I think maybe it's better to ensure external consistency by default because that's what we guarantee before.\r\n\r\nI agree."
+    },
+    {
+      "id": 686884801,
+      "user": "jackysp",
+      "created_at": "2020-09-04T03:42:45Z",
+      "body": "> @gengliqi Previously I talked with @5kbpers about this idea too.\r\n> I think maybe it's better to ensure external consistency by default because that's what we guarantee before.\r\n\r\n+1 "
+    },
+    {
+      "id": 686887591,
+      "user": "coocood",
+      "created_at": "2020-09-04T03:53:56Z",
+      "body": "> @gengliqi Previously I talked with @5kbpers about this idea too.\r\n> I think maybe it's better to ensure external consistency by default because that's what we guarantee before.\r\n\r\nSo the latency increased by half of the async commit saved."
+    },
+    {
+      "id": 686889081,
+      "user": "sticnarf",
+      "created_at": "2020-09-04T03:59:43Z",
+      "body": "> So the latency increased by half of the async commit saved.\r\n\r\nNot that much. A commit operation requires raft replication. So if we also count the RPC from TiDB to TiKV, that's at least two RPCs in total. TSO has only one, and can be easily in batch."
+    },
+    {
+      "id": 686893644,
+      "user": "cfzjywxk",
+      "created_at": "2020-09-04T04:15:02Z",
+      "body": "> > So the latency increased by half of the async commit saved.\r\n> \r\n> Not that much. A commit operation requires raft replication. So if we also count the RPC from TiDB to TiKV, that's at least two RPCs in total. TSO has only one, and can be easily in batch.\r\n\r\nHow should we control this behavior, do we need to add another system variable for this?"
+    },
+    {
+      "id": 686905758,
+      "user": "sticnarf",
+      "created_at": "2020-09-04T04:55:48Z",
+      "body": "> How should we control this behavior, do we need to add another system variable for this?\r\n\r\nYes"
+    },
+    {
+      "id": 720350459,
+      "user": "sticnarf",
+      "created_at": "2020-11-02T09:26:56Z",
+      "body": "It's a bug of async commit, which is a feature still under development. The feature is not enabled by default and it shouldn't affect any production user.\r\n\r\nLower its severity to major. But still mark it as a blocker of GA of async commit."
+    },
+    {
+      "id": 720370290,
+      "user": "cfzjywxk",
+      "created_at": "2020-11-02T10:03:48Z",
+      "body": "> It's a bug of async commit, which is a feature still under development. The feature is not enabled by default and it shouldn't affect any production user.\r\n> \r\n> Lower its severity to major. But still mark it as a blocker of GA of async commit.\r\n\r\nThere is a still a problem if our goal is to enable this new feature by default for GA."
+    },
+    {
+      "id": 720399955,
+      "user": "coocood",
+      "created_at": "2020-11-02T11:00:18Z",
+      "body": "I think it's not a GA blocker, the causality between two on-going transactions is not something a normal application would depend on."
+    },
+    {
+      "id": 722076095,
+      "user": "nrc",
+      "created_at": "2020-11-05T01:57:02Z",
+      "body": "~~@sticnarf is this addressed by https://github.com/pingcap/tidb/pull/20276 or is this a separate issue?~~\r\n\r\nNever mind, looks like it is"
+    },
+    {
+      "id": 741409935,
+      "user": "jiangyuzhao",
+      "created_at": "2020-12-09T01:37:39Z",
+      "body": "方便问下这个提交跟之前的方案有什么区别咩？看起来主要想法依然是在commit之前从TSO获得一个时间戳来作为commit_ts，跟支持异步之前主要的区别是什么呢？"
+    },
+    {
+      "id": 741488656,
+      "user": "sticnarf",
+      "created_at": "2020-12-09T02:40:32Z",
+      "body": "> 方便问下这个提交跟之前的方案有什么区别咩？看起来主要想法依然是在commit之前从TSO获得一个时间戳来作为commit_ts，跟支持异步之前主要的区别是什么呢？\r\n\r\n之前获取 commit_ts 是在第一阶段提交（prewrite）之后获取，现在这是在 prewrite 之前获取。\r\n从总延迟的角度看，以前是 prewrite + TSO + commit primary lock，现在缩减为 TSO + prewrite，少了一次提交 primary lock 的延迟。"
+    },
+    {
+      "id": 741490986,
+      "user": "jiangyuzhao",
+      "created_at": "2020-12-09T02:48:44Z",
+      "body": "> > 方便问下这个提交跟之前的方案有什么区别咩？看起来主要想法依然是在commit之前从TSO获得一个时间戳来作为commit_ts，跟支持异步之前主要的区别是什么呢？\r\n> \r\n> 之前获取 commit_ts 是在第一阶段提交（prewrite）之后获取，现在这是在 prewrite 之前获取。\r\n> 从总延迟的角度看，以前是 prewrite + TSO + commit primary lock，现在缩减为 TSO + prewrite，少了一次提交 primary lock 的延迟。\r\n\r\ncommit primary lock是指把提交信息写入一个中心么？我记得之前看Percolator的时候，这个commit其实只是本地检查lock列，然后写时间戳而已，感觉从论文上没有额外的RPC了，而且现在的方案也应该有这个流程，这个减少commit primary lock主要是指？"
+    },
+    {
+      "id": 741492301,
+      "user": "sticnarf",
+      "created_at": "2020-12-09T02:53:11Z",
+      "body": "> > > 方便问下这个提交跟之前的方案有什么区别咩？看起来主要想法依然是在commit之前从TSO获得一个时间戳来作为commit_ts，跟支持异步之前主要的区别是什么呢？\r\n> > \r\n> > \r\n> > 之前获取 commit_ts 是在第一阶段提交（prewrite）之后获取，现在这是在 prewrite 之前获取。\r\n> > 从总延迟的角度看，以前是 prewrite + TSO + commit primary lock，现在缩减为 TSO + prewrite，少了一次提交 primary lock 的延迟。\r\n> \r\n> commit primary lock是指把提交信息写入一个中心么？我记得之前看Percolator的时候，这个commit其实只是本地检查lock列，然后写时间戳而已，感觉从论文上没有额外的RPC了，而且现在的方案也应该有这个流程，这个减少commit primary lock主要是指？\r\n\r\nRPC 数量没有减少，但以前需要等到提交 primary lock 后才能向用户返回成功。现在在 prewrite 结束时就能返回成功了。所以从用户的角度，少了一次 RPC 的延时。\r\n\r\n在 issue 中提问题可能会对其他关注 issue 的人产生信息干扰，建议来我们 Slack channel 来讨论：https://slack.tidb.io/invite?team=tikv-wg&channel=sig-transaction&ref=community-sig"
+    }
+  ]
+}

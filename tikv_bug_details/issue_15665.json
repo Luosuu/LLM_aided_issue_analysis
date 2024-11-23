@@ -1,0 +1,14 @@
+{
+  "issue_number": 15665,
+  "title": "infromation_schema.table_storage_stats  bug",
+  "body": "tidb version: \r\n  5.4.2\r\n\r\nbug:\r\n  infromation_schema.table_storage_stats.PEER_COUNT column has incorrect value。\r\n\r\nmysql> show config where type='pd' and name like '%max_repli%';\r\n+------+--------------------+--------------------------+-------+\r\n| Type | Instance           | Name                     | Value |\r\n+------+--------------------+--------------------------+-------+\r\n| pd   | 172.20.*.*:2379  | replication.max-replicas | 3     |\r\n| pd   | 172.20.*.*:2379 | replication.max-replicas | 3     |\r\n| pd   | 172.20.*.*:2379 | replication.max-replicas | 3     |\r\n+------+--------------------+--------------------------+-------+\r\n3 rows in set (0.09 sec)\r\n\r\nmysql> select table_schema,table_name,table_id,peer_count,region_count from table_storage_stats where table_schema='bench'; \r\n+--------------+------------+----------+------------+--------------+\r\n| table_schema | table_name | table_id | peer_count | region_count |\r\n+--------------+------------+----------+------------+--------------+\r\n| bench        | sbtest2    |      113 |          6 |           35 |\r\n| bench        | sbtest1    |      115 |          6 |           38 |\r\n+--------------+------------+----------+------------+--------------+\r\n2 rows in set (0.01 sec)\r\n",
+  "state": "open",
+  "created_at": "2023-09-22T00:46:06Z",
+  "updated_at": "2023-10-07T03:31:04Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

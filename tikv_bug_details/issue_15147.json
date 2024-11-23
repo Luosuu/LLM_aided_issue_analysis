@@ -1,0 +1,14 @@
+{
+  "issue_number": 15147,
+  "title": "[Dynamic Regions] Let TiKV update buckets ASAP after ingesting SST files",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nBR restore meets checksum timeout frequently because of a large bucket covers\r\ntoo many key-value pairs, this indicates that buckers are not updated in time after \r\ningesting SST files.\r\n\r\nAlso lightning meets analyze timeout after importing data, they are caused by \r\nthe same reason.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv7.2.0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nBR restore a large table.\r\n\r\n### What did you expect?\r\n\r\nNo checksum error.\r\n\r\n### What did happened?\r\n\r\nChecksum error.",
+  "state": "closed",
+  "created_at": "2023-07-18T05:27:36Z",
+  "updated_at": "2023-07-21T10:17:19Z",
+  "closed_at": "2023-07-21T10:17:19Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

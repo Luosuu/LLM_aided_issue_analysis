@@ -1,0 +1,31 @@
+{
+  "issue_number": 15539,
+  "title": "Load base split cannot work with stale read if all reads occurs on the follower",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n6.5.4\r\n\r\n### Steps to reproduce\r\nrun traffic 30K QPS stale read traffic across 100 keys which consumed 8 cores on TiKV node, but region was not split and moved to other node, deploy in multi-az, and use stale read with:\r\n```\r\ntidb_read_staleness=\"-60\"\r\n\r\ntidb_replica_read=closest-replicas\r\n```\r\n\r\n### What did you expect?\r\n\r\nLoad Balanced.\r\n\r\n### What did happened?\r\nWe can see from metrics and log, tikv tries to split the hot region according to the load base strategy, but it cannot execute on follower peer.\r\nCurrently, the follower cannot pass the `pre_propose_raft_command` to proposal a raft_command. all proposals in tikv should be handled in `leader`.\r\nhttps://github.com/tikv/tikv/blob/f1349113c1465d06fef974ecf95da653a3e3cb8b/components/raftstore/src/store/fsm/peer.rs#L5043-L5058\r\nDetails metrics:\r\n![image](https://github.com/tikv/tikv/assets/6428910/b66ef0f1-835b-4343-b5a2-15868d592458)\r\n![image](https://github.com/tikv/tikv/assets/6428910/f9158341-f3c3-4988-b4b0-054090ae2811)\r\n![image](https://github.com/tikv/tikv/assets/6428910/a94cd49f-5a50-47c8-9533-92acdeb47b32)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-09-06T15:42:36Z",
+  "updated_at": "2024-01-08T03:49:57Z",
+  "closed_at": "2024-01-03T04:24:33Z",
+  "labels": [
+    "type/bug",
+    "type/enhancement",
+    "severity/minor",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1708645775,
+      "user": "nolouch",
+      "created_at": "2023-09-06T15:48:05Z",
+      "body": "Consider forward a message to the leader in the `raftstore`. compared with forward in `raft` layer,  it's a smaller change to the current logic."
+    },
+    {
+      "id": 1710197563,
+      "user": "cfzjywxk",
+      "created_at": "2023-09-07T13:55:06Z",
+      "body": "@nolouch \r\nIs it a bug or an enhancement? I think it's an enhancent as the follower scheduling is not considered previously."
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "issue_number": 4100,
+  "title": "coprocessor: allow invalid dates SQL mode",
+  "body": "Context: in TiDB we added the SQL mode ALLOW_INVALID_DATES: https://github.com/pingcap/tidb/issues/8263\r\n\r\nThis is tested to work for INSERT and I think select works for mocktikv. However, in my testing it does not work with the TiKV co-processor.\r\n\r\n## Bug Report\r\n\r\nDocker images:\r\n* pingcap/tikv:v2.1.0\r\n* a docker build of the latest of the 2.1 release branch\r\n\r\n**What did you do?**\r\n\r\nFrom a TiDB MySQL client:\r\n\r\n```\r\nmysql> CREATE TABLE d1 (d DATE);\r\nQuery OK, 0 rows affected (0.56 sec)\r\n\r\nmysql> SET sql_mode='STRICT_TRANS_TABLES,ALLOW_INVALID_DATES';\r\nQuery OK, 0 rows affected (0.17 sec)\r\n\r\nmysql> INSERT INTO d1 VALUES ('2010-00-01');\r\nQuery OK, 1 row affected (0.52 sec)\r\n\r\nmysql> SELECT * from d1 WHERE d='2010-00-01';\r\nERROR 1105 (HY000): other error: eval error code: 1105 msg: \"Other(StringError(\\\"[src/coprocessor/codec/mysql/time/mod.rs:100]: \\\\'2010-0-1 0:0:0.000000000\\\\' is not a valid datetime in specified time zone\\\"))\r\n```\r\n\r\n**What did you expect to see?**\r\n\r\nNo error\r\n\r\n**What did you see instead?**\r\n\r\nThe above error",
+  "state": "closed",
+  "created_at": "2019-01-23T02:20:28Z",
+  "updated_at": "2019-12-06T09:27:33Z",
+  "closed_at": "2019-12-06T09:27:32Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/coprocessor",
+    "difficulty/medium",
+    "status/mentor"
+  ],
+  "comments_data": [
+    {
+      "id": 456654739,
+      "user": "gregwebs",
+      "created_at": "2019-01-23T03:21:23Z",
+      "body": "@breeswish this is listed as Easy now, but I wouldn't know how to propagate SQL modes in the coprocessor."
+    },
+    {
+      "id": 456656069,
+      "user": "breezewish",
+      "created_at": "2019-01-23T03:28:40Z",
+      "body": "@gregwebs SQL modes are already pushed down in Coprocessor. I think it is fine to just check the corresponding flag's existence."
+    },
+    {
+      "id": 456687866,
+      "user": "gregwebs",
+      "created_at": "2019-01-23T06:37:33Z",
+      "body": "I am told the docs for the coprocessor are here: https://pingcap.com/blog/adding-built-in-functions-to-tikv/\r\nWhat would make coprocessor changes easier for me would be to be able to find the docs (it doesn't show up in a Google search) linked from the source code.\r\nStill though from looking at the docs I would know how to add a new function but not how to alter the existing source for this case.\r\n"
+    },
+    {
+      "id": 456703599,
+      "user": "breezewish",
+      "created_at": "2019-01-23T07:52:07Z",
+      "body": "Right, I agree with you @gregwebs  When someone is going to work on this, I can give some help on how to get started."
+    },
+    {
+      "id": 465389482,
+      "user": "gregwebs",
+      "created_at": "2019-02-20T02:04:25Z",
+      "body": "I looked into this in more detail with help from @brson. @brson also mentioned that there were some existing plans to alter the `Time` data type that may need to be taken into account. This task will likely require some refactoring and benchmarking, so it seems more than the simple fix that I have time available for right now. But we can write down our notes.\r\n\r\nIn `mod.rs` the failure happens when the time is given to `chrono` to construct as a valid time. We need to either skip `chrono` construction when the invalid date mode is on, much like we do now for zero times, or do invalid date checking after the chrono construction fails. This means mod.rs needs to be passed the relevant SQL mode flags, or probably better we need to call a different entry point when the SQL mode flags are on.\r\n\r\nAfter constructing a valid time, mod.rs returns a custom `Time` struct. This struct has a field `TimeType` that is an enumeration. `TimeType` would need to be extended to support an invalid time, which would mean that it would now hold data, which would make the `Time` struct bigger. An alternative that I favor would be to refactor to make `Time` itself the enumeration and remove the `TimeType` field from Time: this should keep the `Time` struct the same size.\r\n\r\nThe sql modes are taken in as a bit-shifted field and we would need to add a bitshift for invalid dates in `src/coprocessor/dag/expr/ctx.rs`"
+    },
+    {
+      "id": 465410499,
+      "user": "breezewish",
+      "created_at": "2019-02-20T03:48:03Z",
+      "body": "I guess this can be just a flag marking whether or not current time is invalid, plus a flag marking whether or not invalid time should be errors."
+    },
+    {
+      "id": 466564173,
+      "user": "brson",
+      "created_at": "2019-02-22T22:04:57Z",
+      "body": "re the size of `Time` the issue I was actually thinking of was to reduce the size of `Duration`: https://github.com/tikv/tikv/issues/4025"
+    },
+    {
+      "id": 467284425,
+      "user": "brson",
+      "created_at": "2019-02-26T03:54:26Z",
+      "body": "Although there are unknowns, getting started on this looks pretty straightforward:\r\n\r\n- add a `mode_allow_invalid_dates` method to `EvalConfig` in `src/coprocessor/dag/expr/ctx.rs`, similar to the other `mode_*` functions. Add the corresponding `MODE_*` constant.\r\n- you _shouldn't_ need to modify the code that creates `EvalConfig` (seemingly in `dag_handler`) because TiDB is already sending the correct mode flag, which should be making it to `EvalConfig`.\r\n- modify `builtin_time` such that inserts and queries of invalid times conform to mysql. This is where the unknowns and experimentation will be. (offhand, it looks like it's possible that tikv is also not handling zero representations right). In the process you'll need to change the representation of `Time` in `src/coprocessor/codec/mysql/time/mod.rs` to support invalid times; and probably to change the various `eval` time functions that `builtin_time.rs` depends on.\r\n- write tests (ask someone else exactly how to do that."
+    },
+    {
+      "id": 467284661,
+      "user": "brson",
+      "created_at": "2019-02-26T03:55:51Z",
+      "body": "@breeswish can mentor."
+    },
+    {
+      "id": 562499222,
+      "user": "breezewish",
+      "created_at": "2019-12-06T09:27:32Z",
+      "body": "This is fixed by @iosmanthus "
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 15920,
+  "title": "tikv connecto to pd failed, but pd_ctl is ok",
+  "body": "## Bug Report\r\ntikv start with errors：\r\n<img width=\"1351\" alt=\"image\" src=\"https://github.com/tikv/tikv/assets/6076617/e9f23632-1eaf-419d-9583-42d3aac28f3a\">\r\n\r\nexec in tikv，test network is ok:\r\n<img width=\"1474\" alt=\"image\" src=\"https://github.com/tikv/tikv/assets/6076617/d1d90daf-e687-4cb1-9a36-1c0cc5b1cbfc\">\r\n\r\ntest network with pd-ctl, is ok:\r\n<img width=\"1151\" alt=\"image\" src=\"https://github.com/tikv/tikv/assets/6076617/0309e486-4111-4b56-acb6-fdfe432b002b\">\r\n\r\n\r\n\r\n### What version of TiKV are you using?\r\n6.5\r\n\r\n### What operating system and CPU are you using?\r\nprocessor       : 191\r\nvendor_id       : GenuineIntel\r\ncpu family      : 6\r\nmodel           : 85\r\nmodel name      : Intel(R) Xeon(R) Gold 6348H CPU @ 2.30GHz\r\nstepping        : 11\r\nmicrocode       : 0x7002501\r\ncpu MHz         : 3898.795\r\ncache size      : 33792 KB\r\nphysical id     : 3\r\nsiblings        : 48\r\ncore id         : 29\r\ncpu cores       : 24\r\napicid          : 251\r\ninitial apicid  : 251\r\nfpu             : yes\r\nfpu_exception   : yes\r\ncpuid level     : 31\r\nwp              : yes\r\nflags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 cdp_l3 invpcid_single intel_ppin ssbd mba ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm mpx rdt_a avx512f avx512dq rdseed adx smap clflushopt clwb intel_pt avx512cd avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local dtherm ida arat pln pts hwp hwp_act_window hwp_epp hwp_pkg_req pku ospke avx512_vnni md_clear flush_l1d arch_capabilities\r\nbugs            : spectre_v1 spectre_v2 spec_store_bypass swapgs\r\nbogomips        : 4609.69\r\nclflush size    : 64\r\ncache_alignment : 64\r\naddress sizes   : 46 bits physical, 48 bits virtual\r\npower management:\r\n\r\n### Steps to reproduce\r\nOnly this environment can be reproduced stably\r\n\r\n### What did you expect?\r\ntikv should start ok\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-11-06T01:48:30Z",
+  "updated_at": "2023-11-06T09:03:14Z",
+  "closed_at": "2023-11-06T09:03:13Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 1794359599,
+      "user": "llhhbc",
+      "created_at": "2023-11-06T09:03:13Z",
+      "body": "resolved"
+    }
+  ]
+}

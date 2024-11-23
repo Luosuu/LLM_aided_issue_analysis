@@ -1,0 +1,59 @@
+{
+  "issue_number": 11838,
+  "title": "two tikv oom at the same time while run sysbench_oltp_read_write and inject IO delay",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # ./tikv-server -V\r\nTiKV \r\nRelease Version:   5.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   aeb86afa389aa49b2aa90061339c6105533a7f69\r\nGit Commit Branch: heads/refs/tags/v5.4.0\r\nUTC Build Time:    2022-01-10 15:50:25\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8core 16G\r\nNS：endless-oltp--tps-543619-1-288\r\n\r\n### Steps to reproduce\r\n1、sysbench --mysql-user=root --db-driver=mysql --time=0 --report-interval=10 --mysql-db=test --mysql-host=tc-tidb.glh-540-pfcjs --mysql-port=4000 --threads=512 --tables=32 --table-size=10000000 --mysql-ignore-errors=2013,1213,1105,1205,8022,8027,8028,9004,9007 --rand-type=gaussian oltp_read_write run\r\n2、inject IO delay repeatedly\r\n2022-01-10T23:05:13.115+0800\tINFO\toltppkg/chaos.go:358\tfault will last for\t{\"duration\": \"20m0s\"}\r\n2022-01-10T23:05:13.123+0800\tINFO\tchaos/chaos.go:86\tRun chaos\t{\"name\": \"IODelay\", \"selectors\": [\"glh-540-pfcjs/tc-tikv-3\"], \"experiment\": {\"Duration\":\"\",\"Scheduler\":null,\"VolumePath\":\"/var/lib/tikv\",\"Path\":\"/var/lib/tikv/data/**/*\",\"Delay\":\"498ms\",\"Percent\":100}}\r\n\r\n[oltp_stability_rel_002_0110_log.txt](https://github.com/tikv/tikv/files/7843557/oltp_stability_rel_002_0110_log.txt)\r\ntikv logs: http://minio.pingcap.net:42041/buckets/test-infra-testground/browse/YXJjaGl2ZS9nbGgtNTQwLXBmY2pzLw==\r\n\r\n### What did you expect?\r\nall pods are normal\r\n\r\n### What did happened?\r\none tikv oom （tikv1 and tikv0）at 2022-01-11 08:05:49\r\n![image](https://user-images.githubusercontent.com/84712107/148879071-bdc4e59d-c8b6-4627-a626-51f18309830f.png)\r\n",
+  "state": "open",
+  "created_at": "2022-01-11T04:02:26Z",
+  "updated_at": "2024-11-01T10:17:47Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1009579142,
+      "user": "Lily2025",
+      "created_at": "2022-01-11T04:03:43Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1009579294,
+      "user": "Lily2025",
+      "created_at": "2022-01-11T04:03:59Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1009579355,
+      "user": "Lily2025",
+      "created_at": "2022-01-11T04:04:07Z",
+      "body": "/assign Little-Wallace"
+    },
+    {
+      "id": 1009579389,
+      "user": "Lily2025",
+      "created_at": "2022-01-11T04:04:13Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1271999213,
+      "user": "tonyxuqqi",
+      "created_at": "2022-10-07T19:07:05Z",
+      "body": "/cc LykxSassinator\r\nPTAL"
+    }
+  ]
+}

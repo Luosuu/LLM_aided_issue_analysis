@@ -1,0 +1,35 @@
+{
+  "issue_number": 9488,
+  "title": "TiKV crashes continuously if access AWS KMS failed at the first time",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n`v4.0.9`\r\n\r\nNote: `v4.0.8` does not have this issue\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nCentOS 7\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. Configure TiKV to use TDE with AWS KMS\r\n2. Run TiKV with no AWS credentials\r\n3. TiKV crashes\r\n4. Restart TiKV with proper credentials\r\n5. TiKV will still crash\r\n6. Remove the empty `dict` and `key*..tmp` files\r\n7. TiKV can then start normally\r\n\r\nLogs below:\r\n\r\nTiKV crash\r\n```\r\ndb-tikv-0 tikv [2021/01/12 02:51:39.496 +00:00] [INFO] [mod.rs:335] [\"starting working thread\"] [worker=addr-resolver]\r\ndb-tikv-0 tikv [2021/01/12 02:51:39.496 +00:00] [INFO] [mod.rs:335] [\"starting working thread\"] [worker=region-collector-worker]\r\ndb-tikv-0 tikv [2021/01/12 02:51:39.502 +00:00] [ERROR] [mod.rs:121] [\"encryption: failed to load key dictionary.\"]\r\ndb-tikv-0 tikv [2021/01/12 02:51:44.478 +00:00] [FATAL] [lib.rs:482] [\"called `Result::unwrap()` on an `Err` value: Io(Os { code: 2, kind: NotFound, message: \\\"No such file or directory\\\" })\"] [backtrace=\"stack backtrace:\\n   0: tikv_util::set_panic_hook::{{closure}}\\n             at components/tikv_util/src/lib.rs:481\\n   1: std::panicking::rust_panic_with_hook\\n             at src/libstd/panicking.rs:475\\n   2: rust_begin_unwind\\n             at src/libstd/panicking.rs:375\\n   3: core::panicking::panic_fmt\\n             at src/libcore/panicking.rs:84\\n   4: core::result::unwrap_failed\\n             at src/libcore/result.rs:1188\\n   5: core::result::Result<T,E>::unwrap\\n             at rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libcore/result.rs:956\\n      cmd::server::TiKVServer::init_encryption\\n             at cmd/src/server.rs:324\\n      cmd::server::run_tikv\\n             at cmd/src/server.rs:97\\n   6: tikv_server::main\\n             at cmd/src/bin/tikv-server.rs:166\\n   7: std::rt::lang_start::{{closure}}\\n             at rustc/0de96d37fbcc54978458c18f5067cd9817669bc8/src/libstd/rt.rs:67\\n   8: main\\n   9: __libc_start_main\\n  10: <unknown>\\n\"] [location=src/libcore/result.rs:1188] [thread_name=main]\r\n```\r\n\r\nRemove corrupted `dict` file and TiKV can start normally\r\n```\r\n/ # cd /var/lib/tikv\r\n/var/lib/tikv # ls\r\nLOCK                           key.12559410157181424791..tmp  lost+found\r\nfile.dict                      last_tikv.toml                 space_placeholder_file\r\n/var/lib/tikv # cat key.12559410157181424791..tmp\r\n/var/lib/tikv # cat file.dict\r\n/var/lib/tikv # rm key.12559410157181424791..tmp\r\n/var/lib/tikv # rm file.dict\r\n/ # ./start.sh\r\nstarting tikv-server ...\r\n[2021/01/12 03:05:24.784 +00:00] [INFO] [mod.rs:115] [\"encryption: none of key dictionary and file dictionary are found.\"]\r\n[2021/01/12 03:05:24.784 +00:00] [INFO] [mod.rs:458] [\"encryption is being enabled. method = Aes256Ctr\"]\r\n[2021/01/12 03:05:24.807 +00:00] [INFO] [mod.rs:305] [\"encryption: rotate data key.\"] [key_id=5946594668250531020]\r\n[2021/01/12 03:05:25.073 +00:00] [DEBUG] [request.rs:376] [\"Full request: \\n method: POST\\n final_uri: https://sts.us-east-1.amazonaws.com/\\nHeaders:\\n\"]\r\n[2021/01/12 03:05:25.073 +00:00] [DEBUG] [request.rs:381] [\"content-length:\\\"845\\\"\"]\r\n[2021/01/12 03:05:25.073 +00:00] [DEBUG] [request.rs:381] [\"content-type:\\\"application/x-www-form-urlencoded\\\"\"]\r\n[2021/01/12 03:05:25.073 +00:00] [DEBUG] [request.rs:381] [\"host:\\\"sts.us-east-1.amazonaws.com\\\"\"]\r\n[2021/01/12 03:05:25.073 +00:00] [DEBUG] [request.rs:381] [\"user-agent:\\\"rusoto/0.45.0 rust/1.42.0-nightly linux\\\"\"]\r\n[2021/01/12 03:05:25.169 +00:00] [DEBUG] [dns.rs:121] [\"resolving host=\\\"sts.us-east-1.amazonaws.com\\\"\"]\r\n[2021/01/12 03:05:27.284 +00:00] [DEBUG] [http.rs:532] [\"connecting to 72.21.206.96:443\"]\r\n[2021/01/12 03:05:27.348 +00:00] [DEBUG] [http.rs:535] [\"connected to 72.21.206.96:443\"]\r\n[2021/01/12 03:05:27.669 +00:00] [DEBUG] [io.rs:222] [\"flushed 177 bytes\"]\r\n[2021/01/12 03:05:27.669 +00:00] [DEBUG] [io.rs:222] [\"flushed 845 bytes\"]\r\n[2021/01/12 03:05:27.818 +00:00] [DEBUG] [io.rs:186] [\"read 158 bytes\"]\r\n[2021/01/12 03:05:27.818 +00:00] [DEBUG] [io.rs:160] [\"parsed 4 headers\"]\r\n[2021/01/12 03:05:27.818 +00:00] [DEBUG] [conn.rs:153] [\"incoming body is content-length (1864 bytes)\"]\r\n[2021/01/12 03:05:27.818 +00:00] [DEBUG] [io.rs:186] [\"read 1864 bytes\"]\r\n[2021/01/12 03:05:27.818 +00:00] [DEBUG] [conn.rs:220] [\"incoming body completed\"]\r\n[2021/01/12 03:05:27.818 +00:00] [DEBUG] [pool.rs:366] [\"pooling idle connection for (\\\"https\\\", sts.us-east-1.amazonaws.com)\"]\r\n```\r\n\r\n### What did you expect?\r\nTiKV can start with proper AWS credentials normally without human invention\r\n\r\n### What did happened?\r\nAt the first time TiKV access AWS KMS failed, it leaves corrupted `dict` file which causes TiKV to crash continuously.\r\n\r\ncc @overvenus @yiwu-arbug \r\n",
+  "state": "closed",
+  "created_at": "2021-01-12T03:11:58Z",
+  "updated_at": "2021-02-02T05:13:46Z",
+  "closed_at": "2021-02-02T05:13:46Z",
+  "labels": [
+    "type/bug",
+    "sig/engine",
+    "component/security",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 758372570,
+      "user": "aylei",
+      "created_at": "2021-01-12T03:33:12Z",
+      "body": "cc @SunRunAway "
+    },
+    {
+      "id": 758727896,
+      "user": "gregwebs",
+      "created_at": "2021-01-12T15:21:55Z",
+      "body": "I cannot reproduce with the file backend. I will try with KMS now."
+    },
+    {
+      "id": 759138062,
+      "user": "gregwebs",
+      "created_at": "2021-01-13T01:13:30Z",
+      "body": "I reproduced this. This is due to a combination of the lazy initialization of the KMS backend and 2 files being created non-atomically. We believe a simple fix is to open the master key first, check the error, and then opening key.dict"
+    }
+  ]
+}

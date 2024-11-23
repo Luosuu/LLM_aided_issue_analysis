@@ -1,0 +1,51 @@
+{
+  "issue_number": 15800,
+  "title": "TiKV reports ServerIsBusy error because it can not append raft log",
+  "body": "## Bug Report\r\n\r\nWe met an issue that TiKV keeps server is busy when a tiflash node runs out of disk.\r\n\r\nThe \"Server is busy\" error occurs because the raft log cannot be append. The inability to append is caused by the rejection of raft log. The rejection is due to high memory usage in tikv to prevent out-of-memory (OOM) errors. The high memory usage in tikv is a result of caching a large number of raft logs. The reading of a large number of logs is likely caused by tiflash becoming stuck, resulting in a significant lag in the raft log.\r\n\r\n<details><summary>Metrics</summary>\r\n<p>\r\n\r\n![image](https://github.com/tikv/tikv/assets/2150711/f76dfc2b-342e-4b9a-9cf6-ead75c6e9c8b)\r\n![image](https://github.com/tikv/tikv/assets/2150711/93430ebf-7c75-4ad2-9a3d-65157730081a)\r\n![image](https://github.com/tikv/tikv/assets/2150711/94c2bbab-123b-4cec-bd3b-ea20777d9f11)\r\n![image](https://github.com/tikv/tikv/assets/2150711/c6eda0db-4dac-416c-8fcf-a9fd9aac3ed9)\r\n![image](https://github.com/tikv/tikv/assets/2150711/fc96e83c-21c6-41ea-9b73-7c8c266eefad)\r\n\r\n</p>\r\n</details> \r\n\r\nTouch https://github.com/tikv/tikv/issues/14874, tikv log is also overwhelmed with the log \"cannot step raft local message\".\r\n\r\nTo resolve the issue, we can:\r\n1. Optimize the memory allocation strategy for each component to avoid such \"deadlock\" situation.\r\n2. Reject prewrite/commit and other write requests from TiDB, so that no more raft log will be proposed.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nv6.5.4.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nIt's not clear.\r\n\r\n### What did you expect?\r\n\r\nDo not keep server is busy.\r\n\r\n### What did happened?\r\n\r\nServer is busy.\r\n",
+  "state": "closed",
+  "created_at": "2023-10-19T11:07:07Z",
+  "updated_at": "2024-11-17T16:00:03Z",
+  "closed_at": "2023-11-09T03:00:07Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5",
+    "user_report",
+    "report/customer"
+  ],
+  "comments_data": [
+    {
+      "id": 1802386682,
+      "user": "tonyxuqqi",
+      "created_at": "2023-11-08T17:59:15Z",
+      "body": "update raftstore.evict-cache-on-memory-ratio = 0.1, then it would evict cache when memory ratio is more than 90% and the raft log entry memory usage rate is 10% or more. "
+    },
+    {
+      "id": 1803088146,
+      "user": "tonyxuqqi",
+      "created_at": "2023-11-09T03:00:07Z",
+      "body": "It's fixed in 7.5 already by setting raftstore.evict-cache-on-memory-ratio = 0.1"
+    },
+    {
+      "id": 2277093805,
+      "user": "seiya-annie",
+      "created_at": "2024-08-09T03:54:39Z",
+      "body": "/report customer"
+    }
+  ]
+}

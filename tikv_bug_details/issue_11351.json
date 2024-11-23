@@ -1,0 +1,16 @@
+{
+  "issue_number": 11351,
+  "title": "resolved ts lag increased after stoping a tikv",
+  "body": "## Bug Report\r\n\r\n![image](https://user-images.githubusercontent.com/20279863/141408875-2fae29b8-4d41-41d3-bd82-d6adf7480854.png)\r\n\r\n\r\nHere it will wait until all check leader requests returned, which may cause resolved ts lag increased if one tikv was disconnected.\r\n\r\nhttps://github.com/tikv/tikv/blob/999ca556005ed5c3b7ccbceb511806a5da365c45/components/cdc/src/endpoint.rs#L1072\r\n",
+  "state": "closed",
+  "created_at": "2021-11-12T04:20:04Z",
+  "updated_at": "2022-04-10T03:38:30Z",
+  "closed_at": "2021-11-24T11:19:51Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/major",
+    "affects-5.2"
+  ],
+  "comments_data": []
+}

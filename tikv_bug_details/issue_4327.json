@@ -1,0 +1,125 @@
+{
+  "issue_number": 4327,
+  "title": "float_str_to_int_string should not return error",
+  "body": "## Bug Report\r\n\r\nTiDB with TiKV:\r\n\r\n```\r\nmysql> CREATE TABLE t1 (s VARCHAR(50));\r\nQuery OK, 0 rows affected (0.12 sec)\r\n\r\nmysql> INSERT INTO t1 VALUES('99999999e1000');\r\nQuery OK, 1 row affected (0.02 sec)\r\n\r\nmysql> SELECT * from t1 where s;\r\nERROR 1105 (HY000): Other(StringError(\"[src/coprocessor/codec/convert.rs:321]: [1264] Data Out of Range\"))\r\n```\r\n\r\nTiDB without TiKV:\r\n\r\n```\r\nmysql> CREATE TABLE t1 (s VARCHAR(50));\r\nQuery OK, 0 rows affected (0.01 sec)\r\n\r\nmysql> INSERT INTO t1 VALUES('99999999e1000');\r\nQuery OK, 1 row affected (0.00 sec)\r\n\r\nmysql> SELECT * from t1 where s;\r\n+---------------+\r\n| s             |\r\n+---------------+\r\n| 99999999e1000 |\r\n+---------------+\r\n1 row in set, 1 warning (0.00 sec)\r\n```\r\n\r\nMySQL:\r\n\r\n```\r\nmysql> CREATE TABLE t1 (s VARCHAR(50));\r\nQuery OK, 0 rows affected (0.16 sec)\r\n\r\nmysql> INSERT INTO t1 VALUES('99999999e1000');\r\nQuery OK, 1 row affected (0.00 sec)\r\n\r\nmysql> SELECT * from t1 where s;\r\n+---------------+\r\n| s             |\r\n+---------------+\r\n| 99999999e1000 |\r\n+---------------+\r\n1 row in set, 1 warning (0.00 sec)\r\n```\r\n\r\nAccording to TiDB's [implementation](https://github.com/pingcap/tidb/blob/469fa877d6c3f8851760eade5f8601dcbbbd4d59/types/convert.go#L274) of `float_str_to_int_string` it returns warnings instead of errors. That should be the main reason why this fails in TiKV.",
+  "state": "closed",
+  "created_at": "2019-03-07T08:39:47Z",
+  "updated_at": "2019-03-21T04:09:26Z",
+  "closed_at": "2019-03-21T04:09:26Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/coprocessor",
+    "difficulty/easy"
+  ],
+  "comments_data": [
+    {
+      "id": 470489693,
+      "user": "liufuyang",
+      "created_at": "2019-03-07T11:24:08Z",
+      "body": "Is this some easy task, perhaps I can try give some help on it?\r\nLooks like I just need to return some warning here:\r\nhttps://github.com/tikv/tikv/blob/02ebbd69d0c7332e5776248122e0e59949317f57/src/coprocessor/codec/convert.rs#L306\r\n?"
+    },
+    {
+      "id": 470518998,
+      "user": "breezewish",
+      "created_at": "2019-03-07T13:10:05Z",
+      "body": "@liufuyang Yes, you just need to change errors to warnings. Notice that the function itself is not accepting some context for writing warnings, so you need to modify these function signatures."
+    },
+    {
+      "id": 470523290,
+      "user": "liufuyang",
+      "created_at": "2019-03-07T13:23:22Z",
+      "body": "hmm... can you help me find some code that returns Warnings so I can try do the same here? I am pretty new to tikv and kind of new to Rust. I know the type Result kind of well but I am not sure how to change this to some Warning type :)"
+    },
+    {
+      "id": 470525361,
+      "user": "breezewish",
+      "created_at": "2019-03-07T13:29:46Z",
+      "body": "@liufuyang You can grep for \"append_warning\" and you will see that normally there will be a `ctx.warnings.append_warning`. So to append warnings the function should accept that ctx first (and you need to change the signature)"
+    },
+    {
+      "id": 470532221,
+      "user": "liufuyang",
+      "created_at": "2019-03-07T13:50:33Z",
+      "body": "@breeswish Thanks :)\r\n\r\nOkay. Before I go further with that, I just tried some corner cases for fun. It seems our code in here in tikv (or maybe also in tidb, if you can help me test it would be nice), that when the input is `\"9e20\"`, which is a number bigger than i64_max, the code here passes without returning a Err:\r\nInput: `\"9e20\"`\r\nCurrent float_str_to_int_string() output:\r\n`900000000000000000000`\r\nwhile i64_max is\r\n`9223372036854775807`\r\n\r\n**This seems to be another potential bug in the code?** As I also tried with \"9e20\" on MySQL 5.7 it seems output warning as well:\r\n```\r\nmysql> INSERT INTO t1 VALUES('9e20');\r\nQuery OK, 1 row affected (0.00 sec)\r\n\r\nmysql> SELECT * from t1 where s;\r\n+------+\r\n| s    |\r\n+------+\r\n| 9e20 |\r\n+------+\r\n1 row in set, 1 warning (0.00 sec)\r\n```"
+    },
+    {
+      "id": 470535400,
+      "user": "liufuyang",
+      "created_at": "2019-03-07T13:59:06Z",
+      "body": "I actually not sure how mysql works, it seems that `\"1e5\"` will not cause warning but \"1e10\" will...\r\n\r\n```\r\nmysql> SELECT * from t1 where s;\r\n+------+\r\n| s    |\r\n+------+\r\n| 1e5  |\r\n+------+\r\n1 row in set (0.00 sec)\r\n\r\nmysql> INSERT INTO t1 VALUES('1e10');\r\nQuery OK, 1 row affected (0.00 sec)\r\n\r\nmysql> SELECT * from t1 where s;\r\n+------+\r\n| s    |\r\n+------+\r\n| 1e5  |\r\n| 1e10 |\r\n+------+\r\n2 rows in set, 1 warning (0.00 sec)\r\n\r\nmysql> SHOW WARNINGS;\r\n+---------+------+-------------------------------------------+\r\n| Level   | Code | Message                                   |\r\n+---------+------+-------------------------------------------+\r\n| Warning | 1292 | Truncated incorrect INTEGER value: '1e10' |\r\n+---------+------+-------------------------------------------+\r\n```\r\n\r\nNot exactly sure what I am doing here but do we try to make tidb behave exactly the same as MySQL5.7 or...? 🤔 "
+    },
+    {
+      "id": 470722202,
+      "user": "Hoverbear",
+      "created_at": "2019-03-07T22:25:49Z",
+      "body": "Hi @morgo, can you take a look at this compatibility issue?"
+    },
+    {
+      "id": 470746724,
+      "user": "morgo",
+      "created_at": "2019-03-07T23:44:16Z",
+      "body": "This is really weird.  It looks like the insert is behaving as expected, but on reading the data TiKV is evaluating the values to compare them to `s`.\r\n\r\nSo for a quick test case that is legal:\r\n```\r\nCREATE TABLE t1 (s VARCHAR(50));\r\nINSERT INTO t1 VALUES ('100'), (NULL);\r\nSELECT * FROM t1 WHERE s; -- must check that the value is not null\r\n```\r\nSo there has to be a `NOT NULL` check, but I am not sure casting a string value that looks numeric is required to do that (it's a bug).  It should only compare for nullability and not cast in doing so.  It is a subtle bug, because the cast is only used for compare, and doesn't affect the returned value.\r\n\r\nTaking your minimal test case:\r\n```\r\nDROP TABLE IF EXISTS t1;\r\nCREATE TABLE t1 (s VARCHAR(50));\r\nINSERT INTO t1 VALUES('9e20');\r\nselect * from t1 where s;\r\n```\r\n\r\nPTAL @zz-jason "
+    },
+    {
+      "id": 470748349,
+      "user": "morgo",
+      "created_at": "2019-03-07T23:52:10Z",
+      "body": "It looks like this behavior might be required for MySQL compatibility (sorry, it's not common syntax - so I am less familiar):\r\n```\r\nmysql57> INSERT INTO t1 VALUES (NULL), ('0'), ('0.0');\r\nQuery OK, 3 rows affected (0.00 sec)\r\nRecords: 3  Duplicates: 0  Warnings: 0\r\n\r\nmysql57> SELECT * FROM t1;\r\n+------+\r\n| s    |\r\n+------+\r\n| NULL |\r\n| 0    |\r\n| 0.0  |\r\n+------+\r\n3 rows in set (0.00 sec)\r\n\r\nmysql57> SELECT * FROM t1 WHERE s;\r\nEmpty set (0.00 sec)\r\n```\r\n\r\nI would have interpreted `WHERE s` as \"where s is not null\", but it looks like MySQL doesn't do that.  It will cast values to compare.  It can even produce a warning:\r\n\r\n```\r\nmysql57> TRUNCATE t1;\r\nQuery OK, 0 rows affected (0.02 sec)\r\n\r\nmysql57> INSERT INTO t1 VALUES (NULL), ('0'), ('0.0'), ('NULL');\r\nQuery OK, 4 rows affected (0.00 sec)\r\nRecords: 4  Duplicates: 0  Warnings: 0\r\n\r\nmysql57> SELECT * FROM t1 WHERE s;\r\nEmpty set, 1 warning (0.00 sec)\r\n\r\nmysql57> SHOW WARNINGS;\r\n+---------+------+-------------------------------------------+\r\n| Level   | Code | Message                                   |\r\n+---------+------+-------------------------------------------+\r\n| Warning | 1292 | Truncated incorrect INTEGER value: 'NULL' |\r\n+---------+------+-------------------------------------------+\r\n1 row in set (0.00 sec)\r\n```\r\n\r\nIt is possible the only part broken here is the type used for casting before comparing."
+    },
+    {
+      "id": 470886799,
+      "user": "liufuyang",
+      "created_at": "2019-03-08T10:47:34Z",
+      "body": "@morgo If necessary, perhaps you can help open another issue on this weird behavior of MySQL?\r\n\r\nI made a PR https://github.com/tikv/tikv/pull/4336 in the hope to firstly solve the issue mentioned here at the top. I hope here we can continue discussion here about making \"99999999e1000\" can be selected. The issue you talked above seems has a much larger scale and discuss here further might make things more confusing here :P "
+    },
+    {
+      "id": 473910170,
+      "user": "liufuyang",
+      "created_at": "2019-03-18T13:30:12Z",
+      "body": "@breeswish The PR has been merged, do we need to test it again manually to verify it before we close this issue? "
+    },
+    {
+      "id": 473977790,
+      "user": "breezewish",
+      "created_at": "2019-03-18T16:03:40Z",
+      "body": "Yes! :) Would you like to have a try with latest master?"
+    },
+    {
+      "id": 474018606,
+      "user": "liufuyang",
+      "created_at": "2019-03-18T17:25:14Z",
+      "body": "Never really did this before, I guess I can use the tidb-docker-compose repo for this, right?"
+    },
+    {
+      "id": 474066940,
+      "user": "Hoverbear",
+      "created_at": "2019-03-18T19:30:09Z",
+      "body": "@liufuyang Should be do-able that way. You'd set up the docker-compose and make TiKV work \"from source\" via the instructions here I think:  https://github.com/pingcap/tidb-docker-compose#bring-up-tidb-cluster"
+    },
+    {
+      "id": 474166295,
+      "user": "breezewish",
+      "created_at": "2019-03-19T01:49:34Z",
+      "body": "@liufuyang Or you may just use tidb-ansible from https://github.com/pingcap/tidb-ansible, but subsitute the tikv binary in resources/bin from the one downloaded by ansible to yours."
+    },
+    {
+      "id": 474821833,
+      "user": "liufuyang",
+      "created_at": "2019-03-20T13:11:07Z",
+      "body": "Looks like the newest image has been updated with my changes. I tried with tidb-docker-compose and just start it with the default settings. Then do test like\r\n```\r\nmysql> CREATE TABLE t1 (s VARCHAR(50));\r\nQuery OK, 0 rows affected (0.20 sec)\r\n\r\nmysql> INSERT INTO t1 VALUES('99999999e1000');\r\nQuery OK, 1 row affected (0.04 sec)\r\n\r\nmysql> SELECT * from t1 where s;\r\n+---------------+\r\n| s             |\r\n+---------------+\r\n| 99999999e1000 |\r\n+---------------+\r\n1 row in set, 1 warning (0.00 sec)\r\n\r\nmysql> SHOW WARNINGS\r\n    -> ;\r\n+---------+------+-----------------------------------------------------------------+\r\n| Level   | Code | Message                                                         |\r\n+---------+------+-----------------------------------------------------------------+\r\n| Warning | 1105 | Eval(\"BIGINT value is out of range in \\\"99999999e1000\\\"\", 1690) |\r\n+---------+------+-----------------------------------------------------------------+\r\n1 row in set (0.01 sec)\r\n```\r\n\r\nNoticing the warning number is different from the standard MySQL warning which is 1292 seen from above discussion. This is expected, as in PR https://github.com/tikv/tikv/pull/4336 we appended warnings as `Error::overflow()` instead of `Error::truncated_wrong_val()`.\r\n\r\nPerhaps we can close this issue now? 🤔 "
+    },
+    {
+      "id": 474828423,
+      "user": "liufuyang",
+      "created_at": "2019-03-20T13:29:16Z",
+      "body": "I also made a PR https://github.com/tikv/tikv/pull/4413 to fix the output format."
+    },
+    {
+      "id": 475108065,
+      "user": "breezewish",
+      "created_at": "2019-03-21T04:09:26Z",
+      "body": "Yes! Thanks a lot!"
+    }
+  ]
+}

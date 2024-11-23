@@ -1,0 +1,22 @@
+{
+  "issue_number": 11596,
+  "title": "Unexpected high tail latency of async snapshot",
+  "body": "## Bug Report\r\n\r\nUnder sysbench read_only workload, found some high tail latency of async snapshot:\r\n![image](https://user-images.githubusercontent.com/20279863/145005979-1d6b3f64-7867-4049-8237-658ad4d82a7e.png)\r\n\r\n\r\nWhile the latency of raftstore is very low and some transfer-leaders were scheduled, so they were potentially related to this phenomenon:\r\n![image](https://user-images.githubusercontent.com/20279863/145006056-fa736d84-8a86-4353-a2cc-433704902c7a.png)\r\n![image](https://user-images.githubusercontent.com/20279863/145006149-eb07121e-7693-460a-b744-3c8b2ac168ee.png)\r\n\r\n\r\n",
+  "state": "open",
+  "created_at": "2021-12-07T09:49:49Z",
+  "updated_at": "2021-12-17T01:01:23Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 996334109,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-12-17T01:01:23Z",
+      "body": "@5kbpers Any update?"
+    }
+  ]
+}

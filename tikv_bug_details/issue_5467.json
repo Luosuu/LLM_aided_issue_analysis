@@ -1,0 +1,30 @@
+{
+  "issue_number": 5467,
+  "title": "unstable test: cases::test_replica_read::test_wait_for_apply_index'",
+  "body": "I ran into it in a unrelated PR. Detail is here: https://internal.pingcap.net/idc-jenkins/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/9016/pipeline\r\n\r\n```\r\nthread 'cases::test_replica_read::test_wait_for_apply_index' panicked at 'region Some(id: 1 region_epoch { conf_ver: 2 version: 1 } peers { id: 1 store_id: 1 } peers { id: 2 store_id: 2 }) has no peer id: 3 store_id: 3', components/test_raftstore/src/pd.rs:749:9\r\nstack backtrace:\r\n   0: backtrace::backtrace::libunwind::trace\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.35/src/backtrace/libunwind.rs:88\r\n   1: backtrace::backtrace::trace_unsynchronized\r\n             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.35/src/backtrace/mod.rs:66\r\n   2: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:47\r\n   3: std::sys_common::backtrace::print\r\n             at src/libstd/sys_common/backtrace.rs:36\r\n   4: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/panicking.rs:200\r\n   5: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:214\r\n   6: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:477\r\n   7: std::panicking::continue_panic_fmt\r\n             at src/libstd/panicking.rs:384\r\n   8: std::panicking::begin_panic_fmt\r\n             at src/libstd/panicking.rs:339\r\n   9: test_raftstore::pd::TestPdClient::must_have_peer\r\n             at components/test_raftstore/src/pd.rs:749\r\n  10: test_raftstore::pd::TestPdClient::must_add_peer\r\n             at components/test_raftstore/src/pd.rs:845\r\n  11: failpoints::cases::test_replica_read::test_wait_for_apply_index\r\n             at tests/failpoints/cases/test_replica_read.rs:29\r\n  12: failpoints::cases::test_replica_read::test_wait_for_apply_index::{{closure}}\r\n             at tests/failpoints/cases/test_replica_read.rs:15\r\n  13: core::ops::function::FnOnce::call_once\r\n             at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libcore/ops/function.rs:227\r\n  14: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n             at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/liballoc/boxed.rs:922\r\n  15: __rust_maybe_catch_panic\r\n             at src/libpanic_unwind/lib.rs:80\r\n  16: std::panicking::try\r\n             at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libstd/panicking.rs:275\r\n  17: std::panic::catch_unwind\r\n             at /rustc/c6e9c76c59e3c10acd63ca9ec157a8894ea1a068/src/libstd/panic.rs:394\r\n  18: test::run_test::run_test_inner::{{closure}}\r\n             at src/libtest/lib.rs:1413\r\n```\r\n\r\n[internal.pingcap.net.txt](https://github.com/tikv/tikv/files/3616199/internal.pingcap.net.txt)\r\n",
+  "state": "closed",
+  "created_at": "2019-09-16T12:12:59Z",
+  "updated_at": "2020-11-20T07:02:41Z",
+  "closed_at": "2020-11-20T06:56:02Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "component/test-bench",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 534927257,
+      "user": "NingLin-P",
+      "created_at": "2019-09-25T09:05:43Z",
+      "body": "The test was panicked at `must_add_peer` of peer 3, and not even enter the test logic! And the test panicked because peer 2 bind to the same port as peer 1 (maybe because the grpc server of peer 1 drop silently), and msg that peer 2 send to peer 1 were eventually received by itself. Which cause conf change request are alway rejected.\r\n\r\nsome log:\r\n```\r\nnode.rs:159: [INFO] put store to PD, store: id: 1 address: \"127.0.0.1:44505\" version: \"4.0.0-alpha\"\r\nnode.rs:159: [INFO] put store to PD, store: id: 2 address: \"127.0.0.1:44505\" version: \"4.0.0-alpha\"\r\npeer.rs:853: [DEBG] handle raft message, to_peer_id: 1, from_peer_id: 2, message_type: MsgHeartbeatResponse, peer_id: 2, region_id: 1\r\npeer.rs:933: [WARN] store not match, ignore it, my_store_id: 2, to_store_id: 1, region_id: 1\r\n```"
+    },
+    {
+      "id": 730947370,
+      "user": "NingLin-P",
+      "created_at": "2020-11-20T06:56:02Z",
+      "body": "Close this issue, since it is duplicated with https://github.com/tikv/tikv/issues/7139"
+    }
+  ]
+}

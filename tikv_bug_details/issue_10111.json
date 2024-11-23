@@ -1,0 +1,41 @@
+{
+  "issue_number": 10111,
+  "title": "Region may not trigger split check no matter how large it is",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv4.0.9-v4.0.13,  v5.0.0, v5.0.1\r\n\r\n### What operating system and CPU are you using?\r\ndoesn't matter\r\n\r\n### Steps to reproduce\r\ndoesn't need special operation\r\n\r\n### What did you expect?\r\ntrigger split check when needed\r\n\r\n### What did happened?\r\ndoesn't trigger split check sometimes\r\n\r\nhttps://github.com/tikv/tikv/pull/9081 introduced a new task in the split checker whose name is `GetRegionApproximateSizeAndKeys`. https://github.com/tikv/tikv/blob/eb2ed7f64efa95f3b80890f795127c1d61a292a7/components/raftstore/src/store/fsm/peer.rs#L3563-L3573 However, the code above has an assumption that if the `approximate_size` is not `None`, the split check has been done before, which is not true now.\r\nSo if the region has no enough write cmd to trigger the threshold(`compaction_declined_bytes` or `size_diff_hint`), it may not be split no matter how large it is.\r\nFurthermore, restarting TiKV can not solve this problem because the leader will call `heartbeat_pd` and update its `approximate_size` after a while then split check will be skipped.",
+  "state": "closed",
+  "created_at": "2021-04-30T14:05:18Z",
+  "updated_at": "2021-07-16T06:53:04Z",
+  "closed_at": "2021-05-11T11:07:40Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 830119802,
+      "user": "gengliqi",
+      "created_at": "2021-04-30T14:06:06Z",
+      "body": "/cc @gozssky @Little-Wallace @Connor1996 "
+    },
+    {
+      "id": 830212985,
+      "user": "hunterlxt",
+      "created_at": "2021-04-30T16:30:07Z",
+      "body": "Relying on the assumption that `approximate_size` is some is too vague, I prefer a clear flag to indicate that a splitcheck task has been done."
+    },
+    {
+      "id": 833203766,
+      "user": "cosven",
+      "created_at": "2021-05-06T03:50:11Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 833288857,
+      "user": "ilovesoup",
+      "created_at": "2021-05-06T07:13:53Z",
+      "body": "This might block one of our critical PoC tests which needs to prove horizontal scalability. Encountering large regions, the workload won't be scatter among nodes well on TiFlash."
+    }
+  ]
+}

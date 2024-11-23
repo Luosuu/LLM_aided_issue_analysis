@@ -1,0 +1,22 @@
+{
+  "issue_number": 13068,
+  "title": "br log backup initial scan downgrade cluster performance ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n03:24:19 root@172 patch-20220719 → ./tikv-server -V                   \r\nTiKV                                                                  \r\nRelease Version:   6.2.0-alpha                                        \r\nEdition:           Community                                          \r\nGit Commit Hash:   0dff1be50281c72c55c5464751cd733032115ce4           \r\nGit Commit Branch: master                                             \r\nUTC Build Time:    2022-07-19 11:52:27                                \r\n\r\n### What operating system and CPU are you using?\r\nCent OS, 8C 64G \r\n\r\n### Steps to reproduce\r\n1. Change gc lifetime to 48 hours\r\n2. Run workload for 48 hours\r\n3. Start log backup task, specifying start-ts as 48H ago (initial scan for 48 hours)\r\n\r\n### What did you expect?\r\nLog backup initial scan should not import cluster performance too much.\r\n\r\n### What did happened?\r\nLog backup CPU usage ~400%， Initial Scan Generate Event Throughput  max ~ 150MB/s; Duration increases from 8ms to 100+ ms at the peak, QPS jumps from ~30K to minimum ~6K at most.\r\n\r\n![image](https://user-images.githubusercontent.com/7403864/179926699-0a260872-89b8-4371-bc0b-7067bf336d28.png)\r\n![image](https://user-images.githubusercontent.com/7403864/179926724-a9e6406b-30ff-4a85-86d8-c4443b7cc63c.png)\r\n![image](https://user-images.githubusercontent.com/7403864/179926754-a89338a3-5e81-48b1-b1d7-c6470325fb43.png)\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-07-20T07:51:06Z",
+  "updated_at": "2022-07-21T06:17:10Z",
+  "closed_at": "2022-07-21T06:17:10Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1189947385,
+      "user": "fubinzh",
+      "created_at": "2022-07-20T07:51:58Z",
+      "body": "/type bug\r\n/severity Major\r\n/feature developing"
+    }
+  ]
+}

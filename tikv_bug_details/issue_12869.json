@@ -1,0 +1,48 @@
+{
+  "issue_number": 12869,
+  "title": "Br Log backup flush file retry results in too many s3 request",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # /tikv-server -V\r\nTiKV\r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   9fda7293db13eb2441a3814609d7a48b0c140cae\r\nGit Commit Branch: 6.1.0-pitr-dev\r\nUTC Build Time:    2022-06-13 03:03:45\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. There was s3 error which trigger log backup to retry flush file\r\n```\r\n[二 6月 21 03:33:40 2022] EXT4-fs warning (device dm-4): ext4_dx_add_entry:2353: Directory (ino: 568113172) index full, reach max htree level :2\r\n[二 6月 21 03:33:40 2022] EXT4-fs warning (device dm-4): ext4_dx_add_entry:2357: Large directory feature is not enabled on this filesystem\r\n```\r\n\r\n\r\n### What did you expect?\r\nlog backup retry should not result in too many S3 request\r\n\r\n### What did happened?\r\nbr log backup produces lots of S3 put object request, which might let S3 stop service.\r\n\r\n![origin_img_v2_56cb8626-ab83-4281-aade-4c0eb99a4f0g](https://user-images.githubusercontent.com/7403864/174742769-00434cbd-91df-4712-aaa1-bce8b6dc80d9.jpg)\r\n\r\n![origin_img_v2_779f742d-9c68-4066-85d8-4ec85227112g](https://user-images.githubusercontent.com/7403864/174743126-a54e8f16-fdd3-4ca3-a681-609c4f66f51e.jpg)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-06-21T07:45:53Z",
+  "updated_at": "2022-07-12T10:55:49Z",
+  "closed_at": "2022-07-12T10:55:49Z",
+  "labels": [
+    "type/bug",
+    "sig/migrate",
+    "severity/critical",
+    "feature/developing",
+    "may-affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1161384070,
+      "user": "fubinzh",
+      "created_at": "2022-06-21T07:47:44Z",
+      "body": "/type bug\r\n/severity Critical\r\n/feature developing"
+    },
+    {
+      "id": 1161488854,
+      "user": "joccau",
+      "created_at": "2022-06-21T09:21:31Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0"
+    },
+    {
+      "id": 1161528273,
+      "user": "joccau",
+      "created_at": "2022-06-21T09:57:10Z",
+      "body": "### Analyze\r\nThe error blow is from minio when write file\r\n- [2022/06/20 20:30:45.760 +00:00] [WARN] [router.rs:865] [\"backup stream flush failed\"] [err=\"Custom { kind: Other, error: \\\"failed to put object rusoto error Request ID: None Body: <?xml version=\\\\\\\"1.0\\\\\\\" encoding=\\\\\\\"UTF-8\\\\\\\"?>\\\\n<Error><Code>SlowDown</Code><Message>A timeout exceeded while waiting to proceed with the request, please reduce your request rate</Message><Resource>/nfs/fubin/pitr/pp_prod_log/v1/t00000077/20220620-434046296531927615-294efe49-6470-4086-9e62-3029abce2c4e.log</Resource><RequestId>16FA6E4060635DFE</RequestId><HostId>bf48f99f-3f89-4a20-bd11-95d1658fa9c8</HostId></Error>\\\" }\"] [est_len=77316] [file=\"\\\"/var/lib/tikv/data/log-backup-tmp/task1/00000077_00154988_write_Put_1655755220585.temp.log\\\"\"]\r\n- [2022/06/20 20:30:46.187 +00:00] [WARN] [errors.rs:135] [\"backup stream meet error\"] [err=\"I/O Error: failed to put object rusoto error Request ID: None Body: <?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?>\\n<Error><Code>SlowDown</Code><Message>A timeout exceeded while waiting to proceed with the request, please reduce your request rate</Message><Resource>/nfs/fubin/pitr/pp_prod_log/v1/t00000077/20220620-434046296531927615-294efe49-6470-4086-9e62-3029abce2c4e.log</Resource><RequestId>16FA6E4060635DFE</RequestId><HostId>bf48f99f-3f89-4a20-bd11-95d1658fa9c8</HostId></Error>\"] [context=\"failed to flush task.\"]\r\n- [2022/06/20 20:30:46.196 +00:00] [WARN] [router.rs:481] [\"backup steam do flush fail\"] [err=\"Io(Custom { kind: Other, error: \\\"failed to put object rusoto error Request ID: None Body: <?xml version=\\\\\\\"1.0\\\\\\\" encoding=\\\\\\\"UTF-8\\\\\\\"?>\\\\n<Error><Code>SlowDown</Code><Message>A timeout exceeded while waiting to proceed with the request, please reduce your request rate</Message><Resource>/nfs/fubin/pitr/pp_prod_log/v1/t00000077/20220620-434046296531927615-294efe49-6470-4086-9e62-3029abce2c4e.log</Resource><RequestId>16FA6E4060635DFE</RequestId><HostId>bf48f99f-3f89-4a20-bd11-95d1658fa9c8</HostId></Error>\\\" })\"]\r\n\r\nThe retry time and retry times\r\n- retry for 60 times\r\n- backoff for 45 mins(each of backoff is about 40 second)\r\n- The status of task became `ERROR` finally.\r\n\r\nThe size of files contains retry flush_files and new_files\r\n- [2022/06/20 20:02:42.292 +00:00] [INFO] [[router.rs:443](http://router.rs:443/)] [\"try flushing task\"] [size=134217753] [task=task1]\r\n...\r\n- [2022/06/20 20:48:45.697 +00:00] [INFO] [[router.rs:443](http://router.rs:443/)] [\"try flushing task\"] [size=2943225370] [task=task1]\r\n\r\n### Solution\r\n- reduce retry time and times, consider backoff 10 min and retry for 30 times.\r\n- If last `do_flush` failed, write these retry flushing files only but new-adding files.\r\n- limit the fluent to storage(reduce the concurrent count of files writing to storage)"
+    },
+    {
+      "id": 1161531099,
+      "user": "joccau",
+      "created_at": "2022-06-21T09:59:54Z",
+      "body": "/sig migrate"
+    },
+    {
+      "id": 1162964345,
+      "user": "joccau",
+      "created_at": "2022-06-22T11:10:48Z",
+      "body": "/assgin"
+    }
+  ]
+}

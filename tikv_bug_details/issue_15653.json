@@ -1,0 +1,39 @@
+{
+  "issue_number": 15653,
+  "title": "TableFullScan gets slower resulting in a 5% performance regression in TPCDS ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\ngood commit: https://github.com/tikv/tikv/pull/15523\r\nbad commit: https://github.com/tikv/tikv/pull/15522\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. deploy a tidb cluster with 1 tidb + 3 tikv with the good and the bad commit\r\n2. run TPCDS 50g\r\n\r\n### What did you expect?\r\nno performance regression\r\n\r\n### What did happened?\r\nQ88 elapsed time: 34s -> 38.9s\r\nQ28 elapsed time: 24.8s->28.3s\r\n[exection_plan.zip](https://github.com/tikv/tikv/files/12681216/exection_plan.zip)\r\n",
+  "state": "closed",
+  "created_at": "2023-09-21T06:48:16Z",
+  "updated_at": "2023-09-26T05:22:47Z",
+  "closed_at": "2023-09-26T05:22:47Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1728955009,
+      "user": "Yui-Song",
+      "created_at": "2023-09-21T06:50:22Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1729258428,
+      "user": "Yui-Song",
+      "created_at": "2023-09-21T10:04:09Z",
+      "body": "It was caused by https://github.com/tikv/tikv/pull/15584"
+    },
+    {
+      "id": 1729259958,
+      "user": "Yui-Song",
+      "created_at": "2023-09-21T10:05:13Z",
+      "body": "/assign glorv"
+    },
+    {
+      "id": 1729269649,
+      "user": "Yui-Song",
+      "created_at": "2023-09-21T10:10:52Z",
+      "body": "/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.5\r\n/remove-label may-affects-7.1"
+    }
+  ]
+}

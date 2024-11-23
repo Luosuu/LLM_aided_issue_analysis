@@ -1,0 +1,26 @@
+{
+  "issue_number": 3965,
+  "title": "test coprocessor::endpoint::tests::test_handle_time failed",
+  "body": "```\r\ntest coprocessor::endpoint::tests::test_handle_time ... thread 'coprocessor::endpoint::tests::test_handle_time' panicked at 'assertion failed: resp[1].get_exec_details().get_handle_time().get_process_ms() >= 1500', src/coprocessor/endpoint.rs:1170:13\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at libstd/sys/unix/backtrace/tracing/gcc_s.rs:49\r\n   1: std::sys_common::backtrace::print\r\n             at libstd/sys_common/backtrace.rs:71\r\n             at libstd/sys_common/backtrace.rs:59\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at libstd/panicking.rs:211\r\n   3: std::panicking::default_hook\r\n             at libstd/panicking.rs:227\r\n   4: std::panicking::rust_panic_with_hook\r\n             at libstd/panicking.rs:475\r\n   5: std::panicking::begin_panic\r\n             at /checkout/src/libstd/panicking.rs:409\r\n   6: tikv::coprocessor::endpoint::tests::test_handle_time\r\n             at src/coprocessor/endpoint.rs:1170\r\n   7: tikv::__test::TESTS::{{closure}}\r\n             at src/coprocessor/endpoint.rs:1012\r\n   8: core::ops::function::FnOnce::call_once\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n   9: <F as alloc::boxed::FnBox<A>>::call_box\r\n             at libtest/lib.rs:1454\r\n             at /checkout/src/libcore/ops/function.rs:223\r\n             at /checkout/src/liballoc/boxed.rs:640\r\n  10: __rust_maybe_catch_panic\r\n             at libpanic_unwind/lib.rs:106\r\nFAILED\r\n```",
+  "state": "closed",
+  "created_at": "2018-12-21T07:04:27Z",
+  "updated_at": "2019-01-09T05:18:03Z",
+  "closed_at": "2019-01-09T05:18:03Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 449285876,
+      "user": "breezewish",
+      "created_at": "2018-12-21T07:13:42Z",
+      "body": "This looks like an old issue fixed in https://github.com/tikv/tikv/pull/3821\r\n\r\nNotice that #3821 has changed assertion failure messages to be a more specific one, so the message you post indicates that #3821 is not applied"
+    },
+    {
+      "id": 452575237,
+      "user": "breezewish",
+      "created_at": "2019-01-09T05:18:03Z",
+      "body": "Looks like since last fix this issue has not occurred recently. Closing for now."
+    }
+  ]
+}

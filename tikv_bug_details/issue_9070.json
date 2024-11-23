@@ -1,0 +1,14 @@
+{
+  "issue_number": 9070,
+  "title": "committed_cb is always invoked which affects the correctness of async apply",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nmaster\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nnot releated\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n1. Partition the leader and followers.\r\n2. Propose a write request on the leader.\r\n3. A new leader is elected and commits a new entry.\r\n4. Recover the network partition.\r\n5. The old proposal should be dropped and the committed_cb shouldn't be invoked.\r\n\r\n### Root cause\r\nAll proposals are sent to the apply system even if some of them aren't committed. We can filter them.\r\n![image](https://user-images.githubusercontent.com/14819777/99644816-5d5a0980-2a89-11eb-8313-7f8df51a715b.png)\r\n",
+  "state": "closed",
+  "created_at": "2020-11-19T09:16:07Z",
+  "updated_at": "2021-01-05T11:57:47Z",
+  "closed_at": "2021-01-05T11:57:47Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": []
+}

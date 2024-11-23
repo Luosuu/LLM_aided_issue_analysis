@@ -1,0 +1,42 @@
+{
+  "issue_number": 14763,
+  "title": "lightning import fails due to sst leakake in /var/lib/tikv/data/import ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nsh-5.1#/tikv-server -V\r\nTiKV\r\nRelease Version:   7.0.0\r\nEdition:           Community\r\nGit Commit Hash:   37ad006fa487e858868d192c83cfca827e0fe175\r\nGit Commit Branch: heads/refs/tags/v7.0.0-pr14147\r\n\r\n\r\n### What operating system and CPU are you using?\r\nK8s rocky \r\n\r\n### Steps to reproduce\r\n1. Use 10 lightning instance to import ~14T csv files (2 tables, 6 billions rows) in parallel.\r\n```\r\ntable 1\r\nIn total , 7.68 TB, 3B rows, 500 files\r\nSingle row: 2.68 KB ；\r\nSingle csv file: 15.36 gb, 6m rows；\r\nEach lightning node: 300m rows each csv，50 files in total，768 GB\r\n\r\ntable 2\r\nIn total , 5.82 TB, 3B rows, 500 files\r\nSingle row: 2.03 KB ；\r\nSingle csv file: 11.65 gb, 6m rows；\r\nEach lightning node: 300m rows each csv，50 files in total,  582GB\r\n```\r\n\r\n### What did you expect?\r\nLightning import success, no sst leaked in /var/lib/tikv/data/import\r\n\r\n### What did happened?\r\n6 out of 36 TiKV nodes disk full, due to /var/lib/tikv/data/import occupies ~1TB  storage.\r\n\r\n```\r\nsh-5.1# du -h /var/lib/tikv/data/\r\n24M        /var/lib/tikv/data/raft-engine\r\n835G        /var/lib/tikv/data/db\r\n54M        /var/lib/tikv/data/import/.meta\r\n380M        /var/lib/tikv/data/import/.temp\r\n4.0K        /var/lib/tikv/data/import/.clone\r\n999G        /var/lib/tikv/data/import\r\n72K        /var/lib/tikv/data/snap\r\n1.8T        /var/lib/tikv/data/\r\nsh-5.1#\r\n```\r\nlist of files in /var/lib/tikv/data/import\r\n[import-dir-ls.txt](https://github.com/tikv/tikv/files/11503950/import-dir-ls.txt)\r\n",
+  "state": "open",
+  "created_at": "2023-05-18T03:05:43Z",
+  "updated_at": "2024-11-01T10:18:32Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "component/lightning",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1552343589,
+      "user": "fubinzh",
+      "created_at": "2023-05-18T03:10:01Z",
+      "body": "https://github.com/tikv/tikv/pull/14747 was used for this testing, but this pr only resolved issue sst leakage after import, it doesn't resolve sst leakage during import.\r\n"
+    },
+    {
+      "id": 1552348011,
+      "user": "fubinzh",
+      "created_at": "2023-05-18T03:18:35Z",
+      "body": "another testing done with lightning patch (https://github.com/pingcap/tidb/pull/43916), which wait more time during scatter to reduce the number of those kinds of stale SST, test was passed. TiKV store size and available size are quite balanced during import and after import finishes, no sst leaked after import finishes.\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/483910a8-d19d-4be6-b027-8155e0d8880b)\r\n![image](https://github.com/tikv/tikv/assets/7403864/0700083e-b0aa-4e78-bbd1-1de65b4bf776)\r\n\r\n"
+    },
+    {
+      "id": 1951943653,
+      "user": "BornChanger",
+      "created_at": "2024-02-19T08:34:53Z",
+      "body": "/component lightning"
+    }
+  ]
+}

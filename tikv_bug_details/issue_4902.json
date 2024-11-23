@@ -1,0 +1,23 @@
+{
+  "issue_number": 4902,
+  "title": "test_prevote_partition_leader_in_minority_detect_in_majority failed",
+  "body": "## Bug Report\r\n\r\n```\r\nthread 'raftstore::test_prevote::test_prevote_partition_leader_in_minority_detect_in_majority' panicked at 'failed to transfer leader to [1] id: 1 store_id: 1', components/test_raftstore/src/cluster.rs:809:17\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\nstack backtrace:\r\n   0: std::sys::unix::backtrace::tracing::imp::unwind_backtrace\r\n             at src/libstd/sys/unix/backtrace/tracing/gcc_s.rs:39\r\n   1: std::sys_common::backtrace::_print\r\n             at src/libstd/sys_common/backtrace.rs:71\r\n   2: std::panicking::default_hook::{{closure}}\r\n             at src/libstd/sys_common/backtrace.rs:59\r\n             at src/libstd/panicking.rs:197\r\n   3: std::panicking::default_hook\r\n             at src/libstd/panicking.rs:211\r\n   4: std::panicking::rust_panic_with_hook\r\n             at src/libstd/panicking.rs:474\r\n   5: std::panicking::continue_panic_fmt\r\n             at src/libstd/panicking.rs:381\r\n   6: std::panicking::begin_panic_fmt\r\n             at src/libstd/panicking.rs:336\r\n   7: test_raftstore::cluster::Cluster<T>::must_transfer_leader\r\n             at ./<::std::macros::panic macros>:8\r\n   8: integrations::raftstore::test_prevote::test_prevote\r\n             at tests/integrations/raftstore/test_prevote.rs:54\r\n   9: integrations::raftstore::test_prevote::test_prevote_partition_leader_in_minority_detect_in_majority\r\n             at tests/integrations/raftstore/test_prevote.rs:162\r\n  10: integrations::raftstore::test_prevote::test_prevote_partition_leader_in_minority_detect_in_majority::{{closure}}\r\n             at tests/integrations/raftstore/test_prevote.rs:158\r\n  11: core::ops::function::FnOnce::call_once\r\n             at /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/libcore/ops/function.rs:231\r\n  12: <alloc::boxed::Box<F> as core::ops::function::FnOnce<A>>::call_once\r\n             at /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/liballoc/boxed.rs:704\r\n  13: __rust_maybe_catch_panic\r\n             at src/libpanic_unwind/lib.rs:85\r\n  14: test::run_test::run_test_inner::{{closure}}\r\n             at /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/libstd/panicking.rs:272\r\n             at /rustc/e305df1846a6d985315917ae0c81b74af8b4e641/src/libstd/panic.rs:388\r\n             at src/libtest/lib.rs:1468\r\ntest raftstore::test_prevote::test_prevote_partition_leader_in_minority_detect_in_majority ... FAILED\r\ntest storage::test_storage::test_txn_store_commit_illegal_tso ... ok\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2019-06-14T14:23:12Z",
+  "updated_at": "2020-11-04T05:23:25Z",
+  "closed_at": "2020-11-04T05:23:25Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/high",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 721518573,
+      "user": "hicqu",
+      "created_at": "2020-11-04T05:23:25Z",
+      "body": "Seems it's stale. Close it."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "issue_number": 16480,
+  "title": "Down-peer-region can't recover when enable placement-rule policy",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv6.5.3\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. set placement-rule:\r\n```\r\n[\r\n  {\r\n    \"group_id\": \"pd\",\r\n    \"id\": \"1\",\r\n    \"start_key\": \"\",\r\n    \"end_key\": \"\",\r\n    \"role\": \"voter\",\r\n    \"is_witness\": false,\r\n    \"count\": 2,\r\n    \"label_constraints\": [\r\n      {\r\n        \"key\": \"disk_type\",\r\n        \"op\": \"in\",\r\n        \"values\": [\r\n          \"ssd\"\r\n        ]\r\n      }\r\n    ],\r\n    \"location_labels\": [\r\n      \"host\"\r\n    ],\r\n    \"isolation_level\": \"host\",\r\n    \"create_timestamp\": 1706696121\r\n  },\r\n  {\r\n    \"group_id\": \"pd\",\r\n    \"id\": \"2\",\r\n    \"start_key\": \"\",\r\n    \"end_key\": \"\",\r\n    \"role\": \"follower\",\r\n    \"is_witness\": false,\r\n    \"count\": 1,\r\n    \"label_constraints\": [\r\n      {\r\n        \"key\": \"disk_type\",\r\n        \"op\": \"in\",\r\n        \"values\": [\r\n          \"mix\"\r\n        ]\r\n      }\r\n    ],\r\n    \"location_labels\": [\r\n      \"host\"\r\n    ],\r\n    \"isolation_level\": \"host\",\r\n    \"create_timestamp\": 1706696121\r\n  }\r\n]\r\n```\r\n2. Start 8 tikv nodes, where 3 nodes are labeled `disk_type=mix`, and the other 5 nodes are labeled `disk_type=ssd`. Then load data and observe that there is no leader on the `mix` node, which is expected.\r\n![image](https://github.com/tikv/tikv/assets/22953824/76f1c888-c420-4165-bd30-4024fbadfe7b)\r\n3. force scale-in one `mix` node, find there are lots of `down-peer` not recover\r\n![image](https://github.com/tikv/tikv/assets/22953824/52cb452f-5720-4351-a03a-f37b6ab52769)\r\n4. disable placement-rule, then `down-peer` starts to recover\r\n\r\nIs this caused by my wrong placement policy or a bug of placement-rule?",
+  "state": "closed",
+  "created_at": "2024-02-01T06:45:38Z",
+  "updated_at": "2024-02-05T12:33:54Z",
+  "closed_at": "2024-02-05T12:33:53Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 1926896332,
+      "user": "Smityz",
+      "created_at": "2024-02-05T12:33:53Z",
+      "body": "move to https://github.com/tikv/pd/issues/7808"
+    }
+  ]
+}

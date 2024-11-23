@@ -1,0 +1,32 @@
+{
+  "issue_number": 6448,
+  "title": "clippy fails because of strict comparison of f64",
+  "body": "## Bug Report\r\n\r\n`make clippy` shows:\r\n\r\n```\r\nerror: strict comparison of f32 or f64\r\n  --> components/tidb_query/src/rpn_expr/impl_math.rs:38:34\r\n   |\r\n38 |             if **base <= 0f64 || **base == 1f64 || **n <= 0f64 {\r\n   |                                  ^^^^^^^^^^^^^^ help: consider comparing them within some error: `(**base - 1f64).abs() < error`\r\n   |\r\n   = note: `#[deny(clippy::float_cmp)]` on by default\r\nnote: std::f32::EPSILON and std::f64::EPSILON are available.\r\n  --> components/tidb_query/src/rpn_expr/impl_math.rs:38:34\r\n   |\r\n38 |             if **base <= 0f64 || **base == 1f64 || **n <= 0f64 {\r\n   |                                  ^^^^^^^^^^^^^^\r\n   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#float_cmp\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2020-01-09T07:49:02Z",
+  "updated_at": "2020-12-18T03:19:04Z",
+  "closed_at": "2020-12-18T03:19:04Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/coprocessor",
+    "component/build",
+    "difficulty/easy",
+    "priority/low",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 572601950,
+      "user": "kennytm",
+      "created_at": "2020-01-09T15:05:47Z",
+      "body": "The `==` used here is correct, since `1 / log(1 + ε)` is well-defined.\r\n\r\n```\r\nmysql> select a, 1 + a, log(1 + a, exp(1)) from json_table('[4e-16, 3e-16, 2e-16, 1e-16, 0, -1e-16, -2e-16]', '$[*]' columns(a double path '$')) x;\r\n+--------+--------------------+-----------------------+\r\n| a      | 1 + a              | log(1 + a, exp(1))    |\r\n+--------+--------------------+-----------------------+\r\n|  4e-16 | 1.0000000000000004 |    2251799813685248.5 |\r\n|  3e-16 | 1.0000000000000002 |  4.503599627370497e15 |\r\n|  2e-16 | 1.0000000000000002 |  4.503599627370497e15 |\r\n|  1e-16 |                  1 |                  NULL |\r\n|      0 |                  1 |                  NULL |\r\n| -1e-16 | 0.9999999999999999 | -9.007199254740992e15 |\r\n| -2e-16 | 0.9999999999999998 | -4.503599627370495e15 |\r\n+--------+--------------------+-----------------------+\r\n7 rows in set, 2 warnings (0.00 sec)\r\n```\r\n\r\nHowever, the check should be reduced to just `base <= 0.0`. The function `n.log(base)` is defined as log(n) / log(base). The only possible finite result is when base = 0 && n > 0 where the logarithm is x / −∞ = −0. All other conditions would give NaN or ±∞ which are already handled by `f64_to_real()`."
+    },
+    {
+      "id": 747842583,
+      "user": "sticnarf",
+      "created_at": "2020-12-18T03:19:04Z",
+      "body": "This clippy warning is suppressed by `allow(clippy::float_cmp)`."
+    }
+  ]
+}

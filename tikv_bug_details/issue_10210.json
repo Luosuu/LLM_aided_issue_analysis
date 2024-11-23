@@ -1,0 +1,74 @@
+{
+  "issue_number": 10210,
+  "title": "Cleaning raft log costs too much time during destroying a peer",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv4.0.6\r\n\r\n### What did happened?\r\nSometimes during destroying a peer, cleaning raft log may cost too much time and cause much high jitter of latency and leaders to drop. :\r\n```\r\n[2021/05/18 10:58:31.160 +08:00] [INFO] [peer_storage.rs:1416] [\"finish clear peer meta\"] [takes=30.186824947s] [raft_logs=668] [raft_key=1] [apply_key=1] [meta_key=1] [region_id=43002]\r\n```\r\n\r\nThe root cause could be that [the seek operation](https://github.com/tikv/tikv/blob/363e92dfa900c2c412968ca27a5469c1c6d5c4b3/components/engine_rocks/src/raft_engine.rs#L145) for finding the min log index  may be very slow:\r\n![image](https://user-images.githubusercontent.com/20279863/119102305-764d7280-ba4c-11eb-9ddf-7af4a61a35fd.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-05-19T09:36:08Z",
+  "updated_at": "2022-02-15T03:53:14Z",
+  "closed_at": "2022-01-19T06:27:45Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4"
+  ],
+  "comments_data": [
+    {
+      "id": 845743005,
+      "user": "5kbpers",
+      "created_at": "2021-05-21T07:57:32Z",
+      "body": "I think if the amount of logs is relatively small, we can put delete flags directly and skip to seek.\r\ncc @BusyJay @hicqu @Connor1996 "
+    },
+    {
+      "id": 845744683,
+      "user": "hicqu",
+      "created_at": "2021-05-21T08:00:25Z",
+      "body": "How about record `first_log_index` in `PeerStorage`?"
+    },
+    {
+      "id": 845780383,
+      "user": "Connor1996",
+      "created_at": "2021-05-21T08:32:24Z",
+      "body": "Why is the seek operation that slow?"
+    },
+    {
+      "id": 845788634,
+      "user": "BusyJay",
+      "created_at": "2021-05-21T08:46:18Z",
+      "body": "Duplicates with #9633. Seek operation can be slow if there are too many tombstone."
+    },
+    {
+      "id": 924844349,
+      "user": "Lily2025",
+      "created_at": "2021-09-22T11:33:42Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 924846702,
+      "user": "Lily2025",
+      "created_at": "2021-09-22T11:37:28Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 924850954,
+      "user": "BusyJay",
+      "created_at": "2021-09-22T11:43:53Z",
+      "body": "@tonyxuqqi do you want to have a try?"
+    },
+    {
+      "id": 940812403,
+      "user": "sticnarf",
+      "created_at": "2021-10-12T09:02:34Z",
+      "body": "I encounter the issue again when testing about region unavailable using a heavy write workload.\r\n\r\nIn my place it seems not due to destroying a peer. Instead, the logs are also cleared after applying snapshot:\r\n\r\n```\r\n[2021/10/12 08:09:50.492 +00:00] [INFO] [raft_log.rs:614] [\"log [committed=718750, persisted=718750, applied=718750, unstable.offset=718751, unstable.entries.len()=0] starts to restore snapshot [index: 718924, term: 13]\"] [snapshot_term=13] [snapshot_index=718924] [log=\"committed=718750, persisted=718750, applied=718750, unstable.offset=718751, unstable.entries.len()=0\"] [raft_id=6] [region_id=2]\r\n[2021/10/12 08:09:50.492 +00:00] [INFO] [raft.rs:2609] [\"switched to configuration\"] [config=\"Configuration { voters: Configuration { incoming: Configuration { voters: {18, 6, 3} }, outgoing: Configuration { voters: {} } }, learners: {}, learners_next: {}, auto_leave: false }\"] [raft_id=6] [region_id=2]\r\n[2021/10/12 08:09:50.492 +00:00] [INFO] [raft.rs:2593] [\"restored snapshot\"] [snapshot_term=13] [snapshot_index=718924] [last_term=13] [last_index=718924] [commit=718924] [raft_id=6] [region_id=2]\r\n[2021/10/12 08:09:50.492 +00:00] [INFO] [raft.rs:2474] [\"[commit: 718924, term: 13] restored snapshot [index: 718924, term: 13]\"] [snapshot_term=13] [snapshot_index=718924] [commit=718924] [term=13] [raft_id=6] [region_id=2]\r\n[2021/10/12 08:09:50.492 +00:00] [INFO] [peer_storage.rs:1244] [\"begin to apply snapshot\"] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:10:06.023 +00:00] [INFO] [peer_storage.rs:1638] [\"finish clear peer meta\"] [takes=15.576305346s] [raft_key=1] [apply_key=1] [meta_key=1] [region_id=2]\r\n[2021/10/12 08:10:06.023 +00:00] [INFO] [peer_storage.rs:1287] [\"apply snapshot with state ok\"] [state=\"applied_index: 718924 commit_index: 718750 commit_term: 13 truncated_state { index: 718924 term: 13 }\"] [region=\"id: 2 start_key: 7480000000000000FF3E5F728000000000FF2CAE330000000000FA region_epoch { conf_ver: 5 version: 1320 } peers { id: 3 store_id: 1 } peers { id: 6 store_id: 4 } peers { id: 18 store_id: 5 }\"] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:10:06.291 +00:00] [INFO] [peer.rs:3171] [\"snapshot is applied\"] [region=\"id: 2 start_key: 7480000000000000FF3E5F728000000000FF2CAE330000000000FA region_epoch { conf_ver: 5 version: 1320 } peers { id: 3 store_id: 1 } peers { id: 6 store_id: 4 } peers { id: 18 store_id: 5 }\"] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:10:06.291 +00:00] [INFO] [region_info_accessor.rs:238] [\"trying to create region but it already exists, try to update it\"] [region_id=2]\r\n[2021/10/12 08:10:06.291 +00:00] [INFO] [peer.rs:3222] [\"region changed after applying snapshot\"] [region=\"id: 2 start_key: 7480000000000000FF3E5F728000000000FF2CAE330000000000FA region_epoch { conf_ver: 5 version: 1320 } peers { id: 3 store_id: 1 } peers { id: 6 store_id: 4 } peers { id: 18 store_id: 5 }\"] [prev_region=\"id: 2 start_key: 7480000000000000FF3E5F728000000000FF2CAE330000000000FA region_epoch { conf_ver: 5 version: 1320 } peers { id: 3 store_id: 1 } peers { id: 6 store_id: 4 } peers { id: 18 store_id: 5 }\"] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:10:06.291 +00:00] [INFO] [region.rs:328] [\"begin apply snap data\"] [region_id=2]\r\n[2021/10/12 08:10:06.293 +00:00] [INFO] [apply.rs:3197] [\"re-register to apply delegates\"] [term=13] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:10:22.329 +00:00] [INFO] [region.rs:401] [\"apply new data\"] [time_takes=178.0895ms] [region_id=2]\r\n[2021/10/12 08:10:32.870 +00:00] [INFO] [raft_log.rs:614] [\"log [committed=718924, persisted=718924, applied=718924, unstable.offset=718925, unstable.entries.len()=0] starts to restore snapshot [index: 758997, term: 13]\"] [snapshot_term=13] [snapshot_index=758997] [log=\"committed=718924, persisted=718924, applied=718924, unstable.offset=718925, unstable.entries.len()=0\"] [raft_id=6] [region_id=2]\r\n[2021/10/12 08:10:32.870 +00:00] [INFO] [raft.rs:2609] [\"switched to configuration\"] [config=\"Configuration { voters: Configuration { incoming: Configuration { voters: {18, 6, 3} }, outgoing: Configuration { voters: {} } }, learners: {}, learners_next: {}, auto_leave: false }\"] [raft_id=6] [region_id=2]\r\n[2021/10/12 08:10:32.870 +00:00] [INFO] [raft.rs:2593] [\"restored snapshot\"] [snapshot_term=13] [snapshot_index=758997] [last_term=13] [last_index=758997] [commit=758997] [raft_id=6] [region_id=2]\r\n[2021/10/12 08:10:32.870 +00:00] [INFO] [raft.rs:2474] [\"[commit: 758997, term: 13] restored snapshot [index: 758997, term: 13]\"] [snapshot_term=13] [snapshot_index=758997] [commit=758997] [term=13] [raft_id=6] [region_id=2]\r\n[2021/10/12 08:10:32.870 +00:00] [INFO] [peer_storage.rs:1244] [\"begin to apply snapshot\"] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:11:01.239 +00:00] [INFO] [peer_storage.rs:1638] [\"finish clear peer meta\"] [takes=28.368909697s] [raft_key=1] [apply_key=1] [meta_key=1] [region_id=2]\r\n[2021/10/12 08:11:01.239 +00:00] [INFO] [peer_storage.rs:1287] [\"apply snapshot with state ok\"] [state=\"applied_index: 758997 commit_index: 718750 commit_term: 13 truncated_state { index: 758997 term: 13 }\"] [region=\"id: 2 start_key: 7480000000000000FF3E5F728000000000FF300B9D0000000000FA region_epoch { conf_ver: 5 version: 1322 } peers { id: 3 store_id: 1 } peers { id: 6 store_id: 4 } peers { id: 18 store_id: 5 }\"] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:11:01.292 +00:00] [INFO] [region.rs:516] [\"register deleting data in range\"] [end_key=7A7480000000000000FF3E5F728000000000FF300B9D0000000000FA] [start_key=7A7480000000000000FF3E5F728000000000FF2CAE330000000000FA] [region_id=2]\r\n[2021/10/12 08:11:01.292 +00:00] [INFO] [region_info_accessor.rs:238] [\"trying to create region but it already exists, try to update it\"] [region_id=2]\r\n[2021/10/12 08:11:01.292 +00:00] [INFO] [peer.rs:3171] [\"snapshot is applied\"] [region=\"id: 2 start_key: 7480000000000000FF3E5F728000000000FF300B9D0000000000FA region_epoch { conf_ver: 5 version: 1322 } peers { id: 3 store_id: 1 } peers { id: 6 store_id: 4 } peers { id: 18 store_id: 5 }\"] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:11:01.292 +00:00] [INFO] [peer.rs:3222] [\"region changed after applying snapshot\"] [region=\"id: 2 start_key: 7480000000000000FF3E5F728000000000FF300B9D0000000000FA region_epoch { conf_ver: 5 version: 1322 } peers { id: 3 store_id: 1 } peers { id: 6 store_id: 4 } peers { id: 18 store_id: 5 }\"] [prev_region=\"id: 2 start_key: 7480000000000000FF3E5F728000000000FF2CAE330000000000FA region_epoch { conf_ver: 5 version: 1320 } peers { id: 3 store_id: 1 } peers { id: 6 store_id: 4 } peers { id: 18 store_id: 5 }\"] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:11:01.292 +00:00] [INFO] [region.rs:552] [\"delete data in range because of stale\"] [end_key=7A7480000000000000FF3E5F728000000000FF300B9D0000000000FA] [start_key=7A7480000000000000FF3E5F728000000000FF2CAE330000000000FA] [region_id=2]\r\n[2021/10/12 08:11:01.292 +00:00] [INFO] [apply.rs:3197] [\"re-register to apply delegates\"] [term=13] [peer_id=6] [region_id=2]\r\n[2021/10/12 08:11:01.319 +00:00] [INFO] [peer.rs:862] [\"deleting applied snap file\"] [snap_file=2_13_718924] [peer_id=6] [region_id=2]\r\n```\r\n\r\nIn the above log, it tooks 15s and 28s to clear peer meta."
+    },
+    {
+      "id": 1004588564,
+      "user": "tonyxuqqi",
+      "created_at": "2022-01-04T07:44:34Z",
+      "body": "/assign tonyxuqqi"
+    }
+  ]
+}

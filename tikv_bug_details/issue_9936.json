@@ -1,0 +1,27 @@
+{
+  "issue_number": 9936,
+  "title": "Too many compaction pending bytes when truncating a huge table in TiDB",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n5.0 nightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nIntel(R) Xeon(R) Silver 4214R CPU @ 2.40GHz\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nTruncate a large table (about 2.3T) in TiDB. The store size reduced about 18T.\r\n<img width=\"600\" alt=\"image\" src=\"https://user-images.githubusercontent.com/31720476/113137522-3988aa80-9257-11eb-9093-50f8213ad564.png\">\r\n\r\n### What did you expect?\r\n\r\nThere shouldn't be many compaction pending bytes, according to @5kbpers \r\n\r\n### What did happened?\r\n\r\nThere are about 4.5T compaction pending bytes, which causes write stall.\r\n<img width=\"921\" alt=\"image\" src=\"https://user-images.githubusercontent.com/31720476/113137706-78b6fb80-9257-11eb-8da7-cd97066c8889.png\">\r\n\r\n<img width=\"1884\" alt=\"image\" src=\"https://user-images.githubusercontent.com/31720476/113137651-62a93b00-9257-11eb-837e-6a22ae89c482.png\">\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-03-31T11:31:05Z",
+  "updated_at": "2021-11-01T10:17:34Z",
+  "closed_at": "2021-11-01T10:17:34Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 812320348,
+      "user": "zhangjinpeng87",
+      "created_at": "2021-04-02T05:07:06Z",
+      "body": "I guess that deleting a lot of sst files by DeleteFilesInRange may cause the LSM tree into a strange shape, and in the abnormal shape, the way of calculating pending compaction bytes may not work well."
+    },
+    {
+      "id": 956108372,
+      "user": "Connor1996",
+      "created_at": "2021-11-01T10:17:34Z",
+      "body": "Close by https://github.com/tikv/tikv/pull/10978\r\n\r\nThe PR avoids the write stall after table drop though compaction pending bytes still change dramatically(it's as expected and just a statistics)"
+    }
+  ]
+}

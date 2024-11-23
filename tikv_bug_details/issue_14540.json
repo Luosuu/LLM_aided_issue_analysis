@@ -1,0 +1,61 @@
+{
+  "issue_number": 14540,
+  "title": "Should avoid disk explosion caused by compaction",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n[tidb@ip-172-16-4-49 bin]$ ./tikv-server -V\r\nTiKV\r\nRelease Version:   6.6.0\r\nEdition:           Community\r\nGit Commit Hash:   d7847d1be1a5176652dda0f182527615b5c22016\r\nGit Commit Branch: heads/refs/tags/v6.6.0\r\nUTC Build Time:    2023-02-12 08:08:03\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n### What did you expect?\r\n\r\n\r\n### What did happened?\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/230592449-4574d48a-063c-411b-a38b-6cf0e0a8a5f9.png)\r\n\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/230592236-8e25ab51-e74b-4138-9a81-759dd57136de.png)\r\n\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/230592175-99420321-8cd8-476d-bc15-e982fdb62b39.png)\r\n\r\n![image](https://user-images.githubusercontent.com/9443637/230592367-6b835f5c-1cf5-40cd-b875-ca94e8005ea1.png)\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-04-07T11:14:46Z",
+  "updated_at": "2023-10-24T06:37:14Z",
+  "closed_at": "2023-10-23T23:30:43Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1500193635,
+      "user": "mayjiang0203",
+      "created_at": "2023-04-07T11:15:07Z",
+      "body": "/remove-type enhencement"
+    },
+    {
+      "id": 1500193682,
+      "user": "ti-chi-bot",
+      "created_at": "2023-04-07T11:15:09Z",
+      "body": "@mayjiang0203: The label(s) `type/enhencement` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14540#issuecomment-1500193635):\n\n>/type enhencement\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1500202399,
+      "user": "mayjiang0203",
+      "created_at": "2023-04-07T11:26:21Z",
+      "body": "MySQL [(none)]> show config where name like '%soft-pending-compaction-bytes-limit%' and type='tikv';\r\n+------+-------------------+----------------------------------------------------------+--------+\r\n| Type | Instance          | Name                                                     | Value  |\r\n+------+-------------------+----------------------------------------------------------+--------+\r\n| tikv | 172.16.4.74:20160 | raftdb.defaultcf.soft-pending-compaction-bytes-limit     | 192GiB |\r\n| tikv | 172.16.4.74:20160 | rocksdb.defaultcf.soft-pending-compaction-bytes-limit    | 192GiB |\r\n| tikv | 172.16.4.74:20160 | rocksdb.lockcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.74:20160 | rocksdb.raftcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.74:20160 | rocksdb.writecf.soft-pending-compaction-bytes-limit      | 192GiB |\r\n| tikv | 172.16.4.74:20160 | storage.flow-control.soft-pending-compaction-bytes-limit | 192GiB |\r\n| tikv | 172.16.4.48:20160 | raftdb.defaultcf.soft-pending-compaction-bytes-limit     | 192GiB |\r\n| tikv | 172.16.4.48:20160 | rocksdb.defaultcf.soft-pending-compaction-bytes-limit    | 192GiB |\r\n| tikv | 172.16.4.48:20160 | rocksdb.lockcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.48:20160 | rocksdb.raftcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.48:20160 | rocksdb.writecf.soft-pending-compaction-bytes-limit      | 192GiB |\r\n| tikv | 172.16.4.48:20160 | storage.flow-control.soft-pending-compaction-bytes-limit | 192GiB |\r\n| tikv | 172.16.4.49:20160 | raftdb.defaultcf.soft-pending-compaction-bytes-limit     | 192GiB |\r\n| tikv | 172.16.4.49:20160 | rocksdb.defaultcf.soft-pending-compaction-bytes-limit    | 192GiB |\r\n| tikv | 172.16.4.49:20160 | rocksdb.lockcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.49:20160 | rocksdb.raftcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.49:20160 | rocksdb.writecf.soft-pending-compaction-bytes-limit      | 192GiB |\r\n| tikv | 172.16.4.49:20160 | storage.flow-control.soft-pending-compaction-bytes-limit | 192GiB |\r\n| tikv | 172.16.4.47:20161 | raftdb.defaultcf.soft-pending-compaction-bytes-limit     | 192GiB |\r\n| tikv | 172.16.4.47:20161 | rocksdb.defaultcf.soft-pending-compaction-bytes-limit    | 192GiB |\r\n| tikv | 172.16.4.47:20161 | rocksdb.lockcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.47:20161 | rocksdb.raftcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.47:20161 | rocksdb.writecf.soft-pending-compaction-bytes-limit      | 192GiB |\r\n| tikv | 172.16.4.47:20161 | storage.flow-control.soft-pending-compaction-bytes-limit | 192GiB |\r\n| tikv | 172.16.4.74:20161 | raftdb.defaultcf.soft-pending-compaction-bytes-limit     | 192GiB |\r\n| tikv | 172.16.4.74:20161 | rocksdb.defaultcf.soft-pending-compaction-bytes-limit    | 192GiB |\r\n| tikv | 172.16.4.74:20161 | rocksdb.lockcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.74:20161 | rocksdb.raftcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.74:20161 | rocksdb.writecf.soft-pending-compaction-bytes-limit      | 192GiB |\r\n| tikv | 172.16.4.74:20161 | storage.flow-control.soft-pending-compaction-bytes-limit | 192GiB |\r\n| tikv | 172.16.4.47:20160 | raftdb.defaultcf.soft-pending-compaction-bytes-limit     | 192GiB |\r\n| tikv | 172.16.4.47:20160 | rocksdb.defaultcf.soft-pending-compaction-bytes-limit    | 192GiB |\r\n| tikv | 172.16.4.47:20160 | rocksdb.lockcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.47:20160 | rocksdb.raftcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.47:20160 | rocksdb.writecf.soft-pending-compaction-bytes-limit      | 192GiB |\r\n| tikv | 172.16.4.47:20160 | storage.flow-control.soft-pending-compaction-bytes-limit | 192GiB |\r\n| tikv | 172.16.4.49:20161 | raftdb.defaultcf.soft-pending-compaction-bytes-limit     | 192GiB |\r\n| tikv | 172.16.4.49:20161 | rocksdb.defaultcf.soft-pending-compaction-bytes-limit    | 192GiB |\r\n| tikv | 172.16.4.49:20161 | rocksdb.lockcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.49:20161 | rocksdb.raftcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.49:20161 | rocksdb.writecf.soft-pending-compaction-bytes-limit      | 192GiB |\r\n| tikv | 172.16.4.49:20161 | storage.flow-control.soft-pending-compaction-bytes-limit | 192GiB |\r\n| tikv | 172.16.4.48:20161 | raftdb.defaultcf.soft-pending-compaction-bytes-limit     | 192GiB |\r\n| tikv | 172.16.4.48:20161 | rocksdb.defaultcf.soft-pending-compaction-bytes-limit    | 192GiB |\r\n| tikv | 172.16.4.48:20161 | rocksdb.lockcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.48:20161 | rocksdb.raftcf.soft-pending-compaction-bytes-limit       | 192GiB |\r\n| tikv | 172.16.4.48:20161 | rocksdb.writecf.soft-pending-compaction-bytes-limit      | 192GiB |\r\n| tikv | 172.16.4.48:20161 | storage.flow-control.soft-pending-compaction-bytes-limit | 192GiB |\r\n+------+-------------------+----------------------------------------------------------+--------+\r\n48 rows in set (0.03 sec)"
+    },
+    {
+      "id": 1500202545,
+      "user": "ti-chi-bot",
+      "created_at": "2023-04-07T11:26:37Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `type/enhencement`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14540#issuecomment-1500193635):\n\n>/remove-type enhencement\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1502621915,
+      "user": "mayjiang0203",
+      "created_at": "2023-04-11T03:02:52Z",
+      "body": "/type bug\r\n/assign @SpadeA-Tang\r\n/severity major"
+    },
+    {
+      "id": 1776211033,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T23:30:43Z",
+      "body": "Dup with https://github.com/tikv/tikv/issues/15036"
+    }
+  ]
+}

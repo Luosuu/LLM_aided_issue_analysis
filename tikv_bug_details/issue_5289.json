@@ -1,0 +1,128 @@
+{
+  "issue_number": 5289,
+  "title": "Cargo Run workflow no longer usable",
+  "body": "## Bug Report\r\n\r\n**What version of TiKV are you using?**\r\nmaster\r\n\r\n**What operating system and CPU are you using?**\r\nAny\r\n\r\n**What did you do?**\r\n\r\nAs is convention in the Rust ecosystem, as I have for the last year and a half, I ran `cargo run --bin tikv-server` to start a TiKV development build of the server.\r\n\r\nThe command reported:\r\n\r\n```\r\nerror: no bin target named `tikv-server`\r\n```\r\n\r\nThe README.md does not describe how to workaround this problem.\r\n\r\nThe target machine does not have access to a copy of `make` that can support the complex Makefile.\r\n\r\n**What did you expect to see?**\r\n\r\nTiKV, as a rust project, to build and operate like a Rust project.\r\n\r\nTiKV, as a repository of tikv project, should follow the conventions of our other rust projects and support a clean `cargo run` behavior.\r\n\r\n**What did you see instead?**\r\n\r\n```\r\nerror: no bin target named `tikv-server`\r\n```\r\n\r\n## What action should be taken?\r\n\r\nI suggest reverting https://github.com/tikv/tikv/pull/5242 or adding documentation to all of our README files, as well as our `/Cargo.toml` documenting this.\r\n\r\nI would prefer reverting https://github.com/tikv/tikv/pull/5242. I think this has very poor usability for folks trying out contributing or developing TiKV for their first time.",
+  "state": "closed",
+  "created_at": "2019-08-15T19:47:49Z",
+  "updated_at": "2019-09-10T02:59:14Z",
+  "closed_at": "2019-09-10T02:59:14Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 521772578,
+      "user": "Hoverbear",
+      "created_at": "2019-08-15T19:47:59Z",
+      "body": "What do you think, @overvenus ?"
+    },
+    {
+      "id": 521789279,
+      "user": "Hoverbear",
+      "created_at": "2019-08-15T20:39:51Z",
+      "body": "@nrc suggested:\r\n\r\n> we might be able to use default-bin to make just cargo run work"
+    },
+    {
+      "id": 521969075,
+      "user": "overvenus",
+      "created_at": "2019-08-16T10:48:33Z",
+      "body": "I prefer adding documentation.\r\n\r\nThe actual workflow of TiKV is based on Makefile. Eg. cargo test does not test crates under components. So we should use `make run` instead of `cargo run`.\r\n\r\nThe point of #5242 is to prevent cyclin-dependent when we add a new crate (depends on the tikv) into tikv-server.\r\n\r\n"
+    },
+    {
+      "id": 522110737,
+      "user": "Hoverbear",
+      "created_at": "2019-08-16T18:39:30Z",
+      "body": "@overvenus I'm not sure breaking this workflow is worth it. :("
+    },
+    {
+      "id": 522354790,
+      "user": "nrc",
+      "created_at": "2019-08-18T20:57:28Z",
+      "body": "I hope we can get the benefits of both sides - it is nice to move out the cmd crate because the dependencies in the TiKV workspace are a bit of a nightmare (for the Prost work I must move out the tests into their own crate too). OTOH, it is *really good* for new contributors if the Cargo workflows work (even if they are not doing the optimal things). Using Cargo is very standard in the Rust community."
+    },
+    {
+      "id": 522719708,
+      "user": "Hoverbear",
+      "created_at": "2019-08-19T19:26:05Z",
+      "body": "This also impacts cargo tooling like `cargo metadata`, `cargo tree`, ..."
+    },
+    {
+      "id": 522719927,
+      "user": "Hoverbear",
+      "created_at": "2019-08-19T19:26:50Z",
+      "body": "@overvenus Can I propose I write a new checker for you some other way and we include it as a make task?"
+    },
+    {
+      "id": 522780507,
+      "user": "Hoverbear",
+      "created_at": "2019-08-19T22:37:30Z",
+      "body": "This may also impact our `Dockerfiles` https://github.com/tikv/tikv/blob/6a516eea06906a96efd0223245ac90531faa4dec/scripts/gen-dockerfile.sh#L58"
+    },
+    {
+      "id": 523267097,
+      "user": "overvenus",
+      "created_at": "2019-08-21T02:18:06Z",
+      "body": "Sorry for breaking `gen-dockerfile.sh`, will be fixed today. \r\n\r\nI really need the `cmd` crate, because I will soon add new a component, which depends on `tikv`, into tikv-server."
+    },
+    {
+      "id": 523551423,
+      "user": "Hoverbear",
+      "created_at": "2019-08-21T16:59:10Z",
+      "body": "@overvenus OK. Can we still support `cargo run --bin tikv-server` somehow?\r\n\r\nDo you think we could add a proxy binary there that just invokes `cmd::tikv_server`? This might also make it possible to move `cmd` into the `components/` directory."
+    },
+    {
+      "id": 523705746,
+      "user": "overvenus",
+      "created_at": "2019-08-22T01:08:22Z",
+      "body": "> Can we still support cargo run --bin tikv-server somehow?\r\n\r\nI don't have a clear plan to support this, could you help me?\r\n\r\n> This might also make it possible to move cmd into the components/ directory.\r\n\r\nPutting `cmd` out of components is suggested by @siddontang https://github.com/tikv/tikv/pull/5242#issuecomment-519821991\r\n"
+    },
+    {
+      "id": 523711450,
+      "user": "Hoverbear",
+      "created_at": "2019-08-22T01:39:39Z",
+      "body": "Hm, I hear from @siddontang that `tikv-ctl` may merge with `tikv-server`...\r\n\r\nCan you please explain to me exactly what is preventing us from having `/src/bin/tikv-server.rs` instead?\r\n\r\nYou say you're adding a new crate that depends on TIKV? Maybe we should be separating tikv-server into a separate project/repo?"
+    },
+    {
+      "id": 523714319,
+      "user": "siddontang",
+      "created_at": "2019-08-22T01:54:45Z",
+      "body": "> Hm, I hear from @siddontang that tikv-ctl may merge with tikv-server...\r\n\r\nNot now, but in the near future @Hoverbear see #4908 \r\n\r\n"
+    },
+    {
+      "id": 528598340,
+      "user": "brson",
+      "created_at": "2019-09-05T21:34:31Z",
+      "body": "I also agree that `cargo run` should just work.\r\n\r\nIf the problem is that tikv-server/ctl is going to depend on a library that itself depends on tikv, then we can make tikv another 'component' and make the top-level manifest just hold the bins."
+    },
+    {
+      "id": 528601059,
+      "user": "brson",
+      "created_at": "2019-09-05T21:42:30Z",
+      "body": "Also we might use the new (?) [default-run](https://doc.rust-lang.org/cargo/reference/manifest.html#the-default-run-field) key to make tikv-server run without picking an explicit bin"
+    },
+    {
+      "id": 528601781,
+      "user": "brson",
+      "created_at": "2019-09-05T21:44:41Z",
+      "body": "Also the [default-members](https://doc.rust-lang.org/cargo/reference/manifest.html#package-selection) key might help us here. It specifies the \"main package\", the one that is selected by default for `run`-style commands.\r\n\r\nSince tikv is so huge now it probably would make sense to turn the main manifest into a pure workspace, and put everything into a sub-component, then use default-members and maybe default-run."
+    },
+    {
+      "id": 529271020,
+      "user": "Hoverbear",
+      "created_at": "2019-09-09T01:43:10Z",
+      "body": "Related to https://github.com/tikv/tikv/pull/5374"
+    },
+    {
+      "id": 529303437,
+      "user": "aknuds1",
+      "created_at": "2019-09-09T05:18:56Z",
+      "body": "@brson's suggestions sound sensible to me."
+    },
+    {
+      "id": 529693836,
+      "user": "Hoverbear",
+      "created_at": "2019-09-09T22:37:16Z",
+      "body": "Let me have a try!"
+    }
+  ]
+}

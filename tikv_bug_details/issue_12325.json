@@ -1,0 +1,40 @@
+{
+  "issue_number": 12325,
+  "title": "external_storage: the `s3` backend cannot update data from some not-in-memory `Read` types",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nCurrent master.\r\n\r\n### What operating system and CPU are you using?\r\n`Intel(R) Xeon(R) Gold 6240 CPU @ 2.60GHz`\r\n\r\n### Steps to reproduce\r\nJust simply try to upload a local file with size greater than 5MB via the following code:\r\n```rust\r\n        let reader = File::open(data_file.local_path.clone()).await?;\r\n        let reader = UnpinReader(Box::new(limiter.limit(reader.compat())));\r\n        // some code omitted...\r\n        let ret = storage.write(filepath, reader, est_len).await;\r\n```\r\n\r\n### What did you expect?\r\nThe upload should success.\r\n\r\n### What did happened?\r\nIt failed with message *entity size is too small*.\r\n\r\n### Notes\r\nAccording to the document of S3, this error happens when the `PutObjectPart` request uploads a part smaller than 5M.\r\n\r\nHowever, the local file I/O in my system would read 16K each time(I guess), so the multi-part upload would upload many 16K parts too.\r\n\r\n![uhS7ufqzNW](https://user-images.githubusercontent.com/36239017/161894294-9c91f869-78dc-4ed9-b479-db77645ea3c2.png)\r\n",
+  "state": "closed",
+  "created_at": "2022-04-06T04:13:37Z",
+  "updated_at": "2024-04-03T11:43:46Z",
+  "closed_at": "2024-04-03T11:43:46Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1092680842,
+      "user": "Lily2025",
+      "created_at": "2022-04-08T09:47:14Z",
+      "body": "/type bug\r\n/severity major\r\n/assign YuJuncen"
+    },
+    {
+      "id": 1092682850,
+      "user": "YuJuncen",
+      "created_at": "2022-04-08T09:49:47Z",
+      "body": "/component backup-restore"
+    },
+    {
+      "id": 1092683401,
+      "user": "YuJuncen",
+      "created_at": "2022-04-08T09:50:26Z",
+      "body": "/severity minor\r\n\r\nThis only affects the develop branch `br-stream`, and has been fixed at that branch."
+    },
+    {
+      "id": 1092689638,
+      "user": "Lily2025",
+      "created_at": "2022-04-08T09:58:03Z",
+      "body": "/remove-severity major"
+    }
+  ]
+}

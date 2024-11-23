@@ -1,0 +1,39 @@
+{
+  "issue_number": 15354,
+  "title": "RawMvccSnapshot use prefix seek in defaultcf which not setup PrefixExtrator",
+  "body": "## Bug Report\r\n\r\n\r\n### What version of TiKV are you using?\r\ntikv6.5.0\r\n\r\n### What operating system and CPU are you using?\r\nN/A\r\n\r\n### Steps to reproduce\r\nN/A\r\n\r\n### What did you expect?\r\nN/A\r\n\r\n### What did happened?\r\nN/A\r\n\r\n\r\nhttps://github.com/tikv/tikv/blob/265602eae30734b265e81f4d5fae7fe9449a47fb/src/storage/raw/raw_mvcc.rs#L28-L29C49\r\n```\r\npub fn seek_first_key_value_cf(\r\n        &self,\r\n        cf: CfName,\r\n        opts: Option<ReadOptions>,\r\n        key: &Key,\r\n    ) -> Result<Option<Value>> {\r\n        let mut iter_opt = IterOptions::default();\r\n        iter_opt.set_fill_cache(opts.map_or(true, |v| v.fill_cache()));\r\n        // Use prefix seek and prefix same as start\r\n        iter_opt.use_prefix_seek();\r\n        iter_opt.set_prefix_same_as_start(true);\r\n        let upper_bound = key.clone().append_ts(TimeStamp::zero()).into_encoded();\r\n        iter_opt.set_vec_upper_bound(upper_bound, DATA_KEY_PREFIX_LEN);\r\n        let mut iter = self.iter(cf, iter_opt)?;\r\n        if iter.seek(key)? {\r\n            Ok(Some(iter.value().to_owned()))\r\n        } else {\r\n            Ok(None)\r\n        }\r\n    }\r\n```\r\nThe function of RawKvSnapshot is to convert the PointGet of RawKv into a Seek in ApivV2 mode. \r\nHowever, from the above code logic, prefix_seek enabled and prefix_same_as_start enabled, but the input key is a key without a timestamp. PrefixExtractor will extract the wrong prefix when extracting the prefix, resulting in unexpected results for the iterator!\r\nThe correct workaround is:\r\n```\r\nlet seek_key = key.clone().append_ts(Timestamp::MAX());\r\niter.seek(seek_key);\r\n```\r\n\r\n\r\nHowever, TikV works normally because defaultCF does not enable PrefixExtractor, resulting in prefix_seek and prefix_same_as_start parameters were actually ignored by rocksdb. That is to say, it seems like a coincidence that he can work normally (although it may also be intentional by TikV's developers)\r\n\r\nThe structure of RawKvSnapshot was introduced for apiv2rawkv, so it will only work on defaultCF actually, but the interface of Snapshot trait provides \"get_cf/xx_cf\" version, therefore its semantics do not guarantee that external users will only use it in defaultCF.\r\n\r\nTo avoid ambiguity, I think there are two measures:\r\n1. Check if all functions with \"cf\" are DefaultCF, and if not, return an error.\r\n2. Setup PrefixExtractor in DefaultCF, but it needs to be confirmed whether this will affect txn functions.",
+  "state": "open",
+  "created_at": "2023-08-18T02:05:12Z",
+  "updated_at": "2023-08-22T08:21:54Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1683227612,
+      "user": "mzygQAQ",
+      "created_at": "2023-08-18T02:06:51Z",
+      "body": "/cc @pingyu @BusyJay "
+    },
+    {
+      "id": 1683672074,
+      "user": "pingyu",
+      "created_at": "2023-08-18T09:59:41Z",
+      "body": "@guoxiangCN Thanks for your report. Let me see see."
+    },
+    {
+      "id": 1685253171,
+      "user": "pingyu",
+      "created_at": "2023-08-20T10:51:07Z",
+      "body": "@guoxiangCN I think you are right. Would you like to fix this issue ?\r\n\r\n> 1. Check if all functions with \"cf\" are DefaultCF, and if not, return an error.\r\n\r\nI believe it would be beneficial to fix the wrong key for seek and utilize the advantages of prefix seek. This way, we can avoid adding unnecessary limitations.\r\n\r\n> 2. Setup PrefixExtractor in DefaultCF, but it needs to be confirmed whether this will affect txn functions.\r\n\r\nI think we can setup the prefix extractor for default cf.\r\n\r\nI couldn't find any usage of prefix seek in DefaultCF, apart from rawkv mvcc, during my search in the repository. However, I think it would be prudent to conduct additional tests to ensure that the prefix extractor doesn't cause any issues with txn functions once it is implemented.\r\n\r\nI search in the repo, and I didn't find somewhere use the prefix seek in default cf other than the rawkv mvcc. But I think we need some more tests to verify the correctness for txn functions after the prefix extractor is setup.\r\n\r\nAdditionally, I believe that the prefix extractor should only handle keys of rawkv. We can utilize the `SliceTransform.in_domain` to assist us in accomplishing this task.\r\n\r\ncc @haojinming "
+    },
+    {
+      "id": 1687707720,
+      "user": "mzygQAQ",
+      "created_at": "2023-08-22T08:20:39Z",
+      "body": "accoarding to my search result, PrefixExtractor may affect the delete_range, when the startKey and key not contains timestamp。\r\nlike https://github.com/tikv/tikv/pull/4503"
+    }
+  ]
+}

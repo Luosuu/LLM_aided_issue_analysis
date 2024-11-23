@@ -1,0 +1,25 @@
+{
+  "issue_number": 12160,
+  "title": "raftstore: Integer overflow problems on memory metrics",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n$./tikv-server --version\r\nTiKV \r\nRelease Version:   6.0.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   ce39ef6b52a050c594b2b01e8d60a6e11853faec\r\nGit Commit Branch: fix-log-entry-oom-t\r\nUTC Build Time:    2022-03-14 11:39:21\r\nRust Version:      rustc 1.60.0-nightly (1e12aef3f 2022-02-13)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. sysbench insert\r\n### What did you expect?\r\n1.  no overflow.\r\n### What did happened?\r\n1. The metrics on raft messages overflow.\r\n2. master of 0314 + trace log\r\n![0W6TTjgjYc](https://user-images.githubusercontent.com/80742231/158306201-5a946421-1d28-449b-bd5a-16bf56fb2273.png)\r\n![EkRt8BAfRe](https://user-images.githubusercontent.com/80742231/158306224-142a0a3d-af89-423f-a98f-1051bab5303b.png)\r\n![feOg8VakKq](https://user-images.githubusercontent.com/80742231/158306232-35eacdfc-144b-464f-8101-211f8aafadb6.png)\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-03-15T04:25:13Z",
+  "updated_at": "2022-04-10T03:03:52Z",
+  "closed_at": "2022-03-21T10:49:21Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1067551074,
+      "user": "tier-cap",
+      "created_at": "2022-03-15T04:26:38Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign @tier-cap "
+    }
+  ]
+}

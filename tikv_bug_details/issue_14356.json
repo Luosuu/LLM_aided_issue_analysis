@@ -1,0 +1,35 @@
+{
+  "issue_number": 14356,
+  "title": "[Dynamic Regions] tikv oom due to memtable is highly used",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.7.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   8bfa12dea2d5bd0918b35e5ae041676aeeee77ab\r\nGit Commit Branch: heads/refs/tags/v6.7.0-alpha\r\nUTC Build Time:    2023-03-05 11:40:05\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-03-06T07:00:46.903Z\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n\r\n### What operating system and CPU are you using?\r\n8c/32G\r\n\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1654853\r\nafter case ha_tikv(random)_io_delay(10ms), tikv oom multi times\r\nhttp://perf.pingcap.net:3000/d/C1q8KDMVz/ha-test-summary?orgId=1&var-testbed=endless-ha-test-multi-rocks-tps-1654853-1-283&var-tag=All&var-case_name=All\r\n\r\n### What did you expect?\r\ntikv should not be oom\r\n\r\n### What did happened?\r\n3 tikvs oom\r\nlogs: http://minio.pingcap.net:38888/buckets/test-infra-testground/browse/YXJjaGl2ZS9lbmRsZXNzLWhhLXRlc3QtbXVsdGktcm9ja3MtdHBzLTE2NTQ4NTMtMS0yODMv\r\nclinic:  https://clinic.pingcap.com.cn/portal/#/login?next=%2Forgs%2F31%2Fclusters%2F7207301522984517045\r\n![image](https://user-images.githubusercontent.com/84712107/223312912-12383b43-42dd-4828-8482-a508deb7d8b4.png)\r\n![image](https://user-images.githubusercontent.com/84712107/223313069-5e16478b-d5a5-43e3-b540-7c1f68c4b252.png)\r\n![774f0822-2aec-4b13-9cbc-c129b94fe008](https://user-images.githubusercontent.com/84712107/223316734-1204cde5-e138-4b06-8978-5f9549ca3bc3.jpeg)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-03-07T03:29:30Z",
+  "updated_at": "2023-07-14T09:14:17Z",
+  "closed_at": "2023-07-14T09:14:17Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1457459123,
+      "user": "Lily2025",
+      "created_at": "2023-03-07T03:31:02Z",
+      "body": "/type bug\r\n/severity major\r\n/assign tonyxuqqi"
+    },
+    {
+      "id": 1459297370,
+      "user": "Lily2025",
+      "created_at": "2023-03-08T03:23:38Z",
+      "body": "from lijianjun\r\nkv2's memtable is highly used"
+    },
+    {
+      "id": 1496738933,
+      "user": "tonyxuqqi",
+      "created_at": "2023-04-04T23:56:00Z",
+      "body": "@Lily2025  What's the block cache size is used?"
+    }
+  ]
+}

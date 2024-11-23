@@ -1,0 +1,38 @@
+{
+  "issue_number": 3828,
+  "title": "tikv go-client dependency install failed",
+  "body": "I follow https://www.pingcap.com/docs/tikv/go-client-api/ (Try the Raw Key-Value API) try use go-client.\r\nbut run example failed, failed log:\r\n```\r\n# test.go is [Usage example of the Raw Key-Value API] of doc\r\n[shjwudp@instance-l7apms2b TiDB-Hackathon2018]$ go run test.go\r\n# github.com/coreos/etcd/clientv3\r\n../../coreos/etcd/clientv3/auth.go:116:72: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.AuthEnable\r\n../../coreos/etcd/clientv3/auth.go:121:74: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.AuthDisable\r\n../../coreos/etcd/clientv3/auth.go:126:100: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.UserAdd\r\n../../coreos/etcd/clientv3/auth.go:131:86: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.UserDelete\r\n../../coreos/etcd/clientv3/auth.go:136:122: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.UserChangePassword\r\n../../coreos/etcd/clientv3/auth.go:141:104: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.UserGrantRole\r\n../../coreos/etcd/clientv3/auth.go:146:80: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.UserGet\r\n../../coreos/etcd/clientv3/auth.go:151:72: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.UserList\r\n../../coreos/etcd/clientv3/auth.go:156:106: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.UserRevokeRole\r\n../../coreos/etcd/clientv3/auth.go:161:80: cannot use auth.callOpts (type []\"github.com/coreos/etcd/vendor/google.golang.org/grpc\".CallOption) as type []\"go.etcd.io/etcd/vendor/google.golang.org/grpc\".CallOption in argument to auth.remote.RoleAdd\r\n../../coreos/etcd/clientv3/auth.go:161:80: too many errors\r\n```\r\n\r\nit looks like [\"github.com/coreos/etcd\" rename to \"go.etcd.io/etcd\" question](https://github.com/etcd-io/etcd/pull/10044#issuecomment-417125341) .\r\nthen i use try to solve it by go dep, and get error:\r\n```\r\nSolving failure: No versions of github.com/grpc-ecosystem/go-grpc-middleware met constraints:\r\n\tv1.0.0: Could not introduce github.com/grpc-ecosystem/go-grpc-middleware@v1.0.0, as it has a dependency on google.golang.org/grpc with constraint ^1.8.0, which has no overlap with existing constraint 1.7.5 from github.com/pingcap/tidb@v2.0.7\r\n\tmaster: Could not introduce github.com/grpc-ecosystem/go-grpc-middleware@master, as it has a dependency on google.golang.org/grpc with constraint ^1.8.0, which has no overlap with existing constraint 1.7.5 from github.com/pingcap/tidb@v2.0.7\r\n```\r\n\r\ncan someone show me how to make tikv enviroment ready? thanks very much.",
+  "state": "closed",
+  "created_at": "2018-11-25T09:28:24Z",
+  "updated_at": "2018-11-27T07:37:23Z",
+  "closed_at": "2018-11-27T07:37:23Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 441504669,
+      "user": "siddontang",
+      "created_at": "2018-11-26T02:56:25Z",
+      "body": "PTAL @disksing "
+    },
+    {
+      "id": 441507810,
+      "user": "disksing",
+      "created_at": "2018-11-26T03:20:17Z",
+      "body": "Hi, @shjwudp . This is because tidb depends on an early version of etcd (under coreos). Simply put, you will need to replace the etcd in your environment (under GOPATH, or in `vendor/`, or in `go.mod`) with an earlier version. The exact version number can be found in the `tidb/go.mod` file. /cc @tiancaiamao "
+    },
+    {
+      "id": 441519158,
+      "user": "tiancaiamao",
+      "created_at": "2018-11-26T04:56:38Z",
+      "body": "oops, after TiDB migrate to Go module https://github.com/pingcap/tidb/issues/7922\r\nThose document maybe outdated (I guess I have to update them later). \r\n\r\nTry those steps, it maybe works:\r\n\r\n```\r\ncd outside/of/the/gopath\r\nmkdir hello\r\ntouch go.mod\r\ncat \"module hello\" > go.mod\r\ngo get -v -u github.com/pingcap/tidb/store/tikv@1e0876fe810a832721aac52275dd2b7792fd2892\r\ngo run test.go\r\n```\r\n\r\n@shjwudp "
+    },
+    {
+      "id": 441957456,
+      "user": "shjwudp",
+      "created_at": "2018-11-27T07:37:23Z",
+      "body": "thx~ go get specified version tikv solve my problem\r\nbtw, go mod is awesome 😊"
+    }
+  ]
+}

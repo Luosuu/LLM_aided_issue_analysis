@@ -1,0 +1,19 @@
+{
+  "issue_number": 16554,
+  "title": "Log Backup Task Randomly Paused due to Failed to get Initial Snapshot",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.5.x, but I guess this impacts all released versions (`v6.5`, `v7.1`, `v7.5`). (Maybe not for master because #16008 refines the retry strategy.)\r\n\r\n### What operating system and CPU are you using?\r\nIrrelative.\r\n\r\n### Steps to reproduce\r\nStart a log backup task in the cluster. Maybe trigger some merges or restarting TiKV.\r\n\r\n### What did you expect?\r\nLog backup should run normally.\r\n\r\n### What did happened?\r\nIt encountered a fatal error:\r\n```\r\nretry time exceeds: and error and error failed to get initial snapshot: \r\nfailed to get the snapshot (region_id = ...): \r\nError during requesting raftstore: message: \"read index not ready, reason can not read index due to merge, region ...\" read_index_not_ready { reason: \"can not read index due to merge\" region_id: ... }: \r\nfailed to get initial snapshot: failed to get the snapshot (region_id = ...): \r\nError during requesting raftstore: message: \"read index not ready, reason can not read index due to merge, region ...\" read_index_not_ready { reason: \"can not read index due to merge\" region_id: ... }: \r\nfailed to get initial snapshot: failed to get the snapshot (region_id = ...): \r\nError during requesting raftstore: message: \"read index not ready, reason can not read index due to merge, region ...\" read_index_not_ready { reason: \"can not read index due to merge\" region_id: ... }\r\n```\r\nOr, sometimes:\r\n```\r\nretry time exceeds: and error and error failed to get initial snapshot: \r\nfailed to get the snapshot (region_id = ...): \r\nOther Error: [components/backup-stream/src/event_loader.rs:320]: message 'CaptureChange' dropped for region ...: oneshot canceled: failed to get initial snapshot: \r\nfailed to get the snapshot (region_id = ...): \r\nOther Error: [components/backup-stream/src/event_loader.rs:320]: message 'CaptureChange' dropped for region ...: oneshot canceled: failed to get initial snapshot: \r\nfailed to get the snapshot (region_id = ...): \r\nOther Error: [components/backup-stream/src/event_loader.rs:320]: message 'CaptureChange' dropped for region ...: oneshot canceled\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2024-02-27T03:51:54Z",
+  "updated_at": "2024-04-30T01:14:02Z",
+  "closed_at": "2024-04-30T01:14:02Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": []
+}

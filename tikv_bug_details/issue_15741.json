@@ -1,0 +1,55 @@
+{
+  "issue_number": 15741,
+  "title": "TiKV resolved ts not stable when running workload with >1MB large rows",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@maincluster-tikv-0 /]# /tikv-server -V\r\nTiKV\r\nRelease Version:   7.4.0\r\nEdition:           Community\r\nGit Commit Hash:   5af8a0db353a4214d9c246de62eaa5ea89a25881\r\nGit Commit Branch: heads/refs/tags/v7.4.0\r\nUTC Build Time:    2023-10-09 09:35:30\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n\r\n\r\n### What operating system and CPU are you using?\r\nRocky Linux\r\n\r\n### Steps to reproduce\r\n1. TiDB cluster with 18 TiKV (8C 32G), 6 TiDB(8C32G), 3 CDC node\r\n2. Create CDC kafka changefeed with large-message-handle-option = \"claim-check\"\r\n3. Run workload with contains large rows >1MB, throughput 50MB/s+\r\n4. Run truncate table very few hours\r\n\r\n### What did you expect?\r\n1. CDC lag should be stable.\r\n\r\n### What did happened?\r\nTiKV resolve ts lag not stable and sometimes it stucks, which results to CDC lag not stable as well.\r\nResolved ts < 20s most of time, with some spikes of 1min+, sometime it even goes to 30min.\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/9ceeb283-6658-4268-b1d0-fdc083771dfa)\r\n![image](https://github.com/tikv/tikv/assets/7403864/e94ddd52-4927-4191-9674-e4eb888de4a7)\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/d1c15808-169a-4444-acbf-a7f39284ba86)\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/805c9c4e-7c64-41cc-a6b6-1ee6f6809f71)\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-10-10T04:19:49Z",
+  "updated_at": "2024-11-01T10:09:04Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.4",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1754547571,
+      "user": "hicqu",
+      "created_at": "2023-10-10T07:06:39Z",
+      "body": "There is a stale lock:\r\n```\r\n[2023/10/10 14:23:59.157 +08:00] [INFO] [endpoint.rs:575] [\"the max gap of leader resolved-ts is large\"] [last_resolve_attempt=\"{ success=false, ts=444834450364432464, reason=lock, key=Some(748000000000012FD25F72AA41139535837001) }\"] [duration_to_last_update_safe_ts=1499ms] [min_memory_lock=\"Some((TimeStamp(444837144575607148), 74800000000000DFFF6C5F728000000000FF4C945C0000000000FA))\"] [txn_num=1] [lock_num=1] [min_lock=\"Some((TimeStamp(444834450364432464), TxnLocks { lock_count: 1, sample_lock: Some(748000000000012FD25F72AA41139535837001) }))\"] [applied_index=359] [read_state=\"ReadState { idx: 332, ts: 444834472240349689 }\"] [gap=10194214ms] [region_id=4484803]\r\n```\r\n\r\n```\r\nregion_id: 4484803\r\n\r\nlock-key: 748000000000012FD25F72AA41139535837001\r\n\r\nregion-start-key: 748000000000012FFFD25F72AA3F4422AAFF0C48860000000000FA\r\nregion-end-key : 748000000000012FFFD25F72AA60375F7CFF3B3DFA0000000000FA\r\n```\r\n\r\nHowever, TiCDC keeps trying to resolve the lock:\r\n```\r\n[2023/10/10 14:41:16.576 +08:00] [WARN] [region_worker.go:330] [\"region not receiving resolved event from tikv or resolved ts is not pushing for too long time, try to resolve lock\"] [namespace=default] [changefeed=claim-check-3] [addr=maincluster-tikv-16.maincluster-tikv-peer.stable-testbed-47l4r.svc:20160] [regionID=4484803] [span={table_id:0,start_key:748000000000012fffd25f72aa3f4422aaff0c48860000000000fa,end_key:748000000000012fffd25f72aa60375f7cff3b3dfa0000000000fa}] [duration=3h7m9.355895855s] [lastEvent=6.325962ms] [resolvedTs=444834472843280480]\r\n[2023/10/10 14:41:16.585 +08:00] [INFO] [lock_resolver.go:131] [\"resolve lock successfully\"] [regionID=4484803] [lockCount=1] [maxVersion=444837413929877504] [namespace=default] [changefeed=claim-check-3]\r\n```\r\n\r\ntikv-ctl scan --show-cf lock for the region shows:\r\n\r\n```\r\nkey: zt\\200\\000\\000\\000\\000\\001/\\377\\322_r\\252A\\023\\2255\\377\\203p\\001\\000\\000\\000\\000\\000\\372\r\n        lock cf value: start_ts: 444834450364432464 primary: 748000000000012FD25F728E06564E11B56DDD\r\n```\r\n\r\nI have also tried `./cdc cli unsafe resolve-lock --pd http://10.104.230.82:2379 --region 4484803` to resolve the lock, but it still exists."
+    },
+    {
+      "id": 1754560382,
+      "user": "fubinzh",
+      "created_at": "2023-10-10T07:15:55Z",
+      "body": "/label affects-7.4"
+    },
+    {
+      "id": 1754684179,
+      "user": "hicqu",
+      "created_at": "2023-10-10T08:27:29Z",
+      "body": "After restarting all TiCDC instances, the stale lock is cleared. It's very strange."
+    },
+    {
+      "id": 1754867510,
+      "user": "fubinzh",
+      "created_at": "2023-10-10T10:03:09Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1776142310,
+      "user": "tonyxuqqi",
+      "created_at": "2023-10-23T22:47:55Z",
+      "body": "@nongfushanquan Could you take a look from TiCDC side?  As \"After restarting all TiCDC instances, the stale lock is cleared\""
+    }
+  ]
+}

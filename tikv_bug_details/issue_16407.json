@@ -1,0 +1,14 @@
+{
+  "issue_number": 16407,
+  "title": "Error message is different from TiDB when `pow` is out of bound",
+  "body": "## Bug Report\r\n\r\nWhen the result of `pow` is out of range, the error message in TiDB looks like this\r\n```\r\nDOUBLE value is out of range in 'pow(-36452.389, 382218415)'\r\n```\r\nBut in TiKV, the error message is \r\n```\r\nDOUBLE value is out of range in '-36452.389.pow(382218415)'\r\n```",
+  "state": "closed",
+  "created_at": "2024-01-18T03:05:12Z",
+  "updated_at": "2024-01-18T03:36:18Z",
+  "closed_at": "2024-01-18T03:36:18Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

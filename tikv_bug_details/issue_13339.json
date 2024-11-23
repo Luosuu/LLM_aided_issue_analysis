@@ -1,0 +1,15 @@
+{
+  "issue_number": 13339,
+  "title": "Manual compaction blocks tikv shutdown",
+  "body": "## Bug Report\r\n\r\n### What version of TiKV are you using?\r\n\r\nN/A\r\n\r\n### What operating system and CPU are you using?\r\n\r\nN/A\r\n\r\n### Steps to reproduce\r\n\r\nTiKV reload takes too long. The TiKV log shows it is doing manual compaction (\"compact range finished\").\r\n\r\nNormally, compaction will be cancelled if DB is closed. However, TiKV's `DB` will only be closed when no one is referencing it.\r\n\r\nRelated to #13338 \r\n\r\nPossible solution(s):\r\n- Expose `DB::close` and call it during TiKV shutdown",
+  "state": "closed",
+  "created_at": "2022-08-25T03:45:11Z",
+  "updated_at": "2024-01-30T00:21:04Z",
+  "closed_at": "2024-01-30T00:21:04Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "affects-6.1"
+  ],
+  "comments_data": []
+}

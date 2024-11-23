@@ -1,0 +1,29 @@
+{
+  "issue_number": 10114,
+  "title": "CDC unlimited scan task concurrency may cause OOM",
+  "body": "## Bug Report\r\n\r\nCDC unlimited scan task concurrency may cause OOM. There is a speed limit of sending messages in TiKV, so scanned content is buffered in memory and causes memory spikes.\r\n\r\nhttps://github.com/tikv/tikv/blob/e26389a278116b2f61addfa9f15ca25ecf38bc80/components/cdc/src/endpoint.rs#L1185-L1204\r\n\r\n![image](https://user-images.githubusercontent.com/2150711/117233649-1fde1280-ae56-11eb-8e0e-f77041c9c634.png)\r\n![image](https://user-images.githubusercontent.com/2150711/117233666-2c626b00-ae56-11eb-8b0a-d7cb5eb40d3e.png)\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nTiKV v5.0.0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\n# create a changefeed for incremental scan large amount of data in 2 hours\r\nsleep 7200 && tiup cdc:nightly cli --pd=\"http://172.16.4.55:47902\" changefeed create --sink-uri=\"blackhole://\" -c \"bl2\" --config cf-old-value.toml --start-ts=$(( $(pd-ctl -u http://172.16.4.55:47902 service-gc-safepoint | jq '.service_gc_safe_points[] | select(.service_id == \"gc_worker\") | .safe_point') + 1000 )) &\r\n\r\nmysql -h 172.16.5.33 -P 47904 -u root -E -e 'update mysql.tidb set VARIABLE_VALUE=\"2400h\" where VARIABLE_NAME=\"tikv_gc_life_time\";' && \\\r\nsleep 60 && tiup cdc:nightly cli --pd=\"http://172.16.5.33:47902\" changefeed create --sink-uri=\"blackhole://\" -c \"bl1\" --config cf-old-value.toml && \\\r\nsleep 60 && go-ycsb load mysql -p workload=core -p mysql.host=172.16.5.33 -p mysql.port=47904 -p mysql.user=root -p recordcount=600000000 -p fieldcount=10 -p fieldlength=100 -p threadcount=8 -p table=usertable1 && \\\r\nsleep 60 && go-ycsb run  mysql -p workload=core -p mysql.host=172.16.5.33 -p mysql.port=47904 -p mysql.user=root -p recordcount=600000000 -p fieldcount=10 -p fieldlength=100 -p threadcount=8 -p table=usertable1 -p operationcount=1000000000 -p updateproportion=1 -p requestdistribution=uniform -p dotransactions=true\r\n```\r\n\r\n### What did you expect?\r\n\r\nNo memory spike.\r\n",
+  "state": "closed",
+  "created_at": "2021-05-06T02:31:44Z",
+  "updated_at": "2021-06-08T03:14:28Z",
+  "closed_at": "2021-06-08T03:14:28Z",
+  "labels": [
+    "type/bug",
+    "difficulty/medium",
+    "component/CDC",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 849409859,
+      "user": "lonng",
+      "created_at": "2021-05-27T07:37:22Z",
+      "body": "@overvenus Seems we have fixed this issue in #10133?"
+    },
+    {
+      "id": 849503438,
+      "user": "overvenus",
+      "created_at": "2021-05-27T09:59:25Z",
+      "body": "No, the root cause is unlimited scan concurrency, reducing scan batch size can not solve this issue. "
+    }
+  ]
+}

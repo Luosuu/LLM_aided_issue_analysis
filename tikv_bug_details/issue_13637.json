@@ -1,0 +1,52 @@
+{
+  "issue_number": 13637,
+  "title": "PITR checkpoint doesn't move forward during one TiKV and PD leader network partition",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.3.0\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. Start PITR log backup\r\n2. Run workload\r\n3. Inject network partition between one TiKV and PD leader\r\n4. Check PITR checkpoint lag\r\n\r\n### What did you expect?\r\nPITR Checkpoint should move forward normally, as cluster is providing service\r\n\r\n### What did happened?\r\nPITR checkpoint doesn't move forward during network partition between one TiKV and PD leader.\r\n![image](https://user-images.githubusercontent.com/7403864/196840003-e4796af7-3694-46f9-a98c-2473fb38b55f.png)\r\n\r\n- QPS not impacted obviously during the failure injection\r\n![image](https://user-images.githubusercontent.com/7403864/196840026-97975b79-e999-4fce-8af9-0ed420ba4512.png)\r\n\r\n",
+  "state": "open",
+  "created_at": "2022-10-20T02:14:37Z",
+  "updated_at": "2024-11-01T10:17:10Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/major",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.0",
+    "may-affects-6.1",
+    "may-affects-6.2",
+    "may-affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1284813500,
+      "user": "fubinzh",
+      "created_at": "2022-10-20T02:14:47Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1284813743,
+      "user": "fubinzh",
+      "created_at": "2022-10-20T02:15:06Z",
+      "body": "/severity Major"
+    },
+    {
+      "id": 1736704017,
+      "user": "tonyxuqqi",
+      "created_at": "2023-09-27T04:58:35Z",
+      "body": "@3pointer  PTAL if it's still a problem. "
+    }
+  ]
+}

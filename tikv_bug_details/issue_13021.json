@@ -1,0 +1,21 @@
+{
+  "issue_number": 13021,
+  "title": "API v2 range check will fail in reverse scan",
+  "body": "This check might fail in `scan` or `raw_scan` while the reverse flag is set since with reverse scan, the end key is less than the start key (swapped position). \r\n\r\nhttps://github.com/tikv/tikv/blob/62545b0c5c854b4e42bf37d03dddfab2099ce20c/components/api_version/src/api_v2.rs#L58-L71\r\n\r\nFor example, if the client with maximum keyspace id: `0xff_ff_ff` tries to `scan(\"key\", \"\")` reversely, it should encode the request into the protobuf format like:\r\n\r\n```rust\r\nScanRequest {\r\n\treverse: true,\r\n\tstart_key: [ b'y', 0, 0, 0 ],\r\n\tend_key: [ b'x', 0xff, 0xff, 0xff ] ++ \"key\"\r\n}\r\n```\r\n\r\nThis check will fail, but the request is valid by the protocol. We should swap the `start_key` and `end_key` before checking the range on the server side.",
+  "state": "open",
+  "created_at": "2022-07-14T07:38:02Z",
+  "updated_at": "2024-08-07T05:29:46Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1184104514,
+      "user": "iosmanthus",
+      "created_at": "2022-07-14T07:38:35Z",
+      "body": "/cc @pingyu "
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "issue_number": 10909,
+  "title": "Raftstore deadlock during migrating regions",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV \r\nRelease Version:   5.2.0\r\nEdition:           Community\r\nGit Commit Hash:   556783c314a9bfca36c818256182eeef364120d7\r\nGit Commit Branch: heads/refs/tags/v5.2.0\r\nUTC Build Time:    2021-08-26 05:50:07\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\nk8s 2PD、2TiDB、5TiKV\r\n4C 8G mem\r\n\r\n### Steps to reproduce\r\n1、setup 2PD、2TiDB、4TiKV\r\n2、run TiKVFailover001（down one tikv）but tikv is not recover due to case logic（do not delect chaos）\r\n3、k8s scale out one tikv（now 4 tikv）\r\n4、delect chaos and recover the tikv（now 5 tikv）\r\n\r\n### What did you expect?\r\nStore size 、leader and region is balanced\r\n\r\n### What did happened?\r\nStore size 、leader and region is not balanced\r\n![飞书20210906-171837](https://user-images.githubusercontent.com/84712107/132193319-b88b51f3-85d4-4064-9374-21cf34ca81d5.png)\r\n![飞书20210906-171900](https://user-images.githubusercontent.com/84712107/132193345-6fc44a19-3bb5-497b-ae30-e33a9630a2ca.png)\r\n![飞书20210906-171916](https://user-images.githubusercontent.com/84712107/132193362-08db41af-998f-4701-8966-9e4d0f1bd177.png)\r\n",
+  "state": "closed",
+  "created_at": "2021-09-06T09:21:59Z",
+  "updated_at": "2021-09-07T11:56:58Z",
+  "closed_at": "2021-09-07T11:56:58Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 913492715,
+      "user": "Lily2025",
+      "created_at": "2021-09-06T09:22:42Z",
+      "body": "/assign 5kbpers"
+    },
+    {
+      "id": 913492891,
+      "user": "Lily2025",
+      "created_at": "2021-09-06T09:22:57Z",
+      "body": "/severity Critical "
+    },
+    {
+      "id": 913492984,
+      "user": "Lily2025",
+      "created_at": "2021-09-06T09:23:05Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 913503618,
+      "user": "nolouch",
+      "created_at": "2021-09-06T09:39:22Z",
+      "body": "```\r\n#0  0x00007f2536da14ed in __lll_lock_wait () from /lib64/libpthread.so.0\r\n#1  0x00007f2536d9cdcb in _L_lock_883 () from /lib64/libpthread.so.0\r\n#2  0x00007f2536d9cc98 in pthread_mutex_lock () from /lib64/libpthread.so.0\r\n#3  0x000055a6ffc455c2 in raftstore::store::fsm::store::StoreFsmDelegate$LT$EK$C$ER$C$T$GT$::maybe_create_peer_internal::hb4a38ea8f75478f8 ()\r\n#4  0x000055a6ffc385ac in raftstore::store::fsm::store::StoreFsmDelegate$LT$EK$C$ER$C$T$GT$::maybe_create_peer::h8f442248e8d62dfc ()\r\n#5  0x000055a6ffc37521 in raftstore::store::fsm::store::StoreFsmDelegate$LT$EK$C$ER$C$T$GT$::on_raft_message::h4d43b5dfc6a12f45 ()\r\n#6  0x000055a6ffc3453a in raftstore::store::fsm::store::StoreFsmDelegate$LT$EK$C$ER$C$T$GT$::handle_msgs::h6fa8c55f9c0a2df8 ()\r\n```"
+    },
+    {
+      "id": 913506419,
+      "user": "5kbpers",
+      "created_at": "2021-09-06T09:43:45Z",
+      "body": "```\r\n(gdb) bt\r\n#0  0x00007f2536da14ed in __lll_lock_wait () from /lib64/libpthread.so.0\r\n#1  0x00007f2536d9cdcb in _L_lock_883 () from /lib64/libpthread.so.0\r\n#2  0x00007f2536d9cc98 in pthread_mutex_lock () from /lib64/libpthread.so.0\r\n#3  0x000055a6ffc1505e in raftstore::store::fsm::peer::PeerFsmDelegate$LT$EK$C$ER$C$T$GT$::on_ready_apply_snapshot::hb8ba6dd7648d255a ()\r\n#4  0x000055a6ffc104b6 in raftstore::store::fsm::peer::PeerFsmDelegate$LT$EK$C$ER$C$T$GT$::post_raft_ready_append::h1fcc32c1524e2da0 ()\r\n#5  0x000055a6ffc278b2 in raftstore::store::fsm::store::RaftPoller$LT$EK$C$ER$C$T$GT$::handle_raft_ready_write::h01da8c1bdafe94bc ()\r\n#6  0x000055a6ff94e036 in _$LT$raftstore..store..fsm..store..RaftPoller$LT$EK$C$ER$C$T$GT$$u20$as$u20$batch_system..batch..PollHandler$LT$raftstore..store..fsm..peer..PeerFsm$LT$EK$C$ER$GT$$C$raftstore..store..fsm..store..StoreFsm$LT$EK$GT$$GT$$GT$::end::ha140758f8328ea0d ()\r\n#7  0x000055a6ff903e8e in batch_system::batch::Poller$LT$N$C$C$C$Handler$GT$::poll::h5c7b49aadf7c2a97 ()\r\n#8  0x000055a6ffce20ae in std::sys_common::backtrace::__rust_begin_short_backtrace::h900083fbcc827393 ()\r\n#9  0x000055a6ffcf8afd in std::panicking::try::do_call::hfbcd62ff2215291e ()\r\n#10 0x000055a6ffe967ad in core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::hb9b7ea1369649798 ()\r\n#11 0x000055a7003b6897 in call_once<(), dyn core::ops::function::FnOnce<(), Output=()>, alloc::alloc::Global> () at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572\r\n#12 call_once<(), alloc::boxed::Box<dyn core::ops::function::FnOnce<(), Output=()>, alloc::alloc::Global>, alloc::alloc::Global> () at /rustc/2faabf579323f5252329264cc53ba9ff803429a3/library/alloc/src/boxed.rs:1572\r\n#13 std::sys::unix::thread::Thread::new::thread_start::hb71b17934c5f5e68 () at library/std/src/sys/unix/thread.rs:91\r\n#14 0x00007f2536d9add5 in start_thread () from /lib64/libpthread.so.0\r\n#15 0x00007f25363a3ead in clone () from /lib64/libc.so.6\r\n```"
+    },
+    {
+      "id": 913508369,
+      "user": "5kbpers",
+      "created_at": "2021-09-06T09:46:44Z",
+      "body": "According to the stack frames above, we can confirm that the deadlock was caused by the locking sequence of `store_meta` and `global_replication_state` which was introduced in #10802."
+    }
+  ]
+}

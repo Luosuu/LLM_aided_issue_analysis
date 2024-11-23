@@ -1,0 +1,58 @@
+{
+  "issue_number": 11319,
+  "title": "one tikv failure was restored after one minute, but the leader start the balance after 3 hours",
+  "body": "## Bug Report\r\n\r\n<!-- Please answer these questions before submitting your issue. Thanks! -->\r\n\r\n### What did you do?\r\noltp_002_test.go\r\nrun sysbench insert\r\none tikv failure was restored after one minute\r\n\r\n### What did you expect to see?\r\nafter fault is restored，the leader can balance \r\n\r\n### What did you see instead?\r\ntestbed：endless-oltp--tps-360552-1-502\r\none tikv failure was restored after one minute, but the leader start the balance after 3 hours\r\n![7kcfUCeym3](https://user-images.githubusercontent.com/84712107/141066424-92ab225c-81d4-49b9-8e29-7215a71f5fde.png)\r\n\r\n### What version of TiKV are you using (`tikv-server -V`)?\r\n[2021/11/09 07:22:13.267 +00:00] [INFO] [lib.rs:89] [\"Welcome to TiKV\"]\r\n[2021/11/09 07:22:13.267 +00:00] [INFO] [lib.rs:94] [\"Release Version:   5.0.1\"]\r\n[2021/11/09 07:22:13.267 +00:00] [INFO] [lib.rs:94] [\"Edition:           Community\"]\r\n[2021/11/09 07:22:13.267 +00:00] [INFO] [lib.rs:94] [\"Git Commit Hash:   e26389a278116b2f61addfa9f15ca25ecf38bc80\"]\r\n[2021/11/09 07:22:13.267 +00:00] [INFO] [lib.rs:94] [\"Git Commit Branch: heads/refs/tags/v5.0.1\"]\r\n[2021/11/09 07:22:13.268 +00:00] [INFO] [lib.rs:94] [\"UTC Build Time:    2021-04-23 08:24:13\"]\r\n[2021/11/09 07:22:13.268 +00:00] [INFO] [lib.rs:94] [\"Rust Version:      rustc 1.51.0-nightly (bc39d4d9c 2021-01-15)\"]\r\n[2021/11/09 07:22:13.268 +00:00] [INFO] [lib.rs:94] [\"Enable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\"]\r\n[2021/11/09 07:22:13.268 +00:00] [INFO] [lib.rs:94] [\"Profile:           dist_release\"]\r\n\r\n### What version of PD are you using (`pd-server -V`)?\r\n[2021/11/09 07:21:36.093 +00:00] [INFO] [util.go:41] [\"Welcome to Placement Driver (PD)\"]\r\n[2021/11/09 07:21:36.093 +00:00] [INFO] [util.go:42] [PD] [release-version=v5.0.1]\r\n[2021/11/09 07:21:36.093 +00:00] [INFO] [util.go:43] [PD] [edition=Community]\r\n[2021/11/09 07:21:36.093 +00:00] [INFO] [util.go:44] [PD] [git-hash=ea1449c7c693d94661b3c60d35b8679ebfb3da34]\r\n[2021/11/09 07:21:36.093 +00:00] [INFO] [util.go:45] [PD] [git-branch=heads/refs/tags/v5.0.1]\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-11-10T07:11:25Z",
+  "updated_at": "2022-01-13T12:54:27Z",
+  "closed_at": "2022-01-13T12:54:27Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation"
+  ],
+  "comments_data": [
+    {
+      "id": 964845619,
+      "user": "Lily2025",
+      "created_at": "2021-11-10T07:12:08Z",
+      "body": "/assign disksing"
+    },
+    {
+      "id": 964883560,
+      "user": "Lily2025",
+      "created_at": "2021-11-10T08:18:05Z",
+      "body": "from：@sticnarf\r\n[2021/11/09 09:40:01.013 +00:00] [ERROR] [raft_client.rs:405] [\"connection aborted\"] [addr=tc-tikv-1.tc-tikv-peer.endless-oltp--tps-360552-1-502.svc:20160] [receiver_err=\"Some(RpcFailure(RpcStatus { status: 8-RESOURCE_EXHAUSTED, details: Some(\\\"Sent message larger than max (10660287 vs. 10485760)\\\") }))\"] [sink_error=Some(RemoteStopped)] [store_id=1]"
+    },
+    {
+      "id": 964885130,
+      "user": "disksing",
+      "created_at": "2021-11-10T08:20:07Z",
+      "body": "From PD side, we can see that the transfer leader operators are constantly creating. But they are mostly timeout. So the balance speed is very slow.\r\nMaybe related to https://github.com/tikv/tikv/issues/9714 "
+    },
+    {
+      "id": 964924220,
+      "user": "Lily2025",
+      "created_at": "2021-11-10T09:11:43Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 964924500,
+      "user": "Lily2025",
+      "created_at": "2021-11-10T09:12:01Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 964925388,
+      "user": "Lily2025",
+      "created_at": "2021-11-10T09:13:09Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 989587071,
+      "user": "BusyJay",
+      "created_at": "2021-12-09T07:31:14Z",
+      "body": "Should be solved by #11532."
+    }
+  ]
+}

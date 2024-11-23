@@ -1,0 +1,46 @@
+{
+  "issue_number": 15506,
+  "title": "Store min resolved ts may not be accurate",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\nhttps://github.com/tikv/tikv/blob/fa3892be7ff7acad80cdac19bbe2f5bb1423f8ac/components/raftstore/src/store/util.rs#L1181-L1192\r\n\r\nAs title, because `get_min_resolved_ts` ignores uninitialized peers that may\r\ncontains older locks that are less that the min resolved ts of initialized\r\npeers.\r\nAlso there is another case: if TiKV creates a new peer after reporting min\r\nresolved ts, the new peer may also contain older locks.\r\n\r\nIn fact, it's a distributed snapshot problem, and might be tricky to get this right.\r\n\r\nThe inaccurate store min resolved ts may break transaction atomicity after\r\nflashback. To fix the flashback issue, it needs to check all region resolved ts\r\nand calculate the min resolved ts among them. \r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n\\>6.4.0\r\n",
+  "state": "open",
+  "created_at": "2023-09-04T05:24:59Z",
+  "updated_at": "2024-11-01T10:18:25Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1839920862,
+      "user": "AndreMouche",
+      "created_at": "2023-12-05T03:03:59Z",
+      "body": "Hello，\r\nCould the `min_resolved_ts` be maintained in the metadata information of the region and reported to PD in region- heartbeat? This way, it will be very convenient and safe(accurate) for PD to maintain `min_resolved_ts` group by store or whole cluster.\r\nmeanwhile, I wish TiKV could also maintain the `min_start_ts` group by region basis in the same way, which will help us to reduce the overhead of `scan-lock` during TIDB GC, while also reducing the wake-up calls to hibernate region, thereby lowering CPU consumption of tikv during GC #16134"
+    },
+    {
+      "id": 1840121470,
+      "user": "overvenus",
+      "created_at": "2023-12-05T07:01:35Z",
+      "body": "> Could the min_resolved_ts be maintained in the metadata information of the region and reported to PD in region- heartbeat? This way, it will be very convenient and safe(accurate) for PD to maintain min_resolved_ts group by store or whole cluster.\r\n\r\nReport resolved ts by region heartbeat is not enough, because this API stands for store level min resolved ts including followers and a follower can arbitrarily slower than a leader.\r\n\r\n> meanwhile, I wish TiKV could also maintain the min_start_ts group by region basis in the same way, which will help us to reduce the overhead of scan-lock during TIDB GC, while also reducing the wake-up calls to hibernate region, thereby lowering CPU consumption of tikv during GC https://github.com/tikv/tikv/issues/16134\r\n\r\nGood idea! At region level, resolved-ts essentially equivalents to the max-ts in GreenGC solution.  "
+    },
+    {
+      "id": 1891246204,
+      "user": "YuJuncen",
+      "created_at": "2024-01-15T03:27:28Z",
+      "body": "> meanwhile, I wish TiKV could also maintain the min_start_ts group by region basis in the same way, which will help us to reduce the overhead of scan-lock during TIDB GC, while also reducing the wake-up calls to hibernate region, thereby lowering CPU consumption of tikv during GC https://github.com/tikv/tikv/issues/16134\r\n\r\nGenerally I think storing some timestamps bound to a region (Also allowing query the min value of some range over them) would be a good general-proposed function for PD. Log backup also needs some place to store the progress of it. "
+    }
+  ]
+}

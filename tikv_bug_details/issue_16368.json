@@ -1,0 +1,44 @@
+{
+  "issue_number": 16368,
+  "title": "qps recover after 13mins when inject one of tikv io hang",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nv6.5.7\r\ngit hash：5f1ac992c5f4515ec493634795f1af7a726c1ec9\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\ndeploy with 6 tikv + 3 pd + 2 tidb\r\n\r\n### Steps to reproduce\r\n1、run tpcc \r\n![image](https://github.com/tikv/tikv/assets/84712107/c3b3821c-5b2b-4b9a-b6ac-fadce9db5a91)\r\n\r\n2、inject one of tikv io hang last for 20mins\r\n![image](https://github.com/tikv/tikv/assets/84712107/72f25574-f307-4620-a266-f8b077aac78d)\r\n\r\n\r\n### What did you expect?\r\nqps can recover within 5mins after inject one of tikv io hang\r\n\r\n### What did happened?\r\nqps recover after 13mins when inject one of tikv io hang\r\n\r\n![img_v3_026u_3d4bb9f4-51dc-497a-8ba6-527ad26aaa2g](https://github.com/tikv/tikv/assets/84712107/ab3e3484-5ce5-447f-939e-93e07d882f64)\r\n\r\nclinic：https://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7317786419213168837?from=1703858383&to=1703862621\r\n",
+  "state": "closed",
+  "created_at": "2024-01-12T02:38:32Z",
+  "updated_at": "2024-02-07T01:10:22Z",
+  "closed_at": "2024-01-23T06:07:50Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "affects-6.5",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1888342143,
+      "user": "Lily2025",
+      "created_at": "2024-01-12T02:38:53Z",
+      "body": "/type enhancement"
+    },
+    {
+      "id": 1888342403,
+      "user": "Lily2025",
+      "created_at": "2024-01-12T02:39:20Z",
+      "body": "/remove-type bug"
+    },
+    {
+      "id": 1888342998,
+      "user": "Lily2025",
+      "created_at": "2024-01-12T02:39:57Z",
+      "body": "/assign LykxSassinator"
+    },
+    {
+      "id": 1903325131,
+      "user": "LykxSassinator",
+      "created_at": "2024-01-22T06:07:52Z",
+      "body": "The root cause of this issue is that the peers enter into `PreChaos` state and ignore the `WakeUp` messages triggered by PD, making the duration of re-voting longer than expected.\r\nAnd it's triggered as follows: \r\n1. Firstly, as the `Hiberate Region` feature is enabled, peers enter `GroupState::Idle` as expected.\r\n2. Secondly, this cluster gets IO hang errors. The QPS is dropped to nearly ZERO (no new WRITE / READ flows to each TiKV node). And it triggers awaken hibernated regions mechanism by sending WakeUp messages to these peers to make them revoting into a short term.\r\n3. However, the `on_check_peer_stale_state_tick` (tick period is 5 minutes by default) goes just right before the raftstore handling the `WakUp` messages, and it makes the state into PreChaos state.\r\n4. Then, the WakeUp messages are ignored as the prerequisite `self.fsm.hibernate_state.group_state() == GroupState::Idle` is invalid.\r\n5. Finally, these peers keep wait for another `on_check_peer_stale_state_tick` to make `PreChaos` into `Chaos` to trigger the re-voting progress. And this makes the recovery duration longer than expected."
+    }
+  ]
+}

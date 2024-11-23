@@ -1,0 +1,16 @@
+{
+  "issue_number": 13870,
+  "title": "Flashback state may not be visible immediately in PeerFSM",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nhttps://github.com/tikv/tikv/commit/a4a4a43692b09b157b4d5cae1f2471ff57573ed4\r\n\r\n### What did happen?\r\n\r\nAfter https://github.com/tikv/tikv/pull/13823, we will immediately propose a read to `lock_cf` once applied raft admin command `PrepareFlashback`. However, since the `PeerFSM` sets its flashback flag according to `ExecResult::SetFlashbackState` which may not arrive first, this will cause the flashback read request to be blocked when it tries to propose a read by the not-yet-updated `is_in_flashback` flag in `PeerFSM`. Any error during the preparing phase will cause the client, i.e the TiDB, to retry all regions from the start, which is a quite time-comsuming problem.",
+  "state": "closed",
+  "created_at": "2022-12-01T16:44:35Z",
+  "updated_at": "2022-12-02T10:50:03Z",
+  "closed_at": "2022-12-02T10:50:03Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing",
+    "affects-6.5"
+  ],
+  "comments_data": []
+}

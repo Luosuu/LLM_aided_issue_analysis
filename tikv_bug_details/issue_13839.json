@@ -1,0 +1,33 @@
+{
+  "issue_number": 13839,
+  "title": "tikv restart for \"[\"assertion failed: `(left == right)`\\n  left: `Delete`,\\n right: `Put`\"] \"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[2022/11/23 17:06:27.667 +08:00] [INFO] [lib.rs:89] [\"Release Version:   6.5.0-alpha\"]\r\n[2022/11/23 17:06:27.667 +08:00] [INFO] [lib.rs:89] [\"Edition:           Community\"]\r\n[2022/11/23 17:06:27.667 +08:00] [INFO] [lib.rs:89] [\"Git Commit Hash:   3d256313de7a9c74590c2cc6bb9e294fbb113f6c\"]\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n1. install tidb cluster with nightly version\r\n2. create ticdc task and pitr task\r\n3. run workload for 10 minutes\r\n4. flashback\r\n\r\n### What did you expect?\r\nflashback successfully\r\nCDC and pitr job work normal\r\ntidb cluster work normal\r\n### What did happened?\r\ntikv restart for :\r\n```code\r\n[2022/11/23 17:06:11.970 +08:00] [FATAL] [lib.rs:495] [\"assertion failed: `(left == right)`\\n  left: `Delete`,\\n right: `Put`\"] [backtrace=\"   0: tikv_util::set_panic_hook::{{closure}}\\n   1: std::panicking::rust_panic_with_hook\\n   2: std::panicking::begin_panic_handler::{{closure}}\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\n   4: rust_begin_unwind\\n   5: core::panicking::panic_fmt\\n   6: core::panicking::assert_failed_inner\\n   7: core::panicking::assert_failed\\n   8: tikv::storage::mvcc::reader::reader::MvccReader<S>::load_data\\n   9: tikv::storage::mvcc::reader::reader::MvccReader<S>::get\\n  10: tikv::storage::txn::actions::acquire_pessimistic_lock::acquire_pessimistic_lock\\n  11: <tikv::storage::txn::commands::acquire_pessimistic_lock::AcquirePessimisticLock as tikv::storage::txn::commands::WriteCommand<S,L>>::process_write\\n  12: tikv::storage::txn::commands::Command::process_write\\n  13: std::thread::local::LocalKey<T>::with\\n  14: tikv::storage::metrics::with_perf_context\\n  15: tikv::storage::txn::scheduler::Scheduler<E,L>::process_write::{{closure}}\\n  16: <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n  17: <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n  18: <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n  19: <core::future::from_generator::GenFuture<T> as core::future::future::Future>::poll\\n  20: <yatp::task::future::Runner as yatp::pool::runner::Runner>::handle\\n  21: <tikv_util::yatp_pool::YatpPoolRunner<T> as yatp::pool::runner::Runner>::handle\\n  22: yatp::pool::worker::WorkerThread<T,R>::run\\n  23: std::sys_common::backtrace::__rust_begin_short_backtrace\\n  24: core::ops::function::FnOnce::call_once{{vtable.shim}}\\n  25: std::sys::unix::thread::Thread::new::thread_start\\n  26: start_thread\\n  27: clone\\n\"] [location=/home/ghz/components/tikv/src/storage/mvcc/reader/reader.rs:184] [thread_name=sched-worker-pool-3]\r\n```",
+  "state": "closed",
+  "created_at": "2022-11-23T10:00:47Z",
+  "updated_at": "2022-11-23T12:24:00Z",
+  "closed_at": "2022-11-23T12:24:00Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1324805019,
+      "user": "seiya-annie",
+      "created_at": "2022-11-23T10:01:19Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1324809119,
+      "user": "seiya-annie",
+      "created_at": "2022-11-23T10:04:12Z",
+      "body": "code not merge into repo, will fix in patch. close it"
+    },
+    {
+      "id": 1324845084,
+      "user": "seiya-annie",
+      "created_at": "2022-11-23T10:31:52Z",
+      "body": "[tikv-1.tar.gz](https://github.com/tikv/tikv/files/10074634/tikv-1.tar.gz)\r\n"
+    }
+  ]
+}

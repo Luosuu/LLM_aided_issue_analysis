@@ -1,0 +1,32 @@
+{
+  "issue_number": 15770,
+  "title": "TiKV OOM causes by reading raft conf changes during raft.hup",
+  "body": "## Bug Report\r\n\r\nBefore start election, raft-rs has to check if there is any unapplied conf change\r\nentry. In the current implementation, this needs to scan logs from\r\n[unapplied_index, committed_index]. It essentially takes unbounded memory when\r\nraft peers that has many unapplied logs.\r\nTo fix the issue, TiKV can paginate scan raft log which has a fixed memory usage\r\nupper bound.\r\n\r\nResults below:\r\nTiKV 3 OOM immediately after restart, until rolling update to a paginate-scan TiKV.\r\n\r\n![image](https://github.com/tikv/tikv/assets/2150711/d88a6b6b-5d3d-4d53-b144-313bb9e6f1a4)\r\n\r\n### What version of TiKV are you using?\r\n\r\nv7.4.0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nThe case occurs during sysbench bulk insert, but I'm not sure if it can reproduce reliably.\r\n\r\n```bash\r\nsysbench --db-driver=mysql --mysql-host=<HOST> --mysql-port=<PORT> --mysql-user=<USER> \\\r\n        --threads=100 --time=3600000 ./bulk_insert.lua (prepare|run|cleanup)\r\n```\r\n\r\n### What did you expect?\r\n\r\nNo OOM\r\n\r\n### What did happened?\r\n\r\nOOM",
+  "state": "closed",
+  "created_at": "2023-10-16T06:42:37Z",
+  "updated_at": "2023-10-24T06:37:52Z",
+  "closed_at": "2023-10-23T06:12:32Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.2",
+    "affects-7.3",
+    "affects-7.4",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

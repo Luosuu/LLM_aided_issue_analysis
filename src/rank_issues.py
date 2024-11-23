@@ -74,7 +74,7 @@ def analyze_comment_ranges(df):
 
 def main():
     # Load the data
-    df = load_and_clean_data('redis_bug_issues.csv')
+    df = load_and_clean_data('tikv_bug_issues.csv')
 
     # Analyze top discussions
     top_issues, stats = analyze_top_discussions(df)
@@ -106,7 +106,7 @@ def main():
         print(f"Maximum comments on a bug: {bug_issues['comments'].max()}")
 
     # Save top issues to a new CSV for further analysis
-    top_issues.to_csv('most_discussed_bug_issues.csv', index=False)
+    top_issues.to_csv('tikv_most_discussed_bug_issues.csv', index=False)
 
 if __name__ == "__main__":
     main()

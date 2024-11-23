@@ -1,0 +1,60 @@
+{
+  "issue_number": 14377,
+  "title": "[witness] tpcc report 9005 when inject tikv down",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.7.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   6342e0efbd6ea08ca95118a4bac53b1dea90ec52\r\nGit Commit Branch: heads/refs/tags/v6.7.0-alpha\r\nUTC Build Time:    2023-03-09 11:41:56\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-03-10T11:09:33.461Z\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1682104\r\nha-tikv-random-failure-10m\r\n\r\n### What did you expect?\r\ntpcc should not report 9005\r\n\r\n### What did happened?\r\ntpcc report 9005 when inject tikv down\r\n![a3fad99e-19ae-49bb-81ee-06d42aa72681](https://user-images.githubusercontent.com/84712107/224598187-a40c9ebb-e980-4b58-9441-8dbba7b4902e.jpeg)\r\n\r\n",
+  "state": "open",
+  "created_at": "2023-03-13T02:59:26Z",
+  "updated_at": "2023-10-23T23:31:33Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "feature/developing",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1465436535,
+      "user": "Lily2025",
+      "created_at": "2023-03-13T03:00:09Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign ethercflow"
+    },
+    {
+      "id": 1465436560,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-13T03:00:11Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: ethercflow.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14377#issuecomment-1465436535):\n\n>/type bug\r\n>/severity critical\r\n>/assign ethercflow\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1465449377,
+      "user": "Lily2025",
+      "created_at": "2023-03-13T03:14:44Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5"
+    },
+    {
+      "id": 1465449460,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-13T03:14:52Z",
+      "body": "@Lily2025: These labels are not set on the issue: `may-affects-6.0, may-affects-6.2, may-affects-6.3, may-affects-6.4`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14377#issuecomment-1465449377):\n\n>/remove-label may-affects-4.0\r\n>/remove-label may-affects-5.0\r\n>/remove-label may-affects-5.1\r\n>/remove-label may-affects-5.2\r\n>/remove-label may-affects-5.3\r\n>/remove-label may-affects-5.4\r\n>/remove-label may-affects-6.0\r\n>/remove-label may-affects-6.1\r\n>/remove-label may-affects-6.2\r\n>/remove-label may-affects-6.3\r\n>/remove-label may-affects-6.4\r\n>/remove-label may-affects-6.5\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1465449767,
+      "user": "Lily2025",
+      "created_at": "2023-03-13T03:15:23Z",
+      "body": "/assign ethercflow"
+    },
+    {
+      "id": 1465449779,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-13T03:15:25Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: ethercflow.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14377#issuecomment-1465449767):\n\n>/assign ethercflow\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

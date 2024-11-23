@@ -1,0 +1,58 @@
+{
+  "issue_number": 11075,
+  "title": "After a tikv failure is recovered, the leader of this tikv is always zero",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # ./tikv-server -V\r\nTiKV \r\nRelease Version:   5.0.1\r\nEdition:           Community\r\nGit Commit Hash:   e26389a278116b2f61addfa9f15ca25ecf38bc80\r\nGit Commit Branch: heads/refs/tags/v5.0.1\r\nUTC Build Time:    2021-04-23 08:24:13\r\nRust Version:      rustc 1.51.0-nightly (bc39d4d9c 2021-01-15)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n                 cpu: 8000m\r\n                 memory: 16Gi\r\n\r\n### Steps to reproduce\r\nSimulate a tikv down（1 min）, network packet loss（1 min） and delay（1 min） respectively\r\n\r\n### What did you expect?\r\nAfter failure recovery，the leader is balanced\r\n\r\n### What did happened?\r\nAfter a tikv failure is recovered, the leader of this tikv is always zero\r\n![image](https://user-images.githubusercontent.com/84712107/137505814-1acd1780-dc07-4ef8-9395-e085eb961b33.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-10-15T14:41:33Z",
+  "updated_at": "2022-01-10T08:32:09Z",
+  "closed_at": "2022-01-10T08:32:09Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation"
+  ],
+  "comments_data": [
+    {
+      "id": 944357387,
+      "user": "Lily2025",
+      "created_at": "2021-10-15T14:42:09Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 944357856,
+      "user": "Lily2025",
+      "created_at": "2021-10-15T14:42:46Z",
+      "body": "/assign Connor1996"
+    },
+    {
+      "id": 944844806,
+      "user": "Connor1996",
+      "created_at": "2021-10-16T03:00:04Z",
+      "body": "From the log, we can see one region is always rejecting the request vote from tikv-1\r\n![image](https://user-images.githubusercontent.com/13497871/137570315-a04f7727-781d-4cea-be4d-4ab8b4ba93dd.png)\r\n\r\nIt's due to tikv-0 and tikv-2 is unreachable to tikv-1\r\n![image](https://user-images.githubusercontent.com/13497871/137570924-6ea95d05-2be3-4026-95db-56a753fa9e11.png)\r\n\r\nThe unreachable state comes from the connection abort caused by large grpc msg \r\n![image](https://user-images.githubusercontent.com/13497871/137570952-da7cb240-f87d-47e2-90ac-3301e0c173f9.png)\r\n![image](https://user-images.githubusercontent.com/13497871/137571220-c3cf4828-1a08-4a51-a413-d0c0e237cb79.png)\r\n\r\n"
+    },
+    {
+      "id": 944886933,
+      "user": "Lily2025",
+      "created_at": "2021-10-16T09:24:49Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 962824509,
+      "user": "Lily2025",
+      "created_at": "2021-11-08T05:25:00Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1007187273,
+      "user": "Little-Wallace",
+      "created_at": "2022-01-07T07:07:06Z",
+      "body": "Is this problem same to https://github.com/tikv/tikv/issues/9714 ?"
+    },
+    {
+      "id": 1007187922,
+      "user": "Little-Wallace",
+      "created_at": "2022-01-07T07:08:46Z",
+      "body": "I think https://github.com/tikv/tikv/pull/11493 has solved this problem"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "issue_number": 17244,
+  "title": "[client-bug] java-client test with tikv 6.9.3 failed. ",
+  "body": "## Bug Report\r\n\r\nWhen I start tikv cluster with version 6.9.3 in docker, throw bugs:\r\nfailed to get member from pd server from http://pd0:2392/, caused by: \"DEADLINE_EXCEEDED: ClientCall started after CallOptions deadline was exceeded. Deadline has been exceeded for 1.427404101s\".\r\n\r\n### What version of TiKV are you using?\r\n6.9.3\r\n\r\n### What operating system and CPU are you using?\r\ndocker in mac\r\n### Steps to reproduce\r\n1.start container cluster with version 6.9.3\r\n2. mvn clean install with java version -\"master\".\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "open",
+  "created_at": "2024-07-05T02:09:31Z",
+  "updated_at": "2024-08-07T05:54:21Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

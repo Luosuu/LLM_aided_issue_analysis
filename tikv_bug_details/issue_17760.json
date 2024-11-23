@@ -1,0 +1,45 @@
+{
+  "issue_number": 17760,
+  "title": "tikv panic after down one of tiflash and recover",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   8.5.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   d01bd7483aab212a6de36b2c4a2fe60930a1aa00\r\nGit Commit Branch: HEAD\r\nUTC Build Time:    2024-11-03 09:57:06\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n2024-11-04T02:16:35.234+0800\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run ch\r\n2、down one of tiflash 50mins\r\n\r\n### What did you expect?\r\nno panic\r\n\r\n### What did happened?\r\ntikv panic after down one of tiflash and recover\r\n`{\"pod\":\"tc-tikv-1\",\"container\":\"tikv\",\"level\":\"FATAL\",\"log\":\"[lib.rs:479] [\\\"unexpected error: Store(Other(Other(\\\\\\\"[components/raft_log_engine/src/engine.rs:807]: Corruption: file seqno out of range\\\\\\\"))), raft_id: 2691, region_id: 2688\\\"] [backtrace=\\\"   0: tikv_util::set_panic_hook::{{closure}}\\\\n             at workspace/source/tikv/components/tikv_util/src/lib.rs:478:18\\\\n   1: <alloc::boxed::Box<F,A> as core::ops::function::Fn<Args>>::call\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:2029:9\\\\n      std::panicking::rust_panic_with_hook\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:783:13\\\\n   2: std::panicking::begin_panic_handler::{{closure}}\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:657:13\\\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:171:18\\\\n   4: rust_begin_unwind\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:645:5\\\\n   5: core::panicking::panic_fmt\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:72:14\\\\n   6: raft::raft_log::RaftLog<T>::slice\\\\n             at workspace/.cargo/git/checkouts/raft-rs-42b8049ef2e3af07/a76fb6e/src/raft_log.rs:666:26\\\\n   7: raft::raft_log::RaftLog<T>::entries\\\\n             at workspace/.cargo/git/checkouts/raft-rs-42b8049ef2e3af07/a76fb6e/src/raft_log.rs:411:9\\\\n      raft::raft::RaftCore<T>::maybe_send_append\\\\n             at workspace/.cargo/git/checkouts/raft-rs-42b8049ef2e3af07/a76fb6e/src/raft.rs:814:24\\\\n   8: raft::raft::RaftCore<T>::send_append\\\\n             at workspace/.cargo/git/checkouts/raft-rs-42b8049ef2e3af07/a76fb6e/src/raft.rs:776:9\\\\n      raft::raft::Raft<T>::send_append\\\\n             at workspace/.cargo/git/checkouts/raft-rs-42b8049ef2e3af07/a76fb6e/src/raft.rs:890:16\\\\n      raft::raw_node::RawNode<T>::on_entries_fetched\\\\n             at workspace/.cargo/git/checkouts/raft-rs-42b8049ef2e3af07/a76fb6e/src/raw_node.rs:439:21\\\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_raft_log_fetched\\\\n             at workspace/source/tikv/components/raftstore/src/store/fsm/peer.rs:2052:9\\\\n      raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::on_significant_msg\\\\n             at workspace/source/tikv/components/raftstore/src/store/fsm/peer.rs:1582:17\\\\n   9: raftstore::store::fsm::peer::PeerFsmDelegate<EK,ER,T>::handle_msgs\\\\n             at workspace/source/tikv/components/raftstore/src/store/fsm/peer.rs:705:49\\\\n  10: <raftstore::store::fsm::store::RaftPoller<EK,ER,T> as batch_system::batch::PollHandler<raftstore::store::fsm::peer::PeerFsm<EK,ER>,raftstore::store::fsm::store::StoreFsm<EK>>>::handle_normal\\\\n             at workspace/source/tikv/components/raftstore/src/store/fsm/store.rs:1098:9\\\\n  11: batch_system::batch::Poller<N,C,Handler>::poll\\\\n             at workspace/source/tikv/components/batch-system/src/batch.rs:458:27\\\\n  12: batch_system::batch::BatchSystem<N,C>::start_poller::{{closure}}\\\\n             at workspace/source/tikv/components/batch-system/src/batch.rs:589:17\\\\n      <std::thread::Builder as tikv_util::sys::thread::StdThreadBuildWrapper>::spawn_wrapper::{{closure}}\\\\n             at workspace/source/tikv/components/tikv_util/src/sys/thread.rs:438:13\\\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:155:18\\\\n  13: std::thread::Builder::spawn_unchecked_::{{closure}}::{{closure}}\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/mod.rs:529:17\\\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/unwind_safe.rs:272:9\\\\n      std::panicking::try::do_call\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:552:40\\\\n      std::panicking::try\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:516:19\\\\n      std::panic::catch_unwind\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panic.rs:142:14\\\\n      std::thread::Builder::spawn_unchecked_::{{closure}}\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/mod.rs:528:30\\\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\\\\n  14: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:2015:9\\\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:2015:9\\\\n      std::sys::unix::thread::Thread::new::thread_start\\\\n             at root/.rustup/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/thread.rs:108:17\\\\n  15: start_thread\\\\n  16: __GI___clone\\\\n\\\"] [location=/workspace/.cargo/git/checkouts/raft-rs-42b8049ef2e3af07/a76fb6e/src/raft_log.rs:666] [thread_name=raftstore-1006-0] [thread_id=101]\",\"namespace\":\"endless-ha-test-htap-tps-7645740-1-715\"}`\r\n",
+  "state": "closed",
+  "created_at": "2024-11-04T01:04:29Z",
+  "updated_at": "2024-11-07T05:04:30Z",
+  "closed_at": "2024-11-07T05:04:30Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 2453668519,
+      "user": "Lily2025",
+      "created_at": "2024-11-04T01:06:24Z",
+      "body": "/severity critical "
+    },
+    {
+      "id": 2461222980,
+      "user": "Lily2025",
+      "created_at": "2024-11-07T03:07:29Z",
+      "body": "/assign overvenus"
+    },
+    {
+      "id": 2461223541,
+      "user": "Lily2025",
+      "created_at": "2024-11-07T03:08:11Z",
+      "body": "/remove-assign overvenus"
+    },
+    {
+      "id": 2461224343,
+      "user": "Lily2025",
+      "created_at": "2024-11-07T03:08:56Z",
+      "body": "/assign LykxSassinator"
+    },
+    {
+      "id": 2461274961,
+      "user": "LykxSassinator",
+      "created_at": "2024-11-07T04:05:12Z",
+      "body": "Same root cause recorded in https://github.com/tikv/tikv/issues/17383"
+    }
+  ]
+}

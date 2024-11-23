@@ -1,0 +1,20 @@
+{
+  "issue_number": 11903,
+  "title": "False GcWorkerTooBusy caused by incorrect scheduled_tasks",
+  "body": "## Bug Report\r\n\r\nIf TiKV is upgraded from a version with https://github.com/tikv/tikv/issues/11217 bug, there can be a lot of accumulated MVCC versions. Then, the GC worker can be very busy for quite some time.\r\n\r\nDuring the period, the gc worker may increase its `scheduled_tasks` count but fail to schedule the task:\r\n\r\n https://github.com/tikv/tikv/blob/e8718be241/src/server/gc_worker/gc_worker.rs#L937\r\n\r\nWhen it fails to schedule the task, it forgets to decrease the count. So, `scheduled_tasks` is incorrectly maintained. It can increase beyond `GC_MAX_EXECUTING_TASKS` and never decrease. After that, all later `unsafe_destroy_range` requests will be rejected due to false `GcWorkerTooBusy` errors.\r\n\r\nThis bug is caused by https://github.com/tikv/tikv/pull/11429.\r\n",
+  "state": "closed",
+  "created_at": "2022-01-24T11:39:24Z",
+  "updated_at": "2022-01-25T06:26:02Z",
+  "closed_at": "2022-01-25T05:20:12Z",
+  "labels": [
+    "type/bug",
+    "sig/transaction",
+    "severity/critical",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4"
+  ],
+  "comments_data": []
+}

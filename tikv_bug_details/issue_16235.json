@@ -1,0 +1,45 @@
+{
+  "issue_number": 16235,
+  "title": "cluster can not provide service and tikv resolved ts can not go on after inject minio(pitr log backup path) network partition lasts for 10mins ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   7.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   5e0d7b1ba9430569886de26b51ca553337a36455\r\nGit Commit Branch: heads/refs/tags/v7.6.0-alpha\r\nUTC Build Time:    2023-12-22 11:48:26\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure openssl-vendored\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、run sysbench\r\n2、start pitr (minio is the pitr log backup path) and ticdc\r\n3、inject minio network partition lasts for 10mins and the recover\r\n\r\n### What did you expect?\r\ncluster is normal after fault recover\r\n\r\n### What did happened?\r\n1、cluster can not provide service\r\n2、tikv resolved ts can go on\r\n3、gc can not go on\r\n\r\nclinic：https://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7315338102025016150?from=1703315693&to=1703328331\r\n\r\n![image](https://github.com/tikv/tikv/assets/84712107/7c2431ac-c4f9-462d-84a8-c0b9e4c5b923)\r\n![image](https://github.com/tikv/tikv/assets/84712107/9aed62df-036a-452d-b862-ec1e8e8f13e9)\r\n![image](https://github.com/tikv/tikv/assets/84712107/731b231e-4563-43e8-8bea-2effe0bbceef)\r\n![image](https://github.com/tikv/tikv/assets/84712107/cf61f39b-601e-437a-ba09-9f0982dcbb23)\r\n![image](https://github.com/tikv/tikv/assets/84712107/19a50225-0dc4-436a-9a20-d85f92fc6fc3)\r\n![image](https://github.com/tikv/tikv/assets/84712107/581b5f54-9cce-4d09-9f30-5cfc2a65b6a2)\r\n\r\n\r\n\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-12-25T03:52:51Z",
+  "updated_at": "2024-01-10T02:52:40Z",
+  "closed_at": "2024-01-10T02:52:39Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-7.6"
+  ],
+  "comments_data": [
+    {
+      "id": 1868708981,
+      "user": "Lily2025",
+      "created_at": "2023-12-25T03:54:03Z",
+      "body": "/type bug\r\n/severity major\r\n/assign overvenus"
+    },
+    {
+      "id": 1870987280,
+      "user": "Lily2025",
+      "created_at": "2023-12-28T09:34:35Z",
+      "body": "/remove-severity major\r\n/severity critical"
+    },
+    {
+      "id": 1871000767,
+      "user": "Lily2025",
+      "created_at": "2023-12-28T09:48:53Z",
+      "body": "another scene：\r\nwith titan and run mussel workload，run chaos test，after inject pd leader io delay 1s and recover，cluster can not write and tikv resolved ts can not go\r\nclinic：\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7315338102025016150?from=1703315693&to=1703328331\r\n![image](https://github.com/tikv/tikv/assets/84712107/366b7f10-9b4c-401e-a898-4a5789115a5a)\r\n![image](https://github.com/tikv/tikv/assets/84712107/caa794b8-8c06-4e08-9b23-e6a2aa035c27)\r\n![image](https://github.com/tikv/tikv/assets/84712107/a45cb650-f073-46ab-b638-73319cd763d0)\r\n![image](https://github.com/tikv/tikv/assets/84712107/1d6556bb-96d8-4548-b885-55f695e13aa0)\r\n![image](https://github.com/tikv/tikv/assets/84712107/92d0ee16-7b0d-4784-bba9-5205f2936a9c)\r\n![image](https://github.com/tikv/tikv/assets/84712107/8621f443-3452-4325-8b2a-0355602eca79)\r\n\r\n"
+    },
+    {
+      "id": 1884109135,
+      "user": "overvenus",
+      "created_at": "2024-01-10T02:52:39Z",
+      "body": "Let's focus on https://github.com/tikv/tikv/issues/16340."
+    }
+  ]
+}

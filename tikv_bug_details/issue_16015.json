@@ -1,0 +1,57 @@
+{
+  "issue_number": 16015,
+  "title": "Daily run , compared with the previous tikv commit  , commit 7be1b1 leads ycsb workloada/workloadc has a 3% ~ 5% performance regression under 200 concurrency",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nnightly\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nrocky -16c46g\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n**good tikv commit as baseline**\r\ntidb  commit  92f071afeb7b0b0e8ddadb877464f106015455ab\t\r\ntikv  commit  f574ec0830f88a42290f1721a919b6a293cd7cfa\t\r\npd   commit 2c07c241114fe9afabd9927ecbee61c4252f2d8e\r\ntest result ****\r\n![image](https://github.com/tikv/tikv/assets/85105033/44da4a60-1aeb-4603-aa11-dee80acf779c)\r\nbad tikv commit\r\ntidb  commit  92f071afeb7b0b0e8ddadb877464f106015455ab\t\r\ntikv  commit  7be1b17d72870bb95fcb7443b1f945f9c59657fa\t\r\npd   commit  2c07c241114fe9afabd9927ecbee61c4252f2d8e\r\ntest result ****\r\n![image](https://github.com/tikv/tikv/assets/85105033/fe3211a4-66c8-4f01-a64b-1f02dd7b38a0)\r\n\r\n### What did you expect?\r\nThere is no significant regression compared to the previous commit\r\n### What did happened?\r\ncompared with the previous tikv commit  ycsb workloada has more than 3% regression\r\ncompared with the previous tikv commit  ycsb workloada has more than 4% regression\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-11-17T08:28:53Z",
+  "updated_at": "2023-12-21T08:34:55Z",
+  "closed_at": "2023-12-21T08:34:55Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 1815932587,
+      "user": "shaoxiqian",
+      "created_at": "2023-11-17T08:29:42Z",
+      "body": "/type performance"
+    },
+    {
+      "id": 1815932659,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-11-17T08:29:45Z",
+      "body": "@shaoxiqian: The label(s) `type/performance` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16015#issuecomment-1815932587):\n\n>/type performance\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1815932831,
+      "user": "shaoxiqian",
+      "created_at": "2023-11-17T08:29:53Z",
+      "body": "/type regression"
+    },
+    {
+      "id": 1815932881,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-11-17T08:29:56Z",
+      "body": "@shaoxiqian: The label(s) `type/regression` cannot be applied, because the repository doesn't have them.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/16015#issuecomment-1815932831):\n\n>/type regression\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1815933289,
+      "user": "shaoxiqian",
+      "created_at": "2023-11-17T08:30:15Z",
+      "body": "label affects-master"
+    },
+    {
+      "id": 1815933879,
+      "user": "shaoxiqian",
+      "created_at": "2023-11-17T08:30:47Z",
+      "body": "/assign @nolouch "
+    },
+    {
+      "id": 1816394722,
+      "user": "nolouch",
+      "created_at": "2023-11-17T13:08:56Z",
+      "body": "only affect master"
+    }
+  ]
+}

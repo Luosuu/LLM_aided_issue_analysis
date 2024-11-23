@@ -1,0 +1,33 @@
+{
+  "issue_number": 14144,
+  "title": "【witness】enable witness，scale in one tikv can not successfully due to the leaders and regions can not transfer successfully",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   d1d29203e6a93b05dd435ea27a9b39fb30b23f41\r\nGit Commit Branch: heads/refs/tags/v6.6.0-alpha\r\nUTC Build Time:    2023-02-02 11:57:11\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-02-03T18:14:46.483Z\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n2023-02-03T18:14:46.623Z\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n./pd-server -V\r\n Release Version: v6.6.0-alpha\r\nEdition: Community\r\nGit Commit Hash: 7fb70d1e349b8ddae6443978e3cee069fef4ef46\r\nGit Branch: heads/refs/tags/v6.6.0-alpha\r\nUTC Build Time:  2023-02-02 11:41:40\r\n\r\n### What operating system and CPU are you using?\r\n8core、16GB\r\n\r\n### Steps to reproduce\r\n1、enable witness\r\n2、br restore data\r\n3、run workload\r\n4、scale out one tikv successfully\r\n5、scale in one tikv\r\n\r\n### What did you expect?\r\nscale in one tikv successfully\r\n\r\n### What did happened?\r\nscale in one tikv can not scale in successfully due to the leaders and regions can not transfer successfully\r\ntest plan：\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1471283\r\nclinic：\r\nhttps://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7195789877722374550?from=1675400361&to=1675482613\r\n![image](https://user-images.githubusercontent.com/84712107/216880780-e851b595-1f4f-417f-b273-2cd190848256.png)\r\n![image](https://user-images.githubusercontent.com/84712107/216881018-632ef2e7-1ce6-41c7-8ee0-166de75f9df9.png)\r\n",
+  "state": "closed",
+  "created_at": "2023-02-06T03:54:42Z",
+  "updated_at": "2023-02-08T11:40:14Z",
+  "closed_at": "2023-02-08T11:40:14Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1418473605,
+      "user": "Lily2025",
+      "created_at": "2023-02-06T03:59:40Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign ethercflow"
+    },
+    {
+      "id": 1418473677,
+      "user": "Lily2025",
+      "created_at": "2023-02-06T03:59:52Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3\r\n/remove-label may-affects-6.4\r\n/remove-label may-affects-6.5"
+    },
+    {
+      "id": 1422204583,
+      "user": "ethercflow",
+      "created_at": "2023-02-08T08:18:19Z",
+      "body": "fixed in https://github.com/tikv/pd/pull/5940"
+    }
+  ]
+}

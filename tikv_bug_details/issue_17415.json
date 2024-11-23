@@ -1,0 +1,54 @@
+{
+  "issue_number": 17415,
+  "title": "Flashback may break transaction atomicity",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nAny with Flashback.\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\nDoesn't matter.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nConsider the following sequence of events:\r\n\r\n1. T1 starts, start_ts = 10\r\n2. resolved_ts advances to 20.\r\n3. T1 prewrites. lock_ts =10\r\n4. T1 starts committing, commit_ts=30. PK committed, SK not yet\r\n5. Flashback starts, flashback_ts = 19. It rolls back all locks, including the secondary locks of T1. Flashback finishes with commit_ts 40.\r\n6. T1's atomicity is broken. E.g. a stale read at ts=35.\r\n\r\n### What did you expect?\r\n\r\nTransactions should be atomic.\r\n\r\n### What did happened?\r\n\r\nThe stale read at step 6 can read the PK but cannot read the SK of T1.",
+  "state": "open",
+  "created_at": "2024-08-22T12:00:20Z",
+  "updated_at": "2024-11-01T10:00:33Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/critical",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "may-affects-8.1",
+    "affects-8.4",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 2358411803,
+      "user": "cfzjywxk",
+      "created_at": "2024-09-18T13:02:19Z",
+      "body": "The flashback feature is now owned by the br team./cc @BornChanger "
+    },
+    {
+      "id": 2375607475,
+      "user": "YuJuncen",
+      "created_at": "2024-09-26T02:08:30Z",
+      "body": "This is because we remove the lock directly but remove the commit record by putting a new mvcc version. We may need to use a resolve lock instead of remove all pending locks during flashback."
+    },
+    {
+      "id": 2378398452,
+      "user": "YuJuncen",
+      "created_at": "2024-09-27T04:55:10Z",
+      "body": "An unit test case (need real TiKV) to reproduce the issue:\r\n\r\n<details><summary>Case</summary>\r\n\r\n```go\r\nfunc TestFlashbackStaleRead(t *testing.T) {\r\n\tif !*realtikvtest.WithRealTiKV {\r\n\t\treturn\r\n\t}\r\n\r\n\tstore := realtikvtest.CreateMockStoreAndSetup(t)\r\n\tkvStore := store.(tikv.Storage)\r\n\ttk := testkit.NewTestKit(t, store)\r\n\r\n\ttimeBeforeDrop, _, safePointSQL, resetGC := MockGC(tk)\r\n\tdefer resetGC()\r\n\ttk.MustExec(fmt.Sprintf(safePointSQL, timeBeforeDrop))\r\n\ttk.MustExec(\"use test\")\r\n\ttk.MustExec(\"drop table if exists t\")\r\n\ttk.MustExec(\"create table t(a int)\")\r\n\r\n\t// KvPrewrite some rows.\r\n\ttableID, err := strconv.ParseInt(tk.MustQuery(\"select tidb_table_id from information_schema.tables where table_name = 't'\").Rows()[0][0].(string), 10, 64)\r\n\trequire.NoError(t, err)\r\n\r\n\tctx := context.Background()\r\n\tmkMutation := func(handle int) *kvrpcpb.Mutation {\r\n\t\trequire.LessOrEqual(t, handle, 0xff)\r\n\t\t// Constructing a row value requires too many context...\r\n\t\thackyValue, err := hex.DecodeString(fmt.Sprintf(\"800001000000010100%02X\", handle))\r\n\t\trequire.NoError(t, err)\r\n\t\treturn &kvrpcpb.Mutation{\r\n\t\t\tOp:    kvrpcpb.Op_Put,\r\n\t\t\tKey:   tablecodec.EncodeRowKeyWithHandle(tableID, kv.IntHandle(handle)),\r\n\t\t\tValue: hackyValue,\r\n\t\t}\r\n\t}\r\n\r\n\trc := kvStore.GetRegionCache()\r\n\tbo := tikv.NewBackoffer(ctx, 5000)\r\n\r\n\tmkPrewrite := func(startTS uint64, handle int, pkHandle int) {\r\n\t\treq := &kvrpcpb.PrewriteRequest{\r\n\t\t\tMutations:    []*kvrpcpb.Mutation{mkMutation(handle)},\r\n\t\t\tPrimaryLock:  tablecodec.EncodeRowKeyWithHandle(tableID, kv.IntHandle(pkHandle)),\r\n\t\t\tStartVersion: startTS,\r\n\t\t\tLockTtl:      4000,\r\n\t\t}\r\n\t\tloc, err := rc.LocateKey(bo, req.Mutations[0].Key)\r\n\t\trequire.NoError(t, err)\r\n\t\t_, err = kvStore.SendReq(bo, tikvrpc.NewRequest(tikvrpc.CmdPrewrite, req), loc.Region, time.Second*10)\r\n\t\trequire.NoError(t, err)\r\n\r\n\t\tfmt.Println(\"prewrite\", startTS, handle, loc)\r\n\t}\r\n\tmkCommit := func(startTS uint64, commitTS uint64, pkHandle int, commitRegionOfHandle int) {\r\n\t\trequire.NoError(t, err)\r\n\t\tloc, err := rc.LocateKey(bo, tablecodec.EncodeRowKeyWithHandle(tableID, kv.IntHandle(commitRegionOfHandle)))\r\n\t\trequire.NoError(t, err)\r\n\t\treq := &kvrpcpb.CommitRequest{\r\n\t\t\tStartVersion:  startTS,\r\n\t\t\tKeys:          [][]byte{tablecodec.EncodeRowKeyWithHandle(tableID, kv.IntHandle(pkHandle))},\r\n\t\t\tCommitVersion: commitTS,\r\n\t\t}\r\n\t\t_, err = kvStore.SendReq(bo, tikvrpc.NewRequest(tikvrpc.CmdCommit, req), loc.Region, time.Second*10)\r\n\t\trequire.NoError(t, err)\r\n\r\n\t\tfmt.Println(\"commit\", commitTS, commitRegionOfHandle, loc)\r\n\t}\r\n\tallocateTs := func() uint64 {\r\n\t\tres, err := store.GetOracle().GetTimestamp(ctx, &oracle.Option{})\r\n\t\trequire.NoError(t, err)\r\n\t\treturn res\r\n\t}\r\n\r\n\tr := tk.MustQuery(\"split table t by (0), (43), (255)\")\r\n\tfmt.Printf(\"%#v\\n\", r)\r\n\r\n\ttime.Sleep(time.Second)\r\n\tstartTS := allocateTs()\r\n\tmkPrewrite(startTS, 42, 42)\r\n\tmkPrewrite(startTS, 44, 42)\r\n\ttime.Sleep(time.Second)\r\n\tcommitTS := allocateTs()\r\n\tmkCommit(startTS, commitTS, 42, 42)\r\n\ttime.Sleep(time.Second)\r\n\r\n\ttsoToSQL := func(ts uint64) string { return oracle.GetTimeFromTS(ts).Format(types.TimeFSPFormat) }\r\n\tinjectSafeTS := oracle.GoTimeToTS(oracle.GetTimeFromTS(startTS - 1).Add(100 * time.Second))\r\n\trequire.NoError(t, failpoint.Enable(\"github.com/pingcap/tidb/pkg/ddl/injectSafeTS\",\r\n\t\tfmt.Sprintf(\"return(%v)\", injectSafeTS)))\r\n\ttk.MustExec(fmt.Sprintf(\"flashback cluster to tso %d\", startTS-1))\r\n\r\n\tres := tk.MustQuery(fmt.Sprintf(\"select * from t as of timestamp '%s'\", tsoToSQL(commitTS+(10<<18))))\r\n\trequire.Equal(t, len(res.Rows()), 2)\r\n\trequire.Equal(t, res.Rows()[0][0], \"42\")\r\n\trequire.Equal(t, res.Rows()[1][0], \"44\")\r\n}\r\n```\r\n\r\n</details> \r\n\r\nThis case failed with reading exact 1 record: atomicity broken.\r\n\r\n![img_v3_02f3_254f462c-e29a-45f1-90bb-71b7d5c3968g](https://github.com/user-attachments/assets/9af8b590-fb21-4e27-967b-e612b86e1452)\r\n"
+    },
+    {
+      "id": 2378412321,
+      "user": "YuJuncen",
+      "created_at": "2024-09-27T05:10:03Z",
+      "body": "But I must say it is pretty hard to encounter this problem in a production cluster, because this requires:\r\n\r\n- TiDB failed to commit to a subset of regions (implies that TiDB was down?), and the lock not resolved until flashback triggered.\r\n- We have flashed back to a version that greater than such a txn's commit ts (let it be `cts`).\r\n- After `FLASHBACK  CLUSTER` done, we use stale read to read the time range between `cts` and the commit ts of `FLASHBACK CLUSTER`.\r\n\r\nFixing this bug requires either:\r\n- Run resolve lock after `FLASHBACK CLUSTER` prepared and before it executed.\r\n- Or, reject all snapshot read with ts lower than the commit ts of `FLASHBACK CLUSTER`.\r\nBoth of them cannot be easily implemented... The former requires resolve lock to bypass the restriction of flashback. The latter requires a system to manage such time ranges. \r\n\r\nPerhaps for now we'd better just document that \"After flashback, stale read with timestamp less than `BEGIN; SELECT TIDB_CURRENT_TSO(); ROLLBACK;` can read non-ACID results.\" Then we have enough time to discuss and implement the potential fixes."
+    },
+    {
+      "id": 2378449336,
+      "user": "overvenus",
+      "created_at": "2024-09-27T05:49:54Z",
+      "body": "Cc https://github.com/tikv/tikv/issues/14531"
+    }
+  ]
+}

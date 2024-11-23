@@ -1,0 +1,36 @@
+{
+  "issue_number": 13553,
+  "title": "Batch snapshot is unsound",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nNightly\r\n\r\n### What operating system and CPU are you using?\r\nDoesn't matter\r\n\r\n### Steps to reproduce\r\nConcurrent read and conf change may read incomplete data.\r\n\r\n### What did you expect?\r\n\r\n### What did happened?\r\nhttps://github.com/tikv/tikv/pull/7878 introduces batch snapshot across regions. It reorders the snapshot operation and lease check operation, so snapshot is taken after checking lease. It's possible that after checking the lease and before snapshot is taken, the region is removed by conf change. So the snapshot may not contain the complete data.\r\n\r\nTo solve the problems, we need to make sure snapshot is taken before lease check.\r\n\r\n/cc @hicqu ",
+  "state": "closed",
+  "created_at": "2022-09-28T08:08:33Z",
+  "updated_at": "2022-10-13T10:16:05Z",
+  "closed_at": "2022-10-13T06:43:52Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1260556601,
+      "user": "gengliqi",
+      "created_at": "2022-09-28T08:22:00Z",
+      "body": "The second case doesn't exist since the code here has prevented this case. https://github.com/tikv/tikv/pull/7878/files#diff-74e59050058f72120a567a8cbde826478fcc051584b8bafed527d7de74e04fb6R434-R441"
+    },
+    {
+      "id": 1260573254,
+      "user": "BusyJay",
+      "created_at": "2022-09-28T08:35:41Z",
+      "body": "Got it. Then there is only one problem left."
+    }
+  ]
+}

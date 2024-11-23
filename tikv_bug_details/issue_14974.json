@@ -1,0 +1,91 @@
+{
+  "issue_number": 14974,
+  "title": "[dr-autosync] tikv flashback to version panic due to online recover didn't clean region meta data in etcd",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nAfter switching to backup dc in sync_recover mode,  try use tikv flashback to recover ACID.\r\n\r\n### What did you expect?\r\nsucceeded.\r\n\r\n### What did happened?\r\nsh-4.2# tiup ctl:v6.5.3 tikv --pd  pd3-peer.dr-autosync-hongmei-testbedz4qk6:2379 flashback -v 442278746550698004\r\nStarting component `ctl`: /root/.tiup/components/ctl/v6.5.3/ctl /root/.tiup/components/ctl/v6.5.3/ctl tikv --pd pd3-peer.dr-autosync-hongmei-testbedz4qk6:2379 flashback -v 442278746550698004\r\nthread 'flashback' panicked at 'called `Result::unwrap()` on an `Err` value: Other(\"[components/pd_client/src/[util.rs:878](http://util.rs:878/)]: invalid store ID 0, not found\")', cmd/tikv-ctl/src/[main.rs:820](http://main.rs:820/):62\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\nthread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: JoinError::Panic(Id(3), ...)', cmd/tikv-ctl/src/[main.rs:945](http://main.rs:945/):6\r\nError: exit status 101\r\n",
+  "state": "open",
+  "created_at": "2023-06-20T02:37:55Z",
+  "updated_at": "2024-11-01T10:09:18Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "may-affects-5.1",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "affects-6.5",
+    "may-affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1598030940,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-20T02:38:43Z",
+      "body": "/type bug\r\n/remove-severity critical\r\n/severity moderate\r\n/assign @Connor1996"
+    },
+    {
+      "id": 1598030955,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-20T02:38:45Z",
+      "body": "@mayjiang0203: GitHub didn't allow me to assign the following users: HuSharp.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14974#issuecomment-1598030940):\n\n>/type bug\r\n>/severity critical\r\n>/assign @HuSharp \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1598031202,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-20T02:39:13Z",
+      "body": "/label affects-6.5\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.1"
+    },
+    {
+      "id": 1598033244,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-20T02:43:15Z",
+      "body": "if monitoring or logs are needed, please refer to clinic by cluster-id 7246288782355082500.\r\nHit it twice till now."
+    },
+    {
+      "id": 1600238653,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-21T06:07:06Z",
+      "body": "/remove-severity critical\r\n\r\n/assign @Connor1996 "
+    },
+    {
+      "id": 1600238676,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-21T06:07:07Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14974#issuecomment-1600238653):\n\n>/remove-severity critical\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1600239035,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-21T06:07:35Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14974#issuecomment-1600238653):\n\n>/remove-severity critical\r\n>/assign @Connor1996 \n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1600241147,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-21T06:09:59Z",
+      "body": "after online recovery, there is still one region that not exist in tikv but exist in pd.\r\n\r\nsh-4.2# tiup ctl:v6.5.3 pd -u http://pd3-peer.dr-autosync-hongmei-testbedz4qk6:2379 region 1010\r\nStarting component `ctl`: /root/.tiup/components/ctl/v6.5.3/ctl /root/.tiup/components/ctl/v6.5.3/ctl pd -u http://pd3-peer.dr-autosync-hongmei-testbedz4qk6:2379 region 1010\r\n{\r\n  \"id\": 1010,\r\n  \"start_key\": \"7480000000000000FF555F728000000000FF0171FE0000000000FA\",\r\n  \"end_key\": \"7480000000000000FF555F728000000000FF0361360000000000FA\",\r\n  \"epoch\": {\r\n    \"conf_ver\": 12,\r\n    \"version\": 72\r\n  },\r\n  \"peers\": [\r\n    {\r\n      \"id\": 1011,\r\n      \"store_id\": 1,\r\n      \"role\": 1,\r\n      \"role_name\": \"Learner\",\r\n      \"is_learner\": true\r\n    },\r\n    {\r\n      \"id\": 1012,\r\n      \"store_id\": 6,\r\n      \"role_name\": \"Voter\"\r\n    },\r\n    {\r\n      \"id\": 1013,\r\n      \"store_id\": 5,\r\n      \"role_name\": \"Voter\"\r\n    },\r\n    {\r\n      \"id\": 1014,\r\n      \"store_id\": 7,\r\n      \"role_name\": \"Voter\"\r\n    },\r\n    {\r\n      \"id\": 1015,\r\n      \"store_id\": 9,\r\n      \"role_name\": \"Voter\"\r\n    },\r\n    {\r\n      \"id\": 1016,\r\n      \"store_id\": 8,\r\n      \"role_name\": \"Voter\"\r\n    }\r\n  ],\r\n  \"leader\": {\r\n    \"role_name\": \"\"\r\n  },\r\n  \"cpu_usage\": 0,\r\n  \"written_bytes\": 0,\r\n  \"read_bytes\": 0,\r\n  \"written_keys\": 0,\r\n  \"read_keys\": 0,\r\n  \"approximate_size\": 0,\r\n  \"approximate_keys\": 0\r\n}\r\n\r\nsh-4.2# tiup ctl:v6.5.3 tikv --host tikv6-peer:20160 raft region --start 7480000000000000FF555F728000000000FF0171FE0000000000FA --end 7480000000000000FF555F728000000000FF0361360000000000FA\r\nStarting component `ctl`: /root/.tiup/components/ctl/v6.5.3/ctl /root/.tiup/components/ctl/v6.5.3/ctl tikv --host tikv6-peer:20160 raft region --start 7480000000000000FF555F728000000000FF0171FE0000000000FA --end 7480000000000000FF555F728000000000FF0361360000000000FA\r\n{\r\n  \"region_infos\": {\r\n    \"404\": {\r\n      \"region_id\": 404,\r\n      \"region_local_state\": {\r\n        \"region\": {\r\n          \"id\": 404,\r\n          \"start_key\": \"7480000000000000FF555F728000000000FF0171FE0000000000FA\",\r\n          \"end_key\": \"7480000000000000FF555F72FFFFFFFFFFFFFFFFFF0000000000FB\",\r\n          \"region_epoch\": {\r\n            \"conf_ver\": 22,\r\n            \"version\": 71\r\n          },\r\n          \"peers\": [\r\n            {\r\n              \"id\": 405,\r\n              \"store_id\": 1,\r\n              \"role\": \"Voter\"\r\n            },\r\n            {\r\n              \"id\": 406,\r\n              \"store_id\": 6,\r\n              \"role\": \"Voter\"\r\n            },\r\n            {\r\n              \"id\": 410,\r\n              \"store_id\": 8,\r\n              \"role\": \"Voter\"\r\n            }\r\n          ]\r\n        }\r\n      },\r\n      \"raft_local_state\": {\r\n        \"hard_state\": {\r\n          \"term\": 19,\r\n          \"vote\": 406,\r\n          \"commit\": 29374\r\n        },\r\n        \"last_index\": 29374\r\n      },\r\n      \"raft_apply_state\": {\r\n        \"applied_index\": 29374,\r\n        \"commit_index\": 29374,\r\n        \"commit_term\": 19,\r\n        \"truncated_state\": {\r\n          \"index\": 29372,\r\n          \"term\": 18\r\n        }\r\n      }\r\n    }\r\n  }\r\n}"
+    },
+    {
+      "id": 1600243179,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-21T06:12:30Z",
+      "body": "/remove-severity moderate\r\n/severity major"
+    },
+    {
+      "id": 1600243789,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-06-21T06:13:14Z",
+      "body": "@mayjiang0203: These labels are not set on the issue: `severity/critical`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14974#issuecomment-1600238653):\n\n>/remove-severity critical\r\n>\r\n>/assign @Connor1996 \n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.net/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1600244445,
+      "user": "mayjiang0203",
+      "created_at": "2023-06-21T06:14:03Z",
+      "body": "/assign @Connor1996  "
+    }
+  ]
+}

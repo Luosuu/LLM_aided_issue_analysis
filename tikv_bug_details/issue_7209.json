@@ -1,0 +1,46 @@
+{
+  "issue_number": 7209,
+  "title": "TiKV gRPC server coredump when TLS is enabled",
+  "body": "## Bug Report\r\n\r\nTiKV core dumps in BR TLS tests, see more https://github.com/pingcap/br/pull/202\r\n\r\n### What version of TiKV are you using?\r\n\r\n```\r\n./tikv-server -V\r\nTiKV\r\nRelease Version:   4.1.0-alpha\r\nGit Commit Hash:   e364c57f69151c7fb4b00de591217f9edfedd61b\r\nGit Commit Branch: master\r\nUTC Build Time:    2020-03-21 07:37:31\r\nRust Version:      rustc 1.42.0-nightly (0de96d37f 2019-12-19)\r\nEnable Features:   jemalloc portable sse protobuf-codec\r\nProfile:           dist_release\r\n```\r\n\r\n### Steps to reproduce\r\n\r\nRun BR integration tests\r\n\r\n### What did you expect?\r\n\r\nTiKV should start normally or report an error.\r\n\r\n### What did happened?\r\n\r\nCore dumped.",
+  "state": "closed",
+  "created_at": "2020-03-23T06:18:07Z",
+  "updated_at": "2020-04-02T03:08:44Z",
+  "closed_at": "2020-03-30T10:20:15Z",
+  "labels": [
+    "type/bug",
+    "component/gRPC",
+    "component/server"
+  ],
+  "comments_data": [
+    {
+      "id": 603682983,
+      "user": "hunterlxt",
+      "created_at": "2020-03-25T07:25:15Z",
+      "body": "Please add detailed reproduction steps here, just `make integration_test` seems to fail all tests not only `br_tls`."
+    },
+    {
+      "id": 603703725,
+      "user": "july2993",
+      "created_at": "2020-03-25T08:20:45Z",
+      "body": "[TiDB Binlog](https://github.com/pingcap/tidb-binlog) meets this too\r\n\r\n\r\nreproduction steps:\r\nInt the tidb-binlog repo:\r\n1. put  tidb/tikv/pd binary in bin/\r\n2. run `make`\r\n3. run `sh tests/run.sh --debug`\r\n\r\n\r\nif normally you can see:\r\n```\r\nVerifying drainer is started...\r\n{\"PumpPos\":{\"pump:8250\":415530729860235266},\"Synced\":false,\"LastTS\":415530729860235266,\"TsMap\":\"\"}\r\nYou may now debug from another terminal. Press [ENTER] to continue.\r\n```\r\n\r\nbut the tikv that enable TLS Core dumped\r\n\r\nyou can check the log in `/tmp/tidb_binlog_test/`\r\n\r\nthe upstream tikv's log end at:\r\n```\r\n[2020/03/25 15:49:52.692 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7fd05b879020 for subchannel 0x7fd00ca67380\"]\r\n[2020/03/25 15:49:52.693 +08:00] [INFO] [util.rs:427] [\"connecting to PD endpoint\"] [endpoints=https://127.0.0.1:2379]\r\n[2020/03/25 15:49:52.696 +08:00] [INFO] [<unknown>] [\"New connected subchannel at 0x7fd05b878240 for subchannel 0x7fd00ca67380\"]\r\n[2020/03/25 15:49:52.697 +08:00] [INFO] [util.rs:486] [\"connected to PD leader\"] [endpoints=https://127.0.0.1:2379]\r\n[2020/03/25 15:49:52.697 +08:00] [INFO] [util.rs:204] [\"heartbeat sender and receiver are stale, refreshing ...\"]\r\n[2020/03/25 15:49:52.697 +08:00] [WARN] [util.rs:223] [\"updating PD client done\"] [spend=8.451843ms]\r\n[2020/03/25 15:49:57.243 +08:00] [ERROR] [<unknown>] [\"assertion failed: prior > 0\"]\r\n[2020/03/25 15:49:57.243 +08:00] [ERROR] [<unknown>] [\"assertion failed: prior > 0\"]\r\n```\r\n\r\n\r\n"
+    },
+    {
+      "id": 607595284,
+      "user": "WangXiangUSTC",
+      "created_at": "2020-04-02T03:05:19Z",
+      "body": "dose this issue fixed in release-4.0?"
+    },
+    {
+      "id": 607595655,
+      "user": "hunterlxt",
+      "created_at": "2020-04-02T03:07:05Z",
+      "body": "> dose this issue fixed in release-4.0?\r\n\r\nNo"
+    },
+    {
+      "id": 607595998,
+      "user": "WangXiangUSTC",
+      "created_at": "2020-04-02T03:08:43Z",
+      "body": "release 4.0 binlog's ci test is still failed because of this issue, can we cherry pick the fix to 4.0?"
+    }
+  ]
+}

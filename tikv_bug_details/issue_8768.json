@@ -1,0 +1,29 @@
+{
+  "issue_number": 8768,
+  "title": "backup/restore via S3 using STS transiently fail with \"Couldn't find AWS credentials in default sources or k8s environment\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\n4.0.6\r\n\r\n### What operating system and CPU are you using?\r\n\r\nTiDB Operator v1.1.5\r\n\r\n### Steps to reproduce\r\n\r\n1) Prepare a table with 20 billion KV pairs with uncompressed total KV size of 3.5 TB (about 175 bytes per KV pair).\r\n\r\n2) Configure an STS token of S3 write access with 24 hour expiry time. Mount the token to every TiKV Pod\r\n\r\n```yaml\r\napiVersion: v1\r\nkind: Pod\r\nspec:\r\n  containers:\r\n  - ...\r\n    image: pingcap/tikv:v4.0.6\r\n    env:\r\n      ...\r\n    - name: AWS_ROLE_ARN\r\n      value: arn:aws:iam::111111111111:role/my-backup\r\n    - name: AWS_WEB_IDENTITY_TOKEN_FILE\r\n      value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token\r\n    volumeMounts:\r\n      ...\r\n    - mountPath: /var/run/secrets/eks.amazonaws.com/serviceaccount\r\n      name: aws-iam-token\r\n      readOnly: true\r\n  volumes:\r\n  - name: aws-iam-token\r\n    projected:\r\n      defaultMode: 420\r\n      sources:\r\n      - serviceAccountToken:\r\n          audience: sts.amazonaws.com\r\n          expirationSeconds: 86400\r\n          path: token\r\n```\r\n\r\n3) Perform backup with command line \r\n\r\n```sh\r\n./br backup full \\\r\n    --log-level=debug \\\r\n    --send-credentials-to-tikv=false \\\r\n    --storage=s3://backup-bucket/backup-prefix/ \\\r\n    --s3.region=us-west-2 \\\r\n    --s3.provider=aws \\\r\n    --pd=pd-addr:2379\r\n```\r\n\r\n### What did you expect?\r\n\r\nBackup successful\r\n\r\n### What did happened?\r\n\r\nIn some cases backup may fail early with the following log from BR, even if it is far before the expiry date.\r\n\r\n```\r\n[ERROR] [push.go:111] [\"backup occur unknown error\"] [error=\"Io(Custom { kind: Other, error: \\\"failed to put object Couldn\\\\'t find AWS credentials in default sources or k8s environment.\\\" })\"] [stack=\"(irrelevant)\"]\r\n\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2020-09-30T04:36:01Z",
+  "updated_at": "2021-01-12T03:14:00Z",
+  "closed_at": "2021-01-12T03:14:00Z",
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "sig/migrate",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 714922527,
+      "user": "kennytm",
+      "created_at": "2020-10-23T05:31:46Z",
+      "body": "In 4.0.8 we have changed the error message to include more context of failure (#8766, #8767).\r\n\r\nWe suspect that this is still caused by token expiry: while BR takes way less than 1 day, the TiKV process lasts far longer, so it is still possible that the token expired during backup. We're currently trying a reproduce this with a minimized AWS environment using a very short expiration duration to check its effect."
+    },
+    {
+      "id": 758366383,
+      "user": "overvenus",
+      "created_at": "2021-01-12T03:14:00Z",
+      "body": "After upgrading rusoto from 0.44 to 0.45, there is no more issue report, closed. Feel free to reopen if it occurs again."
+    }
+  ]
+}

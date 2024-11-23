@@ -1,0 +1,47 @@
+{
+  "issue_number": 12478,
+  "title": "v5.4.1: after restart all tikv/pd/tidb, one tikv continue report error \"invalid store ID 0, not found\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n./tikv-server -V\r\n TiKV\r\nRelease Version:   5.4.0\r\nEdition:           Community\r\nGit Commit Hash:   44d2e7e8d86566b4b270c1ae39a4956e0f74a6e8\r\nGit Commit Branch: heads/refs/tags/v5.4.1\r\nUTC Build Time:    2022-04-29 06:35:41\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\ntcms test plan:\r\n[endless-range-partition-oltp-sysbench-oltp-read-write@v5.4.1]\r\n\r\nfollowing tidb global config has been set.\r\n\r\ntidb_partition_prune_mode='dynamic' ,  \r\ntidb_replica_read='follower'\r\n\r\n### What did you expect?\r\ntikv should works fine.\r\n\r\n### What did happened?\r\nTikv heartbeat with pd disconnect after that, no region message update from pd monitor.\r\n\r\ntikv logs:\r\nStatus { code: 2-UNKNOWN, message: \\\"invalid store ID 0, not found\\\", details: [] }))\"]\r\ntikv.log:[2022/05/10 02:28:24.557 +00:00] [ERROR] [[util.rs:460](http://util.rs:460/)] [\"request failed\"] [err_code=KV:PD:gRPC] [err=\"Grpc(RpcFailure(RpcStatus { code: 2-UNKNOWN, message: \\\"invalid store ID 0, not found\\\", details: [] }))\"]\r\ntikv.log:[2022/05/10 02:28:25.558 +00:00] [ERROR] [[util.rs:460](http://util.rs:460/)] [\"request failed\"] [err_code=KV:PD:gRPC] [err=\"Grpc(RpcFailure(RpcStatus { code: 2-UNKNOWN, message: \\\"invalid store ID 0, not found\\\", details: [] }))\"]\r\ntikv.log:[2022/05/10 02:28:25.565 +00:00] [ERROR] [[util.rs:460](http://util.rs:460/)] [\"request failed\"] [err_code=KV:PD:gRPC] [err=\"Grpc(RpcFailure(RpcStatus { code: 2-UNKNOWN, message: \\\"invalid store ID 0, not found\\\", details: [] }))\"]\r\ntikv.log:[2022/05/10 02:28:25.565 +00:00] [ERROR] [[raft_client.rs:749](http://raft_client.rs:749/)] [\"resolve store address failed\"] [err_code=KV:Unknown] [err=\"Other(\\\"[src/server/[resolve.rs:102](http://resolve.rs:102/)]: RpcFailure: 2-UNKNOWN invalid store ID 0, not found\\\")\"] [msg=\"region_id: 134700 from_peer { id: 134703 store_id: 6 } to_peer {} region_epoch { conf_ver: 11 version: 1138 } extra_msg {}\"] [store_id=0]\r\ntikv.log:[2022/05/10 02:28:25.565 +00:00] [ERROR] [[util.rs:460](http://util.rs:460/)] [\"request failed\"] [err_code=KV:PD:gRPC] [err=\"Grpc(RpcFailure(RpcStatus { code: 2-UNKNOWN, message: \\\"invalid store ID 0, not found\\\", details: [] }))\"]\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-05-10T03:46:38Z",
+  "updated_at": "2022-05-16T08:28:37Z",
+  "closed_at": "2022-05-16T08:28:37Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/automation",
+    "affects-4.0",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1121859069,
+      "user": "mayjiang0203",
+      "created_at": "2022-05-10T03:47:56Z",
+      "body": "/type bug\r\n/assign @5kbpers \r\n/severity Critical\r\n/found automation"
+    },
+    {
+      "id": 1122145064,
+      "user": "mayjiang0203",
+      "created_at": "2022-05-10T09:22:20Z",
+      "body": "/label affects-4.0\r\n/label affects-5.0\r\n/label affects-5.1\r\n/label affects-5.2\r\n/label affects-5.3\r\n/label affects-5.4\r\n/label affects-6.0"
+    },
+    {
+      "id": 1122189614,
+      "user": "5kbpers",
+      "created_at": "2022-05-10T10:07:03Z",
+      "body": "Investigated that it was caused by a bug introduced by #8820.\r\n#8820 introduces a mechanism that when a follower with no leader information wants to send a `ReadIndex`, it will try to query leader information from PD and send a \"wakeup message\" for waking up a hibernated leader.\r\nhttps://github.com/tikv/tikv/blob/6d24c60586ac94ba24a16513b92989f63b8fced7/components/raftstore/src/store/peer.rs#L3597-L3599 https://github.com/tikv/tikv/blob/6d24c60586ac94ba24a16513b92989f63b8fced7/components/raftstore/src/store/fsm/peer.rs#L992-L999\r\nThe problem is sometimes PD doesn't have any knowledge about region leaders. Despite https://github.com/tikv/pd/pull/2591 starting to sync region leaders to PD followers, when all PD peers restarted then region leaders info could still get lost."
+    },
+    {
+      "id": 1123185770,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-11T04:55:36Z",
+      "body": "/LGTM"
+    }
+  ]
+}

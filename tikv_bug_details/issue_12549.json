@@ -1,0 +1,118 @@
+{
+  "issue_number": 12549,
+  "title": "raftstore: bucket keys should not contain TS information",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n6.1-alpha\r\n\r\n### What operating system and CPU are you using?\r\ncentos 8\r\n\r\n### Steps to reproduce\r\nenable dynamic region and enable region buckets.\r\nrun sysbench and dump region information in pd-ctl\r\n\r\n### What did you expect?\r\nthe bucket keys in region should not contain timestamp\r\n### What did happened?\r\nthe bucket keys in region contains timestamp\r\n\"buckets\": [\r\n        \"7480000000000011FF4C5F728000000000FF0761680000000000FA\",\r\n        \"7480000000000011FF4C5F728000000000FF0F6FAA0000000000FAF9FD362468E3FFFD\",\r\n        \"7480000000000011FF4C5F728000000000FF17BA130000000000FAF9FD35EC7257FFFA\",\r\n        \"7480000000000011FF4C5F728000000000FF204A1F0000000000FAF9FD35BA0043FFFB\",\r\n        \"7480000000000011FF4C5F728000000000FF2894890000000000FAF9FD358A432BFFF7\",\r\n        \"7480000000000011FF4C5F728000000000FF3117330000000000FAF9FD3551B2B3FFFA\",\r\n        \"7480000000000011FF4C5F728000000000FF3995380000000000FAF9FD34E333FBFFF8\",\r\n        \"7480000000000011FF4C5F728000000000FF41DE860000000000FAF9FD34CC3543FFF1\",\r\n        \"7480000000000011FF4C5F728000000000FF4A31D80000000000FAF9FD348931CBFFFB\",\r\n        \"7480000000000011FF4C5F728000000000FF52BF210000000000FAF9FD34360EFBFFFE\",\r\n        \"7480000000000011FF4C5F728000000000FF5B098A0000000000FAF9FD339FF78FFFF8\",\r\n        \"7480000000000011FF4C5F728000000000FF63483C0000000000FAF9FD3297531FFFFB\",\r\n        \"7480000000000011FF4C5F728000000000FF6BBA550000000000FAF9FD32933AABFFFB\",\r\n        \"7480000000000011FF4C5F728000000000FF7401F40000000000FAF9FD3161F95BFFFB\",\r\n        \"7480000000000011FF4C5F728000000000FF7C345B0000000000FAF9FD31055BFBFFF4\",\r\n        \"7480000000000011FF4C5F728000000000FF84A35E0000000000FAF9FD3100FD3FFFF7\",\r\n        \"7480000000000011FF4C5F728000000000FF8CE3510000000000FAF9FD30FD603FFFF9\",\r\n        \"7480000000000011FF4C5F728000000000FF955A640000000000FA\"\r\n      ]",
+  "state": "closed",
+  "created_at": "2022-05-17T06:42:36Z",
+  "updated_at": "2022-05-18T07:54:40Z",
+  "closed_at": "2022-05-18T07:54:40Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.0"
+  ],
+  "comments_data": [
+    {
+      "id": 1128475527,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T06:42:53Z",
+      "body": "/label affects-6.0"
+    },
+    {
+      "id": 1128475761,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-17T06:43:11Z",
+      "body": "@tonyxuqqi: The label(s) `affect-6.1-alpha` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12549#issuecomment-1128475527):\n\n>/label affect-6.1-alpha\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1128476042,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-17T06:43:35Z",
+      "body": "@tonyxuqqi: The label(s) `affect-6.0` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12549#issuecomment-1128475527):\n\n>/label affect-6.0\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1128476444,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-17T06:44:08Z",
+      "body": "@tonyxuqqi: The label(s) `bug` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12549#issuecomment-1128476433):\n\n>/label bug\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1129335221,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-17T21:30:02Z",
+      "body": "@tonyxuqqi: The label(s) `type/bug` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12549#issuecomment-1129335198):\n\n>/label type/bug\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1129335349,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:30:14Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1129335472,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-17T21:30:25Z",
+      "body": "@tonyxuqqi: The label(s) `type/bug` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12549#issuecomment-1129335198):\n\n>/label type/bug\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1129335534,
+      "user": "ti-chi-bot",
+      "created_at": "2022-05-17T21:30:30Z",
+      "body": "@tonyxuqqi: The label(s) `bug` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0, needs-cherry-pick-5.1, needs-cherry-pick-5.2, needs-cherry-pick-5.3, needs-cherry-pick-5.4, needs-cherry-pick-6.0, wontfix, do-not-merge/cherry-pick-not-approved, affects-4.0, affects-5.0, affects-5.1, affects-5.2, affects-5.3, affects-5.4, affects-6.0, may-affects-4.0, may-affects-5.0, may-affects-5.1, may-affects-5.2, may-affects-5.3, may-affects-5.4, may-affects-6.0`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12549#issuecomment-1128476433):\n\n>/label bug\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1129336060,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:31:14Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1129336562,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:31:51Z",
+      "body": "/remove may-affects-4.0"
+    },
+    {
+      "id": 1129339120,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:35:37Z",
+      "body": "/remove-label may-affects-4.0"
+    },
+    {
+      "id": 1129339445,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:36:06Z",
+      "body": "/remove-label may-affects-5.0 may-affects-5.1 may-affects-5.2 may-affects-5.3 may-affects-5.4"
+    },
+    {
+      "id": 1129339595,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:36:18Z",
+      "body": "/remove-label may-affects-5.0"
+    },
+    {
+      "id": 1129339650,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:36:23Z",
+      "body": "/remove-label may-affects-5.1"
+    },
+    {
+      "id": 1129339775,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:36:35Z",
+      "body": "/remove-label may-affects-5.2"
+    },
+    {
+      "id": 1129339843,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:36:40Z",
+      "body": "/remove-label may-affects-5.3"
+    },
+    {
+      "id": 1129339900,
+      "user": "tonyxuqqi",
+      "created_at": "2022-05-17T21:36:44Z",
+      "body": "/remove-label may-affects-5.4"
+    }
+  ]
+}

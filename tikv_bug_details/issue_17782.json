@@ -1,0 +1,33 @@
+{
+  "issue_number": 17782,
+  "title": "[In-memory-engine] qps jitter amplitude is larger when enable IME",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nTiKV\r\nRelease Version: 8.5.0-alpha\r\nEdition: Community\r\nGit Commit Hash: https://github.com/tikv/tikv/commit/d01bd7483aab212a6de36b2c4a2fe60930a1aa00\r\nGit Commit Branch: heads/refs/tags/v8.5.0-alpha\r\nUTC Build Time: 2024-11-03 11:37:49\r\nRust Version: rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features: memory-engine pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile: dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n[in-memory-engine]\r\nenable = true\r\ngc-run-interval = \"2m\"\r\ncapacity = \"12GB\"\r\nevict-threshold = \"10GB\"\r\nstop-load-threshold = \"9GB\"\r\nmvcc-amplification-threshold = 5\r\ncross-check-interval = \"30s\"\r\n\r\n1、run sysbench databricks\r\n./prepare.sh -h tc-tidb.glh-knhqn -u root -r 4000 -t 64 -w 2000 -d 0 -j 10000 -m true\r\n./many_delete_mvcc.sh -h tc-tidb.glh-knhqn -u root -r 4000 -t 64 -w 2000 -j 10000 -s 10 -e 7200\r\n\r\n### What did you expect?\r\n\r\n\r\n### What did happened?\r\n![bdcf14c3-fcba-4c89-aaff-98ae420c1f35](https://github.com/user-attachments/assets/93148afb-ddaa-4c5e-a181-3abedb08eef3)\r\n",
+  "state": "open",
+  "created_at": "2024-11-07T03:13:10Z",
+  "updated_at": "2024-11-07T03:42:02Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "type/enhancement"
+  ],
+  "comments_data": [
+    {
+      "id": 2461235453,
+      "user": "Lily2025",
+      "created_at": "2024-11-07T03:16:31Z",
+      "body": "/assign overvenus"
+    },
+    {
+      "id": 2461236039,
+      "user": "Lily2025",
+      "created_at": "2024-11-07T03:17:17Z",
+      "body": "/assign SpadeA-Tang\r\n"
+    },
+    {
+      "id": 2461255496,
+      "user": "Lily2025",
+      "created_at": "2024-11-07T03:41:59Z",
+      "body": "/type enhancement"
+    }
+  ]
+}

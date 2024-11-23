@@ -1,0 +1,21 @@
+{
+  "issue_number": 6690,
+  "title": "Coprocessor Cache is unsound",
+  "body": "## Bug Report\r\n\r\nThe Coprocessor cache works as follows, similar to HTTP cache:\r\n\r\n1. TiDB sends a request to TiKV\r\n2. TiKV returns the response, with current apply index.\r\n3. TiDB caches the request, response, apply index.\r\n4. Next time, before TiDB sending the same request, TiDB checks whether this request is cached.\r\n  - If request exists in TiDB local cache, TiDB sends request to TiKV, carry with last apply_index.\r\n  - If request not exists in TiDB local cache, TiDB sends request normally.\r\n5. If TiKV receives a request with apply_index, TiKV checks whether latest apply_index matches the provided apply_index.\r\n  - If apply_index is unchanged, it means the response in TiDB is valid, so TiKV returns empty response (with cache hit = true flag)\r\n  - If apply_index is changed, TiKV returns normal response with current apply index.\r\n6. If TiDB receives a response, with cache hit = true flag, TiDB fills the response from the local cache.\r\n\r\nThe \"same request\" concept is determined by the request payload **without** Timestamp, which means, sending request with different Timestamp but identical process payload is the same request. This is to make sure that in most cases the cache can work (since we almost never provide the same timestamp).\r\n\r\nThis process has a bug. If we send request use a old TS, cached response **may** not be safely used for a new TS. If old TS cannot scan **latest** data, then the response must not be cached.\r\n\r\nThe proposed change is as follows:\r\n\r\n1. Add a field to Coprocessor response, indicating whether this response can be safely cached by TiDB.\r\n2. When scanning data in MVCC, currently we skip (seek) directly to `${key}{start_ts}`. We can change to skip to `${key}{max_ts}`. If scanned key ts > start_ts, it means we found data newer than TS, so that this response must not be cached.\r\n3. When we received locks, we also need to check the lock ts.",
+  "state": "closed",
+  "created_at": "2020-02-25T09:24:09Z",
+  "updated_at": "2020-07-27T09:33:55Z",
+  "closed_at": "2020-04-16T07:22:02Z",
+  "labels": [
+    "type/bug",
+    "sig/coprocessor"
+  ],
+  "comments_data": [
+    {
+      "id": 593499797,
+      "user": "innerr",
+      "created_at": "2020-03-02T16:48:29Z",
+      "body": "Start working on it"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "issue_number": 14458,
+  "title": "[Dynamic Regions] improve the network traffic spikes when partitioned-raft-kv is enabled",
+  "body": "## Feature Request\r\n\r\n### Is your feature request related to a problem? Please describe:\r\n<!-- A description of what the problem is. -->\r\n\r\npartitioned-raft-kv brings significant overhead of network between tikv, after remove the schedulers, the overhead is not observed\r\n![677daeab-b535-4f49-af45-81f347ffe2dd](https://user-images.githubusercontent.com/2316425/227710939-8d78c514-e5a0-4501-a8b9-316ef6f8c12a.jpeg)\r\n\r\n### Describe the feature you'd like:\r\n<!-- A description of what you want to happen. -->\r\nneed to reduce the network traffic spike\r\n\r\n### Describe alternatives you've considered:\r\n<!-- A description of any alternative solutions or features you've considered. -->\r\n\r\nremove the scheduler, but it's not applicable for real-world application\r\n\r\n```\r\n» config set region-schedule-limit 0\r\nSuccess!\r\n» config set hot-region-schedule-limit 0\r\nSuccess!\r\n» config set replica-schedule-limit 0\r\nSuccess!\r\n```\r\n\r\n### Teachability, Documentation, Adoption, Migration Strategy:\r\n<!-- If you can, explain some scenarios how users might use this, or situations in which it would be helpful. Any API designs, mockups, or diagrams are also helpful. -->\r\n",
+  "state": "closed",
+  "created_at": "2023-03-25T10:13:01Z",
+  "updated_at": "2023-06-16T01:55:33Z",
+  "closed_at": "2023-06-16T01:55:33Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1483785797,
+      "user": "dbsid",
+      "created_at": "2023-03-25T10:13:16Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 1486262083,
+      "user": "tonyxuqqi",
+      "created_at": "2023-03-28T05:58:59Z",
+      "body": "/assign @bufferflies "
+    },
+    {
+      "id": 1486262110,
+      "user": "ti-chi-bot",
+      "created_at": "2023-03-28T05:59:01Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: bufferflies.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/14458#issuecomment-1486262083):\n\n>/assign @bufferflies \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1518459363,
+      "user": "dbsid",
+      "created_at": "2023-04-22T01:30:13Z",
+      "body": "with the pr #6314, the QPS and network throughput is much more stable.\r\n\r\n![image](https://user-images.githubusercontent.com/2316425/233754627-fddb693c-0b53-4633-bbdc-c03f5773b412.png)\r\n\r\n"
+    },
+    {
+      "id": 1593972145,
+      "user": "bufferflies",
+      "created_at": "2023-06-16T01:55:33Z",
+      "body": "close by https://github.com/tikv/pd/pull/6375"
+    }
+  ]
+}

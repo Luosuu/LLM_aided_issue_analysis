@@ -1,0 +1,21 @@
+{
+  "issue_number": 14219,
+  "title": "【witness】inject one tikv failure for 10m, pitr task became to paused",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   6.6.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   c9cebe6cd44255018202d2e56023df096038bc09\r\nGit Commit Branch: heads/refs/tags/v6.7.0-alpha\r\nUTC Build Time:    2023-02-13 11:16:01\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n2023-02-14T06:23:02.448Z\tINFO\tk8s/client.go:132\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/1562223\r\nclinic：https://clinic.pingcap.com.cn/portal/#/orgs/31/clusters/7199855553741822161\r\nlogs：http://minio.pingcap.net:38888/buckets/test-infra-testground/browse/YXJjaGl2ZS9lbmRsZXNzLWhhLXRlc3Qtd2l0bmVzcy10cHMtMTU2MjIyMy0xLTcyOS8=\r\n1、br restore data\r\n2、enable witness\r\n3、enable pitr\r\n4、run tpcc run\r\n5、inject one tikv failure for 10m\r\n6、pitr task became to paused\r\n\r\n### What did you expect?\r\ninject one tikv failure for 10m, pitr task should be normal\r\n\r\n### What did happened?\r\ninject one tikv failure for 10m, pitr task became to paused\r\n![643a525a-abfe-4ee2-9f56-27ee7a437fde](https://user-images.githubusercontent.com/84712107/218684238-294691fc-29bb-47a5-9853-7f78ede6df98.jpeg)\r\n",
+  "state": "closed",
+  "created_at": "2023-02-14T08:45:19Z",
+  "updated_at": "2023-03-09T02:41:14Z",
+  "closed_at": "2023-03-09T02:41:14Z",
+  "labels": [
+    "type/bug",
+    "severity/critical"
+  ],
+  "comments_data": [
+    {
+      "id": 1429341904,
+      "user": "Lily2025",
+      "created_at": "2023-02-14T08:46:33Z",
+      "body": "/type bug\r\n/severity critical\r\n/assign ethercflow"
+    }
+  ]
+}

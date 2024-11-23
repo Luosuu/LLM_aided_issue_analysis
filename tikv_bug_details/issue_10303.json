@@ -1,0 +1,14 @@
+{
+  "issue_number": 10303,
+  "title": "Test test_rate_limited_hybrid_flow fails",
+  "body": "https://ci.pingcap.net/blue/organizations/jenkins/tikv_ghpr_test/detail/tikv_ghpr_test/1790/pipeline#step-362-log-849\r\n\r\n```\r\n[2021-06-04T08:03:47.396Z] test rate_limiter::tests::test_rate_limited_hybrid_flow ... thread 'main' panicked at 'assertion failed: (write_bytes as f64) >=\\n    ((write_work * bytes_per_sec / 100) as f64 * duration.as_secs_f64()) * 0.9', components/file_system/src/rate_limiter.rs:758:9\r\n\r\n[2021-06-04T08:03:47.396Z] stack backtrace:\r\n\r\n[2021-06-04T08:03:47.668Z]    0: rust_begin_unwind\r\n\r\n[2021-06-04T08:03:47.668Z]              at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/std/src/panicking.rs:493:5\r\n\r\n[2021-06-04T08:03:47.668Z]    1: core::panicking::panic_fmt\r\n\r\n[2021-06-04T08:03:47.668Z]              at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/core/src/panicking.rs:92:14\r\n\r\n[2021-06-04T08:03:47.668Z]    2: core::panicking::panic\r\n\r\n[2021-06-04T08:03:47.668Z]              at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/core/src/panicking.rs:50:5\r\n\r\n[2021-06-04T08:03:47.668Z]    3: file_system::rate_limiter::tests::test_rate_limited_hybrid_flow\r\n\r\n[2021-06-04T08:03:47.668Z]              at ./components/file_system/src/rate_limiter.rs:758:9\r\n\r\n[2021-06-04T08:03:47.668Z]    4: file_system::rate_limiter::tests::test_rate_limited_hybrid_flow::{{closure}}\r\n\r\n[2021-06-04T08:03:47.668Z]              at ./components/file_system/src/rate_limiter.rs:710:5\r\n\r\n[2021-06-04T08:03:47.668Z]    5: core::ops::function::FnOnce::call_once\r\n\r\n[2021-06-04T08:03:47.668Z]              at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/core/src/ops/function.rs:227:5\r\n\r\n[2021-06-04T08:03:47.668Z]    6: core::ops::function::FnOnce::call_once\r\n\r\n[2021-06-04T08:03:47.668Z]              at /rustc/16bf626a31cb5b121d0bca2baa969b4f67eb0dab/library/core/src/ops/function.rs:227:5\r\n\r\n[2021-06-04T08:03:47.668Z] note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n\r\n[2021-06-04T08:03:47.668Z] FAILED\r\n```\r\n",
+  "state": "closed",
+  "created_at": "2021-06-04T08:27:31Z",
+  "updated_at": "2021-06-04T10:38:28Z",
+  "closed_at": "2021-06-04T10:38:28Z",
+  "labels": [
+    "type/bug",
+    "component/test-bench"
+  ],
+  "comments_data": []
+}

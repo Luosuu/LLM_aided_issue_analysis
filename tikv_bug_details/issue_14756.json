@@ -1,0 +1,20 @@
+{
+  "issue_number": 14756,
+  "title": "[Dynamic Regions] TiKV restart fails \"failed to get region state\"",
+  "body": "## Bug Report\r\n\r\nTiKV restart fails with following log.\r\n\r\n```log\r\n[2023/05/11 23:40:00.740 +08:00] [FATAL] [server2.rs:817] [\"failed to start node: Other(\\\"[components/raftstore-v2/src/operation/ready/apply_trace.rs:387]: failed to get region state for region 206022: Ok(None)\\\")\"]\r\n```\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n53bc41d089f31f348639450add08ac1ec8f61241 in PR #14708 \r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nUnknown.\r\n\r\n### What did you expect?\r\n\r\nRestart successfully.\r\n\r\n### What did happened?\r\n\r\nFails to restart.\r\n\r\n[tikvlog.tar.gz](https://github.com/tikv/tikv/files/11486767/tikvlog.tar.gz)\r\n",
+  "state": "closed",
+  "created_at": "2023-05-16T10:25:31Z",
+  "updated_at": "2023-06-21T09:49:29Z",
+  "closed_at": "2023-06-21T09:49:29Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 1600534107,
+      "user": "overvenus",
+      "created_at": "2023-06-21T09:49:29Z",
+      "body": "Duplicate of #14743"
+    }
+  ]
+}

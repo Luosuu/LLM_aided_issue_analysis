@@ -1,0 +1,20 @@
+{
+  "issue_number": 2977,
+  "title": "conf: Raft wal-bytes-per-sync is in the wrong place ",
+  "body": "see https://github.com/pingcap/tikv/blob/master/etc/config-template.toml#L435\r\n\r\nThe config should belong to `[raftdb]`, not `[raftdb.defaultcf]`",
+  "state": "closed",
+  "created_at": "2018-04-19T09:05:40Z",
+  "updated_at": "2020-08-28T11:53:43Z",
+  "closed_at": "2020-08-28T11:53:43Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 682483808,
+      "user": "BusyJay",
+      "created_at": "2020-08-28T11:53:42Z",
+      "body": "Now it's fixed."
+    }
+  ]
+}

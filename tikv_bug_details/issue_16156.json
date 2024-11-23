@@ -1,0 +1,28 @@
+{
+  "issue_number": 16156,
+  "title": "ddl resolved ts not advance for 2 min ",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\n/ # /tikv-server -V                                         \r\nTiKV                                                        \r\nRelease Version:   6.5.6                                    \r\nEdition:           Community                                \r\nGit Commit Hash:   08a6a0f6d6180c01a33b9b3973111d69533269eb \r\nGit Commit Branch: heads/refs/tags/v6.5.6                   \r\nUTC Build Time:    2023-12-05 04:00:45                      \r\n```\r\n\r\n### What operating system and CPU are you using?\r\nX86, K8S\r\n\r\n### Steps to reproduce\r\n1. Deploy TiDB with CDC, with enable-resolved-ts-stuck-detection = true\r\n```\r\nbash-5.1# cat /etc/ticdc/ticdc.toml\r\nlog-file = \"/var/lib/ticdc/log/ticdc.log\"\r\n\r\n[debug]\r\n  [debug.puller]\r\n    enable-resolved-ts-stuck-detection = true\r\n    resolved-ts-stuck-interval = \"2m\"\r\n\r\n```\r\n2. Create changefeed and pause it.\r\n3. run workload\r\n```\r\nsysbench --db-driver=mysql --mysql-host=xxx` --mysql-port=4000 --mysql-user=root --mysql-db=workload --tables=1 --table-size=500000000 --create_secondary=off --debug=true\r\n --threads=100 --mysql-ignore-errors=2013,1213,1105,1205,8022,8027,8028,9004,9007,1062 oltp_read_write prepare\r\n```\r\n4. resume changefeed\r\n5. run workload \r\n```\r\nsysbench --db-driver=mysql --mysql-host=xxx  --mysql-port=4000 --mysql-user=root --mysql-db=workload --tables=1 --table-size=500000000 --create_secondary=off --time=18000\r\n --debug=true --threads=100 --mysql-ignore-errors=2013,1213,1105,1205,8022,8027,8028,9004,9007,1062 oltp_read_write run\r\n```\r\n\r\n### What did you expect?\r\nresolved ts should advances normally\r\n\r\n### What did happened?\r\nddl resolved ts not advance for 2min\r\n![image](https://github.com/tikv/tikv/assets/7403864/691eb382-f4ac-4bc7-8c9d-2bf294e8ae2e)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-12-07T04:52:38Z",
+  "updated_at": "2024-04-30T22:40:43Z",
+  "closed_at": "2024-04-30T22:40:43Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/major",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "may-affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2084356288,
+      "user": "flowbehappy",
+      "created_at": "2024-04-30T04:29:04Z",
+      "body": "Likely the duplicate with https://github.com/pingcap/tiflow/issues/11015. Closing"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "issue_number": 3378,
+  "title": "Cursor remains valid when seek to nothing again",
+  "body": "## Bug Report\r\n\r\nCurrently we judge whether or not seeking reaches data end by checking either:\r\n1. `cursor.seek()` family returns true or false\r\n2. `cursor.valid()` returns true or false\r\n\r\nThis \"either\" choice is based on the assertion that the following scenario always holds:\r\n\r\n```rust\r\nlet a: bool = cursor.seek().unwrap();\r\nlet b: bool = cursor.valid();\r\nassert_eq!(a, b);\r\n```\r\n\r\nHowever, this scenario actually does not always holds.\r\n\r\nIn the following test case, last line's assertion will fail:\r\n\r\n```rust\r\n        must_put(&engine, b\"1\", b\"foo1\");\r\n        must_put(&engine, b\"5\", b\"foo5\");\r\n\r\n        let snapshot = engine.snapshot(&Context::new()).unwrap();\r\n        let mut iter = snapshot\r\n            .iter(IterOption::default(), ScanMode::Mixed)\r\n            .unwrap();\r\n\r\n        let mut statistics = CFStatistics::default();\r\n\r\n        assert_eq!(iter.valid(), false);\r\n\r\n        assert_eq!(iter.seek(&make_key(b\"0\"), &mut statistics).unwrap(), true);\r\n        assert_eq!(iter.valid(), true);\r\n        assert_eq!(iter.key(&mut statistics), &*bytes::encode_bytes(b\"1\"));\r\n        assert_eq!(iter.value(&mut statistics), b\"foo1\");\r\n\r\n        assert_eq!(iter.seek(&make_key(b\"9\"), &mut statistics).unwrap(), false);\r\n        assert_eq!(iter.valid(), false);\r\n        println!(\"{:?}\", iter.key(&mut statistics));\r\n\r\n        assert_eq!(iter.seek(&make_key(b\"4\"), &mut statistics).unwrap(), true);\r\n        assert_eq!(iter.valid(), true);\r\n        assert_eq!(iter.key(&mut statistics), &*bytes::encode_bytes(b\"5\"));\r\n        assert_eq!(iter.value(&mut statistics), b\"foo5\");\r\n\r\n        assert_eq!(iter.seek(&make_key(b\"9\"), &mut statistics).unwrap(), false);\r\n        assert_eq!(iter.valid(), false);\r\n```",
+  "state": "open",
+  "created_at": "2018-08-02T07:41:47Z",
+  "updated_at": "2023-08-16T06:32:05Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/storage",
+    "sig/transaction",
+    "priority/high",
+    "severity/moderate",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 409908689,
+      "user": "BusyJay",
+      "created_at": "2018-08-02T12:27:09Z",
+      "body": "Does such use case exist? Is it a bug in real life or just an unexpected behavior for possible usage?"
+    },
+    {
+      "id": 409914356,
+      "user": "breezewish",
+      "created_at": "2018-08-02T12:48:35Z",
+      "body": "@BusyJay In many of our existing code, we use `iter.valid()` instead of the return value of seek family function, so it could be possible to construct. Also the newer mvcc refinement *heavily* relies on this assertion to eliminate an extra check (currently we both check return value and `valid()` in many functions in mvcc) and it will be easier to construct a failure case."
+    },
+    {
+      "id": 409915764,
+      "user": "BusyJay",
+      "created_at": "2018-08-02T12:53:51Z",
+      "body": "Would like to see a practical fail case. As the cursor is about to be split into more domain specific, the fix may otherwise not be necessary anymore."
+    },
+    {
+      "id": 409916667,
+      "user": "breezewish",
+      "created_at": "2018-08-02T12:57:12Z",
+      "body": "@BusyJay Even after cursor split, this case exists, because after cursor splitting, a re-seek in contrary direction is still allowed (with explicit casting)."
+    },
+    {
+      "id": 409920547,
+      "user": "BusyJay",
+      "created_at": "2018-08-02T13:10:43Z",
+      "body": "> because after cursor splitting, a re-seek in contrary direction is still allowed (with explicit casting).\r\n\r\nIt depends on how the splitting works. The big principle would be only allow one direction seek when possible.\r\n\r\nWhat I really concern about is whether it impacts the version 2.0.xs which doesn't have all the refactoring yet."
+    },
+    {
+      "id": 409920632,
+      "user": "siddontang",
+      "created_at": "2018-08-02T13:11:00Z",
+      "body": "Em, @breeswish \r\n\r\nI prefer only using valid to check iterator valid or not, `seek` return nothing,  "
+    },
+    {
+      "id": 409924369,
+      "user": "breezewish",
+      "created_at": "2018-08-02T13:23:18Z",
+      "body": "@BusyJay This fix is supposed to be working for pre-refinement && mvcc reader refined (not cursor refined) versions. Construct an error case is possible, it just needs time to analyze where is the exploit point, like a hole digging process."
+    },
+    {
+      "id": 730947640,
+      "user": "cfzjywxk",
+      "created_at": "2020-11-20T06:56:43Z",
+      "body": "@breeswish Is this issue already fixed?"
+    },
+    {
+      "id": 730950370,
+      "user": "breezewish",
+      "created_at": "2020-11-20T07:02:48Z",
+      "body": "@cfzjywxk I'm not sure. @MyonKeminta @sticnarf Could you help verify it against latest branch?"
+    },
+    {
+      "id": 768134651,
+      "user": "youjiali1995",
+      "created_at": "2021-01-27T08:53:04Z",
+      "body": "It still exists. And https://github.com/tikv/tikv/pull/3404 is the simplest way to fix it. Why is it closed? @breeswish "
+    }
+  ]
+}

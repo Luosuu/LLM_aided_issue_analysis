@@ -1,0 +1,15 @@
+{
+  "issue_number": 15705,
+  "title": "Problem cannot read sst file when running br restore",
+  "body": "## Bug Report\r\nI am running on tikv-server version 7.3.0\r\nOS: Ubuntu 20.04.6 LTS\r\ncpu family      : 6\r\nmodel           : 60\r\nmodel name      : Intel(R) Core(TM) i5-4440 CPU @ 3.10GHz\r\n\r\n### Steps to reproduce\r\n==>Step1: The first I run backup successfully like below:\r\ntiup br backup full --storage local:///root/ --pd 192.168.0.114:2379 --gcttl 54000\r\ntiup is checking updates for component br ...\r\nStarting component `br`: /root/.tiup/components/br/v7.3.0/br backup full --storage local:///root/ --pd 192.168.0.114:2379 --gcttl 54000\r\nDetail BR log in /tmp/br.log.2023-09-27T22.02.35+0700\r\nFull Backup <----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------> 100.00%\r\nChecksum <-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------> 100.00%\r\n[2023/09/27 22:02:42.057 +07:00] [INFO] [collector.go:77] [\"Full Backup success summary\"] [total-ranges=51] [ranges-succeed=51] [ranges-failed=0] [backup-checksum=108.906786ms] [backup-fast-checksum=9.173139ms] [backup-total-ranges=131] [total-take=6.233719911s] [backup-data-size(after-compressed)=495.1kB] [Size=495106] [BackupTS=444550861855391746] [total-kv=12079] [total-kv-size=1.35MB] [average-speed=216.5kB/s]\r\n\r\n==>Step2: For the testing I destroy all and then re-deploy the new cluster\r\n==>Step3: Run restore to new cluster and got error like below\r\ntiup br restore full --storage local:///root/ --pd 192.168.0.114:2379\r\ntiup is checking updates for component br ...\r\nStarting component `br`: /root/.tiup/components/br/v7.3.0/br restore full --storage local:///root/ --pd 192.168.0.114:2379\r\nDetail BR log in /tmp/br.log.2023-09-27T23.09.50+0700\r\nFull Restore <---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------> 100.00%\r\n[2023/09/27 23:10:31.425 +07:00] [INFO] [collector.go:77] [\"Full Restore failed summary\"] [total-ranges=1] [ranges-succeed=0] [ranges-failed=1] [split-region=569.199µs] [restore-ranges=18] [unit-name=file] [error=\"**Cannot read local:///root//4/10_125_263e999338a4f1da72fc99b4045197294ea1df1ba8bb79e6eb7bc2f5af874cc7_1695826698972_write.sst into /tikv-data/tikv-20160/import/.temp/cf98a406-1219-484b-831f-6ec438e3387b_269_5_74_write.sst: No such file or directory (os error 2): [BR:KV:ErrKVDownloadFailed]download sst failed;** \r\n\r\nNote: I installed and ran by root user.\r\nPlease help to review/fix it or explain to me why or what I am wrong if any.\r\n",
+  "state": "open",
+  "created_at": "2023-09-27T09:51:46Z",
+  "updated_at": "2024-08-07T05:33:58Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/backup-restore",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

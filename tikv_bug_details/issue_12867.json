@@ -1,0 +1,33 @@
+{
+  "issue_number": 12867,
+  "title": "tikv should support use hostname instead of ip for status_address",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nsh-4.2# ./tikv-server -Version\r\nTiKV\r\nRelease Version:   6.1.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   c1a09b83f6da437f49758dc713150ebc0da5fcb9\r\nGit Commit Branch: heads/refs/tags/v6.2.0-alpha\r\nUTC Build Time:    2022-06-18 14:26:16\r\nRust Version:      rustc 1.62.0-nightly (7c4b47696 2022-04-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1、Deploy one cluster with tls enabled between all components in k8s dockers, part of topo list as following,\r\ntikv_servers:\r\nglobal:\r\n  user: \"tidb\"\r\n  ssh_port: 22\r\n  deploy_dir: \"/tiup/deploy\"\r\n  data_dir: \"/tiup/data\"\r\n  arch: \"amd64\"\r\n  enable_tls: true\r\n\r\nhost: tikv1-peer\r\nport: 20160\r\nstatus_port: 20180\r\nconfig:\r\nserver.labels:\r\ndc: dc1\r\nzone: zone1\r\nhost: host1\r\n\r\n2、Show tikv config\r\nshow config where type='tikv';\r\n\r\n### What did you expect?\r\nNo error report, and config can be show.\r\n\r\n### What did happened?\r\nMySQL [(none)]> show config where type='tikv';\r\nEmpty set, 3 warnings (0.09 sec)\r\n\r\nMySQL [(none)]> show warnings;\r\n+---------+------+-------------------------------------------------------------------------------------------------------+\r\n| Level   | Code | Message                                                                                               |\r\n+---------+------+-------------------------------------------------------------------------------------------------------+\r\n| Warning | 1105 | Get \"https://10.233.80.87:20180/config\": x509: certificate is valid for 127.0.0.1, not 10.233.80.87   |\r\n| Warning | 1105 | Get \"https://10.233.98.159:20180/config\": x509: certificate is valid for 127.0.0.1, not 10.233.98.159 |\r\n| Warning | 1105 | Get \"https://10.233.113.26:20180/config\": x509: certificate is valid for 127.0.0.1, not 10.233.113.26 |\r\n+---------+------+-------------------------------------------------------------------------------------------------------+\r\n3 rows in set (0.00 sec)\r\n\r\nSince in k8s, pod ip may changed, so if status_address use host will be helpful in this situation.\r\n\r\nsh-4.2# tiup ctl:nightly pd -u https://pd1-peer:2379 --cacert /root/.tiup/storage/cluster/clusters/debug/tls/ca.crt --cert /root/.tiup/storage/cluster/clusters/debug/tls/client.crt  --key /root/.tiup/storage/cluster/clusters/debug/tls/client.pem store |grep status_address\r\nStarting component `ctl`: /root/.tiup/components/ctl/v6.2.0-alpha-nightly-20220620/ctl /root/.tiup/components/ctl/v6.2.0-alpha-nightly-20220620/ctl pd -u https://pd1-peer:2379 --cacert /root/.tiup/storage/cluster/clusters/debug/tls/ca.crt --cert /root/.tiup/storage/cluster/clusters/debug/tls/client.crt --key /root/.tiup/storage/cluster/clusters/debug/tls/client.pem store\r\n        \"status_address\": \"0.0.0.0:20180\",\r\n        \"status_address\": \"0.0.0.0:20180\",\r\n        \"status_address\": \"0.0.0.0:20180\",\r\n",
+  "state": "closed",
+  "created_at": "2022-06-21T07:22:04Z",
+  "updated_at": "2022-07-18T10:50:02Z",
+  "closed_at": "2022-07-18T10:50:01Z",
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1161359385,
+      "user": "mayjiang0203",
+      "created_at": "2022-06-21T07:22:45Z",
+      "body": "/type bug\r\n/severity Moderate"
+    },
+    {
+      "id": 1185313442,
+      "user": "zhongzc",
+      "created_at": "2022-07-15T08:35:36Z",
+      "body": "After some investigation, some facts I found:\r\n\r\n1. only nightly affected. can't reproduce with v6.1.0, v5.4.0\r\n2. the main cause is that the `--advertise-status-addr` isn't provided to run a tikv command, which is the main difference between nightly and other versions."
+    },
+    {
+      "id": 1187050055,
+      "user": "zhongzc",
+      "created_at": "2022-07-18T10:50:01Z",
+      "body": "https://github.com/pingcap/tiup/issues/1988#issuecomment-1187044956\r\n> already fixed on https://github.com/pingcap/tiup/pull/1873\r\n\r\n@mayjiang0203 the latest tiup-cluster has fixed this issue. Update tiup-cluster via `tiup update cluster` and retry to see if resolved or not."
+    }
+  ]
+}

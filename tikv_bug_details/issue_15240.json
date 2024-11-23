@@ -1,0 +1,46 @@
+{
+  "issue_number": 15240,
+  "title": "[Dynamic Regions] TiKV OOM after scaling TiKV",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n```\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:88] [\"Welcome to TiKV\"]\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:93] [\"Release Version:   7.3.0-alpha\"]\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:93] [\"Edition:           Community\"]\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:93] [\"Git Commit Hash:   5b3b36259391bcb92e418988316802f6806c499f\"]\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:93] [\"Git Commit Branch: heads/refs/tags/v7.3.0-alpha\"]\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:93] [\"UTC Build Time:    Unknown (env var does not exist when building)\"]\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:93] [\"Rust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\"]\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:93] [\"Enable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-ra\r\nft-engine cloud-aws cloud-gcp cloud-azure\"]\r\n[2023/07/26 15:15:37.814 +00:00] [INFO] [lib.rs:93] [\"Profile:           dist_release\"]\r\n```\r\n\r\n### What operating system and CPU are you using?\r\nK8S X86, TiKV 8C16G\r\n\r\n### Steps to reproduce\r\n1. TiDB cluster with 3 TiKV (partitioned-raft-kv enabled),  2 CDC\r\n```\r\nconfig: |\r\n            [storage]\r\n            engine = \"partitioned-raft-kv\"\r\n            [cdc]\r\n              min-ts-interval = \"500ms\"\r\n              incremental-scan-threads = 64\r\n              incremental-scan-concurrency = 256\r\n              incremental-scan-speed-limit = \"512MiB\"\r\n```\r\n2. restore tpcc20000 backups\r\n3. create kafka changefeed\r\n4. run workload \"/go-tpc tpcc --db tpcc20000 --warehouses 20000 -T 32 --host upstream-tidb.cdc-kafka-scale-big-table-ops-tps-1860867-1-878 --port 4000 --parts 1 --time 8h0m0s run --ignore-error '2013,1213,1105,1205,8022,8028,9004,9007,1062'\"\r\n5. 03:41 scale tikv from 3 -> 4\r\n6. 04:12 scale pd from 3 -> 4\r\n\r\n\r\n### What did you expect?\r\nTiKV should not OOM\r\n\r\n### What did happened?\r\nAfter tikv and PD scale, tikv memory consuption increases a lots, and repeatedly OOM.\r\n![image](https://github.com/tikv/tikv/assets/7403864/7c20aa93-5fb5-492c-a7c6-a37bb49129d9)\r\n",
+  "state": "closed",
+  "created_at": "2023-07-28T08:07:48Z",
+  "updated_at": "2023-08-28T11:25:39Z",
+  "closed_at": "2023-08-28T11:25:39Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "found/automation",
+    "may-affects-5.2",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1655241698,
+      "user": "fubinzh",
+      "created_at": "2023-07-28T08:09:32Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1668788738,
+      "user": "fubinzh",
+      "created_at": "2023-08-08T01:45:39Z",
+      "body": "This issue is not produced with below TiKV configuration:\r\nconcurrent-recv-snap-limit = 16, concurrent-send-snap-limit = 5\r\n\r\n![726495a0-06a2-4a8a-824c-f302a8df7dcc](https://github.com/tikv/tikv/assets/7403864/3c2dbb00-773d-47d5-9faa-fcf80f171902)\r\n"
+    },
+    {
+      "id": 1672468132,
+      "user": "fubinzh",
+      "created_at": "2023-08-10T02:43:26Z",
+      "body": "Retested the scanario with 8C 32G TiKV, TiKV OOM is not seen either.\r\n\r\n```\r\n tikv:\r\n          baseImage: hub-new.pingcap.net/qa/tikv\r\n          config: |\r\n            [storage]\r\n              engine = \"partitioned-raft-kv\"\r\n            [cdc]\r\n              min-ts-interval = \"500ms\"\r\n              incremental-scan-threads = 64\r\n              incremental-scan-concurrency = 256\r\n              incremental-scan-speed-limit = \"512MiB\"\r\n          limits:\r\n            cpu: 8000m\r\n            memory: 32Gi\r\n            storage: 1400Gi\r\n          maxReplicas: 4\r\n          replicas: 3\r\n          requests:\r\n            cpu: 8000m\r\n            memory: 32Gi\r\n            storage: 1400Gi\r\n          storageClassName: fast-disks\r\n          version: master\r\n```\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/c77a925f-5d91-41bf-a9fc-b43619ef37c6)\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/8f303012-c33f-47ba-88d1-8c0d72409ddc)\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/93186076-dfad-4966-85f7-cbbbe6265df8)\r\n\r\n"
+    },
+    {
+      "id": 1695524081,
+      "user": "fubinzh",
+      "created_at": "2023-08-28T11:25:39Z",
+      "body": "This issue is not reproduced with 8C 16G TiKV, tikv commit bea230d98c61de9847121a0f0bb9c4588b20e4de.\r\n\r\n![image](https://github.com/tikv/tikv/assets/7403864/7949eeb9-a514-4c17-987f-3abf50517b2a)\r\n\r\n```\r\ntikv:\r\n          baseImage: hub-new.pingcap.net/qa/tikv\r\n          config: |\r\n            [storage]\r\n              engine = \"partitioned-raft-kv\"\r\n            [cdc]\r\n              min-ts-interval = \"500ms\"\r\n              incremental-scan-threads = 64\r\n              incremental-scan-concurrency = 256\r\n              incremental-scan-speed-limit = \"512MiB\"\r\n          limits:\r\n            cpu: 8000m\r\n            memory: 16Gi\r\n            storage: 1400Gi\r\n          maxReplicas: 4\r\n          replicas: 3\r\n          requests:\r\n            cpu: 8000m\r\n            memory: 16Gi\r\n            storage: 1400Gi\r\n          storageClassName: fast-disks\r\n          version: master\r\n```\r\n\r\n"
+    }
+  ]
+}

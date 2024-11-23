@@ -1,0 +1,27 @@
+{
+  "issue_number": 9538,
+  "title": "heap pprof failed",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv4.0.10\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n1. `tiup playground v4.0.10`\r\n2. `curl -H \"Content-Type: application/protobuf\" \"http://127.0.0.1:20180/debug/pprof/heap?seconds=5&frequency=50\"`\r\n### What did you expect?\r\nheap pprof success.\r\n\r\n### What did happened?\r\n`jemalloc error failed to dump the profile to \"/tmp/.tmp0upAs1/tikv_dump_profile\": An interface with side effects failed in some way not directly related to `mallctl*()` read/write processing.`",
+  "state": "open",
+  "created_at": "2021-01-21T12:01:58Z",
+  "updated_at": "2021-12-29T11:04:08Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 1002538898,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T11:03:56Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1002538981,
+      "user": "Lily2025",
+      "created_at": "2021-12-29T11:04:06Z",
+      "body": "/severity Minor "
+    }
+  ]
+}

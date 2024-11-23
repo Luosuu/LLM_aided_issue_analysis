@@ -1,0 +1,39 @@
+{
+  "issue_number": 10492,
+  "title": "TiKV OOM under high pressure",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n[root@centos76_vm tikv-20160]# ./bin/tikv-server -V\r\nTiKV \r\nRelease Version:   5.0.3\r\nEdition:           Community\r\nGit Commit Hash:   63b63edfbb9bbf8aeb875aad28c59f082eeb55d4\r\nGit Commit Branch: heads/refs/tags/v5.0.3\r\nUTC Build Time:    2021-06-28 10:06:29\r\nRust Version:      rustc 1.51.0-nightly (bc39d4d9c 2021-01-15)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n4 core、8G mem for per node\r\ntop as follow\r\n[topology.txt](https://github.com/tikv/tikv/files/6739984/topology.txt)\r\n\r\n### Steps to reproduce\r\n1. run workload（3PD、3KV、1TiDB）\r\n- sysbench --config-file=config oltp_point_select --tables=32 --table-size=10000000 --auto_inc=yes prepare\r\n   threads=8\r\n- /root/.tiup/components/bench/v1.5.1/tiup-bench tpcc -H 172.16.6.161 -P 4000 -D tpcc --warehouses 1000 -T 32 prepare\r\n\r\n### What did you expect?\r\nall node keep health always\r\n\r\n### What did happened?\r\ntwo TiKV OOM\r\n<img width=\"728\" alt=\"oom\" src=\"https://user-images.githubusercontent.com/84712107/123943026-4a6bc800-d9ce-11eb-8057-a2c6a4a7f1ac.png\">\r\n<img width=\"1070\" alt=\"oom1\" src=\"https://user-images.githubusercontent.com/84712107/123943374-adf5f580-d9ce-11eb-9304-d855af315dbc.png\">\r\n\r\n",
+  "state": "closed",
+  "created_at": "2021-06-30T10:16:39Z",
+  "updated_at": "2021-11-22T08:14:56Z",
+  "closed_at": "2021-11-22T08:14:56Z",
+  "labels": [
+    "type/bug",
+    "severity/major"
+  ],
+  "comments_data": [
+    {
+      "id": 871276600,
+      "user": "Lily2025",
+      "created_at": "2021-06-30T10:17:03Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 871277052,
+      "user": "Lily2025",
+      "created_at": "2021-06-30T10:17:40Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 899378661,
+      "user": "Lily2025",
+      "created_at": "2021-08-16T09:52:41Z",
+      "body": "/assign hicqu"
+    },
+    {
+      "id": 975237670,
+      "user": "hicqu",
+      "created_at": "2021-11-22T08:14:45Z",
+      "body": "Closed by #10860."
+    }
+  ]
+}

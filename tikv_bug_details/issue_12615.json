@@ -1,0 +1,28 @@
+{
+  "issue_number": 12615,
+  "title": "Pessimistic prewrite may be not idempotent on CommitTsTooLarge",
+  "body": "## Bug Report\r\n\r\nConsidering the following case:\r\n1. All prewrites of a pessimistic async-commit transaction succeeds at first. But the client does not receive the responses of non-pessimistic keys.\r\n2. Some keys of the transaction are committed because of async lock resolve.\r\n3. In the retried prewrite for a non-pessimistic key, the calculated `commit_ts` exceeds `max_commit_ts`. Then, it returns async commit fallback to the client and successfully prewrites the lock.\r\n4. The client executes a legacy percolator commit.\r\n\r\nThis may cause several possible problems.\r\n\r\n- If the primary lock is committed in step 2, the final commit may fail (TxnLockNotFound). The end user may receive an error while the transaction commits successfully.\r\n- If the non-pessimistic key is committed in step 2, the final commit may commit this key twice, causing different commit TS for a single transaction.\r\n\r\nThis might be related to https://github.com/pingcap/tidb/issues/34875.",
+  "state": "closed",
+  "created_at": "2022-05-23T12:24:06Z",
+  "updated_at": "2022-05-31T05:53:12Z",
+  "closed_at": "2022-05-26T02:22:47Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-5.0",
+    "affects-5.1",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "affects-6.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1135323225,
+      "user": "Lily2025",
+      "created_at": "2022-05-24T02:13:10Z",
+      "body": "/type bug\r\n/severity major\r\n/assign sticnarf"
+    }
+  ]
+}

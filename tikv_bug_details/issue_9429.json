@@ -1,0 +1,65 @@
+{
+  "issue_number": 9429,
+  "title": "Files did not purged after `DeleteFilesInRanges`",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n```\r\n$ ./tikv-server --version\r\nTiKV\r\nRelease Version:   5.0.0-rc.x\r\nEdition:           Community\r\nGit Commit Hash:   60f3c51fbc45347341bd981932132f077c616650\r\nGit Commit Branch: master\r\nUTC Build Time:    2020-12-31 06:15:22\r\nRust Version:      rustc 1.49.0-nightly (b1496c6e6 2020-10-18)\r\nEnable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb\r\nProfile:           dist_release\r\n```\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nRun a cluster with three tikv nodes:\r\n1. Add a node to the cluster\r\n2. Choose one store, migrate its regions to the new store\r\n\r\n### What did you expect?\r\n\r\nThe disk space should be reclaimed very fast.\r\n\r\n### What did happened?\r\n\r\n![image](https://user-images.githubusercontent.com/20279863/103534144-4c464a00-4ec9-11eb-8861-8524a2163331.png)\r\n![image](https://user-images.githubusercontent.com/20279863/103534558-0dfd5a80-4eca-11eb-9a55-1990ba0c2104.png)\r\n\r\nStore size decreased slowly during migrating regions.\r\nThen try to restart the store, many of write cf L6 SSTs were purged in one rocksdb job (See [rocksdb.info.log](https://github.com/tikv/tikv/files/5764563/rocksdb.info.log)). \r\n",
+  "state": "open",
+  "created_at": "2021-01-04T12:19:27Z",
+  "updated_at": "2021-02-04T08:47:41Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "component/rocksdb",
+    "sig/engine",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 753944496,
+      "user": "5kbpers",
+      "created_at": "2021-01-04T12:20:08Z",
+      "body": "@Connor1996 @yiwu-arbug PTAL"
+    },
+    {
+      "id": 759204778,
+      "user": "hicqu",
+      "created_at": "2021-01-13T04:55:20Z",
+      "body": "I had tried to reproduce the situation but failed. My attempt is based on `max-replicas = 1`:\r\n![图片](https://user-images.githubusercontent.com/8407317/104408075-2c381a00-559e-11eb-9376-bc3a4f6f59f5.png)\r\n![图片](https://user-images.githubusercontent.com/8407317/104408096-3e19bd00-559e-11eb-800d-7b82068f5549.png)\r\nThe migration started at 19:47 and finished at 19:58. The space recycle was quickly.\r\n\r\nMaybe it's necessary to try 3 replicas. @yiwu-arbug @Connor1996 do you have any clues?"
+    },
+    {
+      "id": 759306775,
+      "user": "Connor1996",
+      "created_at": "2021-01-13T09:00:31Z",
+      "body": "I had tried to reproduce it with 1 replica too but failed. From the code level, I don't think it's related to 3 replicas. @hicqu "
+    },
+    {
+      "id": 769608919,
+      "user": "hicqu",
+      "created_at": "2021-01-29T06:33:20Z",
+      "body": "Seems the reason is about RocksDB's implementation for `DeleteFilesInRange`.\r\nHere is a code sector about the function:\r\n![图片](https://user-images.githubusercontent.com/8407317/106239988-78da5100-623e-11eb-8330-f310ba46599c.png)\r\n\r\nThere is an option `delete_obsolete_files_period_micros` for puring obsolete files. The default value is `3600s`. Maybe we can set it to a small value to speed up space reclaiming.\r\n\r\n@Connor1996 can you confirm or check it?"
+    },
+    {
+      "id": 769611930,
+      "user": "Connor1996",
+      "created_at": "2021-01-29T06:41:21Z",
+      "body": "It should be purged in `PurgeObsoleteFiles` if possible. But seems it indeed has the possibility that the file can't be purged right away due to iterators are referencing it and it can be only purged at full scan later 🤔"
+    },
+    {
+      "id": 769611989,
+      "user": "Connor1996",
+      "created_at": "2021-01-29T06:41:30Z",
+      "body": "I'll check that later."
+    },
+    {
+      "id": 769642049,
+      "user": "5kbpers",
+      "created_at": "2021-01-29T07:53:20Z",
+      "body": "![image](https://user-images.githubusercontent.com/20279863/106246935-d7f19300-6249-11eb-9182-1df3591a9680.png)\r\n\r\nFor the metrics in my environment, the migration paused for more than one hour, there are still some SSTs in L6 that were cleaned after restarting the node."
+    },
+    {
+      "id": 773137757,
+      "user": "Connor1996",
+      "created_at": "2021-02-04T08:47:41Z",
+      "body": "Add a test and ensure that the files should be purged at dtor of iterator if the deleted files are referenced by iterator. \r\n![image](https://user-images.githubusercontent.com/13497871/106867184-4336db80-6708-11eb-8bfe-193a3a6cac7a.png)\r\n\r\nFull scan is just a fallback policy to check obsolete files that are not properly purged before. So it should be something wrong with the RocksDB."
+    }
+  ]
+}

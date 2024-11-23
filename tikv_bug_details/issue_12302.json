@@ -1,0 +1,39 @@
+{
+  "issue_number": 12302,
+  "title": "6.0.0 document issue for config online modify",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\nno matter\r\n\r\n### What operating system and CPU are you using?\r\nno matter\r\n\r\n### Steps to reproduce\r\nno matter\r\n\r\n### What did you expect?\r\n1、add some notes that  configuration cannot be persisted if readonly filesystem in dynamic config document for operator scenes \r\n2、store-pool-size、apply-pool-size：Incorrect scope statement\r\n3、scheduler-worker-pool-size：no maximum value\r\n4、raft-max-inflight-msgs：no scope statement\r\n\r\n### What did happened?\r\nsome instructions are missing\r\n",
+  "state": "open",
+  "created_at": "2022-03-29T05:06:50Z",
+  "updated_at": "2022-03-29T14:35:27Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "severity/moderate"
+  ],
+  "comments_data": [
+    {
+      "id": 1081408289,
+      "user": "Lily2025",
+      "created_at": "2022-03-29T05:07:29Z",
+      "body": "/type bug\r\n/severity Moderate\r\n/assign glorv\r\n"
+    },
+    {
+      "id": 1081428231,
+      "user": "Lily2025",
+      "created_at": "2022-03-29T05:45:23Z",
+      "body": "/assign ethercflow"
+    },
+    {
+      "id": 1081428247,
+      "user": "ti-chi-bot",
+      "created_at": "2022-03-29T05:45:25Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: ethercflow.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/12302#issuecomment-1081428231):\n\n>/assign ethercflow\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1081682223,
+      "user": "glorv",
+      "created_at": "2022-03-29T10:06:39Z",
+      "body": "@qiancai Do we need to add a note in https://docs.pingcap.com/tidb/stable/dynamic-config to describe that this feature may not be correctly handled when the config file is mounted read-only(typically in the cluster environment.)"
+    }
+  ]
+}

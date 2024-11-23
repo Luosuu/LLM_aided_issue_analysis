@@ -1,0 +1,40 @@
+{
+  "issue_number": 12902,
+  "title": "PiTR log backup fails due to \"failed to put object rusoto error\"",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n│/ # /tikv-server -V\r\n│TiKV\r\n│Release Version:   6.1.0-alpha\r\n│Edition:           Community\r\n│Git Commit Hash:   900dd036829662f4e88d31fc66fc3aada09a9924\r\n│Git Commit Branch: 6.1.0-pitr-dev\r\n│UTC Build Time:    2022-06-13 03:03:45\r\n\r\n### What operating system and CPU are you using?\r\nK8S\r\n\r\n### Steps to reproduce\r\n1. Start log backup with workload running for about 10 days.\r\n\r\n### What did you expect?\r\nLog backup should not fail.\r\n\r\n### What did happened?\r\n![image](https://user-images.githubusercontent.com/7403864/175462091-867b0732-a981-40a5-8ea9-70c86bc110d4.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-06-24T04:27:46Z",
+  "updated_at": "2022-07-13T11:01:06Z",
+  "closed_at": "2022-07-13T11:01:06Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "feature/developing"
+  ],
+  "comments_data": [
+    {
+      "id": 1165182221,
+      "user": "fubinzh",
+      "created_at": "2022-06-24T04:28:44Z",
+      "body": "/type bug\r\n/severity Critical\r\n/feature developing"
+    },
+    {
+      "id": 1181650193,
+      "user": "joccau",
+      "created_at": "2022-07-12T11:35:40Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0"
+    },
+    {
+      "id": 1181692713,
+      "user": "3pointer",
+      "created_at": "2022-07-12T12:20:58Z",
+      "body": "If it's the error from external storage and can not recover. I think log backup expect to fail."
+    },
+    {
+      "id": 1182740739,
+      "user": "joccau",
+      "created_at": "2022-07-13T04:04:42Z",
+      "body": "/remove-label may-affects-6.1"
+    }
+  ]
+}

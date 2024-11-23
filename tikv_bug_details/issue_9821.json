@@ -1,0 +1,80 @@
+{
+  "issue_number": 9821,
+  "title": "coprocessor IN expr not handle max_u64 properly",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n    TiKV\r\n    Release Version:   5.0.0-rc.x\r\n    Edition:           Community\r\n    Git Commit Hash:   eca434da4e71d540f7201203d10bf078d2ece853\r\n    Git Commit Branch: master\r\n    UTC Build Time:    2021-02-24 08:22:44\r\n    Rust Version:      rustc 1.51.0-nightly (1d0d76f8d 2021-01-24)\r\n    Enable Features:   jemalloc mem-profiling portable sse protobuf-codec test-engines-rocksdb cloud-aws cloud-gcp\r\n    Profile:           debug\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n    AMD Ryzen 5 PRO 4650U with Radeon Graphics\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nCopr bug, use following SQL can reproduce [TiDB issue](https://github.com/pingcap/tidb/issues/23198)\r\n\r\n    use test;\r\n    drop table if exists t;\r\n    create table t (a int);\r\n    insert into t values(-1);\r\n    select * from t where a in(18446744073709551615, 1);\r\n\r\n### What did you expect?\r\nempty set\r\n### What did happened?\r\n    select a from t where a in(18446744073709551615, 1);\r\n    +-----+\r\n    | a   |\r\n    |-----|\r\n    | -1  |\r\n    +-----+\r\n",
+  "state": "closed",
+  "created_at": "2021-03-16T06:03:24Z",
+  "updated_at": "2021-04-14T08:06:14Z",
+  "closed_at": "2021-03-18T14:11:37Z",
+  "labels": [
+    "type/bug",
+    "help wanted",
+    "sig/coprocessor",
+    "difficulty/easy",
+    "needs-cherry-pick-release-4.0",
+    "severity/critical",
+    "needs-cherry-pick-release-5.0"
+  ],
+  "comments_data": [
+    {
+      "id": 801931514,
+      "user": "ChenPeng2013",
+      "created_at": "2021-03-18T13:36:19Z",
+      "body": "/label severity/critical"
+    },
+    {
+      "id": 801931530,
+      "user": "ti-chi-bot",
+      "created_at": "2021-03-18T13:36:21Z",
+      "body": "@ChenPeng2013: The label(s) `severity/critical` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0-rc, needs-cherry-pick-5.0, wontfix, do-not-merge/cherry-pick-not-approved`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/9821#issuecomment-801931514):\n\n>/label severity/critical\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 801932672,
+      "user": "ChenPeng2013",
+      "created_at": "2021-03-18T13:38:06Z",
+      "body": "/label critical"
+    },
+    {
+      "id": 801932692,
+      "user": "ti-chi-bot",
+      "created_at": "2021-03-18T13:38:07Z",
+      "body": "@ChenPeng2013: The label(s) `critical` cannot be applied. These labels are supported: `challenge-program, compatibility-breaker, high-performance, hptc, needs-cherry-pick-2.1, needs-cherry-pick-3.0, needs-cherry-pick-3.1, needs-cherry-pick-4.0, needs-cherry-pick-5.0-rc, needs-cherry-pick-5.0, wontfix, do-not-merge/cherry-pick-not-approved`.\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/9821#issuecomment-801932672):\n\n>/label critical\n\n\nInstructions for interacting with me using PR comments are available [here](https://prow.tidb.io/command-help).  If you have questions or suggestions related to my behavior, please file an issue against the [ti-community-infra/tichi](https://github.com/ti-community-infra/tichi/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 801933428,
+      "user": "ChenPeng2013",
+      "created_at": "2021-03-18T13:39:12Z",
+      "body": "/severity critical"
+    },
+    {
+      "id": 802591802,
+      "user": "guo-shaoge",
+      "created_at": "2021-03-19T06:31:11Z",
+      "body": "/label needs-cherry-pick-4.0"
+    },
+    {
+      "id": 802592037,
+      "user": "guo-shaoge",
+      "created_at": "2021-03-19T06:31:47Z",
+      "body": " /run-cherry-picker"
+    },
+    {
+      "id": 819200176,
+      "user": "jebter",
+      "created_at": "2021-04-14T03:21:35Z",
+      "body": "This bug has not been fixed in 5.0"
+    },
+    {
+      "id": 819318570,
+      "user": "guo-shaoge",
+      "created_at": "2021-04-14T08:03:48Z",
+      "body": "/label needs-cherry-pick-5.0"
+    },
+    {
+      "id": 819320165,
+      "user": "guo-shaoge",
+      "created_at": "2021-04-14T08:06:14Z",
+      "body": "/run-cherry-picker"
+    }
+  ]
+}

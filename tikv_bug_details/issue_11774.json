@@ -1,0 +1,95 @@
+{
+  "issue_number": 11774,
+  "title": "one tikv（recovered pod）oom repeatedly when network fault recover while run tpcc",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n/ # ./tikv-server -V\r\nTiKV \r\nRelease Version:   5.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   99b34363cda1bd394ae689802655e9d9cf76d7fb\r\nGit Commit Branch: heads/refs/tags/v5.4.0-nightly\r\nUTC Build Time:    2022-01-04 01:15:55\r\nRust Version:      rustc 1.56.0-nightly (2faabf579 2021-07-27)\r\nEnable Features:   jemalloc mem-profiling portable sse test-engines-rocksdb cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n8core 16G\r\nNS：endless-oltp--tps-543619-1-288\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/543619\r\n\r\n### Steps to reproduce\r\noltp_stability_rel_002\r\n1、\r\n/pd-ctl schedule add shuffle-leader-scheduler:Success!\r\n/pd-ctl schedule add shuffle-region-scheduler:Success!\r\n/pd-ctl schedule add random-merge-scheduler:Success!\r\n2、\r\ngo-tpc tpcc run -D tpcc --host tc-tidb.endless-oltp--tps-543619-1-288 -P4000 --warehouses 1000 -T 512 --time 36000m --ignore-error '2013,1213,1105,1205,8022,8027,8028,9004,9007,1062‘\r\n3、\r\nRun chaos\t{\"name\": \"network-loss\", \"selectors\": [\"endless-oltp--tps-543619-1-288/tc-tikv-2\"], \"experiment\": {\"Duration\":\"\",\"Scheduler\":null,\"Loss\":\"76\",\"Correlation\":\"25\"}}\r\n\r\n### What did you expect?\r\nall pods are normal\r\n\r\n### What did happened?\r\none tikv oom repeatedly\r\n![image](https://user-images.githubusercontent.com/84712107/148024655-3748ef47-cafe-4230-bd24-c5c30d8dc073.png)\r\n\r\n![cvBiqA9NnR](https://user-images.githubusercontent.com/84712107/148024721-b556b6ed-b3b4-4c17-80e3-215baf2bc460.png)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2022-01-04T07:35:26Z",
+  "updated_at": "2022-05-12T11:24:46Z",
+  "closed_at": "2022-05-12T11:22:41Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "found/automation",
+    "affects-5.2",
+    "affects-5.3",
+    "affects-5.4",
+    "affects-6.0",
+    "may-affects-4.0",
+    "may-affects-5.0",
+    "may-affects-5.1"
+  ],
+  "comments_data": [
+    {
+      "id": 1004584821,
+      "user": "Lily2025",
+      "created_at": "2022-01-04T07:36:07Z",
+      "body": "/assign Little-Wallace"
+    },
+    {
+      "id": 1004584917,
+      "user": "Lily2025",
+      "created_at": "2022-01-04T07:36:20Z",
+      "body": "/severity Critical"
+    },
+    {
+      "id": 1004585517,
+      "user": "Lily2025",
+      "created_at": "2022-01-04T07:37:47Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1004725151,
+      "user": "Lily2025",
+      "created_at": "2022-01-04T11:19:48Z",
+      "body": "/found automation"
+    },
+    {
+      "id": 1005359593,
+      "user": "Little-Wallace",
+      "created_at": "2022-01-05T03:50:29Z",
+      "body": "This environment was inject network error, and it may cause some rpc failed"
+    },
+    {
+      "id": 1009570999,
+      "user": "Lily2025",
+      "created_at": "2022-01-11T03:40:50Z",
+      "body": "oltp_rel_001_002\r\n2022-01-10T16:59:05.949+0800\tINFO\toltppkg/chaos.go:358\tfault will last for\t{\"duration\": \"8m0s\"}\r\n2022-01-10T16:59:05.953+0800\tINFO\tchaos/chaos.go:86\tRun chaos\t{\"name\": \"network-loss\", \"selectors\": [\"endless-oltp--tps-514289-1-406/tc-tikv-3\"], \"experiment\": {\"Duration\":\"\",\"Scheduler\":null,\"Loss\":\"99\",\"Correlation\":\"25\"}}\r\n\r\ncase exec log：http://172.16.4.180:31714/artifacts/testground/plan-exec-514289-x9vmk/plan-exec-514289-x9vmk-1933710652/main-logs\r\nhttps://tcms.pingcap.net/dashboard/executions/plan/514289 similar issue \r\ntikv3 oom:\r\n    State:          Running\r\n      Started:      Mon, 10 Jan 2022 17:08:28 +0800\r\n    Last State:     Terminated\r\n      Reason:       OOMKilled\r\n      Exit Code:    137\r\n      Started:      Mon, 10 Jan 2022 16:31:54 +0800\r\n      Finished:     Mon, 10 Jan 2022 17:08:27 +0800\r\nlogs：http://minio.pingcap.net:42041/buckets/test-infra-testground/browse/YXJjaGl2ZS9lbmRsZXNzLW9sdHAtLXRwcy01MTQyODktMS00MDY=\r\n\r\n![image](https://user-images.githubusercontent.com/84712107/161361529-01092229-0307-42cb-a661-3154bcd02728.png)\r\n"
+    },
+    {
+      "id": 1086491801,
+      "user": "Lily2025",
+      "created_at": "2022-04-02T02:13:52Z",
+      "body": "/assign tier-cap"
+    },
+    {
+      "id": 1101968476,
+      "user": "Lily2025",
+      "created_at": "2022-04-19T03:58:46Z",
+      "body": "/label affects-5.2\r\n/label affects-5.3"
+    },
+    {
+      "id": 1103908020,
+      "user": "cfzjywxk",
+      "created_at": "2022-04-20T13:03:53Z",
+      "body": "Another oom issue\r\nhttps://github.com/tikv/tikv/issues/11838\r\n"
+    },
+    {
+      "id": 1103912775,
+      "user": "cfzjywxk",
+      "created_at": "2022-04-20T13:08:46Z",
+      "body": "@tonyxuqqi @5kbpers \r\nDo we have any new memory insight method besides the memory trace panel and dumping the jemalloc profile?\r\nIt's hard to tell if it's expected for this phenomenon described by @Lily2025."
+    },
+    {
+      "id": 1124871991,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T11:22:29Z",
+      "body": "/remove-severity major\r\n/severity Critical"
+    },
+    {
+      "id": 1124872117,
+      "user": "Lily2025",
+      "created_at": "2022-05-12T11:22:37Z",
+      "body": "fixed in 6.1.0 by tier-cap"
+    }
+  ]
+}

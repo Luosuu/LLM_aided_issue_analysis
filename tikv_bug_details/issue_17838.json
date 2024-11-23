@@ -1,0 +1,20 @@
+{
+  "issue_number": 17838,
+  "title": "In-memory Engine: bank workload has more than 12% regression when IME is enabled",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\ntps | qps | avg_latency(ms) | P99_latency(ms) | monitor_url\r\n-- | -- | -- | -- | --\r\n2376 | 55945 | 1.7 | 13.5 | https://clinic.pingcap.com.cn/portal/#/orgs/33/clusters/7434582726429575662\r\n2722 | 64090 | 1.47 | 10.8 | https://clinic.pingcap.com.cn/portal/#/orgs/33/clusters/7434582726429575662\r\n\r\n![img_v3_02gj_319701c8-f367-472a-80e4-2f2878c0686g](https://github.com/user-attachments/assets/d4db26e7-8654-447c-b416-8ea76658d71b)\r\n\r\nThe first half of the test shows a significant difference, according to the above metric.\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\nNightly, 2024-11-08\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nRun bank workload.\r\n\r\n### What did you expect?\r\n\r\nNo regression or less than 5%.\r\n\r\n### What did happened?\r\n\r\nMore than 12%.",
+  "state": "closed",
+  "created_at": "2024-11-18T04:11:54Z",
+  "updated_at": "2024-11-21T05:41:57Z",
+  "closed_at": "2024-11-21T05:41:57Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": [
+    {
+      "id": 2490126340,
+      "user": "glorv",
+      "created_at": "2024-11-21T05:41:57Z",
+      "body": "I have reran this benchmark multiple times and this kind of large regression never recurred. So I'll close this issue now. We may reopen it if it occurs again."
+    }
+  ]
+}

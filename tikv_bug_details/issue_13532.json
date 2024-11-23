@@ -1,0 +1,52 @@
+{
+  "issue_number": 13532,
+  "title": "PITR: failed to pause a log-backup task with the error  BR:Backup:ErrBackupGCSafepointExceeded",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n./bin/tikv-server -V\r\nRelease Version:   6.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   9aa85c9feb76a2f10af25265695e74a5efe67f4a\r\nGit Commit Branch: heads/refs/tags/v6.3.0-alpha\r\nUTC Build Time:    2022-09-20 06:51:55\r\nRust Version:      rustc 1.64.0-nightly (0f4bcadb4 2022-07-30)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nIt doesn't matter.\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n\r\n### What did you expect?\r\nPause task successfully with the command `br log pause`\r\n\r\n### What did happened?\r\n[2022/09/23 17:57:51.572 +08:00] [INFO] [collector.go:70] [\"log pause failed summary\"] [total-ranges=1] [ranges-succeed=0] [ranges-failed=1] [unit-name=\"log pause\"] [error=\"failed to check gc safePoint, ts 436186568213921818: GC safepoint 436186568213921819 exceed TS 436186568213921818: [BR:Backup:ErrBackupGCSafepointExceeded]backup GC safepoint exceeded\"] [errorVerbose=\"[BR:Backup:ErrBackupGCSafepointExceeded]backup GC safepoint exceeded\r\nGC safepoint 436186568213921819 exceed TS 436186568213921818\r\ngithub.com/pingcap/tidb/br/pkg/utils.CheckGCSafePoint\r\n\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/utils/safe_point.go:76\r\ngithub.com/pingcap/tidb/br/pkg/task.(*streamMgr).setGCSafePoint\r\n\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/task/stream.go:370\r\ngithub.com/pingcap/tidb/br/pkg/task.RunStreamPause\r\n\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/task/stream.go:687\r\ngithub.com/pingcap/tidb/br/pkg/task.RunStreamCommand\r\n\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/pkg/task/stream.go:455\r\nmain.streamCommand\r\n\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/cmd/br/stream.go:231\r\nmain.newStreamPauseCommand.func1\r\n\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/cmd/br/stream.go:100\r\ngithub.com/spf13/cobra.(*Command).execute\r\n\t/go/pkg/mod/github.com/spf13/cobra@v1.5.0/command.go:872\r\ngithub.com/spf13/cobra.(*Command).ExecuteC\r\n\t/go/pkg/mod/github.com/spf13/cobra@v1.5.0/command.go:990\r\ngithub.com/spf13/cobra.(*Command).Execute\r\n\t/go/pkg/mod/github.com/spf13/cobra@v1.5.0/command.go:918\r\nmain.main\r\n\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/br/br/cmd/br/main.go:57\r\nruntime.main\r\n\t/usr/local/go/src/runtime/proc.go:250\r\nruntime.goexit\r\n\t/usr/local/go/src/runtime/asm_amd64.s:1594\r\nfailed to check gc safePoint, ts 436186568213921818\"]\r\n",
+  "state": "closed",
+  "created_at": "2022-09-26T02:35:08Z",
+  "updated_at": "2022-11-01T04:24:00Z",
+  "closed_at": "2022-11-01T04:24:00Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "affects-6.3"
+  ],
+  "comments_data": [
+    {
+      "id": 1257398447,
+      "user": "joccau",
+      "created_at": "2022-09-26T02:35:16Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1275512723,
+      "user": "joccau",
+      "created_at": "2022-10-12T02:49:43Z",
+      "body": "/type bug"
+    },
+    {
+      "id": 1275516003,
+      "user": "joccau",
+      "created_at": "2022-10-12T02:54:32Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 1275516563,
+      "user": "joccau",
+      "created_at": "2022-10-12T02:55:39Z",
+      "body": "/remove-label may-affects-4.0\r\n/remove-label may-affects-5.0\r\n/remove-label may-affects-5.1\r\n/remove-label may-affects-5.2\r\n/remove-label may-affects-5.3\r\n/remove-label may-affects-5.4\r\n/remove-label may-affects-6.0\r\n/remove-label may-affects-6.1\r\n/remove-label may-affects-6.2\r\n/remove-label may-affects-6.3"
+    },
+    {
+      "id": 1275516964,
+      "user": "joccau",
+      "created_at": "2022-10-12T02:56:30Z",
+      "body": "/label may-affects-6.3"
+    },
+    {
+      "id": 1275517361,
+      "user": "joccau",
+      "created_at": "2022-10-12T02:57:16Z",
+      "body": "/remove-label may-affects-6.3\r\n/label affects-6.3"
+    }
+  ]
+}

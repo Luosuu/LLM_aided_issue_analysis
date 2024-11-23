@@ -1,0 +1,20 @@
+{
+  "issue_number": 13671,
+  "title": "Bucket re-split hardly works",
+  "body": "## Bug Report\r\n\r\nBucket will be re-splitted if its write bytes exceeds half of the bucket size.\r\nhttps://github.com/tikv/tikv/blob/7692be47d181f0ceb96d904fe7bc485f274e0c1f/components/raftstore/src/store/fsm/peer.rs#L5777-L5781\r\n\r\nHowever, bucket stats is reset on `report_region_buckets_tick`(every 10s), and the split check tick is also 10s. It's very like the re-split doesn't take effect.\r\nhttps://github.com/tikv/tikv/blob/7692be47d181f0ceb96d904fe7bc485f274e0c1f/components/raftstore/src/store/fsm/peer.rs#L6072 ",
+  "state": "closed",
+  "created_at": "2022-10-25T08:34:42Z",
+  "updated_at": "2023-10-26T04:39:35Z",
+  "closed_at": "2023-10-26T04:39:34Z",
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5"
+  ],
+  "comments_data": []
+}

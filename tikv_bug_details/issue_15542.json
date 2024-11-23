@@ -1,0 +1,30 @@
+{
+  "issue_number": 15542,
+  "title": "[Dynamic Region] TiDB can't start for region unavailable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nRelease Version:   7.4.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   640143a2daba90bfcc9a3848d19887a7a2f39170\r\nGit Commit Branch: heads/refs/tags/v7.4.0-alpha\r\nUTC Build Time:    2023-09-04 11:47:37\r\nRust Version:      rustc 1.67.0-nightly (96ddd32c4 2022-11-14)\r\nEnable Features:   pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine cloud-aws cloud-gcp cloud-azure\r\nProfile:           dist_release\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nmultiple lighting import 100T\r\nrestart tidb and a time can't start for region unavailable\r\n```\r\n[2023/09/06 21:53:12.765 +08:00] [INFO] [region_request.go:1513] [\"throwing pseudo region error due to no replica available\"] [req-ts=444074125599440901] [req-type=Cop] [region=\"{ region id: 27055675, ver: 482, confVer: 83 }\"] [replica-read-type=leader] [stale-read=false] [request-sender=\"{replicaSelector: replicaSelector{selectorStateStr: tryFollower, cacheRegionIsValid: true, replicaStatus: [peer: 27055676, store: 13, isEpochStale: false, attempts: 1, replica-epoch: 0, store-epoch: 0, store-state: resolved, store-liveness-state: reachable peer: 27055677, store: 28, isEpochStale: false, attempts: 1, replica-epoch: 0, store-epoch: 0, store-state: resolved, store-liveness-state: reachable peer: 27055678, store: 31, isEpochStale: false, attempts: 1, replica-epoch: 0, store-epoch: 0, store-state: resolved, store-liveness-state: reachable]}}\"] [retry-times=3] [total-backoff-ms=40010] [total-backoff-times=87] [total-region-errors=]\r\n[2023/09/06 21:53:12.765 +08:00] [WARN] [backoff.go:172] [\"regionMiss backoffer.maxSleep 40000ms is exceeded, errors:\\nregion_id:27055675, region_ver:482, store_type:tikv, peer_addr:[tc-tikv-12.tc](http://tc-tikv-12.tc/)-tikv-peer.partition-raft-xxwgm.svc:20160, error:epoch_not_match:<>  at 2023-09-06T21:53:11.264415858+08:00\\nregion_id:27055675, region_ver:482, store_type:tikv, peer_addr:[tc-tikv-12.tc](http://tc-tikv-12.tc/)-tikv-peer.partition-raft-xxwgm.svc:20160, error:epoch_not_match:<>  at 2023-09-06T21:53:11.765017255+08:00\\nregion_id:27055675, region_ver:482, store_type:tikv, peer_addr:[tc-tikv-12.tc](http://tc-tikv-12.tc/)-tikv-peer.partition-raft-xxwgm.svc:20160, error:epoch_not_match:<>  at 2023-09-06T21:53:12.265548879+08:00\\ntotal-backoff-times: 87, backoff-detail: regionMiss:87\\nlongest sleep type: regionMiss, time: 40010ms\"]\r\n[2023/09/06 21:53:12.766 +08:00] [FATAL] [terror.go:309] [\"unexpected error\"] [error=\"[tikv:9005]Region is unavailable\"] [stack=\"[github.com/pingcap/tidb/parser/terror.MustNil\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/parser/terror/terror.go:309\\nmain.createStoreAndDomain\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:341\\nmain.main\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:240\\nruntime.main\\n\\t/usr/local/go/src/runtime/proc.go:267](http://github.com/pingcap/tidb/parser/terror.MustNil/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/parser/terror/terror.go:309/nmain.createStoreAndDomain/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:341/nmain.main/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:240/nruntime.main/n/t/usr/local/go/src/runtime/proc.go:267)\"] [stack=\"[github.com/pingcap/tidb/parser/terror.MustNil\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/parser/terror/terror.go:309\\nmain.createStoreAndDomain\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:341\\nmain.main\\n\\t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:240\\nruntime.main\\n\\t/usr/local/go/src/runtime/proc.go:267](http://github.com/pingcap/tidb/parser/terror.MustNil/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/parser/terror/terror.go:309/nmain.createStoreAndDomain/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:341/nmain.main/n/t/home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tidb/tidb-server/main.go:240/nruntime.main/n/t/usr/local/go/src/runtime/proc.go:267)\"]\r\n```\r\n### What did you expect?\r\n\r\n### What did happened?\r\n",
+  "state": "closed",
+  "created_at": "2023-09-07T04:45:21Z",
+  "updated_at": "2024-04-23T02:34:45Z",
+  "closed_at": "2024-04-23T02:34:45Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "may-affects-5.3",
+    "may-affects-5.4",
+    "may-affects-6.1",
+    "may-affects-6.5",
+    "may-affects-7.1",
+    "affects-7.4",
+    "affects-7.5",
+    "affects-8.1"
+  ],
+  "comments_data": [
+    {
+      "id": 2071299351,
+      "user": "zhangjinpeng87",
+      "created_at": "2024-04-23T02:34:40Z",
+      "body": "Close this issue temporarily since Dynamic Regions project is paused."
+    }
+  ]
+}

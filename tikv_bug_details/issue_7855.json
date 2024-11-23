@@ -1,0 +1,21 @@
+{
+  "issue_number": 7855,
+  "title": "Channel disconnected error is not handled correctly",
+  "body": "## Bug Report\r\n\r\nhttps://github.com/tikv/tikv/blob/00fe91fcf8bde4233d15b754f6fca7c4f17b7579/components/raftstore/src/store/fsm/store.rs#L1783-L1790\r\n\r\nEither region is removed or TiKV is shutting down can cause `Disconnected` error, treating all as if removal can lead to snapshot corruption.\r\n\r\nWe may also need to examine other `Disconnected` cases in the codebase too.",
+  "state": "closed",
+  "created_at": "2020-05-15T10:35:03Z",
+  "updated_at": "2020-05-27T08:33:45Z",
+  "closed_at": "2020-05-27T08:33:44Z",
+  "labels": [
+    "type/bug",
+    "sig/raft"
+  ],
+  "comments_data": [
+    {
+      "id": 634513649,
+      "user": "hicqu",
+      "created_at": "2020-05-27T08:33:44Z",
+      "body": "Closed by https://github.com/tikv/tikv/pull/7877."
+    }
+  ]
+}

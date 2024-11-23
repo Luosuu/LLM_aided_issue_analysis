@@ -1,0 +1,33 @@
+{
+  "issue_number": 10163,
+  "title": "resolved_ts: register region busy loop prints too many logs",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n\r\nA recent master TiKV a52d25a2b4c53706046346c522b4dd653d9befc4\r\n\r\n### Steps to reproduce\r\n\r\nKeeps giving TiKV huge write load. I run with uniform workload in https://github.com/pingcap/tipocket/pull/410.\r\n\r\n### What did happened?\r\n\r\nThere are lots of logs like this. And the region takes a long time (up to several minutes) to split so the client may receive `Region Unavailable`.\r\n\r\n```\r\n[2021/05/12 16:59:42.011 +08:00] [INFO] [endpoint.rs:223] [\"register observe region\"] [region=\"id: 21161 start_key: 7480000000000000FFA75F720136326562FF35396636FF2D6163FF39372D3465FF6639FF2D383538662DFF63FF65643634336638FFFF666366660000\r\n0000FFFB00000000000000F8 end_key: 7480000000000000FFA75F720136383266FF65303232FF2D3936FF65342D3464FF3162FF2D616464322DFF35FF63353532386231FFFF3638636400000000FFFB00000000000000F8 region_epoch { conf_ver: 5 version: 779 } peers { id: 211\r\n62 store_id: 1 } peers { id: 21163 store_id: 4 } peers { id: 21164 store_id: 5 }\"] [\"store id\"=Some(5)]\r\n[2021/05/12 16:59:42.011 +08:00] [WARN] [scanner.rs:83] [\"resolved_ts scan get snapshot failed\"] [err=\"Request(message: \\\"read index not ready, reason can not read index due to split, region 21161\\\" read_index_not_ready { reason: \\\"can\r\nnot read index due to split\\\" region_id: 21161 })\"]\r\n[2021/05/12 16:59:42.011 +08:00] [INFO] [endpoint.rs:347] [\"region met error, try to register again\"] [error=\"message: \\\"read index not ready, reason can not read index due to split, region 21161\\\" read_index_not_ready { reason: \\\"can n\r\not read index due to split\\\" region_id: 21161 }\"] [region_id=21161]\r\n[2021/05/12 16:59:42.011 +08:00] [INFO] [endpoint.rs:295] [\"deregister observe region\"] [observe_id=ObserveID(3781060)] [region_id=21161] [store_id=Some(5)]\r\n[2021/05/12 16:59:42.011 +08:00] [INFO] [endpoint.rs:223] [\"register observe region\"] [region=\"id: 21161 start_key: 7480000000000000FFA75F720136326562FF35396636FF2D6163FF39372D3465FF6639FF2D383538662DFF63FF65643634336638FFFF666366660000\r\n0000FFFB00000000000000F8 end_key: 7480000000000000FFA75F720136383266FF65303232FF2D3936FF65342D3464FF3162FF2D616464322DFF35FF63353532386231FFFF3638636400000000FFFB00000000000000F8 region_epoch { conf_ver: 5 version: 779 } peers { id: 211\r\n62 store_id: 1 } peers { id: 21163 store_id: 4 } peers { id: 21164 store_id: 5 }\"] [\"store id\"=Some(5)]\r\n[2021/05/12 16:59:42.011 +08:00] [WARN] [scanner.rs:83] [\"resolved_ts scan get snapshot failed\"] [err=\"Request(message: \\\"read index not ready, reason can not read index due to split, region 21161\\\" read_index_not_ready { reason: \\\"can\r\nnot read index due to split\\\" region_id: 21161 })\"]\r\n[2021/05/12 16:59:42.011 +08:00] [INFO] [endpoint.rs:347] [\"region met error, try to register again\"] [error=\"message: \\\"read index not ready, reason can not read index due to split, region 21161\\\" read_index_not_ready { reason: \\\"can n\r\not read index due to split\\\" region_id: 21161 }\"] [region_id=21161]\r\n[2021/05/12 16:59:42.011 +08:00] [INFO] [endpoint.rs:295] [\"deregister observe region\"] [observe_id=ObserveID(3781061)] [region_id=21161] [store_id=Some(5)]\r\n[2021/05/12 16:59:42.011 +08:00] [INFO] [endpoint.rs:223] [\"register observe region\"] [region=\"id: 21161 start_key: 7480000000000000FFA75F720136326562FF35396636FF2D6163FF39372D3465FF6639FF2D383538662DFF63FF65643634336638FFFF666366660000\r\n0000FFFB00000000000000F8 end_key: 7480000000000000FFA75F720136383266FF65303232FF2D3936FF65342D3464FF3162FF2D616464322DFF35FF63353532386231FFFF3638636400000000FFFB00000000000000F8 region_epoch { conf_ver: 5 version: 779 } peers { id: 211\r\n62 store_id: 1 } peers { id: 21163 store_id: 4 } peers { id: 21164 store_id: 5 }\"] [\"store id\"=Some(5)]\r\n```\r\n\r\n~~I'm afrait frequent calling of `SignificantMsg::CaptureChange` also prevent the region from splitting and keeps making the condition worse.~~",
+  "state": "closed",
+  "created_at": "2021-05-13T05:49:22Z",
+  "updated_at": "2021-06-02T10:50:26Z",
+  "closed_at": "2021-06-02T10:50:26Z",
+  "labels": [
+    "type/bug",
+    "severity/minor"
+  ],
+  "comments_data": [
+    {
+      "id": 840322081,
+      "user": "sticnarf",
+      "created_at": "2021-05-13T05:52:00Z",
+      "body": "cc @5kbpers @NingLin-P "
+    },
+    {
+      "id": 840418854,
+      "user": "NingLin-P",
+      "created_at": "2021-05-13T08:51:44Z",
+      "body": "IMO, `SignificantMsg::CaptureChange` won't prevent region from splitting, and the busy loop of registering region is the result of region not split but not the cause. May need further investigating why the region does not apply the split command for a long time. And perhaps we do need to reduce the log of registering region /cc @5kbpers "
+    },
+    {
+      "id": 840715729,
+      "user": "sticnarf",
+      "created_at": "2021-05-13T17:35:14Z",
+      "body": "@NingLin-P Ah, right. `SignificantMsg::CaptureChange` does not seem the cause of not splitting. It is simply because writing is so slow.\r\nI create another issue https://github.com/tikv/tikv/issues/10169 for it. I think the case should be improved."
+    }
+  ]
+}

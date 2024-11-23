@@ -1,0 +1,29 @@
+{
+  "issue_number": 17216,
+  "title": "In-memory engine: panic in cross check task",
+  "body": "## Bug Report\r\n\r\nPanic occured in cross check task (now, audit task).\r\n\r\n\r\nError messages before panic:\r\n```\r\n[2024/06/27 09:48:58.734 +00:00] [INFO] [apply.rs:1857] [\"handle put\"] [index=13171] [key=7480000000000000FF1A5F728000000000FF0307E80000000000FA] [start_ts=450751820106825740] [cf=\"\\\"lock\\\"\"] [region_id=109363] [thread_id=116]\r\n[2024/06/27 09:48:59.594 +00:00] [INFO] [apply.rs:1857] [\"handle put\"] [index=13194] [key=7480000000000000FF1A5F728000000000FF0307E80000000000FAF9BE9B9B66ABFFC8] [start_ts=450751820106825740] [cf=\"\\\"write\\\"\"] [region_id=109363] [thread_id=116]\r\n[2024/06/27 09:48:59.594 +00:00] [INFO] [apply.rs:1923] [\"handle delete\"] [index=13194] [key=7480000000000000FF1A5F728000000000FF0307E80000000000FA] [start_ts=450751820106825740] [cf=\"\\\"lock\\\"\"] [region_id=109363] [thread_id=116]\r\n[2024/06/27 09:48:59.661 +00:00] [INFO] [engine.rs:506] [\"Range to load\"] [Pending=11] [Cached=66] [range=\"CacheRange { tag: \\\"[region_id=109363]\\\", range_start: 7A7480000000000000FF1A5F728000000000FF013DBA0000000000FA, range_end: 7A7480000000000000FF9400000000000000F8 }\"] [Tag=\"[region_id=109363]\"] [thread_id=116]\r\n[2024/06/27 09:49:42.248 +00:00] [INFO] [background.rs:1152] [\"Loading range\"] [range=\"CacheRange { tag: \\\"[region_id=109363]\\\", range_start: 7A7480000000000000FF1A5F728000000000FF013DBA0000000000FA, range_end: 7A7480000000000000FF9400000000000000F8 }\"] [thread_id=28]\r\n[2024/06/27 09:49:42.321 +00:00] [INFO] [background.rs:1238] [\"write to memory in load\"] [cf=\"\\\"lock\\\"\"] [key=7A 7480000000000000FF1A5F728000000000FF0307E80000000000FA016E0E8B0A000000] [thread_id=28]\r\n[2024/06/27 09:50:59.551 +00:00] [ERROR] [background.rs:1053] [\"seek_to_first result not equal\"] [cf=\"\\\"lock\\\"\"] [seqno=180785903] [cache_key=7A7480000000000000FF1A5F728000000000FF0307E80000000000FA] [upper=7A7480000000000000FF9400000000000000F8] [lower=7A7480000000000000FF1A5F728000000000FF013DBA0000000000FA] [thread_id=32]\r\n```\r\n\r\nThe message shows the rocksdb snapshot lost the last handle delete, which may mean that there's unbuffered writes at the time of calling `prepare_for_apply`.\r\n\r\n",
+  "state": "closed",
+  "created_at": "2024-06-27T14:35:11Z",
+  "updated_at": "2024-10-30T05:11:57Z",
+  "closed_at": "2024-10-30T05:11:31Z",
+  "labels": [
+    "type/bug",
+    "severity/major",
+    "feature/developing",
+    "impact/panic"
+  ],
+  "comments_data": [
+    {
+      "id": 2445868281,
+      "user": "overvenus",
+      "created_at": "2024-10-30T05:11:32Z",
+      "body": "Since the first report, we've done several refactors, and the issue hasn't been reproduced for months.\r\n"
+    },
+    {
+      "id": 2445868614,
+      "user": "overvenus",
+      "created_at": "2024-10-30T05:11:56Z",
+      "body": "Cc #17241"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "issue_number": 10595,
+  "title": "Remove voter from a 2 replica raft group may lead to region unavailable",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\nv5.1.0\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\nDoesn't matter\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\nIn a 2 replica raft group, PD decides to remove a voter with simple `confchange` command, but the leader changed to the removing peer during the process and cause the leader to destroy itself. If the leader didn't sync the commitment of the `confchange` command to another peer (perhaps due to network problem or another store is temporarily down) before it is destroyed, another peer can't become leader since it needs the old leader's vote, and hence lead to region unavailable\r\n\r\nThere are few conditions that lead to this case:\r\n- Leader change to the removing peer and cause the leader to destroy itself\r\n- Removing the peer with simple `confchange` which allow removing voter directly, usually this is okay since there won't be more than one inflight simple `confchange` and removing one voter will still have the majority of voter alive. But with 2 replica raft group, there is not majority after one voter destroy\r\n- `raft-rs` will broadcast a msg when a `confchange` log is committed, but it is failed due to network problem or other store is temporarily down\r\n\r\n### What did you expect?\r\nRegion work normal\r\n\r\n### What did happened?\r\nRegion unavailable",
+  "state": "open",
+  "created_at": "2021-07-20T09:43:05Z",
+  "updated_at": "2024-11-01T10:17:51Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "severity/major",
+    "affects-6.0",
+    "affects-6.1",
+    "affects-6.2",
+    "affects-6.3",
+    "affects-6.4",
+    "affects-6.5",
+    "affects-6.6",
+    "affects-7.0",
+    "affects-7.1",
+    "affects-7.5",
+    "affects-8.1",
+    "affects-8.5"
+  ],
+  "comments_data": [
+    {
+      "id": 883254531,
+      "user": "NingLin-P",
+      "created_at": "2021-07-20T09:43:27Z",
+      "body": "/cc @BusyJay "
+    },
+    {
+      "id": 883279803,
+      "user": "BusyJay",
+      "created_at": "2021-07-20T10:22:35Z",
+      "body": "Perhaps we should keep latest commit informations and apply informations when destroying a peer and include them in response."
+    },
+    {
+      "id": 886504836,
+      "user": "Lily2025",
+      "created_at": "2021-07-26T08:46:08Z",
+      "body": "/severity major"
+    },
+    {
+      "id": 889640461,
+      "user": "gengliqi",
+      "created_at": "2021-07-30T05:33:26Z",
+      "body": "I think it's not a problem because this operation should be forbidden. \r\nThe remove-single-voter configuration change relies on the condition that the number of Cnew voters must be greater than or equal to the majority of Cold otherwise the voters in Cold can not be available as you said. We can calculate the minimum number that meets this condition is 3."
+    },
+    {
+      "id": 889667445,
+      "user": "NingLin-P",
+      "created_at": "2021-07-30T06:41:04Z",
+      "body": "> I think it's not a problem because this operation should be forbidden.\r\n> The remove-single-node configuration change relies on the condition that the number of Cnew peers must be greater than the majority of Cold otherwise the peers in Cold can not be available as you said. We can calculate the minimum number that meets this condition is 3.\r\n\r\nI think currently such operation is not forbidden and the problem still exists. As the abovementioned three conditions, together they lead to this case if we can fix any one of them the case is fixed. Preventing remove voters directly (perhaps like joint `confchange` that turn the voter to learner first then remove it) in a 2 replica raft group could fix condition 2 hence fix the case."
+    },
+    {
+      "id": 957460681,
+      "user": "NingLin-P",
+      "created_at": "2021-11-02T12:33:36Z",
+      "body": "There is even a more common case that may lead to region unavailable when removing a voter from a 2 replica raft group:\r\n\r\nAssume the leader wants to remove another voter. After it sends the message with the commitment of the `confchange` and before it persists the commit index (leader can send messages before persisting data) the leader node crashed, but the follower can still apply the `confchange` and destroy itself. And when the leader node recovers and the peer start as a follower, it will keep trying to request a vote from the destroyed follower since the commit index is not persisted, but it will never get it because the follower is destroyed.\r\n\r\nPreventing removing voters directly (like joint confchange) in a 2 replica raft group could also fix this case.\r\n"
+    },
+    {
+      "id": 1181375811,
+      "user": "tonyxuqqi",
+      "created_at": "2022-07-12T06:39:53Z",
+      "body": "/assign lintianshi"
+    },
+    {
+      "id": 1181375831,
+      "user": "ti-chi-bot",
+      "created_at": "2022-07-12T06:39:54Z",
+      "body": "@tonyxuqqi: GitHub didn't allow me to assign the following users: lintianshi.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people), repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/10595#issuecomment-1181375811):\n\n>/assign lintianshi\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    }
+  ]
+}

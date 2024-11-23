@@ -1,0 +1,15 @@
+{
+  "issue_number": 10036,
+  "title": "CDC old value cache does not work effectively for caching Put commands",
+  "body": "## Bug Report\r\n\r\nCDC old value cache does not work effectively for Put commands without previous writes (old value), because it does not add Oldvalue::None to cache when there is no old value. It causes 100% cache miss and results in a higher CPU usage for CDC endpoint thread. \r\n\r\n![image](https://user-images.githubusercontent.com/2150711/115106104-75c94400-9f95-11eb-8cfb-fdf21080c3e3.png)\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n\r\n5.0.0\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\n\r\n```\r\ngo-ycsb load mysql -p workload=core -p mysql.host=172.16.5.33 -p mysql.port=47904 -p mysql.user=root -p recordcount=6000000 -p fieldcount=10 -p fieldlength=16 -p threadcount=8 -p table=usertable1 && \\\r\nsleep 60 && go-ycsb run mysql -p workload=core -p mysql.host=172.16.5.33 -p mysql.port=47904 -p mysql.user=root -p recordcount=6000000 -p fieldcount=10 -p fieldlength=16 -p threadcount=8 -p table=usertable1 -p operationcount=30000000 -p updateproportion=1 -p requestdistribution=uniform\r\n```\r\n\r\nThis issue relates to #9996.",
+  "state": "closed",
+  "created_at": "2021-04-19T07:13:53Z",
+  "updated_at": "2021-04-20T10:31:53Z",
+  "closed_at": "2021-04-20T10:31:53Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/moderate"
+  ],
+  "comments_data": []
+}

@@ -1,0 +1,65 @@
+{
+  "issue_number": 17172,
+  "title": "tikv panic with \"[lib.rs:478] [\\\"internal error: entered unreachable code\\\"] “ when injection ticdc owner io hang",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n./tikv-server -V\r\n TiKV \r\nRelease Version:   8.2.0-alpha\r\nEdition:           Community\r\nGit Commit Hash:   e0659a354b70c8c592140b10ef6c9881d3179a8f\r\nGit Commit Branch: heads/refs/tags/v8.2.0-alpha\r\nUTC Build Time:    2024-06-18 11:37:45\r\nRust Version:      rustc 1.77.0-nightly (89e2160c4 2023-12-27)\r\nEnable Features:   memory-engine pprof-fp jemalloc mem-profiling portable sse test-engine-kv-rocksdb test-engine-raft-raft-engine trace-async-tasks openssl-vendored\r\nProfile:           dist_release\r\n2024-06-19T19:55:04.287+0800\r\n\r\n./cdc version\r\n Release Version: v8.2.0-alpha\r\nGit Commit Hash: 4860903abe960358a7048dbac2513f0e687950e3\r\nGit Branch: heads/refs/tags/v8.2.0-alpha\r\nUTC Build Time: 2024-06-17 11:38:01\r\nGo Version: go version go1.21.10 linux/amd64\r\nFailpoint Build: false\r\n2024-06-19T19:55:04.863+0800\tINFO\tk8s/client.go:135\tit should be noted that a long-running command will not be interrupted even the use case has ended. For more information, please refer to https://github.com/pingcap/test-infra/discussions/129\r\n\r\n### What operating system and CPU are you using?\r\n8c/32g\r\n\r\n### Steps to reproduce\r\n1、start changefeed\r\n2、run workload\r\n3、injection ticdc owner io hang\r\n\r\n### What did you expect?\r\nno panic\r\n\r\n### What did happened?\r\ntikv panic\r\n`{\"container\":\"tikv\",\"level\":\"FATAL\",\"namespace\":\"endless-ha-test-ticdc-tps-7590918-1-753\",\"log\":\"[lib.rs:478] [\\\"internal error: entered unreachable code\\\"] [backtrace=\\\"   0: tikv_util::set_panic_hook::{{closure}}\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/lib.rs:477:18\\\\n   1: <alloc::boxed::Box<F,A> as core::ops::function::Fn<Args>>::call\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:2029:9\\\\n      std::panicking::rust_panic_with_hook\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:783:13\\\\n   2: std::panicking::begin_panic_handler::{{closure}}\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:649:13\\\\n   3: std::sys_common::backtrace::__rust_end_short_backtrace\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:171:18\\\\n   4: rust_begin_unwind\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:645:5\\\\n   5: core::panicking::panic_fmt\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:72:14\\\\n   6: core::panicking::panic\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panicking.rs:144:5\\\\n   7: cdc::delegate::Delegate::finish_prepare_lock_tracker\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/cdc/src/delegate.rs:436:50\\\\n      cdc::delegate::Delegate::finish_scan_locks\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/cdc/src/delegate.rs:467:9\\\\n   8: cdc::endpoint::Endpoint<T,E,S>::finish_scan_locks\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/cdc/src/endpoint.rs:1015:23\\\\n      <cdc::endpoint::Endpoint<T,E,S> as tikv_util::worker::pool::Runnable>::run\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/cdc/src/endpoint.rs:1205:18\\\\n   9: tikv_util::worker::pool::Worker::start_with_timer_impl::{{closure}}\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/worker/pool.rs:517:25\\\\n      <tracker::tls::TrackedFuture<F> as core::future::future::Future>::poll::{{closure}}\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tracker/src/tls.rs:64:23\\\\n      std::thread::local::LocalKey<T>::try_with\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/local.rs:270:16\\\\n      std::thread::local::LocalKey<T>::with\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/local.rs:246:9\\\\n      <tracker::tls::TrackedFuture<F> as core::future::future::Future>::poll\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tracker/src/tls.rs:62:27\\\\n      <futures_util::future::future::map::Map<Fut,F> as core::future::future::Future>::poll\\\\n             at var/cache/cargohome/registry/src/index.crates.io-6f17d22bba15001f/futures-util-0.3.15/src/future/future/map.rs:55:37\\\\n      <futures_util::future::future::Map<Fut,F> as core::future::future::Future>::poll\\\\n             at var/cache/cargohome/registry/src/index.crates.io-6f17d22bba15001f/futures-util-0.3.15/src/lib.rs:93:13\\\\n      yatp::task::future::RawTask<F>::poll\\\\n             at var/cache/cargohome/git/checkouts/yatp-e704b73c3ee279b6/793be4d/src/task/future.rs:59:9\\\\n  10: yatp::task::future::TaskCell::poll\\\\n             at var/cache/cargohome/git/checkouts/yatp-e704b73c3ee279b6/793be4d/src/task/future.rs:103:9\\\\n      <yatp::task::future::Runner as yatp::pool::runner::Runner>::handle\\\\n             at var/cache/cargohome/git/checkouts/yatp-e704b73c3ee279b6/793be4d/src/task/future.rs:387:20\\\\n  11: <tikv_util::yatp_pool::YatpPoolRunner<T> as yatp::pool::runner::Runner>::handle\\\\n             at home/jenkins/agent/workspace/build-common/go/src/github.com/pingcap/tikv/components/tikv_util/src/yatp_pool/mod.rs:199:24\\\\n      yatp::pool::worker::WorkerThread<T,R>::run\\\\n             at var/cache/cargohome/git/checkouts/yatp-e704b73c3ee279b6/793be4d/src/pool/worker.rs:48:13\\\\n      yatp::pool::builder::LazyBuilder<T>::build::{{closure}}\\\\n             at var/cache/cargohome/git/checkouts/yatp-e704b73c3ee279b6/793be4d/src/pool/builder.rs:114:25\\\\n      std::sys_common::backtrace::__rust_begin_short_backtrace\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs:155:18\\\\n  12: std::thread::Builder::spawn_unchecked_::{{closure}}::{{closure}}\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/mod.rs:529:17\\\\n      <core::panic::unwind_safe::AssertUnwindSafe<F> as core::ops::function::FnOnce<()>>::call_once\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/panic/unwind_safe.rs:272:9\\\\n      std::panicking::try::do_call\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:552:40\\\\n      std::panicking::try\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panicking.rs:516:19\\\\n      std::panic::catch_unwind\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/panic.rs:142:14\\\\n      std::thread::Builder::spawn_unchecked_::{{closure}}\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/thread/mod.rs:528:30\\\\n      core::ops::function::FnOnce::call_once{{vtable.shim}}\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs:250:5\\\\n  13: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:2015:9\\\\n      <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/boxed.rs:2015:9\\\\n      std::sys::unix::thread::Thread::new::thread_start\\\\n             at rust/toolchains/nightly-2023-12-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/thread.rs:108:17\\\\n  14: start_thread\\\\n  15: clone\\\\n\\\"] [location=components/cdc/src/delegate.rs:436] [thread_name=cdc-0] [thread_id=35]\",\"pod\":\"tc-tikv-2\"}`\r\n",
+  "state": "closed",
+  "created_at": "2024-06-20T01:19:38Z",
+  "updated_at": "2024-06-24T08:28:22Z",
+  "closed_at": "2024-06-24T08:28:22Z",
+  "labels": [
+    "type/bug",
+    "component/CDC",
+    "severity/critical",
+    "impact/panic"
+  ],
+  "comments_data": [
+    {
+      "id": 2179649487,
+      "user": "Lily2025",
+      "created_at": "2024-06-20T01:21:50Z",
+      "body": "/type bug\r\n/severity critical\r\nepic/panic "
+    },
+    {
+      "id": 2179672710,
+      "user": "Lily2025",
+      "created_at": "2024-06-20T01:51:16Z",
+      "body": "/assign 3AceShowHand"
+    },
+    {
+      "id": 2179672749,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-06-20T01:51:19Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: 3AceShowHand.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/17172#issuecomment-2179672710):\n\n>/assign 3AceShowHand\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2179673351,
+      "user": "Lily2025",
+      "created_at": "2024-06-20T01:52:00Z",
+      "body": "/assign flowbehappy"
+    },
+    {
+      "id": 2179673380,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2024-06-20T01:52:02Z",
+      "body": "@Lily2025: GitHub didn't allow me to assign the following users: flowbehappy.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/17172#issuecomment-2179673351):\n\n>/assign flowbehappy\n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 2179673937,
+      "user": "Lily2025",
+      "created_at": "2024-06-20T01:52:44Z",
+      "body": "/epic panic"
+    },
+    {
+      "id": 2179726599,
+      "user": "Lily2025",
+      "created_at": "2024-06-20T03:08:54Z",
+      "body": "/epic panic"
+    },
+    {
+      "id": 2182154610,
+      "user": "3AceShowHand",
+      "created_at": "2024-06-21T07:18:04Z",
+      "body": "This looks introduce by the #16645, it won't affect previous released version, only affect the master brach"
+    }
+  ]
+}

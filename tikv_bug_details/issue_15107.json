@@ -1,0 +1,52 @@
+{
+  "issue_number": 15107,
+  "title": "[dr-autosync] tikv flashback hung more than 12h",
+  "body": "## Bug Report\r\n\r\n<!-- Thanks for your bug report! Don't worry if you can't fill out all the sections. -->\r\n\r\n### What version of TiKV are you using?\r\n<!-- You can run `tikv-server --version` -->\r\n6.5.3\r\n\r\n### What operating system and CPU are you using?\r\n<!-- If you're using Linux, you can run `cat /proc/cpuinfo` -->\r\n\r\n### Steps to reproduce\r\n<!-- If possible, provide a recipe for reproducing the error. A complete runnable program is good. -->\r\nTry to recover tidb cluster after switching from sync_recovery mode to backup dc, after do online recovery succeeded, do flashback to backup to min resolved ts.\r\n\r\n### What did you expect?\r\nflashback return and succeeded.\r\n\r\n### What did happened?\r\n![460d52d8-0137-45ea-a4bb-fa0c5885de2b](https://github.com/tikv/tikv/assets/9443637/38fdb391-a147-48db-a05a-8e1bc1130c4d)\r\n\r\n",
+  "state": "closed",
+  "created_at": "2023-07-12T04:17:05Z",
+  "updated_at": "2023-10-07T08:04:16Z",
+  "closed_at": "2023-07-31T23:55:08Z",
+  "labels": [
+    "type/bug",
+    "severity/critical",
+    "affects-6.5"
+  ],
+  "comments_data": [
+    {
+      "id": 1631823013,
+      "user": "mayjiang0203",
+      "created_at": "2023-07-12T04:17:40Z",
+      "body": "/assign @HuSharp "
+    },
+    {
+      "id": 1631823037,
+      "user": "ti-chi-bot[bot]",
+      "created_at": "2023-07-12T04:17:42Z",
+      "body": "@mayjiang0203: GitHub didn't allow me to assign the following users: HuSharp.\n\nNote that only [tikv members](https://github.com/orgs/tikv/people) with read permissions, repo collaborators and people who have commented on this issue/PR can be assigned. Additionally, issues/PRs can only have 10 assignees at the same time.\nFor more information please see [the contributor guide](https://git.k8s.io/community/contributors/guide/first-contribution.md#issue-assignment-in-github)\n\n<details>\n\nIn response to [this](https://github.com/tikv/tikv/issues/15107#issuecomment-1631823013):\n\n>/assign @HuSharp \n\n\nInstructions for interacting with me using PR comments are available [here](https://git.k8s.io/community/contributors/guide/pull-requests.md).  If you have questions or suggestions related to my behavior, please file an issue against the [kubernetes/test-infra](https://github.com/kubernetes/test-infra/issues/new?title=Prow%20issue:) repository.\n</details>"
+    },
+    {
+      "id": 1631886679,
+      "user": "HuSharp",
+      "created_at": "2023-07-12T05:45:42Z",
+      "body": "/assign"
+    },
+    {
+      "id": 1632201544,
+      "user": "mayjiang0203",
+      "created_at": "2023-07-12T09:52:16Z",
+      "body": "/severity critical\r\nMark it critical since it blocks ACID recovery after switching during sync_recovery. \r\nWill lower its severity if we can find a w/a."
+    },
+    {
+      "id": 1633682088,
+      "user": "HuSharp",
+      "created_at": "2023-07-13T07:05:08Z",
+      "body": "https://github.com/tikv/tikv/blob/master/src/server/debug.rs#L1082-L1084 At finish flashback state, if any future returns an error halfway. \r\nThrough the https://github.com/tikv/tikv/blob/master/cmd/tikv-ctl/src/main.rs#L941-L947  execution, it will continue and retry.\r\nAnd then since the previous region has already executed the finish flashback, it will always return not in flashback state, and then continue triggering the retry continue, so introduce a dead loop.\r\n"
+    },
+    {
+      "id": 1653758904,
+      "user": "JmPotato",
+      "created_at": "2023-07-27T14:39:51Z",
+      "body": "#15219 is also part of the reason that makes the phase-2 flashback keep failing."
+    }
+  ]
+}

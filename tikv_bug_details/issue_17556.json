@@ -1,0 +1,15 @@
+{
+  "issue_number": 17556,
+  "title": "flaky test: test_load_with_split",
+  "body": "## Bug Report\r\n\r\nIn the pass 2 week, `test_load_with_split` has been captured as flaky case for more than 50 times.\r\n\r\n```\r\n--- TRY 3 STDERR:        tests::failpoints cases::test_range_cache_engine::test_load_with_split ---\r\n\r\nthread 'cases::test_range_cache_engine::test_load_with_split' panicked at tests/failpoints/cases/test_range_cache_engine.rs:211:45:\r\n\r\ncalled `Result::unwrap()` on an `Err` value: Timeout\r\n\r\nstack backtrace:\r\n\r\n   0: rust_begin_unwind\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/std/src/panicking.rs:645:5\r\n\r\n   1: core::panicking::panic_fmt\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/core/src/panicking.rs:72:14\r\n\r\n   2: core::result::unwrap_failed\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/core/src/result.rs:1649:5\r\n\r\n   3: core::result::Result<T,E>::unwrap\r\n\r\n   4: failpoints::cases::test_range_cache_engine::test_load_with_split\r\n\r\n             at /home/jenkins/tikv-src/tests/failpoints/cases/test_range_cache_engine.rs:211:5\r\n\r\n   5: failpoints::cases::test_range_cache_engine::test_load_with_split::{{closure}}\r\n\r\n             at /home/jenkins/tikv-src/tests/failpoints/cases/test_range_cache_engine.rs:176:26\r\n\r\n   6: core::ops::function::FnOnce::call_once\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/core/src/ops/function.rs:250:5\r\n\r\n   7: test_util::runner::run_test_with_hook::{{closure}}::{{closure}}\r\n\r\n   8: core::ops::function::FnOnce::call_once{{vtable.shim}}\r\n\r\n   9: <alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once\r\n\r\n             at /rustc/89e2160c4ca5808657ed55392620ed1dbbce78d1/library/alloc/src/boxed.rs:2015:9\r\n\r\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\r\n```\r\nhttps://do.pingcap.net/jenkins/blue/organizations/jenkins/tikv%2Ftikv%2Fpull_unit_test/detail/pull_unit_test/1575/pipeline/84/\r\n",
+  "state": "closed",
+  "created_at": "2024-09-19T09:40:15Z",
+  "updated_at": "2024-09-20T09:15:30Z",
+  "closed_at": "2024-09-20T09:15:30Z",
+  "labels": [
+    "type/bug",
+    "severity/minor",
+    "flaky_test"
+  ],
+  "comments_data": []
+}

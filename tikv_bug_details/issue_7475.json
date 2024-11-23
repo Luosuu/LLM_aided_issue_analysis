@@ -1,0 +1,16 @@
+{
+  "issue_number": 7475,
+  "title": "An uninitialized peer can be recreated",
+  "body": "When a peer is created by raft message, it can't know region info until it has applied a snapshot. When it's removed before applying a snapshot, a tombstone key with only region id is written to disk.\r\n\r\nAfter that, if a network partitioned peer tries to request vote from the deleted peer, it may bring the uninitialized peer back to life again because epoch check will always pass. Though it seems no harm currently.\r\n\r\nOne possible fix is write the peer id to tombstone state.",
+  "state": "open",
+  "created_at": "2020-04-15T13:20:36Z",
+  "updated_at": "2020-11-05T06:38:52Z",
+  "closed_at": null,
+  "labels": [
+    "type/bug",
+    "sig/raft",
+    "priority/low",
+    "severity/minor"
+  ],
+  "comments_data": []
+}

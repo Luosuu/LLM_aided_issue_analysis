@@ -1,0 +1,13 @@
+{
+  "issue_number": 1343,
+  "title": "tikv-ctl: panic when print raft log",
+  "body": "```\r\n./tikv-ctl -d var/db raft log -r 2 -i 8\r\nidx_key: \\001\\002\\000\\000\\000\\000\\000\\000\\000\\002\\001\\000\\000\\000\\000\\000\\000\\000\\010\r\nregion: 2\r\nlog index: 8\r\nentry entry_type: EntryConfChange term: 6 index: 8\r\nthread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: WireError(\"unexpected wire type WireTypeVarint\")', ../src/libcore/result.rs:799\r\n```",
+  "state": "closed",
+  "created_at": "2016-11-23T11:49:10Z",
+  "updated_at": "2018-08-07T00:46:19Z",
+  "closed_at": "2017-09-16T11:39:05Z",
+  "labels": [
+    "type/bug"
+  ],
+  "comments_data": []
+}
