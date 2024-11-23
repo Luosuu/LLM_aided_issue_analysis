@@ -1,0 +1,11 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) Checkpoint Component",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Network partition between TiKV node and PD leader disrupts checkpoint progress tracking mechanism, preventing normal log backup checkpoint advancement",
+  "issue_number": 13637,
+  "title": "PITR checkpoint doesn't move forward during one TiKV and PD leader network partition"
+}

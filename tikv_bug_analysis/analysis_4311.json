@@ -1,0 +1,11 @@
+{
+  "bug_location": "gRPC credentials builder",
+  "severity": 4,
+  "categories": [
+    "Security",
+    "CodeBug"
+  ],
+  "root_cause": "Improper handling of sensitive credential data during object destruction, potentially leaving secrets exposed in memory",
+  "issue_number": 4311,
+  "title": "ChannelCredentialsBuilder leaks secrets on drop"
+}

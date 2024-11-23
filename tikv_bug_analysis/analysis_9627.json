@@ -1,0 +1,12 @@
+{
+  "bug_location": "Compaction Filter",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Potential deadlock during write operations in RocksDB compaction filter when write stall occurs, causing all compaction threads to block indefinitely",
+  "issue_number": 9627,
+  "title": "Potential deadlock for GC in Compaction Filter"
+}

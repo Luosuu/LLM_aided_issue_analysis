@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer_fsm",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Race condition in region recovery logic causing unexpected panic when handling delayed destroy operation",
+  "issue_number": 12825,
+  "title": "raftstore: tikv panicked due to trying to recover a delayed destroy"
+}

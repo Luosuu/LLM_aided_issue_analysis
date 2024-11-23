@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Heartbeat / Leader Transfer Scheduler",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "LoadBalance",
+    "Transaction"
+  ],
+  "root_cause": "Disk I/O bottleneck causing region heartbeat metadata collection to block leadership transfer during high disk utilization",
+  "issue_number": 10065,
+  "title": "transfer leader scheduler will timeout if disk load is near 100%"
+}

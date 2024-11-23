@@ -1,0 +1,12 @@
+{
+  "bug_location": "backup/endpoint",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Unhandled Option::unwrap() on a None value during backup process, likely due to missing null check in region progress tracking",
+  "issue_number": 16394,
+  "title": "TiKV panic when running br backup due to \"called `Option::unwrap()` on a `None` value\""
+}

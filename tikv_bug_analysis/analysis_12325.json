@@ -1,0 +1,11 @@
+{
+  "bug_location": "external_storage/s3_backend",
+  "severity": 2,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of multi-part uploads with small file chunks during S3 object storage operations, causing upload failures for files larger than 5MB",
+  "issue_number": 12325,
+  "title": "external_storage: the `s3` backend cannot update data from some not-in-memory `Read` types"
+}

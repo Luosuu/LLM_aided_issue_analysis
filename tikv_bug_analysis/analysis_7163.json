@@ -1,0 +1,11 @@
+{
+  "bug_location": "Backup and Restore (BR) component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect range handling during RawKV data restoration, where SST metadata range filtering does not properly exclude out-of-range keys",
+  "issue_number": 7163,
+  "title": "Restoring a subrange of backed up rawkv data may import keys that are out of range"
+}

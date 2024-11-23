@@ -1,0 +1,11 @@
+{
+  "bug_location": "PendingCmd destructor",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Panic in destructor when callback is not handled, which violates Rust's destructor guidelines and can cause unexpected program termination",
+  "issue_number": 4310,
+  "title": "PendingCmd panics on drop"
+}

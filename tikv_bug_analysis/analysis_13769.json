@@ -1,0 +1,11 @@
+{
+  "bug_location": "TiKV String Comparison/Like Function",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Charset decoding failure when new collation is disabled, causing incorrect string pattern matching in like comparisons",
+  "issue_number": 13769,
+  "title": "When the new collation is not enabled, `_` pattern in like misbehaved"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "src/server/resolve.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Improper handling of tombstone store resolution in PD client, causing infinite error logging and reconnection attempts when encountering removed store IDs",
+  "issue_number": 17875,
+  "title": "resolving tikv store address return an error \"invalid store ID xxxx, not found\" leading to raft client infinite loop"
+}

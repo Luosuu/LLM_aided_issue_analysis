@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mvcc/txn.rs",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Race condition in pessimistic transaction rollback handling that allows inconsistent state by collapsing rollback records across different transaction attempts",
+  "issue_number": 7364,
+  "title": "Txn: collapsing the rollback record of pessimistic lock could cause inconsistency"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft Consensus Module",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Async IO changes disrupted the existing slow node detection mechanism by preventing accurate latency measurement of store loop operations",
+  "issue_number": 11178,
+  "title": "Slow node detection is not compatible with raft async io"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Region split operation blocks raftstore message processing due to memtable flush, causing write performance degradation",
+  "issue_number": 14447,
+  "title": "[Dynamic Regions] Split can significantly impacts write QPS"
+}

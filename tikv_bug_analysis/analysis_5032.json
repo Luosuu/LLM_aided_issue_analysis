@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Unhandled race condition during region merge shutdown where message transmission may fail before result unwrapping",
+  "issue_number": 5032,
+  "title": "Panic on force send commit merge during shutdown "
+}

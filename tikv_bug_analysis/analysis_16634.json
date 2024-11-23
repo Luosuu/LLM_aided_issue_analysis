@@ -1,0 +1,12 @@
+{
+  "bug_location": "resolved_ts module",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of rewritten transaction commit records with gc_fence, causing loss of rollback information and potential resolved_ts blocking",
+  "issue_number": 16634,
+  "title": "Writing protected rollback directly to rollback flag of another transaction's commit record may cause resolved_ts being blocked"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction Commit Protocol",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Non-idempotent prewrite handling in pessimistic async-commit transactions causing inconsistent transaction states",
+  "issue_number": 12615,
+  "title": "Pessimistic prewrite may be not idempotent on CommitTsTooLarge"
+}

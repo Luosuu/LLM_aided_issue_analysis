@@ -1,0 +1,12 @@
+{
+  "bug_location": "AutoSplitController in raftstore/split_controller.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Incorrect key encoding assumption for raw KV mode, causing regions to remain unsplit beyond optimal size",
+  "issue_number": 9613,
+  "title": "load based split can't handle raw kv well"
+}

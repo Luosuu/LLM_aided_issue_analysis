@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/raft_log",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Commit index out of range during Raft log processing, indicating potential synchronization or state tracking issue in Raft consensus protocol implementation",
+  "issue_number": 7353,
+  "title": "raft::raft_log::RaftLog<T>::commit_to paniked"
+}

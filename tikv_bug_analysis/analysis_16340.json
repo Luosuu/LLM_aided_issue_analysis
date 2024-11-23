@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/scheduler transaction locks",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Concurrent lock acquisition between raftstore and scheduler workers causing mutual blocking on PeerPessimisticLocks RwLock",
+  "issue_number": 16340,
+  "title": "Deadlock on PeerPessimisticLocks between raftstore and shceduler workers"
+}

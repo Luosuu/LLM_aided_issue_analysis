@@ -1,0 +1,11 @@
+{
+  "bug_location": "RaftEngine/PeerStorage",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Inefficient seek operation when cleaning raft logs during peer destruction, causing high latency and potential leader drops",
+  "issue_number": 10210,
+  "title": "Cleaning raft log costs too much time during destroying a peer"
+}

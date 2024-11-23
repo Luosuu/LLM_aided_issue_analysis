@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/StoreFsm",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "Excessive broadcast of StoreUnreachable messages causing potential message processing bottleneck when a store becomes unreachable",
+  "issue_number": 13054,
+  "title": "Raftstore may broadcast too many messages after one peer store become unreachable"
+}

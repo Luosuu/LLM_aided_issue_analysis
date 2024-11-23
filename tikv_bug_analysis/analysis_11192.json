@@ -1,0 +1,11 @@
+{
+  "bug_location": "coprocessor/statistics/analyze",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Unhandled edge case in row sampling logic where samples array is empty and max_sample_size is zero, causing an unwrap() on a None value",
+  "issue_number": 11192,
+  "title": "Panic in analyze sampling"
+}

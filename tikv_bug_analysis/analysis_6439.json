@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect hibernation logic that fails to properly handle pending read requests, potentially causing request blocking",
+  "issue_number": 6439,
+  "title": "peer shouldn't hibernate if it has pending reads"
+}

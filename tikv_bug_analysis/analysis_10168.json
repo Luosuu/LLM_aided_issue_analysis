@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Split/Scheduling Component",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "LoadBalance",
+    "Performance"
+  ],
+  "root_cause": "Race condition between region split metadata propagation and client request handling, causing temporary region unavailability during high write load scenarios",
+  "issue_number": 10168,
+  "title": "Region not found because of access before splitting"
+}

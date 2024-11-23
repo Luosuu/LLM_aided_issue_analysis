@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/entry_storage",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Assertion failure in entry cache append logic, indicating an index tracking inconsistency in Raft log entry management",
+  "issue_number": 17868,
+  "title": "TiKV panic with \"assertion failed: cached_last < trunc_to_idx\""
+}

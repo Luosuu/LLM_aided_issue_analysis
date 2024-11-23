@@ -1,0 +1,12 @@
+{
+  "bug_location": "components/raftstore/store/worker/compact.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Manual compaction logic only checks write column family, ignoring tombstones in default column family for RawKV usage",
+  "issue_number": 11575,
+  "title": "Manual compaction is not enabled for raw kv usage"
+}

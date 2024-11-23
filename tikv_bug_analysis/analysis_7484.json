@@ -1,0 +1,11 @@
+{
+  "bug_location": "unified read pool",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Using transaction start timestamp as task ID, which incorrectly prioritizes query execution and blocks smaller queries behind larger ones",
+  "issue_number": 7484,
+  "title": "The unified read pool should not use start_ts as task id"
+}

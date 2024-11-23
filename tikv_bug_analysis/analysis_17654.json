@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/stale_read",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition in stale read implementation causing inconsistent state synchronization between Raft replicas",
+  "issue_number": 17654,
+  "title": "Flaky test `tests::failpoints cases::test_replica_stale_read::test_update_apply_index_before_sync_read_state`"
+}

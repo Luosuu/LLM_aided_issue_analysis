@@ -1,0 +1,12 @@
+{
+  "bug_location": "cdc/resolved_ts",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Inconsistent tracking of transaction locks and commit timestamps during TiCDC replication, causing assertion failures and unexpected panics in the resolved timestamp resolver",
+  "issue_number": 9171,
+  "title": "TiKV server panic when running with TiCDC"
+}

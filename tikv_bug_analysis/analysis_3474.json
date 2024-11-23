@@ -1,0 +1,12 @@
+{
+  "bug_location": "RawKVApi Go client",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Client-side RPC connection failure during high-volume large payload insertions, causing silent key insertion failures without proper error propagation",
+  "issue_number": 3474,
+  "title": "Go client does not correctly insert, and gives no error"
+}

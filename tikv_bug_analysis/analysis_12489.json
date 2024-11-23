@@ -1,0 +1,12 @@
+{
+  "bug_location": "causal_ts/tso.rs",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Race condition in timestamp batch renewal causing potential timestamp fallback when multiple threads concurrently request and update timestamp batches",
+  "issue_number": 12489,
+  "title": "Causal timestamp fall back"
+}

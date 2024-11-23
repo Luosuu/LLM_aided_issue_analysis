@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/apply",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Attempting to apply a region split operation on a tombstone region that already exists in the key-value engine, causing an unexpected panic during Raft log application",
+  "issue_number": 12368,
+  "title": "raftstore: panicked due to trying to apply a tombstone region already existed in kv engine"
+}

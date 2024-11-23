@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv::coprocessor::codec::mysql::Duration",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Integer overflow during negation operation in Duration method, likely caused by handling extreme or edge case nanosecond values",
+  "issue_number": 4609,
+  "title": "Fuzz test failed for tikv::coprocessor::codec::mysql::Duration"
+}

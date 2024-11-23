@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC/ResolvedTS",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Unstable resolved timestamp tracking during large row operations, causing significant CDC lag and timestamp tracking inconsistencies",
+  "issue_number": 15741,
+  "title": "TiKV resolved ts not stable when running workload with >1MB large rows"
+}

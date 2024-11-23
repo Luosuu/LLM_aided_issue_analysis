@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Storage/Restore Component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Excessive memory allocation during backup/restore process on ARM64 architecture, likely due to inefficient memory management or architecture-specific memory handling during large dataset restoration",
+  "issue_number": 11670,
+  "title": "tikv keep oom on arm64 k8s deployments during br restore"
+}

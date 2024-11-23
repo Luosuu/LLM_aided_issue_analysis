@@ -1,0 +1,12 @@
+{
+  "bug_location": "MVCC Transaction Layer",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent MVCC state after flashback operation with reduced GC lifetime, causing key version conflicts and transaction aborts",
+  "issue_number": 13448,
+  "title": "change gc_life_time from 12h to 10 minutes after flashback, report [errors.rs:409] [\"txn aborts\"] [err_code=KV:Storage:DefaultNotFound]"
+}

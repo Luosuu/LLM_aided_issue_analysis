@@ -1,0 +1,12 @@
+{
+  "bug_location": "In-memory Engine Lock Management",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Direct deletion of locks without writing tombstone, violating write atomicity guarantees in RocksDB and in-memory engine write sequence",
+  "issue_number": 17127,
+  "title": "In-memory Engine: lock should not be deleted directly"
+}

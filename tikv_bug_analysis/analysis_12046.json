@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/read_queue",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Out of bounds index access in ReadIndexQueue during leader reads, likely due to incorrect index management or race condition in read queue processing",
+  "issue_number": 12046,
+  "title": "RaftStore panicked with out of bounds access error"
+}

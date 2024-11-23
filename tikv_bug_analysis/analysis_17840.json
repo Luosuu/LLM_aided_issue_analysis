@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/entry_storage.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Null/None value unwrap during Raft log garbage collection after region merge operation, indicating a potential race condition or incomplete state management in merge process",
+  "issue_number": 17840,
+  "title": "tikv panic in on_raft_gc_log_tick after region is merged"
+}

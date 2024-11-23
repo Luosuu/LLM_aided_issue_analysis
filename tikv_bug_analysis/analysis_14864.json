@@ -1,0 +1,12 @@
+{
+  "bug_location": "StaleRead Component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Unbounded memory growth from tracking locks in large transactions without memory quota management",
+  "issue_number": 14864,
+  "title": "Resolved ts in stale read may cause TiKV OOM"
+}

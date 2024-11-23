@@ -1,0 +1,11 @@
+{
+  "bug_location": "logging/async-logger",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Async logger configured to drop messages instead of blocking when channel is full, potentially losing critical diagnostic information",
+  "issue_number": 3695,
+  "title": "Consider choosing block strategy for slog-async"
+}

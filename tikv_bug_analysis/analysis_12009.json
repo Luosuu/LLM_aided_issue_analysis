@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftEngine/ApplyModule",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Apply process lagging behind leader append rate, causing entry cache eviction and log fetch overhead",
+  "issue_number": 12009,
+  "title": "Apply can't catch up when raft engine is enabled"
+}

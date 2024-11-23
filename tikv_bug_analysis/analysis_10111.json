@@ -1,0 +1,12 @@
+{
+  "bug_location": "components/raftstore/store/fsm/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect assumption about region split check conditions, preventing region from splitting when size threshold is reached",
+  "issue_number": 10111,
+  "title": "Region may not trigger split check no matter how large it is"
+}

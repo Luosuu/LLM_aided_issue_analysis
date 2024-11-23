@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv::coprocessor::codec::mysql::Duration::parse",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Integer multiplication overflow during duration parsing, likely due to insufficient input validation or boundary checking in the parsing logic",
+  "issue_number": 4610,
+  "title": "Fuzz test failed for tikv::coprocessor::codec::mysql::Duration::parse"
+}

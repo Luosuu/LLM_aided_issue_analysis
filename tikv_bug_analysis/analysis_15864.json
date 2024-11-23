@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Block Cache / Raft Log Replay",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Performance degradation during TiKV restart due to block cache warm-up and pending Raft log application causing temporary high IO burst and reduced query processing capability",
+  "issue_number": 15864,
+  "title": "Write QPS drops to 0 after TiKV Restart"
+}

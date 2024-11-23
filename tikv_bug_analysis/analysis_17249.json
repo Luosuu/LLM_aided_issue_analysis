@@ -1,0 +1,12 @@
+{
+  "bug_location": "log backup task / raftstore",
+  "severity": 4,
+  "categories": [
+    "Upgrade",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Read index not ready during region merge operation during TiKV upgrade, preventing log backup snapshot retrieval",
+  "issue_number": 17249,
+  "title": "log backup task gets stuck and reports error when tikv upgrade"
+}

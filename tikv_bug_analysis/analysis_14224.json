@@ -1,0 +1,12 @@
+{
+  "bug_location": "pprof module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Upgrade"
+  ],
+  "root_cause": "pprof module fails to close pipe file descriptors in short-term threads, causing gradual fd leaks during CPU profiling",
+  "issue_number": 14224,
+  "title": "pipe fd leaks in tikv-6.1.0 with cpu profiler running"
+}

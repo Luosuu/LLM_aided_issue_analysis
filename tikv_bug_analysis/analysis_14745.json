@@ -1,0 +1,11 @@
+{
+  "bug_location": "sst_importer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Improper SST file cleanup mechanism when region epoch changes during lightning import process",
+  "issue_number": 14745,
+  "title": "sst_importer may leak sst files once lightning encounters error due to wrong range loaded"
+}

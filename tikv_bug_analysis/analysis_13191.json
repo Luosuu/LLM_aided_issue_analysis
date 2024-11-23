@@ -1,0 +1,12 @@
+{
+  "bug_location": "Network/Raft Consensus",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Network isolation disrupts Raft consensus state synchronization, preventing automatic leader transfer and node recovery after network partition healing",
+  "issue_number": 13191,
+  "title": "Inject a minority of tikv network isolation\uff0cafter network isolation was recovered, one tikv status still show down and can not transfer leader back"
+}

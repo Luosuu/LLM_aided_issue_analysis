@@ -1,0 +1,11 @@
+{
+  "bug_location": "RocksEngineCore",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential panic in destructor during thread join handle resolution, which violates Rust safety guidelines for destructors",
+  "issue_number": 4313,
+  "title": "RocksEngineCore can probably panic on drop"
+}

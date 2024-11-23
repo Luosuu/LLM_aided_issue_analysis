@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/v2",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Peer ID collision and incorrect region merge handling causing leader election failure and region state corruption",
+  "issue_number": 15439,
+  "title": "raftstore v2: A region's peer may be stolen by another region and cause destruction of its Leader peer"
+}

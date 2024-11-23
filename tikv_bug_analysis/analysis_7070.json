@@ -1,0 +1,11 @@
+{
+  "bug_location": "storage/mvcc/txn.rs",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of pessimistic lock conflicts in pipelined transaction processing, causing unintended transaction rollback",
+  "issue_number": 7070,
+  "title": "Pipelined pessimistic lock may roll back a normal transaction"
+}

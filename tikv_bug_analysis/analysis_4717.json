@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/peer.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Premature error handling in message sending logic causing potential message loss and communication disruption in Raft consensus protocol",
+  "issue_number": 4717,
+  "title": "Sending messages should be more tolerant"
+}

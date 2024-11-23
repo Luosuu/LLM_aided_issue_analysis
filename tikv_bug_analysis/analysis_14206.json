@@ -1,0 +1,11 @@
+{
+  "bug_location": "log-backup module",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Dashmap's segment locking mechanism restricts concurrent log backup downloads by limiting shard-level concurrency",
+  "issue_number": 14206,
+  "title": "log-backup: get rid of the dashmap locks"
+}

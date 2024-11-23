@@ -1,0 +1,12 @@
+{
+  "bug_location": "split-check component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Potential memory corruption during LZ4 decompression in split-check operation, likely caused by unsafe memory access in LZ4_copy8 function",
+  "issue_number": 3964,
+  "title": "Tikv segfault at split-check"
+}

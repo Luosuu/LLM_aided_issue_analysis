@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Race condition between snapshot garbage collection and peer state transition during snapshot application, potentially causing file deletion before state persistence",
+  "issue_number": 11746,
+  "title": "raftstore: snapshot files may deleted while the peer state is still `PeerState::Applying`"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "pd_client/tikv-ctl",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Invalid store ID handling during flashback recovery process, likely due to incomplete region metadata cleanup in etcd during online recovery",
+  "issue_number": 14974,
+  "title": "[dr-autosync] tikv flashback to version panic due to online recover didn't clean region meta data in etcd"
+}

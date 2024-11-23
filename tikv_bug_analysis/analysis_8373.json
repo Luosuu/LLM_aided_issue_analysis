@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Snapshot Management",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Snapshot handling race condition where uninitialized regions can leave stale entries in pending snapshot tracking, preventing future snapshot processing",
+  "issue_number": 8373,
+  "title": "pending_snapshot_regions may not cleaned as expected"
+}

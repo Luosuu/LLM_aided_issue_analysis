@@ -1,0 +1,11 @@
+{
+  "bug_location": "region_cache_memory_engine/keys.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect endian encoding of sequence number and value type in key encoding, causing misalignment with RocksDB's internal key encoding standard",
+  "issue_number": 17082,
+  "title": "In-memory Engine: u64 endian in key encoding is wrong"
+}

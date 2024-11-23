@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Storage Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Misconfiguration of RocksDB write stall parameters causing write buffer overflow and transaction processing blockage",
+  "issue_number": 12316,
+  "title": "set storage.flow-control.enable: false\uff0cthe transaction OPS drops to 0. after the load is stopped, connect to tidb cluster executes SQL statements without response"
+}

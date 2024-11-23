@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Incorrect log synchronization during region merge causing inconsistent applied and commit indices",
+  "issue_number": 4560,
+  "title": "Raft logs in CommitMerge should forward to raftstore first"
+}

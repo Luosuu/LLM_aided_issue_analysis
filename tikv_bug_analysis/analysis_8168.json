@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Memory accumulation from unprocessed change events during changefeed pause, causing excessive memory consumption when resuming",
+  "issue_number": 8168,
+  "title": "TiKV keeps OOM if there are too many change events need to be sent to CDC"
+}

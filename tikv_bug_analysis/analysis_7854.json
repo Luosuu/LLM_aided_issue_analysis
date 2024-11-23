@@ -1,0 +1,12 @@
+{
+  "bug_location": "coprocessor/endpoint.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Unexpected cancellation of oneshot channel during follower read workflow, likely due to race condition or premature channel closure",
+  "issue_number": 7854,
+  "title": "Got oneshot canceled error when selecting data"
+}

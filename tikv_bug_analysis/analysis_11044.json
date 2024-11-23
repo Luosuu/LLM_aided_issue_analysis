@@ -1,0 +1,11 @@
+{
+  "bug_location": "components/raftstore/src/store/fsm/apply.rs",
+  "severity": 2,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Performance context reset occurs before writing to key-value database, causing incorrect latency measurements when multiple writes occur in a single round",
+  "issue_number": 11044,
+  "title": "Should reset perf context after writing to kvdb"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Improper handling of learner peer state during region configuration change, causing persistent pending peer state",
+  "issue_number": 12431,
+  "title": "Pending peer may exist for a long time when adding a learner peer"
+}

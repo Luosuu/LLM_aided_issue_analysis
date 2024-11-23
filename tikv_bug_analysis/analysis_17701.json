@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Entry Processing",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Inefficient write batch size calculation when large Raft entry max size is configured, causing excessive memory allocation and latency",
+  "issue_number": 17701,
+  "title": "When raft entry max size is large, write batch size would be too large"
+}

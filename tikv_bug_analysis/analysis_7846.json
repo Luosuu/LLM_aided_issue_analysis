@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup & Restore (BR) component",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Incomplete error handling and retry mechanism for GCS/S3 file downloads during restore process, causing connection reset and context cancellation errors",
+  "issue_number": 7846,
+  "title": "BR ignore some GCS and S3 errors which should retry when restore"
+}

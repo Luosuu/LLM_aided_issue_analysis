@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus/apply system",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Network"
+  ],
+  "root_cause": "Proposals are sent to apply system regardless of commit status, causing incorrect callback invocation during network partitions",
+  "issue_number": 9070,
+  "title": "committed_cb is always invoked which affects the correctness of async apply"
+}

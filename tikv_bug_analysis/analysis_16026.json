@@ -1,0 +1,12 @@
+{
+  "bug_location": "unified-read-pool",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "LoadBalance"
+  ],
+  "root_cause": "Async quota-limiter incorrectly calculates task concurrency, causing false positive queue-is-full errors when high-priority tasks are pending",
+  "issue_number": 16026,
+  "title": "unified-read-pool may return false positive queue-is-full error"
+}

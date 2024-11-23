@@ -1,0 +1,11 @@
+{
+  "bug_location": "range_cache_memory_engine/range_manager.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Unexpected missing key during region iteration in in-memory engine, causing a panic when attempting to access a non-existent entry",
+  "issue_number": 17483,
+  "title": "In-memory Engine: `iter_overlapped_regions` panics no entry found for key"
+}

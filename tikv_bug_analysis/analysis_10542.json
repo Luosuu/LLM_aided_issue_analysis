@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mod.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "LoadBalance"
+  ],
+  "root_cause": "Incorrect key encoding during region split, causing unrecognizable key ranges that TiDB cannot process",
+  "issue_number": 10542,
+  "title": "load-base-split may split regions with unencoded keys"
+}

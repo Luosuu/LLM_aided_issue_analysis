@@ -1,0 +1,11 @@
+{
+  "bug_location": "components/tikv_util/src/sys/cgroup.rs",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Incorrect assumption about cgroup file format in systemd-nspawn container environment, causing assertion failure during parsing of /proc/self/cgroup",
+  "issue_number": 11609,
+  "title": "tikv panicked in parse_proc_cgroup_v2"
+}

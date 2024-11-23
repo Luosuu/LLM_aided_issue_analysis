@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft-engine recovery module",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Upgrade"
+  ],
+  "root_cause": "Inefficient log recovery mechanism with high overhead during restart, potentially exacerbated by log file corruption and insufficient parallel processing",
+  "issue_number": 14478,
+  "title": "[Dynamic Regions] Raft log recovery takes 450s after restart, even with 16 raft-engine recovery threads"
+}

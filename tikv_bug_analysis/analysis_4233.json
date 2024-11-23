@@ -1,0 +1,12 @@
+{
+  "bug_location": "snap-send process",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "Resource leak in file descriptor management, causing excessive pipe and eventpoll file descriptors to remain open without proper cleanup",
+  "issue_number": 4233,
+  "title": "too many pipe and eventpoll files "
+}

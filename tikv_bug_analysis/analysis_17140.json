@@ -1,0 +1,11 @@
+{
+  "bug_location": "In-memory Engine",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect key encoding logic in delete range operation for lock column family, potentially causing incorrect key management in MVCC (Multi-Version Concurrency Control) implementation",
+  "issue_number": 17140,
+  "title": "In-memory Engine: encoding keys for lock cf should not contain mvcc in delete range"
+}

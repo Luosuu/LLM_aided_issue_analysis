@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Engine Encryption Key Management",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Security",
+    "Performance"
+  ],
+  "root_cause": "Lack of encryption key cleanup mechanism for WAL files in Raft Engine, causing memory and disk space leaks",
+  "issue_number": 12890,
+  "title": "Encryption keys for WALs are not cleaned up when Raft Engine is enabled"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Transaction Processing",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Pipelined DML locks incorrectly blocking read requests by not properly pushing min_commit_ts and resolving lock conflicts",
+  "issue_number": 16880,
+  "title": "Pipelined DML locks blocks read"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Race condition during region merge allowing stale local read before leader lease suspension",
+  "issue_number": 8034,
+  "title": "Local read may get stale data during merging"
+}

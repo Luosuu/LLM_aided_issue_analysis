@@ -1,0 +1,11 @@
+{
+  "bug_location": "RocksDB storage layer",
+  "severity": 3,
+  "categories": [
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Manual compaction process prevents timely database closure during TiKV shutdown, causing extended reload times due to blocking references to the database object",
+  "issue_number": 13339,
+  "title": "Manual compaction blocks tikv shutdown"
+}

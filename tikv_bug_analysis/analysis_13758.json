@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus/network communication layer",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "LoadBalance",
+    "Transaction"
+  ],
+  "root_cause": "Network partition causing TiKV node isolation prevents consensus and service recovery within expected timeframe",
+  "issue_number": 13758,
+  "title": "one tikv is isolated from others tikv, and services are unavailable during a failure"
+}

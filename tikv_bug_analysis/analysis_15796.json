@@ -1,0 +1,12 @@
+{
+  "bug_location": "GC Worker / Compaction Filter",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition in metric collection where Prometheus scrapes compaction metrics before compaction filter metrics, triggering a false 'GC not working' alert when single-version data exists",
+  "issue_number": 15796,
+  "title": "Avoid false \"GC can not work\" alert when there is only one version of all the data."
+}

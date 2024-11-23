@@ -1,0 +1,11 @@
+{
+  "bug_location": "unified thread pool scheduler",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "LoadBalance"
+  ],
+  "root_cause": "Ineffective request scheduling and prioritization in unified thread pool causing resource contention between transactional and scan workloads",
+  "issue_number": 9188,
+  "title": "The unified pool cannot schedule kv_scan, raw_scan and analyze requests well"
+}

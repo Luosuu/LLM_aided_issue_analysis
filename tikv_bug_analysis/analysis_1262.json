@@ -1,0 +1,11 @@
+{
+  "bug_location": "raft/peer_storage",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Delayed state transition of removed peer during configuration change, allowing potential replica recreation and cluster split",
+  "issue_number": 1262,
+  "title": "Mark tombstone immediately when applying a confchagne"
+}

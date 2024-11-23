@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore-v2/region_merge",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Missing source peer during region merge checkpoint retrieval, indicating a potential synchronization or metadata tracking issue in dynamic region management",
+  "issue_number": 15209,
+  "title": "[Dynamic Regions] tikv panic for \"[FATAL] [lib.rs:510] [\"source peer is missing when getting checkpoint for merge [peer_id=6259] [region_id=6258]\""
+}

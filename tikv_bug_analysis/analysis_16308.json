@@ -1,0 +1,12 @@
+{
+  "bug_location": "engine_rocks_helper/sst_recovery",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Incomplete file deletion mechanism for multi-region SST files with corruption, causing unexpected file retention and subsequent panic during recovery process",
+  "issue_number": 16308,
+  "title": "TiKV panic because it detects damaged SST file was not removed"
+}

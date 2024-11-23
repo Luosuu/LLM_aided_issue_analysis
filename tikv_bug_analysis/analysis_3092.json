@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Recovery Mechanism",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Overly aggressive node deletion during region recovery that can potentially lose committed transaction logs",
+  "issue_number": 3092,
+  "title": "Unsafe recover should only drop some nodes instead of all down nodes"
+}

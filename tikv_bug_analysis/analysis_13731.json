@@ -1,0 +1,12 @@
+{
+  "bug_location": "Store Thread / gRPC Channel",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Channel message backlog due to I/O hang preventing store thread from consuming messages, causing gRPC message rejection and potential memory exhaustion",
+  "issue_number": 13731,
+  "title": "tikv oom after this tikv io delay/hang or one of tikv network partition last for 50mins and recover"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB SST Ingestion Flow Control",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Insufficient flow control checks during multiple SST file snapshot ingestion, leading to potential L0 file accumulation and unintended stalling",
+  "issue_number": 14828,
+  "title": "Multiple SST files snapshot may trigger flow control"
+}

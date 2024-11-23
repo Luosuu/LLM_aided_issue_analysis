@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Potential silent loss of ApplyRes messages during region split operations, causing inconsistent region state and potential system panic during data cleanup",
+  "issue_number": 13160,
+  "title": "raftstore: apply res may be dropped silently"
+}

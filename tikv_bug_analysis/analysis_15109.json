@@ -1,0 +1,11 @@
+{
+  "bug_location": "storage/txn/actions/acquire_pessimistic_lock",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Assertion failure in version tracking logic during pessimistic lock acquisition, indicating an unexpected state in transaction version estimation",
+  "issue_number": 15109,
+  "title": "Tikv panic for assertion failed: estimated_versions_to_last_change > 0"
+}

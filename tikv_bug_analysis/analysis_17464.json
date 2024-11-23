@@ -1,0 +1,12 @@
+{
+  "bug_location": "Log Backup Component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Network",
+    "Storage"
+  ],
+  "root_cause": "Single-threaded log file upload mechanism becomes bottlenecked under network latency, preventing backup checkpoint advancement",
+  "issue_number": 17464,
+  "title": "Log flush is very slow when injecting S3 network latency 50ms for 10m"
+}

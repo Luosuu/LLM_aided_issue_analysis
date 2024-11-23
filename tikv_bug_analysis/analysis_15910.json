@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Excessive snapshot generation when resuming changefeed with a historical timestamp, likely due to inefficient MVCC data traversal and snapshot recovery mechanism",
+  "issue_number": 15910,
+  "title": "Number of snapshots  increases tremendously and TiKV OOM when resuming changefeed with a ts 6 days before."
+}

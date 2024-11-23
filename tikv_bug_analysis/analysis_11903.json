@@ -1,0 +1,12 @@
+{
+  "bug_location": "gc_worker/gc_worker.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Task scheduling error causing incorrect maintenance of scheduled_tasks counter, leading to false GcWorkerTooBusy state",
+  "issue_number": 11903,
+  "title": "False GcWorkerTooBusy caused by incorrect scheduled_tasks"
+}

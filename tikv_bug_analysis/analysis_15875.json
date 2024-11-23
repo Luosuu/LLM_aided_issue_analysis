@@ -1,0 +1,12 @@
+{
+  "bug_location": "Leader Transfer Component",
+  "severity": 4,
+  "categories": [
+    "LoadBalance",
+    "Performance",
+    "Network"
+  ],
+  "root_cause": "Inefficient leader transfer mechanism under high IO latency conditions, causing prolonged leadership transition and performance degradation",
+  "issue_number": 15875,
+  "title": "transfer leader too slow when inject one of tikv io delay with \u201cevict-slow-trend-scheduler\u201d or \u201cevict-slow-store-scheduler\u201d"
+}

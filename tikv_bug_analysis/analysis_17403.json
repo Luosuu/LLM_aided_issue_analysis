@@ -1,0 +1,11 @@
+{
+  "bug_location": "range_cache_memory_engine/background.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Race condition during region split causing incorrect region state tracking before snapshot loading",
+  "issue_number": 17403,
+  "title": "In-memory engine: pending region split may cause tikv panic"
+}

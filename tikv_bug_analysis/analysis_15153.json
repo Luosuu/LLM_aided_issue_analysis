@@ -1,0 +1,12 @@
+{
+  "bug_location": "async-read-worker/snapshot_generation",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Race condition during region configuration change and snapshot generation, causing async-read-worker to get stuck while generating snapshot during region destruction",
+  "issue_number": 15153,
+  "title": "[Dynamic Regions] async-read-worker may get stuck in generating snapshot when a region is destroying"
+}

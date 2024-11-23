@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Storage Layer",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Data inconsistency during node recovery and load balancing, likely caused by incomplete record synchronization or index corruption during fault tolerance scenario",
+  "issue_number": 17258,
+  "title": "tpcc report \"failed Error 8133: data inconsistency in table: customer, index: PRIMARY, index-count:1 != record-count:0\\r\\n\" during tikv balance"
+}

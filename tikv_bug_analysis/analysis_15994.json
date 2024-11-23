@@ -1,0 +1,12 @@
+{
+  "bug_location": "Performance/Transaction Processing",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Performance regression in transaction processing, likely due to code changes in commit 076b79c54b9e7656f9119865d4ed75bec3bd58d6 affecting read/write and insert workloads under high concurrency",
+  "issue_number": 15994,
+  "title": "release 7.5.0 Compared with the previous commit, oltp_read_write has a 3.65% regression under 200 concurrency and oltp_insert has a 1.5+% regression under 100 concurrency"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "log-backup component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Premature GC of checkpoint timestamp when log-backup task encounters error, causing potential data loss before expected 24-hour retention period",
+  "issue_number": 12802,
+  "title": "log-backup: The checkpoint-ts do not keep 24h when the task status become error."
+}

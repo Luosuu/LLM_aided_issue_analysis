@@ -1,0 +1,11 @@
+{
+  "bug_location": "pd_client/lock_manager/deadlock_detector",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Nested `block_on` executor calls causing runtime executor conflict",
+  "issue_number": 8692,
+  "title": "PD client panics on Deadlock's get_leader_info due to nested `block_on`"
+}

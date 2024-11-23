@@ -1,0 +1,11 @@
+{
+  "bug_location": "Logger Thread",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Single logger thread becomes CPU-bound and message queue bottleneck under high logging load, particularly during extreme coprocessor workloads",
+  "issue_number": 10841,
+  "title": "*:Logger thread can be bottleneck and slow down the whole TiKV instance"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "RocksDB Snapshot Management",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Snapshot references not being properly released, causing resource leakage and preventing data cleanup in removed regions",
+  "issue_number": 10027,
+  "title": "rocksdb snapshot doesn't released and make space not reclaimed."
+}

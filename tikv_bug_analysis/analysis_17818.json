@@ -1,0 +1,12 @@
+{
+  "bug_location": "server/storage_stats_task",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Unhandled connection abort error during storage statistics initialization, causing an unwrap() panic when encountering an unexpected network/IO error",
+  "issue_number": 17818,
+  "title": "tikv panic [lib.rs:480] [\\\"called `Result::unwrap()` on an `Err` value: Other(Os { code: 103, kind: ConnectionAborted, message: \\\\\\\"Software caused connection abort\\\\\\\" })\\\""
+}

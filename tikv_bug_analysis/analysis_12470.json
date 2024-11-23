@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/RaftEngine",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Incomplete snapshot application causing inconsistent Raft engine state, leading to write failures and potential data integrity issues during interrupted snapshot synchronization",
+  "issue_number": 12470,
+  "title": "Raft Engine is in inconsistent state after snapshot apply is interrupted"
+}

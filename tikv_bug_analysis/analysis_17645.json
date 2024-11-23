@@ -1,0 +1,12 @@
+{
+  "bug_location": "MVCC Transaction Layer",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent index and record state during concurrent delete and read operations, likely due to race condition in MVCC transaction management",
+  "issue_number": 17645,
+  "title": "In-memory Engine: data inconsistency in table: xx, index: yy, index-count:50 != record-count:49"
+}

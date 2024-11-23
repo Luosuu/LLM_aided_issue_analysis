@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/log_unstable",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Out-of-bounds slice access in Raft log unstable storage, causing index range violation during log truncation and appending",
+  "issue_number": 13554,
+  "title": "TiKV panic repeatedly: [FATAL] [lib.rs:465] [\"unstable.slice[22, 23] out of bound[22, 22], raft_id: 115835, region_id: 115832\"]"
+}

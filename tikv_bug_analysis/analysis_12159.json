@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Replication Component",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Memory accumulation during replica recovery with high-load workload, likely due to uncontrolled log replay or cache management when nodes are temporarily unavailable",
+  "issue_number": 12159,
+  "title": "TiKV OOM under TPCC workload when two tikv down for 10 minutes "
+}

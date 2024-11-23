@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Engine Component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Exhaustion of file descriptors during dynamic region management, causing RocksDB engine to panic when attempting to open new database files",
+  "issue_number": 14352,
+  "title": "[Dynamic Regions] multiple rocksdb panic with too many open files"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "SST Importer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Premature deletion of SST files during region split and ingest process, causing race condition between file deletion and Raft log processing",
+  "issue_number": 15053,
+  "title": "tikv panic because SST files of sst_importer is deleted before raft ingest"
+}

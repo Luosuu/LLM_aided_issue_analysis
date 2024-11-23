@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 5,
+  "categories": [
+    "Upgrade",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Version compatibility issue during region split operation causing inconsistent region epoch tracking between different TiKV versions",
+  "issue_number": 8967,
+  "title": "Rolling upgrade from 2.1 or older version to newer version may break region replicas consistency"
+}

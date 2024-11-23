@@ -1,0 +1,12 @@
+{
+  "bug_location": "Snapshot Handling Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Race condition in snapshot processing where overlapping region snapshots can cause inconsistent state and potential panic during concurrent snapshot application",
+  "issue_number": 866,
+  "title": "receiving two overlapped snapshot at same time causes panic"
+}

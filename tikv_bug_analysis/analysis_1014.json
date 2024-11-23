@@ -1,0 +1,11 @@
+{
+  "bug_location": "raft/raft_log.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Slice index out of bounds during snapshot restoration, likely caused by inconsistent log entry indexing during Raft log compaction and snapshot recovery",
+  "issue_number": 1014,
+  "title": "panic at 'slice out of range'"
+}

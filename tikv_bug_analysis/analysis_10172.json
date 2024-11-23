@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Coprocessor",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "LoadBalance"
+  ],
+  "root_cause": "Lack of concurrency control for analyze/checksum requests in yatp thread pool, causing excessive task queuing and request timeouts",
+  "issue_number": 10172,
+  "title": "Limit the concurrency of analyze/checksum like DAG does"
+}

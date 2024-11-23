@@ -1,0 +1,12 @@
+{
+  "bug_location": "Import Mode/Lightning Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Race condition during import job cancellation causing TiKV panic when exiting import mode while import process is still active",
+  "issue_number": 15003,
+  "title": "tikv panic when tikv exit the import mode but import process is still not stopped during \"import into\" command is cancelled"
+}

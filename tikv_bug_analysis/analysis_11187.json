@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC/Transaction Layer",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Inconsistent lock timestamp handling in pessimistic transactions causing unexpected lock state during CDC scanning",
+  "issue_number": 11187,
+  "title": "Stale non-pessimistic lock may be incompatible with CDC and possibly affect data correctness"
+}

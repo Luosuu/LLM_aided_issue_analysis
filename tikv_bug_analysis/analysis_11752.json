@@ -1,0 +1,12 @@
+{
+  "bug_location": "GC Worker",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "GcKeys tasks blocking UnsafeDestroyRange requests, preventing garbage collection progress during TiKV instance recovery",
+  "issue_number": 11752,
+  "title": "GcKeys tasks in GC worker block UnsafeDestroyRange requests and make GC stuck"
+}

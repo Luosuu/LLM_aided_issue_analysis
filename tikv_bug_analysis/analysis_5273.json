@@ -1,0 +1,11 @@
+{
+  "bug_location": "server/config.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Overly strict validation of advertise address prevents valid zero-based hostnames from being accepted, causing configuration rejection",
+  "issue_number": 5273,
+  "title": "Cannot create TiKV with advertise addr starting with `0`"
+}

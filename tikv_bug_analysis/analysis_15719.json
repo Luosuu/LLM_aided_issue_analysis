@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Cache / Client-Go",
+  "severity": 5,
+  "categories": [
+    "Performance",
+    "LoadBalance",
+    "Upgrade"
+  ],
+  "root_cause": "Excessive GetRegionByID requests triggered by bucket update mechanism when region size exceeds bucket size threshold",
+  "issue_number": 15719,
+  "title": "Bucket update triggers too many GetRegionByID requests and make PD overwhelmed "
+}

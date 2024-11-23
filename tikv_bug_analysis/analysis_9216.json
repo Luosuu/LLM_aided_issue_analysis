@@ -1,0 +1,12 @@
+{
+  "bug_location": "GarbageCollection",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "SST file with multiple key versions prevents GC optimization skipping for large region ranges during low write flow",
+  "issue_number": 9216,
+  "title": "TiKV's distributed GC may keep scanning and consuming CPU when there's very low write flow"
+}

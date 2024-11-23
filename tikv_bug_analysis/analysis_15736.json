@@ -1,0 +1,12 @@
+{
+  "bug_location": "Storage/RocksDB Configuration",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Config",
+    "Storage"
+  ],
+  "root_cause": "Increased write_buffer_size and write_buffer_limit for lockcf negatively impacts mixed insert/update and scan workloads by introducing performance overhead",
+  "issue_number": 15736,
+  "title": "[Dynamic Regions] Compared with v7.3.0, workloads with insert/update + scan operations have a 32% ~ 77% performance regression in v7.4.0"
+}

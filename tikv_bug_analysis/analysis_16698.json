@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) / Resolved Timestamp Tracking",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Timestamp synchronization disruption during TiKV node rolling restart causing extended resolved timestamp lag",
+  "issue_number": 16698,
+  "title": "TiKV min resolved ts lag up to 30s during tikv rolling restart, resulting in cdc lag increase"
+}

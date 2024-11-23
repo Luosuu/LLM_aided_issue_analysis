@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft snapshot transfer/application module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incomplete validation of snapshot key range overlap during snapshot application, potentially causing data inconsistency or incorrect state transfer",
+  "issue_number": 201,
+  "title": "Check if we can apply snapshot when there is overlapped key ranges"
+}

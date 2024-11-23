@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Race condition during peer state management during snapshot and destroy peer message handling, particularly affecting learner nodes during region merge operations",
+  "issue_number": 15333,
+  "title": "TiKV may stuck/panic if a destroy peer message is handled after apply snapshot on raftstore v1"
+}

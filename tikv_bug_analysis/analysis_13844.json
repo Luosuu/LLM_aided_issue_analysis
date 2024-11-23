@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mvcc/reader",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of write record scanning during flashback operation, potentially returning incorrect write records when encountering lock or rollback write types",
+  "issue_number": 13844,
+  "title": "Flashback may overwrite wrong write record"
+}

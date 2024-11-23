@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) and RocksDB apply layer",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Performance bottleneck during CDC incremental scan resumption, causing increased write memtable processing time and subsequent TiDB latency degradation",
+  "issue_number": 16164,
+  "title": "apply-write_memtable_time and TiDB latency increases during cdc initial scan"
+}

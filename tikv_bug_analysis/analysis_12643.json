@@ -1,0 +1,12 @@
+{
+  "bug_location": "Log Backup Component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect timestamp tracking during log backup task initialization and cluster restart operations, causing checkpoint_ts to be incorrectly set to task start time instead of actual checkpoint",
+  "issue_number": 12643,
+  "title": "[br] checkpoint_ts metrics abnormal, log backup start-ts is display sometimes."
+}

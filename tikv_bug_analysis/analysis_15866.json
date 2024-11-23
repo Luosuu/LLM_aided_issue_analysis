@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Blocking semaphore acquisition preventing timely task cancellation during region split or merge events",
+  "issue_number": 15866,
+  "title": "cdc incremental scan tasks can't be canceld by region split or merge correctly"
+}

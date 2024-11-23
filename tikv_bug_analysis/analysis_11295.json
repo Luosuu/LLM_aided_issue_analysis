@@ -1,0 +1,12 @@
+{
+  "bug_location": "coprocessor/statistics/analyze.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Unhandled Option::unwrap() on a None value during row sampling in analyze statistics operation, likely due to incomplete or unexpected data handling during benchmark dataset cleanup",
+  "issue_number": 11295,
+  "title": "panic when preparing tpcc/ch benchmark dataset"
+}

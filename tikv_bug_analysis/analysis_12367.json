@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/Compaction",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient SST ingestion strategy causing excessive L0 compactions and potential disk space exhaustion",
+  "issue_number": 12367,
+  "title": "too many compactions and even write stalls occur by cleaning range by ingesting SSTs"
+}

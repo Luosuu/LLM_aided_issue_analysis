@@ -1,0 +1,12 @@
+{
+  "bug_location": "Stale Read Component",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Safe timestamp (safe_ts) is consistently zero, preventing stale read operations from progressing in multi-region distributed setup",
+  "issue_number": 13110,
+  "title": "Stale read meet `Data not ready` for a long time"
+}

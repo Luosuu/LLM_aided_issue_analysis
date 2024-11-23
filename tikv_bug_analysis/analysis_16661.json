@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Storage Engine",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "LoadBalance",
+    "Storage"
+  ],
+  "root_cause": "Potential I/O rate limiting and load balancing inefficiency during cluster scale-out, causing excessive disk throughput and CDC replication lag",
+  "issue_number": 16661,
+  "title": "slow store during TiKV scale out, and CDC lag up to 15s"
+}

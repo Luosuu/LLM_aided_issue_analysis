@@ -1,0 +1,11 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "CDC sending changes for un-captured key ranges, causing unnecessary caching overhead in TiKV, especially when old value tracking is enabled",
+  "issue_number": 10073,
+  "title": "CDC should not send changes of un-captured key ranges"
+}

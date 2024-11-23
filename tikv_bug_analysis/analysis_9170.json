@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/split_controller.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect region split logic when sample boundaries are zero but contained keys are non-zero",
+  "issue_number": 9170,
+  "title": "Load split cannot work when the request covers the region"
+}

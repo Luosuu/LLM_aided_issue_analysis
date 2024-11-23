@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv_util/lru.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Unsafe memory manipulation in LruCache implementation causing undefined behavior during Rust borrow checking, specifically in reuse_tail and clear methods",
+  "issue_number": 13551,
+  "title": "LruCache is unsound"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mvcc/reader",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Incorrect garbage collection (GC) decision logic based on row version without considering delete versions and compaction state",
+  "issue_number": 4740,
+  "title": "MvccProperty should consider delete version"
+}

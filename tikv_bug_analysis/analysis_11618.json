@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer_storage.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Incorrect snapshot handling logic causing race condition between snapshot application and Raft log processing",
+  "issue_number": 11618,
+  "title": "Panic after snapshot is aborted"
+}

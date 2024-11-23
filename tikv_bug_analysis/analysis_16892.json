@@ -1,0 +1,12 @@
+{
+  "bug_location": "ReadIndex/RaftMessage handling in transaction commit path",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Race condition between read index message processing and transaction lock write, causing incorrect min_commit_ts computation during concurrent updates",
+  "issue_number": 16892,
+  "title": "ReadIndex raft message may fail to advance max_ts in the middle of write_lock"
+}

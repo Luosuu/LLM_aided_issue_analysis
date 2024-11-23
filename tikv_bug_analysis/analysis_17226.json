@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer_storage",
+  "severity": 5,
+  "categories": [
+    "Network",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Failed to retrieve snapshot during network partition, causing Raft leader to panic when attempting to broadcast append entries",
+  "issue_number": 17226,
+  "title": "tikv panic with \"unexpected error: Store(Other(\\\\\\\"[components/raftstore/src/store/peer_storage.rs:545]: failed to get snapshot after 5 times\\\\\\\"  when injection network partition"
+}

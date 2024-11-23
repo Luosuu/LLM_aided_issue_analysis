@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Client Interface",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Key decoding failure when mixing raw and transactional client operations, likely due to incompatible key encoding strategies between different client types",
+  "issue_number": 16284,
+  "title": "TiKV can't  read and write due to use rawclient and txnclient at the same time"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft library message handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Overwriting message response in loop prevents multiple slave nodes from receiving read index response",
+  "issue_number": 4071,
+  "title": "raft lib bug: In handle_heartbeat_response, the leader will lose the reply request of readindex"
+}

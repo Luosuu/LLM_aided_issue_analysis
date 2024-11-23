@@ -1,0 +1,12 @@
+{
+  "bug_location": "resolved_ts/cmd.rs",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Unexpected row lock state during resolved timestamp processing, likely caused by race condition or inconsistent transaction state management",
+  "issue_number": 16818,
+  "title": "tikv panic for \"assertion failed: row.lock.is_none()\""
+}

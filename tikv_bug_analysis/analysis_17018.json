@@ -1,0 +1,12 @@
+{
+  "bug_location": "In-memory engine",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent transaction state tracking during concurrent read operations, causing incorrect total count calculation in Snapshot Isolation (SI) mode",
+  "issue_number": 17018,
+  "title": "In-memory engine: wrong-total in jepsen test"
+}

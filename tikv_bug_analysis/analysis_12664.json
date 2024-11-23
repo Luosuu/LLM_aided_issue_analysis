@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Missing entry lookup in peer creation process causing unexpected panic when no entry is found for a specific key during Raft message handling",
+  "issue_number": 12664,
+  "title": "raftstore: tikv panicked with `no entry found for key`"
+}

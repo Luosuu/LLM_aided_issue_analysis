@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup and Restore (BR) Component",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Lack of resilience in handling TiKV node failures during backup process, causing premature backup termination instead of leader re-election and retry",
+  "issue_number": 7857,
+  "title": "Kill a tikv process when backup, br will exit quickly"
+}

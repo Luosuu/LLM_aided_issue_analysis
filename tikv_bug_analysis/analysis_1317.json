@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition during leader transfer that can cause inconsistent transaction execution across different Raft terms",
+  "issue_number": 1317,
+  "title": "Make sure different stages of a kv command execute raft command in a same term."
+}

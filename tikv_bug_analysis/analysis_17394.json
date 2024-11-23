@@ -1,0 +1,12 @@
+{
+  "bug_location": "lock_manager/waiter_manager.rs",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "Network"
+  ],
+  "root_cause": "Unbatched RPC messages during lock contention scenarios causing excessive message overhead and potential channel message accumulation",
+  "issue_number": 17394,
+  "title": "Memory usage may grow unexpectedly and causes OOM in some high-concurrency lock contention scenarios"
+}

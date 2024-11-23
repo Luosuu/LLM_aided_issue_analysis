@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Unlimited scan task concurrency without proper memory buffering control, causing unbounded memory allocation during large data scans",
+  "issue_number": 10114,
+  "title": "CDC unlimited scan task concurrency may cause OOM"
+}

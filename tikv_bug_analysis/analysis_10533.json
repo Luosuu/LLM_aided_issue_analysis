@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Improper handling of uninitialized peer state during region reconfiguration, allowing potential leader duplication by bypassing epoch and peer ID validation checks",
+  "issue_number": 10533,
+  "title": "destroy uninitialized peer can make it possible to recreate old peer"
+}

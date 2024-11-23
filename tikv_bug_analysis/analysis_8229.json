@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mvcc/reader",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Inefficient key version retrieval method using `seek` instead of potentially more performant `next` for accessing older record versions",
+  "issue_number": 8229,
+  "title": "MvccTxn can't make use of near_seek"
+}

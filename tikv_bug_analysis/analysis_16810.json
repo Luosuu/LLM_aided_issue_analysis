@@ -1,0 +1,12 @@
+{
+  "bug_location": "Transaction Resolution Mechanism",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Incorrect lock resolution strategy during pipelined DML operations, using a limited lock resolution method instead of comprehensive region-wide lock scanning",
+  "issue_number": 16810,
+  "title": "Pipelined-DML uses resolve_lock_lite instead of resolve_lock when there is conflict"
+}

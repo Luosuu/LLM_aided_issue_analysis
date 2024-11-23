@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) backup component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "LoadBalance",
+    "Transaction"
+  ],
+  "root_cause": "Conflict between move-to-better-location scheduler and PITR log backup tasks causing checkpoint lag during data redistribution",
+  "issue_number": 13619,
+  "title": "PITR lag > 5min when move-to-better-location scheduler running"
+}

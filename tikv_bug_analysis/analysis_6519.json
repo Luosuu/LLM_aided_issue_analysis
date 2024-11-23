@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Write Column Family",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Keys are not being scanned and added in lexicographically sorted order during snapshot generation and backup processes",
+  "issue_number": 6519,
+  "title": "RocksDB scanning Write CF returns keys out of order"
+}

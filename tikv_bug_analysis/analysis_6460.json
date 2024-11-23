@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Race condition during region merge process where log synchronization fails to ensure complete data transfer between source and target peers",
+  "issue_number": 6460,
+  "title": "A failed merge may cause a later success merge lost data"
+}

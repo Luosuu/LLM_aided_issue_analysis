@@ -1,0 +1,11 @@
+{
+  "bug_location": "Coprocessor Selection Executor",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Incorrect implementation of start_scan and stop_scan interfaces in selection executor, causing potential scan operation interruption when combining selection with table or index scan",
+  "issue_number": 3677,
+  "title": "Selection executor does not handle start_scan or stop_scan correctly"
+}

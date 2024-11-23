@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Race condition in peer and apply FSM destruction process causing potential panic when registering a new peer with an outdated apply FSM",
+  "issue_number": 8433,
+  "title": "Optimization in peer/apply fsm destroy process may lead to a panic in apply fsm's register"
+}

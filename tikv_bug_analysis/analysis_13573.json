@@ -1,0 +1,12 @@
+{
+  "bug_location": "RawKV storage layer",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during atomic compare-and-swap operation under node failure scenario, causing inconsistent state preservation during concurrent writes and node crash",
+  "issue_number": 13573,
+  "title": "rawkv: correctness violation for raw atomic commands"
+}

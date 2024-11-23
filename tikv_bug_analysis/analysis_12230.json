@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/read_queue.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Unexpected mismatch in leader read UUID during Raft leader read advancement, causing an assertion failure in the read index queue",
+  "issue_number": 12230,
+  "title": "raftstore: unexpected panic when advance_leader_reads"
+}

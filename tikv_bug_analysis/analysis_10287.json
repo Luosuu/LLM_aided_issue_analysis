@@ -1,0 +1,11 @@
+{
+  "bug_location": "backup-restore component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Unnecessary thread pool recycling and potential thread leakage in backup thread management",
+  "issue_number": 10287,
+  "title": "Backup should not recycle threads since we set thread number via config"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "gRPC client configuration in raft_client.rs",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Default gRPC message size limit (10MiB) is insufficient for batch gRPC operations where multiple messages are merged, causing connection resets when total message size exceeds limit",
+  "issue_number": 6727,
+  "title": "The default size limit of grpc is too small after using batch grpc"
+}

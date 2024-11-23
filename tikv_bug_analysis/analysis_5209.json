@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore::store::fsm::router",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Channel or router queue became full during benchmark, causing an unwrap() panic when sending messages",
+  "issue_number": 5209,
+  "title": "bench raftstore::store::fsm::router::tests::bench_send failed"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "resolved_ts/resolver.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Memory leak in resolver hashmap not clearing entries after lock removal",
+  "issue_number": 15458,
+  "title": "Resolver memory is not reclaimed and may cause OOM"
+}

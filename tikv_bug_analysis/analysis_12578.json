@@ -1,0 +1,11 @@
+{
+  "bug_location": "Apply struct in transaction processing",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of bucket_meta during batch processing, causing potential data inconsistency by using an outdated metadata reference",
+  "issue_number": 12578,
+  "title": "In try_batch, we should use the latest apply's bucket_meta."
+}

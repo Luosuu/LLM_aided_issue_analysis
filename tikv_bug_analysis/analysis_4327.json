@@ -1,0 +1,11 @@
+{
+  "bug_location": "coprocessor/codec/convert.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent string-to-integer conversion handling between TiDB and TiKV, causing unexpected error when processing scientific notation with large exponents",
+  "issue_number": 4327,
+  "title": "float_str_to_int_string should not return error"
+}

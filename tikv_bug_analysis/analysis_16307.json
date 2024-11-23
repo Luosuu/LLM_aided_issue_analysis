@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Snapshot recovery process fails to handle uncommitted logs across leader term changes, causing apply process to block when waiting for logs that cannot be committed",
+  "issue_number": 16307,
+  "title": "Snapshot recovery wait apply may be blocked by logs from a pervious term"
+}

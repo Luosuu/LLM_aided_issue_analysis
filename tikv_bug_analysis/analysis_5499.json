@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/raft_storage",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Stale command processing error during transaction commit, likely caused by race condition or outdated state in Raft consensus mechanism",
+  "issue_number": 5499,
+  "title": "storage::test_raft_storage::test_auto_gc, panicked at 'called `Result::unwrap()` on an `Err` value: Txn(Engine(Request(message: \"stale command\")))', src/libcore/result.rs:1165:5"
+}

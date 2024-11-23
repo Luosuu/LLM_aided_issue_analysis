@@ -1,0 +1,12 @@
+{
+  "bug_location": "Router/Channel Memory Management",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Memory leak in crossbeam channel sender references not being properly released when receivers are dropped",
+  "issue_number": 10037,
+  "title": "Memory keeps growing in long running large scale cluster"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "logging/rotating_file_logger",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Panic in destructor during file flush operation, violating Rust API guidelines for safe resource cleanup",
+  "issue_number": 4312,
+  "title": "RotatingFileLoggerPanics on drop"
+}

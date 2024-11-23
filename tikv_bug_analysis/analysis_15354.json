@@ -1,0 +1,11 @@
+{
+  "bug_location": "storage/raw/raw_mvcc.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect prefix seek implementation with mismatched key timestamp and prefix extraction, potentially causing unexpected iterator behavior",
+  "issue_number": 15354,
+  "title": "RawMvccSnapshot use prefix seek in defaultcf which not setup PrefixExtrator"
+}

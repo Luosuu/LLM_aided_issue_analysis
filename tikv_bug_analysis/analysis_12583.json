@@ -1,0 +1,11 @@
+{
+  "bug_location": "Backup and Restore (BR) Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect global checkpoint management during log backup pause operation, causing checkpoint to continue advancing despite paused state",
+  "issue_number": 12583,
+  "title": "After br log pausing, the global checkpoint is still moving forward"
+}

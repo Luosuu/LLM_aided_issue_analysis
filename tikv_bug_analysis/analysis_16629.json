@@ -1,0 +1,11 @@
+{
+  "bug_location": "ReadPool Configuration",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Metric initialization failure in unified read pool thread configuration, preventing accurate thread count reporting until explicit configuration modification",
+  "issue_number": 16629,
+  "title": "`tikv_unified_read_pool_thread_count` is always zero until online modifying `readpool.unified.max-thread-count`."
+}

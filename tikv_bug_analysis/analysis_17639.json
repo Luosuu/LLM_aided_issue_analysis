@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/peer",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Unwrapping a None value during region bucket refresh, likely caused by an unexpected state during region size update",
+  "issue_number": 17639,
+  "title": "tikv panic repeatedly when tikv rolling restart after update region size"
+}

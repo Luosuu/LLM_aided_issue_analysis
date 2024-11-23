@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) checkpoint mechanism",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Network partition disrupting synchronization between TiKV nodes and PD leader, causing significant checkpoint timestamp lag during backup/recovery process",
+  "issue_number": 16469,
+  "title": "pitr checkpoint ts lag reached more than 8h after inject network partition between one of tikv and pd leader"
+}

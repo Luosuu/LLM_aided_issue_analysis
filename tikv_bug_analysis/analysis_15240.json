@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/partitioned-raft-kv",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "LoadBalance"
+  ],
+  "root_cause": "Memory management inefficiency during dynamic scaling of TiKV nodes, potentially causing excessive memory allocation and uncontrolled growth during region redistribution",
+  "issue_number": 15240,
+  "title": "[Dynamic Regions] TiKV OOM after scaling TiKV"
+}

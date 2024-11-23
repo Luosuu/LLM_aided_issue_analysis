@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) Checkpoint Component",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Network partition disrupts checkpoint advancement mechanism, preventing proper synchronization between TiKV and TiDB during distributed recovery process",
+  "issue_number": 13632,
+  "title": "PITR checkpoint not move forward during tikv and tidb advance owner network partition"
+}

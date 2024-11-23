@@ -1,0 +1,12 @@
+{
+  "bug_location": "transaction/pessimistic_lock",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient lock acquisition algorithm when multiple Write::Lock entries exist, causing significant performance degradation during pessimistic locking operations",
+  "issue_number": 7024,
+  "title": "`acquire_pessimistic_lock` has very poor performance if there are many `Write::Lock`s"
+}

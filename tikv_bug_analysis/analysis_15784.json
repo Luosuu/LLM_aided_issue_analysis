@@ -1,0 +1,12 @@
+{
+  "bug_location": "Replication/Sync Recovery",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "LoadBalance",
+    "Config"
+  ],
+  "root_cause": "Race condition during complex replication mode transition between dr-auto-sync and majority, causing sync recovery process to hang when reconfiguring placement rules and node states",
+  "issue_number": 15784,
+  "title": "[dr-autosync] hang in sync_recover when change from majority to dr-auto-sync"
+}

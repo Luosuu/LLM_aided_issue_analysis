@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/PeerStorage",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Memory allocation failure during large dataset startup, potentially caused by NUMA node memory fragmentation or insufficient memory management during high-volume data loading",
+  "issue_number": 11526,
+  "title": "After inserted 1 billions data in to tidb, the one of TiKV never able to startup, neither restart."
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mvcc/reader",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Assertion mismatch between expected Delete and actual Put operation during MVCC read, likely caused by inconsistent transaction state management",
+  "issue_number": 13839,
+  "title": "tikv restart for \"[\"assertion failed: `(left == right)`\\n  left: `Delete`,\\n right: `Put`\"] \""
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) endpoint",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Network"
+  ],
+  "root_cause": "Blocking wait for leader check requests when a TiKV node is disconnected, causing resolved timestamp synchronization delay",
+  "issue_number": 11351,
+  "title": "resolved ts lag increased after stoping a tikv"
+}

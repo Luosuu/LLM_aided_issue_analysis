@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/pd_worker",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Incomplete implementation of peer removal logic during region merge, causing stale peers to persist indefinitely",
+  "issue_number": 15919,
+  "title": "Stale peers are left forever after region merge"
+}

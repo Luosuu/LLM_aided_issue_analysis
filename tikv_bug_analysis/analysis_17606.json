@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC Initial Scan Task Management",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Initial scan tasks not properly cancelled or terminated during changefeed state transitions, causing prolonged pending tasks and potential resource blocking",
+  "issue_number": 17606,
+  "title": "TiKV initial scan task not cancel/termicated when changefeed paused or failed"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore-v2/operation/command/admin/merge",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Non-deterministic merge commit and rollback process causing race conditions during region merge operations, specifically when proposal failures occur during transient errors",
+  "issue_number": 15682,
+  "title": "[Dynamic Regions] panic with \"region corrupted\""
+}

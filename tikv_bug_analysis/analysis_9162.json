@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/txn/latch.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Bitwise AND (&) operator causing slot index collision in latch management, potentially leading to incorrect transaction synchronization",
+  "issue_number": 9162,
+  "title": "Slot collision on latch with and (&) operator"
+}

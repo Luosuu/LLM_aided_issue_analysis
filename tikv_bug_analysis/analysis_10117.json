@@ -1,0 +1,11 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Scan task scheduling mechanism blocks concurrent changefeeds, causing checkpoint lag and potential performance degradation during initial setup and region changes",
+  "issue_number": 10117,
+  "title": "CDC scan tasks interferes between changefeeds"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "in_memory_engine/background",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Assertion failure during garbage collection in in-memory engine background task, likely due to unexpected state or race condition during long-running TPCC workload",
+  "issue_number": 17788,
+  "title": "[In-memory-engine] tikv panic \"[\\\"assertion failed: success\\\"] [backtrace=\\\"   0: tikv_util::set_panic_hook::{{closure}}\\\\n             at workspace/source/tikv/components/tikv_util/src/lib.rs:479:18\" after run tpcc a long time"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Log Backup/PITR Checkpoint",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Network",
+    "LoadBalance"
+  ],
+  "root_cause": "Checkpoint synchronization mechanism becomes unstable during single availability zone failure, causing extended lag in log backup recovery point tracking",
+  "issue_number": 13622,
+  "title": "PITR checkpoint lag might >5min during/right after single AZ disaster happens"
+}

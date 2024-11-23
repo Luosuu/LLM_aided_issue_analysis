@@ -1,0 +1,12 @@
+{
+  "bug_location": "Lock Manager",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "In-memory pessimistic locks are not visible during scan_lock operations due to hash table storage implementation, preventing complete lock visibility during garbage collection and resolved timestamp t",
+  "issue_number": 15066,
+  "title": "In-memory pessimistic locks are invisible to scan_lock requests"
+}

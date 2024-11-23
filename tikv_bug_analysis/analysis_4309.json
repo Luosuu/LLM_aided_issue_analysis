@@ -1,0 +1,11 @@
+{
+  "bug_location": "util/MustConsumeVec",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Destructor panics when vector is not empty, causing potential double-panic and process abort",
+  "issue_number": 4309,
+  "title": "MustConsumeVec double-panics in dtor"
+}

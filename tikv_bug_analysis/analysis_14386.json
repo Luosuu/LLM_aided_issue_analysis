@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/entry_storage",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Attempted to unwrap a None Option during Raft log term retrieval, indicating a potential race condition or unhandled edge case in dynamic region management",
+  "issue_number": 14386,
+  "title": "[Dynamic Regions] multiple rocksdb tikv panic for called `Option::unwrap()` on a `None` value"
+}

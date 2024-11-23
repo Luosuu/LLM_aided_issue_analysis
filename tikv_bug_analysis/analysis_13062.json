@@ -1,0 +1,11 @@
+{
+  "bug_location": "log-backup",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect timestamp validation during point-in-time recovery (PiTR) restore process, causing restore failure when restored timestamp exceeds log backup range",
+  "issue_number": 13062,
+  "title": "log-backup: PiTR restore failed due to restored_ts > log backup range"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "components/raftstore/src/store/fsm/apply.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "LoadBalance"
+  ],
+  "root_cause": "Incorrect priority handling and premature commit of SST files during delegate processing, causing suboptimal scheduling and unnecessary disk writes",
+  "issue_number": 17278,
+  "title": "Reduce `apply_ctx.commit(self)` if there are ingest SST commands applying"
+}

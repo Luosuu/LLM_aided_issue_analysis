@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB storage engine",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Rate limiting mechanism fails to properly throttle compaction when pending bytes exceed threshold",
+  "issue_number": 11810,
+  "title": "RocksDB rate limit takes no effect when pending bytes is high"
+}

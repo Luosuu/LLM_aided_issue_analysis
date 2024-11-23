@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Log Persistence Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Inconsistent log index tracking during raft log application when persistence feature is enabled, causing potential data integrity and recovery issues",
+  "issue_number": 16796,
+  "title": "Apply raft log before persistence is not compatible with online unsafe recovery"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Transaction/Encoding",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential key encoding corruption during transaction operations, causing invalid byte sequences in key generation or scanning process",
+  "issue_number": 15896,
+  "title": "We have some bad encoded-keys like: aaaa FF bbbb FF cccc 06 dd00 FE"
+}

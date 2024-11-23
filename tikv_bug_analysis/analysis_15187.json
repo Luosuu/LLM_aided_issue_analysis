@@ -1,0 +1,12 @@
+{
+  "bug_location": "Transaction/Stale Read Component",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Network",
+    "LoadBalance"
+  ],
+  "root_cause": "Network partition handling causes significant performance degradation in multi-availability zone configurations, likely due to suboptimal replica selection and read routing during network isolation",
+  "issue_number": 15187,
+  "title": "enable stale read and closest-replicas\uff0cqps of all az drop to bottom during simulating network partition between two az "
+}

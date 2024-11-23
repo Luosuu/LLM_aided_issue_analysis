@@ -1,0 +1,12 @@
+{
+  "bug_location": "Scheduler/LoadBalancer",
+  "severity": 4,
+  "categories": [
+    "LoadBalance",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Scheduler unable to resume leader balancing after IO delay and fault recovery, potentially due to state synchronization or scheduling algorithm failure",
+  "issue_number": 16403,
+  "title": "leader can not balance again after fault recover from one of tikv io delay 100ms which lasts for 10mins with evict-slow-trend-schedule"
+}

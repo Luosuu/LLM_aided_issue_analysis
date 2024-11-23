@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction/Pessimistic Lock",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect assertion handling during concurrent transaction rollback and prewrite operations, causing false-positive assertion failures when checking index key versions under strict assertion level",
+  "issue_number": 12113,
+  "title": "Assertion false-positive on non-unique index key in pessimistic transaction that's rolled back by another transaction"
+}

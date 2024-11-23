@@ -1,0 +1,11 @@
+{
+  "bug_location": "RocksDB Compaction Layer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Inefficient compaction handling during large table truncation, causing excessive pending bytes and potential write stalls",
+  "issue_number": 9936,
+  "title": "Too many compaction pending bytes when truncating a huge table in TiDB"
+}

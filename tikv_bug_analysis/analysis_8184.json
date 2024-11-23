@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft consensus configuration management",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Unsafe leader transition during configuration change, allowing potential data loss during leadership transfer",
+  "issue_number": 8184,
+  "title": "Don't allow conf remove until leader has applied to current term"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "gRPC service layer",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "Inability to handle large gRPC response payloads exceeding 4GB, causing memory allocation and slice buffer handling failure",
+  "issue_number": 9012,
+  "title": "TiKV panics when the size of response exceeds 4GB"
+}

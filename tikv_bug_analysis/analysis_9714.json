@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft_client.rs",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Excessive message batching exceeding gRPC message size limits, causing connection aborts and potential communication failures",
+  "issue_number": 9714,
+  "title": "batch messages can be too large in new raft client implementation"
+}

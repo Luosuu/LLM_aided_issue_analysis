@@ -1,0 +1,12 @@
+{
+  "bug_location": "tidb_query_datatype/codec/row/v2/row_slice",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Unexpected None value when processing row checksum bytes during data insertion, causing a panic in row slice parsing",
+  "issue_number": 16371,
+  "title": "tikv panic when enable row level checksum and insert some data"
+}

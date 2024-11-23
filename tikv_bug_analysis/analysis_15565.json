@@ -1,0 +1,11 @@
+{
+  "bug_location": "Coprocessor",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Current implementation does not respect max_execution_duration_ms parameter for coprocessor tasks, causing potential timeout issues during workload processing",
+  "issue_number": 15565,
+  "title": "Coprocessor task use the deadline specified in kvrpcpb::Context.max_execution_duration_ms"
+}

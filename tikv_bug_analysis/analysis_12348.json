@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Network"
+  ],
+  "root_cause": "Missing Raft log entry during peer creation, likely caused by race condition or incomplete log replication during network partition",
+  "issue_number": 12348,
+  "title": "raftstore: panicked with `no entry found for key`"
+}

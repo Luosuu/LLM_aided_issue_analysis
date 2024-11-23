@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/log_unstable",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Inconsistent Raft log state during region merge when restoring from EBS snapshot, causing out-of-bounds slice access during log catch-up",
+  "issue_number": 15739,
+  "title": "TiKV panic due to catch up logs during ebs restore"
+}

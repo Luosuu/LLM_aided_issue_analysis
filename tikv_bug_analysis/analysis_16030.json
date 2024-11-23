@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/txn/actions/prewrite",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Assertion failure in transaction prewrite logic related to last change timestamp tracking, causing panic during concurrent index addition and workload execution",
+  "issue_number": 16030,
+  "title": "more than one tikv panic repeatedly and service is unavailable when run workload and add index"
+}

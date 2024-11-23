@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "LoadBalance",
+    "Config"
+  ],
+  "root_cause": "Incomplete leader transfer handling during interrupted configuration change, causing peers to remain in a pending conf change state and blocking leader transfer",
+  "issue_number": 9041,
+  "title": "Peer reject to transfer leader because of pending conf change"
+}

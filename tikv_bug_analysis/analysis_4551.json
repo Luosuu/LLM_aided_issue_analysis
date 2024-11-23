@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incomplete progress tracking of learner nodes during log replication, causing potential log discontinuity and system instability",
+  "issue_number": 4551,
+  "title": "Progress of learner should also be considered before merging"
+}

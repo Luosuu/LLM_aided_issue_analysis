@@ -1,0 +1,11 @@
+{
+  "bug_location": "Flashback Region Handler",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect error handling in flashback region request processing, returning unexpected error type that breaks client retry logic",
+  "issue_number": 14143,
+  "title": "Flashback should not return any unexpected error to the client"
+}

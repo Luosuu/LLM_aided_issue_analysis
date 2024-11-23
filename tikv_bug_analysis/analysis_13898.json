@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) checkpoint mechanism",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "TiKV fails to advance PITR checkpoint when unable to establish connection with PD (Placement Driver) during network disruption or AZ failure",
+  "issue_number": 13898,
+  "title": "PITR checkpoint not advance if tikv fails to connect to PD at start"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Network"
+  ],
+  "root_cause": "Local message handling failure during leader eviction with high region count, causing message rejection and logging errors",
+  "issue_number": 14874,
+  "title": "Too many \"cannot step raft local message\" when RejectRaftAppend occurs"
+}

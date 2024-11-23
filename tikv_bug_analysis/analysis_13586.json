@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Configuration Initialization",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Incorrect handling of background job configuration when CPU resources are limited, causing startup failure when allocated less than one full CPU core",
+  "issue_number": 13586,
+  "title": "TiKV start failed with less than 1 core CPU on Kubernetes"
+}

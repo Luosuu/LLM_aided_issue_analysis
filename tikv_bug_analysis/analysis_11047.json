@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft/batch_raft service",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Improper error handling when channel becomes full, causing premature RPC stream termination and potential raft cluster instability",
+  "issue_number": 11047,
+  "title": "Channel full could break the raft connection"
+}

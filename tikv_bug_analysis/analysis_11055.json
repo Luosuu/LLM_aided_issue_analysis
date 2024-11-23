@@ -1,0 +1,11 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect event ordering during delta scan snapshot, causing real-time events to be sent out of sequence",
+  "issue_number": 11055,
+  "title": "cdc: Init event should be sent after all observed events have been sent"
+}

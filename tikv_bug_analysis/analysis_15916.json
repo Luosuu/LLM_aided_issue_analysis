@@ -1,0 +1,12 @@
+{
+  "bug_location": "Transaction Resolver",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Resolved timestamp advancement blocked during batch insert operations with wide tables, likely due to transaction metadata management limitations in high-volume write scenarios",
+  "issue_number": 15916,
+  "title": "resolved ts can't advance in the batch insert wide table scenario"
+}

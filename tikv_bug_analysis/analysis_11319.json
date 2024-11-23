@@ -1,0 +1,11 @@
+{
+  "bug_location": "Leader Balance/Region Management",
+  "severity": 4,
+  "categories": [
+    "LoadBalance",
+    "Performance"
+  ],
+  "root_cause": "Delayed leader rebalancing mechanism after TiKV node recovery, causing extended period of suboptimal cluster state",
+  "issue_number": 11319,
+  "title": "one tikv failure was restored after one minute, but the leader start the balance after 3 hours"
+}

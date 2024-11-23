@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Lease expiration mechanism causing unnecessary remote lease renewals when thread count increases, leading to performance overhead",
+  "issue_number": 5388,
+  "title": "Lease expire rate increases as thread count increases"
+}

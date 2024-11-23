@@ -1,0 +1,11 @@
+{
+  "bug_location": "sys/cgroup.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "CPU quota calculation can return 0 when cgroup limit is set to a fractional value less than 1, causing potential thread pool starvation",
+  "issue_number": 8423,
+  "title": "cpu_cores_quota can return 0 which makes unified thread pool hang for long running query"
+}

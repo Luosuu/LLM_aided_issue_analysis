@@ -1,0 +1,11 @@
+{
+  "bug_location": "split_controller.rs",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Default ReadStats creation does not respect user-configured sample_num, potentially causing incorrect load-based splitting behavior",
+  "issue_number": 12014,
+  "title": "The creation of ReadStats should take into account the user configuration of sample_num"
+}

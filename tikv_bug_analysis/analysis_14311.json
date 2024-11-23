@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction Layer",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition in pessimistic lock handling with WakeUpModeForceLock mode, allowing stale lock requests to bypass version conflict checks",
+  "issue_number": 14311,
+  "title": "Replayed pessimistic lock requests using `WakeUpModeForceLock` may lead to correctness issue"
+}

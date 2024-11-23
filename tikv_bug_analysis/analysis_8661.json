@@ -1,0 +1,12 @@
+{
+  "bug_location": "Titan Storage Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Race condition during concurrent snapshot generation and blob file deletion in Titan storage engine, causing potential panic when encountering missing blob files during range iteration",
+  "issue_number": 8661,
+  "title": "UnsafeDestroyRange may cause panic for a concurrent generating snap when Titan enabled"
+}

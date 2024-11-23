@@ -1,0 +1,12 @@
+{
+  "bug_location": "GC (Garbage Collection) Worker",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Overly simplistic alert rule that checks GC task count without considering actual data modification activity",
+  "issue_number": 9910,
+  "title": "the rule for TiKV_GC_can_not_work alert should be enhanced to check with GC speed instead of GC task"
+}

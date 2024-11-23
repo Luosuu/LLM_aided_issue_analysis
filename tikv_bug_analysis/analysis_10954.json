@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Log Compaction",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Overly aggressive log compaction during rolling updates causing unnecessary snapshot generation between followers and leader",
+  "issue_number": 10954,
+  "title": "Periodically raft purge tick can cause unnecessary snapshots between rolling update"
+}

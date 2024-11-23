@@ -1,0 +1,12 @@
+{
+  "bug_location": "PeerFSM",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Race condition between raft admin command execution and PeerFSM state update causing delayed flashback state visibility",
+  "issue_number": 13870,
+  "title": "Flashback state may not be visible immediately in PeerFSM"
+}

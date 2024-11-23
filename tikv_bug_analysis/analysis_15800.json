@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Log Append Module",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Memory pressure from excessive raft log caching caused by TiFlash node disk exhaustion, leading to log append rejection",
+  "issue_number": 15800,
+  "title": "TiKV reports ServerIsBusy error because it can not append raft log"
+}

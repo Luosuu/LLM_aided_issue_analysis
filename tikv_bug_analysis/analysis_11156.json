@@ -1,0 +1,11 @@
+{
+  "bug_location": "server/status_server/profile",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Improper state management in heap profiling activation, where `on_end` callback was not properly handled, causing an assertion failure when attempting to reactivate profiling",
+  "issue_number": 11156,
+  "title": "Panic when activating heap profiling"
+}

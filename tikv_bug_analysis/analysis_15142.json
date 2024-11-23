@@ -1,0 +1,11 @@
+{
+  "bug_location": "RawKV API v2 TTL management",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "TTL check poll interval configuration not being properly applied in RawKV API v2, causing storage size to continuously increase instead of cleaning expired data",
+  "issue_number": 15142,
+  "title": "rawkv: `ttl-check-poll-interval` does not take effect on RawKV API v2"
+}

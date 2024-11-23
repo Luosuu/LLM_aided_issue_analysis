@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Restart/Recovery Mechanism",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Network",
+    "Upgrade"
+  ],
+  "root_cause": "Extended recovery time during heavy write workloads causing restart timeout, potentially due to region synchronization and log replay bottlenecks",
+  "issue_number": 14459,
+  "title": "[Dynamic Regions] When tikv's under heavy write, the restart time needed exceeds tiup's timeout"
+}

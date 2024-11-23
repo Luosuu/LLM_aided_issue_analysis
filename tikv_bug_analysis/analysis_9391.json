@@ -1,0 +1,11 @@
+{
+  "bug_location": "Metrics/Statistics Collection",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Incomplete key tracking in read flow statistics, causing metrics inconsistency between TiKV and PD during high-volume point read operations",
+  "issue_number": 9391,
+  "title": "TiKV's \"read flow\" statistics are inconsistent with \"store read rate\" statistics of PD"
+}

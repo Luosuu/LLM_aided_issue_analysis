@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect snapshot region tracking allowing overlapping snapshot applications that can cause data inconsistency",
+  "issue_number": 6366,
+  "title": "Two overlapped snapshot may be applied together which may cause panic or loss of data"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Split Mechanism",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Concurrent region split operations causing excessive retry and blocking of read-index requests when multiple hot write regions attempt to split simultaneously",
+  "issue_number": 14355,
+  "title": "[Dynamic Regions] When there's about 100 split happening roughly at same time, some splits are very slow."
+}

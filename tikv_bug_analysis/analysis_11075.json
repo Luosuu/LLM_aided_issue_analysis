@@ -1,0 +1,12 @@
+{
+  "bug_location": "Leader Election Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "LoadBalance"
+  ],
+  "root_cause": "Failure to properly reset leader election state during node recovery, causing leadership assignment to default/zero state",
+  "issue_number": 11075,
+  "title": "After a tikv failure is recovered, the leader of this tikv is always zero"
+}

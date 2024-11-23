@@ -1,0 +1,11 @@
+{
+  "bug_location": "resource_metering/cpu_recorder",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Memory leak in thread statistics tracking due to lack of cleanup for destroyed threads",
+  "issue_number": 15304,
+  "title": "CpuRecorder may leak memory for destroyed threads"
+}

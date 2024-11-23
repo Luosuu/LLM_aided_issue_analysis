@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/channel_buffer",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Unbounded channel buffer allocation across multiple peers leading to potential memory exhaustion",
+  "issue_number": 15701,
+  "title": "The total buffer of peers' channels is essentially unlimited and may cause OOM  "
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "range_cache_memory_engine/background.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Assertion failure during snapshot load processing in the in-memory engine, likely due to inconsistent region metadata state during background worker operations",
+  "issue_number": 17493,
+  "title": "In-memory Engine: `on_snapshot_load_finished` assert fails \"region meta: CacheRegionMeta ...\""
+}

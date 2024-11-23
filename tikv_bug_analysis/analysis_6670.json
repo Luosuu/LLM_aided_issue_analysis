@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft Log Replication",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Inefficient log synchronization mechanism during idle region periods, causing delayed log propagation due to infrequent heartbeat intervals",
+  "issue_number": 6670,
+  "title": "Catch up logs is too slow when region is idle"
+}

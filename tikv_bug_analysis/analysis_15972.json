@@ -1,0 +1,11 @@
+{
+  "bug_location": "snapshot_transfer_module",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "LoadBalance"
+  ],
+  "root_cause": "Snapshot transfer limit reached, causing snapshot generation and transfer failures when multiple regions are being balanced simultaneously",
+  "issue_number": 15972,
+  "title": "TiKV should delay request snapshot if it exceeds receiving snapshot  limit"
+}

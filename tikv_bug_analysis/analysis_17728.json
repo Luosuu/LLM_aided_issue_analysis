@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction Resolver",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect timestamp comparison logic causing resolved-ts to potentially equal commit timestamp, violating transaction resolution semantics",
+  "issue_number": 17728,
+  "title": "Resolved-ts must be strictly smaller than locks' min_commit_ts when calculating it"
+}

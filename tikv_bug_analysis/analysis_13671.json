@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Bucket statistics reset interval conflicts with split check interval, preventing effective bucket re-splitting",
+  "issue_number": 13671,
+  "title": "Bucket re-split hardly works"
+}

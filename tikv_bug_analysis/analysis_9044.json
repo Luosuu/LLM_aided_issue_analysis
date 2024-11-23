@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Compaction/Region Info Accessor",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Synchronous blocking call in single background thread causing deadlock during compaction partitioner creation",
+  "issue_number": 9044,
+  "title": "compaction guard: deadlock when creating compaction partitioner"
+}

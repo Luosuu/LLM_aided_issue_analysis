@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/apply/snapshot_handling",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Race condition between peer removal and snapshot processing causing stale apply state and potential linearizability violation",
+  "issue_number": 16069,
+  "title": "raftstore: linearibilizy is broken when follower read is used"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Election mechanism fails to handle leader selection during network partitions when hibernate regions are enabled, causing persistent leadership unavailability due to improper handling of missing ticks",
+  "issue_number": 16429,
+  "title": "hibernate region may not able to reelection a new leader for a long when leader is partitioned"
+}

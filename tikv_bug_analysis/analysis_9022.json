@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Learner Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Race condition during region split when learner is isolated during leader hibernation, preventing proper replica creation and potentially causing region unavailability",
+  "issue_number": 9022,
+  "title": "Learner may not be created after a long time when enabling hibernate region"
+}

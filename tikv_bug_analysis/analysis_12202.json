@@ -1,0 +1,11 @@
+{
+  "bug_location": "futures_util/future/map",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Attempting to poll a future after it has already returned Poll::Ready, violating future polling contract",
+  "issue_number": 12202,
+  "title": "Map must not be polled after it returned `Poll::Ready`"
+}

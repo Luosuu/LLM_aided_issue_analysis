@@ -1,0 +1,12 @@
+{
+  "bug_location": "pd_client/tso.rs and tokio_timer",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Long-running timer wheel causing index out of bounds error during timestamp request processing after extended system uptime",
+  "issue_number": 11940,
+  "title": "TiKV running over 2 years may panic"
+}

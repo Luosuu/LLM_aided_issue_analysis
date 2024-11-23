@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mvcc/reader/scanner/forward.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Invalid write cursor state during MVCC scanner operation, likely caused by unexpected cursor invalidation or incorrect cursor management in the forward scanner",
+  "issue_number": 11543,
+  "title": "Assertion failed: `self.cursors.write.valid()?`"
+}

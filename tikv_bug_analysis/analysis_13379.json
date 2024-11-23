@@ -1,0 +1,12 @@
+{
+  "bug_location": "Read Index Request Queue",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Network isolation causing read index requests to become stuck in queue, leading to significant performance degradation after network recovery",
+  "issue_number": 13379,
+  "title": "inject one tikv network isolated for 50m\uff0cafter recover fault\uff0cqps drop 80%+ last for few minutes due to the read index request is stuck in the queue for a long time"
+}

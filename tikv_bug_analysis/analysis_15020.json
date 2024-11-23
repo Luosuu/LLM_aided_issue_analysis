@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/txn/scheduler",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Async write callback dropped during pessimistic transaction rollback, causing unexpected panic in transaction scheduler",
+  "issue_number": 15020,
+  "title": "Enabling failpoint `raftkv_early_error_report`, `cleanup`, `pessimistic_prewrite` sometimes leads to tikv panic"
+}

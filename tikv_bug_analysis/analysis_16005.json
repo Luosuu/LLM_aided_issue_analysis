@@ -1,0 +1,11 @@
+{
+  "bug_location": "sst_importer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Incomplete cleanup of empty SST files during snapshot restoration, leading to unnecessary file accumulation",
+  "issue_number": 16005,
+  "title": "sst_importer needs to clean the sst if no kv need to be saved and rewritten"
+}

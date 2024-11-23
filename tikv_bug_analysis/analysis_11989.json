@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Log Replication",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "Network"
+  ],
+  "root_cause": "Potential log synchronization failure during extended node recovery, causing persistent log replication lag after fault recovery",
+  "issue_number": 11989,
+  "title": "After a tikv fault (more than 30 minutes) is restored, the raft log lag has been chasing"
+}

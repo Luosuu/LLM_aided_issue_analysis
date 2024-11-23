@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Request vote messages potentially dropped during Raft split operation, causing potential leadership election instability",
+  "issue_number": 8456,
+  "title": "Request vote messages are lost during split"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB engine / Range Cache",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Race condition in delete_range operation that violates snapshot isolation guarantees, allowing potential data read after deletion",
+  "issue_number": 17243,
+  "title": "In-memory engine: evict in delete_range is too late"
+}

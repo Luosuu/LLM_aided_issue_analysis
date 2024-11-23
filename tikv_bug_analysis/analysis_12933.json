@@ -1,0 +1,11 @@
+{
+  "bug_location": "pd_client/client.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Potential deadlock due to nested read locks on the same RwLock, which can cause thread contention when write locks are attempted",
+  "issue_number": 12933,
+  "title": "components/pd_client: potential deadlocks caused by double-readlock in call_option"
+}

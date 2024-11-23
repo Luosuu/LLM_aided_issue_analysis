@@ -1,0 +1,12 @@
+{
+  "bug_location": "Log Backup Component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Checkpoint synchronization failure during repeated TiKV server restarts, causing significant delay in log backup progress tracking",
+  "issue_number": 12854,
+  "title": "br log backup checkpoint lag > 1H after stop restarting tikv for 1H"
+}

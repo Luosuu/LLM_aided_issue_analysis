@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "LoadBalance",
+    "Performance"
+  ],
+  "root_cause": "Commit log failure during multi-datacenter region state transition when peers are in joint consensus state and some stores are down",
+  "issue_number": 15817,
+  "title": "Commit can't advance for region in joint state when dr auto sync is enabled"
+}

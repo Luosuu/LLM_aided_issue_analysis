@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft message metrics component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Metrics counter for disk_full message drops is incorrectly implemented, only tracking rare MsgTimeoutNow message type instead of comprehensively capturing disk full conditions",
+  "issue_number": 15753,
+  "title": "dropped raft message metrics on disk_full type is misleading"
+}

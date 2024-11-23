@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Race condition in handling configuration change results during snapshot restoration, causing unexpected membership state conflicts",
+  "issue_number": 6344,
+  "title": "Panic on late arriving confchange result"
+}

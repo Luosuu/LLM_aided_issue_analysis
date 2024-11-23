@@ -1,0 +1,12 @@
+{
+  "bug_location": "Scheduler/Metrics",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incomplete duration tracking for write commands during high contention scenarios, causing metrics to not accurately reflect command processing times",
+  "issue_number": 14838,
+  "title": "metric: the scheduler and latch duration may not be recorded with the grpc duration"
+}

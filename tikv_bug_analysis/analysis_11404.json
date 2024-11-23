@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Inefficient log truncation mechanism causing excessive RaftDB write operations and accumulation of small SST files during garbage collection tasks",
+  "issue_number": 11404,
+  "title": "raftstore: TiKV can not deleted the truncated raft log as soon as possible"
+}

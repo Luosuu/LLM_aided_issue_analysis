@@ -1,0 +1,12 @@
+{
+  "bug_location": "pd_client",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Network"
+  ],
+  "root_cause": "Synchronization issue between PD client thread and threads performing sync requests, causing a deadlock due to conflicting read and write lock acquisition",
+  "issue_number": 8610,
+  "title": "Deadlock between the PD client thread and other threads calling PD sync requests."
+}

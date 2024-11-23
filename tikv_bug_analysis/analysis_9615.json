@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/peer",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Race condition between commit merge and post_apply operations causing read delegate removal before update",
+  "issue_number": 9615,
+  "title": "commit merge and post_apply can make tikv panic"
+}

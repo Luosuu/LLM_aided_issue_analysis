@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/txn/commands/mod.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect handling of empty end_key during flashback operation, causing incomplete key restoration",
+  "issue_number": 13879,
+  "title": "Flashback may miss the last region"
+}

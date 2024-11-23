@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Consensus Module",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "Lease renewal and leadership election race condition causing potential linearizability violation during network partition and node restart scenarios",
+  "issue_number": 15035,
+  "title": "Leader holds an invalid lease if one node is isolated and one node restarts"
+}

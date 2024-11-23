@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Region Split Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Race condition during region split and leader transfer when Raft cluster is in joint consensus state, causing synchronization and state transition issues",
+  "issue_number": 17602,
+  "title": "BatchSplit hang at joint state when execute `BatchSplit` and `move-hot-read-leader` at same time"
+}

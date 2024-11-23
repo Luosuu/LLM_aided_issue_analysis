@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect index calculation when searching in a ring buffer VecDeque, potentially returning a smaller propose time due to not adjusting index for wraparound",
+  "issue_number": 9748,
+  "title": "The propose time may be smaller than the real one"
+}

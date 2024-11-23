@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Mutex/Instrumented Mutex",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Multiple threads simultaneously attempting to acquire the same RocksDB mutex, causing a potential deadlock scenario during concurrent database operations",
+  "issue_number": 17260,
+  "title": "In-memory Engine: Deadlock during TPCC run"
+}

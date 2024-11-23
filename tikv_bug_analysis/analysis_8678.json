@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Unstable Raft leader election mechanism triggered by cluster reload, causing multiple regions to simultaneously start new election processes",
+  "issue_number": 8678,
+  "title": "TiKV always starting a new election"
+}

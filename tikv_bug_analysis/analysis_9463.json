@@ -1,0 +1,12 @@
+{
+  "bug_location": "pd_client/util.rs",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Blocking gRPC threads during PD leader update, causing keepalive watchdog timeout and connection closure",
+  "issue_number": 9463,
+  "title": "Blocking PD leader update leads to gRPC keepalive watchdog fire and disrupts online service"
+}

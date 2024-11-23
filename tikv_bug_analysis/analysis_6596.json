@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Leader hibernation interrupts heartbeat mechanism, causing leadership discovery failure and blocking read index requests during replica restart",
+  "issue_number": 6596,
+  "title": "raftstore: read index may fail after node restart"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Block Cache",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient filter and index block management during large data writes, causing block cache overwhelming under high write load",
+  "issue_number": 14496,
+  "title": "[Dynamic Regions] When the TiKV has a large data size, filter and index block can be too big"
+}

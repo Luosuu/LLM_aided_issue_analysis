@@ -1,0 +1,12 @@
+{
+  "bug_location": "Log Backup Component",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Incomplete log backup synchronization during network partition and TiKV restart, causing potential data loss in point-in-time recovery scenarios",
+  "issue_number": 12918,
+  "title": "BR log backup data lost if tikv restart followed by tikv network partition"
+}

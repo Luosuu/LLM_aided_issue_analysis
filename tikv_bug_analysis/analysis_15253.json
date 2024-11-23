@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/region_info_accessor",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Inconsistent region range validation during dynamic region configuration, causing assertion failure in region metadata comparison",
+  "issue_number": 15253,
+  "title": "[Dynamic Regions]tikv panic for \"assertion failed: `(left != right)`\\n  left: `51`,\\n right: `51`: id: 1376 start_key\""
+}

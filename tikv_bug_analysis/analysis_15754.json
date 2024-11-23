@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Write Flow",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Insufficient disk space management in Raft write operations, allowing minor writes when storage is critically low",
+  "issue_number": 15754,
+  "title": "when disk almost full happens, there's still minor raft write flow which could further consume up tikv free space"
+}

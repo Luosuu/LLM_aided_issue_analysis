@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Consensus/Network Partition Handling",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Transaction",
+    "LoadBalance"
+  ],
+  "root_cause": "Stale read configuration and network partition recovery mechanism causing prolonged service disruption after network fault healing",
+  "issue_number": 15120,
+  "title": "enable stale read and closest-replicas\uff0csimulate one of tikv network partition last for 50min\uff0cqps drop to zero for more than 1h after fault recover"
+}

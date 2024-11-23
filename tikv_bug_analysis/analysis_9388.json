@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during peer splitting where uninitialized and split peers with same region ID can cause readiness mapping errors",
+  "issue_number": 9388,
+  "title": "ready can be advanced by a wrong peer"
+}

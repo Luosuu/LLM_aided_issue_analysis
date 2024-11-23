@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/iterator",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Iterator state management inconsistency between seek() return value and valid() method, causing unexpected cursor behavior when seeking beyond data range",
+  "issue_number": 3378,
+  "title": "Cursor remains valid when seek to nothing again"
+}

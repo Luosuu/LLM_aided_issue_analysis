@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft-rs component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Unbounded memory consumption during log scanning before election, caused by scanning unapplied log entries without pagination",
+  "issue_number": 15770,
+  "title": "TiKV OOM causes by reading raft conf changes during raft.hup"
+}

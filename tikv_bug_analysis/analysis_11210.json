@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv-ctl logging system",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Asynchronous logging configuration causing incomplete log output during quick process termination",
+  "issue_number": 11210,
+  "title": "tikv-ctl's output is incomplete, maybe slog-async is not flushed when tikv-ctl process exits"
+}

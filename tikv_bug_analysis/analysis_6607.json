@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/store/read_queue.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Unwrapping a None value during replica read processing, indicating a potential race condition or incorrect state management in the read index queue",
+  "issue_number": 6607,
+  "title": "tikv panic about replica reads"
+}

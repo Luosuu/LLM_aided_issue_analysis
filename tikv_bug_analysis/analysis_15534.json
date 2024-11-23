@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Event Listener / Storage Engine",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Synchronization issue with sealed sequence number during memtable flush, causing unexpected panic in concurrent write operations",
+  "issue_number": 15534,
+  "title": "[Dynamic Regions] tikv panic with error \u201csealed seqno has been flushed lock 469114 11526377 <= 11526405\\\"] [backtrace=\\\"   0: tikv_util::set_panic_hook::{{closure}}\u201d"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction Conflict Resolution",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect timestamp comparison logic in pessimistic lock conflict detection causing false positive error when rollback records exist on non-unique index keys",
+  "issue_number": 13425,
+  "title": "False positive PessimisticLockNotFound when a non-pessimistic key has newer rollbacks"
+}

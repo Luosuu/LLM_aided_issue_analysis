@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer_fsm",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Race condition during snapshot processing where peer metadata is unexpectedly destroyed before snapshot handling completes",
+  "issue_number": 17469,
+  "title": "raftstore: TiKV panics due to self was destroyed from meta during receiving snapshot"
+}

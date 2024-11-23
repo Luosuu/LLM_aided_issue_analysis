@@ -1,0 +1,11 @@
+{
+  "bug_location": "tidb_query/codec/mysql/decimal.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Insufficient input validation in read_decimal causing integer overflow during parsing of corrupted decimal data",
+  "issue_number": 6044,
+  "title": "read_decimal may panic when data is corrupted"
+}

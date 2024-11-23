@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft-engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Raft log rewrite process does not handle disk space exhaustion gracefully, causing process crash instead of controlled degradation",
+  "issue_number": 15755,
+  "title": "raft-engine should not start rewrite when there's no available space"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup and Restore (PITR) Component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Network"
+  ],
+  "root_cause": "Excessive file read rate overwhelming S3 API rate limits during log backup restoration, causing potential throttling and restore failure",
+  "issue_number": 15620,
+  "title": "PiTR restore failed due to reading S3 files too frequently"
+}

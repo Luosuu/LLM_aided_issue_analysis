@@ -1,0 +1,12 @@
+{
+  "bug_location": "Storage/RocksDB",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Memory management inefficiency during high concurrent sysbench prepare and query workload, causing uncontrolled memory consumption and out-of-memory condition",
+  "issue_number": 11379,
+  "title": "tikv oom when run sysbench prepare while query under stress"
+}

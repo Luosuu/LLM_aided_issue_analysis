@@ -1,0 +1,11 @@
+{
+  "bug_location": "etcd client/network communication layer",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "Lack of data integrity verification mechanism during gRPC communication, making the system vulnerable to random byte corruption without detection",
+  "issue_number": 1397,
+  "title": "server: can not pass etcd local test with send/receive corruption enabled"
+}

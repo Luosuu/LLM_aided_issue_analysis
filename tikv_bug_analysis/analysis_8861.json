@@ -1,0 +1,11 @@
+{
+  "bug_location": "gc_worker/compaction_filter.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Potential error handling issue causing infinite loop when Key::split_on_ts_for() fails to parse key",
+  "issue_number": 8861,
+  "title": "potential endless loop in compaction_filter"
+}

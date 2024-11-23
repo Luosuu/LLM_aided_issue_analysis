@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Lock observer notification occurs before log application, causing potential lock observation race condition during distributed garbage collection",
+  "issue_number": 8211,
+  "title": "Should notify lock observer after applying logs"
+}

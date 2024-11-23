@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during region merge with leader change, causing unexpected None value unwrapping",
+  "issue_number": 5981,
+  "title": "May meet panic when processing merge with leader changed"
+}

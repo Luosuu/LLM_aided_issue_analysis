@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Mutex",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Multiple threads simultaneously attempting to acquire a RocksDB mutex, causing a system-wide lock contention deadlock",
+  "issue_number": 17100,
+  "title": "In-memory Engine: Deadlock during TPCC prepare "
+}

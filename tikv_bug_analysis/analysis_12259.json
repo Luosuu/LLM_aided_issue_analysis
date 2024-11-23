@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Apply Engine",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Async Apply CPU queue becoming saturated during network partition recovery, causing temporary processing blockage and QPS drop",
+  "issue_number": 12259,
+  "title": "tikv stability: QPS fell to zero for a few minutes after fault recover from minority tikv network-loss due to full of \"Async Apply CPU\""
+}

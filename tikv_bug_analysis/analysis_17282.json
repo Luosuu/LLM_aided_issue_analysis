@@ -1,0 +1,12 @@
+{
+  "bug_location": "In-memory engine safe point management",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect safe point inheritance and tracking during range eviction, causing potential snapshot read inconsistency",
+  "issue_number": 17282,
+  "title": "In-memory engine: safe point may be larger than snapshot read ts"
+}

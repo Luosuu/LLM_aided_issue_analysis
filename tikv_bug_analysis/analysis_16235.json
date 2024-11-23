@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) and Transaction Subsystem",
+  "severity": 5,
+  "categories": [
+    "Network",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Network partition between TiKV and MinIO backup storage causing transaction resolution and GC processes to stall, potentially due to insufficient timeout handling or synchronization mechanisms",
+  "issue_number": 16235,
+  "title": "cluster can not provide service and tikv resolved ts can not go on after inject minio(pitr log backup path) network partition lasts for 10mins "
+}
