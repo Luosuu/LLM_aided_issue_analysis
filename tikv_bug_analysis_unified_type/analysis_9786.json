@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raftstore GC snapshot",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Storage",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unnecessary CRC32 calculation during snapshot garbage collection, causing excessive and unproductive IO overhead",
   "issue_number": 9786,
   "title": "Raftstore GC snapshot calculates crc32 which is useless and causes unnecessary IO"
 }

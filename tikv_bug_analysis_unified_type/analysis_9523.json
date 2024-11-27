@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "CDC (Change Data Capture) component",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Resolved timestamp not being updated correctly during async commit transactions with unprotected rollbacks, causing CDC tracking issues",
   "issue_number": 9523,
   "title": "Resolved TS is not updated with async commit transactions"
 }

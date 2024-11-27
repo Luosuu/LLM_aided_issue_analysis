@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft Replication Layer",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Inefficient log replication mechanism during idle region periods, causing delayed log synchronization due to infrequent heartbeat intervals",
   "issue_number": 6670,
   "title": "Catch up logs is too slow when region is idle"
 }

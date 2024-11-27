@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "tidb_query_datatype/codec/row/v2/row_slice.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Memory"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unsafe pointer cast with potential unaligned memory access causing undefined behavior during slice operations",
   "issue_number": 7613,
   "title": "Undefined behavior in tidb_query_datatype's RowSlice"
 }

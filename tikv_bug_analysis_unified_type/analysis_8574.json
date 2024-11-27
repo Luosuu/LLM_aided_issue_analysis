@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "TiKV Read Path",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Performance",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect async runtime handling, likely improper replacement of `.wait()` with `block_on()` causing performance regression in wide table operations",
   "issue_number": 8574,
   "title": "09-01 Performance regression on wide table"
 }

@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "RaftStore",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "Replication",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Lock observer notification occurs before log application, causing potential lock observation race condition during distributed garbage collection",
   "issue_number": 8211,
   "title": "Should notify lock observer after applying logs"
 }

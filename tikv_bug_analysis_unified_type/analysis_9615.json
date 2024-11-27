@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "raftstore/store/peer.rs",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition between commit merge and post_apply operations causing read delegate to be unexpectedly removed before completion of merge process",
   "issue_number": 9615,
   "title": "commit merge and post_apply can make tikv panic"
 }

@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Transaction",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "Replication",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential race condition or inconsistent state during follower read with async commit and leader shuffling",
   "issue_number": 9208,
   "title": "tipocket list_append fails on follower read and async commit"
 }

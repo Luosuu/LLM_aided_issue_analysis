@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "tidb_query/codec/data_type/vector.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Insufficient type checking for aggregation function when converting between numeric types, specifically for SUM aggregation with different column types (Decimal, Real, Integer)",
   "issue_number": 5404,
   "title": "TPC-H Q1 lead to TiKV Panic"
 }

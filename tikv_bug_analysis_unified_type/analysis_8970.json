@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "TiKV server core",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Recovery"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential integer underflow when decrementing a counter that is already at zero, causing unexpected wraparound behavior",
   "issue_number": 8970,
   "title": "TiKV server panic after restarted"
 }

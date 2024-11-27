@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "tidb_query/src/codec/mysql/decimal.rs",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential integer overflow during decimal parsing without proper input validation or error handling when processing corrupted data",
   "issue_number": 6044,
   "title": "read_decimal may panic when data is corrupted"
 }

@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "coprocessor/aggregation",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential overflow or incorrect handling of logical rows during batch aggregation processing, causing panic when identical logical rows exceed batch size",
   "issue_number": 8481,
   "title": "copr: tikv panic when executes aggr func "
 }

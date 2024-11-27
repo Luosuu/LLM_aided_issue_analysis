@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft Merge/Split Component",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition during region merge and split operations where log application order and tracking become inconsistent, potentially causing data loss during peer synchronization",
   "issue_number": 6460,
   "title": "A failed merge may cause a later success merge lost data"
 }

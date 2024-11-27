@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Status Server",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Security",
+    "Network"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "TLS handshake error causing unhandled exception in status server, leading to server crash when receiving non-TLS HTTP requests",
   "issue_number": 8738,
   "title": "TiKV status down when accept http requests with TLS enabled"
 }

@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Backup & Restore (BR) Component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "Recovery",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Insufficient error handling and retry mechanism for transient network and storage errors during data restore from cloud storage (GCS/S3)",
   "issue_number": 7846,
   "title": "BR ignore some GCS and S3 errors which should retry when restore"
 }

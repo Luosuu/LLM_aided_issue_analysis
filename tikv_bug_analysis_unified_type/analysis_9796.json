@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "raftstore/peer.rs",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Performance",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition in heartbeat_pd task scheduling causing incorrect written bytes calculation, potentially leading to underflow when tasks are processed out of expected order",
   "issue_number": 9796,
   "title": "Region written stats is abnormal"
 }

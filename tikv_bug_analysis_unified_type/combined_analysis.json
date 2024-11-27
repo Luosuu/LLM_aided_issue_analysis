@@ -18957,5 +18957,2858 @@
     "root_cause": "N/A - Analysis failed",
     "issue_number": 9996,
     "title": "TiKV OOM due to CDC endpoint CPU 100% under 20k insert op/s"
+  },
+  {
+    "bug_location": "TLS/SSL Connection Handling",
+    "severity": 2,
+    "categories": [
+      "Network",
+      "Config"
+    ],
+    "root_cause": "LibreSSL unable to locate a valid certificate file for HTTPS connections, causing connection failures due to certificate verification issues",
+    "issue_number": 5389,
+    "title": "LibreSSL can not find a valid cert file"
+  },
+  {
+    "bug_location": "tidb_query/codec/data_type/vector.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Transaction"
+    ],
+    "root_cause": "Insufficient type checking for aggregation function when converting between numeric types, specifically for SUM aggregation with different column types (Decimal, Real, Integer)",
+    "issue_number": 5404,
+    "title": "TPC-H Q1 lead to TiKV Panic"
+  },
+  {
+    "bug_location": "RaftStore",
+    "severity": 3,
+    "categories": [
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Stale command during leader transfer, indicating potential race condition or synchronization issue in Raft leader transfer mechanism",
+    "issue_number": 5411,
+    "title": "Test test_server_pd_transfer_leader failed"
+  },
+  {
+    "bug_location": "RaftStore",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Network"
+    ],
+    "root_cause": "Potential port binding conflict causing incorrect peer communication and configuration change request rejection",
+    "issue_number": 5467,
+    "title": "unstable test: cases::test_replica_read::test_wait_for_apply_index'"
+  },
+  {
+    "bug_location": "storage::RaftStorage",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "Stale command error during auto garbage collection in Raft storage test, likely due to race condition or command processing issue",
+    "issue_number": 5499,
+    "title": "storage::test_raft_storage::test_auto_gc, panicked at 'called `Result::unwrap()` on an `Err` value: Txn(Engine(Request(message: \"stale command\")))', src/libcore/result.rs:1165:5"
+  },
+  {
+    "bug_location": "components/tidb_query",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Multiple conflicting definitions of OpenSSL symbols during linking, likely caused by multiple vendored OpenSSL libraries being compiled simultaneously",
+    "issue_number": 5509,
+    "title": "run `cargo test` in master's components/tidb_query failed"
+  },
+  {
+    "bug_location": "raftstore",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Leadership election or region leader state inconsistency causing intermittent test failure in peer leadership verification",
+    "issue_number": 5516,
+    "title": "raftstore::test_tombstone::test_server_readd_peer response header { error { message: \"peer is not leader for region 1, leader may None\" not_leader { region_id: 1 } } } has error"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 5579,
+    "title": "test pd::tests::test_collect_stats failed "
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 5611,
+    "title": "test_server_read_leader_with_unapplied_log failed"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 5628,
+    "title": "test cases::test_split_region::test_follower_slow_split has been running for over 60 seconds"
+  },
+  {
+    "bug_location": "Backup Component",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Leadership issue in region 1 during backup test, where no leader was detected for the region",
+    "issue_number": 5786,
+    "title": "test_backup::test_backup_meta failed"
+  },
+  {
+    "bug_location": "RocksDB/Storage",
+    "severity": 4,
+    "categories": [
+      "Memory",
+      "Storage",
+      "Performance"
+    ],
+    "root_cause": "Potential memory management issue with large number of regions and cache configuration",
+    "issue_number": 5851,
+    "title": "Tikv 2.1.18 crashes with Illegal instruction and the cluster is very unstable "
+  },
+  {
+    "bug_location": "Raftstore",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Storage"
+    ],
+    "root_cause": "Incomplete peer state management during region split and learner peer lifecycle, causing stale region information and potential peer creation conflicts",
+    "issue_number": 5852,
+    "title": "Split may leave stale region info"
+  },
+  {
+    "bug_location": "raftstore/store/fsm/peer.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Unhandled scenario where a newly created peer with empty region info receives a read request before applying snapshot, causing panic",
+    "issue_number": 5875,
+    "title": "Replica read may cause tikv panic"
+  },
+  {
+    "bug_location": "RaftStore",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Unable to get leader of region during secure connection test, indicating potential leadership election or transport layer issue",
+    "issue_number": 5893,
+    "title": "test: test_secure_connect failed"
+  },
+  {
+    "bug_location": "raftstore/store/fsm/peer.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Race condition during region merge process where source and target regions are not properly synchronized, causing potential data inconsistency and unexpected panic when unwrapping an Option",
+    "issue_number": 5981,
+    "title": "May meet panic when processing merge with leader changed"
+  },
+  {
+    "bug_location": "tidb_query_codegen",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Potential code generation issue in unit test related to function metadata generation, specifically in the init_metadata function return type",
+    "issue_number": 6033,
+    "title": "tidb_query_codegen unit test fails"
+  },
+  {
+    "bug_location": "tidb_query/src/codec/mysql/decimal.rs",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "Potential integer overflow during decimal parsing without proper input validation or error handling when processing corrupted data",
+    "issue_number": 6044,
+    "title": "read_decimal may panic when data is corrupted"
+  },
+  {
+    "bug_location": "tests crate",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Feature configuration issue introduced during crate separation, preventing failpoints tests from being properly enabled during test execution",
+    "issue_number": 6097,
+    "title": "Failpoint tests will not run when make dev"
+  },
+  {
+    "bug_location": "Raft Consensus Module",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Inconsistent replica list management during unsafe recovery, where peer lists can diverge after node failures and manual intervention",
+    "issue_number": 6107,
+    "title": "tikv-ctl unsafe recover can lead to inconsistent replica list"
+  },
+  {
+    "bug_location": "components/tikv_util",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Missing codec feature specification for protobuf build process, preventing successful cargo check execution",
+    "issue_number": 6145,
+    "title": "Fail to execute `cargo check` in `components/tikv_util` "
+  },
+  {
+    "bug_location": "lock_manager",
+    "severity": 3,
+    "categories": [
+      "Transaction",
+      "Replication"
+    ],
+    "root_cause": "Potential race condition or synchronization issue during region shuffling that causes stale command error",
+    "issue_number": 6153,
+    "title": "test_detect_deadlock_when_shuffle_region failed"
+  },
+  {
+    "bug_location": "GC (Garbage Collection) module",
+    "severity": 2,
+    "categories": [
+      "Performance",
+      "Transaction"
+    ],
+    "root_cause": "Unnecessary GC triggering on an idle cluster, causing unwarranted seek operations even without write activities",
+    "issue_number": 6165,
+    "title": "GC is always triggered on idle cluster"
+  },
+  {
+    "bug_location": "lock_manager",
+    "severity": 3,
+    "categories": [
+      "Replication",
+      "LoadBalance"
+    ],
+    "root_cause": "Unable to get leader of region during test, indicating potential leadership transfer or region stability issue",
+    "issue_number": 6226,
+    "title": "test server::lock_manager::test_detect_deadlock_when_shuffle_region failed"
+  },
+  {
+    "bug_location": "RaftStore",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "CodeBug"
+    ],
+    "root_cause": "Potential leader transfer failure in Raft consensus mechanism, specifically during region heartbeat with hibernating regions",
+    "issue_number": 6247,
+    "title": "Test test_server_down_peers_with_hibernate_regions fails"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 6254,
+    "title": "TiKV fails to serve after network partition"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 6277,
+    "title": "test_thread_io_statistics fails on CI"
+  },
+  {
+    "bug_location": "raftstore/store/fsm/peer.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Race condition in handling configuration change results during snapshot restoration, where membership updates can cause unexpected panic",
+    "issue_number": 6344,
+    "title": "Panic on late arriving confchange result"
+  },
+  {
+    "bug_location": "RaftStore",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Storage"
+    ],
+    "root_cause": "Incorrect snapshot region tracking allowing overlapping snapshot applications that can cause data inconsistency",
+    "issue_number": 6366,
+    "title": "Two overlapped snapshot may be applied together which may cause panic or loss of data"
+  },
+  {
+    "bug_location": "Raft/Peer",
+    "severity": 2,
+    "categories": [
+      "Performance",
+      "Replication"
+    ],
+    "root_cause": "Inefficient snapshot transfer process with multiple heartbeat delays causing slow configuration changes",
+    "issue_number": 6420,
+    "title": "Conf change is too slow"
+  },
+  {
+    "bug_location": "Storage",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "Incorrect key encoding for RawGet when batch get request is enabled, causing potential data retrieval errors by inappropriately encoding raw keys that should remain unencoded",
+    "issue_number": 6437,
+    "title": "RawGet may be incorrect when get request batch is enabled"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 6439,
+    "title": "peer shouldn't hibernate if it has pending reads"
+  },
+  {
+    "bug_location": "components/tidb_query/src/rpn_expr/impl_math.rs",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Strict floating point comparison using `==` which can lead to precision issues due to floating point representation",
+    "issue_number": 6448,
+    "title": "clippy fails because of strict comparison of f64"
+  },
+  {
+    "bug_location": "Raft Merge/Split Component",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Race condition during region merge and split operations where log application order and tracking become inconsistent, potentially causing data loss during peer synchronization",
+    "issue_number": 6460,
+    "title": "A failed merge may cause a later success merge lost data"
+  },
+  {
+    "bug_location": "Configuration Parsing",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Serde deserialization lacks strict validation for configuration option names, allowing misspelled or invalid configuration keys to be silently ignored",
+    "issue_number": 6498,
+    "title": "Configuration validation doesn't find misspelled option names in config file"
+  },
+  {
+    "bug_location": "RocksDB/Storage",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "CodeBug"
+    ],
+    "root_cause": "RocksDB incorrectly returning keys out of order during scanning after SST file ingestion, likely due to an internal read inconsistency in RocksDB's key-value storage mechanism",
+    "issue_number": 6519,
+    "title": "RocksDB scanning Write CF returns keys out of order"
+  },
+  {
+    "bug_location": "RocksDB Engine Component",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "Recovery",
+      "Performance"
+    ],
+    "root_cause": "Potential data inconsistency between RaftDB and KVDB during power failure when sync-log is disabled, caused by lack of synchronization mechanism between database write-ahead logs",
+    "issue_number": 6540,
+    "title": "When sync-log=false, fsync raftdb before kvdb persists data"
+  },
+  {
+    "bug_location": "Fuzzing Infrastructure",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Protobuf build configuration issue preventing fuzzer compilation, likely related to missing method or incorrect feature flag",
+    "issue_number": 6591,
+    "title": "Can not run fuzzer"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 6594,
+    "title": "backup: upload to S3 may have been corrupted"
+  },
+  {
+    "bug_location": "raftstore",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "Recovery"
+    ],
+    "root_cause": "Leader hibernation prevents proper heartbeat communication, causing read index requests to be rejected when a replica restarts and cannot identify the current leader",
+    "issue_number": 6596,
+    "title": "raftstore: read index may fail after node restart"
+  },
+  {
+    "bug_location": "raftstore/store/read_queue.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Replication"
+    ],
+    "root_cause": "Unwrapping a None value during replica read processing, indicating a potential race condition or unexpected state in read index queue management",
+    "issue_number": 6607,
+    "title": "tikv panic about replica reads"
+  },
+  {
+    "bug_location": "RocksDB Integration",
+    "severity": 2,
+    "categories": [
+      "Memory",
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Potential memory allocation/deallocation issue in JemallocNodumpAllocator during RocksDB block cache destruction",
+    "issue_number": 6651,
+    "title": "Coredump when running test case"
+  },
+  {
+    "bug_location": "Raft",
+    "severity": 3,
+    "categories": [
+      "Replication",
+      "Performance"
+    ],
+    "root_cause": "Hibernated regions not properly handling region splits during node downtime, causing potential performance issues with replica read after node restart",
+    "issue_number": 6667,
+    "title": "Broadcast WakeUp message for awakening hibernated regions after node restarts"
+  },
+  {
+    "bug_location": "Raft Replication Layer",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "Performance"
+    ],
+    "root_cause": "Inefficient log replication mechanism during idle region periods, causing delayed log synchronization due to infrequent heartbeat intervals",
+    "issue_number": 6670,
+    "title": "Catch up logs is too slow when region is idle"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 6676,
+    "title": "TPC-H q8 & q21 results are wrong on master"
+  },
+  {
+    "bug_location": "Coprocessor",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Storage"
+    ],
+    "root_cause": "Unsafe caching mechanism that can return stale or incorrect data when using different timestamps, potentially violating MVCC (Multi-Version Concurrency Control) guarantees",
+    "issue_number": 6690,
+    "title": "Coprocessor Cache is unsound"
+  },
+  {
+    "bug_location": "lib.rs",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Monitoring"
+    ],
+    "root_cause": "Logging order of messages changed, causing welcome message to appear after configuration checks instead of being the first log message",
+    "issue_number": 6702,
+    "title": "Welcome message are not the first message when starting anymore"
+  },
+  {
+    "bug_location": "gRPC client/server communication",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Performance",
+      "Config"
+    ],
+    "root_cause": "Default gRPC message size limit (10MiB) is insufficient for batch gRPC operations where multiple messages can exceed the limit",
+    "issue_number": 6727,
+    "title": "The default size limit of grpc is too small after using batch grpc"
+  },
+  {
+    "bug_location": "deadlock detector",
+    "severity": 2,
+    "categories": [
+      "Transaction",
+      "Network"
+    ],
+    "root_cause": "Unnecessary reconnection to leader when no actual leader change occurs, potentially causing misleading network instability logs",
+    "issue_number": 6985,
+    "title": "Deadlock detector sometimes reconnects to the same leader"
+  },
+  {
+    "bug_location": "Configuration/Test Infrastructure",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Test configuration generation not using temporary directories, causing persistent configuration files after test runs",
+    "issue_number": 6994,
+    "title": "tests resource leak"
+  },
+  {
+    "bug_location": "storage/mvcc",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "Transaction",
+      "Storage"
+    ],
+    "root_cause": "Inefficient handling of multiple Write::Lock entries during pessimistic lock acquisition, causing significant performance degradation when many locks are present",
+    "issue_number": 7024,
+    "title": "`acquire_pessimistic_lock` has very poor performance if there are many `Write::Lock`s"
+  },
+  {
+    "bug_location": "storage/mvcc/txn.rs",
+    "severity": 3,
+    "categories": [
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "Incorrect assumption in handling pessimistic lock conflicts during pipelined locking, causing unintended transaction rollback when concurrent sessions attempt to insert the same row",
+    "issue_number": 7070,
+    "title": "Pipelined pessimistic lock may roll back a normal transaction"
+  },
+  {
+    "bug_location": "raftstore/store/fsm/peer.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "UUID mismatch during Raft peer state synchronization, causing a fatal assertion failure in the Raft store state machine",
+    "issue_number": 7104,
+    "title": "tikv panic"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 7122,
+    "title": "Performance regression on Sysbench between Feb 10 and Feb 28"
+  },
+  {
+    "bug_location": "pd-client",
+    "severity": 5,
+    "categories": [
+      "Network",
+      "CodeBug",
+      "Transaction"
+    ],
+    "root_cause": "gRPC connection handling failure during PD server restart, causing TiKV to be unable to re-establish communication and send region heartbeats",
+    "issue_number": 7124,
+    "title": "TiKV cannot send messages to PD after reconnect"
+  },
+  {
+    "bug_location": "Coprocessor",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Transaction"
+    ],
+    "root_cause": "Incorrect type conversion of Bytes column to integer during boolean evaluation, causing unexpected query behavior when filtering rows",
+    "issue_number": 7141,
+    "title": "unexpected behavior for bytes column in where clause"
+  },
+  {
+    "bug_location": "Backup and Restore (BR) component",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Storage",
+      "Replication"
+    ],
+    "root_cause": "Incorrect range handling during RawKV data restoration, where SST files are imported with keys outside the specified restoration range due to inclusive range interpretation",
+    "issue_number": 7163,
+    "title": "Restoring a subrange of backed up rawkv data may import keys that are out of range"
+  },
+  {
+    "bug_location": "raftstore",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "CodeBug"
+    ],
+    "root_cause": "Peer addition failure when truncated index exceeds promoted index, potentially caused by adding voter instead of learner first",
+    "issue_number": 7183,
+    "title": "raftstore::test_stale_peer::test_server_stale_peer_out_of_region failed"
+  },
+  {
+    "bug_location": "gRPC server",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Network",
+      "Security"
+    ],
+    "root_cause": "Potential TLS configuration or initialization error causing assertion failure and core dump during gRPC connection establishment",
+    "issue_number": 7209,
+    "title": "TiKV gRPC server coredump when TLS is enabled"
+  },
+  {
+    "bug_location": "Replication/Raft",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "Network",
+      "Transaction"
+    ],
+    "root_cause": "Replication read suspension during snapshot application with potential network isolation, causing extended read unavailability",
+    "issue_number": 7229,
+    "title": "Replication read should be resumed after applying snapshot"
+  },
+  {
+    "bug_location": "backup/external_storage/s3",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "Potential memory or connection handling issue in S3 backup process for large tables, causing hyper client connection panic",
+    "issue_number": 7236,
+    "title": "Backup to S3 panics for a table ~30 GiB"
+  },
+  {
+    "bug_location": "components/tidb_query/src/codec/mysql/time/tz.rs",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Timezone parsing failure when encountering 'posixrules' timezone, which is not recognized by chrono_tz library's from_str implementation",
+    "issue_number": 7243,
+    "title": "Unknown time zone 'posixrules'"
+  },
+  {
+    "bug_location": "Transaction",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "Incorrect lock handling when mixing pessimistic and optimistic locks, causing read operations to be blocked unexpectedly",
+    "issue_number": 7289,
+    "title": "Optimistic lock blocks reads"
+  },
+  {
+    "bug_location": "gRPC Client/TLS Negotiation",
+    "severity": 3,
+    "categories": [
+      "Network",
+      "Config",
+      "CodeBug"
+    ],
+    "root_cause": "Incompatibility between TiKV's gRPC-rs library (disabled ALPN support) and PD server's TLS negotiation using newer Go versions that dropped NPN support",
+    "issue_number": 7312,
+    "title": "TiKV try to connect HTTP/1.x server"
+  },
+  {
+    "bug_location": "Raft/Follower Read Component",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "Replication",
+      "CodeBug"
+    ],
+    "root_cause": "Unexpected response handling in batch receive loop during follower read operation, likely due to race condition or improper response processing",
+    "issue_number": 7324,
+    "title": "batchRecvLoop receives a unknown response when testing follower read"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 7325,
+    "title": "TiKV panic while running cdc"
+  },
+  {
+    "bug_location": "raftstore/raft_log",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Incorrect handling of ReadIndex response term, causing invalid commit index check in Raft log",
+    "issue_number": 7353,
+    "title": "raft::raft_log::RaftLog<T>::commit_to paniked"
+  },
+  {
+    "bug_location": "storage/mvcc/txn.rs",
+    "severity": 5,
+    "categories": [
+      "Transaction",
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Incorrect handling of rollback records during concurrent pessimistic transaction cleanup, allowing potential transaction atomicity violation by collapsing rollback records across different transaction",
+    "issue_number": 7364,
+    "title": "Txn: collapsing the rollback record of pessimistic lock could cause inconsistency"
+  },
+  {
+    "bug_location": "tikv-ctl",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Storage",
+      "Recovery"
+    ],
+    "root_cause": "Pure virtual method called during error handling, likely due to improper exception management when accessing non-existent database path",
+    "issue_number": 7373,
+    "title": "tikv-ctl coredump"
+  },
+  {
+    "bug_location": "external_storage/s3_storage",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "Network"
+    ],
+    "root_cause": "AWS S3 signed request timeout limitation of 15 minutes without implementing multi-part upload mechanism",
+    "issue_number": 7375,
+    "title": "external_storage: if S3 upload cannot finish within 15 minutes it will fail"
+  },
+  {
+    "bug_location": "Configuration Validation",
+    "severity": 2,
+    "categories": [
+      "Config",
+      "CodeBug"
+    ],
+    "root_cause": "Incomplete configuration validation for unified read pool settings, allowing inconsistent or invalid stack size configurations",
+    "issue_number": 7384,
+    "title": "Configuration is not fully checked if the unified read pool is partially enabled"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 7386,
+    "title": "Wake up message should be considered even when target peer is tombstone"
+  },
+  {
+    "bug_location": "TiKV Server Startup Process",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Config",
+      "Human"
+    ],
+    "root_cause": "Improper lock file permission management during multi-user TiKV server startup, causing permission-based access restrictions",
+    "issue_number": 7462,
+    "title": "After a user starts TiKV, other users will not be able to start TiKV"
+  },
+  {
+    "bug_location": "Raft consensus module",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Network"
+    ],
+    "root_cause": "Incomplete peer state tracking during network partition and peer removal, allowing potential recreation of deleted peers without full initialization",
+    "issue_number": 7475,
+    "title": "An uninitialized peer can be recreated"
+  },
+  {
+    "bug_location": "Unified Read Pool",
+    "severity": 3,
+    "categories": [
+      "Performance",
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "Using start_ts as task id leads to incorrect query prioritization and potential performance degradation, with additional issue of not handling max u64 start_ts uniquely",
+    "issue_number": 7484,
+    "title": "The unified read pool should not use start_ts as task id"
+  },
+  {
+    "bug_location": "gRPC service/BatchCommandsNotify",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Network"
+    ],
+    "root_cause": "Recursive notification causing self-locking in batch commands notification mechanism, potentially triggered by changes in message handling logic",
+    "issue_number": 7493,
+    "title": "batch raft call deadlock"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 7500,
+    "title": "raftstore::test_prevote::test_server_isolated_follower_leader_does_not_change failed"
+  },
+  {
+    "bug_location": "tidb_query_datatype/codec/row/v2/row_slice.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Memory"
+    ],
+    "root_cause": "Unsafe pointer cast with potential unaligned memory access causing undefined behavior during slice operations",
+    "issue_number": 7613,
+    "title": "Undefined behavior in tidb_query_datatype's RowSlice"
+  },
+  {
+    "bug_location": "Raft Command Processing",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Upgrade"
+    ],
+    "root_cause": "Continued use of deprecated AdminCmdType::Split command instead of newer BatchSplit command during Raft command processing",
+    "issue_number": 7653,
+    "title": "Deprecated raft cmd AdminCmdType::Split is reused"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 7694,
+    "title": "util::tests::test_delete_all_files_in_range failed"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 7720,
+    "title": "config-check fails if raftdb dictionary doesn't exist"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 7721,
+    "title": "The TiKV and PD storage size is not equal"
+  },
+  {
+    "bug_location": "Apply FSM (Finite State Machine)",
+    "severity": 4,
+    "categories": [
+      "Memory",
+      "Performance",
+      "LoadBalance"
+    ],
+    "root_cause": "Messages blocked in apply channel causing excessive memory accumulation during high-load data preparation, potentially due to inefficient batch system scheduling",
+    "issue_number": 7741,
+    "title": "TiKV OOM"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 7745,
+    "title": "QPS continue reduce when running TPCC"
+  },
+  {
+    "bug_location": "Raft Replication Component",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "Performance",
+      "LoadBalance"
+    ],
+    "root_cause": "High latency jitter during dynamic cluster scaling, likely due to data redistribution and Raft leader rebalancing during node addition",
+    "issue_number": 7746,
+    "title": "TiKV scale out has high jitter on Latency"
+  },
+  {
+    "bug_location": "Raft Leader Election/Hibernation Module",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Upgrade",
+      "Replication"
+    ],
+    "root_cause": "Hibernate region configuration causes leader election instability during rolling cluster updates, potentially leading to prolonged leader transfer and unexpected elections",
+    "issue_number": 7747,
+    "title": "Fail to evict leader when rolling update a new hibernated cluster"
+  },
+  {
+    "bug_location": "Backup & Restore (BR) Component",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Recovery",
+      "Storage"
+    ],
+    "root_cause": "Insufficient error handling and retry mechanism for transient network and storage errors during data restore from cloud storage (GCS/S3)",
+    "issue_number": 7846,
+    "title": "BR ignore some GCS and S3 errors which should retry when restore"
+  },
+  {
+    "bug_location": "Backup/Restore Component",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "Recovery",
+      "Performance"
+    ],
+    "root_cause": "Channel disconnection during peer state checking, causing restore process to get stuck at 76% progress",
+    "issue_number": 7849,
+    "title": "Progress of Backup / Restore occasionally stuck"
+  },
+  {
+    "bug_location": "Backup/Restore Endpoint",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Performance",
+      "Storage"
+    ],
+    "root_cause": "Network connectivity issues during backup process when collation is enabled, causing connection timeouts and dispatch errors",
+    "issue_number": 7850,
+    "title": "AWS br backup failed when collation is open "
+  },
+  {
+    "bug_location": "Region Cache/Epoch Management",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "Replication",
+      "LoadBalance"
+    ],
+    "root_cause": "Backoffer mechanism fails to handle multiple region epoch changes efficiently, causing SQL commands to timeout when regions split or change leadership",
+    "issue_number": 7853,
+    "title": "Encounter region unavailable when selecting data"
+  },
+  {
+    "bug_location": "Coprocessor",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Replication"
+    ],
+    "root_cause": "Snapshot callback not being called during follower read workflow, causing oneshot cancellation",
+    "issue_number": 7854,
+    "title": "Got oneshot canceled error when selecting data"
+  },
+  {
+    "bug_location": "raftstore/store/fsm/store.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Recovery"
+    ],
+    "root_cause": "Incorrect error handling for channel disconnection scenarios, potentially causing incorrect region removal and snapshot corruption",
+    "issue_number": 7855,
+    "title": "Channel disconnected error is not handled correctly"
+  },
+  {
+    "bug_location": "Backup/Restore Component",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Recovery"
+    ],
+    "root_cause": "Lack of proper leader selection and RPC error handling during backup process when a TiKV node is killed",
+    "issue_number": 7857,
+    "title": "Kill a tikv process when backup, br will exit quickly"
+  },
+  {
+    "bug_location": "gRPC/SSL Transport",
+    "severity": 3,
+    "categories": [
+      "Security",
+      "Network",
+      "Config"
+    ],
+    "root_cause": "Potential TLS configuration mismatch or incorrect SSL handshake configuration when connecting via TiKV-ctl with TLS enabled in TiDB Operator environment",
+    "issue_number": 7891,
+    "title": "tikv-ctl failed to connect to tikv when TLS is enabled"
+  },
+  {
+    "bug_location": "config.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Missing required 'type' field in security.encryption.master-key configuration section during configuration validation",
+    "issue_number": 7901,
+    "title": "TiKV fails to start"
+  },
+  {
+    "bug_location": "Region Merge Component",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Potential race condition or synchronization issue during region merge operation that allows write operations to source region after merging",
+    "issue_number": 7909,
+    "title": "cases::test_merge::test_node_merge_write_data_to_source_region_after_merging failed"
+  },
+  {
+    "bug_location": "Monitoring/Metrics",
+    "severity": 2,
+    "categories": [
+      "Monitoring",
+      "Performance"
+    ],
+    "root_cause": "Metrics sampling interval (15 seconds) is too long to capture short-lived GC events, causing metrics to be missed when GC runs quickly",
+    "issue_number": 7924,
+    "title": "Some metrics about GC doesn't shows properly when GC runs too quickly."
+  },
+  {
+    "bug_location": "RocksDB Iterator",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "Incorrect iterator state management during Next() operation, potentially related to iterator's previous state handling",
+    "issue_number": 7939,
+    "title": "Point getter aborts in RocksDB iterator Next()"
+  },
+  {
+    "bug_location": "Transaction",
+    "severity": 3,
+    "categories": [
+      "Performance",
+      "Upgrade",
+      "Transaction"
+    ],
+    "root_cause": "Performance regression during version upgrade from 4.0.0-rc.2 to nightly, potentially related to transaction processing configuration",
+    "issue_number": 7940,
+    "title": "from 4.0 upgrade to nightly. the QPS improve much"
+  },
+  {
+    "bug_location": "Raft",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Slow leader election and recovery process with exponential backoff mechanism causing extended QPS recovery time after node failure",
+    "issue_number": 7941,
+    "title": "It takes 10 mins to recover QPS"
+  },
+  {
+    "bug_location": "raftstore/peer.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Replication"
+    ],
+    "root_cause": "Incorrect batching of read index requests causing stale commit index responses",
+    "issue_number": 7971,
+    "title": "raftstore: incorrectly batch read index request"
+  },
+  {
+    "bug_location": "Titan Storage Engine",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "CodeBug"
+    ],
+    "root_cause": "Garbage collection logic incorrectly handling already deleted blob files, potentially causing unintended file deletion",
+    "issue_number": 7977,
+    "title": "Titan: Fix GC may delete a already deleted blob file"
+  },
+  {
+    "bug_location": "RaftStore/Peer",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "Race condition during region merge where local read can return stale data before leader lease is properly suspended",
+    "issue_number": 8034,
+    "title": "Local read may get stale data during merging"
+  },
+  {
+    "bug_location": "RocksDB Logger Integration",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Config",
+      "Monitoring"
+    ],
+    "root_cause": "Incorrect logger configuration causing RaftDB logs to be mixed with TiKV main log instead of being written to separate log files",
+    "issue_number": 8117,
+    "title": "raftdb log is printed into tikv log file"
+  },
+  {
+    "bug_location": "components/raftstore/src/store/worker/pd.rs",
+    "severity": 2,
+    "categories": [
+      "Performance",
+      "Monitoring"
+    ],
+    "root_cause": "Metrics are updated for all leaders regardless of actual write activity, causing inaccurate representation of active written leaders",
+    "issue_number": 8155,
+    "title": "Active written leaders is wrong"
+  },
+  {
+    "bug_location": "CDC (Change Data Capture) component",
+    "severity": 4,
+    "categories": [
+      "Memory",
+      "Performance",
+      "Transaction"
+    ],
+    "root_cause": "Excessive change events accumulation during changefeed pause causing memory pressure and potential out-of-memory condition",
+    "issue_number": 8168,
+    "title": "TiKV keeps OOM if there are too many change events need to be sent to CDC"
+  },
+  {
+    "bug_location": "Placement Driver (PD)",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "Config",
+      "LoadBalance"
+    ],
+    "root_cause": "Insufficient logic for handling replica removal during datacenter failure, potentially causing unintended region unavailability when changing max-replicas configuration",
+    "issue_number": 8169,
+    "title": "Change max replicas may cause region unavailable"
+  },
+  {
+    "bug_location": "RaftStore/GreenGC",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "Replication",
+      "Performance"
+    ],
+    "root_cause": "Green GC worker can bypass normal Raft replication safety checks, potentially missing committed data during leadership transitions or after leader crashes",
+    "issue_number": 8184,
+    "title": "Don't allow conf remove until leader has applied to current term"
+  },
+  {
+    "bug_location": "RaftStore",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "Replication",
+      "CodeBug"
+    ],
+    "root_cause": "Lock observer notification occurs before log application, causing potential lock observation race condition during distributed garbage collection",
+    "issue_number": 8211,
+    "title": "Should notify lock observer after applying logs"
+  },
+  {
+    "bug_location": "storage/mvcc/reader",
+    "severity": 3,
+    "categories": [
+      "Performance",
+      "Transaction",
+      "Storage"
+    ],
+    "root_cause": "MvccTxn always uses expensive `seek` operation instead of more efficient `next` for traversing write records, causing unnecessary database seek overhead",
+    "issue_number": 8229,
+    "title": "MvccTxn can't make use of near_seek"
+  },
+  {
+    "bug_location": "RocksDB Engine",
+    "severity": 5,
+    "categories": [
+      "Storage",
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "RocksDB block cache key conflict caused by Linux kernel inode generation number randomization, leading to incorrect block content reading during compaction",
+    "issue_number": 8243,
+    "title": "TiKV panic 'error: Corruption: L6 has overlapping ranges'"
+  },
+  {
+    "bug_location": "Failpoints Testing Framework",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Concurrent failpoint tests causing interference and preventing proper execution of test_merge failpoint",
+    "issue_number": 8244,
+    "title": "failpoints::test_register::test_merge not work"
+  },
+  {
+    "bug_location": "ReadDelegate",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Transaction"
+    ],
+    "root_cause": "Misunderstanding of failpoint usage in test case for peer removal and read delegate destruction",
+    "issue_number": 8248,
+    "title": "cases::test_conf_change::test_destroy_local_reader not work"
+  },
+  {
+    "bug_location": "Coprocessor",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Unexpected behavior in failpoint configuration testing, likely related to test case design or failpoint mechanism",
+    "issue_number": 8254,
+    "title": "cases::test_coprocessor::test_deadline_2 not work"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 8255,
+    "title": "cases::test_coprocessor::test_parse_request_failed_2 not work"
+  },
+  {
+    "bug_location": "Monitoring",
+    "severity": 2,
+    "categories": [
+      "Monitoring",
+      "Upgrade"
+    ],
+    "root_cause": "Potential dashboard configuration incompatibility between TiKV versions v3.0.16 and Grafana dashboard code designed for v4.0",
+    "issue_number": 8260,
+    "title": "Grafana dashboard cannot display the contents of perf context normally in v3.0.16"
+  },
+  {
+    "bug_location": "raftstore",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Potential issue with stale learner node handling in Raft consensus protocol implementation, causing test failure during node addition and scheduling",
+    "issue_number": 8272,
+    "title": "raftstore::test_stale_peer::test_stale_learner failed"
+  },
+  {
+    "bug_location": "Raft component",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Failpoint implementation not functioning as expected during region worker destruction",
+    "issue_number": 8278,
+    "title": "cases::test_merge::test_node_merge_crash_when_snapshot not work"
+  },
+  {
+    "bug_location": "Replica Read",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Replication"
+    ],
+    "root_cause": "Failpoint race condition where pause mechanism is removed before execution, potentially disrupting message batching in replica read process",
+    "issue_number": 8285,
+    "title": "cases::test_replica_read::test_duplicate_read_index_ctx not work"
+  },
+  {
+    "bug_location": "Region Merge Component",
+    "severity": 4,
+    "categories": [
+      "Memory",
+      "Performance",
+      "CodeBug"
+    ],
+    "root_cause": "Potential memory leak during random region merge operations, possibly related to merge process not properly releasing memory resources",
+    "issue_number": 8315,
+    "title": "Memory  usage gradually grows up and OOM when running random merge"
+  },
+  {
+    "bug_location": "raftstore",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Potential race condition or inconsistent snapshot handling in lease read test, causing snapshot pointer comparison failure",
+    "issue_number": 8329,
+    "title": "Flaky test: raftstore::test_lease_read::test_node_batch_id_in_lease"
+  },
+  {
+    "bug_location": "Raft Snapshot Management",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Snapshot tracking mechanism fails to handle race conditions during region splits and peer initialization, causing stale region info to remain in pending_snapshot_regions",
+    "issue_number": 8373,
+    "title": "pending_snapshot_regions may not cleaned as expected"
+  },
+  {
+    "bug_location": "components/tikv_util/src/sys/cgroup.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "CPU quota calculation can return 0 when CPU limit is set to a fractional value less than 1, causing potential thread pool starvation",
+    "issue_number": 8423,
+    "title": "cpu_cores_quota can return 0 which makes unified thread pool hang for long running query"
+  },
+  {
+    "bug_location": "raftstore/apply_fsm",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Race condition in peer/apply FSM destruction process where synchronous optimization can lead to register message being sent to an outdated apply FSM with mismatched peer ID",
+    "issue_number": 8433,
+    "title": "Optimization in peer/apply fsm destroy process may lead to a panic in apply fsm's register"
+  },
+  {
+    "bug_location": "Configuration Management",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "Config",
+      "CodeBug"
+    ],
+    "root_cause": "Incomplete configuration write when disk is full, potentially leading to partial or corrupted configuration save",
+    "issue_number": 8438,
+    "title": "Last configuration can be corrupted when disk is full"
+  },
+  {
+    "bug_location": "gRPC/Status Port",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Network",
+      "Config"
+    ],
+    "root_cause": "Potential TLS configuration handling issue preventing status port binding on first startup when specific network configurations are used",
+    "issue_number": 8449,
+    "title": "Status port not binded on the first start when TLS is enabled"
+  },
+  {
+    "bug_location": "raftstore/store/fsm/store.rs",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Potential race condition or message loss during Raft split operation causing significant request vote message drops",
+    "issue_number": 8456,
+    "title": "Request vote messages are lost during split"
+  },
+  {
+    "bug_location": "gRPC Connection Management",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Performance",
+      "CodeBug"
+    ],
+    "root_cause": "Lack of connection backoff mechanism and inefficient DNS resolution strategy when nodes are down, causing excessive DNS queries",
+    "issue_number": 8476,
+    "title": "Too many dns queries when one node is down"
+  },
+  {
+    "bug_location": "HTTP Server/Network Layer",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "CodeBug"
+    ],
+    "root_cause": "Invalid HTTP header name parsing issue in Hyper library, causing TiKV node to panic",
+    "issue_number": 8478,
+    "title": "TiKV nodes output FATAL log \"[FATAL] [lib.rs:499] [\"header name validated by httparse: InvalidHeaderName { _priv: () }\"]\""
+  },
+  {
+    "bug_location": "coprocessor/aggregation",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Potential overflow or incorrect handling of logical rows during batch aggregation processing, causing panic when identical logical rows exceed batch size",
+    "issue_number": 8481,
+    "title": "copr: tikv panic when executes aggr func "
+  },
+  {
+    "bug_location": "util",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Upgrade"
+    ],
+    "root_cause": "Undefined behavior in crossbeam-channel library version 0.4",
+    "issue_number": 8492,
+    "title": "crossbeam-channel 0.4 has undefined behavior"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 8506,
+    "title": "cases::test_merge::test_node_mutiple_rollback_merge failed"
+  },
+  {
+    "bug_location": "RaftStore",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Inconsistent peer configuration during region replication, causing a mismatch between expected and actual peer configuration",
+    "issue_number": 8537,
+    "title": "cases::test_gc_worker::test_notify_observer_after_apply will panic"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 8544,
+    "title": "raftstore::test_replication_mode::test_switching_replication_mode failed"
+  },
+  {
+    "bug_location": "BatchTableScanExecutor",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Transaction"
+    ],
+    "root_cause": "Assertion failure in LazyBatchColumnVec indicating a mismatch between expected and actual column lengths during table scan execution",
+    "issue_number": 8555,
+    "title": "cop: panic by assertion failure in BatchTableScanExecutor"
+  },
+  {
+    "bug_location": "Coprocessor",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Storage"
+    ],
+    "root_cause": "Assertion failure during table scan with cluster index, likely due to incorrect handling of batch table scan executor when processing tables with non-standard primary keys",
+    "issue_number": 8557,
+    "title": "copr: table scan's assertion fail while enable cluster index by default in TiDB"
+  },
+  {
+    "bug_location": "TiKV Read Path",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "CodeBug"
+    ],
+    "root_cause": "Incorrect async runtime handling, likely improper replacement of `.wait()` with `block_on()` causing performance regression in wide table operations",
+    "issue_number": 8574,
+    "title": "09-01 Performance regression on wide table"
+  },
+  {
+    "bug_location": "concurrency_manager/lock_table",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Performance"
+    ],
+    "root_cause": "Mutex deadlock during lock table manipulation caused by attempting to remove lock handles while holding a mutex lock, creating a potential circular dependency in lock removal process",
+    "issue_number": 8576,
+    "title": "Deadlock in the lock table"
+  },
+  {
+    "bug_location": "Transaction",
+    "severity": 3,
+    "categories": [
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "Async commit mechanism does not fully ensure external consistency for concurrent transactions, potentially allowing reads that violate transaction order causality",
+    "issue_number": 8589,
+    "title": "Async commit does not ensure linearizability"
+  },
+  {
+    "bug_location": "pd_client",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Network"
+    ],
+    "root_cause": "Deadlock caused by read/write lock contention between PD client thread and threads making synchronous PD requests, where the PD client thread attempts to acquire a write lock while other threads hold ",
+    "issue_number": 8610,
+    "title": "Deadlock between the PD client thread and other threads calling PD sync requests."
+  },
+  {
+    "bug_location": "Status Port/Metrics Server",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Config"
+    ],
+    "root_cause": "TLS connection handling issue causing intermittent connection failures when switching between HTTPS and HTTP requests on the status port",
+    "issue_number": 8641,
+    "title": "Status port refused connection when tls enabled"
+  },
+  {
+    "bug_location": "Titan Storage Engine",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "Replication",
+      "Recovery"
+    ],
+    "root_cause": "Race condition between UnsafeDestroyRange and concurrent snapshot generation when Titan blob files are being deleted, causing potential panic due to missing blob files",
+    "issue_number": 8661,
+    "title": "UnsafeDestroyRange may cause panic for a concurrent generating snap when Titan enabled"
+  },
+  {
+    "bug_location": "server::raft_client",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "CodeBug",
+      "Upgrade"
+    ],
+    "root_cause": "Potential compatibility issue with recent gRPC and futures library upgrade, causing reconnection test failures",
+    "issue_number": 8666,
+    "title": "server::raft_client::test_raft_client_reconnect failed"
+  },
+  {
+    "bug_location": "Raft",
+    "severity": 4,
+    "categories": [
+      "Config",
+      "Replication"
+    ],
+    "root_cause": "Inconsistent hibernate region configuration across TiKV nodes causing unexpected Raft leader elections",
+    "issue_number": 8678,
+    "title": "TiKV always starting a new election"
+  },
+  {
+    "bug_location": "pd_client/lock_manager/deadlock",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Transaction"
+    ],
+    "root_cause": "Nested `block_on` executor calls causing runtime panic due to LocalPool executor restrictions",
+    "issue_number": 8692,
+    "title": "PD client panics on Deadlock's get_leader_info due to nested `block_on`"
+  },
+  {
+    "bug_location": "RocksDB Storage Engine",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "Performance"
+    ],
+    "root_cause": "Suboptimal compression strategy in RocksDB level compaction, where Level 6 files may accumulate uncompressed or poorly compressed data compared to lower levels",
+    "issue_number": 8721,
+    "title": "compression ratio of L6 is even smaller than L5/L4"
+  },
+  {
+    "bug_location": "Status Server",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Security",
+      "Network"
+    ],
+    "root_cause": "TLS handshake error causing unhandled exception in status server, leading to server crash when receiving non-TLS HTTP requests",
+    "issue_number": 8738,
+    "title": "TiKV status down when accept http requests with TLS enabled"
+  },
+  {
+    "bug_location": "encryption/manager",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Security",
+      "Performance"
+    ],
+    "root_cause": "Mutex contention in encryption key management during concurrent file operations, causing thread blocking and potential performance degradation",
+    "issue_number": 8761,
+    "title": " Mutex conflict of encryption makes pd-worker deal with heartbeat slow."
+  },
+  {
+    "bug_location": "backup/restore component",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Network",
+      "Storage"
+    ],
+    "root_cause": "Potential AWS STS token expiration or credential retrieval issue during long-running backup process",
+    "issue_number": 8768,
+    "title": "backup/restore via S3 using STS transiently fail with \"Couldn't find AWS credentials in default sources or k8s environment\""
+  },
+  {
+    "bug_location": "raftstore/store/peer.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Incorrect epoch state conflict checking logic in Raft peer proposal process, causing assertion failure during epoch version verification",
+    "issue_number": 8781,
+    "title": "Assert fails on epoch_state post_propose"
+  },
+  {
+    "bug_location": "raftstore/store/fsm/store.rs",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Metadata inconsistency during region split/merge operations, causing a HashMap lookup failure in maybe_create_peer_internal function",
+    "issue_number": 8783,
+    "title": "maybe_create_peer_internal fails due to hashmap entry not found"
+  },
+  {
+    "bug_location": "Metrics/Monitoring",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Monitoring",
+      "Performance"
+    ],
+    "root_cause": "Incorrect metric type usage in monitoring query, applying rate() function to a Gauge metric which is not cumulative",
+    "issue_number": 8834,
+    "title": "Wrong compaction pending bytes metrics"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 8846,
+    "title": "cases::test_split_region::test_follower_slow_split failed"
+  },
+  {
+    "bug_location": "gc_worker/compaction_filter.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "Potential error handling issue leading to an endless loop when Key::split_on_ts_for() fails to process a key",
+    "issue_number": 8861,
+    "title": "potential endless loop in compaction_filter"
+  },
+  {
+    "bug_location": "Backup Module",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage",
+      "Recovery"
+    ],
+    "root_cause": "Insufficient validation of external storage path write permissions before backup operation, leading to unhandled error condition causing panic",
+    "issue_number": 8901,
+    "title": "Invalid external storage path will cause TiKV panic during backup"
+  },
+  {
+    "bug_location": "Backup & Restore (BR) component",
+    "severity": 3,
+    "categories": [
+      "Performance",
+      "Storage"
+    ],
+    "root_cause": "Inefficient file/key.dict rewriting process during restore when encryption at rest is enabled, causing significant performance overhead as data size increases",
+    "issue_number": 8916,
+    "title": "Restore slow down due to rewriting file/key.dict after enabling encryption at rest"
+  },
+  {
+    "bug_location": "coprocessor/dag/executor/table_scan.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "Potential data corruption or invalid index access in protobuf repeated field during table scan operation",
+    "issue_number": 8941,
+    "title": "Index out of range for slice in TableScan"
+  },
+  {
+    "bug_location": "Transaction Layer",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "TiKV checks write conflict and data constraint before lock's existence, causing incorrect handling of unique index locks during deletion and reinsertion",
+    "issue_number": 8964,
+    "title": "Insertion after deletion meets duplicate entry error in optimistic transactions"
+  },
+  {
+    "bug_location": "Raft/Region Management",
+    "severity": 5,
+    "categories": [
+      "Upgrade",
+      "Replication",
+      "CodeBug"
+    ],
+    "root_cause": "Version compatibility issue during region split operation causing inconsistent region epoch versions between leader and follower during rolling upgrade",
+    "issue_number": 8967,
+    "title": "Rolling upgrade from 2.1 or older version to newer version may break region replicas consistency"
+  },
+  {
+    "bug_location": "TiKV server core",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Recovery"
+    ],
+    "root_cause": "Potential integer underflow when decrementing a counter that is already at zero, causing unexpected wraparound behavior",
+    "issue_number": 8970,
+    "title": "TiKV server panic after restarted"
+  },
+  {
+    "bug_location": "TiKV Coprocessor (tidb_query_vec_expr component)",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "UTF8 string comparison functions do not properly handle collation, causing incorrect string comparisons and potential performance/correctness issues",
+    "issue_number": 8986,
+    "title": "copr: UTF8 functions should consider collation"
+  },
+  {
+    "bug_location": "RaftStore",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Transaction",
+      "Performance"
+    ],
+    "root_cause": "Potential thread blocking in gRPC or RocksDB write threads causing connection failures",
+    "issue_number": 8987,
+    "title": "reigon is unavailable: one tikv server does not accept new connections"
+  },
+  {
+    "bug_location": "Logger/Panic Handling",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Potential race condition or premature thread termination in async logging mechanism that may prevent panic logs from being fully written before process exit",
+    "issue_number": 8998,
+    "title": "Panic log may be lost when using async logger"
+  },
+  {
+    "bug_location": "gRPC Service Layer",
+    "severity": 3,
+    "categories": [
+      "Network",
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "gRPC message size limitation causing panic when response exceeds 4GB, specifically related to large MVCC key responses and Arrow codec encoding",
+    "issue_number": 9012,
+    "title": "TiKV panics when the size of response exceeds 4GB"
+  },
+  {
+    "bug_location": "Raft Replication Component",
+    "severity": 4,
+    "categories": [
+      "Replication",
+      "Performance",
+      "CodeBug"
+    ],
+    "root_cause": "Interaction between region hibernation and learner replica creation during network isolation causes potential replica unavailability",
+    "issue_number": 9022,
+    "title": "Learner may not be created after a long time when enabling hibernate region"
+  },
+  {
+    "bug_location": "PD (Placement Driver) Worker",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "LoadBalance",
+      "Transaction"
+    ],
+    "root_cause": "Performance bottleneck in `get_region_approximate_size` method when processing extremely large regions (50-60 GB), causing blocking of PD worker scheduling tasks",
+    "issue_number": 9024,
+    "title": "PD worker is blocked by `get_region_approximate_size`"
+  },
+  {
+    "bug_location": "Raft consensus module",
+    "severity": 3,
+    "categories": [
+      "Replication",
+      "Transaction",
+      "LoadBalance"
+    ],
+    "root_cause": "Pending configuration change prevents leader transfer, causing leadership imbalance during rolling update or configuration reload",
+    "issue_number": 9041,
+    "title": "Peer reject to transfer leader because of pending conf change"
+  },
+  {
+    "bug_location": "RocksDB Compaction/Background Worker",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Performance",
+      "Transaction"
+    ],
+    "root_cause": "Deadlock caused by thread pool contention when creating compaction partitioner, where background threads are blocked waiting for RocksDB mutex and region info tasks",
+    "issue_number": 9044,
+    "title": "compaction guard: deadlock when creating compaction partitioner"
+  },
+  {
+    "bug_location": "storage/mod.rs",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "Incomplete handling of memory locks during batch key retrieval, causing premature return of results instead of processing all keys",
+    "issue_number": 9069,
+    "title": "batch_get doesn't return all results when encountering a memory lock"
+  },
+  {
+    "bug_location": "Raft Apply System",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Proposals are being sent to apply system even when not committed, causing incorrect callback invocation during network partitions",
+    "issue_number": 9070,
+    "title": "committed_cb is always invoked which affects the correctness of async apply"
+  },
+  {
+    "bug_location": "KeyManager",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "Security",
+      "Recovery"
+    ],
+    "root_cause": "Incorrect file management during encrypted data import, potentially failing to properly remove or handle imported files in the key management system",
+    "issue_number": 9099,
+    "title": "TiKV panic because of ingest failed by importer."
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9113,
+    "title": "More fine-grained control on callback for raftstore"
+  },
+  {
+    "bug_location": "Encryption/DataKeyManager",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Security",
+      "Storage"
+    ],
+    "root_cause": "Non-atomic file operations during encryption metadata management can lead to inconsistent state between file system and encryption metadata when TiKV crashes mid-operation",
+    "issue_number": 9115,
+    "title": "encryption: handle non-atomic file operations"
+  },
+  {
+    "bug_location": "Coprocessor",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "Incorrect handling of NewRowFormat during column retrieval, causing default values to be incorrectly processed or returned as NULL",
+    "issue_number": 9119,
+    "title": "Coprocessor incorrectly handles NewRowFormat"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9126,
+    "title": "TiKV panic during upgrading from v4.0.8 to nightly"
+  },
+  {
+    "bug_location": "backup-restore component",
+    "severity": 4,
+    "categories": [
+      "Memory",
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "In-memory SST writer accumulates entire region data without streaming or chunking, causing potential out-of-memory conditions for large regions",
+    "issue_number": 9144,
+    "title": "TiKV OOM because BR read a large region in memory"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9151,
+    "title": "server::kv_service::test_split_region failed"
+  },
+  {
+    "bug_location": "storage/txn/latch.rs",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Bitwise AND (&) operator used for slot index calculation causing potential hash collision when computing latch slots",
+    "issue_number": 9162,
+    "title": "Slot collision on latch with and (&) operator"
+  },
+  {
+    "bug_location": "components/raftstore/src/store/worker/split_controller.rs",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Storage",
+      "Replication"
+    ],
+    "root_cause": "Incorrect region split logic when sample keys have zero left and right boundaries but are contained within a region",
+    "issue_number": 9170,
+    "title": "Load split cannot work when the request covers the region"
+  },
+  {
+    "bug_location": "cdc/resolved_ts and storage/txn",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Incompatibility between 1PC (one-phase commit) and Change Data Capture (CDC) mechanism, causing incorrect lock tracking and assertion failures",
+    "issue_number": 9171,
+    "title": "TiKV server panic when running with TiCDC"
+  },
+  {
+    "bug_location": "unified thread pool (yatp)",
+    "severity": 3,
+    "categories": [
+      "Performance",
+      "CodeBug"
+    ],
+    "root_cause": "Large scan requests cannot be transformed into splittable coroutines, preventing effective scheduling in the unified thread pool and potentially blocking transactional workloads",
+    "issue_number": 9188,
+    "title": "The unified pool cannot schedule kv_scan, raw_scan and analyze requests well"
+  },
+  {
+    "bug_location": "Transaction",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "Replication",
+      "CodeBug"
+    ],
+    "root_cause": "Potential race condition or inconsistent state during follower read with async commit and leader shuffling",
+    "issue_number": 9208,
+    "title": "tipocket list_append fails on follower read and async commit"
+  },
+  {
+    "bug_location": "GarbageCollection",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "Storage",
+      "Transaction"
+    ],
+    "root_cause": "SST file with large range containing keys with >100 versions prevents GC optimization, causing unnecessary scanning and CPU consumption during low write flow scenarios",
+    "issue_number": 9216,
+    "title": "TiKV's distributed GC may keep scanning and consuming CPU when there's very low write flow"
+  },
+  {
+    "bug_location": "Profiler",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Signal handler unregistration issue causing unexpected SIGPROF after profiling, leading to TiKV process termination",
+    "issue_number": 9217,
+    "title": "TiKV is killed during profiling via TiDB-dashboard"
+  },
+  {
+    "bug_location": "TiKV Performance Tracking/Logging",
+    "severity": 3,
+    "categories": [
+      "Performance",
+      "Monitoring"
+    ],
+    "root_cause": "Incomplete or inaccurate time tracking in slow query logging mechanism, where total query lifetime is not fully accounted for by individual time components",
+    "issue_number": 9223,
+    "title": "slow-query information is not accuracy"
+  },
+  {
+    "bug_location": "security/client_authentication",
+    "severity": 3,
+    "categories": [
+      "Security",
+      "CodeBug"
+    ],
+    "root_cause": "Insufficient error handling and logging for CN (Common Name) verification failure during TLS connection establishment",
+    "issue_number": 9234,
+    "title": "security: explicit error message for CN verification error"
+  },
+  {
+    "bug_location": "logging/security module",
+    "severity": 4,
+    "categories": [
+      "Security",
+      "CodeBug"
+    ],
+    "root_cause": "Incomplete implementation of log redaction mechanism, allowing sensitive information like user keys to be printed in logs even when redaction is enabled",
+    "issue_number": 9249,
+    "title": "security: not all logs being redact when log redaction is enabled"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9253,
+    "title": "FAIL: /home/jenkins/agent/workspace/tikv_ghpr_integration_ddl_test/go/src/github.com/pingcap/tidb-test/_vendor/pkg/mod/github.com/pingcap/tidb@v0.0.0-20190520045437-2d70e4da27d7/cmd/ddltest/index_test.go:127: TestDDLSuite.TestIndex failed"
+  },
+  {
+    "bug_location": "config.rs",
+    "severity": 3,
+    "categories": [
+      "Config",
+      "CodeBug"
+    ],
+    "root_cause": "Configuration parameter is not being properly parsed or applied from the configuration file, despite being exposed in the config template",
+    "issue_number": 9327,
+    "title": "Can not change region-split-check-diff through config file"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9351,
+    "title": "Stale read when using read_index request"
+  },
+  {
+    "bug_location": "components/tidb_query_expr/src/impl_cast.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug"
+    ],
+    "root_cause": "Type comparison and conversion errors when building TiKV with PROST=1, specifically related to incompatible type comparisons between i32 and FieldTypeTp, and missing trait implementations for type con",
+    "issue_number": 9352,
+    "title": "Failed to build TiKV with PROST=1"
+  },
+  {
+    "bug_location": "Raft/Region Split Component",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Race condition during peer splitting where an uninitialized peer can incorrectly receive readiness messages intended for a split peer, causing potential message mapping and ready advancement errors",
+    "issue_number": 9388,
+    "title": "ready can be advanced by a wrong peer"
+  },
+  {
+    "bug_location": "Monitoring/Statistics",
+    "severity": 3,
+    "categories": [
+      "Monitoring",
+      "Performance"
+    ],
+    "root_cause": "Metrics calculation includes multiple column families (write and default CFs) for each key read operation, causing apparent discrepancy in read statistics",
+    "issue_number": 9391,
+    "title": "TiKV's \"read flow\" statistics are inconsistent with \"store read rate\" statistics of PD"
+  },
+  {
+    "bug_location": "System Time Handling",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Recovery"
+    ],
+    "root_cause": "Insufficient handling of system time changes, causing unexpected panic when system time is modified by NTP service",
+    "issue_number": 9392,
+    "title": "TiKV  panicked when system time back"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9407,
+    "title": "tikv w/ 8GB mem OOM while lightning importing"
+  },
+  {
+    "bug_location": "RocksDB Storage Engine",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "Performance"
+    ],
+    "root_cause": "Delayed file purging mechanism in RocksDB's `DeleteFilesInRanges` implementation, where obsolete files are not immediately cleaned up due to iterator references and default 1-hour purge period",
+    "issue_number": 9429,
+    "title": "Files did not purged after `DeleteFilesInRanges`"
+  },
+  {
+    "bug_location": "Build System",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Dependency resolution failure during documentation generation, likely related to Rust package/feature configuration",
+    "issue_number": 9444,
+    "title": "make doc is broken"
+  },
+  {
+    "bug_location": "pd_client",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Transaction",
+      "Performance"
+    ],
+    "root_cause": "Blocking PD leader update process causing gRPC threads to be unresponsive for extended period (>17s), triggering keepalive watchdog and disrupting service connections",
+    "issue_number": 9463,
+    "title": "Blocking PD leader update leads to gRPC keepalive watchdog fire and disrupts online service"
+  },
+  {
+    "bug_location": "GC Worker",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "Storage",
+      "CodeBug"
+    ],
+    "root_cause": "Invalid store_id during AutoGCConfig initialization causing GC process to fail, leading to version accumulation and performance decline",
+    "issue_number": 9466,
+    "title": "Performance decline in TPCC bench due to the absence of GC"
+  },
+  {
+    "bug_location": "LocalReader",
+    "severity": 4,
+    "categories": [
+      "Memory",
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Invalid read delegates are not being properly cleaned up when they become unused, causing potential memory leak and unbounded growth of the delegates HashMap",
+    "issue_number": 9469,
+    "title": "raftstore: the invalid read delegates in local reader may not be removed forever"
+  },
+  {
+    "bug_location": "Encryption/Key Management",
+    "severity": 4,
+    "categories": [
+      "Security",
+      "Storage",
+      "CodeBug"
+    ],
+    "root_cause": "Non-atomic file creation during KMS key initialization, causing corrupted dictionary files when AWS KMS access fails initially",
+    "issue_number": 9488,
+    "title": "TiKV crashes continuously if access AWS KMS failed at the first time"
+  },
+  {
+    "bug_location": "Lightning Import/Ingest Component",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage",
+      "Replication"
+    ],
+    "root_cause": "Race condition during SST file ingestion where TiKV attempts to re-ingest an already processed and deleted SST file, causing a panic",
+    "issue_number": 9496,
+    "title": "TiKV panic when Lightning send twice ingest request."
+  },
+  {
+    "bug_location": "pd-client",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Network",
+      "Config"
+    ],
+    "root_cause": "Lack of validation for leader field in GetMembersResponse during PD endpoint initialization, causing potential connection hang when leader information is missing",
+    "issue_number": 9513,
+    "title": "`validate_endpoints` does not check `leader` field of `GetMembersResponse`"
+  },
+  {
+    "bug_location": "components/raftstore/local_reader",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Storage"
+    ],
+    "root_cause": "Local reader delegate not properly updated after multiple snapshot applications, causing stale delegate ID to persist and create peer ID mismatches during region recovery",
+    "issue_number": 9517,
+    "title": "Local reader delegate keeps stale ID"
+  },
+  {
+    "bug_location": "Backup & Restore (BR) Component",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "Memory",
+      "Performance"
+    ],
+    "root_cause": "Missing region approximate size/keys tracking after data restoration, causing unexpected region splitting and memory pressure",
+    "issue_number": 9520,
+    "title": "BR will lead to the emergence of big regions with version v4.0.9"
+  },
+  {
+    "bug_location": "CDC (Change Data Capture) component",
+    "severity": 3,
+    "categories": [
+      "Transaction",
+      "CodeBug",
+      "Performance"
+    ],
+    "root_cause": "Resolved timestamp not being updated correctly during async commit transactions with unprotected rollbacks, causing CDC tracking issues",
+    "issue_number": 9523,
+    "title": "Resolved TS is not updated with async commit transactions"
+  },
+  {
+    "bug_location": "Transaction/GC",
+    "severity": 5,
+    "categories": [
+      "Transaction",
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Incorrect timestamp management during garbage collection, causing potential transaction commit with unsafe timestamps",
+    "issue_number": 9526,
+    "title": "incompatibility between gc and async commit"
+  },
+  {
+    "bug_location": "TiKV Dashboard/Monitoring",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Monitoring",
+      "Performance"
+    ],
+    "root_cause": "Memory reporting incorrectly uses container memory quota instead of host system memory capacity, causing misleading memory usage percentages",
+    "issue_number": 9532,
+    "title": "TiKV reported memory is wrong"
+  },
+  {
+    "bug_location": "Profiling/Debug Module",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Performance",
+      "Monitoring"
+    ],
+    "root_cause": "Jemalloc memory profiling interface encountered an unexpected error during heap profile dump, preventing successful profile generation",
+    "issue_number": 9538,
+    "title": "heap pprof failed"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9541,
+    "title": "TiKV cannot send KMS request"
+  },
+  {
+    "bug_location": "Diagnostic Service",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Memory"
+    ],
+    "root_cause": "Stack overflow during hardware information collection, likely caused by recursive or deeply nested function calls in the sysinfo library when processing disk information",
+    "issue_number": 9555,
+    "title": "TiKV aborts when accesses hardware info"
+  },
+  {
+    "bug_location": "Raft Consensus Module",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Uninitialized voter peer during region splitting can lead to inconsistent leader election state, potentially causing multiple leaders in the same term",
+    "issue_number": 9579,
+    "title": "The uninitialized voter which comes from splitting may lead to two same-term raft leaders"
+  },
+  {
+    "bug_location": "pd_client and raft client",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Inconsistent handling of tombstone store between PD client and raft client, causing store recognition failure",
+    "issue_number": 9590,
+    "title": "raft client doesn't recognize tombstone store"
+  },
+  {
+    "bug_location": "components/raftstore/split_controller.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Storage"
+    ],
+    "root_cause": "Incorrect key encoding assumption for raw KV mode, causing regions to remain unsplit when they should be split based on load",
+    "issue_number": 9613,
+    "title": "load based split can't handle raw kv well"
+  },
+  {
+    "bug_location": "raftstore/store/peer.rs",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Race condition between commit merge and post_apply operations causing read delegate to be unexpectedly removed before completion of merge process",
+    "issue_number": 9615,
+    "title": "commit merge and post_apply can make tikv panic"
+  },
+  {
+    "bug_location": "RocksDB Compaction Filter",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Storage",
+      "Performance"
+    ],
+    "root_cause": "Deadlock caused by write stall during GC in compaction filter, where write operations block compaction threads and prevent resolving write stall conditions",
+    "issue_number": 9627,
+    "title": "Potential deadlock for GC in Compaction Filter"
+  },
+  {
+    "bug_location": "storage/mvcc/reader/reader.rs",
+    "severity": 4,
+    "categories": [
+      "Transaction",
+      "CodeBug"
+    ],
+    "root_cause": "Incorrect assertion in transaction record handling during async commit implementation, causing unexpected transaction state validation",
+    "issue_number": 9654,
+    "title": "txn record found but not expected"
+  },
+  {
+    "bug_location": "Raftstore",
+    "severity": 3,
+    "categories": [
+      "Performance",
+      "Replication",
+      "LoadBalance"
+    ],
+    "root_cause": "Potential slow heartbeat processing when hibernate region is enabled, causing delayed learner peer addition",
+    "issue_number": 9681,
+    "title": "Add learner operator runs very slow when hibernate region is on"
+  },
+  {
+    "bug_location": "pd-client",
+    "severity": 4,
+    "categories": [
+      "Network",
+      "Performance",
+      "Config"
+    ],
+    "root_cause": "Unconditional periodic PD leader reconnection causing unnecessary disruption of region heartbeats and potential scheduler operation slowdowns",
+    "issue_number": 9690,
+    "title": "pd connection is reconnecting every 10 minutes"
+  },
+  {
+    "bug_location": "TiKV Label Validation",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Config"
+    ],
+    "root_cause": "Inconsistent label validation rules between PD and TiKV, with TiKV having more restrictive label format validation compared to PD",
+    "issue_number": 9699,
+    "title": "label format is inconsistent with PD"
+  },
+  {
+    "bug_location": "Security/Encryption Module",
+    "severity": 4,
+    "categories": [
+      "Security",
+      "Upgrade",
+      "Storage"
+    ],
+    "root_cause": "Encryption key management inconsistency during version upgrade, causing incorrect file encryption state tracking",
+    "issue_number": 9701,
+    "title": "Corruption when upgrade from v4.0.9 to nightly"
+  },
+  {
+    "bug_location": "Coprocessor",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Transaction"
+    ],
+    "root_cause": "Incorrect type casting behavior when comparing empty string with numeric value, causing unexpected data truncation error",
+    "issue_number": 9704,
+    "title": "Inconsisitent with Mysql When a varchar column only have empty string"
+  },
+  {
+    "bug_location": "raft_client.rs",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Network",
+      "Performance"
+    ],
+    "root_cause": "Excessive message batching causing gRPC message size limit exceeded, particularly with large numbers of raft log entries and replica read contexts",
+    "issue_number": 9714,
+    "title": "batch messages can be too large in new raft client implementation"
+  },
+  {
+    "bug_location": "Raft consensus module",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Replication"
+    ],
+    "root_cause": "Inaccurate lease duration calculation that does not properly account for tick count boundaries, potentially causing premature election attempts during leader lease period",
+    "issue_number": 9728,
+    "title": "Lease check should consider tick count"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9733,
+    "title": "Random crashes with \"Uniform::sample_single called with low >= high\" after update to 4.0.11"
+  },
+  {
+    "bug_location": "raftstore/peer.rs",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Replication"
+    ],
+    "root_cause": "Incorrect index calculation when searching in a ring buffer (VecDeque) causing potential propose time underestimation",
+    "issue_number": 9748,
+    "title": "The propose time may be smaller than the real one"
+  },
+  {
+    "bug_location": "Profiling/Debug Component",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Performance",
+      "Memory"
+    ],
+    "root_cause": "Incorrect DWARF debugging information causing segmentation fault during stack probing when generating CPU profile",
+    "issue_number": 9765,
+    "title": "Built-in profiling can cause a segmentation fault"
+  },
+  {
+    "bug_location": "Raftstore GC snapshot",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "Storage",
+      "CodeBug"
+    ],
+    "root_cause": "Unnecessary CRC32 calculation during snapshot garbage collection, causing excessive and unproductive IO overhead",
+    "issue_number": 9786,
+    "title": "Raftstore GC snapshot calculates crc32 which is useless and causes unnecessary IO"
+  },
+  {
+    "bug_location": "raftstore/peer.rs",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Performance",
+      "Replication"
+    ],
+    "root_cause": "Race condition in heartbeat_pd task scheduling causing incorrect written bytes calculation, potentially leading to underflow when tasks are processed out of expected order",
+    "issue_number": 9796,
+    "title": "Region written stats is abnormal"
+  },
+  {
+    "bug_location": "PD Client Connection Module",
+    "severity": 5,
+    "categories": [
+      "Network",
+      "Performance",
+      "Config"
+    ],
+    "root_cause": "Unbounded reconnection attempts without proper backoff or rate limiting when PD leader is unavailable, causing potential DDoS-like behavior on PD servers",
+    "issue_number": 9799,
+    "title": "There is no limit to reconnect with PD"
+  },
+  {
+    "bug_location": "TiKV Configuration Validation",
+    "severity": 4,
+    "categories": [
+      "Config",
+      "Upgrade"
+    ],
+    "root_cause": "Configuration validation does not recognize 'split.size-threshold' as a valid configuration option during upgrade process",
+    "issue_number": 9816,
+    "title": "Tiup upgrade failed because of config-check failure"
+  },
+  {
+    "bug_location": "Coprocessor",
+    "severity": 4,
+    "categories": [
+      "CodeBug",
+      "Transaction"
+    ],
+    "root_cause": "Incorrect handling of maximum unsigned 64-bit integer (max_u64) in IN expression comparison logic, causing unexpected query results",
+    "issue_number": 9821,
+    "title": "coprocessor IN expr not handle max_u64 properly"
+  },
+  {
+    "bug_location": "raftstore/peer",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Replication",
+      "Transaction"
+    ],
+    "root_cause": "Snapshot generation logic fails to trigger under certain conditions, preventing leader from sending snapshots to followers/learners when region has a Ready state",
+    "issue_number": 9859,
+    "title": "raftstore: leader may not send snapshot to the follower"
+  },
+  {
+    "bug_location": "encryption/file_dict_file.rs",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "Security",
+      "Recovery"
+    ],
+    "root_cause": "Partial record write to encryption key file dictionary during disk full condition, causing checksum mismatch and startup panic",
+    "issue_number": 9886,
+    "title": "tikv can't startup after the disk is full"
+  },
+  {
+    "bug_location": "Raft statistics/metrics module",
+    "severity": 2,
+    "categories": [
+      "CodeBug",
+      "Monitoring",
+      "Performance"
+    ],
+    "root_cause": "Incorrect timing measurement for Raft apply task wait duration metric, where the timer is only recorded after processing all tasks instead of per-task",
+    "issue_number": 9893,
+    "title": "There seems to be a problem with the statistics of the Raft propose/Apply wait duration metric"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9896,
+    "title": "Store used size changes a lot after restarting"
+  },
+  {
+    "bug_location": "GC Worker",
+    "severity": 3,
+    "categories": [
+      "Monitoring",
+      "Performance"
+    ],
+    "root_cause": "Current alert rule does not account for scenarios with low or no data modification activity, causing false-positive alerts",
+    "issue_number": 9910,
+    "title": "the rule for TiKV_GC_can_not_work alert should be enhanced to check with GC speed instead of GC task"
+  },
+  {
+    "bug_location": "components/engine_rocks/src/engine_iterator.rs",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Storage"
+    ],
+    "root_cause": "Iterator invalidation during transaction prewrite, causing unexpected iterator state when checking for newer versions",
+    "issue_number": 9913,
+    "title": "tikv keep panicking at components/engine_rocks/src/engine_iterator.rs:39 "
+  },
+  {
+    "bug_location": "PD Store Status / Disk Space Reporting",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "Performance",
+      "Config"
+    ],
+    "root_cause": "Incorrect disk space calculation or reporting mechanism in TiKV/PD components",
+    "issue_number": 9920,
+    "title": "Incorrect available and used disk size"
+  },
+  {
+    "bug_location": "raft_client",
+    "severity": 3,
+    "categories": [
+      "Network",
+      "Replication"
+    ],
+    "root_cause": "Incorrect connection handling when store IDs mismatch, allowing persistent message transmission to wrong store",
+    "issue_number": 9929,
+    "title": "raft_client: drop connect when receive raft message with mismatch store id"
+  },
+  {
+    "bug_location": "RocksDB Compaction Layer",
+    "severity": 4,
+    "categories": [
+      "Storage",
+      "Performance",
+      "CodeBug"
+    ],
+    "root_cause": "Abnormal LSM tree state after bulk deletion of SST files during large table truncation, causing incorrect calculation of compaction pending bytes",
+    "issue_number": 9936,
+    "title": "Too many compaction pending bytes when truncating a huge table in TiDB"
+  },
+  {
+    "bug_location": "Profiler/Debug Module",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Performance",
+      "Network"
+    ],
+    "root_cause": "macOS libunwind issue causing segmentation fault during CPU profiling when attempting to generate backtrace",
+    "issue_number": 9957,
+    "title": "Built-in CPU profiling causes a segmentation fault on macOS 11"
+  },
+  {
+    "bug_location": "TiCDC",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "Storage",
+      "Transaction"
+    ],
+    "root_cause": "RocksDB snapshots are being held open too long during incremental scan operations, causing potential resource exhaustion and performance degradation",
+    "issue_number": 9961,
+    "title": "TiCDC old value and incremental scan may hold RocksDB snapshot too long"
+  },
+  {
+    "bug_location": "Unknown",
+    "severity": 3,
+    "categories": [
+      "Unknown"
+    ],
+    "root_cause": "N/A - Analysis failed",
+    "issue_number": 9965,
+    "title": "gc keys can't handle tombstones effectively"
+  },
+  {
+    "bug_location": "TiDB Query Expression Component",
+    "severity": 5,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Performance"
+    ],
+    "root_cause": "Unsafe assumption of UTF-8 encoding during string to time casting, causing index out of bounds panic when processing non-UTF-8 encoded binary data",
+    "issue_number": 9970,
+    "title": "index out of bounds: the len is 4 but the index is 4"
+  },
+  {
+    "bug_location": "Encryption and Recovery Components",
+    "severity": 3,
+    "categories": [
+      "Storage",
+      "Recovery",
+      "Security"
+    ],
+    "root_cause": "Incomplete checksum implementation in encryption headers and point-in-time recovery mechanisms, potentially allowing undetected data corruption or loss",
+    "issue_number": 9971,
+    "title": "Avoid unnoticeable data loss due to inappropriate handling of checksum"
+  },
+  {
+    "bug_location": "Monitoring",
+    "severity": 2,
+    "categories": [
+      "Monitoring"
+    ],
+    "root_cause": "Incorrect unit configuration in Grafana dashboard panels",
+    "issue_number": 9976,
+    "title": "The unit of some panels are wrong in Grafana"
+  },
+  {
+    "bug_location": "raftstore/peer",
+    "severity": 3,
+    "categories": [
+      "CodeBug",
+      "Transaction",
+      "Replication"
+    ],
+    "root_cause": "Inaccurate committed index tracking during Raft log merge, causing an assertion failure when progress.matched and progress.committed_index are inconsistent",
+    "issue_number": 9980,
+    "title": "raftstore panics during merge"
+  },
+  {
+    "bug_location": "CDC Endpoint",
+    "severity": 4,
+    "categories": [
+      "Performance",
+      "CodeBug"
+    ],
+    "root_cause": "High computational overhead in CDC endpoint processing during high-frequency insertions, causing excessive thread CPU utilization",
+    "issue_number": 9981,
+    "title": "CDC endpoint thread CPU usage 100% with insert 800ops"
+  },
+  {
+    "bug_location": "Configuration Management",
+    "severity": 2,
+    "categories": [
+      "Config",
+      "CodeBug"
+    ],
+    "root_cause": "Inconsistent configuration template with actual default configuration, leading to parsing and validation issues when using the provided config-template.toml",
+    "issue_number": 9990,
+    "title": "Provided config-template.toml is not valid"
+  },
+  {
+    "bug_location": "CDC Endpoint",
+    "severity": 5,
+    "categories": [
+      "Memory",
+      "Performance",
+      "CodeBug"
+    ],
+    "root_cause": "CDC endpoint accumulating too many scan events in memory, causing excessive memory consumption and eventual out-of-memory (OOM) condition during high-frequency insert operations",
+    "issue_number": 9996,
+    "title": "TiKV OOM due to CDC endpoint CPU 100% under 20k insert op/s"
   }
 ]

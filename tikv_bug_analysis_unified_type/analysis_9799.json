@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "PD Client Connection Module",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "Network",
+    "Performance",
+    "Config"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unbounded reconnection attempts without proper backoff or rate limiting when PD leader is unavailable, causing potential DDoS-like behavior on PD servers",
   "issue_number": 9799,
   "title": "There is no limit to reconnect with PD"
 }

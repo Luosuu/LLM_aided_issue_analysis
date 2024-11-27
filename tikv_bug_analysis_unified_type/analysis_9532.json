@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "TiKV Dashboard/Monitoring",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Monitoring",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Memory reporting incorrectly uses container memory quota instead of host system memory capacity, causing misleading memory usage percentages",
   "issue_number": 9532,
   "title": "TiKV reported memory is wrong"
 }

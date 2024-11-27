@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Transaction Layer",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "TiKV checks write conflict and data constraint before lock's existence, causing incorrect handling of unique index locks during deletion and reinsertion",
   "issue_number": 8964,
   "title": "Insertion after deletion meets duplicate entry error in optimistic transactions"
 }

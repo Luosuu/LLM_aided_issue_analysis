@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "RaftStore",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "Transaction",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential thread blocking in gRPC or RocksDB write threads causing connection failures",
   "issue_number": 8987,
   "title": "reigon is unavailable: one tikv server does not accept new connections"
 }

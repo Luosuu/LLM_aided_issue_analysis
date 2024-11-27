@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "gc_worker/compaction_filter.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential error handling issue leading to an endless loop when Key::split_on_ts_for() fails to process a key",
   "issue_number": 8861,
   "title": "potential endless loop in compaction_filter"
 }

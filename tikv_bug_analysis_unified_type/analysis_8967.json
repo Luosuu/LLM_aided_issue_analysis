@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft/Region Management",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "Upgrade",
+    "Replication",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Version compatibility issue during region split operation causing inconsistent region epoch versions between leader and follower during rolling upgrade",
   "issue_number": 8967,
   "title": "Rolling upgrade from 2.1 or older version to newer version may break region replicas consistency"
 }

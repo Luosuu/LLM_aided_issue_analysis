@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "pd-client",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Network",
+    "Config"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Lack of validation for leader field in GetMembersResponse during PD endpoint initialization, causing potential connection hang when leader information is missing",
   "issue_number": 9513,
   "title": "`validate_endpoints` does not check `leader` field of `GetMembersResponse`"
 }

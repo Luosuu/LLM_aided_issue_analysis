@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "CDC Endpoint",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "Memory",
+    "Performance",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "CDC endpoint accumulating too many scan events in memory, causing excessive memory consumption and eventual out-of-memory (OOM) condition during high-frequency insert operations",
   "issue_number": 9996,
   "title": "TiKV OOM due to CDC endpoint CPU 100% under 20k insert op/s"
 }

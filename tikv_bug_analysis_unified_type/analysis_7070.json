@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "storage/mvcc/txn.rs",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect assumption in handling pessimistic lock conflicts during pipelined locking, causing unintended transaction rollback when concurrent sessions attempt to insert the same row",
   "issue_number": 7070,
   "title": "Pipelined pessimistic lock may roll back a normal transaction"
 }

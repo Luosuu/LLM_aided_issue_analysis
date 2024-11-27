@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Metadata inconsistency during region split/merge operations, causing a HashMap lookup failure in maybe_create_peer_internal function",
   "issue_number": 8783,
   "title": "maybe_create_peer_internal fails due to hashmap entry not found"
 }

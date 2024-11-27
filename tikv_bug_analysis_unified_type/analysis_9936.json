@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "RocksDB Compaction Layer",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Storage",
+    "Performance",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Abnormal LSM tree state after bulk deletion of SST files during large table truncation, causing incorrect calculation of compaction pending bytes",
   "issue_number": 9936,
   "title": "Too many compaction pending bytes when truncating a huge table in TiDB"
 }

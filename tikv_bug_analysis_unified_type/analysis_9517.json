@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "components/raftstore/local_reader",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Local reader delegate not properly updated after multiple snapshot applications, causing stale delegate ID to persist and create peer ID mismatches during region recovery",
   "issue_number": 9517,
   "title": "Local reader delegate keeps stale ID"
 }

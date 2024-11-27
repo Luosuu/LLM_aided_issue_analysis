@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "pd-client",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "Performance",
+    "Config"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unconditional periodic PD leader reconnection causing unnecessary disruption of region heartbeats and potential scheduler operation slowdowns",
   "issue_number": 9690,
   "title": "pd connection is reconnecting every 10 minutes"
 }

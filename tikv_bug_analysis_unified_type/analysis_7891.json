@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "gRPC/SSL Transport",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Security",
+    "Network",
+    "Config"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential TLS configuration mismatch or incorrect SSL handshake configuration when connecting via TiKV-ctl with TLS enabled in TiDB Operator environment",
   "issue_number": 7891,
   "title": "tikv-ctl failed to connect to tikv when TLS is enabled"
 }

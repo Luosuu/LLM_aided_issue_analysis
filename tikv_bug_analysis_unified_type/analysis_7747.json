@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft Leader Election/Hibernation Module",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Upgrade",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Hibernate region configuration causes leader election instability during rolling cluster updates, potentially leading to prolonged leader transfer and unexpected elections",
   "issue_number": 7747,
   "title": "Fail to evict leader when rolling update a new hibernated cluster"
 }

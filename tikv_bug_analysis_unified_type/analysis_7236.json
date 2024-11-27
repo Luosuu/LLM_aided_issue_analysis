@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "backup/external_storage/s3",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential memory or connection handling issue in S3 backup process for large tables, causing hyper client connection panic",
   "issue_number": 7236,
   "title": "Backup to S3 panics for a table ~30 GiB"
 }

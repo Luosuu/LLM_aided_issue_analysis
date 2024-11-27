@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "pd_client/lock_manager/deadlock",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Nested `block_on` executor calls causing runtime panic due to LocalPool executor restrictions",
   "issue_number": 8692,
   "title": "PD client panics on Deadlock's get_leader_info due to nested `block_on`"
 }

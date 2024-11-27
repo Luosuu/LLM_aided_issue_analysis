@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition during region merge process where source and target regions are not properly synchronized, causing potential data inconsistency and unexpected panic when unwrapping an Option",
   "issue_number": 5981,
   "title": "May meet panic when processing merge with leader changed"
 }

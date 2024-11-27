@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "gRPC service/BatchCommandsNotify",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Transaction",
+    "Network"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Recursive notification causing self-locking in batch commands notification mechanism, potentially triggered by changes in message handling logic",
   "issue_number": 7493,
   "title": "batch raft call deadlock"
 }

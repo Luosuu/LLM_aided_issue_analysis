@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Encryption/Key Management",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Security",
+    "Storage",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Non-atomic file creation during KMS key initialization, causing corrupted dictionary files when AWS KMS access fails initially",
   "issue_number": 9488,
   "title": "TiKV crashes continuously if access AWS KMS failed at the first time"
 }

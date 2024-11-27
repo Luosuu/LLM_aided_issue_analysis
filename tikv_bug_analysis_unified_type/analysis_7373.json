@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "tikv-ctl",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Storage",
+    "Recovery"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Pure virtual method called during error handling, likely due to improper exception management when accessing non-existent database path",
   "issue_number": 7373,
   "title": "tikv-ctl coredump"
 }

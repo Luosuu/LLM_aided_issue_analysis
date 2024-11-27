@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "storage/mvcc",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Transaction",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Inefficient handling of multiple Write::Lock entries during pessimistic lock acquisition, causing significant performance degradation when many locks are present",
   "issue_number": 7024,
   "title": "`acquire_pessimistic_lock` has very poor performance if there are many `Write::Lock`s"
 }

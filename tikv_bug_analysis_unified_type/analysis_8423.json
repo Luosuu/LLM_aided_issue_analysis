@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "components/tikv_util/src/sys/cgroup.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "CPU quota calculation can return 0 when CPU limit is set to a fractional value less than 1, causing potential thread pool starvation",
   "issue_number": 8423,
   "title": "cpu_cores_quota can return 0 which makes unified thread pool hang for long running query"
 }

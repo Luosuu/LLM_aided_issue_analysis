@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "GC (Garbage Collection) module",
+  "severity": 2,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unnecessary GC triggering on an idle cluster, causing unwarranted seek operations even without write activities",
   "issue_number": 6165,
   "title": "GC is always triggered on idle cluster"
 }

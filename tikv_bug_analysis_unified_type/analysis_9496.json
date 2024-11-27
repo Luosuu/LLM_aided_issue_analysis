@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Lightning Import/Ingest Component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Storage",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition during SST file ingestion where TiKV attempts to re-ingest an already processed and deleted SST file, causing a panic",
   "issue_number": 9496,
   "title": "TiKV panic when Lightning send twice ingest request."
 }

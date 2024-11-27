@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "deadlock detector",
+  "severity": 2,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "Network"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unnecessary reconnection to leader when no actual leader change occurs, potentially causing misleading network instability logs",
   "issue_number": 6985,
   "title": "Deadlock detector sometimes reconnects to the same leader"
 }

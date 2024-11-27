@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "RocksDB/Storage",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Storage",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "RocksDB incorrectly returning keys out of order during scanning after SST file ingestion, likely due to an internal read inconsistency in RocksDB's key-value storage mechanism",
   "issue_number": 6519,
   "title": "RocksDB scanning Write CF returns keys out of order"
 }

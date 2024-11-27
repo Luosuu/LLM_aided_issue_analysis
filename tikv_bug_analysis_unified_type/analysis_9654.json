@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "storage/mvcc/reader/reader.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect assertion in transaction record handling during async commit implementation, causing unexpected transaction state validation",
   "issue_number": 9654,
   "title": "txn record found but not expected"
 }

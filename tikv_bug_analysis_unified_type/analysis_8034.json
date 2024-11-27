@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "RaftStore/Peer",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Transaction",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition during region merge where local read can return stale data before leader lease is properly suspended",
   "issue_number": 8034,
   "title": "Local read may get stale data during merging"
 }

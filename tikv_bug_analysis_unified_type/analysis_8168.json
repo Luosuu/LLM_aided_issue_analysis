@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Memory",
+    "Performance",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Excessive change events accumulation during changefeed pause causing memory pressure and potential out-of-memory condition",
   "issue_number": 8168,
   "title": "TiKV keeps OOM if there are too many change events need to be sent to CDC"
 }

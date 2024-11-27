@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "TiDB Query Expression Component",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Transaction",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unsafe assumption of UTF-8 encoding during string to time casting, causing index out of bounds panic when processing non-UTF-8 encoded binary data",
   "issue_number": 9970,
   "title": "index out of bounds: the len is 4 but the index is 4"
 }

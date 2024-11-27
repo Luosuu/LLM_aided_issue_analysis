@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Unified Read Pool",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Transaction",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Using start_ts as task id leads to incorrect query prioritization and potential performance degradation, with additional issue of not handling max u64 start_ts uniquely",
   "issue_number": 7484,
   "title": "The unified read pool should not use start_ts as task id"
 }

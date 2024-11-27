@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Raftstore",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Replication",
+    "LoadBalance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential slow heartbeat processing when hibernate region is enabled, causing delayed learner peer addition",
   "issue_number": 9681,
   "title": "Add learner operator runs very slow when hibernate region is on"
 }

@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Transaction/GC",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect timestamp management during garbage collection, causing potential transaction commit with unsafe timestamps",
   "issue_number": 9526,
   "title": "incompatibility between gc and async commit"
 }

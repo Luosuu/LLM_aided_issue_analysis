@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/peer",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Snapshot generation logic fails to trigger under certain conditions, preventing leader from sending snapshots to followers/learners when region has a Ready state",
   "issue_number": 9859,
   "title": "raftstore: leader may not send snapshot to the follower"
 }

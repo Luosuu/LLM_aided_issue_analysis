@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Encryption/DataKeyManager",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Security",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Non-atomic file operations during encryption metadata management can lead to inconsistent state between file system and encryption metadata when TiKV crashes mid-operation",
   "issue_number": 9115,
   "title": "encryption: handle non-atomic file operations"
 }

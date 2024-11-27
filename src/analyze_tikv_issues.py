@@ -128,9 +128,7 @@ def main():
     existing_analyses = {}
     if combined_analysis_file.exists():
         with open(combined_analysis_file, 'r', encoding='utf-8') as f:
-            existing_data = json.load(f)
-            existing_analyses = {str(item['issue_number']): item for item in existing_data}
-            analysis_results = existing_data
+            analysis_results = json.load(f)
 
     # Initialize rate limit handler
     rate_limit_handler = RateLimitHandler(max_retries=5, initial_wait=60)
@@ -142,9 +140,10 @@ def main():
 
     for issue_file in sorted(issues_dir.glob('issue_*.json')):
         issue_number = issue_file.stem.split('_')[1]
+        analysis_file = output_dir / f"analysis_{issue_number}.json"
 
         # Skip if already analyzed
-        if issue_number in existing_analyses:
+        if analysis_file.exists():
             print(f"Skipping issue {issue_number} - analysis exists")
             skipped += 1
             continue

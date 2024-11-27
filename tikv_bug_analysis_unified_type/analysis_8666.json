@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "server::raft_client",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "CodeBug",
+    "Upgrade"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential compatibility issue with recent gRPC and futures library upgrade, causing reconnection test failures",
   "issue_number": 8666,
   "title": "server::raft_client::test_raft_client_reconnect failed"
 }

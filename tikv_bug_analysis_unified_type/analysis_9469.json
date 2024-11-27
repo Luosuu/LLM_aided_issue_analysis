@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "LocalReader",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Memory",
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Invalid read delegates are not being properly cleaned up when they become unused, causing potential memory leak and unbounded growth of the delegates HashMap",
   "issue_number": 9469,
   "title": "raftstore: the invalid read delegates in local reader may not be removed forever"
 }

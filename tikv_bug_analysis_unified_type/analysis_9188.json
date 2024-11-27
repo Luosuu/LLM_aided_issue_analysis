@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "unified thread pool (yatp)",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Performance",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Large scan requests cannot be transformed into splittable coroutines, preventing effective scheduling in the unified thread pool and potentially blocking transactional workloads",
   "issue_number": 9188,
   "title": "The unified pool cannot schedule kv_scan, raw_scan and analyze requests well"
 }

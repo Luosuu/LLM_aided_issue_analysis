@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "RaftStore/GreenGC",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Storage",
+    "Replication",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Green GC worker can bypass normal Raft replication safety checks, potentially missing committed data during leadership transitions or after leader crashes",
   "issue_number": 8184,
   "title": "Don't allow conf remove until leader has applied to current term"
 }

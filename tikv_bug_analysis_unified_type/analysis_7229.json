@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Replication/Raft",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Network",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Replication read suspension during snapshot application with potential network isolation, causing extended read unavailability",
   "issue_number": 7229,
   "title": "Replication read should be resumed after applying snapshot"
 }

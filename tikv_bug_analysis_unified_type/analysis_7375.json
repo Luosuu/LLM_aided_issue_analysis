@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "external_storage/s3_storage",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Storage",
+    "Network"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "AWS S3 signed request timeout limitation of 15 minutes without implementing multi-part upload mechanism",
   "issue_number": 7375,
   "title": "external_storage: if S3 upload cannot finish within 15 minutes it will fail"
 }

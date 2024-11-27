@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "RocksDB Compaction/Background Worker",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Performance",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Deadlock caused by thread pool contention when creating compaction partitioner, where background threads are blocked waiting for RocksDB mutex and region info tasks",
   "issue_number": 9044,
   "title": "compaction guard: deadlock when creating compaction partitioner"
 }

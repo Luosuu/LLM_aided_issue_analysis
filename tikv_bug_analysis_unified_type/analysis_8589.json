@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Transaction",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Async commit mechanism does not fully ensure external consistency for concurrent transactions, potentially allowing reads that violate transaction order causality",
   "issue_number": 8589,
   "title": "Async commit does not ensure linearizability"
 }

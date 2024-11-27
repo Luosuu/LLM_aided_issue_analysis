@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "backup/restore component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Network",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential AWS STS token expiration or credential retrieval issue during long-running backup process",
   "issue_number": 8768,
   "title": "backup/restore via S3 using STS transiently fail with \"Couldn't find AWS credentials in default sources or k8s environment\""
 }

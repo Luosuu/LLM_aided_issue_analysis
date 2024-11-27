@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Region Cache/Epoch Management",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "Replication",
+    "LoadBalance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Backoffer mechanism fails to handle multiple region epoch changes efficiently, causing SQL commands to timeout when regions split or change leadership",
   "issue_number": 7853,
   "title": "Encounter region unavailable when selecting data"
 }

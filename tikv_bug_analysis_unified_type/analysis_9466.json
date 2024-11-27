@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "GC Worker",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Storage",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Invalid store_id during AutoGCConfig initialization causing GC process to fail, leading to version accumulation and performance decline",
   "issue_number": 9466,
   "title": "Performance decline in TPCC bench due to the absence of GC"
 }

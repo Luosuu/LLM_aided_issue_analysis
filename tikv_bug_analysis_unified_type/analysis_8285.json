@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Replica Read",
+  "severity": 2,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Transaction",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Failpoint race condition where pause mechanism is removed before execution, potentially disrupting message batching in replica read process",
   "issue_number": 8285,
   "title": "cases::test_replica_read::test_duplicate_read_index_ctx not work"
 }

@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/store/peer.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect epoch state conflict checking logic in Raft peer proposal process, causing assertion failure during epoch version verification",
   "issue_number": 8781,
   "title": "Assert fails on epoch_state post_propose"
 }

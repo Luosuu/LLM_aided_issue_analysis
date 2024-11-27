@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Monitoring/Statistics",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Monitoring",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Metrics calculation includes multiple column families (write and default CFs) for each key read operation, causing apparent discrepancy in read statistics",
   "issue_number": 9391,
   "title": "TiKV's \"read flow\" statistics are inconsistent with \"store read rate\" statistics of PD"
 }

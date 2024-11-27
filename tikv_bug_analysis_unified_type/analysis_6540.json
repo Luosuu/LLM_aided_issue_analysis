@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "RocksDB Engine Component",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Storage",
+    "Recovery",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential data inconsistency between RaftDB and KVDB during power failure when sync-log is disabled, caused by lack of synchronization mechanism between database write-ahead logs",
   "issue_number": 6540,
   "title": "When sync-log=false, fsync raftdb before kvdb persists data"
 }

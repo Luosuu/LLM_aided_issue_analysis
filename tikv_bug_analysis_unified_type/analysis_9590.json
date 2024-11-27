@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "pd_client and raft client",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Inconsistent handling of tombstone store between PD client and raft client, causing store recognition failure",
   "issue_number": 9590,
   "title": "raft client doesn't recognize tombstone store"
 }

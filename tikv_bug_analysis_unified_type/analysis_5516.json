@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Leadership election or region leader state inconsistency causing intermittent test failure in peer leadership verification",
   "issue_number": 5516,
   "title": "raftstore::test_tombstone::test_server_readd_peer response header { error { message: \"peer is not leader for region 1, leader may None\" not_leader { region_id: 1 } } } has error"
 }

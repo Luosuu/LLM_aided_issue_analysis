@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Raft Command Processing",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Upgrade"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Continued use of deprecated AdminCmdType::Split command instead of newer BatchSplit command during Raft command processing",
   "issue_number": 7653,
   "title": "Deprecated raft cmd AdminCmdType::Split is reused"
 }

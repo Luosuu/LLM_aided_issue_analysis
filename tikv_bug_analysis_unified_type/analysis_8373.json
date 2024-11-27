@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft Snapshot Management",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Snapshot tracking mechanism fails to handle race conditions during region splits and peer initialization, causing stale region info to remain in pending_snapshot_regions",
   "issue_number": 8373,
   "title": "pending_snapshot_regions may not cleaned as expected"
 }

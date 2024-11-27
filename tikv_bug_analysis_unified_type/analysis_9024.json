@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "PD (Placement Driver) Worker",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Performance",
+    "LoadBalance",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Performance bottleneck in `get_region_approximate_size` method when processing extremely large regions (50-60 GB), causing blocking of PD worker scheduling tasks",
   "issue_number": 9024,
   "title": "PD worker is blocked by `get_region_approximate_size`"
 }

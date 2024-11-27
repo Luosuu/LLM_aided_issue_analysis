@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "cdc/resolved_ts and storage/txn",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incompatibility between 1PC (one-phase commit) and Change Data Capture (CDC) mechanism, causing incorrect lock tracking and assertion failures",
   "issue_number": 9171,
   "title": "TiKV server panic when running with TiCDC"
 }

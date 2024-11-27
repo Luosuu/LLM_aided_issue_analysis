@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Raft",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Hibernated regions not properly handling region splits during node downtime, causing potential performance issues with replica read after node restart",
   "issue_number": 6667,
   "title": "Broadcast WakeUp message for awakening hibernated regions after node restarts"
 }

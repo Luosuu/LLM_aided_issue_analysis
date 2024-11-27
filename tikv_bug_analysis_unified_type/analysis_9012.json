@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "gRPC Service Layer",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Network",
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "gRPC message size limitation causing panic when response exceeds 4GB, specifically related to large MVCC key responses and Arrow codec encoding",
   "issue_number": 9012,
   "title": "TiKV panics when the size of response exceeds 4GB"
 }

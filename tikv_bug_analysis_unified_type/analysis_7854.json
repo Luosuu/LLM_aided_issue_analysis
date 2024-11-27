@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Coprocessor",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Transaction",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Snapshot callback not being called during follower read workflow, causing oneshot cancellation",
   "issue_number": 7854,
   "title": "Got oneshot canceled error when selecting data"
 }

@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft Replication Component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Performance",
+    "LoadBalance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "High latency jitter during dynamic cluster scaling, likely due to data redistribution and Raft leader rebalancing during node addition",
   "issue_number": 7746,
   "title": "TiKV scale out has high jitter on Latency"
 }

@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Backup & Restore (BR) component",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Inefficient file/key.dict rewriting process during restore when encryption at rest is enabled, causing significant performance overhead as data size increases",
   "issue_number": 8916,
   "title": "Restore slow down due to rewriting file/key.dict after enabling encryption at rest"
 }

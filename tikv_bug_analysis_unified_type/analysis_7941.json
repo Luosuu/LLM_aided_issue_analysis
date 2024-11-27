@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Slow leader election and recovery process with exponential backoff mechanism causing extended QPS recovery time after node failure",
   "issue_number": 7941,
   "title": "It takes 10 mins to recover QPS"
 }

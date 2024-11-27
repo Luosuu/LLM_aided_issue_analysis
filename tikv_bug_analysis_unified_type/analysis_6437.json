@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Storage",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect key encoding for RawGet when batch get request is enabled, causing potential data retrieval errors by inappropriately encoding raw keys that should remain unencoded",
   "issue_number": 6437,
   "title": "RawGet may be incorrect when get request batch is enabled"
 }

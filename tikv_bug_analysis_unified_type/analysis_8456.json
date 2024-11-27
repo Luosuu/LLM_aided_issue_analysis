@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential race condition or message loss during Raft split operation causing significant request vote message drops",
   "issue_number": 8456,
   "title": "Request vote messages are lost during split"
 }

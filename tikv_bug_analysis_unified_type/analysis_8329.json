@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore",
+  "severity": 2,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential race condition or inconsistent snapshot handling in lease read test, causing snapshot pointer comparison failure",
   "issue_number": 8329,
   "title": "Flaky test: raftstore::test_lease_read::test_node_batch_id_in_lease"
 }

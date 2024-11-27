@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "GarbageCollection",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Storage",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "SST file with large range containing keys with >100 versions prevents GC optimization, causing unnecessary scanning and CPU consumption during low write flow scenarios",
   "issue_number": 9216,
   "title": "TiKV's distributed GC may keep scanning and consuming CPU when there's very low write flow"
 }

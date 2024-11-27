@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Backup & Restore (BR) Component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Storage",
+    "Memory",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Missing region approximate size/keys tracking after data restoration, causing unexpected region splitting and memory pressure",
   "issue_number": 9520,
   "title": "BR will lead to the emergence of big regions with version v4.0.9"
 }

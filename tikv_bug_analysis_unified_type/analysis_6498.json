@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Configuration Parsing",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Config"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Serde deserialization lacks strict validation for configuration option names, allowing misspelled or invalid configuration keys to be silently ignored",
   "issue_number": 6498,
   "title": "Configuration validation doesn't find misspelled option names in config file"
 }

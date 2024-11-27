@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "pd-client",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "Network",
+    "CodeBug",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "gRPC connection handling failure during PD server restart, causing TiKV to be unable to re-establish communication and send region heartbeats",
   "issue_number": 7124,
   "title": "TiKV cannot send messages to PD after reconnect"
 }

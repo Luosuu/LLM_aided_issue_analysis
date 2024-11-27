@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Recovery"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect error handling for channel disconnection scenarios, potentially causing incorrect region removal and snapshot corruption",
   "issue_number": 7855,
   "title": "Channel disconnected error is not handled correctly"
 }

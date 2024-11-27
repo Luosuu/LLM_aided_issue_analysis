@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/apply_fsm",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition in peer/apply FSM destruction process where synchronous optimization can lead to register message being sent to an outdated apply FSM with mismatched peer ID",
   "issue_number": 8433,
   "title": "Optimization in peer/apply fsm destroy process may lead to a panic in apply fsm's register"
 }

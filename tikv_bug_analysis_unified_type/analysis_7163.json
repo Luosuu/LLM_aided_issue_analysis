@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "Backup and Restore (BR) component",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Storage",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect range handling during RawKV data restoration, where SST files are imported with keys outside the specified restoration range due to inclusive range interpretation",
   "issue_number": 7163,
   "title": "Restoring a subrange of backed up rawkv data may import keys that are out of range"
 }

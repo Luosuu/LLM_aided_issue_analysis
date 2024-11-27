@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "components/raftstore/src/store/worker/pd.rs",
+  "severity": 2,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Monitoring"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Metrics are updated for all leaders regardless of actual write activity, causing inaccurate representation of active written leaders",
   "issue_number": 8155,
   "title": "Active written leaders is wrong"
 }

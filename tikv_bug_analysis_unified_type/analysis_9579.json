@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft Consensus Module",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Uninitialized voter peer during region splitting can lead to inconsistent leader election state, potentially causing multiple leaders in the same term",
   "issue_number": 9579,
   "title": "The uninitialized voter which comes from splitting may lead to two same-term raft leaders"
 }

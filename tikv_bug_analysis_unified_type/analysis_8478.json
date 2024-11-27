@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "HTTP Server/Network Layer",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Invalid HTTP header name parsing issue in Hyper library, causing TiKV node to panic",
   "issue_number": 8478,
   "title": "TiKV nodes output FATAL log \"[FATAL] [lib.rs:499] [\"header name validated by httparse: InvalidHeaderName { _priv: () }\"]\""
 }

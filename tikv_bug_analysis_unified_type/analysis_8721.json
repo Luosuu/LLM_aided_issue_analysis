@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "RocksDB Storage Engine",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Storage",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Suboptimal compression strategy in RocksDB level compaction, where Level 6 files may accumulate uncompressed or poorly compressed data compared to lower levels",
   "issue_number": 8721,
   "title": "compression ratio of L6 is even smaller than L5/L4"
 }

@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft/Region Split Component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition during peer splitting where an uninitialized peer can incorrectly receive readiness messages intended for a split peer, causing potential message mapping and ready advancement errors",
   "issue_number": 9388,
   "title": "ready can be advanced by a wrong peer"
 }

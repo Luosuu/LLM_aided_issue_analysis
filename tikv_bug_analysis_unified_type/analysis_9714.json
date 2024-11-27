@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raft_client.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Network",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Excessive message batching causing gRPC message size limit exceeded, particularly with large numbers of raft log entries and replica read contexts",
   "issue_number": 9714,
   "title": "batch messages can be too large in new raft client implementation"
 }

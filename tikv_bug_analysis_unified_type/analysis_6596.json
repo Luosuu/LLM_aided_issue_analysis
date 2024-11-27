@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Recovery"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Leader hibernation prevents proper heartbeat communication, causing read index requests to be rejected when a replica restarts and cannot identify the current leader",
   "issue_number": 6596,
   "title": "raftstore: read index may fail after node restart"
 }

@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "concurrency_manager/lock_table",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Transaction",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Mutex deadlock during lock table manipulation caused by attempting to remove lock handles while holding a mutex lock, creating a potential circular dependency in lock removal process",
   "issue_number": 8576,
   "title": "Deadlock in the lock table"
 }

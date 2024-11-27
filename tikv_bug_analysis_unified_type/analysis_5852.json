@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raftstore",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incomplete peer state management during region split and learner peer lifecycle, causing stale region information and potential peer creation conflicts",
   "issue_number": 5852,
   "title": "Split may leave stale region info"
 }

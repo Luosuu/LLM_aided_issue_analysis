@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "GC Worker",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Monitoring",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Current alert rule does not account for scenarios with low or no data modification activity, causing false-positive alerts",
   "issue_number": 9910,
   "title": "the rule for TiKV_GC_can_not_work alert should be enhanced to check with GC speed instead of GC task"
 }

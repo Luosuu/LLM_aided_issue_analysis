@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/raft_log",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect handling of ReadIndex response term, causing invalid commit index check in Raft log",
   "issue_number": 7353,
   "title": "raft::raft_log::RaftLog<T>::commit_to paniked"
 }

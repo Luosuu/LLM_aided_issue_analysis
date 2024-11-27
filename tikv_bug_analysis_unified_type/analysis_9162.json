@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "storage/txn/latch.rs",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Bitwise AND (&) operator used for slot index calculation causing potential hash collision when computing latch slots",
   "issue_number": 9162,
   "title": "Slot collision on latch with and (&) operator"
 }

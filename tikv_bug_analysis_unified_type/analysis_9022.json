@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft Replication Component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Performance",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Interaction between region hibernation and learner replica creation during network isolation causes potential replica unavailability",
   "issue_number": 9022,
   "title": "Learner may not be created after a long time when enabling hibernate region"
 }

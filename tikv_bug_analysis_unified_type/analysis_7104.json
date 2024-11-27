@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "UUID mismatch during Raft peer state synchronization, causing a fatal assertion failure in the Raft store state machine",
   "issue_number": 7104,
   "title": "tikv panic"
 }

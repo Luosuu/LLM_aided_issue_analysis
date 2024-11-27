@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unhandled scenario where a newly created peer with empty region info receives a read request before applying snapshot, causing panic",
   "issue_number": 5875,
   "title": "Replica read may cause tikv panic"
 }

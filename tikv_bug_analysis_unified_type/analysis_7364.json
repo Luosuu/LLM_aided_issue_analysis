@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "storage/mvcc/txn.rs",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug",
+    "Replication"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect handling of rollback records during concurrent pessimistic transaction cleanup, allowing potential transaction atomicity violation by collapsing rollback records across different transaction",
   "issue_number": 7364,
   "title": "Txn: collapsing the rollback record of pessimistic lock could cause inconsistency"
 }

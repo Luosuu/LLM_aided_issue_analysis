@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "RaftStore",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Stale command during leader transfer, indicating potential race condition or synchronization issue in Raft leader transfer mechanism",
   "issue_number": 5411,
   "title": "Test test_server_pd_transfer_leader failed"
 }

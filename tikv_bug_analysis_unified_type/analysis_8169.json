@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Placement Driver (PD)",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Replication",
+    "Config",
+    "LoadBalance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Insufficient logic for handling replica removal during datacenter failure, potentially causing unintended region unavailability when changing max-replicas configuration",
   "issue_number": 8169,
   "title": "Change max replicas may cause region unavailable"
 }

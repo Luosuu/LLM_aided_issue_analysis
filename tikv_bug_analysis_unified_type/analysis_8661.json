@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Titan Storage Engine",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Storage",
+    "Replication",
+    "Recovery"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Race condition between UnsafeDestroyRange and concurrent snapshot generation when Titan blob files are being deleted, causing potential panic due to missing blob files",
   "issue_number": 8661,
   "title": "UnsafeDestroyRange may cause panic for a concurrent generating snap when Titan enabled"
 }

@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Raft/Follower Read Component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "Replication",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Unexpected response handling in batch receive loop during follower read operation, likely due to race condition or improper response processing",
   "issue_number": 7324,
   "title": "batchRecvLoop receives a unknown response when testing follower read"
 }

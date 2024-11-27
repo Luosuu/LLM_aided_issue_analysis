@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "gRPC client/server communication",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "Performance",
+    "Config"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Default gRPC message size limit (10MiB) is insufficient for batch gRPC operations where multiple messages can exceed the limit",
   "issue_number": 6727,
   "title": "The default size limit of grpc is too small after using batch grpc"
 }

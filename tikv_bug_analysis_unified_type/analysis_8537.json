@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "RaftStore",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Transaction"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Inconsistent peer configuration during region replication, causing a mismatch between expected and actual peer configuration",
   "issue_number": 8537,
   "title": "cases::test_gc_worker::test_notify_observer_after_apply will panic"
 }

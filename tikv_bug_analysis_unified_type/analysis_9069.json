@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "storage/mod.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incomplete handling of memory locks during batch key retrieval, causing premature return of results instead of processing all keys",
   "issue_number": 9069,
   "title": "batch_get doesn't return all results when encountering a memory lock"
 }

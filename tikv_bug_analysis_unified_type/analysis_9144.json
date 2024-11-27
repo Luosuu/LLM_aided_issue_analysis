@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "backup-restore component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Memory",
+    "CodeBug",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "In-memory SST writer accumulates entire region data without streaming or chunking, causing potential out-of-memory conditions for large regions",
   "issue_number": 9144,
   "title": "TiKV OOM because BR read a large region in memory"
 }

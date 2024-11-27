@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Backup/Restore Component",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Replication",
+    "Recovery"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Lack of proper leader selection and RPC error handling during backup process when a TiKV node is killed",
   "issue_number": 7857,
   "title": "Kill a tikv process when backup, br will exit quickly"
 }

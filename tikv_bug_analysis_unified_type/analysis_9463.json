@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "pd_client",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "Transaction",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Blocking PD leader update process causing gRPC threads to be unresponsive for extended period (>17s), triggering keepalive watchdog and disrupting service connections",
   "issue_number": 9463,
   "title": "Blocking PD leader update leads to gRPC keepalive watchdog fire and disrupts online service"
 }

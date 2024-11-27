@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "components/raftstore/split_controller.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect key encoding assumption for raw KV mode, causing regions to remain unsplit when they should be split based on load",
   "issue_number": 9613,
   "title": "load based split can't handle raw kv well"
 }

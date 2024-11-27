@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "storage/mvcc/reader",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Performance",
+    "Transaction",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "MvccTxn always uses expensive `seek` operation instead of more efficient `next` for traversing write records, causing unnecessary database seek overhead",
   "issue_number": 8229,
   "title": "MvccTxn can't make use of near_seek"
 }

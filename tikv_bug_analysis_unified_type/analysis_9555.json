@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Diagnostic Service",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Memory"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Stack overflow during hardware information collection, likely caused by recursive or deeply nested function calls in the sysinfo library when processing disk information",
   "issue_number": 9555,
   "title": "TiKV aborts when accesses hardware info"
 }

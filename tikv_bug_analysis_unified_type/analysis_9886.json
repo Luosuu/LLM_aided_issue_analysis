@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "encryption/file_dict_file.rs",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Storage",
+    "Security",
+    "Recovery"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Partial record write to encryption key file dictionary during disk full condition, causing checksum mismatch and startup panic",
   "issue_number": 9886,
   "title": "tikv can't startup after the disk is full"
 }

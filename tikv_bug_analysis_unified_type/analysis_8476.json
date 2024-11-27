@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "gRPC Connection Management",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Network",
+    "Performance",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Lack of connection backoff mechanism and inefficient DNS resolution strategy when nodes are down, causing excessive DNS queries",
   "issue_number": 8476,
   "title": "Too many dns queries when one node is down"
 }

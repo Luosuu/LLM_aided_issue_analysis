@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Transaction",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Transaction",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incorrect lock handling when mixing pessimistic and optimistic locks, causing read operations to be blocked unexpectedly",
   "issue_number": 7289,
   "title": "Optimistic lock blocks reads"
 }

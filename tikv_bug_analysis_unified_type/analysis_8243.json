@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "RocksDB Engine",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "Storage",
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "RocksDB block cache key conflict caused by Linux kernel inode generation number randomization, leading to incorrect block content reading during compaction",
   "issue_number": 8243,
   "title": "TiKV panic 'error: Corruption: L6 has overlapping ranges'"
 }

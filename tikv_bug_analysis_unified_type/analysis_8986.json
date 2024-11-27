@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "TiKV Coprocessor (tidb_query_vec_expr component)",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "UTF8 string comparison functions do not properly handle collation, causing incorrect string comparisons and potential performance/correctness issues",
   "issue_number": 8986,
   "title": "copr: UTF8 functions should consider collation"
 }

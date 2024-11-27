@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "Logger/Panic Handling",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Performance"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Potential race condition or premature thread termination in async logging mechanism that may prevent panic logs from being fully written before process exit",
   "issue_number": 8998,
   "title": "Panic log may be lost when using async logger"
 }

@@ -1,10 +1,11 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "logging/security module",
+  "severity": 4,
   "categories": [
-    "Unknown"
+    "Security",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incomplete implementation of log redaction mechanism, allowing sensitive information like user keys to be printed in logs even when redaction is enabled",
   "issue_number": 9249,
   "title": "security: not all logs being redact when log redaction is enabled"
 }

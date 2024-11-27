@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
-  "severity": 3,
+  "bug_location": "components/engine_rocks/src/engine_iterator.rs",
+  "severity": 5,
   "categories": [
-    "Unknown"
+    "CodeBug",
+    "Transaction",
+    "Storage"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Iterator invalidation during transaction prewrite, causing unexpected iterator state when checking for newer versions",
   "issue_number": 9913,
   "title": "tikv keep panicking at components/engine_rocks/src/engine_iterator.rs:39 "
 }

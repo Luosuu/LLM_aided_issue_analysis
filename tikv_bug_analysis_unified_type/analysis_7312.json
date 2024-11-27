@@ -1,10 +1,12 @@
 {
-  "bug_location": "Unknown",
+  "bug_location": "gRPC Client/TLS Negotiation",
   "severity": 3,
   "categories": [
-    "Unknown"
+    "Network",
+    "Config",
+    "CodeBug"
   ],
-  "root_cause": "N/A - Analysis failed",
+  "root_cause": "Incompatibility between TiKV's gRPC-rs library (disabled ALPN support) and PD server's TLS negotiation using newer Go versions that dropped NPN support",
   "issue_number": 7312,
   "title": "TiKV try to connect HTTP/1.x server"
 }
