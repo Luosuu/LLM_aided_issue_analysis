@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC/Resolved-TS",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Stale transaction lock preventing resolved timestamp progression, potentially caused by large row handling in CDC changefeed with claim-check option",
+  "issue_number": 15741,
+  "title": "TiKV resolved ts not stable when running workload with >1MB large rows"
+}

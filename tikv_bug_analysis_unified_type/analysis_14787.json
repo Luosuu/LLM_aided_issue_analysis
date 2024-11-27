@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Split/Snapshot Generation Component",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient handling of slow region splits in follower replica, triggering unnecessary snapshot generation when split operation takes longer than expected",
+  "issue_number": 14787,
+  "title": "[Dynamic Regions] A slow (>1s) split in follower may cause leader to generate a snapshot"
+}

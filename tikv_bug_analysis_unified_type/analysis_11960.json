@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/Region Leadership",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "During network loss or TiKV node failure, region leadership election process becomes blocked when a peer is applying snapshot, preventing new leader election and causing region unavailability",
+  "issue_number": 11960,
+  "title": "report \u201c9005: Region is unavailable\u201d while inject network loss fault for one tikv or down one of tikv or tikv rolling restart"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Outdated apply state during peer removal causing inconsistent snapshot version checks, potentially violating linearizability when processing follower read requests",
+  "issue_number": 16069,
+  "title": "raftstore: linearibilizy is broken when follower read is used"
+}

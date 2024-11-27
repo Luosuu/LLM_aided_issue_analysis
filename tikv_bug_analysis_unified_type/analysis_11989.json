@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Potential log synchronization issue during long-term node recovery, causing persistent log lag when Raft Engine is enabled",
+  "issue_number": 11989,
+  "title": "After a tikv fault (more than 30 minutes) is restored, the raft log lag has been chasing"
+}

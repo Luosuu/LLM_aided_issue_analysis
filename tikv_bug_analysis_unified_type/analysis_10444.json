@@ -1,0 +1,12 @@
+{
+  "bug_location": "Store Initialization",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Inefficient handling of tombstone regions during store restart, causing extensive time spent fetching and deleting raft entries",
+  "issue_number": 10444,
+  "title": "TiKV spend more than 20 minutes to (re)start"
+}

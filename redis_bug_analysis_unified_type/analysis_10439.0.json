@@ -1,0 +1,12 @@
+{
+  "bug_location": "RDB Persistence Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Recovery"
+  ],
+  "root_cause": "Improper error handling during RDB save process when shutdown command is received, causing a segmentation fault when unable to write to a read-only RDB file",
+  "issue_number": 10439.0,
+  "title": "[CRASH] Redis-Server Crashed after failed to save rdb when receive shutdown command"
+}

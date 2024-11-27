@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv::coprocessor::codec::mysql::Duration",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Improper handling of maximum negative i64 value during absolute value calculation, causing integer overflow when calling .abs()",
+  "issue_number": 4609,
+  "title": "Fuzz test failed for tikv::coprocessor::codec::mysql::Duration"
+}

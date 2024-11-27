@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) Checkpoint Mechanism",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Recovery",
+    "Replication"
+  ],
+  "root_cause": "Potential synchronization or state recovery issue during TiKV pod restart that causes significant checkpoint lag in PITR process",
+  "issue_number": 13616,
+  "title": "PITR checkpoint lag increases to ~2H after restarting TiKVs"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "backup-stream",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Memory",
+    "Transaction"
+  ],
+  "root_cause": "Memory quota semaphore gets stuck when processing large event sizes, potentially causing initial scanning queue to block",
+  "issue_number": 15714,
+  "title": "br: pitr-task stuck and log shows \"failed to get initial snapshot: failed to get the snapshot\""
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Socket Configuration",
+  "severity": 2,
+  "categories": [
+    "Config",
+    "Storage"
+  ],
+  "root_cause": "Redis does not automatically create the directory path for Unix socket configuration when the specified path does not exist, causing a 'No such file or directory' error during server startup",
+  "issue_number": 8081.0,
+  "title": "[BUG] \"No such file or directory\" error, when redis unixsocket does not exist"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream XREADGROUP command processing",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Timeout reset mechanism incorrectly resets blocking time when another client adds a message to the stream, causing the blocking time to extend beyond the specified timeout",
+  "issue_number": 12998.0,
+  "title": "[BUG] XREADGROUP block longer than timeout"
+}

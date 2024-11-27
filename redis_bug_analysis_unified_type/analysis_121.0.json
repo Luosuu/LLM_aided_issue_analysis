@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Routing/Migration Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during hash slot migration where multiple nodes can handle queries for the same slot, potentially causing inconsistent state during key transfers between nodes",
+  "issue_number": 121.0,
+  "title": "Redis Cluster: implement the ASKING command"
+}

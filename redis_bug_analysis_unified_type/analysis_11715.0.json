@@ -1,0 +1,12 @@
+{
+  "bug_location": "server.c tracking mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Memory"
+  ],
+  "root_cause": "Potential race condition or memory management issue in Redis client tracking system, likely related to multi-exec transactions and tracking table size approaching limits (tracking_total_keys near 1 million)",
+  "issue_number": 11715.0,
+  "title": "[CRASH] server.c:2442 'listLength(server.tracking_pending_keys) == 0' is not true"
+}

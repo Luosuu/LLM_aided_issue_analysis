@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module System",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Potential unintended command propagation due to server.dirty flag being set during module write operations in notifications, which could cause unexpected replication of commands",
+  "issue_number": 10014.0,
+  "title": "[BUG] Modules + notifications may cause unwanted propagation"
+}

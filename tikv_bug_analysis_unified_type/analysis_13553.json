@@ -1,0 +1,12 @@
+{
+  "bug_location": "Snapshot/Region",
+  "severity": 5,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Race condition between snapshot taking and region configuration change, potentially causing incomplete data snapshot due to incorrect ordering of lease check and snapshot operations",
+  "issue_number": 13553,
+  "title": "Batch snapshot is unsound"
+}

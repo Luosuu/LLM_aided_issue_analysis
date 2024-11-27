@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Slot Management",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent key distribution and slot mapping in Redis Cluster, where keys exist in a node without corresponding slot ownership, causing MOVED errors and potential data integrity issues",
+  "issue_number": 11011.0,
+  "title": "[BUG][QUESTION]rediscluster  node  no slot but have keys \uff0c the keys can scan it ,But when reading, it will ask for move"
+}

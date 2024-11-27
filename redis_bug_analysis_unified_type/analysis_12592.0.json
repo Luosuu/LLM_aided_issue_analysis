@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli client interface",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Redis CLI does not automatically exit pubsub mode when all channel subscriptions are removed, despite receiving zero subscription count in unsubscribe response",
+  "issue_number": 12592.0,
+  "title": "[BUG] redis-cli doesn't auto exit from subscribed mode on reaching zero subscription"
+}

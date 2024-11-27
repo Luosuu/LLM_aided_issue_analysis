@@ -1,0 +1,12 @@
+{
+  "bug_location": "GC Worker",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "GcKeys tasks blocking UnsafeDestroyRange requests, causing excessive GC processing time and potential system stall",
+  "issue_number": 11752,
+  "title": "GcKeys tasks in GC worker block UnsafeDestroyRange requests and make GC stuck"
+}

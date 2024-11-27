@@ -1,0 +1,12 @@
+{
+  "bug_location": "Client Write Handling / IO Threads",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect client write handling logic in multi-threaded IO scenario, causing write events to not be properly processed when multiple file descriptors need replies",
+  "issue_number": 10509.0,
+  "title": "[BUG] IO threads not work well in  many fds which are need to reply\u3002such as feed 100 replicas "
+}

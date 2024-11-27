@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark.c",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Incorrect range parameter in LRANGE benchmark command, where 0-449 is used instead of the intended 0-499 range, potentially affecting benchmark accuracy and performance measurement",
+  "issue_number": 3334.0,
+  "title": "redis-benchmark.c lrange with possibly wrong range parameter "
+}

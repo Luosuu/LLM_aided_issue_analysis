@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Client Redirection Logic",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "The `clusterRedirectBlockedClientIfNeeded` function does not correctly handle blocking read operations on replica nodes in readonly mode, causing unintended redirects to master nodes",
+  "issue_number": 7877.0,
+  "title": "[BUG] Blocking reads don't work on Redis Cluster replica nodes"
+}

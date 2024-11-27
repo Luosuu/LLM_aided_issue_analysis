@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Store/IO Scheduler",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "LoadBalance"
+  ],
+  "root_cause": "Slow store recovery mechanism not efficiently handling IO hang scenarios, causing extended QPS recovery time beyond expected 2 minutes",
+  "issue_number": 13524,
+  "title": "qps recovery after 15min when one tikv io hang"
+}

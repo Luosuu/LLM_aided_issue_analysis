@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) Component",
+  "severity": 5,
+  "categories": [
+    "Memory",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "CDC tasks piling up in channel, with 'old_value_cb' holding snapshots and slowing down processing, leading to memory exhaustion when Titan storage is enabled and region sizes are large",
+  "issue_number": 17696,
+  "title": "TiDB latency not stable and TiKV OOM if running cdc changefeed when titan is on and average region size is large"
+}

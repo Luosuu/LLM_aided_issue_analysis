@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark tool",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "The SADD benchmark implementation uses a fixed 'element:__rand_int__' pattern instead of generating random data members with the specified data size (-d parameter)",
+  "issue_number": 10607.0,
+  "title": "[BUG] redis-benchmark `SADD` not using data for member elements"
+}

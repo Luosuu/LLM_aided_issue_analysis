@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction Scheduler",
+  "severity": 2,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Unnecessary thread CPU time collection even when QuotaLimiter auto-tune is disabled, causing performance overhead in critical transaction processing paths",
+  "issue_number": 13055,
+  "title": "ThreadTime is collected accidentally even if QuotaLimiter auto-tune is disabled"
+}

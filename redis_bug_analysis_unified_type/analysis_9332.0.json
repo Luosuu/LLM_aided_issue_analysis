@@ -1,0 +1,11 @@
+{
+  "bug_location": "hiredis.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Potential NULL pointer dereference in sdsempty() function where return value is not checked before being used, which could lead to a segmentation fault when calling sdslen() on a NULL pointer",
+  "issue_number": 9332.0,
+  "title": "[BUG]A potential bug of NULL pointer dereference"
+}

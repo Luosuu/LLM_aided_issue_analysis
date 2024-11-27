@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore-v2/operation/command/admin/merge",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Assertion failure when merging regions due to missing availability context, likely caused by version incompatibility between TiKV and TiFlash",
+  "issue_number": 15151,
+  "title": "[Dynamic Regions] tikv crash for assertion failed: resp.has_availability_context() with tiflash"
+}

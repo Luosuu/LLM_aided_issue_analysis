@@ -1,0 +1,10 @@
+{
+  "bug_location": "redis-trib.rb resharding algorithm",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect slot allocation algorithm in ruby script that uses ceiling rounding only for the first node, causing uneven slot distribution when total slots are not perfectly divisible",
+  "issue_number": 2990.0,
+  "title": "redis-trib.rb reshard bug"
+}

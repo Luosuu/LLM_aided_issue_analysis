@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv::coprocessor::dag::expr::builtin_compare::ScalarFunc::in_string",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient string comparison algorithm for IN clause with multiple string values, causing linear time complexity and repeated string evaluations",
+  "issue_number": 3977,
+  "title": "in_string can be very slow"
+}

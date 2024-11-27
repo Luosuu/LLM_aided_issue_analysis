@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 5,
+  "categories": [
+    "Memory",
+    "Performance",
+    "Replication"
+  ],
+  "root_cause": "Memory leak in entry cache with potential race condition during dynamic region operations, causing unbounded memory growth during high-load TPC-C workload",
+  "issue_number": 14798,
+  "title": "[Dynamic Regions] memory of entry cache keep increasing and raftstore race condition and oom"
+}

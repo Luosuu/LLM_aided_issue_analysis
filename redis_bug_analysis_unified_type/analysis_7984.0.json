@@ -1,0 +1,11 @@
+{
+  "bug_location": "dict.c - dictGenericDelete method",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Potential use-after-free scenario where a memory pointer is freed and then potentially returned or accessed, which could lead to undefined behavior if not carefully managed",
+  "issue_number": 7984.0,
+  "title": "[BUG] Possible use-after-free bug on the method dictGenericDelete??"
+}

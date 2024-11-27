@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Lua Script Execution Handler",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Event handler for long-running Lua scripts is not properly restored after script execution, causing the client connection to become unresponsive and unable to read further commands",
+  "issue_number": 872.0,
+  "title": "Slow EVAL command cause the link unusable"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Memory Management/Defragmentation Component",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Redis uses `ustime()` which relies on system time, causing memory defragmentation to fail when system time is artificially set back to 1990, preventing proper memory purge and leading to increasing memory fragmentation ratio",
+  "issue_number": 12595.0,
+  "title": "[BUG]No memory purge with time back to 1990"
+}

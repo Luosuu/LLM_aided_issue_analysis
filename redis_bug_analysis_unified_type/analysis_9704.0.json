@@ -1,0 +1,11 @@
+{
+  "bug_location": "rdb.c, rdbLoadRio() function",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "CodeBug"
+  ],
+  "root_cause": "Memory leak when module auxiliary load fails, where allocated io.ctx is not properly freed if an error occurs during module loading",
+  "issue_number": 9704.0,
+  "title": "[BUG] Possible memory leak in rdb.c, rdbLoadRio()"
+}

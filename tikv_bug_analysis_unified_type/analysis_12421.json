@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Performance bottleneck during region merge caused by excessive tombstone seeks in RocksDB's clean_stale_ranges operation",
+  "issue_number": 12421,
+  "title": "Take more than 5 hours to merge empty region after drop 6T data"
+}

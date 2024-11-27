@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/apply",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Inconsistent commit state causing region state jump backward, potentially due to race condition or incorrect state synchronization in Raft apply process",
+  "issue_number": 11396,
+  "title": "two tikv crash repeatly after run some stress workload"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis I/O Threading Mechanism",
+  "severity": 2,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "I/O threads are not automatically activated under low request throughput, requiring a minimum request volume to justify multi-threading overhead",
+  "issue_number": 8115.0,
+  "title": "[BUG]redis6 enable multi-io-thread,but not worked all still work on main thread"
+}

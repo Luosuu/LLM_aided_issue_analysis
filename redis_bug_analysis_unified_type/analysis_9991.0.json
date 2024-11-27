@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication and Persistence Subsystem",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Single fork lock mechanism prevents persistence operations when continuous replication sync requests are made, causing persistence mechanisms to be starved by a faulty slave continuously requesting full synchronization",
+  "issue_number": 9991.0,
+  "title": "[BUG] Slave continuously issuing a full sync can starve persistence related forks on master"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) endpoint",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Unexpected handling of downstream deregistration with a 'Noop' transaction extra operation, causing an unwrap() panic in the CDC endpoint's deregistration logic",
+  "issue_number": 10118,
+  "title": "CDC panic on deregister downstream"
+}

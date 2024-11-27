@@ -1,0 +1,12 @@
+{
+  "bug_location": "TLS Metrics",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Monitoring"
+  ],
+  "root_cause": "Thread-local metrics are not consistently flushed across different thread pools, causing potential data loss and unreliable metrics collection, especially in async/await contexts where thread executio",
+  "issue_number": 12562,
+  "title": "tls metrics is not reliable"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/replica_read",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition in stale read state synchronization during failpoint testing, causing potential inconsistent read index message handling",
+  "issue_number": 17654,
+  "title": "Flaky test `tests::failpoints cases::test_replica_stale_read::test_update_apply_index_before_sync_read_state`"
+}

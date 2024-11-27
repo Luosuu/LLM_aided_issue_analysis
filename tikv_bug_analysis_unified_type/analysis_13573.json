@@ -1,0 +1,12 @@
+{
+  "bug_location": "RawKV",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition in atomic compare-and-swap operations during network/node failures, causing potential inconsistent state when retrying operations",
+  "issue_number": 13573,
+  "title": "rawkv: correctness violation for raw atomic commands"
+}

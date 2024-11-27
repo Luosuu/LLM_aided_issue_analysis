@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Improper event handling after encountering an EventError, allowing unfinished incremental scans to continue emitting events to downstream",
+  "issue_number": 17233,
+  "title": "cdc: no more any events should be emit to a downstream after it retrieves an event error"
+}

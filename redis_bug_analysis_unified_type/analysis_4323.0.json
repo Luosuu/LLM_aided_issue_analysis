@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis slowlog and lazyfree components",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition between slowlog entry reference counting and background lazy free thread, potentially causing memory leaks when shared string objects are deleted asynchronously",
+  "issue_number": 4323.0,
+  "title": "Redis 4.x lazyfree: memory leak may happen when free slowlog entry"
+}

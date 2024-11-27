@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Configuration Parsing",
+  "severity": 4,
+  "categories": [
+    "Upgrade",
+    "Config",
+    "Storage"
+  ],
+  "root_cause": "RocksDB configuration option introduced in newer version cannot be parsed by older TiKV versions during rollback, causing option parsing failure",
+  "issue_number": 11226,
+  "title": "TiKV rollback encounters panic \"failed to load_latest_options\""
+}

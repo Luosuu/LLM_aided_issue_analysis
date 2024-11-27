@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Replication"
+  ],
+  "root_cause": "Inefficient log compaction and purging mechanism for follower Raft logs, causing extremely slow recovery when large numbers of log files accumulate",
+  "issue_number": 12011,
+  "title": "follower Raft logs cannot be force compacted and purged by Raft Engine"
+}

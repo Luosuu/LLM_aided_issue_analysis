@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua Scripting / TimeSeries Module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "RESP2 vs RESP3 protocol inconsistency in type representation of numeric values, specifically doubles, when returned from TS.REVRANGE command in Lua scripting environment",
+  "issue_number": 13406.0,
+  "title": "[BUG] TS.REVRANGE return value is table type [LUA]"
+}

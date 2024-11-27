@@ -1,0 +1,12 @@
+{
+  "bug_location": "MVCC/RocksDB Compaction Layer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "MVCC versions are not being efficiently purged during read-heavy workloads, causing excessive iterator overhead and performance degradation",
+  "issue_number": 12729,
+  "title": "the invisible mvcc versions are not purged by gc"
+}

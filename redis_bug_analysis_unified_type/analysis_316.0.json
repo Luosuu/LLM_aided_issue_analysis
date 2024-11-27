@@ -1,0 +1,12 @@
+{
+  "bug_location": "scripting.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Lua's redis.call() bypasses standard command execution path, which prevents proper tracking of command statistics, dirty counter, and slow log population",
+  "issue_number": 316.0,
+  "title": "Lua's redis.call() does not increment the dirty counter"
+}

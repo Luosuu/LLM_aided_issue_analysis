@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Replication"
+  ],
+  "root_cause": "Leader fails to set 'ready' state after serving read index request, causing follower read response to be delayed until next heartbeat",
+  "issue_number": 14786,
+  "title": "[Dynamic Regions] Follower read may be slow when leader is in idle."
+}

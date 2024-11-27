@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Expiration Command Handler (expireGenericCommand)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Transaction"
+  ],
+  "root_cause": "Integer overflow when calculating expiration time for extremely large time values, causing undefined behavior and potential unintended key deletion",
+  "issue_number": 8032.0,
+  "title": "[BUG] expireGenericCommand overflow time and The key is deleted by mistake"
+}

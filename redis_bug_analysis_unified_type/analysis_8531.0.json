@@ -1,0 +1,11 @@
+{
+  "bug_location": "zmalloc.c preprocessing stage",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Preprocessor macro definition fails when HAVE_MALLOC_SIZE is not defined, causing compilation error due to incorrect handling of sizeof keyword in conditional compilation",
+  "issue_number": 8531.0,
+  "title": "[BUG] Redis fails to compile if HAVE_MALLOC_SIZE is not defined"
+}

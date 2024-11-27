@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Region Split Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Region split operation not handling joint consensus state correctly, causing potential deadlock during concurrent leader transfer and region split operations",
+  "issue_number": 17602,
+  "title": "BatchSplit hang at joint state when execute `BatchSplit` and `move-hot-read-leader` at same time"
+}

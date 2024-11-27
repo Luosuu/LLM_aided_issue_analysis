@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Client/Pipeline Operation",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "Memory",
+    "CodeBug"
+  ],
+  "root_cause": "Potential race condition or timing issue during pipeline execution where key might be created but not fully persisted before subsequent get operation",
+  "issue_number": 11091.0,
+  "title": "[BUG]incr and get command return not equal"
+}

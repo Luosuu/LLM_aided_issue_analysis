@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/snapshot_sender",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Performance",
+    "Replication"
+  ],
+  "root_cause": "Lack of timeout mechanism for snapshot transfer, potentially causing leader transfer and replication to stall in slow network conditions",
+  "issue_number": 16435,
+  "title": "raftstore: Add a timeout mechanism on snapshot send"
+}

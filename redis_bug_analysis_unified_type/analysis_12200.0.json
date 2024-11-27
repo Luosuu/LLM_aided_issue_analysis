@@ -1,0 +1,12 @@
+{
+  "bug_location": "Set operations (t_set.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Potential infinite loop in SRANDMEMBER command during dictionary rehashing, likely caused by a combination of dictionary resize prevention and uneven key distribution during background save operations",
+  "issue_number": 12200.0,
+  "title": "[BUG] Hang in SRANDMEMBER call during CoW fork saving"
+}

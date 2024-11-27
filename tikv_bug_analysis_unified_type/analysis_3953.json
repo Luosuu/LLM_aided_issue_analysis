@@ -1,0 +1,11 @@
+{
+  "bug_location": "coprocessor/codec/mysql/time",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Chrono library's datetime handling does not support zero month/day values, causing unexpected datetime conversion when parsing '0000-00-00' timestamp",
+  "issue_number": 3953,
+  "title": "copr/codec/mysql/time: invalid_zero function isn't working as expected."
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Command (XREAD)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Feature introduced in Redis 7.4 with syntax change from 'STREAM' to 'STREAMS', not compatible with earlier versions. Requires version upgrade to use '+' special operator for reading last stream item.",
+  "issue_number": 13472.0,
+  "title": "[BUG] Getting last item from stream with XREAD + special operator returns error"
+}

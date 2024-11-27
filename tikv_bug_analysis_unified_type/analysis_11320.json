@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "Synchronous log entry fetching blocks RaftStore processing, causing high latency during node recovery and network fault scenarios",
+  "issue_number": 11320,
+  "title": "Raft should fetch log entries in async way"
+}

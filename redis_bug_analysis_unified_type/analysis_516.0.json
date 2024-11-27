@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Intersection Operation (zinterstore)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Regression in zinterstore implementation that breaks intersection logic when mixing sets and sorted sets, specifically affecting versions 2.4.13 and 2.6 RC, causing inconsistent intersection results",
+  "issue_number": 516.0,
+  "title": "zinterstore fails when mixing sets and sorted sets"
+}

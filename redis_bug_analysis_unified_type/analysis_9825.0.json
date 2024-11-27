@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Expiration Handling",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent integer overflow handling between SETEX and EXPIRE commands, where EXPIRE fails to properly validate large expiration times that cause numeric overflow",
+  "issue_number": 9825.0,
+  "title": "[BUG] EXPIRE and SETEX have inconsistent overflow handling"
+}

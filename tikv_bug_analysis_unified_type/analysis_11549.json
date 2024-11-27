@@ -1,0 +1,12 @@
+{
+  "bug_location": "PD Worker Thread",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Potential mutex deadlock in PD worker thread synchronization mechanism, likely related to timer thread blocking for over 500ms",
+  "issue_number": 11549,
+  "title": "TiKV PD worker thread deadlocks"
+}

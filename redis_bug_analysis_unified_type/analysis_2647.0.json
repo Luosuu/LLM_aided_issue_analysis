@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Eviction Algorithm",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "LRU eviction algorithm samples keys per database, causing uneven and potentially unexpected key evictions across multiple databases, especially when database sizes are unbalanced",
+  "issue_number": 2647.0,
+  "title": "Unexpected evictions with LRU policy"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Compaction/Region Management",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Current compaction threshold mechanism does not adequately handle regions with large MVCC versions and large key-value sizes, preventing effective region splitting and compaction",
+  "issue_number": 15282,
+  "title": "Improve compaction check mechanism"
+}

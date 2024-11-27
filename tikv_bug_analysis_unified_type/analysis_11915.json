@@ -1,0 +1,11 @@
+{
+  "bug_location": "GC Worker",
+  "severity": 2,
+  "categories": [
+    "Performance",
+    "Monitoring"
+  ],
+  "root_cause": "Incorrect tracking of pending garbage collection tasks, where the counter represents increments rather than the actual current total number of pending tasks",
+  "issue_number": 11915,
+  "title": "gc-worker pending tasks can not represent the current total number of real pending but the number of increments "
+}

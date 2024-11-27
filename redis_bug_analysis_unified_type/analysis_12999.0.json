@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Replication",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "Upgrade"
+  ],
+  "root_cause": "During a master failover, the newly attached slave node fails to correctly update its replication target, potentially remaining attached to the old master node instead of the new master node",
+  "issue_number": 12999.0,
+  "title": "[BUG] Slave node attached to a slave node instead of a master node during upgrade. "
+}

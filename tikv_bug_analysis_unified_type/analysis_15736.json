@@ -1,0 +1,12 @@
+{
+  "bug_location": "Storage/LockCF",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Increased write_buffer_size and write_buffer_limit for lockcf negatively impacts read-write workloads with multiple MVCC versions, causing performance regression in insert/update + scan operations",
+  "issue_number": 15736,
+  "title": "[Dynamic Regions] Compared with v7.3.0, workloads with insert/update + scan operations have a 32% ~ 77% performance regression in v7.4.0"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Module Loading System",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Security"
+  ],
+  "root_cause": "Incomplete module unregistration when module loading fails during RedisModule_OnLoad, causing event callbacks to be triggered with an invalid module context",
+  "issue_number": 12808.0,
+  "title": "[BUG] Module's events are called though module load had failed"
+}

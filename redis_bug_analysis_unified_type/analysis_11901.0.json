@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Blocking Operations (bzpopmin)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Potential floating-point precision issue causing incorrect timeout calculation in blocking pop operation, preventing expected non-blocking behavior when a very small timeout is specified",
+  "issue_number": 11901.0,
+  "title": "[BUG] bzpopmin foo 0.001 blocks forever"
+}

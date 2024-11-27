@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/store",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Index out of bounds error during table splitting operation, likely caused by an array access violation in the StoreFsmDelegate handler",
+  "issue_number": 16885,
+  "title": "tikv panic when run sysbench and split table"
+}

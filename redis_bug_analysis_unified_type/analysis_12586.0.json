@@ -1,0 +1,12 @@
+{
+  "bug_location": "jemalloc memory allocation component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Incompatibility with 16kb page size on aarch64 architecture, where jemalloc's default configuration does not support larger system page sizes",
+  "issue_number": 12586.0,
+  "title": "[BUG] Unable to start when using 16kb pages on aarch64"
+}

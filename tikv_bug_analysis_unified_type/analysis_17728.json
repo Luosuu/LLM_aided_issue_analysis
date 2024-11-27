@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect resolved-ts calculation where commit_ts could potentially equal min_commit_ts, violating the resolved-ts definition requirement of commit_ts being strictly greater than resolved_ts",
+  "issue_number": 17728,
+  "title": "Resolved-ts must be strictly smaller than locks' min_commit_ts when calculating it"
+}

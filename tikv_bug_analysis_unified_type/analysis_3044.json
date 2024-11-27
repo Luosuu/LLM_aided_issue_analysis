@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/util.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Monitoring"
+  ],
+  "root_cause": "Potential timing/clock synchronization issue causing inconsistent lease state detection, possibly related to monotonic time measurement or thread sleep precision",
+  "issue_number": 3044,
+  "title": "thread 'raftstore::store::util::tests::test_lease' panicked at 'assertion failed"
+}

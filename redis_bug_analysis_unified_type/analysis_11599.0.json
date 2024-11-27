@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Network Configuration",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "Unexpected port binding behavior when `port 0` is configured, automatically selecting port 10000 instead of truly disabling non-TLS port",
+  "issue_number": 11599.0,
+  "title": "[BUG] Setting `port 0` maybe disables listening, but will instead bind `port 10000` for some reason"
+}

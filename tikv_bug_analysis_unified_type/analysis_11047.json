@@ -1,0 +1,12 @@
+{
+  "bug_location": "server/service/kv.rs",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Improper error handling when Raft channel becomes full, causing RPC stream disruption and potential cluster instability",
+  "issue_number": 11047,
+  "title": "Channel full could break the raft connection"
+}

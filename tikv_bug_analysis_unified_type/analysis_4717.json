@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/peer.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "Early error return in message sending logic causing potential message loss and communication disruption in Raft replication",
+  "issue_number": 4717,
+  "title": "Sending messages should be more tolerant"
+}

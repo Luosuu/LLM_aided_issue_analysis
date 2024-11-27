@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during peer destruction and snapshot processing, where a peer's metadata is removed while a snapshot message is still being processed",
+  "issue_number": 17469,
+  "title": "raftstore: TiKV panics due to self was destroyed from meta during receiving snapshot"
+}

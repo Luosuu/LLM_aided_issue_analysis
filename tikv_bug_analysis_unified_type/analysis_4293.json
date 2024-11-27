@@ -1,0 +1,11 @@
+{
+  "bug_location": "coprocessor/endpoint.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Error handling logic fails to propagate parsing errors, instead wrapping them in a dummy handler which leads to incorrect error reporting",
+  "issue_number": 4293,
+  "title": "coprocessor: parsing error is never returned"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "TiKV JSON Function Processing",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Insufficient validation of JSON path expressions during json_length() function processing, allowing invalid wildcard path syntax",
+  "issue_number": 16495,
+  "title": "An exception should be thrown for `json_length(col, '$.*')`"
+}

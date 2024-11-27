@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/failpoints",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition in stale read test with failpoint, causing async write callback to be dropped unexpectedly",
+  "issue_number": 17497,
+  "title": "Flaky test tests::failpoints cases::test_replica_stale_read::test_update_apply_index_before_sync_read_state"
+}

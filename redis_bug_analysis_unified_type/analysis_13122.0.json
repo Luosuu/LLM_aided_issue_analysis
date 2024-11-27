@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Migration",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Blocking MIGRATE command for large hash keys (300 MB, 3 million fields) causes extended execution time, triggering Redis node timeout and unintended failover",
+  "issue_number": 13122.0,
+  "title": "[BUG] Migrate hashes with million of keys timeout, and causes failover"
+}

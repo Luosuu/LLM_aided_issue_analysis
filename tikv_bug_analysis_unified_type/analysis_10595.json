@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Consensus Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Unsafe configuration change handling in 2-replica Raft groups that can lead to leader destruction and region unavailability during voter removal",
+  "issue_number": 10595,
+  "title": "Remove voter from a 2 replica raft group may lead to region unavailable"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Management",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Network",
+    "Config"
+  ],
+  "root_cause": "Race condition in cluster node synchronization where gossip protocol has not fully propagated the new master node's ID before attempting to add a slave node",
+  "issue_number": 11877.0,
+  "title": "[BUG]  Join some new nodes to the cluster error"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "backup-stream/utils/wait_group",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition in CallbackWaitGroup implementation where a stale notification can incorrectly signal task completion before all tasks are actually finished, potentially causing data loss during backup",
+  "issue_number": 16739,
+  "title": "log_backup: the type `CallbackWaitGroup` is error-prone"
+}

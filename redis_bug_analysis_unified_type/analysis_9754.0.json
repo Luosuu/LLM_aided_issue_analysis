@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Stream Persistence/RDB Loading",
+  "severity": 3,
+  "categories": [
+    "Storage",
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Potential memory management or stream state corruption when loading streams with maxlen configuration from RDB files, causing client-side crashes during subsequent XADD operations",
+  "issue_number": 9754.0,
+  "title": "[BUG] loading redis streams with maxlen from .rdb"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "networking.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Null pointer dereference in addReplySubcommandSyntaxError function when processing commands containing '|' character, causing a segmentation fault when attempting to access c->argv[1] which is not properly initialized",
+  "issue_number": 10070.0,
+  "title": "[CRASH] SIGSEGV in addReplySubcommandSyntaxError at networking.c:966"
+}

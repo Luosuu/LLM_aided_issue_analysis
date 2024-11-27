@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Key Eviction Algorithm",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Current key eviction algorithm selects keys uniformly across databases, causing disproportionate eviction in smaller databases when multiple databases are used with different key volumes",
+  "issue_number": 1674.0,
+  "title": "[BUG] Eviction policy with multiple databases."
+}

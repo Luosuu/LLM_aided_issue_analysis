@@ -1,0 +1,12 @@
+{
+  "bug_location": "Transaction Scheduler",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Uncontrolled memory accumulation of blocked `check_secondary_locks` RPCs on transaction latches during slow raftstore operations",
+  "issue_number": 16234,
+  "title": "TiKV txn scheduler may cause OOM when raftstore runs slow"
+}

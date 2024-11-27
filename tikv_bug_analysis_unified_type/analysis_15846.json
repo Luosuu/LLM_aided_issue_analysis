@@ -1,0 +1,12 @@
+{
+  "bug_location": "GC Worker",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Recovery"
+  ],
+  "root_cause": "TiKV cannot perform garbage collection when disk capacity is near full, causing write operations and GC processes to fail due to resource constraints",
+  "issue_number": 15846,
+  "title": "gc can not work when disk capacity is near full"
+}

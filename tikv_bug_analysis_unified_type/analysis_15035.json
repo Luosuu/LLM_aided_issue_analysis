@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore/LeaseRead",
+  "severity": 5,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Lease invalidation mechanism fails during node isolation and restart scenarios, allowing potential concurrent leaders with invalid lease validation",
+  "issue_number": 15035,
+  "title": "Leader holds an invalid lease if one node is isolated and one node restarts"
+}

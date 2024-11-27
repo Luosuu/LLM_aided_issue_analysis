@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Scripting (Lua) Component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "In RESP3 map reply implementation, the key and value are being returned in an inverted order during Lua script execution, which breaks expected map/dictionary behavior and could potentially cause data interpretation errors",
+  "issue_number": 8253.0,
+  "title": "[BUG] RESP3 map reply in scripts have key and value inverted"
+}

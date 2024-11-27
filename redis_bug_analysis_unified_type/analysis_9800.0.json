@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module (hellocluster.so)",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "CodeBug"
+  ],
+  "root_cause": "Memory leak in PingReceiver callback function where RedisModuleCallReply is not freed after calling RedisModule_Call()",
+  "issue_number": 9800.0,
+  "title": "[BUG] A memory leak in the example module \"hello cluster\""
+}

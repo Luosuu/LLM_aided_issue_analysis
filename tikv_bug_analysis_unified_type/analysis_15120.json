@@ -1,0 +1,12 @@
+{
+  "bug_location": "Follower Read/Stale Read Component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "When a TiKV node recovers after a long network partition, follower-read requests cannot be served due to significant log replication lag, causing extended QPS drop while waiting for log synchronizatio",
+  "issue_number": 15120,
+  "title": "enable stale read and closest-replicas\uff0csimulate one of tikv network partition last for 50min\uff0cqps drop to zero for more than 1h after fault recover"
+}

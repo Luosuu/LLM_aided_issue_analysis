@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication Component",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "During disk-based replication, the master's Copy-On-Write (COW) buffer accumulates memory without terminating the RDB saving process when replica connections are closed, leading to potential Out of Memory (OOM) conditions",
+  "issue_number": 7717.0,
+  "title": "[BUG] Disk Based Replication Causing OOM in Master (v6.0.5)"
+}

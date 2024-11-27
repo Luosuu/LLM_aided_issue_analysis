@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Storage Engine",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Upgrade"
+  ],
+  "root_cause": "Incompatibility between RocksDB versions causing unexpected bottommost compactions that degrade performance in sysbench oltp_update_index workload",
+  "issue_number": 13095,
+  "title": "commit b558d0 causing 7%~14% performance degradation for sysbench oltp_update_index workload"
+}

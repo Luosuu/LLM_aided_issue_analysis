@@ -1,0 +1,13 @@
+{
+  "bug_location": "networking.c and tls.c interaction with IO threads",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Race condition in handling SSL pending data when IO threads are enabled with TLS, causing double client free and potential memory corruption during connection closure",
+  "issue_number": 12540.0,
+  "title": "[CRASH] Double freeClient() when io-threads-do-reads and TLS are enabled"
+}

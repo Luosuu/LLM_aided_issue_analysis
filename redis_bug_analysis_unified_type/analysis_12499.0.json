@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Set Scanning (SSCAN) Implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Changes in encoding mechanism for sets in Redis 7.2, specifically the introduction of listpack encoding, which affects the SSCAN cursor behavior for sets with more than a certain number of elements",
+  "issue_number": 12499.0,
+  "title": "[BUG]"
+}

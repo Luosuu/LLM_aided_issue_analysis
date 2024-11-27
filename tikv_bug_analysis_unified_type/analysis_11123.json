@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) component, specifically in delegate.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Race condition during region epoch handling and downstream connection management, causing a panic when a region loses its downstream connection unexpectedly",
+  "issue_number": 11123,
+  "title": "CDC panic \"region 298252 miss downstream\""
+}

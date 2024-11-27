@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Request Handling",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Potential region epoch synchronization issue causing stale command errors during large table analyze operation, with multiple region replicas experiencing leadership and term inconsistencies",
+  "issue_number": 15566,
+  "title": "[Dynamic Regions] Analyze table failed: [tikv:9005] Region is unavailable"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "src/server.c:serverLogRaw",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Potential buffer overflow risk if `level` parameter is manipulated outside of expected range, despite current code design assuming controlled input",
+  "issue_number": 11418.0,
+  "title": "[BUG] Potential buffer overrun in serverLog"
+}

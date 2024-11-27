@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Compaction Layer",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Default compaction guard minimum output file size (8MB) is too large, causing ineffective compaction filtering and potentially triggering massive data compaction when Time-To-Live (TTL) is enabled",
+  "issue_number": 14888,
+  "title": "compaction-guard-min-output-file-size default value 8MB is too big that could leads to huge compaction"
+}

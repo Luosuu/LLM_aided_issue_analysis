@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Heartbeat Mechanism",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Config",
+    "Replication"
+  ],
+  "root_cause": "Fixed 10-second delay before sending first heartbeat to PD after TiKV service startup, causing scheduling delays during rolling upgrades",
+  "issue_number": 13627,
+  "title": "Send heartbeat to PD as soon as the service is ready"
+}

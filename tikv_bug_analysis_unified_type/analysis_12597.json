@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Split/Coprocessor",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Region splitting configuration may not be triggering splits for large regions as expected, potentially due to interaction between batch-split-limit, region-max-size, and region-split-size parameters",
+  "issue_number": 12597,
+  "title": "[Dynamic Region] Some large regions did not split as expected"
+}

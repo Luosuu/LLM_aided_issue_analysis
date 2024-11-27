@@ -1,0 +1,11 @@
+{
+  "bug_location": "RocksDB Storage Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Insufficient flow control mechanism when ingesting multiple SST files during snapshot, leading to potential L0 file count explosion and triggering unnecessary flow control",
+  "issue_number": 14828,
+  "title": "Multiple SST files snapshot may trigger flow control"
+}

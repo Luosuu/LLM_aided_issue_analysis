@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv::coprocessor::codec::mysql::Duration",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Delayed validation of hour/minute/second values during Duration parsing, leading to potential integer overflow during multiplication",
+  "issue_number": 4610,
+  "title": "Fuzz test failed for tikv::coprocessor::codec::mysql::Duration::parse"
+}

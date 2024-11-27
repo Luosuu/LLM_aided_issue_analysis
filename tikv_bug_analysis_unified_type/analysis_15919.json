@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/pd_worker",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Storage"
+  ],
+  "root_cause": "Incomplete implementation of peer cleanup logic during region merge, causing stale peers to remain in the system and consume resources",
+  "issue_number": 15919,
+  "title": "Stale peers are left forever after region merge"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "components/tidb_query_datatype/src/codec/mysql/decimal.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect implementation of decimal division and modulo operations for zero numerator, causing incorrect mathematical behavior",
+  "issue_number": 15631,
+  "title": "The result of `0 / decimal` and `0 % decimal` is wrong."
+}

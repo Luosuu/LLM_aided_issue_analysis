@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Slot Migration Mechanism",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Insufficient epoch management and state synchronization during slot ownership transfer, which prevents proper cluster state consistency when directly setting slot ownership without proper migration protocol",
+  "issue_number": 10346.0,
+  "title": "[BUG] CLUSTER SETSLOT NODE without first IMPORTING -> inconsistency"
+}

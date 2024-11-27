@@ -1,0 +1,12 @@
+{
+  "bug_location": "tikv/server/debug.rs",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Recovery",
+    "Transaction"
+  ],
+  "root_cause": "Retry mechanism in flashback process creates an infinite loop when some regions have already completed flashback state, preventing successful recovery",
+  "issue_number": 15107,
+  "title": "[dr-autosync] tikv flashback hung more than 12h"
+}

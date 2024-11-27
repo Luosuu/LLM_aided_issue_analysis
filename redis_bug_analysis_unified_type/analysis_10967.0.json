@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Replication",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Keys deleted from a master node during slot ownership change are not being properly propagated or synchronized to replica nodes, causing inconsistent key states between master and replica",
+  "issue_number": 10967.0,
+  "title": "[BUG] delete keys operation not replicate to slave when 'remove all the keys from the slots we lost'"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli.c",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "CodeBug"
+  ],
+  "root_cause": "Dynamic memory allocated to slot_nodes is not properly freed when an error condition occurs, causing a memory leak in the clusterManagerFixSlotsCoverage function",
+  "issue_number": 13256.0,
+  "title": "[BUG] There is a memory leak defect at line 5981 of the file redis-cli.c in /redis/src/."
+}

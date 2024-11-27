@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Block Cache",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Backup process incorrectly populating RocksDB block cache during raw key-value backup, potentially causing unnecessary cache evictions for active user read workloads",
+  "issue_number": 13020,
+  "title": "Should not fill cache when backup rawkv"
+}

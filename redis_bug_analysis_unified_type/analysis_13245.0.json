@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis RDB saving mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect error handling in `reclaimFilePageCache` where errno is not properly set or captured, leading to misleading error logging",
+  "issue_number": 13245.0,
+  "title": "[BUG] Wrong error logged when `reclaimFilePageCache` fails"
+}

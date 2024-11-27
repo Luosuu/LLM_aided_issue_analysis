@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/apply.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Incorrect peer role validation during learner addition, causing duplicate learner peer rejection when attempting to demote a voter to learner",
+  "issue_number": 11463,
+  "title": "tikv error when demote follower to learner"
+}

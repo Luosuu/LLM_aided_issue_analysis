@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mod.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Incorrect key encoding during load-based region splitting, causing raw keys instead of memcomparable encoded keys to be used for region split decision",
+  "issue_number": 10542,
+  "title": "load-base-split may split regions with unencoded keys"
+}

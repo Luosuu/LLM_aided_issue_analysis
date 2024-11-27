@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Radix Tree (rax) Memory Management",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Potential memory corruption or use-after-free issue in the raxRecursiveFree function during radix tree memory deallocation, likely triggered during RDB loading or cluster state synchronization",
+  "issue_number": 7719.0,
+  "title": "Redis 5.0.3 crashed by signal: 11"
+}

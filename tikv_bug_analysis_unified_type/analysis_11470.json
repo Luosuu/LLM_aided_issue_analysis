@@ -1,0 +1,11 @@
+{
+  "bug_location": "Region Management",
+  "severity": 2,
+  "categories": [
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "During Lightning import, TiKV's region split mechanism creates unnecessary empty regions when checking split conditions after import job completion, potentially causing temporary region fragmentation",
+  "issue_number": 11470,
+  "title": "Big/Fast increase of empty regions after import of tpcc 5000 warehouses"
+}

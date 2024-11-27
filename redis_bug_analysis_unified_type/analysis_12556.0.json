@@ -1,0 +1,11 @@
+{
+  "bug_location": "Lua Script Runtime / TIME Command",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Changes in TIME command implementation in Redis 7.2.0 that breaks consistent time retrieval behavior within Lua scripts compared to previous versions",
+  "issue_number": 12556.0,
+  "title": "[BUG] redis.call(\"TIME\") behavior in v7.2.0 is incompatible with v7.0.12 when called from Lua script"
+}

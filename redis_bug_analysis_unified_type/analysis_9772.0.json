@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel Authentication/ACL System",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Insufficient ACL permissions for sentinel nodes to perform failover detection and master down verification, specifically missing the 'sentinel|is-master-down-by-addr' permission which prevents failover mechanism from triggering",
+  "issue_number": 9772.0,
+  "title": "[BUG] no failover with aclfile and different sentinel users/passwords"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Pubsub Mechanism",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "Redis Pubsub does not guarantee message delivery in cluster mode, especially when messages are published to master and subscribers are on follower nodes. The message propagation mechanism between nodes appears to have inconsistent synchronization, causing potential message loss.",
+  "issue_number": 10862.0,
+  "title": "[BUG] Pubsub messages are silently lost in cluster mode"
+}

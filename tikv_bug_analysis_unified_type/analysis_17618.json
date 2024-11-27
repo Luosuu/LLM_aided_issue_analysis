@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Query Codec/Collation Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of GBK character encoding length, where 4-byte column definition is misinterpreted as 4-byte limit instead of 4-character limit",
+  "issue_number": 17618,
+  "title": "`encoding failed` when processing queries with GBK/GB18030"
+}

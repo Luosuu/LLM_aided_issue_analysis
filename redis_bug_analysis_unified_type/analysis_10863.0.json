@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Bus Message Buffer Management",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Memory",
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient buffer management in cluster bus links causing excessive memory movement and CPU overhead during large pubsub traffic, where repeated sdsrange and memmove operations consume significant computational resources when flushing messages incrementally",
+  "issue_number": 10863.0,
+  "title": "[BUG] Clusterbus buffer management can consume significant memory and CPU utilization during pubsub"
+}

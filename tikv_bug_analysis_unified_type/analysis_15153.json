@@ -1,0 +1,12 @@
+{
+  "bug_location": "async-read-worker",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Race condition between peer destruction and snapshot generation, causing RocksDB checkpoint generation to get stuck when background work is paused during peer destruction",
+  "issue_number": 15153,
+  "title": "[Dynamic Regions] async-read-worker may get stuck in generating snapshot when a region is destroying"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Config",
+    "Recovery"
+  ],
+  "root_cause": "Sentinel failover mechanism fails to correctly identify and resolve multiple master node scenarios during cluster restart, potentially causing a split-brain situation where multiple nodes incorrectly claim master status",
+  "issue_number": 13424.0,
+  "title": "[BUG]Sentinels doesn't select one master node when all nodes are declared as master node"
+}

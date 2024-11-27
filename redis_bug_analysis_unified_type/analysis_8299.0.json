@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis RDB (Persistence) Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Integer overflow in rdbWriteRaw function due to return type mismatch between input parameter (size_t) and return value (int), causing potential data corruption when writing large objects over 2GB",
+  "issue_number": 8299.0,
+  "title": "[BUG] rdbWriteRaw retval overflow"
+}

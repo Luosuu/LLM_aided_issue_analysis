@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Engine",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "During network disconnection, log entries cannot be garbage collected by the leader, causing indefinite accumulation of in-memory Raft Engine index and leading to memory growth",
+  "issue_number": 12255,
+  "title": "two tikv oom after inject tikv network-loss and recovery for some time"
+}

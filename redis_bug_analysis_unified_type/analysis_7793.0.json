@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Database (db.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Recovery"
+  ],
+  "root_cause": "Likely a dictionary insertion failure during RDB file loading, specifically an assertion failure when attempting to add a key to the database with a return value that was not DICT_OK",
+  "issue_number": 7793.0,
+  "title": "[BUG] Redis-server service keeps crashing and restarting each 1-2 seconds"
+}

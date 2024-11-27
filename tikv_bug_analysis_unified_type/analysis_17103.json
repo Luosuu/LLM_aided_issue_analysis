@@ -1,0 +1,12 @@
+{
+  "bug_location": "In-memory Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Write batch not properly cleared after load failure, potentially causing data inconsistency in lock column family",
+  "issue_number": 17103,
+  "title": "In-memory Engine: cached_write_batch is not cleared after load failure"
+}

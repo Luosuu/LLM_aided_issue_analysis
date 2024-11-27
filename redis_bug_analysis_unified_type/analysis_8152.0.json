@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ACL (Access Control List) Module",
+  "severity": 3,
+  "categories": [
+    "Security",
+    "CodeBug"
+  ],
+  "root_cause": "The KEYS * command does not properly respect the ACL prefix restriction, allowing users to view keys outside their designated prefix, which breaks the expected access control mechanism",
+  "issue_number": 8152.0,
+  "title": "[BUG]ACLs are not working properly while setting to a specific prefix."
+}

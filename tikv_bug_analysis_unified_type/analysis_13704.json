@@ -1,0 +1,12 @@
+{
+  "bug_location": "Flashback/Compaction Process",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "Potential deadlock in flashback process when processing a single key during compaction, causing read phase to get stuck in an infinite loop",
+  "issue_number": 13704,
+  "title": "Flashback process is blocked for compaction pending too much data"
+}

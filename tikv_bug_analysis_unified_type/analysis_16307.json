@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "Snapshot recovery process can get blocked when logs from a previous term prevent applying committed logs, due to synchronization constraints during leader election and log replication",
+  "issue_number": 16307,
+  "title": "Snapshot recovery wait apply may be blocked by logs from a pervious term"
+}

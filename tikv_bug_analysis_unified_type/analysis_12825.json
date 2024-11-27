@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Race condition during peer destruction and region split where an uninitialized peer's log GC task is processed incorrectly, causing a panic when attempting to recover a delayed destroy operation",
+  "issue_number": 12825,
+  "title": "raftstore: tikv panicked due to trying to recover a delayed destroy"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Dynamic Regions / Multi-RocksDB Component",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "LoadBalance",
+    "Transaction"
+  ],
+  "root_cause": "Slow node handling limitations in distributed transaction system, where client-side request routing and transaction continuity can cause prolonged QPS drops during node performance degradation",
+  "issue_number": 15268,
+  "title": "[Dynamic Regions] QPS drop to zero during injection io hang to one of tikv"
+}

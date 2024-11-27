@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore-v2/operation/command/write/ingest",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "Recovery",
+    "CodeBug"
+  ],
+  "root_cause": "SST file missing during region restoration after backup and restore process, likely due to incomplete or interrupted file transfer during backup/restore operation",
+  "issue_number": 14946,
+  "title": "[Dynamic Regions] after br full restored to multirocksdb cluster failed and tikv restarted, tikv panic"
+}

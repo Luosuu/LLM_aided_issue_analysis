@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua scripting engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent error handling and formatting in Lua script execution, specifically around error responses from redis.call() and redis.pcall() under different error conditions like OOM, read-only script violations, and invalid command executions",
+  "issue_number": 10165.0,
+  "title": "[BUG] Inconsistency in errors returned from EVAL scripts."
+}

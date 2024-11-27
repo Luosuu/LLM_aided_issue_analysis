@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Systemd Service Configuration",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Upgrade",
+    "Storage"
+  ],
+  "root_cause": "Ubuntu package updates overwriting systemd service configuration, specifically the ReadWriteDirectories path, causing Redis service startup failure when custom storage paths are configured",
+  "issue_number": 12676.0,
+  "title": "[BUG] Redis reverts the storage directory from /etc/systemd/system/redis.service file when applying updates"
+}

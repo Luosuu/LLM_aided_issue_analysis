@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB/RangeCacheEngine",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Circular mutex/lock dependency between cleanup-worker, apply threads, and RocksDB mutex causing thread deadlock during concurrent write operations",
+  "issue_number": 17260,
+  "title": "In-memory Engine: Deadlock during TPCC run"
+}

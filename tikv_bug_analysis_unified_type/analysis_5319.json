@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/coprocessor/split_check/keys.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Function only considers transactional KV regions, ignoring raw KV regions when calculating approximate keys, causing incorrect key count reporting",
+  "issue_number": 5319,
+  "title": "approximate_keys for raw kv region always be 0"
+}

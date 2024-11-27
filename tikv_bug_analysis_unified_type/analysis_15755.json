@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft-engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Recovery",
+    "Performance"
+  ],
+  "root_cause": "Raft engine attempting log rewrite when disk space is exhausted, causing unhandled fatal error instead of graceful degradation",
+  "issue_number": 15755,
+  "title": "raft-engine should not start rewrite when there's no available space"
+}

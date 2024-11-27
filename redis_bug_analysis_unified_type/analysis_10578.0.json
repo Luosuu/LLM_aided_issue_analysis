@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential issue with reading from the latest stream position ($) when the stream has a large number of entries, causing unexpected nil response even when entries exist",
+  "issue_number": 10578.0,
+  "title": "[BUG] Restart reading from start ($) of very large STREAM returns nil"
+}

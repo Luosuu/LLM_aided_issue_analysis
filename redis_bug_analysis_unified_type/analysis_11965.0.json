@@ -1,0 +1,12 @@
+{
+  "bug_location": "src/replication.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Compiler fortification checks exposed a memory allocation size inconsistency in Redis's replication buffer allocation mechanism, specifically related to using malloc_usable_size() with GCC 13 and _FORTIFY_SOURCE=3",
+  "issue_number": 11965.0,
+  "title": "[CRASH] 7.0.10 memcpy sigabrt due to buffer overflow in replication.c line 367"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-cli.c",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Potential divide by zero error when no master nodes are found in a Redis cluster, caused by using `master_count` as a divisor without prior validation",
+  "issue_number": 9383.0,
+  "title": "[BUG] A possible divide by zero bug in redis-cli.c"
+}

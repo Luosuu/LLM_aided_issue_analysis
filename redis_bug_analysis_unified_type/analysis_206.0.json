@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Module",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "SORT command with BY and GET options not properly disabled in Redis Cluster mode, which could lead to unexpected behavior or potential command routing issues",
+  "issue_number": 206.0,
+  "title": "Disallow SORT options BY and GET when cluster is enabled"
+}

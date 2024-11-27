@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/ApplyThread",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "Replication"
+  ],
+  "root_cause": "Deadlock in apply thread preventing lock release, blocking transaction scheduler and preventing resolved timestamp and GC safepoint advancement",
+  "issue_number": 15745,
+  "title": "[Dynamic Regions] resolved ts and gc safepoint can't advance"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "Sentinel fails to properly track and elect a new master when the original master node is forcefully deleted and recreated with a different IP address, causing a potential race condition in master election and slave tracking",
+  "issue_number": 9625.0,
+  "title": "[BUG] Sentinels are not able to elect a new master"
+}

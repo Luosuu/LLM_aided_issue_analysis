@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Core - Database Operations",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Performance overhead introduced by `updateKeysizesList` function calls in `dbSetValue` function, causing additional computational complexity during key operations",
+  "issue_number": 13659.0,
+  "title": "[BUG] Performance regression of mset command after introducing INFO KEYSIZES"
+}

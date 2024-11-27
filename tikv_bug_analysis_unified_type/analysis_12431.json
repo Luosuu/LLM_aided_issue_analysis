@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft Peer Management",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition in learner peer addition and pending peer state management, causing persistent pending peer state during region configuration changes",
+  "issue_number": 12431,
+  "title": "Pending peer may exist for a long time when adding a learner peer"
+}

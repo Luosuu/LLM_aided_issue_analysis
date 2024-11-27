@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Potential race condition or data inconsistency during peer creation in Raft store, causing inability to find expected entry for a key",
+  "issue_number": 12348,
+  "title": "raftstore: panicked with `no entry found for key`"
+}

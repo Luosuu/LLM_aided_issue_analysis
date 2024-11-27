@@ -1,0 +1,12 @@
+{
+  "bug_location": "components/raftstore/src/store/fsm/apply.rs",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Inefficient handling of priority and SST ingestion in apply context, causing unnecessary commits and potential performance overhead during batch processing of Raft entries",
+  "issue_number": 17278,
+  "title": "Reduce `apply_ctx.commit(self)` if there are ingest SST commands applying"
+}

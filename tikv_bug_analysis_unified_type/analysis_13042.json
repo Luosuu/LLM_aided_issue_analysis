@@ -1,0 +1,12 @@
+{
+  "bug_location": "Store/Apply Memory Management",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Linear memory growth with increasing number of regions, causing memory exhaustion when region count is extremely high (300k+ regions)",
+  "issue_number": 13042,
+  "title": "tikv oom when tikv instance has a large number of regions such as 300k+"
+}

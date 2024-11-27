@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Inefficient broadcast of StoreUnreachable messages across large number of regions, causing excessive CPU consumption and potential system stall",
+  "issue_number": 13054,
+  "title": "Raftstore may broadcast too many messages after one peer store become unreachable"
+}

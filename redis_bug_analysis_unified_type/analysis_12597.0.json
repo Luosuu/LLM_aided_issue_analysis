@@ -1,0 +1,12 @@
+{
+  "bug_location": "Memory Allocation/Fragmentation Management",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Time manipulation appears to trigger memory allocation/deallocation behavior that causes unexpected memory fragmentation, likely related to jemalloc's memory management strategy when system time is modified",
+  "issue_number": 12597.0,
+  "title": "[BUG]When setback system time back, the fragmentation is going high"
+}

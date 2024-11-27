@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis quicklist compression mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "The quicklist node compression logic fails to properly compress a node after insertion due to the 'recompress' flag being set to 0, preventing automatic compression of nodes that should be compressed",
+  "issue_number": 12563.0,
+  "title": "[BUG] quicklist compress bug"
+}

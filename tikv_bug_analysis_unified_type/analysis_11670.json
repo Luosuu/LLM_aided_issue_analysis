@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Storage/SST Importer",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Excessive memory consumption during backup/restore operation on ARM64 architecture, likely exacerbated by Transparent Huge Pages (THP) being enabled",
+  "issue_number": 11670,
+  "title": "tikv keep oom on arm64 k8s deployments during br restore"
+}

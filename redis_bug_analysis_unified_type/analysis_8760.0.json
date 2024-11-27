@@ -1,0 +1,12 @@
+{
+  "bug_location": "evict.c in Redis 5.0 memory eviction mechanism",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "The keys_freed variable in freeMemoryIfNeeded() function is not correctly tracking or incrementing the number of keys freed during memory eviction, potentially limiting memory reclamation effectiveness",
+  "issue_number": 8760.0,
+  "title": "[BUG] The keys_freed variable in the freeMemoryIfNeeded(void) function of evict.c in redis5.0 does not work, it is always less than or equal to 1"
+}

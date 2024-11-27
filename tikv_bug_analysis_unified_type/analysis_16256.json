@@ -1,0 +1,12 @@
+{
+  "bug_location": "TitanDB Storage Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Recovery",
+    "CodeBug"
+  ],
+  "root_cause": "Incomplete blob file cleanup during Titan storage engine fallback, causing orphaned blob files when manifest is not properly updated before restart",
+  "issue_number": 16256,
+  "title": "titan blob file can't be cleared when fallback"
+}

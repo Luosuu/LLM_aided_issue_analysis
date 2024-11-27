@@ -1,0 +1,12 @@
+{
+  "bug_location": "components/raftstore/src/store/fsm/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Incorrect assumption in split check logic that `approximate_size` indicates a previous split check, preventing region splitting when size thresholds are not met through write commands",
+  "issue_number": 10111,
+  "title": "Region may not trigger split check no matter how large it is"
+}

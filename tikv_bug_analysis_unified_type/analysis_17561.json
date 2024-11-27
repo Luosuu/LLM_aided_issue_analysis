@@ -1,0 +1,11 @@
+{
+  "bug_location": "In-Memory Engine (IME)",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Region loading mechanism only triggered by write operations, causing read-heavy regions to remain uncached",
+  "issue_number": 17561,
+  "title": "In-memory engine: pending region may never load"
+}

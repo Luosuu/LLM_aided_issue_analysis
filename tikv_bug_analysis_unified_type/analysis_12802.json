@@ -1,0 +1,12 @@
+{
+  "bug_location": "log-backup",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "Recovery",
+    "Performance"
+  ],
+  "root_cause": "Premature GC of checkpoint safe point when log-backup task encounters an error, causing potential data loss recovery window",
+  "issue_number": 12802,
+  "title": "log-backup: The checkpoint-ts do not keep 24h when the task status become error."
+}

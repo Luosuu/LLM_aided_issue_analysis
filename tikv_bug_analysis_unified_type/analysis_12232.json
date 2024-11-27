@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/store.rs",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect handling of region merge state during rollback, causing peer ID inconsistency and potential unintended peer destruction",
+  "issue_number": 12232,
+  "title": "tikv panic:peer id increased after region is merged, message peer id 2228, local peer id 1140, region id: 649"
+}

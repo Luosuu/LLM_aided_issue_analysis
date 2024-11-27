@@ -1,0 +1,12 @@
+{
+  "bug_location": "server/resolve.rs and server/raft_client.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "Improper handling of tombstone store resolution in TiKV's address resolution and raft client, causing infinite error logging when attempting to resolve an offline store",
+  "issue_number": 17875,
+  "title": "resolving tikv store address return an error \"invalid store ID xxxx, not found\" leading to raft client infinite loop"
+}

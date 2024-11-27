@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "LoadBalance",
+    "Transaction"
+  ],
+  "root_cause": "Leader transfer process becomes slow due to synchronous I/O blocking and Raftstore log write queue congestion when experiencing I/O delays",
+  "issue_number": 15875,
+  "title": "transfer leader too slow when inject one of tikv io delay with \u201cevict-slow-trend-scheduler\u201d or \u201cevict-slow-store-scheduler\u201d"
+}

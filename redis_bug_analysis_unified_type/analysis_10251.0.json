@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark CLI tool",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "IPv6 address handling is not properly implemented in redis-benchmark's cluster mode, causing connection failures when only IPv6 addresses are present",
+  "issue_number": 10251.0,
+  "title": "[BUG] redis-benchmark --cluster doesn't support ipv6"
+}

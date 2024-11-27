@@ -1,0 +1,12 @@
+{
+  "bug_location": "Lock Manager / Transaction Layer",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "In-memory pessimistic locks are stored in a hash table that is not scanned during lock resolution, causing potential lock visibility and garbage collection issues",
+  "issue_number": 15066,
+  "title": "In-memory pessimistic locks are invisible to scan_lock requests"
+}

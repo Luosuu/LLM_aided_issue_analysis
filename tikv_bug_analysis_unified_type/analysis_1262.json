@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Delayed state transition of removed peer to Tombstone status, allowing potential replica recreation during network partition",
+  "issue_number": 1262,
+  "title": "Mark tombstone immediately when applying a confchagne"
+}

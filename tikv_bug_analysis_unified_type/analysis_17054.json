@@ -1,0 +1,12 @@
+{
+  "bug_location": "pd-client",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Network",
+    "Config"
+  ],
+  "root_cause": "Potential excessive retry or reconnection logic when PD instances are down, causing high CPU utilization in pd-worker and timer threads",
+  "issue_number": 17054,
+  "title": "the pd-work cpu is nearly 100% when tikv disconnected from pd"
+}

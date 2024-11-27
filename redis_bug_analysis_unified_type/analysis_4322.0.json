@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis I/O file write function (rioFileWrite)",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect buffer tracking when file write operation fails, potentially incrementing buffered bytes even when fwrite() returns an error",
+  "issue_number": 4322.0,
+  "title": "r->io.file.buffered is incorrect in function 'rioFileWrite'"
+}

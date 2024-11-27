@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Configuration Management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Storage"
+  ],
+  "root_cause": "Inconsistent RocksDB configuration between tikv-server and tikv-ctl, causing user properties to be unintentionally cleaned during database access",
+  "issue_number": 2537,
+  "title": "tikv-ctl should use the same config for opening rocksdb as tikv-servers"
+}

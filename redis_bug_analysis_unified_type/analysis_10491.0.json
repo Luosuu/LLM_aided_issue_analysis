@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Authentication (ACL) Module",
+  "severity": 3,
+  "categories": [
+    "Security",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Authentication state is not properly reset when an invalid authentication attempt occurs in Redis 6+, causing the connection to retain its previous authenticated user's permissions",
+  "issue_number": 10491.0,
+  "title": "[BUG] Invalid auth does not reset existing authenticated connection"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Lua Scripting Engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Non-deterministic functions in Lua scripts can cause inconsistent state between master and slave Redis instances during replication, as random or time-dependent operations may produce different results across servers",
+  "issue_number": 95.0,
+  "title": "Lua scripting: determinism, replication, AOF"
+}

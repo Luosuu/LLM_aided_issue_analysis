@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Flashback Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Retry mechanism fails when region leader transfers during flashback, causing infinite retry without proper backoff or peer identification strategy",
+  "issue_number": 15712,
+  "title": "[dr-autosync] flashback hang for more than 30min on second call"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Defragmentation Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Race condition in active defragmentation when disabling and re-enabling the feature, causing potential null database pointer access during defragmentation cycle",
+  "issue_number": 13205.0,
+  "title": "[CRASH] Redis 7.2.3 crashed in slotToKeyReplaceEntry"
+}

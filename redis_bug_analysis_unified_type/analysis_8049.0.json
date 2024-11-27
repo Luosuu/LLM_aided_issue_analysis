@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Module Context/Transaction Handling",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "When a module command triggers a keyspace notification and the notification callback executes another command, a new RedisModuleContext is created which loses the 'MULTI' context flag, causing nested MULTI commands that are not properly tracked",
+  "issue_number": 8049.0,
+  "title": "[BUG] replica receive nested \"multi\" command"
+}

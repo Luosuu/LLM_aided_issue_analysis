@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ACL (Access Control List) module",
+  "severity": 3,
+  "categories": [
+    "Security",
+    "CodeBug"
+  ],
+  "root_cause": "Incomplete error reporting mechanism for subcommands that lack proper context when access is denied, resulting in missing parent command information in error messages and ACL log entries",
+  "issue_number": 10094.0,
+  "title": "[BUG] Subcommands blocked by ACL are reported without parent context"
+}

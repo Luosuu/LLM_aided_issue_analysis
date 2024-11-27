@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Upgrade"
+  ],
+  "root_cause": "Potential race condition during leader election in hibernating regions during cluster rolling upgrade, causing unexpected leader banishment",
+  "issue_number": 12166,
+  "title": "region leaders can be banished in an election timeout when rolling upgrade a cluster"
+}

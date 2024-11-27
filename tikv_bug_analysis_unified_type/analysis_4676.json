@@ -1,0 +1,12 @@
+{
+  "bug_location": "coprocessor",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Large enum variants causing inefficient memory usage and unnecessary memory copies in coprocessor::Result type, with some error types being significantly larger than expected (176-184 bytes)",
+  "issue_number": 4676,
+  "title": "coprocessor::Result<T> is at least 176 bytes.."
+}

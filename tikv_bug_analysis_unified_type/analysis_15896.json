@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Transaction Layer",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Potential data encoding/decoding corruption during key generation or transaction processing, possibly related to region scaling or server shutdown",
+  "issue_number": 15896,
+  "title": "We have some bad encoded-keys like: aaaa FF bbbb FF cccc 06 dd00 FE"
+}

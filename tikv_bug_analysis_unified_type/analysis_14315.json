@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Consensus Module",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Race condition between mailbox registration and scheduling raft ticks, causing peers to get stuck in an invalid lease state and preventing leader election",
+  "issue_number": 14315,
+  "title": "[Dynamic Regions] QPS drop form 28k to 1k with workload error code 9005 during one tikv down "
+}

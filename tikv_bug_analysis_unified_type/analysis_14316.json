@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore-v2/raft/apply",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Attempting to unwrap a None Option during snapshot application in the Raft apply process, indicating a potential nil/missing value handling issue",
+  "issue_number": 14316,
+  "title": "[Dynamic Regions] multiple rocksdb tikv panic with Option::unwrap() on a None value"
+}

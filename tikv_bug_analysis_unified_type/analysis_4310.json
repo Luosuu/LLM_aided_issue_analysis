@@ -1,0 +1,11 @@
+{
+  "bug_location": "PendingCmd destructor",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Unconditional panic in destructor when callback is not handled, which violates Rust's destructor guidelines and risks double-panic scenarios",
+  "issue_number": 4310,
+  "title": "PendingCmd panics on drop"
+}

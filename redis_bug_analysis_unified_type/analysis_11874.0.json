@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Client Protocol Handler",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "The client reply mode (off/skip) incorrectly suppresses push notifications in addition to command replies, which is not the expected behavior of the protocol",
+  "issue_number": 11874.0,
+  "title": "[BUG] CLIENT REPLY OFF|SKIP would disable push notifications"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "RDB Background Save (rdbSaveBackground)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Memory"
+  ],
+  "root_cause": "Potential NULL pointer dereference during LZF compression of list object during background RDB save, likely caused by memory corruption or internal list management issue in Redis 4.0.14",
+  "issue_number": 8276.0,
+  "title": "[CRASH]Redis 4.0.14 crashed by signal: 11"
+}

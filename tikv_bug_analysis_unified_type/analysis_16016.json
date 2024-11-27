@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/ApplySystem",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "High apply wait duration caused by potential queue bottleneck and write contention, possibly related to RocksDB mutex conflicts and entry loading overhead",
+  "issue_number": 16016,
+  "title": "High apply wait tail latency  "
+}

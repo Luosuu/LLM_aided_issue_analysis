@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Missing epoch validation during read requests in Raftstore v2, allowing potential stale or incorrect data reads after region split",
+  "issue_number": 14699,
+  "title": "[Dynamic Regions] Response read without checking epoch"
+}

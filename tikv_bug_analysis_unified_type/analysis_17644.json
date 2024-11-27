@@ -1,0 +1,12 @@
+{
+  "bug_location": "GC Worker",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Direct RocksDB delete_range call bypasses WriteBatchWrapper, preventing proper region eviction tracking",
+  "issue_number": 17644,
+  "title": "In-memory Engine: GC worker delete range does not evict relevant regions"
+}

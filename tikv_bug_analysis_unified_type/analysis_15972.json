@@ -1,0 +1,11 @@
+{
+  "bug_location": "snapshot_transfer_module",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Current snapshot transfer mechanism lacks dynamic backoff or delay strategy when receiving snapshot tasks reach system-defined limit",
+  "issue_number": 15972,
+  "title": "TiKV should delay request snapshot if it exceeds receiving snapshot  limit"
+}

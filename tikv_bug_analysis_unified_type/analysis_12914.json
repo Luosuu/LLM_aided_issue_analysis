@@ -1,0 +1,12 @@
+{
+  "bug_location": "Distributed Recovery (DR) Auto-Sync Module",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Timeout handling failure during cross-datacenter failover scenario when backup datacenter stores are down, preventing query execution in primary cluster",
+  "issue_number": 12914,
+  "title": "dr-auto-sync: After down tikv in backup cluster, query in primary cluster hit 9002: TiKV timeout"
+}

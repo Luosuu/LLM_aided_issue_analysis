@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Memory Management",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "Config",
+    "Replication"
+  ],
+  "root_cause": "By default, Redis replicas ignore maxmemory settings to maintain consistency with the master, even when replica-read-only is set to no. This means memory limits are not enforced on writable replicas unless explicitly configured with replica-ignore-maxmemory set to no.",
+  "issue_number": 11902.0,
+  "title": "[BUG] Redis does not honour the maxmemory parameter"
+}

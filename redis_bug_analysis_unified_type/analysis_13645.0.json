@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Pub/Sub Invalidation Mechanism",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "Race condition in message ordering during client tracking and invalidation message processing, potentially related to HELLO 3 protocol initialization",
+  "issue_number": 13645.0,
+  "title": "[BUG] invalidation messages received before ACK of SUBSCRIBE __redis__:invalidate"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Config",
+    "Transaction"
+  ],
+  "root_cause": "Redis Sentinel lacks robust configuration validation and cross-verification mechanism when multiple sentinels are configured with different master addresses, leading to a potential split-brain scenario where each sentinel believes its own configuration is correct",
+  "issue_number": 12271.0,
+  "title": "[BUG]Sentinels with different initial masters in sentinel.conf enter split-brain and do not failover"
+}

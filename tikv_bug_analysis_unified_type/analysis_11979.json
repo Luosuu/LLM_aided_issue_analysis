@@ -1,0 +1,12 @@
+{
+  "bug_location": "Memory Management",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Transparent Huge Pages (THP) on ARM architecture causing excessive memory allocation, with default page size of 64kb leading to 512MB per THP, causing unexpected memory consumption during TiKV startup",
+  "issue_number": 11979,
+  "title": "TiKV memory usage problem when THP enabled"
+}

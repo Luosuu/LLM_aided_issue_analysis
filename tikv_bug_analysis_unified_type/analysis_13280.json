@@ -1,0 +1,11 @@
+{
+  "bug_location": "Storage",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Expensive `Instant::now()` syscalls on AWS Xen virtualized EC2 instances due to default 'xen' clock source, causing significant performance overhead in time-sensitive operations",
+  "issue_number": 13280,
+  "title": "Storage pool regression on AWS EC2 instance type i3.4xlarge"
+}

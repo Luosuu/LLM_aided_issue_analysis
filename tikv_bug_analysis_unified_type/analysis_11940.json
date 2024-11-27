@@ -1,0 +1,12 @@
+{
+  "bug_location": "Timer/Tokio Timer Component",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Integer overflow and incorrect time wheel calculation in tokio-timer's level calculation function, causing index out of bounds when elapsed time approaches 2^36",
+  "issue_number": 11940,
+  "title": "TiKV running over 2 years may panic"
+}

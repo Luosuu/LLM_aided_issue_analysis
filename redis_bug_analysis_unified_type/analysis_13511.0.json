@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Replication Synchronization",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of network failures and IP address resolution during master-slave synchronization, causing the server.masterhost to remain unupdated after network partition recovery",
+  "issue_number": 13511.0,
+  "title": "[BUG]The master-slave synchronization relationship of cluster shards cannot be restored due to network failure"
+}

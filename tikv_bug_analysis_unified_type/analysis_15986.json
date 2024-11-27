@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Storage Engine",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Recovery"
+  ],
+  "root_cause": "Block-level CRC checksum verification failure during RocksDB background compaction, causing unhandled corruption in SST files",
+  "issue_number": 15986,
+  "title": "Isolate the damaged ssts and regions and avoid tikv panic when block crc mismatches "
+}

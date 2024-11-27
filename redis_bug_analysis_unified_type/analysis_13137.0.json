@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Client Buffer Management",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Potential memory corruption or buffer overflow in client query buffer resizing mechanism during clientsCron function, causing segmentation fault when accessing a null pointer",
+  "issue_number": 13137.0,
+  "title": "[CRASH] Redis 6.2.7 crashed by signal: 11, si_code: 128"
+}

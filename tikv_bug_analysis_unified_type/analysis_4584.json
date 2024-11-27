@@ -1,0 +1,11 @@
+{
+  "bug_location": "TiKV Client",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "gRPC connection closure causing repeated streaming recreation failures during high-load scenarios like sysbench",
+  "issue_number": 4584,
+  "title": "infinite \"batchRecvLoop re-create streaming fail\" after sysbench"
+}

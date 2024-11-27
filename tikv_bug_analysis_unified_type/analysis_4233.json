@@ -1,0 +1,12 @@
+{
+  "bug_location": "Tokio Runtime / PD Worker",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Memory",
+    "Network"
+  ],
+  "root_cause": "Potential resource leakage or inefficient file descriptor management in Tokio runtime's thread pool and PD worker threads, causing excessive pipe and eventpoll file descriptors",
+  "issue_number": 4233,
+  "title": "too many pipe and eventpoll files "
+}

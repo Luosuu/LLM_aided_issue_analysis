@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Peer Component",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Storage",
+    "Recovery"
+  ],
+  "root_cause": "resolved_ts mechanism appears to be stuck, preventing forward progress of backup/restore operations, likely due to leadership or term change issues in Raft consensus",
+  "issue_number": 17708,
+  "title": "resolved_ts doesn't push forward, it's stuck, which will cause ebs backup failed [restore for 15520]"
+}

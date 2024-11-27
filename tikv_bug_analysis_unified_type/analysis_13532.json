@@ -1,0 +1,11 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) Log Backup Module",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "GC safepoint timestamp conflict during log backup task pause operation, where the current transaction timestamp is lower than the GC safepoint timestamp",
+  "issue_number": 13532,
+  "title": "PITR: failed to pause a log-backup task with the error  BR:Backup:ErrBackupGCSafepointExceeded"
+}

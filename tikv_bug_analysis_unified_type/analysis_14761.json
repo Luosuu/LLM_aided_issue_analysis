@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Engine / Encryption Module",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Recovery",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition during file deletion and encryption metadata management, where file system deletion and metadata removal are not atomic, potentially causing inconsistent state during process interrupti",
+  "issue_number": 14761,
+  "title": "Raft engine encounters log file magic header mismatch"
+}

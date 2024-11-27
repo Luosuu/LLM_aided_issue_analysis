@@ -1,0 +1,11 @@
+{
+  "bug_location": "RocksDB Engine/Compaction Layer",
+  "severity": 3,
+  "categories": [
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Inefficient SST ingestion strategy causing excessive L0 compactions and potential disk space exhaustion when cleaning up destroyed ranges",
+  "issue_number": 12367,
+  "title": "too many compactions and even write stalls occur by cleaning range by ingesting SSTs"
+}

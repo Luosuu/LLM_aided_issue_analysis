@@ -1,0 +1,11 @@
+{
+  "bug_location": "Raft consensus module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Hard state not saved for uninitialized peers, allowing potential term regression and multiple leader election in same term",
+  "issue_number": 3572,
+  "title": "Potential two different leaders on a same term"
+}

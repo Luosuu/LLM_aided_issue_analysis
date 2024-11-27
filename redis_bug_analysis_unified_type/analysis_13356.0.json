@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Semantic Cache / RediSearch Module",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Upgrade",
+    "Performance"
+  ],
+  "root_cause": "Missing RediSearch module (version >= 2.4) required for vector database functionality in Redis, with potential version compatibility issue between Redis, RediSearch, and LangChain library",
+  "issue_number": 13356.0,
+  "title": "[BUG]ValueError: Redis failed to connect: Redis cannot be used as a vector database without RediSearch >=2.4Please head to https://redis.io/docs/stack/search/quick_start/to know more about installing the RediSearch module within Redis Stack."
+}

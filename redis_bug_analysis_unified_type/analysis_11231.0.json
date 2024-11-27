@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ACL/Module Call Execution Context",
+  "severity": 4,
+  "categories": [
+    "Security",
+    "CodeBug"
+  ],
+  "root_cause": "Insufficient user context propagation during script/function execution with RM_Call, allowing unauthorized command execution by bypassing ACL checks",
+  "issue_number": 11231.0,
+  "title": "[BUG] RM_Call for scripts/functions with \"C\" ACL check flag, doesn't acl check within script execution"
+}

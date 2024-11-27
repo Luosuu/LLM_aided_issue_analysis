@@ -1,0 +1,12 @@
+{
+  "bug_location": "backup-restore",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "Region merge process causing read index not being ready, with a gap between PrepareMerge and CommitMerge commands exceeding 30 seconds, preventing log backup checkpoint from moving forward",
+  "issue_number": 13126,
+  "title": "br log backup checkpoint doesn't move forward due to\"read index not ready, reason can not read index due to merge, region 94812\""
+}

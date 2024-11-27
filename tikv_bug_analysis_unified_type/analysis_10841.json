@@ -1,0 +1,12 @@
+{
+  "bug_location": "Logger/Slogger Thread",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug",
+    "Monitoring"
+  ],
+  "root_cause": "Logger thread becomes a bottleneck when processing excessive slow logs, causing log message queue to accumulate and block system performance, particularly under high coprocessor load",
+  "issue_number": 10841,
+  "title": "*:Logger thread can be bottleneck and slow down the whole TiKV instance"
+}

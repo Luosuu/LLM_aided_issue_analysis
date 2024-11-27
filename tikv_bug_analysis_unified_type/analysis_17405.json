@@ -1,0 +1,12 @@
+{
+  "bug_location": "range_cache_memory_engine/range_manager.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Incorrect handling of region epoch changes during snapshot application, causing state mismatch between expected and actual region state during split operation",
+  "issue_number": 17405,
+  "title": "In-memory Engine: assert failed \"left: Active != right: Pending\" on RegionManager::split_region"
+}

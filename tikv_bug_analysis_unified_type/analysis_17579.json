@@ -1,0 +1,11 @@
+{
+  "bug_location": "src/server/raftkv/mod.rs",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Monitoring"
+  ],
+  "root_cause": "Incorrectly including task wait time in scheduler worker pool duration metric, causing metric inflation during high load scenarios",
+  "issue_number": 17579,
+  "title": "Storage async write duration is inaccurate"
+}

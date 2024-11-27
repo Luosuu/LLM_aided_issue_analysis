@@ -1,0 +1,12 @@
+{
+  "bug_location": "server/node.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Recovery",
+    "Storage"
+  ],
+  "root_cause": "Incomplete initialization state handling during TiKV restart, causing store identification and bootstrap process to fail if interrupted",
+  "issue_number": 4333,
+  "title": "TiKV may fail to restart if it fails after writing store ident and before bootstrapping cluster"
+}

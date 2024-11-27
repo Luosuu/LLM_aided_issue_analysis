@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Pub/Sub",
+  "severity": 2,
+  "categories": [
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "In Redis Cluster, PUBLISH returns 0 when the message is successfully routed to subscribers on other nodes, which is a design behavior rather than a true bug",
+  "issue_number": 7986.0,
+  "title": "[BUG] PUBLISH always return 0 on redis cluster"
+}

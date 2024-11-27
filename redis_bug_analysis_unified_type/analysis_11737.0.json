@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Command Parsing/Validation",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Command argument validation logic was changed in a previous update (PR #11445), making BITFIELD arguments optional without proper error handling, which contradicts the command documentation",
+  "issue_number": 11737.0,
+  "title": "[BUG] bitfield returns empty array when required args are missing"
+}

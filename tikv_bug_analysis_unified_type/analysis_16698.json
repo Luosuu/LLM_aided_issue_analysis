@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC/ResolvedTS",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Multiple potential issues causing resolved timestamp lag during TiKV rolling restart, including kv-client regression, region cache updates, and leader transfer timeout handling",
+  "issue_number": 16698,
+  "title": "TiKV min resolved ts lag up to 30s during tikv rolling restart, resulting in cdc lag increase"
+}

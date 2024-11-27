@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/ReadIndexQueue",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Transaction"
+  ],
+  "root_cause": "Resource leak in index read callback, likely due to improper handling of drop/cleanup mechanisms in the read index request processing",
+  "issue_number": 14306,
+  "title": "[Dynamic Regions] Multi-RocksDB's tikv panic with resource leak detected: callback of index read"
+}

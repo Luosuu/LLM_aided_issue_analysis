@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "Race condition between snapshot application and destroy peer message during region merge, causing potential node state inconsistency for learner nodes",
+  "issue_number": 15333,
+  "title": "TiKV may stuck/panic if a destroy peer message is handled after apply snapshot on raftstore v1"
+}

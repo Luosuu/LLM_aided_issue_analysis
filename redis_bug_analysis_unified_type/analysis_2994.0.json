@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Memory Metrics Reporting",
+  "severity": 2,
+  "categories": [
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Inaccurate memory fragmentation calculation that does not include Lua memory allocation, leading to potentially misleading fragmentation ratio metrics",
+  "issue_number": 2994.0,
+  "title": "INFO MEMORY mem_fragmentation_ratio doesn't include used_memory_lua"
+}

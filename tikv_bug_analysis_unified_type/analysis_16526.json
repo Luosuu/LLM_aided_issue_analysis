@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Incorrect lock tracking and resolved timestamp handling when partially subscribing to a region, causing potential race condition during transaction commit",
+  "issue_number": 16526,
+  "title": "other tikv panic when inject one of tikv failure with ticdc changfeed running"
+}

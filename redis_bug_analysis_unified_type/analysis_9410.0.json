@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream XTRIM command",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect implementation of XTRIM MINID logic that causes deletion of all stream messages instead of only messages with IDs lower than the specified threshold",
+  "issue_number": 9410.0,
+  "title": "[BUG] XTRIM MINID may delete messages whose IDs are higher than threshold"
+}

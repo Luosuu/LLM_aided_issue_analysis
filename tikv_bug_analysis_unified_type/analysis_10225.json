@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/apply_worker",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Apply term not correctly updated during snapshot generation, causing potential metadata inconsistency in Raft log replication",
+  "issue_number": 10225,
+  "title": "apply term should be assigned when applying snapshot"
+}

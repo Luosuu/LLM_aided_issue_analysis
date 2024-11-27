@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication Connection Handling",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Overly conservative default timeout value for replication connections that does not adapt well to dynamic network environments like Kubernetes, causing unnecessary long connection wait times",
+  "issue_number": 10668.0,
+  "title": "[BUG] repl-timeout being reached unnecessarily when master behind Kubernetes proxy"
+}

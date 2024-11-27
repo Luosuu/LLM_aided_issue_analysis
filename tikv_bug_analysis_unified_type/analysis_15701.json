@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Unbounded channel buffers for peer communication can accumulate unlimited memory, potentially causing out-of-memory (OOM) conditions when many regions are created",
+  "issue_number": 15701,
+  "title": "The total buffer of peers' channels is essentially unlimited and may cause OOM  "
+}

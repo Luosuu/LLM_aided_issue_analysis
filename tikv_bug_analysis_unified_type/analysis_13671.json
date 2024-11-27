@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Bucket stats reset and split check interval are synchronized, preventing effective bucket re-splitting due to potential race condition between stats reset and split check",
+  "issue_number": 13671,
+  "title": "Bucket re-split hardly works"
+}

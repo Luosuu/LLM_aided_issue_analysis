@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Merge / Flashback Mechanism",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "PD does not properly handle region flashback state changes during region merge, causing resolved timestamp blocking and preventing commit merge operations",
+  "issue_number": 15258,
+  "title": "[Dynamic Regions] resolved ts blocked after region merge"
+}

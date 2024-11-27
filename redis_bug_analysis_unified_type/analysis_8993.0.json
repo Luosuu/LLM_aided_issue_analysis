@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Quicklist Iterator Management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Potential memory management issue with iterator release mechanism where `zfree` is used instead of `quicklistReleaseIterator`, which might prevent proper node compression and lead to iterator state inconsistency",
+  "issue_number": 8993.0,
+  "title": "[QUESTION] using iterators when insert to a list"
+}

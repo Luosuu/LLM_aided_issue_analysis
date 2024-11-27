@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Transaction/Command Parsing",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Improper validation of command arguments during multi/exec transaction, allowing invalid 'expireat' command with an empty string argument to be queued without raising an immediate error",
+  "issue_number": 10793.0,
+  "title": "[BUG]"
+}

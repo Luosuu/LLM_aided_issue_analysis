@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Config"
+  ],
+  "root_cause": "Sentinel configuration discovery mechanism allows overlapping network configurations to cross-pollinate sentinel state, potentially causing unintended configuration merging when network segments have similar topology and port configurations",
+  "issue_number": 13610.0,
+  "title": "[BUG] Sentinel configurations are mixed on 2 different architectures with same network segment and port"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv_util/sys/cgroup.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Unexpected `None` value when attempting to retrieve CPU cores quota from cgroup, causing an unwrap() panic during TiKV server initialization",
+  "issue_number": 12479,
+  "title": "`cpu_cores_quota` cause TiKV Panic"
+}

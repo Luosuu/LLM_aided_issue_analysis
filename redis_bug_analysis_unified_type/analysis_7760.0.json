@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Configuration Parser",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Upgrade"
+  ],
+  "root_cause": "Configuration file parsing error where Redis Sentinel incorrectly rewrites the 'oom-score-adj-values' parameter, removing the directive name and leaving only numeric values, which causes configuration parsing failure",
+  "issue_number": 7760.0,
+  "title": "[CRASH] Redis Sentinel rewrite redis.conf by incorrect parameter"
+}

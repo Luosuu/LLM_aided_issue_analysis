@@ -1,0 +1,12 @@
+{
+  "bug_location": "backup-restore",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Network"
+  ],
+  "root_cause": "Excessive file read frequency overwhelming S3 rate limits during Point-in-Time Recovery (PITR) log restore, causing potential throttling and restore failures",
+  "issue_number": 15620,
+  "title": "PiTR restore failed due to reading S3 files too frequently"
+}

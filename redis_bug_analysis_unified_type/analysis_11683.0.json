@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Core/String Parsing",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent handling of -0 (negative zero) in numeric increment operations like HINCRBY and INCRBY, causing unexpected behavior in certain scenarios, particularly in Lua scripting",
+  "issue_number": 11683.0,
+  "title": "[BUG] hincrby/incrby -0 will report an error"
+}

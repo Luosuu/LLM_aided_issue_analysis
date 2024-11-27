@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Cluster State Management",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Single-node cluster initialization logic requires a manual 'CLUSTER MEET' to transition cluster state from 'fail' to 'ok', despite having all slots assigned",
+  "issue_number": 12203.0,
+  "title": "[BUG] Single-node cluster reports cluster_state:fail"
+}

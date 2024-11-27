@@ -1,0 +1,13 @@
+{
+  "bug_location": "Redis Cluster MIGRATE command implementation in cluster.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Complex error handling in variadic MIGRATE command leading to memory leaks, incorrect key reference counting, and potential undefined behavior during multi-key migration with partial failures",
+  "issue_number": 3016.0,
+  "title": "Bugs introduced in variadic MIGRATE on errors"
+}

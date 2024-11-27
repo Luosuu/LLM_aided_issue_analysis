@@ -1,0 +1,12 @@
+{
+  "bug_location": "RDB (Redis Database) persistence module",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Recovery",
+    "CodeBug"
+  ],
+  "root_cause": "Potential memory corruption or invalid object type during RDB background save process in Redis 6.0.16, specifically in rdb.c at line 669, causing a segmentation fault during object serialization",
+  "issue_number": 13127.0,
+  "title": "[CRASH] Guru Meditation: Unknown object type #rdb.c:669"
+}

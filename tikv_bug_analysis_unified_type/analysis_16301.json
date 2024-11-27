@@ -1,0 +1,12 @@
+{
+  "bug_location": "Titan Storage Engine",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Compatibility issue with compaction filter on write column family when Titan is enabled, causing potential panic and region unavailability during network partition or restart scenarios",
+  "issue_number": 16301,
+  "title": "others tikv abnormally restart and workload report \u201cRegion is unavailable\u201d after inject one of tikv network partition or failure or rolling restart with titan enable"
+}

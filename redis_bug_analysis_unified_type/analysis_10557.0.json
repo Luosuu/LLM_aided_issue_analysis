@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster/Sharding Scan Command",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Replication"
+  ],
+  "root_cause": "SCAN command in multi-shard environments may not return all keys in a single iteration due to shard-level scanning behavior, where each shard is scanned independently and may not guarantee complete key retrieval in one pass",
+  "issue_number": 10557.0,
+  "title": "[BUG] Not all keys are returned on \"scan 0 match *\" for multi-shard DB"
+}

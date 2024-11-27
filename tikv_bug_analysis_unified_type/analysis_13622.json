@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) Checkpoint Mechanism",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "During single AZ failure, log backup checkpoint synchronization mechanism experiences significant lag, potentially due to network disruption, consensus protocol challenges, or recovery process ineffic",
+  "issue_number": 13622,
+  "title": "PITR checkpoint lag might >5min during/right after single AZ disaster happens"
+}

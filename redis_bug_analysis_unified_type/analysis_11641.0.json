@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "Sentinel failover mechanism appears to be stuck in an indecisive state, unable to elect a new master consistently due to potential race conditions or voting conflicts during repeated master deletions",
+  "issue_number": 11641.0,
+  "title": "[BUG] Sentinels can't decide on a master and are stuck in loop"
+}

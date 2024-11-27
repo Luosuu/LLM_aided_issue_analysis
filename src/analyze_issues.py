@@ -6,15 +6,21 @@ import time
 from json.decoder import JSONDecodeError
 
 BUG_CATEGORIES = [
-    "CodeBug",    # Implementation bugs in the code
-    "Config",     # Configuration and setup issues
-    "Human",      # User errors or misunderstandings
-    "Network",    # Network-related issues
-    "Upgrade",    # Version upgrade problems
-    "Security",   # Security vulnerabilities
-    "Storage",    # Data persistence and storage issues
-    "LoadBalance",# Load balancing and scaling issues
-    "Unknown"     # Unclassified or unclear issues
+    "CodeBug",      # Core implementation bugs
+    "Config",       # Configuration and setup issues
+    "Human",        # User errors or misunderstandings
+    "Network",      # Network, RPC, and connectivity issues
+    "Upgrade",      # Version upgrade and compatibility issues
+    "Security",     # Security vulnerabilities and access control
+    "Storage",      # Storage engine, persistence, and data integrity
+    "LoadBalance",  # Load balancing, scheduling, and cluster management
+    "Transaction",  # Transaction, consistency, and isolation issues
+    "Performance",  # Performance degradation and bottlenecks
+    "Memory",       # Memory management and allocation issues
+    "Replication",  # Data replication and synchronization
+    "Monitoring",   # Metrics, logging, and observability issues
+    "Recovery",     # Crash recovery and failover issues
+    "Unknown"       # Unclassified or unclear issues
 ]
 
 def analyze_bug_issue(issue_data):
@@ -24,7 +30,7 @@ def analyze_bug_issue(issue_data):
 
     prompt = f"""
     Analyze this Redis bug issue and provide a structured analysis in valid JSON format.
-
+    Note that when the information is insufficient for analysis, please be honest to say that you are not sure for the bug location or root cause.
     Your response must be ONLY a JSON object with these exact fields:
     - bug_location: string describing which Redis component is affected
     - severity: integer from 1-5
@@ -98,7 +104,7 @@ def analyze_bug_issue(issue_data):
 
 def main():
     # Create output directory
-    output_dir = Path('redis_bug_analysis')
+    output_dir = Path('redis_bug_analysis_unified_type')
     output_dir.mkdir(exist_ok=True)
 
     # Read all issue files

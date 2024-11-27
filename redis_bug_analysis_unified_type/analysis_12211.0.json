@@ -1,0 +1,11 @@
+{
+  "bug_location": "expire.c",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "When an EXPIRE command is issued with a timestamp in the past, Redis generates a 'del' event instead of an 'expired' event, which differs from the user's expected behavior for keyspace notifications",
+  "issue_number": 12211.0,
+  "title": "[BUG] when set a expire time smaller than now, event notify should be \"expired-key\", not \"del\""
+}

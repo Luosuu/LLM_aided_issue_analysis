@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis SET command implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect handling of SET command options when NX and GET are used simultaneously, causing a syntax error instead of returning a null bulk reply as specified in the command specification",
+  "issue_number": 8494.0,
+  "title": "[BUG] SET command doesn't work with NX & GET options"
+}

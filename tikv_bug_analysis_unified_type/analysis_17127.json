@@ -1,0 +1,12 @@
+{
+  "bug_location": "In-memory Engine",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Direct deletion of lock column family without writing tombstone, violating write atomicity in RocksDB and in-memory engine write process",
+  "issue_number": 17127,
+  "title": "In-memory Engine: lock should not be deleted directly"
+}

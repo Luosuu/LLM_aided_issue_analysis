@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup and Restore (BR) Component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Disk space exhaustion during log restore due to suspended garbage collection, causing excessive MVCC versions and compaction space consumption",
+  "issue_number": 17508,
+  "title": "TiKV disk full during PiTR log restore"
+}

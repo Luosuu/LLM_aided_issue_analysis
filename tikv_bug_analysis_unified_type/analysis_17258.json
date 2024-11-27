@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Region",
+  "severity": 5,
+  "categories": [
+    "Replication",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect data deletion after snapshot application, potentially caused by a race condition in range deletion logic introduced in PR 17121",
+  "issue_number": 17258,
+  "title": "tpcc report \"failed Error 8133: data inconsistency in table: customer, index: PRIMARY, index-count:1 != record-count:0\\r\\n\" during tikv balance"
+}

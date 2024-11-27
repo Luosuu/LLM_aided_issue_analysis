@@ -1,0 +1,11 @@
+{
+  "bug_location": "sst_importer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Empty SST files are not being cleaned up after snapshot restore on split regions, causing unnecessary file accumulation in the import directory",
+  "issue_number": 16005,
+  "title": "sst_importer needs to clean the sst if no kv need to be saved and rewritten"
+}

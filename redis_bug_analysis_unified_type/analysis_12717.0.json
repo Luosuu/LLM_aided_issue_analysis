@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Node State Management",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent state transition logic allowing a node to simultaneously hold primary and replica roles, which violates Redis Cluster's expected node state model",
+  "issue_number": 12717.0,
+  "title": " [BUG] Redis Cluster node after becoming Replica allows adding of primary slot range"
+}

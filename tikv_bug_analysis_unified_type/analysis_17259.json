@@ -1,0 +1,12 @@
+{
+  "bug_location": "In-memory Engine Range Management",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Incomplete range deletion logic that fails to properly handle canceled or overlapping range deletion tasks, leading to potential data inconsistency during snapshot and range eviction processes",
+  "issue_number": 17259,
+  "title": "In-memory Engine: delete range task has been scheduled multiple times"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Region Hibernation",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "Excessive message traffic when regions awaken, causing potential message blocking and delayed heartbeats during cluster state transitions",
+  "issue_number": 17101,
+  "title": "Commit log duration is high when hibernate regions are awake"
+}

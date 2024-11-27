@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Client Tracking Module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "When enabling client tracking with BCAST mode multiple times, the system does not properly reset or validate prefix tracking, causing duplicate invalidation messages for the same key",
+  "issue_number": 8003.0,
+  "title": "[BUG] Duplicate invalidation message when turning tracking with BCAST option on with and without prefixes"
+}

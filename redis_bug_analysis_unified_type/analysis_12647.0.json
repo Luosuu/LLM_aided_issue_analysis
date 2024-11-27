@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Module API / Replication Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Calling RedisModule_ReplicateVerbatim() in a worker thread without proper thread-safe context locking in Redis 7.x, which introduces a new assertion check in handleClientsBlockedOnKeys() function",
+  "issue_number": 12647.0,
+  "title": "[CRASH] worker thread call RedisModule_ReplicateVerbatim(ctx); trigger redis crash"
+}

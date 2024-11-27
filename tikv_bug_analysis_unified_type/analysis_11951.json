@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 5,
+  "categories": [
+    "Network",
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Unwrap on None value during network loss scenario in Raft message handling, likely caused by network interruption disrupting Raft communication state",
+  "issue_number": 11951,
+  "title": "one tikv panic after inject network-loss"
+}

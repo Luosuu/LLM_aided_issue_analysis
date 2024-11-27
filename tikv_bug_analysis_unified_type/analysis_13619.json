@@ -1,0 +1,12 @@
+{
+  "bug_location": "backup-restore",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Replication",
+    "LoadBalance"
+  ],
+  "root_cause": "Move-to-better-location scheduler appears to interfere with Point-in-Time Recovery (PITR) log backup tasks, causing significant checkpoint lag during relocation process",
+  "issue_number": 13619,
+  "title": "PITR lag > 5min when move-to-better-location scheduler running"
+}

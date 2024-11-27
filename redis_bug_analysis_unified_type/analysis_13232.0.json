@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Key-Value Storage/Concurrency Management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Concurrency",
+    "Transaction"
+  ],
+  "root_cause": "Potential race condition in key deletion and retrieval process where key state is not immediately consistent across concurrent threads",
+  "issue_number": 13232.0,
+  "title": "[BUG] Redis key present in cache even after deleted by first thread and reading around same point of time by other thread."
+}

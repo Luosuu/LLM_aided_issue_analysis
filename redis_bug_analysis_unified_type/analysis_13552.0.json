@@ -1,0 +1,12 @@
+{
+  "bug_location": "RDB (rdb.c) during object serialization",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Unexpected hash object encoding during RDB save process, causing server panic when object's encoding is neither OBJ_ENCODING_LISTPACK nor OBJ_ENCODING_HT",
+  "issue_number": 13552.0,
+  "title": "[CRASH] Redis seems to be crashing while creating RDB. "
+}

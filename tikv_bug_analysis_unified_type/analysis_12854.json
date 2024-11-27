@@ -1,0 +1,12 @@
+{
+  "bug_location": "Log Backup Component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Potential issue with 'CaptureChange' callback being dropped during TiKV server restarts, preventing log backup checkpoint from moving forward",
+  "issue_number": 12854,
+  "title": "br log backup checkpoint lag > 1H after stop restarting tikv for 1H"
+}

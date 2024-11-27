@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Configuration",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "Redis server listening on all network interfaces, including VIP (load balancer) interface, causing IP address configuration corruption in nodes.conf",
+  "issue_number": 8402.0,
+  "title": "[BUG] We are seeing a wrong IP in nodes.conf being used to reach a cluster node"
+}

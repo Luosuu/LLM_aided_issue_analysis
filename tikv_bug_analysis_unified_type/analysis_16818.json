@@ -1,0 +1,12 @@
+{
+  "bug_location": "resolved_ts",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Potential race condition in handling multiple pessimistic locks for the same key within a single RaftCmdRequest, causing unexpected lock state during transaction processing",
+  "issue_number": 16818,
+  "title": "tikv panic for \"assertion failed: row.lock.is_none()\""
+}

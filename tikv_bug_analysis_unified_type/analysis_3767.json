@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/snap",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Potential memory deallocation issue during snapshot generation, causing invalid memory access during file CRC32 calculation",
+  "issue_number": 3767,
+  "title": "test_storage_apply_snapshot possible invalid memory write"
+}

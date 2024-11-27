@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Command Processing Module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Command filter being incorrectly re-applied during command reprocessing, causing potential command argument misalignment and unexpected behavior when blocking commands are filtered by modules",
+  "issue_number": 11894.0,
+  "title": "[BUG] reprocessed block commands go through module command filter again, but used cached lookup"
+}

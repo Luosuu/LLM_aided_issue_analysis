@@ -1,0 +1,11 @@
+{
+  "bug_location": "Apply Thread / SST Ingestion",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Verify-checksum operation is performed synchronously in a single apply-thread, causing significant performance bottleneck when multiple SST files need to be ingested",
+  "issue_number": 11239,
+  "title": "import: TiKV verify-checksum in apply-thread and it cost a lot of time"
+}

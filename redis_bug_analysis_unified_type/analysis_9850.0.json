@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Test Suite / BLMPOP Command Handler",
+  "severity": 2,
+  "categories": [
+    "Network",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Test case assumes deterministic network packet ordering and command processing sequence, which is not guaranteed in distributed systems with potential network delays or reordering",
+  "issue_number": 9850.0,
+  "title": "[BUG] One BLMPOP test case may fail on external server"
+}

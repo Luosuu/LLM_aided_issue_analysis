@@ -1,0 +1,12 @@
+{
+  "bug_location": "ReadPool",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Monitoring"
+  ],
+  "root_cause": "Metric initialization logic fails to set thread count metric until configuration is explicitly modified",
+  "issue_number": 16629,
+  "title": "`tikv_unified_read_pool_thread_count` is always zero until online modifying `readpool.unified.max-thread-count`."
+}

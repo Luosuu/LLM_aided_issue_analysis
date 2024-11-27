@@ -1,0 +1,11 @@
+{
+  "bug_location": "zmalloc.c",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Incorrect preprocessor conditional check using sizeof() which is only resolvable at compile-time, causing compilation failure on musl-based systems when jemalloc is disabled",
+  "issue_number": 8573.0,
+  "title": "[BUG] Redis 6.2.0 does not build without jemalloc on musl"
+}

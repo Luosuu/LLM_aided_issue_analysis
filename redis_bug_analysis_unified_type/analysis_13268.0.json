@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Creation CLI",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "The redis-cli cluster creation process lacks proper timeout handling and error detection when network ports or services are inaccessible, causing an indefinite waiting state instead of failing gracefully",
+  "issue_number": 13268.0,
+  "title": "[BUG] When the bus_port is inaccessible, creating a cluster using redis-cli will result in an infinite wait without returning a failure"
+}

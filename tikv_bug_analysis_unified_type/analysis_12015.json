@@ -1,0 +1,11 @@
+{
+  "bug_location": "backup/writer.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Unhandled empty key scenario during raw backup operation, causing a panic in the backup writer when processing an entry with an empty key",
+  "issue_number": 12015,
+  "title": "backup: TiKV panic when execute \"br backup raw\" with an empty key entry"
+}

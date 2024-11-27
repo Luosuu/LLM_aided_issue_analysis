@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Election Mechanism",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Misunderstanding of Redis cluster bus election protocol's epoch management, where a replica's local currentEpoch remains artificially bumped after an aborted leadership election",
+  "issue_number": 10239.0,
+  "title": "[BUG] currentEpoch doesn't decrease on a replica that campaigned for leadership but the election got aborted"
+}

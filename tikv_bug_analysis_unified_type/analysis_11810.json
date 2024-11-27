@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Rate Limiter",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Config"
+  ],
+  "root_cause": "Rate limiter mechanism fails to control compaction when pending bytes exceed a threshold, potentially causing uncontrolled compaction despite configured rate limits",
+  "issue_number": 11810,
+  "title": "RocksDB rate limit takes no effect when pending bytes is high"
+}

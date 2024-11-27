@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Storage Layer",
+  "severity": 4,
+  "categories": [
+    "Upgrade",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Unexpected change in bloom filter naming convention during RocksDB upgrade, causing existing SST file filters to become invalidated",
+  "issue_number": 17272,
+  "title": "Bloom filter is invalidated after upgrade from <=7.1 to >=7.2"
+}

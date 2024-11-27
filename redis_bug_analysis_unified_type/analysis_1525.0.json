@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Lua scripting and key expiration mechanism",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition in key expiration during Lua script execution where master and slave nodes handle key existence and increments differently, causing inconsistent state across nodes",
+  "issue_number": 1525.0,
+  "title": "EVAL replicated + conditionals about key existence = replication bug."
+}

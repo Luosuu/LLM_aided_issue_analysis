@@ -1,0 +1,12 @@
+{
+  "bug_location": "Storage Iterator/Cursor",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent state management between seek operation return value and cursor validity state, causing unexpected cursor behavior after seek operations to non-existent keys",
+  "issue_number": 3378,
+  "title": "Cursor remains valid when seek to nothing again"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module System",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Initial misunderstanding of environment variable access in Redis modules, which can actually access environment variables using standard getenv() function",
+  "issue_number": 8648.0,
+  "title": "[BUG] Environment variables are not exposed to redis modules"
+}

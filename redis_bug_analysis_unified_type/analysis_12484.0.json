@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Persistence Layer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "When switching from RDB to RDB+AOF persistence mode by restarting the server, Redis does not preserve existing RDB data and instead starts with an empty dataset, causing unexpected data loss",
+  "issue_number": 12484.0,
+  "title": "[BUG] Complete data loss when enabling AOF through config"
+}

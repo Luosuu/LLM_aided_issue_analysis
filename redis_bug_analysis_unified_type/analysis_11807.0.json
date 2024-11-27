@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis PubSub Subscription Management",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "After careful review of the issue and comments, this does not appear to be a definitive bug. The behavior described seems to be expected Redis PubSub functionality, where unsubscribe commands may return 0 if no current subscriptions exist for that specific client. The comments from @ranshid suggest the reported 'issue' is actually standard Redis behavior.",
+  "issue_number": 11807.0,
+  "title": "[BUG] In PubSub, UNSUBSCRIBE and PUNSUBSCRIBE commands do not work correctly."
+}

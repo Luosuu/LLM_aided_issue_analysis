@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) Old Value Cache",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "The old value cache does not properly enforce memory quota limits when inserting large or numerous values, allowing cache size to significantly exceed configured memory constraints",
+  "issue_number": 14815,
+  "title": "cdc's old value cache sometimes exceeds the quota"
+}

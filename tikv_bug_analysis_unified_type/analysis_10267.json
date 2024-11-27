@@ -1,0 +1,11 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "CDC incremental scanner default behavior fills RocksDB block cache, causing unnecessary cache pollution and potential performance degradation for online read services",
+  "issue_number": 10267,
+  "title": "CDC incremental scan pollutes rocksdb block cache"
+}

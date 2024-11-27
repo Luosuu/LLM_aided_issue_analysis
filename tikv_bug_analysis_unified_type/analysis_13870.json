@@ -1,0 +1,12 @@
+{
+  "bug_location": "PeerFSM",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Race condition between flashback state update and read request proposal, causing potential blocking of read requests during flashback preparation",
+  "issue_number": 13870,
+  "title": "Flashback state may not be visible immediately in PeerFSM"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB/Storage Layer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Out-of-order key insertion during range cleanup or compaction, potentially causing data inconsistency or corruption",
+  "issue_number": 11673,
+  "title": "Can't cleanup overlapped ranges due to out-or-order keys"
+}

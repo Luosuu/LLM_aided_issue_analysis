@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel Failover Mechanism",
+  "severity": 5,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "During sentinel-managed failover, the old master (node A) is incorrectly allowed to become a new master again after being stopped, resulting in potential data loss by overwriting or losing recent writes from the previous master (node B)",
+  "issue_number": 12570.0,
+  "title": "[BUG] sentinel cluster auto failover caused data loss"
+}

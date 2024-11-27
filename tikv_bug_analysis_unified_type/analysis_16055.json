@@ -1,0 +1,12 @@
+{
+  "bug_location": "PD Balance Scheduler",
+  "severity": 4,
+  "categories": [
+    "LoadBalance",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Titan storage format not properly handled during store rebalancing, causing uneven data distribution when scaling out TiKV nodes",
+  "issue_number": 16055,
+  "title": "The scaled out tikv store size can't balance when titan is enable"
+}

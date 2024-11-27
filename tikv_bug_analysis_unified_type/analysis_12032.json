@@ -1,0 +1,11 @@
+{
+  "bug_location": "Load Balancer / Region Scheduler",
+  "severity": 3,
+  "categories": [
+    "LoadBalance",
+    "Performance"
+  ],
+  "root_cause": "Region split and scheduling mechanism not converging quickly enough when strict-picking-store is set to false, potentially due to QPS threshold not being met in test environment",
+  "issue_number": 12032,
+  "title": "Store read query is not converging after 30m when set strict-picking-store to false"
+}

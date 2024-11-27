@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/ApplyFSM",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Potential race condition or synchronization issue during memtable sealing and sequence number management in RocksDB event listener",
+  "issue_number": 15534,
+  "title": "[Dynamic Regions] tikv panic with error \u201csealed seqno has been flushed lock 469114 11526377 <= 11526405\\\"] [backtrace=\\\"   0: tikv_util::set_panic_hook::{{closure}}\u201d"
+}

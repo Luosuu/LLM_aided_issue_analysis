@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/worker/read.rs",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Upgrade",
+    "Transaction"
+  ],
+  "root_cause": "Unwrapping a None value in LocalReaderCore::validate_request, likely caused by unexpected state during upgrade or transaction processing",
+  "issue_number": 13812,
+  "title": "tikv fatal error after upgrading when running ch and cc workload"
+}

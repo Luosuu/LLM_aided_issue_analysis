@@ -1,0 +1,11 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Cache implementation does not handle Put commands without previous writes by not adding Oldvalue::None to cache, causing unnecessary cache misses",
+  "issue_number": 10036,
+  "title": "CDC old value cache does not work effectively for caching Put commands"
+}

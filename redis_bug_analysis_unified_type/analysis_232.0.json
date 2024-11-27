@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis source code compilation (src/redis.c)",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Missing platform-specific macro definition for SA_ONSTACK in Cygwin environment, causing compilation failure due to undefined symbol",
+  "issue_number": 232.0,
+  "title": "Cannot build on cygwin: \u2018SA_ONSTACK\u2019 undeclared "
+}

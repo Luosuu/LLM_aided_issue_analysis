@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Sentinel does not re-publish +sdown/+odown messages after initial publication, causing potential communication gaps during network partitions or temporary disconnections between sentinels",
+  "issue_number": 13486.0,
+  "title": "[BUG]sentinel only publish +sdown/+odown message once"
+}

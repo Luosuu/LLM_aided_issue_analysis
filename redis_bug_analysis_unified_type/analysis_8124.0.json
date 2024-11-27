@@ -1,0 +1,12 @@
+{
+  "bug_location": "RDB (Redis Database) Saving Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Memory"
+  ],
+  "root_cause": "Potential memory corruption during Copy-on-Write (CoW) process on ARM64 platforms, likely due to kernel-level interaction with jemalloc's MADV_FREE mechanism",
+  "issue_number": 8124.0,
+  "title": "[BUG] [6.0.9] RDB generated from cluster replica is intermittently invalid, crashes redis-check-rdb or redis-server if used"
+}

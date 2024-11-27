@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction/WATCH Command",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Current implementation of WATCH command does not properly handle key expiration, causing unexpected behavior where expired keys are silently ignored during transaction validation",
+  "issue_number": 7918.0,
+  "title": "[BUG] WATCH ignores keys which has expired"
+}

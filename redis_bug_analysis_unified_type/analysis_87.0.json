@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Blocking Operations (BRPOPLPUSH)",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Command vector rewriting in rpoplpushHandlePush interferes with multiple item LPUSH operations, causing incomplete push and blocking operation semantics to break",
+  "issue_number": 87.0,
+  "title": "BRPOPLPUSH and a single LPUSH with several items doesn't work well together\t"
+}

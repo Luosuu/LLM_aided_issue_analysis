@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/snapshot_worker",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Replication"
+  ],
+  "root_cause": "Message channel congestion preventing snapshot apply result notification, potentially caused by message queue overflow during node recovery",
+  "issue_number": 1028,
+  "title": "failed to send msg SnapApplyRes [region_id: 912, is_success: true] after 5 tries"
+}

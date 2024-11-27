@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Replication Synchronization",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Inconsistent full sync behavior when 'appendonly yes' is configured during replica reboot, forcing unnecessary full data synchronization even when no new data exists",
+  "issue_number": 13175.0,
+  "title": "[BUG]If \"appendonly yes\" in the cluster, the full sync occurs after the replica reboot"
+}

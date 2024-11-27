@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ACL (Access Control List) Permission System",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "The '+@all' permission does not automatically grant key access permissions, which requires an additional '~*' wildcard to allow access to all keys",
+  "issue_number": 9397.0,
+  "title": "[BUG] ACL permission \"+@all\" does not grant all permissions"
+}

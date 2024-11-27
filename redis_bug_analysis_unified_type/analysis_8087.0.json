@@ -1,0 +1,12 @@
+{
+  "bug_location": "activeExpireCycle in expire.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during key expiration where a notification callback can delete a key while iterating through the expiration dictionary, causing an invalid memory access",
+  "issue_number": 8087.0,
+  "title": "[CRASH] activeExpireCycle crash"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "components/raftstore-v2/src/operation/life.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Followers do not report GcPeerResponse after commit merge, preventing cleanup of merged_records",
+  "issue_number": 15644,
+  "title": "[Dynamic Regions] `merged_records` will never be cleaned up"
+}

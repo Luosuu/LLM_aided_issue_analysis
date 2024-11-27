@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "High memory usage caused by excessive raft log caching, triggered by TiFlash node disk exhaustion, preventing log appending and causing server busy state",
+  "issue_number": 15800,
+  "title": "TiKV reports ServerIsBusy error because it can not append raft log"
+}

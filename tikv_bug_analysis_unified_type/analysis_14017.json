@@ -1,0 +1,11 @@
+{
+  "bug_location": "TiKV Configuration/Resource Allocation",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Configuration validation for max_background_jobs fails when CPU request is 1 or less, preventing volume snapshot restore",
+  "issue_number": 14017,
+  "title": "tidb-operator volume-snapshot restore failure when tikv request cpu less or equal to 1"
+}

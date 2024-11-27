@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture)",
+  "severity": 5,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Slow processing of old_value_cb when handling large region sizes (280MB+) with Titan storage enabled, causing significant replication lag",
+  "issue_number": 17781,
+  "title": "CDC lag up to 2.5h when titan is on and region size is large (280MB+)"
+}

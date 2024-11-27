@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Replication",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Replica nodes are not aware of slot migration during cluster resharding, causing them to return nil instead of ASK redirection for migrated keys",
+  "issue_number": 11312.0,
+  "title": "[BUG] ASK redirection from replica nodes"
+}

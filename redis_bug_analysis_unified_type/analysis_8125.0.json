@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Stream Module Interaction",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Issue with stream entry recognition when entries are added by a Redis module, causing blocking XREAD commands to timeout incorrectly even when new entries exist",
+  "issue_number": 8125.0,
+  "title": "[BUG] Redis Stream entries added by module not recognized by XREAD with special ID $"
+}

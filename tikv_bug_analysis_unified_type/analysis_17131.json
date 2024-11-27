@@ -1,0 +1,11 @@
+{
+  "bug_location": "In-memory Engine",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Current implementation of `evict_range` does not handle scenarios where multiple cached ranges are present during concurrent delete and merge operations",
+  "issue_number": 17131,
+  "title": "In-memory Engine: `range` to evict may contain multiple cached range"
+}

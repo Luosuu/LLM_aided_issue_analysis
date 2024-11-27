@@ -1,0 +1,11 @@
+{
+  "bug_location": "TiKV Configuration Parser",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Upgrade"
+  ],
+  "root_cause": "Strict configuration parsing that does not handle deprecated or unknown configuration fields during upgrade, causing TiKV startup failure when reading last_tikv.toml with outdated settings",
+  "issue_number": 5286,
+  "title": "unknown field `import-dir`, expected `num-threads` or `stream-channel-window` for key `import`"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Consensus Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Uninitialized peer can be recreated due to empty region state, allowing multiple leaders in the same term which breaks Raft consensus protocol invariants",
+  "issue_number": 10533,
+  "title": "destroy uninitialized peer can make it possible to recreate old peer"
+}

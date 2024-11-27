@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/util.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Inaccurate min resolved timestamp calculation that fails to account for uninitialized peers and newly created peers with potentially older locks",
+  "issue_number": 15506,
+  "title": "Store min resolved ts may not be accurate"
+}

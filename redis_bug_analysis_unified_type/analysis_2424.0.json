@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis MIGRATE command replication logic",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Incorrect conditional logic for replicating DEL command when MIGRATE is used with COPY option, causing unintended key deletion on replica instances",
+  "issue_number": 2424.0,
+  "title": "Redis MIGRATE with COPY replicating DEL"
+}

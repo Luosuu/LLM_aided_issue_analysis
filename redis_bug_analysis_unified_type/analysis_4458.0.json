@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Module Replication System",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "RM_ReplicateVerbatim fails when called in a reply callback or from a different thread, likely due to improper client context handling during thread-safe context generation",
+  "issue_number": 4458.0,
+  "title": "[Module][Bug] Replication does not work if called in different thread "
+}

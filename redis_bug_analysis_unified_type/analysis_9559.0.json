@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua Scripting Engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Lua multivalue unpacking limitation where values are truncated when inserted into another multival before its end, causing unexpected behavior in redis.call('sunion') when using unpack() with specific argument orders",
+  "issue_number": 9559.0,
+  "title": "[BUG] unpack issue with sunion in EVAL"
+}

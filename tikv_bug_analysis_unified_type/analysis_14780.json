@@ -1,0 +1,12 @@
+{
+  "bug_location": "Transaction/Write CF",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "Upgrade"
+  ],
+  "root_cause": "Incomplete handling of lock record versioning during cluster upgrades, causing potential performance degradation due to accumulated lock records without proper last change timestamp tracking",
+  "issue_number": 14780,
+  "title": "Clusters upgraded from <6.5 to >=6.5 may suffer additional bad performance from accumulated lock records"
+}

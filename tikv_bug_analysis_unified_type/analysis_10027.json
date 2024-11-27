@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Snapshot Management",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "TiKV blocked during SST file upload to S3, preventing snapshot release and causing resource leakage",
+  "issue_number": 10027,
+  "title": "rocksdb snapshot doesn't released and make space not reclaimed."
+}

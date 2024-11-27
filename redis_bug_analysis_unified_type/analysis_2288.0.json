@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster (cluster.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during cluster state update and node query resolution, where node lookup fails during cluster reconfiguration due to inconsistent cluster state",
+  "issue_number": 2288.0,
+  "title": "[2.9.102] Assertion failed: cluster.c:4641 'n != NULL' is not true"
+}

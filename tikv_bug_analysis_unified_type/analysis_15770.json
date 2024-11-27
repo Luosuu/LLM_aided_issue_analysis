@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft-rs component",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Unbounded log scanning during raft configuration change check, causing memory consumption to grow uncontrollably when many unapplied log entries exist",
+  "issue_number": 15770,
+  "title": "TiKV OOM causes by reading raft conf changes during raft.hup"
+}

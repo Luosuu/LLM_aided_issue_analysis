@@ -1,0 +1,12 @@
+{
+  "bug_location": "backup-stream",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Unhandled future polling scenario in backup stream checkpoint manager, causing a fatal runtime error when resolving a future that has already been resolved",
+  "issue_number": 14426,
+  "title": "tikv panic with fatal error \"Resolved future is not supposed to be polled again.\" when run ha-tidb-random-to-all-network-partition-last-for-10m"
+}

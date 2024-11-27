@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/read_worker",
+  "severity": 5,
+  "categories": [
+    "Network",
+    "CodeBug",
+    "Recovery"
+  ],
+  "root_cause": "Unwrapping a None value during local read request validation when network fault is injected, causing a panic in the LocalReaderCore",
+  "issue_number": 13764,
+  "title": "tikv panic when inject network fault"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "scripting.c, sort command handling in Lua",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect conditional logic in luaRedisGenericCommand() that causes unintended sorting of results when using 'nosort' parameter in Lua scripts, specifically breaking the expected order of interleaved sort results",
+  "issue_number": 545.0,
+  "title": "2.6RC4 sort command is broken in Lua due to automatic resorting of output"
+}

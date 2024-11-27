@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Command (XREAD)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Potential issue with message retrieval when multiple messages are added to a stream at the same millisecond timestamp, causing inconsistent message reading behavior with XREAD command",
+  "issue_number": 11828.0,
+  "title": "[BUG] XREAD COMMAND - ONLY READS EPOCH TIME - 0"
+}

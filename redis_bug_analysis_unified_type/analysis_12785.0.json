@@ -1,0 +1,12 @@
+{
+  "bug_location": "networking.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Race condition in thread-safe context handling when freeing clients with IO threads enabled, specifically an assertion failure in networking.c related to io_threads_op state",
+  "issue_number": 12785.0,
+  "title": "[CRASH] Redis crashing on 7.2.3 version"
+}

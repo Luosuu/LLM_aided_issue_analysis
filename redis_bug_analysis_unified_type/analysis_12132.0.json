@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Configuration Management",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Inconsistent handling of memory unit suffixes (mb) between Redis versions 4.0.14 and 5.0.13, where version 4.0.14 does not convert 'mb' to bytes while 5.0.13 does automatic conversion",
+  "issue_number": 12132.0,
+  "title": "[BUG] Use the command 'CONFIG SET client-output-buffer-limit \"slave 1024mb 512mb 180\" ', the effective data is \"slave 1024 512 180\""
+}

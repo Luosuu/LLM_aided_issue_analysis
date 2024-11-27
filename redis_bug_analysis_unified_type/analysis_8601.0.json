@@ -1,0 +1,11 @@
+{
+  "bug_location": "zmalloc.h",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Platform-specific header inclusion issue where FreeBSD uses <stdlib.h> instead of <malloc.h>, causing compilation failure",
+  "issue_number": 8601.0,
+  "title": "[BUG] redis 6.2.1 build failed on FreeBSD 11.4, both amd64 and i386"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "backup-stream/subscription_manager",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Concurrent test execution causing file system race condition with temp file creation, resulting in 'File exists' error when multiple tests attempt to create the same temporary file",
+  "issue_number": 17268,
+  "title": "test_unretryable_failure failed when \"make test\""
+}

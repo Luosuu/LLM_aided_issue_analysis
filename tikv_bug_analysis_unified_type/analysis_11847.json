@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore",
+  "severity": 2,
+  "categories": [
+    "Replication",
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "Stale peer handling during network chaos, where a removed peer remains unaware of its status and waits for a long timeout before self-destruction",
+  "issue_number": 11847,
+  "title": "resolved_ts: max resolved ts gap exceed 1 hours  while inject network chaos during run stale read"
+}

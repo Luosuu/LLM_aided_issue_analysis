@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "Network"
+  ],
+  "root_cause": "Potential race condition in sentinel leader election mechanism where votes in a previous epoch might become invalidated, preventing successful failover even with majority votes",
+  "issue_number": 12865.0,
+  "title": "[BUG] sentinel report -failover-abort-not-elected with enough votes received"
+}

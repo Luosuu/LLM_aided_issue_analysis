@@ -1,0 +1,12 @@
+{
+  "bug_location": "resolved_ts",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Multiple write records for the same key in a single Raft command batch during flashback operation, causing an assertion failure in row write handling",
+  "issue_number": 13723,
+  "title": "flashback during workload, tikv panic lead to tidb down"
+}

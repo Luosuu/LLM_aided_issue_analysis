@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB/Storage Layer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Inconsistent state between memtable and flushed index during delete range operation, causing potential blocking of admin flush operations",
+  "issue_number": 14904,
+  "title": "[Dynamic Regions] after delete range, admin flushed index may be blocked"
+}

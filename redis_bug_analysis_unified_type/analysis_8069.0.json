@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Memory Management / Eviction Mechanism",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Client tracking and maxmemory-policy interaction creates a feedback loop where key evictions trigger client output buffer growth, which in turn causes more memory pressure and further evictions",
+  "issue_number": 8069.0,
+  "title": "[BUG] maxmemory-policy eviction with client tracking can cause feedback loop"
+}

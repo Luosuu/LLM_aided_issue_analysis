@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) and Log Backup components",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Default 5-second timeout for leader checking in resolved_ts mechanism, causing potential significant lag during node unreachability",
+  "issue_number": 17107,
+  "title": "check_leader of resolved_ts used in CDC and log-backup always uses default timeout which is 5s"
+}

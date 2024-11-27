@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Configuration Parser (createULongLongConfig/memtoll)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "The memtoll function uses strtoll which limits parsing to LLONG_MAX, causing integer overflow when attempting to set configuration values larger than 2^63 - 1",
+  "issue_number": 9071.0,
+  "title": "[BUG] The value exceeding LLONG_MAX in createULongLongConfig is invalid"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Python Client Library",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Version-specific implementation difference in HSET command handling between Redis 3.0.504 and newer versions (4.0.0+). The older version does not support variadic HSET with multiple field/value pairs, causing a 'wrong number of arguments' error.",
+  "issue_number": 8622.0,
+  "title": "[BUG] hset does not support multiple dict mapping"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Server Configuration",
+  "severity": 2,
+  "categories": [
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Incorrect handling of file descriptor limits when ulimit is set to a low value, causing maxclients to become a negative number due to reserved file descriptors",
+  "issue_number": 356.0,
+  "title": "server.maxclients could be minus!"
+}

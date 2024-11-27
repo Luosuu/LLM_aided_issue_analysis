@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) Initial Scan Task",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Initial scan tasks are not properly terminated or cancelled when changefeeds are paused, failed, or deleted, causing lingering background processes that block subsequent changefeed initializations",
+  "issue_number": 17606,
+  "title": "TiKV initial scan task not cancel/termicated when changefeed paused or failed"
+}

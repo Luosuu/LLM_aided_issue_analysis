@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Unhandled error during commit merge when regions are shutting down, causing panic due to unwrapping a disconnected result",
+  "issue_number": 5032,
+  "title": "Panic on force send commit merge during shutdown "
+}

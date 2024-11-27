@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "During cluster recovery and master failover, slot ownership and key synchronization became inconsistent, causing keys to be present on nodes that do not own the corresponding slots",
+  "issue_number": 11589.0,
+  "title": "[BUG] Redis 6.2.6 How to delete keys in a Slot not owned by a master "
+}

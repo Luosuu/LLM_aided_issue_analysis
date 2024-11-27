@@ -1,0 +1,12 @@
+{
+  "bug_location": "resolved_ts component",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Unbounded coroutine accumulation when using futures::join_all without proper timeout or cancellation mechanism, causing potential memory exhaustion when one TiKV node becomes unresponsive",
+  "issue_number": 10965,
+  "title": "Coroutine leaking after one TiKV got stuck"
+}

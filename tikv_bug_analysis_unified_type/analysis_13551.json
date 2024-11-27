@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv_util/lru.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Unsafe memory manipulation in LruCache implementation causing undefined behavior during Rust borrow checking, likely due to incorrect pointer and reference management in the Trace struct",
+  "issue_number": 13551,
+  "title": "LruCache is unsound"
+}

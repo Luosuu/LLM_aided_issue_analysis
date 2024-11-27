@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Log Garbage Collection (Log GC)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Periodic raft log purge tick incorrectly triggering unnecessary log compaction and snapshot generation during cluster rolling update, potentially due to an overflow calculation in estimated region log",
+  "issue_number": 10954,
+  "title": "Periodically raft purge tick can cause unnecessary snapshots between rolling update"
+}

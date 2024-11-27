@@ -1,0 +1,11 @@
+{
+  "bug_location": "AWS ElastiCache Redis Monitor Output",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Monitoring"
+  ],
+  "root_cause": "AWS ElastiCache has a visual bug in monitor output where when a key exists, the command is internally rewritten for higher precision replication, but the monitor incorrectly displays the command name as 'pexpireat' instead of the original 'expireat'",
+  "issue_number": 10585.0,
+  "title": "[BUG] Calling expireat on existing key shows pexpireat in monitor output"
+}

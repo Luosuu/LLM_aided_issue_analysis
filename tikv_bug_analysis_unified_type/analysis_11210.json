@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv-ctl logging system",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Async logging drain not properly flushed when process exits, causing incomplete log output due to std::process::exit preventing log drain flushing",
+  "issue_number": 11210,
+  "title": "tikv-ctl's output is incomplete, maybe slog-async is not flushed when tikv-ctl process exits"
+}

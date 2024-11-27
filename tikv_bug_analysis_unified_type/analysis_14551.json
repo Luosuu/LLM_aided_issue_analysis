@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/txn/actions/commit.rs",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of stale pessimistic lock requests when committing locks, potentially overwriting committed transaction records and causing data inconsistency",
+  "issue_number": 14551,
+  "title": "Stale pessimistic lock requests in force-lock mode may lead to data corruption or in consistency after resolving lock"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Network",
+    "Config"
+  ],
+  "root_cause": "Sentinel caches IP addresses after hostname resolution and fails to dynamically update connection information when pod/instance IP changes, preventing proper failover when using DNS/hostnames",
+  "issue_number": 9103.0,
+  "title": "[BUG] Failover not happening after enabling announce-hostnames & resolve-hostnames in sentinel"
+}

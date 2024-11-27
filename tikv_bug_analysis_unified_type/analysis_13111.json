@@ -1,0 +1,12 @@
+{
+  "bug_location": "coprocessor/split_check/half.rs",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "LoadBalance",
+    "CodeBug"
+  ],
+  "root_cause": "Split checker cannot sample enough keys in small tables, preventing region splitting and load balancing",
+  "issue_number": 13111,
+  "title": "Load base split don't work in scenario of pure little table scan"
+}

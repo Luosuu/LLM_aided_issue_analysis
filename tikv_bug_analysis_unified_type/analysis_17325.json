@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft-engine",
+  "severity": 3,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Recovery"
+  ],
+  "root_cause": "Incorrect decoding of log headers during disk flush, causing unexpected offset and potential panic when starting TiKV",
+  "issue_number": 17325,
+  "title": "raft-engine: panic on decoding unexpected bytes when starting."
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/entry_storage.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Potential race condition or invalid state during region merge operation causing a None unwrap in term retrieval",
+  "issue_number": 17840,
+  "title": "tikv panic in on_raft_gc_log_tick after region is merged"
+}

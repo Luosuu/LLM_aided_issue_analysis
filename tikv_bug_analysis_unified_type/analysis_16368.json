@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Peers entering PreChaos state and ignoring WakeUp messages during IO hang, causing extended region recovery time due to interaction between Hibernate Region feature and peer state management",
+  "issue_number": 16368,
+  "title": "qps recover after 13mins when inject one of tikv io hang"
+}

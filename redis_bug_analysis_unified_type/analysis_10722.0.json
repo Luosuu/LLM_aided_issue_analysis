@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel Command Parsing",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Inconsistent subcommand implementation between sentinel.c source code and generated commands.c, causing 'sentinel slaves' command to be unrecognized in Redis 7.0 despite code suggesting it should be supported",
+  "issue_number": 10722.0,
+  "title": "[BUG] Redis 7.0 - Unknown subcommand `sentinel slaves`"
+}

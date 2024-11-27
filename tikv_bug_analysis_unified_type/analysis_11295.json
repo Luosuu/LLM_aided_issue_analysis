@@ -1,0 +1,11 @@
+{
+  "bug_location": "coprocessor/statistics/analyze",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Potential race condition or unhandled edge case in row sampling statistics collection, causing an unwrap() on a None value during benchmark dataset cleanup",
+  "issue_number": 11295,
+  "title": "panic when preparing tpcc/ch benchmark dataset"
+}

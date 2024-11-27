@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication System",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Incorrect replica client output buffer usage calculation when handling large keys, causing potential disconnection and synchronization issues during replication",
+  "issue_number": 11667.0,
+  "title": "[BUG] big keys can trigger replica buffer overrun/psync loops"
+}

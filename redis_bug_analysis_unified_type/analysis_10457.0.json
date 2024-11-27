@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Persistence/Cluster Module",
+  "severity": 3,
+  "categories": [
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Redis continues to load RDB file during cluster startup even when persistence is explicitly disabled, causing unexpected key imports from different masters",
+  "issue_number": 10457.0,
+  "title": "[BUG] Inspite of disabling the redis persistance both AOF and RDB, RDB is loading keys of diffrent master leading to keys importing "
+}

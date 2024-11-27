@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Configuration Validation",
+  "severity": 3,
+  "categories": [
+    "Upgrade",
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "Configuration validation in v6.0.0 fails when upgrading from v3.0.11 due to scheduler-worker-pool-size exceeding cgroup CPU quota limitations",
+  "issue_number": 12238,
+  "title": "v3.0.11 upgrade to v6.0.0 fail with \"critical config check failed: raft engine dir have been changed, former is ''"
+}

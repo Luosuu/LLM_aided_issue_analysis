@@ -1,0 +1,11 @@
+{
+  "bug_location": "coprocessor/codec/mysql/time",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Lack of support for SQL mode ALLOW_INVALID_DATES in TiKV coprocessor's time handling logic, causing errors when processing invalid date values during SELECT operations",
+  "issue_number": 4100,
+  "title": "coprocessor: allow invalid dates SQL mode"
+}

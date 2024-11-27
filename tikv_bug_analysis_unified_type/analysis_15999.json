@@ -1,0 +1,12 @@
+{
+  "bug_location": "Resolve Timestamp (resolve_ts) Component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Potential cascading performance issue where a single store's check_leader slowdown propagates resolve timestamp advancement across multiple stores",
+  "issue_number": 15999,
+  "title": "1 store check_leader slow may affect may store to advance resolve_ts"
+}

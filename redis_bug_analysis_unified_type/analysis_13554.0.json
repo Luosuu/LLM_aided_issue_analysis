@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Persistence/Cluster Recovery",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Recovery",
+    "Replication"
+  ],
+  "root_cause": "Unexpected FLUSHALL command in AOF file causing data loss during cluster restart, likely triggered by an automatic cluster management process",
+  "issue_number": 13554.0,
+  "title": "[BUG] Redis cluster not recovering previously persisted data after host machine restart"
+}

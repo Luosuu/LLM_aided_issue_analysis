@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis server core (server.c, rdb.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Potential data race on shared global variable 'server.loading' between main thread and signal handler, where concurrent read/write operations can lead to undefined behavior without proper synchronization",
+  "issue_number": 7777.0,
+  "title": "[BUG] Potential data race on server.loading flag"
+}

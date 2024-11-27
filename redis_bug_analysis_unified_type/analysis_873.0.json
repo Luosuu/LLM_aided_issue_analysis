@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication/Lua Script Execution",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "PUBLISH command in Lua scripts not being consistently replicated due to server.dirty flag not being incremented automatically",
+  "issue_number": 873.0,
+  "title": "PUBLISH is not replicated from EVAL unless other commands in script increment server.dirty"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Hash Function",
+  "severity": 3,
+  "categories": [
+    "Security",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Vulnerable hash function design that allows seed-independent hash collisions, enabling potential Denial of Service attacks by manipulating input keys to hash into the same bucket, causing worst-case O(N) time complexity",
+  "issue_number": 663.0,
+  "title": "Denial of Service Attack through Forced Hash Collisions"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Management CLI",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "In Redis 7.0.3+, a code change in redis_cli.c incorrectly uses `first->ip` instead of `first_ip` when creating a cluster, causing invalid node address resolution during cluster creation",
+  "issue_number": 11148.0,
+  "title": "[BUG] cannot create cluster with docker compose service name"
+}

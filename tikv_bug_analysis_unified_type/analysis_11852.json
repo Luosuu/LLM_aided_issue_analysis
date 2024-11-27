@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during region merge where ReadDelegate is unexpectedly removed, causing panic when attempting to access a non-existent delegate",
+  "issue_number": 11852,
+  "title": "Got unexpected panic during tipocket ledger test"
+}

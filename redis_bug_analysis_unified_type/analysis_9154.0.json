@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis LZF Compression Module (src/lzf_c.c)",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Potential uninitialized hash table (htab) in LZF compression function, which might lead to unpredictable compression behavior or performance variations",
+  "issue_number": 9154.0,
+  "title": "[BUG] the function - lzf_compress Why use it without initialization"
+}

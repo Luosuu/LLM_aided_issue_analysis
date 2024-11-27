@@ -1,0 +1,12 @@
+{
+  "bug_location": "Network Socket Binding",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "Improper socket port configuration using SO_REUSEPORT without proper error detection mechanism, allowing silent port conflicts",
+  "issue_number": 4323,
+  "title": "TiKV may not report errors if port is in conflict"
+}

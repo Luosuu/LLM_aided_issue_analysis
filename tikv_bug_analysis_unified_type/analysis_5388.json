@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/LocalReader",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Leader lease expiration increases with more read pool threads, causing unnecessary lease renewal overhead when threads increase",
+  "issue_number": 5388,
+  "title": "Lease expire rate increases as thread count increases"
+}

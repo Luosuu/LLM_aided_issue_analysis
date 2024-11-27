@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup and Restore (BR) component",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "Stale checking mechanism in StartObserve command causing checkpoint timestamp lag during network partition, potentially due to dropped subscription records when region epochs change",
+  "issue_number": 16469,
+  "title": "pitr checkpoint ts lag reached more than 8h after inject network partition between one of tikv and pd leader"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft ReadIndex Service",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Duplicate context generation for pending read requests, causing potential request conflicts and loss of read operations",
+  "issue_number": 4764,
+  "title": "ReadIndex service may got duplicate `ctx` "
+}

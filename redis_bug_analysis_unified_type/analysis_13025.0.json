@@ -1,0 +1,12 @@
+{
+  "bug_location": "Replication/Client Memory Management",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Memory"
+  ],
+  "root_cause": "Potential memory corruption or invalid client state during role change and memory usage calculation in getClientMemoryUsage() function, specifically when accessing c->querybuf after a role transition",
+  "issue_number": 13025.0,
+  "title": "[CRASH] When role change occurs, if the new master causes a write, it crashes"
+}

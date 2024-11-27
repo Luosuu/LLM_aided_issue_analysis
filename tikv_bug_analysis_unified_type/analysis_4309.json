@@ -1,0 +1,11 @@
+{
+  "bug_location": "util/mod.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Destructor panics on non-empty vector, which can cause double-panic and process abort during thread cleanup",
+  "issue_number": 4309,
+  "title": "MustConsumeVec double-panics in dtor"
+}

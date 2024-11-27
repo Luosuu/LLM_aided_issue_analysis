@@ -1,0 +1,12 @@
+{
+  "bug_location": "setrange command implementation in server.c",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Integer overflow when attempting to allocate an extremely large memory block during setrange command, causing out-of-memory crash",
+  "issue_number": 11669.0,
+  "title": "[CRASH] OOM Crash in `setrange`"
+}

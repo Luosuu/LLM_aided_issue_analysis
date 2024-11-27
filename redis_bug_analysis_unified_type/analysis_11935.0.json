@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis RDB child process (rdb.c)",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "Recovery"
+  ],
+  "root_cause": "Child process fails to detect parent process termination and continues running indefinitely, leading to potential memory leaks and resource consumption",
+  "issue_number": 11935.0,
+  "title": "[BUG] Child process `redis-rdb-to-slaves` is running continuously forever when parent process is restarted"
+}

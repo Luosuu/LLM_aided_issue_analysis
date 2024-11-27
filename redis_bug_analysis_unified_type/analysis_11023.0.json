@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Management",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "Race condition during cluster initialization where cluster state synchronization is not immediately consistent across nodes, causing temporary inconsistent cluster readiness reporting",
+  "issue_number": 11023.0,
+  "title": "[BUG] CLUSTER INFO and CLUSTER NODES output unreliable for determining cluster usability"
+}

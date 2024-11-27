@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Potential race condition or state synchronization issue during sentinel recovery where incorrect master information is published during switch-master event, especially when one sentinel was temporarily offline during failover",
+  "issue_number": 12798.0,
+  "title": "[BUG] Sentinel publishing wrong master switch info on switch-master event, whereas the sentinel logs shows the correct master switch info."
+}

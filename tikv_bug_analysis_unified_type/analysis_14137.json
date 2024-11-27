@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) / Log Backup Component",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Witness peer failure during log backup process when network latency is introduced, causing inability to recover snapshot and pause PITR task",
+  "issue_number": 14137,
+  "title": "\u3010witness\u3011enable witness and pitr\uff0cinject one tikv io delay 200ms last for 5m\uff0cpitr task became to paused"
+}

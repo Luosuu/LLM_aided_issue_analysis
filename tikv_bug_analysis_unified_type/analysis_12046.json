@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/read_queue",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "Race condition during leader transfer causing out-of-bounds access in read index queue when network packets are delayed and leadership changes",
+  "issue_number": 12046,
+  "title": "RaftStore panicked with out of bounds access error"
+}

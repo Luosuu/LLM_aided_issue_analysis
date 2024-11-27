@@ -1,0 +1,13 @@
+{
+  "bug_location": "Redis Cluster Discovery/Configuration",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Config",
+    "Kubernetes"
+  ],
+  "root_cause": "Redis cluster's gossip protocol fails to dynamically update node IP addresses after pod restarts in Kubernetes environment, causing connection failures due to stale node configuration",
+  "issue_number": 12605.0,
+  "title": "[BUG] In k8s cluster, pod restart, the redis cluster is not working properly and cannot repair itself."
+}

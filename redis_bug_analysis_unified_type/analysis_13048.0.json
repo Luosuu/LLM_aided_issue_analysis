@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Election Mechanism",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Performance",
+    "Recovery"
+  ],
+  "root_cause": "Delayed cluster node failure detection and election process, where replica nodes wait for quorum confirmation from other primary nodes before initiating failover, causing a longer-than-expected recovery time",
+  "issue_number": 13048.0,
+  "title": "[BUG] Redis cluster fails to trigger election by printing log \"Error condition on socket for SYNC: Connection refused\""
+}

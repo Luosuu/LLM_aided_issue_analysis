@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Load Balancer",
+  "severity": 4,
+  "categories": [
+    "LoadBalance",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Incomplete border check in `check_store_is_busy_on_apply` causing incorrect store busy state during data restoration, preventing proper leader and region distribution",
+  "issue_number": 16491,
+  "title": "leader and region are not balanced during br restore data and losts of miss-peer region after restore finished"
+}

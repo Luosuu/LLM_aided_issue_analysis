@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore-v2/query",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Incorrect handling of stale read requests in raft-kv2, where readIndex is triggered inappropriately when snapshot retrieval fails for stale reads",
+  "issue_number": 15748,
+  "title": "[Dynamic Regions] stale read with raft-kv2 returns unexpected region error occasionally"
+}

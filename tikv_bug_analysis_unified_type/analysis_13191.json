@@ -1,0 +1,12 @@
+{
+  "bug_location": "pd_client",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Potential deadlock in RwLock synchronization during network isolation recovery, causing TiKV node to remain in an unrecoverable state",
+  "issue_number": 13191,
+  "title": "Inject a minority of tikv network isolation\uff0cafter network isolation was recovered, one tikv status still show down and can not transfer leader back"
+}

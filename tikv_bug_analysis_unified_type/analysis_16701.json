@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage.io-rate-limit",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "IO rate limiter does not restrict high-priority operations, which can lead to uncontrolled disk throughput during operations like scaling out TiKV with Titan enabled",
+  "issue_number": 16701,
+  "title": "storage.io-rate-limit max-bytes-per-sec doesn't work perfectly"
+}

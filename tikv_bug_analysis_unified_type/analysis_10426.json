@@ -1,0 +1,11 @@
+{
+  "bug_location": "TiKV Configuration Management",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Configuration update mechanism does not immediately apply new interval settings, instead waiting for the previous interval to timeout before taking effect",
+  "issue_number": 10426,
+  "title": "Online changing `resolved-ts.advance-ts-interval` can't take effect immediately"
+}

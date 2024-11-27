@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Block Cache",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Memory leak or inefficient memory management in block cache when region count decreases, causing sustained memory growth despite reduced workload",
+  "issue_number": 15430,
+  "title": "TiKV's memory usage keeps increases even when region count decreases and block cache cap reaches. "
+}

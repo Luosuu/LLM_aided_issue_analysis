@@ -1,0 +1,11 @@
+{
+  "bug_location": "Region Management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of region size metadata during region splitting, where new region sizes are set to None instead of zero",
+  "issue_number": 15696,
+  "title": "After spliting regions, the size of the new regions are not updated to zero but None."
+}

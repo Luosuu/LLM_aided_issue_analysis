@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Leader Election",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Large gRPC message causing connection abort between TiKV nodes, leading to network partition and disrupted leader election process",
+  "issue_number": 11075,
+  "title": "After a tikv failure is recovered, the leader of this tikv is always zero"
+}

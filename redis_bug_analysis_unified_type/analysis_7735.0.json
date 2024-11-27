@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis server initialization (server.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Missing error handling when systemd supervision is configured but not compiled with libsystemd support, causing silent startup failure and systemd service hang",
+  "issue_number": 7735.0,
+  "title": "[BUG] No error when systemd configured but not compiled"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "coprocessor",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Arrow chunk codec reserves space for fixed-length fields even when values are null, causing response size amplification beyond 4GB limit",
+  "issue_number": 11994,
+  "title": "TiKV copr resp size may exceed 4GB"
+}

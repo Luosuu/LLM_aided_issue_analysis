@@ -1,0 +1,11 @@
+{
+  "bug_location": "Logger/Panic Hook",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Recursive thread join during panic handling causing resource deadlock, specifically in the logging system's panic hook where the thread attempts to join itself",
+  "issue_number": 4686,
+  "title": "Resource deadlock avoided (os error 35) on panic hook"
+}

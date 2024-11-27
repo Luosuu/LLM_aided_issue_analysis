@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) Checkpoint Mechanism",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Resolved timestamp fails to progress during network partition, causing significant checkpoint lag when network is restored",
+  "issue_number": 15192,
+  "title": "[Dynamic Regions] pitr checkpoint ts lag reached 88mins after fault recover when injection network partition between one of tikv and others tikv due to resolved ts do not move forward"
+}

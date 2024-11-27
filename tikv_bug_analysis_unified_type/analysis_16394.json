@@ -1,0 +1,12 @@
+{
+  "bug_location": "backup/endpoint",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Unexpected None value during Option::unwrap() in backup progress handling, likely due to race condition or unhandled edge case in backup process",
+  "issue_number": 16394,
+  "title": "TiKV panic when running br backup due to \"called `Option::unwrap()` on a `None` value\""
+}

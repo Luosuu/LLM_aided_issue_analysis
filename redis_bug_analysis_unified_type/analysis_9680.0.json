@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis List Operations (t_list.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Incorrect handling of LPOP command with count 0, which returns nil instead of an empty list, and bypasses type checking for the key",
+  "issue_number": 9680.0,
+  "title": "[BUG] lpop/pop with count 0 returning null"
+}

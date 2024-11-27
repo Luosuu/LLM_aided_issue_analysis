@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Merge Handling",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Unsafe handling of uncommitted merge regions during force leader state transitions, potentially causing data loss during region merges across distributed stores",
+  "issue_number": 12627,
+  "title": " Handle unapplied commit merges in unavailable regions during unsafe recovery."
+}

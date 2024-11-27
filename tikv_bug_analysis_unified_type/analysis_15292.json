@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer_storage",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Recovery",
+    "CodeBug"
+  ],
+  "root_cause": "Snapshot file corruption during recovery process, causing checksum validation failure when applying snapshot after IO hang",
+  "issue_number": 15292,
+  "title": "tikv panic repeatedly after this tikv recover from io hang"
+}

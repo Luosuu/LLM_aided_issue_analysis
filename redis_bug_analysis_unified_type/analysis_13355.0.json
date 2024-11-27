@@ -1,0 +1,12 @@
+{
+  "bug_location": "server.c memory allocation handler",
+  "severity": 5,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Potential memory allocation overflow or memory management issue in Redis 3.2.12 during background saving process, attempting to allocate an impossibly large memory block (292806299210713325 bytes)",
+  "issue_number": 13355.0,
+  "title": "[CRASH] Guru Meditation: \"Redis aborting for OUT OF MEMORY\" #server.c:3847"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Flashback/Recovery Component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Incorrect min-resolved-ts retrieval during disaster recovery, leading to potential data inconsistency when performing table flashback",
+  "issue_number": 15639,
+  "title": "[dr-autosync] after do tikv flashback to  min-resolved-ts, admin check table hit  ERROR 8223 (HY000): data inconsistency in table "
+}

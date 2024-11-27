@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Pub/Sub Messaging System",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Redis Cluster was sending PUBLISH messages both via Cluster Bus and replication link, causing message duplication on slave nodes",
+  "issue_number": 1137.0,
+  "title": "Redis Cluster Pub/Sub sends messages multiple times to slave nodes."
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup and Restore (BR) component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Raft entry size exceeding maximum allowed size during point-in-time recovery (PITR) restore, likely due to incomplete size calculation of write requests",
+  "issue_number": 14313,
+  "title": "pitr restore data fail for \"failed: raft entry is too large, region 170, entry size 8616655\""
+}

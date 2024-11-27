@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/txn/actions/common.rs",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Incorrect assumption about RocksDB snapshot repeatability during compaction, causing unexpected behavior when tracking transaction write versions",
+  "issue_number": 15109,
+  "title": "Tikv panic for assertion failed: estimated_versions_to_last_change > 0"
+}

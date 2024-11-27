@@ -1,0 +1,11 @@
+{
+  "bug_location": "async.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Lack of memory allocation failure check after realloc() call, which can potentially lead to null pointer dereference if memory reallocation fails",
+  "issue_number": 9336.0,
+  "title": "[BUG]A potential bug of NULL pointer dereference"
+}

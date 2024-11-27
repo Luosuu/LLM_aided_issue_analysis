@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Event Loop (ae.c)",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Potential null pointer dereference in aeCreateTimeEvent() if aeCreateEventLoop() fails and returns NULL, without proper null check before accessing eventLoop->timeEventNextId",
+  "issue_number": 7999.0,
+  "title": "[BUG]Possible NULL pointer dereference on eventLoop->timeEventNextId++??"
+}

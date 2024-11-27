@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Pub/Sub Subsystem",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "SSUBSCRIBE command requires channels to hash to the same slot in Redis Cluster mode, preventing multi-channel subscription in a single command",
+  "issue_number": 10599.0,
+  "title": "[BUG] SSUBSCRIBE - (Error) CROSSSLOT keys in request don't hash to the same slot"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer_storage",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Unexpected None value when accessing term during Raft log processing, likely during cluster scale-in operation",
+  "issue_number": 11973,
+  "title": "One tikv panic at tikv_util/src/lib.rs:465 when do scale in"
+}

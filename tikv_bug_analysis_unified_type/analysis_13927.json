@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv-ctl",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Log directory creation occurs unconditionally during command initialization, even for commands that do not require logging",
+  "issue_number": 13927,
+  "title": "`tikv-ctl` creates log directory regardless of command"
+}

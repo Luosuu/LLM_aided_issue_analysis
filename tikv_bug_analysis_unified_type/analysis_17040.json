@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/apply",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Unexpected error handling during entries retrieval in Raft apply process, causing an unwrap() panic on an Err value of 'EntriesUnavailable'",
+  "issue_number": 17040,
+  "title": "tikv panic when run sysbench prepare"
+}

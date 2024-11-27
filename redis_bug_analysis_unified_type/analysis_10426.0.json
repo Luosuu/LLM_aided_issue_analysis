@@ -1,0 +1,11 @@
+{
+  "bug_location": "Build System/Makefile",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "Incomplete atomic library support detection for ARM architectures, specifically ARM7/aarch64, causing undefined references during compilation due to missing atomic operations support",
+  "issue_number": 10426.0,
+  "title": "[BUG] passing CFLAGS=\"_latomic\" does not solve the standard missing libstdc++ atomic support"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Peer/Store Component",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect handling of store unreachability, allowing Raft messages from failed nodes to incorrectly transition region peer states from Chaos to Ordered",
+  "issue_number": 14547,
+  "title": "Seems region leaders can lose after one tikv instance fail"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/txn_ext.rs",
+  "severity": 5,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Concurrent lock access in PeerPessimisticLocks with improper synchronization between raftstore and scheduler workers, causing mutual waiting and deadlock",
+  "issue_number": 16340,
+  "title": "Deadlock on PeerPessimisticLocks between raftstore and shceduler workers"
+}

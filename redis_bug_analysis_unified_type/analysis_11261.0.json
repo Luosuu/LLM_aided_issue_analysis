@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication Component",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Race condition in diskless replication handling where the replication state is not properly updated for RDB-only clients, causing unexpected newline transmission and connection management issues",
+  "issue_number": 11261.0,
+  "title": "[BUG] unexpected `\\n` after the EOF marker when extracting an rdb from redis using diskless replication"
+}

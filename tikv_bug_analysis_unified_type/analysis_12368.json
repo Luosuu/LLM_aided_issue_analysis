@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/apply.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition during region split and peer replacement, causing unexpected tombstone region state handling",
+  "issue_number": 12368,
+  "title": "raftstore: panicked due to trying to apply a tombstone region already existed in kv engine"
+}

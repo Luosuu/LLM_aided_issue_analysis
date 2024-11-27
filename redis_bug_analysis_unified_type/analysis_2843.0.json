@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Lua Scripting Engine",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Scripting",
+    "Performance"
+  ],
+  "root_cause": "Limitation in Lua bit library using 32-bit signed integers, preventing bitwise operations on numbers larger than 30 bits without overflow",
+  "issue_number": 2843.0,
+  "title": "Bitwise logic operations on large numbers(up to 53 bits)"
+}

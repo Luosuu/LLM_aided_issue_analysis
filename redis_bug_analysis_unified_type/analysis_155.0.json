@@ -1,0 +1,11 @@
+{
+  "bug_location": "Signal Handling in redis.c",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Conditional compilation issue with signal handler setup for platforms without backtrace support, causing build failures on NetBSD and potentially other systems with incomplete signal flag definitions",
+  "issue_number": 155.0,
+  "title": "Problems building on NetBSD"
+}

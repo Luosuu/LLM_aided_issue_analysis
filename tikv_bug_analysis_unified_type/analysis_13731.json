@@ -1,0 +1,12 @@
+{
+  "bug_location": "Store Thread / gRPC Channel",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "Message channel congestion during network partition/IO hang, causing unprocessed Raft messages to accumulate and consume excessive memory",
+  "issue_number": 13731,
+  "title": "tikv oom after this tikv io delay/hang or one of tikv network partition last for 50mins and recover"
+}

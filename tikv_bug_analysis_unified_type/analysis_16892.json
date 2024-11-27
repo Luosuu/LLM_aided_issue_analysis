@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction/MVCC",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Race condition during concurrent read index and write lock operations where max_ts and min_commit_ts are not properly synchronized, potentially causing stale transaction metadata",
+  "issue_number": 16892,
+  "title": "ReadIndex raft message may fail to advance max_ts in the middle of write_lock"
+}

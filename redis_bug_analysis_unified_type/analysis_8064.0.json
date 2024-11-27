@@ -1,0 +1,11 @@
+{
+  "bug_location": "setproctitle.c",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Undefined behavior in environment manipulation where memory is potentially freed and then accessed, causing a segmentation fault when interacting with XALT's LD_PRELOAD mechanism",
+  "issue_number": 8064.0,
+  "title": "[BUG] Segfault with 6.0.9 when running under XALT"
+}

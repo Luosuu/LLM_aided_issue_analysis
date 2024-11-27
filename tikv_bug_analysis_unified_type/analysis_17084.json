@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Log synchronization gap during region merge process, likely caused by inconsistent replication state after mode change from sync_recover to sync",
+  "issue_number": 17084,
+  "title": "(dr-autosync)merge region hang for 28min after replication mode change from sync_recover to sync"
+}

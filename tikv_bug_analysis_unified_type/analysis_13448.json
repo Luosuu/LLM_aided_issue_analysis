@@ -1,0 +1,12 @@
+{
+  "bug_location": "Storage/MVCC/Compaction Filter",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Compaction filter incorrectly garbage collecting key versions during flashback and GC interactions, causing data inconsistency when versions are prematurely deleted across column families",
+  "issue_number": 13448,
+  "title": "change gc_life_time from 12h to 10 minutes after flashback, report [errors.rs:409] [\"txn aborts\"] [err_code=KV:Storage:DefaultNotFound]"
+}

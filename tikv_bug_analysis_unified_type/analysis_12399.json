@@ -1,0 +1,11 @@
+{
+  "bug_location": "server.rs",
+  "severity": 2,
+  "categories": [
+    "Config",
+    "Security"
+  ],
+  "root_cause": "Permission conflict when creating lock files across different user contexts, preventing TiKV server startup due to insufficient file access rights",
+  "issue_number": 12399,
+  "title": "File locks for working around port conflict are sometimes inaccessible "
+}

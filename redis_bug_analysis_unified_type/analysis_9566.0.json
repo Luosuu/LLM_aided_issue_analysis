@@ -1,0 +1,12 @@
+{
+  "bug_location": "server.c, RDB persistence shutdown mechanism",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Recovery"
+  ],
+  "root_cause": "During shutdown, Redis performs a synchronous RDB save which blocks client requests, causing potential service unavailability for large datasets",
+  "issue_number": 9566.0,
+  "title": "[BUG] Instance with RDB enabled will block and timeout any client requests when shutting down"
+}

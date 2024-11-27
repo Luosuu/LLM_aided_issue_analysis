@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Network"
+  ],
+  "root_cause": "Raft tick scheduling logic fails to handle scenarios where a peer applies a snapshot, potentially causing region unavailability during network partitions",
+  "issue_number": 14548,
+  "title": "[Dynamic Regions] raft tick may be missing"
+}

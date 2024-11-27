@@ -1,0 +1,12 @@
+{
+  "bug_location": "gc_worker/gc_worker.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Missing data key prefix when retrieving regions for garbage collection, causing incorrect key range processing",
+  "issue_number": 11217,
+  "title": "TiKV GcKeys task doesn't work when called with multiple keys (at least in 5.1 but I think for everything)"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "components/raftstore/src/store/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Snapshot generation process does not handle peer removal gracefully, causing blocking of snapshot and subsequent configuration changes when a peer is removed immediately after requesting a snapshot",
+  "issue_number": 17213,
+  "title": "Raft snapshot blocked when peer is removed right after requesting snapshot"
+}

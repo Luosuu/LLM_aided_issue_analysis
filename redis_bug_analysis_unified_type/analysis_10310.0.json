@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sorted Set (ZSET) Command Implementation",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Introduction of deferred reply mechanism in ZREVRANGE command implementation, which adds overhead in reply generation, particularly noticeable in non-pipelined scenarios",
+  "issue_number": 10310.0,
+  "title": "[BUG] ZREVRANGE 50% slower after upgrading from 5.0.7 to 6.2.6"
+}

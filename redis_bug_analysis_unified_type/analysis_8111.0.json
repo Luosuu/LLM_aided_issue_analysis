@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Persistence Layer (RDB/AOF)",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Recovery"
+  ],
+  "root_cause": "Redis does not properly handle or check the return code of fsync system call, which can potentially result in silent data corruption during persistence operations without triggering appropriate error handling mechanisms",
+  "issue_number": 8111.0,
+  "title": "[BUG] Redis doesn't check a return code of fsync thus potentially corrupting keys/values and silently returning them."
+}

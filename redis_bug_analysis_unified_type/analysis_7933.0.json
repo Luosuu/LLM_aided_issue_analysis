@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Server Configuration Binding Module",
+  "severity": 3,
+  "categories": [
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "Redis server does not strictly validate network bind addresses during startup, allowing partial configuration with unintended fallback behavior instead of failing completely when specified addresses are unavailable",
+  "issue_number": 7933.0,
+  "title": "[BUG] Redis-server should refuse to start with wrong bind address"
+}

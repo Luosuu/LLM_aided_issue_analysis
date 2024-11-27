@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua Scripting Engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "TIME function was modified in commit #10300 to freeze time during script execution, removing the ability to track elapsed time within a Lua script",
+  "issue_number": 12699.0,
+  "title": "[BUG] TIME is now freezed in script and there is no way to know the elapsed time inside script during his execution."
+}

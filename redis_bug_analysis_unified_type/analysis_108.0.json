@@ -1,0 +1,12 @@
+{
+  "bug_location": "t_zset.c (Sorted Set Implementation)",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Potential issue with handling NaN (Not a Number) scores in sorted sets, causing memory corruption and potential server crash during zadd/zincr operations",
+  "issue_number": 108.0,
+  "title": "Sorted sets can contain elements with a NaN score under unknown conditions (was: Redis crash)"
+}

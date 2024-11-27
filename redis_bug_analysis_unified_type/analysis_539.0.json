@@ -1,0 +1,12 @@
+{
+  "bug_location": "Replication Module",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Kernel page cache blocking during large file transfer and synchronization, causing main thread to halt when flushing cached data to disk during RDB file replication",
+  "issue_number": 539.0,
+  "title": "Main thread stuck during replication of large files"
+}

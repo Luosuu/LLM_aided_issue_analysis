@@ -1,0 +1,12 @@
+{
+  "bug_location": "In-memory engine / Range Cache",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Race condition in delete_range operation where snapshot guarantees are violated, potentially allowing access to data that should have been deleted",
+  "issue_number": 17243,
+  "title": "In-memory engine: evict in delete_range is too late"
+}

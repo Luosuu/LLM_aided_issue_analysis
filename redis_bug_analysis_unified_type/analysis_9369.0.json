@@ -1,0 +1,12 @@
+{
+  "bug_location": "dict.c/dict.h memory allocation logic",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Undefined behavior with unsigned char type causing potential memory allocation overflow on architectures with unsigned char by default (like s390x), leading to unexpected memory allocation and potential infinite loop during dictionary operations",
+  "issue_number": 9369.0,
+  "title": "[BUG] OOM in dictExpand on s390x architecture"
+}

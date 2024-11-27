@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Storage Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Potential MVCC (Multi-Version Concurrency Control) inconsistency during concurrent delete and read operations, causing index and record count mismatch",
+  "issue_number": 17645,
+  "title": "In-memory Engine: data inconsistency in table: xx, index: yy, index-count:50 != record-count:49"
+}

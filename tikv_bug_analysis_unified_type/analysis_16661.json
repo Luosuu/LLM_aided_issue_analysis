@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/Storage",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "LoadBalance"
+  ],
+  "root_cause": "High IO bandwidth consumption during TiKV scale out causing slow store performance and increased write latency, which impacts CDC and resolve-ts progress",
+  "issue_number": 16661,
+  "title": "slow store during TiKV scale out, and CDC lag up to 15s"
+}

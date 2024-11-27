@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Command Processing",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Potential memory management or state handling issue in command processing after encountering multi-key request error in Redis Cluster, specifically triggered by sequence of MGET and subsequent GETRANGE commands",
+  "issue_number": 607.0,
+  "title": "Node of redis-cluster dies with certain sequences of commands"
+}

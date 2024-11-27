@@ -1,0 +1,12 @@
+{
+  "bug_location": "RDB Loading Mechanism",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Memory",
+    "CodeBug"
+  ],
+  "root_cause": "Main thread blocking during RDB loading when processing large keys, with event processing happening only every 1000 keys instead of considering data volume",
+  "issue_number": 562.0,
+  "title": "Main thread stuck when loading very large keys"
+}

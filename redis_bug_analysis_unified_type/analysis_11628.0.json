@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Core - Floating Point String Conversion",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Incorrect buffer handling in fixedpoint_d2string function when converting small floating point values, causing memory corruption and incorrect distance representation in GEORADIUS results",
+  "issue_number": 11628.0,
+  "title": "[BUG] Distance value is mangled in GEORADIUS after 7.0.6 upgrade"
+}

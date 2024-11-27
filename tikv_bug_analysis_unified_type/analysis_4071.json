@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Library (raft-rs)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "In handle_heartbeat_response, the code overwrites 'to_send' in each iteration, causing only the last ReadIndex request to be processed, potentially losing read requests from different slave nodes",
+  "issue_number": 4071,
+  "title": "raft lib bug: In handle_heartbeat_response, the leader will lose the reply request of readindex"
+}

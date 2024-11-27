@@ -1,0 +1,12 @@
+{
+  "bug_location": "Follower Read Component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "When disk capacity is near full, followers refuse to apply new logs and cannot handle read requests with updated region epochs, causing consistent read failures",
+  "issue_number": 15932,
+  "title": "tikv always report \u201cRegion error (will back off and retry)\u201d when disk capacity is near full with follower read"
+}

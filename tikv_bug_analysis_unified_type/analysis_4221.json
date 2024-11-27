@@ -1,0 +1,11 @@
+{
+  "bug_location": "TiKV/Importer Store Discovery",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Importer not filtering out tombstoned (invalid/deleted) stores during store discovery, potentially causing connection attempts to invalid addresses",
+  "issue_number": 4221,
+  "title": "TiKV/Importer should ignore tombstoned stores"
+}

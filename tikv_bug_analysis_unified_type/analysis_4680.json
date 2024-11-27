@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/peer.rs",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Lease extension mechanism fails during leader transfer, potentially causing incorrect ReadIndex responses when multiple read requests are pending",
+  "issue_number": 4680,
+  "title": "ReadIndex when transferring leader may not be correct"
+}

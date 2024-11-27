@@ -1,0 +1,11 @@
+{
+  "bug_location": "Logging System",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Logging library (slog-stdlog) executing trace-level log function arguments even when trace logging is disabled, causing unnecessary performance overhead",
+  "issue_number": 3537,
+  "title": "trace! is executed when log level > trace"
+}

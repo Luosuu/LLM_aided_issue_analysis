@@ -1,0 +1,12 @@
+{
+  "bug_location": "server/snap.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Replication"
+  ],
+  "root_cause": "Snapshot state tracking fails to deregister 'SnapEntry::Receiving' when network errors occur during snapshot transfer, causing incorrect snapshot state count",
+  "issue_number": 11157,
+  "title": "Incorrect snapshot state count if an error occurs on receiving snapshot"
+}

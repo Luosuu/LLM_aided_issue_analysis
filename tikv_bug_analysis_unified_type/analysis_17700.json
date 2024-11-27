@@ -1,0 +1,12 @@
+{
+  "bug_location": "in_memory_engine/write_batch.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Inconsistent region state during write preparation, where the region being prepared for write is not the current active region",
+  "issue_number": 17700,
+  "title": "In-memory Engine: assert fails region 26972 is prepared for write before, but it is not the current region"
+}

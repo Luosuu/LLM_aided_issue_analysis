@@ -1,0 +1,12 @@
+{
+  "bug_location": "scripting.c / slowlog.c",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Potential null pointer dereference in Lua scripting hook during slowlog processing, likely caused by improper handling of server.lua_caller when executing Lua scripts with large iterations",
+  "issue_number": 480.0,
+  "title": "Bug report, slowlog - EVAL"
+}

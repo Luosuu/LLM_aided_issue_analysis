@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) Component",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Memory",
+    "Transaction"
+  ],
+  "root_cause": "Resuming changefeed with an older timestamp triggers excessive snapshot generation, likely due to inefficient data reconciliation mechanism when backfilling large historical data ranges",
+  "issue_number": 15910,
+  "title": "Number of snapshots  increases tremendously and TiKV OOM when resuming changefeed with a ts 6 days before."
+}

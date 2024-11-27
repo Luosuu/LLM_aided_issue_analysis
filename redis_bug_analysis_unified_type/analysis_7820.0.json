@@ -1,0 +1,11 @@
+{
+  "bug_location": "Lua Script Evaluation Engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Lua arrays with non-consecutive indices are truncated at the first nil value, causing unexpected behavior when returning tables from Lua scripts in Redis",
+  "issue_number": 7820.0,
+  "title": "[BUG] Lua script returning table doesn't return all members."
+}

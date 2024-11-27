@@ -1,0 +1,11 @@
+{
+  "bug_location": "Lua Scripting Engine",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Unsafe handling of global Lua environment access in EVAL command, causing unexpected panic when attempting to return global environment table _G",
+  "issue_number": 11030.0,
+  "title": "[BUG] EVAL \"return _G\" 0  leads to immediate panic"
+}

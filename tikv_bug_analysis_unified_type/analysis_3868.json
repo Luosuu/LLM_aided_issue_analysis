@@ -1,0 +1,12 @@
+{
+  "bug_location": "PD Client",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "Network",
+    "CodeBug"
+  ],
+  "root_cause": "TiKV sends stale region information during reconnection to PD, causing inconsistent region metadata after region merge operations",
+  "issue_number": 3868,
+  "title": "PD receives stale region info from TiKV"
+}

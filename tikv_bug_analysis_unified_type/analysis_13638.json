@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) Checkpoint",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Upgrade"
+  ],
+  "root_cause": "Potential synchronization or data transfer inefficiency during TiKV rolling restart causing significant checkpoint lag in log backup task",
+  "issue_number": 13638,
+  "title": "PITR checkpoint lag > 10min during tikv rolling restart"
+}

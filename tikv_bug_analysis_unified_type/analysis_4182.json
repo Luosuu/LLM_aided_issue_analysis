@@ -1,0 +1,11 @@
+{
+  "bug_location": "Titan storage engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Memory"
+  ],
+  "root_cause": "File handle leak in Titan blob file management, where deleted files are not properly closed, causing continuous file descriptor accumulation and potential disk space exhaustion",
+  "issue_number": 4182,
+  "title": "Titan may forget to close the file handle. "
+}

@@ -1,0 +1,10 @@
+{
+  "bug_location": "redis-trib rebalancing algorithm",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Integer division error causing uneven slot distribution during cluster rebalancing when a node is assigned zero weight, resulting in one slot being left unallocated",
+  "issue_number": 3001.0,
+  "title": "redis-trib rebalance with weight 0 skips 1 slot"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of rollback records during pessimistic transaction conflict resolution, where rollback records on non-unique index keys with timestamps greater than the transaction's for_update_ts ",
+  "issue_number": 13425,
+  "title": "False positive PessimisticLockNotFound when a non-pessimistic key has newer rollbacks"
+}

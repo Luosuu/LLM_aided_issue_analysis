@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Write Flow / Storage Management",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Lack of robust disk space exhaustion prevention mechanism in Raft write flow, allowing minor writes to continue even when disk is critically low on space",
+  "issue_number": 15754,
+  "title": "when disk almost full happens, there's still minor raft write flow which could further consume up tikv free space"
+}

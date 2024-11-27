@@ -1,0 +1,11 @@
+{
+  "bug_location": "storage/txn/actions/check_txn_status.rs",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Unexpected transaction record state during transaction status checking, causing a panic in the transaction rollback lock handling logic",
+  "issue_number": 15223,
+  "title": "[Dynamic Regions] tikv panic for \"txn record found but not expected: Write { write_type: Put\""
+}

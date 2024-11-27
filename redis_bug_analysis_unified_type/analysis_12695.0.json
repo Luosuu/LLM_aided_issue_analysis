@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Component (cluster.c)",
+  "severity": 4,
+  "categories": [
+    "Upgrade",
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent shard ID handling during mixed version cluster upgrade from 7.0.11 to 7.2.2, causing slot information tracking to exceed allocated memory and trigger an assertion failure",
+  "issue_number": 12695.0,
+  "title": "[CRASH] Assertion Failed when running rebalance command when upgrading from 7.0.11 to 7.2.2"
+}

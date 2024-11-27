@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) component",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "Unhandled network partition causing Option::unwrap() on a None value in CDC sink_delete method, leading to panic",
+  "issue_number": 17876,
+  "title": "multiple tikv panic when injection network partition between one of tikv and one of tidb"
+}

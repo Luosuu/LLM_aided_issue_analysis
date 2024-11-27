@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Set Operations (t_set.c)",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Shortcut implementation in SMOVE command that returns 1 without checking if the key actually exists in the source set when source and destination sets are the same",
+  "issue_number": 2517.0,
+  "title": "SMOVE set1 set1 key1 always returns 1 when set1 exists"
+}

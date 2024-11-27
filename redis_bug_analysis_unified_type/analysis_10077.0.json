@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Connection Management during Bgsave",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Replication"
+  ],
+  "root_cause": "During Bgsave fork process, file descriptors are not properly closed or disconnected, causing client connections to remain in an unresponsive state due to insufficient socket shutdown mechanism",
+  "issue_number": 10077.0,
+  "title": "[BUG] During Bgsave, failed to disconnect idle client connection properly"
+}

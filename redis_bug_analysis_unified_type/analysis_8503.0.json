@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Set Command Implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent type handling for SRANDMEMBER command with negative count in RESP3 protocol, causing different parsing behaviors across client implementations",
+  "issue_number": 8503.0,
+  "title": "[BUG] SRANDMEMBER with a negative count should return an Array when using RESP3"
+}

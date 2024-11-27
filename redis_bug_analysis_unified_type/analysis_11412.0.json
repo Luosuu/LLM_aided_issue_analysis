@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis keyspace events handling in t_list.c",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Incorrect order of keyspace event notifications during LMOVE/RPOPLPUSH operations, where push events are generated before pop events, contrary to documented behavior",
+  "issue_number": 11412.0,
+  "title": "[BUG] RPOPLPUSH, LMOVE keyspace events produced in wrong order"
+}

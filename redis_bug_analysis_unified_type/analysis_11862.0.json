@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Lua msgpack implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Inconsistent floating-point and integer representation across different platforms due to platform-specific double precision handling in Lua 5.1, causing msgpack encoding to produce different results when packing large integers",
+  "issue_number": 11862.0,
+  "title": "[BUG] Inconsistent behaviour of Lua msgpack between platforms"
+}

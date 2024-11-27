@@ -1,0 +1,12 @@
+{
+  "bug_location": "pd_client/client.rs",
+  "severity": 5,
+  "categories": [
+    "Network",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Heartbeat stream disconnection without proper reconnection mechanism when encountering gRPC errors, causing TiKV nodes to fail reporting region heartbeats",
+  "issue_number": 12934,
+  "title": "Master: two tikv don't report region heartbeat after inject fault to pd leader"
+}

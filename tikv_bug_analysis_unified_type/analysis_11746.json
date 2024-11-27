@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Race condition between snapshot file garbage collection and peer state persistence, causing potential data loss and inconsistency during snapshot application and recovery",
+  "issue_number": 11746,
+  "title": "raftstore: snapshot files may deleted while the peer state is still `PeerState::Applying`"
+}

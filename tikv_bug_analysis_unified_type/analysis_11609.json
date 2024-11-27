@@ -1,0 +1,11 @@
+{
+  "bug_location": "components/tikv_util/src/sys/cgroup.rs",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Incorrect parsing of cgroup file with two lines, likely due to an assumption of single-line cgroup file format in systemd container environment",
+  "issue_number": 11609,
+  "title": "tikv panicked in parse_proc_cgroup_v2"
+}

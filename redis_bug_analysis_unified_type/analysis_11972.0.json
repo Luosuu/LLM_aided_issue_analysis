@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Test Framework",
+  "severity": 2,
+  "categories": [
+    "Config",
+    "Human"
+  ],
+  "root_cause": "Test configuration management lacks proper cleanup mechanism when tests involving maxmemory configuration fail, potentially leaving configuration changes in place for subsequent tests",
+  "issue_number": 11972.0,
+  "title": "[BUG] if a test that sets maxmemory fails, it doesn't unset maxmemory limits"
+}

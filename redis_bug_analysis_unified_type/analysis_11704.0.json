@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Transaction/Watch Mechanism",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Redis watch mechanism does not trigger when a non-existent key is deleted, causing potential race conditions in optimistic locking scenarios",
+  "issue_number": 11704.0,
+  "title": "[BUG]"
+}

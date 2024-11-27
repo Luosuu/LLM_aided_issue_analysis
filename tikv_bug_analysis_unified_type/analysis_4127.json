@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Snapshot garbage collection (GC) mechanism is not properly removing snapshot files during test, causing test failure",
+  "issue_number": 4127,
+  "title": "raftstore::test_snap::test_server_snap_gc fails unexpectedly"
+}

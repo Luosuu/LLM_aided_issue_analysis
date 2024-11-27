@@ -1,0 +1,12 @@
+{
+  "bug_location": "Memory Allocation (server.c)",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "Upgrade"
+  ],
+  "root_cause": "Potential memory mapping fragmentation issue with jemalloc 5.3.0 on Debian 12, causing excessive memory map allocations during key eviction/expiration processes",
+  "issue_number": 12821.0,
+  "title": "[CRASH] Redis 7.0.11 OOM with enough system memory"
+}

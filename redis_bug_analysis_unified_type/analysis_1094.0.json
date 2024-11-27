@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Persistence Layer",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Storage"
+  ],
+  "root_cause": "Insufficient validation of RDB and AOF file name configurations, allowing file paths that could cause cross-device renaming failures",
+  "issue_number": 1094.0,
+  "title": "Exit with error if RDB / AOF file names are actually paths"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "DDL (Data Definition Language) Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of keys with only delete MVCC records during flashback operation, causing processing logic to break and potentially leading to deadlock",
+  "issue_number": 13743,
+  "title": "flashback ddl is hang when some key's last mvcc record is delete"
+}

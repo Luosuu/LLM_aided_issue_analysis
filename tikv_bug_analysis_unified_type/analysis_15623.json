@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore V2 Component",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect region ID generation during peer garbage collection after region merge, causing source peers to be abandoned and resolved timestamp to become stuck",
+  "issue_number": 15623,
+  "title": "[Dynamic Regions] resolved ts can't  advance for long time"
+}

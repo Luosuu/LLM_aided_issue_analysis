@@ -1,0 +1,12 @@
+{
+  "bug_location": "RawKV API V2 / Causal Timestamp Provider",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Timestamp causality violation during leader election, where raw_put requests can be processed with incorrect timestamps before proper leader establishment and causal timestamp flushing",
+  "issue_number": 13502,
+  "title": "RawKV API V2 timestamp causality violation"
+}

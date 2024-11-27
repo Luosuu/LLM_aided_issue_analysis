@@ -1,0 +1,12 @@
+{
+  "bug_location": "pd-client",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Config",
+    "Replication"
+  ],
+  "root_cause": "TiKV caches PD member list and does not dynamically update when all PD members are replaced, causing potential service disruption during cluster reconfiguration",
+  "issue_number": 4319,
+  "title": "TiKV may fail to find PD cluster if all PD members are changed "
+}

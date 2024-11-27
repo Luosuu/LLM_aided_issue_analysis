@@ -1,0 +1,11 @@
+{
+  "bug_location": "region_cache_memory_engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Local clock used for safe_point instead of centralized PD timestamp, potentially causing cache unavailability due to clock drift",
+  "issue_number": 17123,
+  "title": "In-memory Engine: `safe_point` in `gc_range` should be obtained from PD"
+}

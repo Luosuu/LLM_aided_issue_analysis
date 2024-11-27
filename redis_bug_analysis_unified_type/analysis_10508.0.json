@@ -1,0 +1,12 @@
+{
+  "bug_location": "Replication/Replica Sync",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect handling of EVAL command during replica synchronization when replica-serve-stale-data is disabled, likely due to improper command flag management introduced in Redis 7",
+  "issue_number": 10508.0,
+  "title": "[CRASH] Replication crashes on EVAL when replica-serve-stale-data=no (introduced in Redis 7)"
+}

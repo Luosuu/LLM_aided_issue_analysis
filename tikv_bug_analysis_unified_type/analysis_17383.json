@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft_log_engine",
+  "severity": 5,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Potential corruption in file sequence number handling during log rewriting, causing unexpected index range errors in Raft log engine",
+  "issue_number": 17383,
+  "title": "tikv panic with \u201c[\\\"unexpected error: Store(Other(Other(\\\\\\\"[components/raft_log_engine/src/engine.rs:807]: Corruption: file seqno out of range\\\\\\\")))\u201d when run sysbench prepare"
+}

@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis Hash Command Implementation",
+  "severity": 2,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect integer calculation in HSET command when multiple fields are added, resulting in a return value of 2n-1 instead of the actual number of fields added",
+  "issue_number": 11493.0,
+  "title": "[BUG] HSET Integer Reply"
+}

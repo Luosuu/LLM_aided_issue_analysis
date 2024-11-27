@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Authentication/ACL System",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "The HELLO command authentication logic does not properly handle scenarios where the default user is secured or disabled, causing unexpected permission restrictions for authenticated users attempting to use the HELLO command with explicit authentication",
+  "issue_number": 8558.0,
+  "title": "[BUG] HELLO AUTH command changes behaviour when default user is secured"
+}

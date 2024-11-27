@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/mvcc/reader.rs",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Missing default column family data during key retrieval, causing panic when attempting to load non-existent key",
+  "issue_number": 1529,
+  "title": "tikv-server panics due to default cf data missing."
+}

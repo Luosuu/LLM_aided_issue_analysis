@@ -1,0 +1,12 @@
+{
+  "bug_location": "Scheduler/Metrics",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "Monitoring"
+  ],
+  "root_cause": "Inconsistent duration tracking for write commands, particularly during latch conflicts where task timeouts do not immediately release resources or update metrics accurately",
+  "issue_number": 14838,
+  "title": "metric: the scheduler and latch duration may not be recorded with the grpc duration"
+}

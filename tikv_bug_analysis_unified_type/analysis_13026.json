@@ -1,0 +1,12 @@
+{
+  "bug_location": "Transaction/Scheduler",
+  "severity": 2,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "Monitoring"
+  ],
+  "root_cause": "Metrics tracking for in-memory pessimistic lock key count is not properly implemented, causing zero values in scheduler key write metrics",
+  "issue_number": 13026,
+  "title": "in-mem pessimistic lock does not record the scheduled key count"
+}

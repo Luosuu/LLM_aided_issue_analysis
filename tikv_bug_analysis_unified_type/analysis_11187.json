@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC/Resolved_TS Module",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Stale non-pessimistic locks can be prewritten without constraint checks, potentially breaking transaction consistency assumptions in the DeltaScanner and CDC processing",
+  "issue_number": 11187,
+  "title": "Stale non-pessimistic lock may be incompatible with CDC and possibly affect data correctness"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Metrics Component",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Monitoring",
+    "Performance"
+  ],
+  "root_cause": "Metrics tracking for dropped Raft messages is incorrectly implemented, only capturing messages when a rare condition (MsgTimeoutNow) is met, leading to inaccurate representation of disk-full related m",
+  "issue_number": 15753,
+  "title": "dropped raft message metrics on disk_full type is misleading"
+}

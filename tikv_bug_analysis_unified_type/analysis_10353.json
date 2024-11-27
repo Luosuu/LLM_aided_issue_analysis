@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Non-deterministic response handling during node shutdown, causing potential transaction state inconsistency due to race conditions in callback processing and leader transfer",
+  "issue_number": 10353,
+  "title": "response from raftstore is not deterministic"
+}

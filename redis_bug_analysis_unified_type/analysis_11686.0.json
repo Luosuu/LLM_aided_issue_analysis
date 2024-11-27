@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction Command Handler",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Inconsistent error handling for UNWATCH command within MULTI/EXEC transaction block, allowing a no-op command that should be rejected similar to WATCH",
+  "issue_number": 11686.0,
+  "title": "[BUG] UNWATCH should be rejected within a MULTI/EXEC transaction just like WATCH is"
+}

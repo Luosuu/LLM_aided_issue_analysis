@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Lock ColumnFamily",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Transaction"
+  ],
+  "root_cause": "Reduced compaction frequency in dynamic regions causing increased delete_skipped-index and performance degradation, specifically in lock column family with larger write buffer size",
+  "issue_number": 14947,
+  "title": "[Dynamic Regions] v2 60% QPS drop compare with v1 with ~5x delete_skipped-index"
+}

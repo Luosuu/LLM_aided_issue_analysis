@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ziplist and intset components",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Lack of big-endian compatibility in memory byte order manipulation functions (memrev16, memrev32, memrev64) for PowerPC (ppc64) architecture, causing undefined references during build process",
+  "issue_number": 400.0,
+  "title": "build fails on ppc64"
+}

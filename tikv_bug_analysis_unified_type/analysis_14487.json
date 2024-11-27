@@ -1,0 +1,12 @@
+{
+  "bug_location": "raft-engine",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient log append and rewrite flow causing high disk I/O overhead, particularly on storage-constrained environments like GCP pd-ssd disks",
+  "issue_number": 14487,
+  "title": "[Dynamic Regions] raft-engine with v2 is slower than baseline due to append flow on GCP pd-ssd disk"
+}

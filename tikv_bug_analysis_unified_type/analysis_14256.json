@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore-v2/snapshot",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Concurrent snapshot reception causing SST file size corruption during region replication, with race conditions in snapshot transfer and log truncation mechanisms",
+  "issue_number": 14256,
+  "title": "[dynamic regions] snapshot corruption"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Stream Consumer Group Replication Logic",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Potential inconsistency in consumer group lag heuristic calculation when using XCLAIM with LASTID argument, which may not properly invalidate entries_read counter",
+  "issue_number": 10569.0,
+  "title": "[BUG] Stream consumer group lag heuristic isn't handled when executing `XCLAIM ... LASTID`"
+}

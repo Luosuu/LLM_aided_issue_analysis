@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Performing snapshot checksum calculation and IO operations directly in the raftstore thread, causing high process-ready duration and blocking critical path processing",
+  "issue_number": 16564,
+  "title": "High peer msg duration, should avoid snapshot IO in raftstore"
+}

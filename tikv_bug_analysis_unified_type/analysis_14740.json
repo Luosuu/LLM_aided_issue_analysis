@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Leader Transfer",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Network",
+    "LoadBalance"
+  ],
+  "root_cause": "Large log gap between leader and follower during network partition prevents successful leader transfer, with pending configuration changes blocking transfer command execution",
+  "issue_number": 14740,
+  "title": "[Dynamic Regions] tikv leader can not balance after one tikv network partition for 50m and recover"
+}

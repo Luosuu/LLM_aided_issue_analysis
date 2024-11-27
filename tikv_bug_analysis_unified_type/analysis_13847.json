@@ -1,0 +1,12 @@
+{
+  "bug_location": "Network Configuration",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "TiKV server binding primarily to IPv4 addresses when IPv6 is the default network, causing connection failures during restore operations",
+  "issue_number": 13847,
+  "title": "IPv6 support: tikv should listen on IPv6 instead of IPv4\uff0c which cause br restore failed."
+}

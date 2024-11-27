@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module Command Handling",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "CodeBug"
+  ],
+  "root_cause": "Incomplete memory deallocation during module command unloading, where argument arrays and potentially nested sub-arguments are not fully freed, causing memory leaks",
+  "issue_number": 11145.0,
+  "title": "[BUG] Mem-leak in moduleFreeCommand"
+}

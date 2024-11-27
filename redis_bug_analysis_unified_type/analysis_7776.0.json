@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Hash Command Implementation (t_hash.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent return type for HKEYS command in RESP3 protocol when key does not exist, causing an empty hash instead of an expected array type",
+  "issue_number": 7776.0,
+  "title": "HKEYS returns empty hash in RESP3 [BUG]"
+}

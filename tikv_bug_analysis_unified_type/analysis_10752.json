@@ -1,0 +1,12 @@
+{
+  "bug_location": "storage/txn/flow_controller",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Performance"
+  ],
+  "root_cause": "Unexpected None value unwrapping in flow controller's tick_l0 method during heavy write workload, causing a panic",
+  "issue_number": 10752,
+  "title": "Panic in flow controller"
+}

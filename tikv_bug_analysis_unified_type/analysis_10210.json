@@ -1,0 +1,11 @@
+{
+  "bug_location": "RaftEngine/PeerStorage",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Slow seek operation when finding minimum log index, potentially due to excessive tombstone entries during log cleanup",
+  "issue_number": 10210,
+  "title": "Cleaning raft log costs too much time during destroying a peer"
+}

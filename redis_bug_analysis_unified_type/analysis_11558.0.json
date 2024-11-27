@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Client output buffer limit insufficient for large dataset with high write traffic, causing replication connection failures during RDB generation and synchronization",
+  "issue_number": 11558.0,
+  "title": "[BUG] 64gb client-output-buffer-limit isn't enough for maxmemory 96gb."
+}

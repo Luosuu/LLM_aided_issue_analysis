@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Peer Management",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Orphan peer not properly destroyed after snapshot application is cancelled, leading to a stale peer that prevents timestamp advancement",
+  "issue_number": 16561,
+  "title": "Resolve ts can't not advance"
+}

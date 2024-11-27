@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Leader Election Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Inconsistent index tracking during log compaction and merge operations, causing potential index mismatch that triggers panic during leader election",
+  "issue_number": 4581,
+  "title": "Panic on leader election after `catch_up_log_for_merge`"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Stale Read Component",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Resolved timestamp advancement blocked by unresolved locks during time offset injection in PD leader, causing region unavailability",
+  "issue_number": 11937,
+  "title": "Stale read hit data is not ready after inject some errors to pd"
+}

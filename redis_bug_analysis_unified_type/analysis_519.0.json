@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ZINTERSTORE command implementation",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Potential algorithmic error in handling mixed set types (regular sets and sorted sets) during intersection operation, causing inconsistent or incorrect results when using ZINTERSTORE with different set types and weight configurations",
+  "issue_number": 519.0,
+  "title": "ZINTERSTORE mixing sets and sorted sets may produce wrong results."
+}

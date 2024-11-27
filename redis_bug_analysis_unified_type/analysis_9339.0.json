@@ -1,0 +1,12 @@
+{
+  "bug_location": "hiredis library (dict.c, async.c, sds.c)",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Lack of proper memory allocation error handling and null pointer checks in multiple functions, which can lead to potential null pointer dereference vulnerabilities during memory allocation operations",
+  "issue_number": 9339.0,
+  "title": "[BUG][Version 2.8]serveral potential bugs of null pointer dereference"
+}

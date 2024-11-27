@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Consensus Module",
+  "severity": 5,
+  "categories": [
+    "Replication",
+    "Recovery",
+    "CodeBug"
+  ],
+  "root_cause": "Unsafe node recovery mechanism that can potentially delete committed logs and compromise data consistency during cluster failure scenarios",
+  "issue_number": 3092,
+  "title": "Unsafe recover should only drop some nodes instead of all down nodes"
+}

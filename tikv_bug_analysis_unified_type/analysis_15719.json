@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Cache / PD Client",
+  "severity": 5,
+  "categories": [
+    "Performance",
+    "LoadBalance",
+    "Network"
+  ],
+  "root_cause": "Excessive GetRegionByID requests triggered by bucket update mechanism in large clusters, causing PD server overload",
+  "issue_number": 15719,
+  "title": "Bucket update triggers too many GetRegionByID requests and make PD overwhelmed "
+}

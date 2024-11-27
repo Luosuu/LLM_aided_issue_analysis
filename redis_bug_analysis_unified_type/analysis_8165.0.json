@@ -1,0 +1,11 @@
+{
+  "bug_location": "src/anet.c",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Network"
+  ],
+  "root_cause": "Socket not being set to -1 after failed setsockopt operation, causing potential double socket close and EBADF error when IPv6 is not supported",
+  "issue_number": 8165.0,
+  "title": "[BUG]"
+}

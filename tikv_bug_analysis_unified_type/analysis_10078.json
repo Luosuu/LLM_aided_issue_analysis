@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/raft_log",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Storage"
+  ],
+  "root_cause": "Inconsistent Raft log state causing commit index to exceed last known index during heartbeat processing",
+  "issue_number": 10078,
+  "title": "Panic because the index to committed goes past the last index"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark tool",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Incorrect atomic increment in request tracking logic, causing over-issuing of requests beyond specified benchmark parameters by not properly respecting pipeline configuration",
+  "issue_number": 7960.0,
+  "title": "[BUG] redis-benchmark with pipeline not enforcing upper bound to number of requests."
+}

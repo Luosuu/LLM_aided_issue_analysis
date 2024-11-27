@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Log Replication/Recovery Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Inconsistent log index tracking when applying Raft logs before persistence, causing potential data recovery misalignment during online unsafe recovery",
+  "issue_number": 16796,
+  "title": "Apply raft log before persistence is not compatible with online unsafe recovery"
+}

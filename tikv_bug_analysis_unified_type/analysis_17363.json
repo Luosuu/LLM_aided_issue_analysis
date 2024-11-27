@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore/Peer Transfer",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Region configuration change (ConfChange) gets stuck during IO hang, preventing leader transfer and causing QPS to drop to zero",
+  "issue_number": 17363,
+  "title": "qps continued to drop to zero during one of tikv io hang"
+}

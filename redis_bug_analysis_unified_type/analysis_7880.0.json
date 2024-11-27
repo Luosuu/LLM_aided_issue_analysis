@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module Timer Callback Handling",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "The function that releases blocked clients (handleClientsBlockedOnKeys) is only called from processCommand, which assumes only a command can cause a key to be 'ready'. This assumption prevents key readiness signals from being processed when triggered from a timer callback.",
+  "issue_number": 7880.0,
+  "title": "[BUG] Calling RedisModule_SignalKeyAsReady from a timer callback does not trigger the reply callback."
+}

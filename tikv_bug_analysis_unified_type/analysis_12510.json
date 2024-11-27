@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Region splitting mechanism fails to trigger after configuration change and restart, preventing proper data distribution and size management",
+  "issue_number": 12510,
+  "title": "Raftstore: tikv does not split regions whose  size is larger than the max region size after restart with config change"
+}

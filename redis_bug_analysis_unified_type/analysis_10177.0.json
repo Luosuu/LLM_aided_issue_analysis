@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Module System",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Memory"
+  ],
+  "root_cause": "Module unload command is not properly disabled or validated during multi/exec transaction, causing potential memory corruption and crash when attempting to execute a command from an unloaded module",
+  "issue_number": 10177.0,
+  "title": "[CRASH] Should disable module unload command in multi"
+}

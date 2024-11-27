@@ -1,0 +1,11 @@
+{
+  "bug_location": "TiDB Collation/Character Set Handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect handling of utf8mb4_0900_bin collation during data restoration process, causing potential data access or compatibility issues",
+  "issue_number": 15571,
+  "title": "`utf8mb4_0900_bin` shouldn't try to read RestoredData"
+}

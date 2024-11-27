@@ -1,0 +1,11 @@
+{
+  "bug_location": "Lua Client State",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Lua client flags were incorrectly set to CLIENT_CLOSE_AFTER_REPLY, causing read operations in EVAL to return incorrect results by returning the last argument instead of actual key values",
+  "issue_number": 8484.0,
+  "title": "[BUG] EVAL returning undocumented results"
+}

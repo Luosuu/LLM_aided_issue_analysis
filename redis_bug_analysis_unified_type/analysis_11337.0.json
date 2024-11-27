@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Connection Handling",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "During RDB (Redis Database) snapshot creation, the main process uses 'close()' method which does not immediately terminate the network connection, causing delayed client disconnection and potential blocking scenarios",
+  "issue_number": 11337.0,
+  "title": "[BUG] when executing RDB, the server actively disconnects and the client cannot sense the disconnection"
+}

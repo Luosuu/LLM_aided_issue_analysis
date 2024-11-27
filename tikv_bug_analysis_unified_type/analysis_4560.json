@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raftstore",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Incorrect log synchronization during region merge causing inconsistent applied and commit indices, which prevents node restart after panic",
+  "issue_number": 4560,
+  "title": "Raft logs in CommitMerge should forward to raftstore first"
+}

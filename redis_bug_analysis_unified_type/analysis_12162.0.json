@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel/Replication",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Upgrade",
+    "Transaction"
+  ],
+  "root_cause": "During a multi-node restart sequence, Redis Sentinel's failover mechanism became unstable, causing race conditions that resulted in multiple master instances being created instead of maintaining a single master state",
+  "issue_number": 12162.0,
+  "title": "[BUG] Sentinel failover not as expected - ends up with multiple masters"
+}

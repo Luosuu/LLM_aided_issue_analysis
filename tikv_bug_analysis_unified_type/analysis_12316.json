@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Storage Engine",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "Disabling flow control with aggressive RocksDB write buffer configurations causes write stalls and transaction performance degradation",
+  "issue_number": 12316,
+  "title": "set storage.flow-control.enable: false\uff0cthe transaction OPS drops to 0. after the load is stopped, connect to tidb cluster executes SQL statements without response"
+}

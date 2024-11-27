@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Floating Point Arithmetic",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Platform-specific floating point representation differences in long double implementation, where 32-bit ARM uses 64-bit double precision instead of 80-bit extended precision, causing numeric representation variations during incremental float operations",
+  "issue_number": 7935.0,
+  "title": "[BUG] HINCRBYFLOAT representation on ARM 32bit"
+}

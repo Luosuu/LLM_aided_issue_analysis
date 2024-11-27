@@ -1,0 +1,12 @@
+{
+  "bug_location": "Import SST Service",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Transaction",
+    "Recovery"
+  ],
+  "root_cause": "Race condition between import job cancellation and TiKV import mode exit, causing premature SST file cleanup before import process fully stops",
+  "issue_number": 15003,
+  "title": "tikv panic when tikv exit the import mode but import process is still not stopped during \"import into\" command is cancelled"
+}

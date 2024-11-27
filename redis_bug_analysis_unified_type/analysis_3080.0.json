@@ -1,0 +1,12 @@
+{
+  "bug_location": "RDB Loading (rdbLoadObject)",
+  "severity": 5,
+  "categories": [
+    "Security",
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Lack of input validation when parsing RDB data structures, allowing potential buffer overflow and memory corruption during object restoration via RESTORE command for specific RDB data types like quicklists, ziplists, and other compressed data structures",
+  "issue_number": 3080.0,
+  "title": "crashes in rdbLoadObject"
+}

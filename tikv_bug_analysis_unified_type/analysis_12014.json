@@ -1,0 +1,12 @@
+{
+  "bug_location": "split_controller.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "ReadStats is created using default() without considering user-configured sample_num, which can lead to insufficient sampling for Load Base Split",
+  "issue_number": 12014,
+  "title": "The creation of ReadStats should take into account the user configuration of sample_num"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Lua Script Conversion/Redis Core",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Upgrade"
+  ],
+  "root_cause": "A change in number conversion logic in Redis 7.2 (specifically in fpconv_dtoa function) causes incorrect handling of numeric values around 100,000,000 when converting from Lua script arguments to integers",
+  "issue_number": 13113.0,
+  "title": "[BUG] hIncrBy from lua \"ERR value is not an integer or out of range\" with numeric values of the form n * 100,000,000 in redis 7.2, but not 6.2 or 7.0"
+}

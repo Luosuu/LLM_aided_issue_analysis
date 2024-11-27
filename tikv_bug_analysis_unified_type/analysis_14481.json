@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Engine / Recovery Module",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Recovery"
+  ],
+  "root_cause": "Extremely slow Raft log replay mechanism causing prolonged TiKV recovery times, with low QPS and inefficient log entry reading",
+  "issue_number": 14481,
+  "title": "[Dynamic Regions] replay raft log after restart is too slow (> 5hour in some cases)"
+}

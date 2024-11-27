@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Incorrect handling of peer state during region hibernation, causing potential false reporting of down peers to PD during leader heartbeat",
+  "issue_number": 10017,
+  "title": "raftstore: down peer collection did not consider hibernate region"
+}

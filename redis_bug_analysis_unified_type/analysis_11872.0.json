@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis SSCAN command implementation",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "SSCAN count parameter does not strictly limit returned elements for small integer sets (intset encoding), returning all elements instead of respecting the specified count",
+  "issue_number": 11872.0,
+  "title": "[BUG] redis version 6.2.3 sscan count is not work for int number"
+}

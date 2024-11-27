@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark.c",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Potential concurrent access to shared config.previous_tick variable without proper synchronization, though later confirmed as a false positive by developers",
+  "issue_number": 8937.0,
+  "title": "[BUG] Potential data race in showThroughput function in redis-benchmark"
+}

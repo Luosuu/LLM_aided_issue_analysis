@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Sentinel Configuration Management",
+  "severity": 4,
+  "categories": [
+    "Security",
+    "Config"
+  ],
+  "root_cause": "During configuration rewrite, Redis Sentinel creates a new temporary file and renames it, which bypasses original file permissions and umask settings, resulting in world-readable configuration files with sensitive credentials",
+  "issue_number": 8369.0,
+  "title": "[BUG] security: config rewrites of sentinel.conf set insecure file permissions"
+}

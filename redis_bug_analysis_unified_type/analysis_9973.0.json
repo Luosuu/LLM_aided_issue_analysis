@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis process title management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "setproctitle implementation clears /proc/PID/environ, which interferes with process environment information retrieval",
+  "issue_number": 9973.0,
+  "title": "[BUG] Redis will clear /proc/PID/environ in setproctitle"
+}

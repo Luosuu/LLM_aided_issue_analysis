@@ -1,0 +1,11 @@
+{
+  "bug_location": "RocksDB Configuration Management",
+  "severity": 2,
+  "categories": [
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Dynamic background thread configuration not properly synchronized in DBConfigManager when max_background_jobs or max_background_flushes are modified",
+  "issue_number": 15424,
+  "title": "can't dynamic adjust rocksdb background_compaction threads"
+}

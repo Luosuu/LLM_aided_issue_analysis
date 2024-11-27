@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Dictionary/Hash Implementation",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Potential memory corruption or race condition in hash table implementation when processing multiple HMSET commands in pipeline mode, likely related to M1 Mac architecture or Docker environment",
+  "issue_number": 10831.0,
+  "title": "[CRASH] Redis crashing on running 1200 hmset in pipeline mode"
+}

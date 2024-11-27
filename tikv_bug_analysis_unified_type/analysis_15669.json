@@ -1,0 +1,11 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Leader continues sending GcPeerRequests to peers on tombstone stores instead of directly removing them, causing unnecessary network communication and potential resource waste",
+  "issue_number": 15669,
+  "title": "[Dynamic Regions] Leader keeps sending GcPeerRequests to peers on tombstone store"
+}

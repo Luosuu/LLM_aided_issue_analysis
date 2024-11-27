@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture)",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Old value cache ineffective for pessimistic transaction writes due to lock acquisition mechanism reading previous writes, causing cache miss",
+  "issue_number": 10032,
+  "title": "CDC old value cache does not work effectively for caching pessimistic txn write"
+}

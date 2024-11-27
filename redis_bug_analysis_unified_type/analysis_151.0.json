@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Transaction Handling",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "MIGRATE operation does not properly mark WATCH keys as dirty when a key is moved between cluster nodes, potentially allowing inconsistent transaction execution",
+  "issue_number": 151.0,
+  "title": "MIGRATE should set WATCHED keys as dirty"
+}

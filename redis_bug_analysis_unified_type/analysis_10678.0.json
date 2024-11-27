@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Client (Python)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "The Redis Cluster client requires a key parameter for XGROUP CREATE command in version 7.0.0, which was not required in previous versions. The method fails to dispatch the command due to missing key specification.",
+  "issue_number": 10678.0,
+  "title": "[BUG] The method xgroup_create of the redis cluster client fails when running on redis version 7.0.0."
+}

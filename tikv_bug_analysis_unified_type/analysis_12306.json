@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Storage/Coprocessor",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Performance regression in table full scan operations, likely related to changes in caching mechanism or query execution strategy between v5.4.0 and v6.0.0",
+  "issue_number": 12306,
+  "title": "Compared with v5.4.0, the performance of TPCH drop 4.5% in v6.0.0 with the duration of TableFullScan increases and cache_hit_count decreases"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "sst_importer",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "SST file cleanup mechanism fails when region topology changes during lightning import process, causing potential file leakage",
+  "issue_number": 14745,
+  "title": "sst_importer may leak sst files once lightning encounters error due to wrong range loaded"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Memory Management / Key Eviction",
+  "severity": 5,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Infinite memory loop during key eviction when maxmemory is configured with multiple slaves, where emitting deletion protocol to slaves consumes more memory than keys being deleted",
+  "issue_number": 327.0,
+  "title": "maxmemory + evicting policy + slaves = death"
+}

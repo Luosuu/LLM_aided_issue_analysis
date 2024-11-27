@@ -1,0 +1,12 @@
+{
+  "bug_location": "Stale Read Component",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Unbounded memory growth of resolved timestamp map for tracking locks during large transactions, causing potential out-of-memory conditions",
+  "issue_number": 14864,
+  "title": "Resolved ts in stale read may cause TiKV OOM"
+}

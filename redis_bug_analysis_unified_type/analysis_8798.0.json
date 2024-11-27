@@ -1,0 +1,11 @@
+{
+  "bug_location": "src/cluster.c - clusterCron function",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Potential use-after-free vulnerability where a cluster link is freed but might still be referenced before being set to NULL, which could lead to memory access issues",
+  "issue_number": 8798.0,
+  "title": "[BUG] A potential use after free bug in clusterCron"
+}

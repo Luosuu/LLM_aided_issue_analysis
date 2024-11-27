@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore_v2/apply_trace",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Recovery"
+  ],
+  "root_cause": "Option unwrap on a None value during Raft log engine recovery, likely due to incorrect handling of flushed index in atomic group processing",
+  "issue_number": 14743,
+  "title": "[Dynamic Regions]: tikv panic during the restart"
+}

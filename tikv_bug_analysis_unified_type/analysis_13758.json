@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft/Network Layer",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "LoadBalance"
+  ],
+  "root_cause": "Network isolation causing TiKV node to become unavailable and unable to recover within expected timeframe, potentially due to insufficient network partition handling or slow leader election mechanism",
+  "issue_number": 13758,
+  "title": "one tikv is isolated from others tikv, and services are unavailable during a failure"
+}

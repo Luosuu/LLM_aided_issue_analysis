@@ -1,0 +1,12 @@
+{
+  "bug_location": "PITR (Point-in-Time Recovery) Checkpoint Component",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Checkpoint mechanism fails to progress during partial network partition between TiKV and PD leader, likely due to communication disruption affecting backup coordination",
+  "issue_number": 13637,
+  "title": "PITR checkpoint doesn't move forward during one TiKV and PD leader network partition"
+}

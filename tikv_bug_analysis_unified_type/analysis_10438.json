@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup/Restore Component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Replication",
+    "Recovery"
+  ],
+  "root_cause": "Race condition between SST file cleanup and region split/ingest operations, causing file deletion before region replica can apply ingest request",
+  "issue_number": 10438,
+  "title": "TiKV panic because of ingest files not exist."
+}

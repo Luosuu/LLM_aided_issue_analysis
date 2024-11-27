@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Storage Component",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Potential memory management issue with jemalloc, where memory is not being properly released back to the system during RocksDB compaction",
+  "issue_number": 10832,
+  "title": "rocksdb background error. db: kv, reason: compaction, error: IO error: While appending to file: /var/lib/tikv/data/db/438734.sst: Cannot allocate memory\""
+}

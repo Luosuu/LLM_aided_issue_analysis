@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-benchmark tool",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Hash tag generation logic does not respect non-clustered benchmark scenarios, causing unintended single-shard targeting",
+  "issue_number": 7930.0,
+  "title": "[BUG] redis-benchmark non clustered benchmark forces always the same hash tag {tag} which makes proxy setups to be limited by standalone performance"
+}

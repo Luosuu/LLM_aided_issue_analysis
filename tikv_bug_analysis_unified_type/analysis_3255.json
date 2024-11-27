@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/peer.rs",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Potential race condition or incorrect log matching during region merge process, causing merge operation to fail when log gaps are detected between peers",
+  "issue_number": 3255,
+  "title": "test failpoints_cases::test_merge::test_node_merge_restart  failed"
+}

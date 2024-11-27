@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect handling of aborted snapshots causing potential panic during Raft log reconciliation when log entries between applied_index and last_index are missing",
+  "issue_number": 11618,
+  "title": "Panic after snapshot is aborted"
+}

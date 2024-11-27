@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Module API (RedisModule_OpenKey)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Potential issue with key access context when switching between non-zero database contexts, causing unexpected NULL key returns on subsequent key open attempts",
+  "issue_number": 10631.0,
+  "title": "Calling RedisModule_OpenKey from a Database which isn't 0 twice in the 2nd time it always returns NULL [BUG]"
+}

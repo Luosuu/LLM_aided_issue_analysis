@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Event Loop (ae.c/ae_epoll.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "Potential desynchronization between epoll event tracking and actual file descriptor state, causing epoll_ctl failures when attempting to register new client file descriptors",
+  "issue_number": 2479.0,
+  "title": "Error registering fd event for event for the new client:No such file or direcory"
+}

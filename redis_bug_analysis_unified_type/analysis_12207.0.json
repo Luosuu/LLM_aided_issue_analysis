@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Transaction/Pub-Sub Module",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Redis allows `SUBSCRIBE` commands inside a `MULTI` transaction block, which breaks the expected transaction response protocol by injecting additional subscription responses that disrupt the transaction's response array structure",
+  "issue_number": 12207.0,
+  "title": "[BUG] Should `SUBSCRIBE/UNSUBSCRIBE` be rejected in `MULTI`?"
+}

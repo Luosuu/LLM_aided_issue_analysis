@@ -1,0 +1,12 @@
+{
+  "bug_location": "Flashback/Key Scanning Logic",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Insufficient filtering of non-user write records during key scanning, causing inconsistent key retrieval across flashback phases",
+  "issue_number": 15219,
+  "title": "scan_latest_user_keys should skip the type of non-user write"
+}

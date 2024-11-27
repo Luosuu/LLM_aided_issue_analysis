@@ -1,0 +1,11 @@
+{
+  "bug_location": "Key Expiration/Renaming Mechanism",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Redis rename operation does not correctly transfer or preserve the Time-To-Live (TTL) metadata when renaming a key with an existing expiration time",
+  "issue_number": 128.0,
+  "title": "TTL not preserved when key is renamed"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Configuration Parsing (/redis/src/cluster.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Security",
+    "Memory"
+  ],
+  "root_cause": "Lack of input validation for slot index when parsing cluster configuration, potentially allowing out-of-bounds array access and memory corruption via maliciously crafted configuration file",
+  "issue_number": 4278.0,
+  "title": "Potential Buffer Overflow from user-controllable Array Index value"
+}

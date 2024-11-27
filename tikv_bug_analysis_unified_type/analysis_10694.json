@@ -1,0 +1,12 @@
+{
+  "bug_location": "TiKV Storage",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Memory",
+    "Upgrade"
+  ],
+  "root_cause": "Potential memory configuration issue during version upgrade, likely related to incorrect block-cache-size configuration causing repeated TiKV crashes under high-stress workload",
+  "issue_number": 10694,
+  "title": "After upgrading from 5.1.0 to the 5.2.0 master, run sysbench insert and query\uff0csome tikv crash repeatedly"
+}

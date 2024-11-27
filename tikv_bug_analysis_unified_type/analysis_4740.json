@@ -1,0 +1,11 @@
+{
+  "bug_location": "storage/mvcc/reader",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage"
+  ],
+  "root_cause": "Inefficient garbage collection (GC) mechanism that does not properly account for deleted versions and compaction status, causing unnecessary region scans and GC attempts",
+  "issue_number": 4740,
+  "title": "MvccProperty should consider delete version"
+}

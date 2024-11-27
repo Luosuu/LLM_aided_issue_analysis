@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) Incremental Scan",
+  "severity": 3,
+  "categories": [
+    "Performance",
+    "Storage",
+    "CodeBug"
+  ],
+  "root_cause": "Inefficient handling of RocksDB tombstones during frequent table/partition drops, causing expensive iterator scanning across entire regions with continuous tombstones",
+  "issue_number": 17620,
+  "title": "truncate or drop table frequently may increase cdc incremental scan CPU usage obviously"
+}

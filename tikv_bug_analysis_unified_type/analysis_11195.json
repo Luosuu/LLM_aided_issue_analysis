@@ -1,0 +1,12 @@
+{
+  "bug_location": "metrics/threads_linux.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Thread metrics labels are not properly cleaned up after thread exit, causing memory leak and potential resource accumulation",
+  "issue_number": 11195,
+  "title": "Label leaking of thread metrics"
+}

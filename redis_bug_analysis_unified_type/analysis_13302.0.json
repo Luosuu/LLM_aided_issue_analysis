@@ -1,0 +1,12 @@
+{
+  "bug_location": "SDS (Simple Dynamic String) memory management in Redis core",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Potential memory allocation or buffer overflow issue in sdsMakeRoomFor() function during string manipulation, specifically triggered during a Lua script execution involving an HSET command",
+  "issue_number": 13302.0,
+  "title": "[CRASH] New Redis 6.2.6 Crash "
+}

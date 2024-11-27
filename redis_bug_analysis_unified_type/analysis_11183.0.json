@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Networking",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Config",
+    "CodeBug"
+  ],
+  "root_cause": "Redis cluster internal MOVE redirects using 127.0.0.1 instead of host network interface, preventing external service connections when running in a container",
+  "issue_number": 11183.0,
+  "title": "[BUG] cluster internal MOVE commands makes host:port not reachable."
+}

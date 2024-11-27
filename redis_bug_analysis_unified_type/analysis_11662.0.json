@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Persistence/RDB Snapshot Module",
+  "severity": 2,
+  "categories": [
+    "Config",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "RDB snapshot generation during replication continues even when save configuration is set to an empty string, specifically when `rdb-del-sync-files` is not configured",
+  "issue_number": 11662.0,
+  "title": "[BUG] Snapshot not disabled when configuration parameter save is \"\""
+}

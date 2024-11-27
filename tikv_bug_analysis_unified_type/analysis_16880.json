@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Pipelined DML locks are not being properly handled during read requests, causing unnecessary blocking of read transactions when locks should be ignorable based on timestamp semantics",
+  "issue_number": 16880,
+  "title": "Pipelined DML locks blocks read"
+}

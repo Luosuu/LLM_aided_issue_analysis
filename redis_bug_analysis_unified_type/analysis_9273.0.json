@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Set Operations/Command Processing",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "A regression in command argument processing logic introduced in a recent commit (https://github.com/redis/redis/pull/9032) that changes how type checking and key validation are performed during set intersection operations, causing unexpected WRONGTYPE errors when keys have unusual names or non-standard configurations",
+  "issue_number": 9273.0,
+  "title": "[BUG] Regression in WRONGTYPE handling after deletion handling improvements"
+}

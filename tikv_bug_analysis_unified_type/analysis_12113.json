@@ -1,0 +1,11 @@
+{
+  "bug_location": "Transaction",
+  "severity": 3,
+  "categories": [
+    "Transaction",
+    "CodeBug"
+  ],
+  "root_cause": "Assertion check incorrectly triggers false-positive error when a pessimistic transaction is rolled back and another transaction writes a new version of the index key",
+  "issue_number": 12113,
+  "title": "Assertion false-positive on non-unique index key in pessimistic transaction that's rolled back by another transaction"
+}

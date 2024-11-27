@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Blocking Commands",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Floating-point precision issue causing small timeout values (< 0.001) to be incorrectly rounded down to 0, which prevents timeout mechanism from working correctly in blocking commands like BLPOP",
+  "issue_number": 11687.0,
+  "title": "[BUG] Blocking command with a 0.001 seconds timeout blocks indefinitely"
+}

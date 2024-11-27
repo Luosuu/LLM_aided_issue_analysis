@@ -7,16 +7,20 @@ from datetime import datetime, timedelta
 
 # Categories adapted for TiKV context
 BUG_CATEGORIES = [
-    "CodeBug",      # Implementation bugs in the code
+    "CodeBug",      # Core implementation bugs
     "Config",       # Configuration and setup issues
     "Human",        # User errors or misunderstandings
-    "Network",      # Network and RPC issues
-    "Upgrade",      # Version upgrade problems
-    "Security",     # Security vulnerabilities
-    "Storage",      # Storage engine and RocksDB issues
-    "LoadBalance",  # PD scheduling and load balancing
-    "Transaction",  # Transaction and MVCC issues
-    "Performance",  # Performance related issues
+    "Network",      # Network, RPC, and connectivity issues
+    "Upgrade",      # Version upgrade and compatibility issues
+    "Security",     # Security vulnerabilities and access control
+    "Storage",      # Storage engine, persistence, and data integrity
+    "LoadBalance",  # Load balancing, scheduling, and cluster management
+    "Transaction",  # Transaction, consistency, and isolation issues
+    "Performance",  # Performance degradation and bottlenecks
+    "Memory",       # Memory management and allocation issues
+    "Replication",  # Data replication and synchronization
+    "Monitoring",   # Metrics, logging, and observability issues
+    "Recovery",     # Crash recovery and failover issues
     "Unknown"       # Unclassified or unclear issues
 ]
 
@@ -54,6 +58,7 @@ def analyze_bug_issue(issue_data, rate_limit_handler):
     # Create a concise prompt for TiKV issues
     prompt = f"""
     Analyze this TiKV bug issue. Provide a structured analysis in valid JSON format.
+    Note that when the information is insufficient for analysis, please be honest to say that you are not sure for the bug location or root cause.
     Your response must be ONLY a JSON object with these exact fields:
     - bug_location: specific TiKV component affected
     - severity: integer 1-5 (5 most severe)
@@ -63,6 +68,9 @@ def analyze_bug_issue(issue_data, rate_limit_handler):
     Title: {issue_data['title']}
     Description: {issue_data['body']}
     Labels: {issue_data.get('labels', [])}
+
+    Comments:
+    {json.dumps(issue_data['comments_data'], indent=2)}
     """
 
     while True:
@@ -108,7 +116,7 @@ def analyze_bug_issue(issue_data, rate_limit_handler):
 
 def main():
     # Create output directory
-    output_dir = Path('tikv_bug_analysis')
+    output_dir = Path('tikv_bug_analysis_unified_type')
     output_dir.mkdir(exist_ok=True)
 
     # Read all issue files

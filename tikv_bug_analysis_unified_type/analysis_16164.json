@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) and RocksDB",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Transaction",
+    "Storage"
+  ],
+  "root_cause": "Performance degradation during CDC incremental scan resumption, causing increased RocksDB apply-write_memtable_time and subsequent TiDB latency increases",
+  "issue_number": 16164,
+  "title": "apply-write_memtable_time and TiDB latency increases during cdc initial scan"
+}

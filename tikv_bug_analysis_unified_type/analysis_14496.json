@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Block Cache / Filter Management",
+  "severity": 2,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Memory"
+  ],
+  "root_cause": "Bloom filter block size grows excessively under large data volumes with partitioned-raft-kv, causing block cache overwhelming",
+  "issue_number": 14496,
+  "title": "[Dynamic Regions] When the TiKV has a large data size, filter and index block can be too big"
+}

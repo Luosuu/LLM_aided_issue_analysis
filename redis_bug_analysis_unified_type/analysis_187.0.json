@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication and Key Expiration Mechanism",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Redis slaves do not actively expire keys and cannot consistently handle expired keys during client interactions, leading to inconsistent behavior between master and slave nodes regarding key existence and retrieval",
+  "issue_number": 187.0,
+  "title": "Redis slaves, while not allowed to expire keys without master input, should reply to clients consistently with the key expire information."
+}

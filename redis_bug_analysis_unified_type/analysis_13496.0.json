@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Client Connection Handling",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Unresolved network connection in CLOSE_WAIT state causing potential memory leak or resource exhaustion when Redis server is no longer available",
+  "issue_number": 13496.0,
+  "title": "[BUG] Redis clients add 1GB/s memory usage through a CLOSE_WAIT server connection"
+}

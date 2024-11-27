@@ -1,0 +1,12 @@
+{
+  "bug_location": "CDC (Change Data Capture) Endpoint",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "Network",
+    "Performance"
+  ],
+  "root_cause": "Incorrect TSO (Timestamp Oracle) cache management during PD leader failure, causing periodic cache flushing to disrupt request processing",
+  "issue_number": 13430,
+  "title": "The QPS almost dropped to 0 when leader of PD is killed"
+}

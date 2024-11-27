@@ -1,0 +1,12 @@
+{
+  "bug_location": "region_cache_memory_engine/background",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Potential data inconsistency between in-memory engine and RocksDB during background audit process, possibly related to handling of dropped tables or UnsafeDestroyRange",
+  "issue_number": 17148,
+  "title": "In-memory Engine: entered unreachable code in `next_to_match`"
+}

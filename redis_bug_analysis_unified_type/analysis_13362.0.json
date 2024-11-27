@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Management",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Shard ID tracking mechanism fails to update correctly when a node is deleted and re-added as a new master, causing inconsistent cluster metadata representation in CLUSTER SHARDS command",
+  "issue_number": 13362.0,
+  "title": "[BUG] Deleted node when added againg as master doesn't get new shardid (CLUSTER SHARDS becomes wrong)"
+}

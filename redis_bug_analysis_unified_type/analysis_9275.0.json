@@ -1,0 +1,11 @@
+{
+  "bug_location": "AOF Persistence Module",
+  "severity": 3,
+  "categories": [
+    "Storage",
+    "Performance"
+  ],
+  "root_cause": "Lua script persistence is not guaranteed when AOF is disabled and RDB preamble is set to no, which is an expected behavior according to Redis design principles",
+  "issue_number": 9275.0,
+  "title": "[BUG] bgrewriteaof command result in lua script loss"
+}

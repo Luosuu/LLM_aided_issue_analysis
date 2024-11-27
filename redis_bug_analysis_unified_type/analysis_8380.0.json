@@ -1,0 +1,12 @@
+{
+  "bug_location": "db.c dictionary handling",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Recovery"
+  ],
+  "root_cause": "Potential memory corruption or invalid key access during dictionary lookup in Redis database operations, specifically in the dictFind() function at line 868 of db.c",
+  "issue_number": 8380.0,
+  "title": "[CRASH]dictFind(db->dict,key->ptr) != NULL"
+}

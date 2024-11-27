@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Core/Replication Module",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Replication validation check in processCommand() does not apply to Lua script (EVAL) commands due to incorrect condition checking 'is_write_command' which is always false for eval commands",
+  "issue_number": 9993.0,
+  "title": "[BUG] Config min-slaves-to-write is not worked with Lua scripts"
+}

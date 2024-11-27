@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup and Restore (BR) Component",
+  "severity": 4,
+  "categories": [
+    "Transaction",
+    "CodeBug",
+    "Replication"
+  ],
+  "root_cause": "Flashback operation incorrectly handles transaction locks and commit records, potentially breaking transaction atomicity by partially rolling back multi-key transactions",
+  "issue_number": 17415,
+  "title": "Flashback may break transaction atomicity"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "RedisJSON JSONPath Query Engine",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Logical OR operator implementation incorrectly handles predicate failures, causing entire result set to be nullified when one predicate does not match, instead of returning matching results",
+  "issue_number": 11019.0,
+  "title": "[BUG] JSONPath OR operator || returns empty result if one predicate fails"
+}

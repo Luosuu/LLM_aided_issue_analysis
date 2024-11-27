@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftEngine/LogBatch",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Buffer size limitation causing panic when log batch exceeds 2GB during write operations",
+  "issue_number": 13848,
+  "title": "TiKV panic because the buffer size in log_batch is more than 2G when append to RaftEngine."
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer_storage",
+  "severity": 5,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition in async log fetching where a peer attempts to generate a snapshot while in an applying snapshot state, caused by insufficient leadership and term change validation during asynchronous ",
+  "issue_number": 12026,
+  "title": "tikv panic:918 unexpected state: Applying(0)"
+}

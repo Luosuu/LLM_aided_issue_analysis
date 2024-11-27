@@ -1,0 +1,11 @@
+{
+  "bug_location": "storage/raw/raw_mvcc.rs",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Incorrect prefix seek implementation in RawMvccSnapshot that could potentially extract wrong prefix when using keys without timestamps, which is currently masked by the absence of PrefixExtractor in D",
+  "issue_number": 15354,
+  "title": "RawMvccSnapshot use prefix seek in defaultcf which not setup PrefixExtrator"
+}

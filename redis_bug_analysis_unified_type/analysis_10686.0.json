@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication/AOF Subsystem",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "In the rewriteAppendOnlyFile() function, when using RDB preamble mode, the last parameter passed to rdbSaveRio() is NULL, which prevents saving replica-specific information needed for partial replication after restart",
+  "issue_number": 10686.0,
+  "title": "[BUG] Once start aof-use-rdb-preamble, redis does not use partial REPLICA after restarted"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "unified-read-pool",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Async quota-limiter incorrectly calculates task availability, causing false positive queue-is-full errors when tasks are pending in future-timer",
+  "issue_number": 16026,
+  "title": "unified-read-pool may return false positive queue-is-full error"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Replication/Log Replication",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Memory"
+  ],
+  "root_cause": "Lack of flow control during network partition recovery, causing excessive log replication and memory pressure leading to OOM",
+  "issue_number": 14411,
+  "title": "[Dynamic Regions] tikv oom after Inject one tikv network_partition last for 50m and recover due to lack of flow control for log replication"
+}

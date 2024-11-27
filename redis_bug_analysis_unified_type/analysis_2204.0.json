@@ -1,0 +1,11 @@
+{
+  "bug_location": "redis-trib.rb cluster allocation algorithm",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "The cluster allocation algorithm does not effectively prevent master and slave instances from being allocated on the same physical host, which can reduce cluster availability and resilience",
+  "issue_number": 2204.0,
+  "title": "redis-trib.rb may allocate the slave and master in the same host"
+}

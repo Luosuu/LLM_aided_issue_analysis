@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/PD Interaction",
+  "severity": 5,
+  "categories": [
+    "Replication",
+    "Network",
+    "Transaction"
+  ],
+  "root_cause": "PD loses region leader information during cluster restart, causing store ID resolution failures when attempting to query leader information",
+  "issue_number": 12478,
+  "title": "v5.4.1: after restart all tikv/pd/tidb, one tikv continue report error \"invalid store ID 0, not found\""
+}

@@ -1,0 +1,10 @@
+{
+  "bug_location": "Redis GETRANGE command implementation",
+  "severity": 3,
+  "categories": [
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect handling of negative indices in range calculation, allowing retrieval of string segments when indices should result in an empty string",
+  "issue_number": 13207.0,
+  "title": "[BUG] `GETRANGE` returns incorrect response with negative indices"
+}

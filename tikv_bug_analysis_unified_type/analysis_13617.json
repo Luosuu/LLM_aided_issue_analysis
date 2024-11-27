@@ -1,0 +1,12 @@
+{
+  "bug_location": "Backup and Restore (PITR)",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Recovery",
+    "Transaction"
+  ],
+  "root_cause": "Potential synchronization or checkpoint tracking issue during TiDB pod failure and recovery, causing extended checkpoint lag in Point-in-Time Recovery (PITR) process",
+  "issue_number": 13617,
+  "title": "PITR lag > 5min after TiDB failure chaos for 10 minutes for 1 of the 3 TiDB pod"
+}

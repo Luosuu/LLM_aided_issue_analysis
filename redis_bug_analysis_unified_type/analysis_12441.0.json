@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Module (cluster.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Null pointer dereference in cluster state management when processing delayed cluster messages, specifically when a node changes role and receives stale cluster configuration messages",
+  "issue_number": 12441.0,
+  "title": "[CRASH] Redis cluster.c:1946 crashed by signal 11, si_code: 1"
+}

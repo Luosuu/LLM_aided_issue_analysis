@@ -1,0 +1,11 @@
+{
+  "bug_location": "raftstore/store/peer.rs",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect peer destruction logic during configuration changes, causing unexpected peer removal when processing snapshots and configuration change entries",
+  "issue_number": 1084,
+  "title": "TiKV panic on `commit_to()`"
+}

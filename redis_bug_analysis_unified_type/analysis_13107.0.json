@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Kernel Detection Mechanism",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Config",
+    "Performance"
+  ],
+  "root_cause": "Inability to detect ARM64 Copy-on-Write (COW) kernel bug due to missing /proc/self/smaps support, which prevents Redis from safely determining kernel compatibility",
+  "issue_number": 13107.0,
+  "title": "[BUG] Faied to test for arm64 COW bug"
+}

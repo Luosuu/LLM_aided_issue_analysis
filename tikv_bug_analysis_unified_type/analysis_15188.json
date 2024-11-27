@@ -1,0 +1,12 @@
+{
+  "bug_location": "Scheduling/Replication",
+  "severity": 4,
+  "categories": [
+    "Network",
+    "Replication",
+    "Performance"
+  ],
+  "root_cause": "Potential issue with stale read and replica selection strategy during network partition, causing prolonged QPS degradation in specific availability zone",
+  "issue_number": 15188,
+  "title": "enable stale read and closest-replicas\uff0cqps drop last for 10min on us-west-2a when injection network partition between one of tikv of us-west-2a and all other pods in cluster"
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Management",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "Performance",
+    "LoadBalance"
+  ],
+  "root_cause": "Unbalanced region distribution causing excessive memory allocation in specific TiKV nodes, with over 4 million regions created for only 130 tables, leading to Out of Memory (OOM) conditions",
+  "issue_number": 16243,
+  "title": "TiKV OOM when importing 130k tables via lightning"
+}

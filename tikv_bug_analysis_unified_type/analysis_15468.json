@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Read Path",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Race condition between read operations and region destruction causing unnecessary back-off delays when checking witness status",
+  "issue_number": 15468,
+  "title": "possible slow query when reading racing with region destroy"
+}

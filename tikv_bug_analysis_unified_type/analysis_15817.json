@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Consensus Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Commit condition failure in joint consensus state when peers are down in disaster recovery auto-sync scenario, specifically when demoting voter is on a failed store preventing log commit progression",
+  "issue_number": 15817,
+  "title": "Commit can't advance for region in joint state when dr auto sync is enabled"
+}

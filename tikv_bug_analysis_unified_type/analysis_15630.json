@@ -1,0 +1,12 @@
+{
+  "bug_location": "Storage/RocksDB",
+  "severity": 4,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Config"
+  ],
+  "root_cause": "Reduced default lock-cf write-buffer-size causing increased flush and level-0 compaction, consuming more CPU and IO resources",
+  "issue_number": 15630,
+  "title": "[Dynamic Regions] Compared with 7.3.0, write-heavy workloads have 7.6% - 31% performance regression"
+}

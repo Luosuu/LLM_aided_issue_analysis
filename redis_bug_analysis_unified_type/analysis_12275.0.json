@@ -1,0 +1,11 @@
+{
+  "bug_location": "Lua Script Execution / Client Interaction",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Redisson client's default encoding mechanism was converting numeric values to encoded strings, preventing direct numeric conversion in Lua scripts, which caused arithmetic operation failures",
+  "issue_number": 12275.0,
+  "title": "[BUG] Redis fails to perform basic arithmetic operation in Lua script"
+}

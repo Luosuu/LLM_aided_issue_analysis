@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Client Buffer Management",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "Performance",
+    "CodeBug"
+  ],
+  "root_cause": "Client query buffers (redisClient.querybuf) grow dynamically but do not automatically shrink when no longer needed, leading to persistent memory allocation even after data processing is complete",
+  "issue_number": 364.0,
+  "title": "Client buffers are never reclaimed until connection is closed"
+}

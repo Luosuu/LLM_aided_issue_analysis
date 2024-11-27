@@ -1,0 +1,12 @@
+{
+  "bug_location": "server/grpc_service.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage",
+    "Replication"
+  ],
+  "root_cause": "Incorrect snapshot task scheduling during leader crash, causing incomplete snapshot transfer and potential follower node panic when applying a truncated snapshot",
+  "issue_number": 1907,
+  "title": "Snapshot truncated if leader crashes during snapshot transferring"
+}

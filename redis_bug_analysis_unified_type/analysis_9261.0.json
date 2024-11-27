@@ -1,0 +1,11 @@
+{
+  "bug_location": "geo.c (Geospatial Commands Module)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "When the source key is empty, the GEOSEARCHSTORE command incorrectly returns an empty array instead of resetting the destination key and returning zero, which prevents expected key cleanup behavior",
+  "issue_number": 9261.0,
+  "title": "[BUG] GEOSEARCHSTORE returns an empty array when src points to an empty key"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Blocking Command Infrastructure (t_zset.c)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Security"
+  ],
+  "root_cause": "Incorrect key identification in BZMPOP blocking mechanism, causing unintended blocking on non-key arguments like timeout, count, min/max parameters instead of actual zset keys",
+  "issue_number": 10762.0,
+  "title": "[BUG] BZMPOP blocks on non key arguments"
+}

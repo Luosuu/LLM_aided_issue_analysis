@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis String Data Type Handler",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "The APPEND command creates a string key with zero length when appending an empty string to a non-existent key, which might be considered unexpected behavior by some users",
+  "issue_number": 9520.0,
+  "title": "[BUG] APPEND KEY \"\" creates an empty string"
+}

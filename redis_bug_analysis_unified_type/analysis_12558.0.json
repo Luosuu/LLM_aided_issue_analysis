@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Cluster Pub/Sub Subsystem",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Sharded Pub/Sub state is not properly cleaned up when a replica is moved between master nodes, causing subscription blocking and not receiving unsubscribe signals",
+  "issue_number": 12558.0,
+  "title": "[BUG] redis client do not recieve sunsubscribe when slave redis node replicate another master"
+}

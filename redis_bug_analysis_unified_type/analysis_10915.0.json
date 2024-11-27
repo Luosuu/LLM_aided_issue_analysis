@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis TLS Connection Handling",
+  "severity": 3,
+  "categories": [
+    "Network",
+    "Security",
+    "Upgrade"
+  ],
+  "root_cause": "Incompatibility with OpenSSL 3's stricter connection closure requirements, where unexpected EOF during connection termination causes client-side errors due to lack of proper SSL shutdown procedure",
+  "issue_number": 10915.0,
+  "title": "[BUG] redis-server TLS connection close breaks OpenSSL 3 clients"
+}

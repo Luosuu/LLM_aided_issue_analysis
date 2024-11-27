@@ -1,0 +1,12 @@
+{
+  "bug_location": "t_zset.c (Sorted Set Implementation)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Transaction"
+  ],
+  "root_cause": "Assertion failure during conversion of ziplist to skiplist when inserting elements into a sorted set via ZRANGESTORE, specifically related to handling binary keys and conversion thresholds",
+  "issue_number": 11416.0,
+  "title": "[CRASH] `ZRANGESTORE` with binary keys leads to crash"
+}

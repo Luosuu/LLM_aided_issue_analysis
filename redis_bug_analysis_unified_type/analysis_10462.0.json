@@ -1,0 +1,11 @@
+{
+  "bug_location": "t_zset.c in Redis core",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Memory"
+  ],
+  "root_cause": "Buffer overrun vulnerability caused by off-by-one error when copying string and null-terminating, potentially writing beyond buffer bounds when input length equals buffer size",
+  "issue_number": 10462.0,
+  "title": "[BUG] Buffer overrun in t_zset.c"
+}

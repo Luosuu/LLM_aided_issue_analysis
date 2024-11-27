@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Replication and Lua Scripting Engine",
+  "severity": 5,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect synchronization of multi-element queue operations between master and slave instances during Lua script execution, causing queue state desynchronization",
+  "issue_number": 614.0,
+  "title": "Lua script multi-element LPUSH / BRPOPLPUSH replication bug"
+}

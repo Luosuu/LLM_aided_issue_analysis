@@ -1,0 +1,11 @@
+{
+  "bug_location": "tikv_util::sys::cgroup",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Unwrapping an Option that is None when attempting to retrieve CPU cores from cgroup configuration",
+  "issue_number": 11920,
+  "title": "tikv-server --config-check failed caused by  \u2018called Option::unwrap() on a None value\u2019 when exec tiup-cluster deploy"
+}

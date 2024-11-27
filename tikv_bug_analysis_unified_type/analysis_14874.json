@@ -1,0 +1,12 @@
+{
+  "bug_location": "Raft Message Handling",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Incorrect handling of local MsgUnreachable Raft messages during leader eviction, causing unnecessary log messages without significant system impact",
+  "issue_number": 14874,
+  "title": "Too many \"cannot step raft local message\" when RejectRaftAppend occurs"
+}

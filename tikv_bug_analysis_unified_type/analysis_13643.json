@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/Apply",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect region metadata handling during BatchSplit and PrepareFlashback commands, causing region version inconsistency when write batches are not properly flushed",
+  "issue_number": 13643,
+  "title": "flashback ddl will hang when restart all pd nodes during flashback command"
+}

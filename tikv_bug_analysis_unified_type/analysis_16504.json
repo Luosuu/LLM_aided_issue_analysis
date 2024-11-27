@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect peer comparison logic in GC message handling causes stale peer to ignore garbage collection message when peer role changes, leading to resolve timestamp blocking",
+  "issue_number": 16504,
+  "title": "Stale peer may cause resolve ts doesn't push"
+}

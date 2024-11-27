@@ -1,0 +1,11 @@
+{
+  "bug_location": "Replication Offset Update Mechanism",
+  "severity": 3,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Redis updates replication offset on `commandProcessed` function assuming command completion, which is incorrect for module commands that execute in background threads and block clients",
+  "issue_number": 11608.0,
+  "title": "[BUG] Wait command is not working properly on blocking commands"
+}

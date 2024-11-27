@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis networking.c and memory management",
+  "severity": 3,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Inefficient memory allocation strategy in processMultibulkBuffer() function, where Redis pre-allocates memory for potential future arguments without considering the current argument's size, causing memory allocation beyond configured maxmemory limits",
+  "issue_number": 11830.0,
+  "title": "[BUG] fat argv caused oom reply even redis had enough memory"
+}

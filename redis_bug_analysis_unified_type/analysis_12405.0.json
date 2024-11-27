@@ -1,0 +1,11 @@
+{
+  "bug_location": "Build System / TLS Configuration",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "Redis build system expects OpenSSL from Homebrew, but macOS uses LibreSSL by default, causing header file inclusion failure on macOS with Apple Silicon (arm64)",
+  "issue_number": 12405.0,
+  "title": "[BUG] build with TLS on macOS fails"
+}

@@ -1,0 +1,11 @@
+{
+  "bug_location": "Snapshot/Raft Replication Component",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Improper state management during snapshot generation when channel capacity is exceeded, causing peer state to become stuck in 'Generating' status",
+  "issue_number": 1373,
+  "title": "Discard scan snapshot result may lead to invalid peer state"
+}

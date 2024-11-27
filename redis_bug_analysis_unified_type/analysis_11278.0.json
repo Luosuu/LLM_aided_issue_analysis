@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis ACL (Access Control List) module",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Config"
+  ],
+  "root_cause": "The `reset` operation for ACL users implicitly adds the `sanitize-payload` configuration, which is not part of the true default user state. This was introduced in a code change (commit #7807) where `sanitize-payload` was explicitly added during the reset process, deviating from the expected complete reset behavior.",
+  "issue_number": 11278.0,
+  "title": "[BUG] `ACL SETUSER ... reset` doesn't revert to true defaults"
+}

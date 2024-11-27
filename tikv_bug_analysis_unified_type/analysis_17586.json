@@ -1,0 +1,11 @@
+{
+  "bug_location": "metrics/grafana/common.py",
+  "severity": 2,
+  "categories": [
+    "Monitoring",
+    "CodeBug"
+  ],
+  "root_cause": "Incorrect metric calculation method using rate() instead of increase() for heatmap panel, which prevents accurate count representation",
+  "issue_number": 17586,
+  "title": "heatmap panel should use increase instead of rate"
+}

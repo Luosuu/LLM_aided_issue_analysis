@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/peer.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Election mechanism fails to handle leader selection under network partition when hibernate region is enabled, especially when election timeout is configured with large values",
+  "issue_number": 16429,
+  "title": "hibernate region may not able to reelection a new leader for a long when leader is partitioned"
+}

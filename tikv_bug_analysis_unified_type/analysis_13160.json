@@ -1,0 +1,12 @@
+{
+  "bug_location": "raftstore/store/fsm",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Storage"
+  ],
+  "root_cause": "Race condition in ApplyRes handling where mailbox full conditions can cause partial region split state inconsistency, leading to potential data integrity and region creation failures",
+  "issue_number": 13160,
+  "title": "raftstore: apply res may be dropped silently"
+}

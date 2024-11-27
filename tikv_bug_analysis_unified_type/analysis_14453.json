@@ -1,0 +1,11 @@
+{
+  "bug_location": "log-backup/subscription_manager.rs",
+  "severity": 2,
+  "categories": [
+    "CodeBug",
+    "Performance"
+  ],
+  "root_cause": "Unnecessary logging in log backup module when no backup task is active, causing excessive log generation",
+  "issue_number": 14453,
+  "title": "log-backup: verbose log printed even there isn't a log bakcup task"
+}

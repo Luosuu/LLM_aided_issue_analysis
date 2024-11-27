@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Protocol/Client Tracking Module",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Transaction",
+    "Replication"
+  ],
+  "root_cause": "Invalidation messages are being incorrectly embedded within multi-bulk replies during key expiration or flush operations, violating the expected protocol behavior of push messages always being top-level replies",
+  "issue_number": 8935.0,
+  "title": "Expiration based invalidation PUSH messages sometimes embedded within other replies. "
+}

@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Cluster Election Mechanism",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "The election mechanism allows a slave node to win multiple elections within a short time period (2*timeout) without proper epoch or vote validation, which violates the expected cluster failover protocol",
+  "issue_number": 8752.0,
+  "title": "[BUG] slave vote for  twice in 2*timeout  will won election"
+}

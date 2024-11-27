@@ -1,0 +1,11 @@
+{
+  "bug_location": "RaftStore",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "CodeBug"
+  ],
+  "root_cause": "Lack of retry mechanism for MsgAvailabilityRequest during region merge, causing merge process to stall when a critical message is dropped",
+  "issue_number": 15651,
+  "title": "[Dynamic Regions] merge is blocked if MsgAvailabilityRequest is dropped"
+}

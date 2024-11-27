@@ -1,0 +1,12 @@
+{
+  "bug_location": "Log Backup Service",
+  "severity": 4,
+  "categories": [
+    "Storage",
+    "Performance",
+    "Recovery"
+  ],
+  "root_cause": "TiKV OOM preventing periodic GC service point updates, causing checkpoint timestamp to be unexpectedly GCed",
+  "issue_number": 12515,
+  "title": "log backup checkpoint_ts get smaller than gc_safepoint"
+}

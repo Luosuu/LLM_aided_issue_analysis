@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis process initialization (setproctitle.c)",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Memory buffer overflow during process title initialization caused by incorrect memory address tracking of environment variables on Apple Silicon M1 architecture",
+  "issue_number": 8062.0,
+  "title": "[CRASH] Unable to start redis-server on Apple Silicon M1 as non-root"
+}

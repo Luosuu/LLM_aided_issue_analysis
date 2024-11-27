@@ -1,0 +1,11 @@
+{
+  "bug_location": "Redis Core Command Implementation (LPOP)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Incorrect reply type handling when using LPOP with count argument for non-existent lists, returning Null Bulk reply instead of Null array reply as specified in documentation",
+  "issue_number": 10089.0,
+  "title": "[BUG] LPOP key [count] returns Null Bulk reply instead of Null array reply."
+}

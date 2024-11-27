@@ -1,0 +1,12 @@
+{
+  "bug_location": "server.c (Replication and Command Processing)",
+  "severity": 3,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Assertion failure during client pause when a replica attempts to send a mutating command (like SET) during a failover process, violating an internal consistency check in the Redis server",
+  "issue_number": 8712.0,
+  "title": "[CRASH]The psync command will crash redis"
+}

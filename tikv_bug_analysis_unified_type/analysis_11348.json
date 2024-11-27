@@ -1,0 +1,11 @@
+{
+  "bug_location": "components/tikv_util/src/cgroupp.rs",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Storage"
+  ],
+  "root_cause": "Integer parsing error when handling cgroup limits larger than 2^63-1, causing parsing overflow",
+  "issue_number": 11348,
+  "title": "tidb-cluster can not run pod of basic-tikv-0"
+}

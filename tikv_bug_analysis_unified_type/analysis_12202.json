@@ -1,0 +1,12 @@
+{
+  "bug_location": "Timer/Future Handling",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Performance",
+    "Memory"
+  ],
+  "root_cause": "Potential race condition or illegal memory access causing a future to be polled after it has already returned Poll::Ready",
+  "issue_number": 12202,
+  "title": "Map must not be polled after it returned `Poll::Ready`"
+}

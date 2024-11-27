@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Quicklist Component",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Memory",
+    "Performance"
+  ],
+  "root_cause": "Potential memory allocation or size limit violation in quicklist implementation when handling large lists with non-standard configuration settings, specifically when list-max-ziplist-size is set to a negative value and large elements are inserted",
+  "issue_number": 12864.0,
+  "title": "[CRASH] in quicklist violate size limit"
+}

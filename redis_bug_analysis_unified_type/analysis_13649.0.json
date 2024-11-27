@@ -1,0 +1,13 @@
+{
+  "bug_location": "Redis RDB Background Save (BGSAVE) Process",
+  "severity": 4,
+  "categories": [
+    "Memory",
+    "CodeBug",
+    "Storage",
+    "Recovery"
+  ],
+  "root_cause": "Potential memory corruption causing invalid string object length (sdslen) during background save, leading to segmentation fault when attempting to allocate memory or access data structures",
+  "issue_number": 13649.0,
+  "title": "[CRASH] redis crashes due to corrupted in-memory data structure"
+}

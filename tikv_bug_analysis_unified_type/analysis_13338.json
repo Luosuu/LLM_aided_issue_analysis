@@ -1,0 +1,12 @@
+{
+  "bug_location": "RocksDB Compaction",
+  "severity": 2,
+  "categories": [
+    "Performance",
+    "Storage",
+    "Config"
+  ],
+  "root_cause": "Limited compaction threads (max-background-jobs) causing manual compaction to block auto-compaction and trigger write stalls",
+  "issue_number": 13338,
+  "title": "Manual compaction triggers flow control/write stall"
+}

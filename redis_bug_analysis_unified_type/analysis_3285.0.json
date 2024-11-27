@@ -1,0 +1,12 @@
+{
+  "bug_location": "Redis Sentinel",
+  "severity": 4,
+  "categories": [
+    "Replication",
+    "CodeBug",
+    "Transaction"
+  ],
+  "root_cause": "Connection management issue where pending_commands counter is not properly reset during instance reconnection, causing Sentinel to stop monitoring and reconfiguring the old master after failover",
+  "issue_number": 3285.0,
+  "title": "Master is not configured as Slave after failure and reboot"
+}

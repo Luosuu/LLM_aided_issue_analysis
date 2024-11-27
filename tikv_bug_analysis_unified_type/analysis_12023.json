@@ -1,0 +1,12 @@
+{
+  "bug_location": "RaftStore/StoreFsmDelegate",
+  "severity": 4,
+  "categories": [
+    "CodeBug",
+    "Replication",
+    "Transaction"
+  ],
+  "root_cause": "Assertion failure during handling of stale Raft messages after region merge, where a peer's ID does not match expected constraints during message processing",
+  "issue_number": 12023,
+  "title": "RaftStore panicked during jepsen bank test"
+}

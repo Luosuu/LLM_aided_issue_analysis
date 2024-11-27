@@ -1,0 +1,12 @@
+{
+  "bug_location": "Region Leader Election",
+  "severity": 5,
+  "categories": [
+    "Replication",
+    "Performance",
+    "Transaction"
+  ],
+  "root_cause": "When a TiKV node experiences an IO hang, the remaining peers cannot successfully elect a new leader, causing the entire region's QPS to drop to zero",
+  "issue_number": 14378,
+  "title": "[Dynamic Regions] qps drop to zero after inject one tikv io hang"
+}
