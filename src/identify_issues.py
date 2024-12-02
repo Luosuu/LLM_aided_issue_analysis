@@ -1,3 +1,6 @@
+## Filter isssue by keywords like `bug`` and `crash`
+## Input: issue details collected by GitHub API
+
 import pandas as pd
 import numpy as np
 from rank_issues import load_and_clean_data

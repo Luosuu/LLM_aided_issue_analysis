@@ -1,3 +1,6 @@
+## Rank isssue by comment number
+## Input: issue details collected by GitHub API
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime

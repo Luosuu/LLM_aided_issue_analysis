@@ -1,3 +1,6 @@
+## Collect issue overview in CSV by GitHub API
+## Input: GitHub Auth Token, URL of the repo.
+
 import requests
 import pandas as pd
 from datetime import datetime

@@ -3,7 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from rank_issues import load_and_clean_data
 
-def plot_comment_cdf(df):
+def main():
+    # Load and clean data
+    df = load_and_clean_data('redis_bug_issues.csv')
+
+    # Plot CDF
     """Create a CDF plot of comment distribution"""
     plt.figure(figsize=(12, 6))
 
@@ -31,15 +35,8 @@ def plot_comment_cdf(df):
     plt.legend()
 
     # Save the plot
-    plt.savefig('comment_distribution_cdf.png')
+    plt.savefig('redis_comment_distribution_cdf.png')
     plt.close()
-
-def main():
-    # Load and clean data
-    df = load_and_clean_data('redis_issues.csv')
-
-    # Plot CDF
-    plot_comment_cdf(df)
 
     # Calculate and print percentile statistics
     comments = df[~df['is_pull_request']]['comments']

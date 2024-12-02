@@ -1,3 +1,6 @@
+## Collect issue details by GitHub API
+## Input: GitHub Auth Token, URLs of issues.
+
 import requests
 import pandas as pd
 import time
